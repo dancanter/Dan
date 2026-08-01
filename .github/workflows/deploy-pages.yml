@@ -9,10 +9,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  # Needed only for the one-time automatic Pages-site creation below
-  # (actions/configure-pages with enablement: true); GitHub's Pages API
-  # requires this scope to create a new site, not just deploy to one.
-  administration: write
 
 concurrency:
   group: pages
