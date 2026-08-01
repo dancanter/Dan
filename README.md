@@ -2,7 +2,7 @@
 
 A prototype PWA that turns carefully-sourced maternal health research (NHS, NICE, SACN, NCT, and peer-reviewed meta-analyses) into a warm, accessible, day-by-day companion for pregnancy — instead of another wall of text to scroll through.
 
-**Live demo:** _add your deployed URL here after connecting the repo to Vercel/Netlify_
+**Live demo:** https://dancanter.github.io/Dan/ (auto-deployed on every push via GitHub Actions — see `.github/workflows/deploy-pages.yml`)
 
 ## The problem this solves
 
