@@ -42,6 +42,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: `${base}index.html`,
+        // Make a new deploy take over immediately instead of waiting for
+        // every open tab to close — otherwise a redeployed app can keep
+        // serving a stale cached version for a while after a fresh install.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
       devOptions: {
         enabled: false,
