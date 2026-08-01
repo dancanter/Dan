@@ -36,19 +36,19 @@ src/content/
   schema.ts        // the contract: Source, ContentItem, WeekPlan, Badge
   sources.ts        // one citation object per source — referenced by id, never inlined in prose
   topics/*.ts        // one file per research theme (iron, dairy, omega-3, hormones, stress, weight & body image, supplements, ...)
-  weeks/week-NN.ts   // one file per pregnancy week, referencing ContentItem ids from topics/
-  weeks/placeholders.ts // lightweight stand-ins for weeks not yet written, so the timeline never has gaps
+  weeks/week-NN.ts   // hand-curated weeks with bespoke daily tips/reads (see week-09.ts, week-20.ts)
+  weeks/rotation.ts  // every other week's content, assembled by rotating through the topics relevant to that trimester
   index.ts           // aggregates everything + a dev-time integrity check
 ```
 
-Adding a new research batch later means adding to a `topics/` file and referencing it from a `weeks/week-NN.ts` file — no component code changes required. A dev-time validation pass (`validateContentIntegrity`, also covered by `tests/content.integrity.test.ts`) checks that every source and content reference actually resolves, so a typo in a content file surfaces immediately instead of silently breaking a screen.
+Adding a new research batch later means adding a `ContentItem` to a `topics/` file and, usually, just adding its id to the relevant trimester list in `weeks/rotation.ts` — every week in that trimester picks it up automatically, no component code changes required. A dev-time validation pass (`validateContentIntegrity`, also covered by `tests/content.integrity.test.ts`, plus a check inside `rotation.ts` itself) checks that every source and content reference actually resolves, so a typo in a content file surfaces immediately instead of silently breaking a screen.
 
-Two weeks are fully populated end-to-end right now as a working demonstration:
+Two weeks are hand-curated end-to-end as a deeper worked example:
 
 - **Week 9** — hormones and "why symptoms happen" explainers, the stress & mental health module, and core supplement guidance.
 - **Week 20** — iron & anaemia, dairy & birth outcomes, dairy & iodine, oily fish/omega-3, fruit/veg/fibre gaps, and the weight & body image module.
 
-Every other week (4–8, 10–19, 21–42) has a lightweight placeholder so the timeline browses end-to-end without broken links, ready to be filled in the same way.
+Every other week (4–8, 10–19, 21–42) is assembled from the same underlying `ContentItem`s via `weeks/rotation.ts`, grouped by trimester (a nausea/folic-acid-heavy rotation for trimester 1, iron/dairy/weight for trimester 2, fatigue/breathlessness/swelling for trimester 3) — so no week is ever empty, whatever due date someone enters.
 
 ## Engagement, without guilt
 
