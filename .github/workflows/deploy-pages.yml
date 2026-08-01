@@ -9,6 +9,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Needed only for the one-time automatic Pages-site creation below
+  # (actions/configure-pages with enablement: true); GitHub's Pages API
+  # requires this scope to create a new site, not just deploy to one.
+  administration: write
 
 concurrency:
   group: pages
@@ -32,6 +36,8 @@ jobs:
       # served as the 404 page — the client-side router then takes over.
       - run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
