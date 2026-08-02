@@ -1,0 +1,1877 @@
+<title>Full System — Training, Recovery, Nutrition</title>
+<style>
+/*@FONTS@*/
+
+:root{
+  --bg:#12181B; --surface:#1B2327; --surface-2:#232D32; --surface-3:#2B363B;
+  --line:#33403F; --line-soft:#28322F;
+  --chalk:#F2EFE9; --muted:#8B9B99; --muted-2:#677877;
+  --track:#C4432B; --track-bright:#E2603F; --track-dim:#7A2C1C; --track-wash:#2A1D19;
+  --go:#6FCF97; --go-dim:#2B3F34; --go-wash:#1B2723;
+  --warn:#E3A55C; --warn-dim:#3D3225;
+  --r:4px;
+  --f-display:'Bebas Neue', 'Arial Narrow', sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, monospace;
+  --f-body:'Inter', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--chalk);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding:18px 16px 72px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--track-bright);outline-offset:2px;border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:20px 20px 18px 30px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);overflow:hidden;margin-bottom:16px}
+.hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;
+  background:repeating-linear-gradient(to bottom,var(--track) 0 14px,var(--chalk) 14px 18px,var(--track) 18px 32px,transparent 32px 40px)}
+.eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--track-bright);margin:0 0 5px}
+h1{font-family:var(--f-display);font-size:40px;letter-spacing:.02em;line-height:.92;margin-bottom:14px}
+.goal-row{display:flex;gap:8px;flex-wrap:wrap}
+.goal-chip{font-family:var(--f-mono);font-size:12.5px;background:var(--surface-2);border:1px solid var(--line);padding:6px 10px;border-radius:3px;font-variant-numeric:tabular-nums}
+.goal-chip b{color:var(--track-bright);font-weight:600}
+.hero-meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hero-meta .val{color:var(--chalk);font-size:19px;font-weight:600}
+.blockbar{margin-top:14px}
+.blockbar-track{height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;display:flex;gap:2px}
+.blockbar-seg{flex:1;background:var(--surface-3);border-radius:1px}
+.blockbar-seg.past{background:var(--track-dim)}
+.blockbar-seg.now{background:var(--track)}
+.blockbar-seg.pb{background:var(--surface-3);box-shadow:inset 0 0 0 1px var(--track-dim)}
+.blockbar-label{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:7px;display:flex;justify-content:space-between;gap:10px}
+.linkish{background:none;border:none;color:var(--track-bright);font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;padding:11px 12px;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--chalk)}
+.tab[aria-selected="true"]{color:var(--chalk);border-bottom-color:var(--track)}
+.panel{display:none}
+.panel.active{display:block;animation:fade .18s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* ---------- blocks ---------- */
+section.block{margin-bottom:26px}
+.block-title{font-family:var(--f-display);font-size:21px;letter-spacing:.04em;color:var(--track-bright);display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.block-title .tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;background:var(--surface-2);border:1px solid var(--line);padding:4px 8px;border-radius:3px;color:var(--muted);font-variant-numeric:tabular-nums}
+.block-sub{font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.55}
+.block-sub b{color:var(--chalk);font-weight:600}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.note{background:var(--surface);border:1px solid var(--line);border-left-width:3px;border-radius:var(--r);padding:11px 14px;font-size:12.8px;line-height:1.55;color:var(--muted)}
+.note b{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--track-bright);margin-bottom:5px}
+.note.good{border-left-color:var(--go);background:linear-gradient(90deg,var(--go-wash),var(--surface) 60%)}
+.note.good b{color:var(--go)}
+.note.warn{border-left-color:var(--warn)}
+.note.warn b{color:var(--warn)}
+.note.stop{border-left-color:var(--track);background:linear-gradient(90deg,var(--track-wash),var(--surface) 60%)}
+.note.flat{border-left-color:var(--line)}
+.note.flat b{color:var(--muted)}
+
+/* ---------- day cards ---------- */
+.day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;position:relative}
+.day-card.done{border-color:var(--go-dim);background:linear-gradient(180deg,var(--surface),var(--go-wash))}
+.day-card.today{border-color:var(--track-dim);box-shadow:inset 3px 0 0 var(--track)}
+.day-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.day-name{font-family:var(--f-display);font-size:23px;letter-spacing:.04em;line-height:1}
+.day-name span{color:var(--muted);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.03em;margin-left:9px}
+.today-pill{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--track-bright);border:1px solid var(--track-dim);padding:2px 6px;border-radius:2px;margin-left:8px;vertical-align:2px}
+.session-desc{font-size:14px;margin:6px 0 8px;line-height:1.45}
+.splits{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.splits b{color:var(--chalk);font-weight:600}
+.row-inputs{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* ---------- controls ---------- */
+input[type=text],input[type=date],input[type=number],select,textarea{
+  background:var(--surface-2);border:1px solid var(--line);color:var(--chalk);
+  font-family:var(--f-mono);font-size:12.5px;padding:8px 9px;border-radius:3px}
+textarea{font-family:var(--f-body);font-size:13.5px;width:100%;resize:vertical;line-height:1.5}
+input::placeholder,textarea::placeholder{color:var(--muted-2)}
+.row-inputs input[type=text]{flex:1;min-width:96px}
+.btn{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);padding:8px 12px;border-radius:3px;cursor:pointer;white-space:nowrap}
+.btn:hover{color:var(--chalk);border-color:var(--muted-2)}
+.btn.on{background:var(--go-dim);color:var(--go);border-color:var(--go)}
+.btn.primary{background:var(--track);border-color:var(--track);color:#fff}
+.btn.primary:hover{background:var(--track-bright);border-color:var(--track-bright)}
+.btn.ghost{border-style:dashed}
+.add-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.add-row input{flex:1;min-width:110px}
+
+/* ---------- log lists ---------- */
+.log-item{display:flex;justify-content:space-between;gap:12px;font-family:var(--f-mono);font-size:12px;padding:8px 2px;border-bottom:1px solid var(--line-soft);color:var(--muted);font-variant-numeric:tabular-nums}
+.log-item .l-main{color:var(--chalk)}
+.log-item .l-body{font-family:var(--f-body);font-size:12.8px;color:var(--muted);text-align:right}
+.empty{color:var(--muted-2);font-size:12.5px;font-family:var(--f-mono);padding:10px 0}
+.del{background:none;border:none;color:var(--muted-2);cursor:pointer;font-family:var(--f-mono);font-size:12px;padding:0 4px;line-height:1}
+.del:hover{color:var(--track-bright)}
+
+/* ---------- tables ---------- */
+.tbl-scroll{overflow-x:auto}
+table.ref{width:100%;border-collapse:collapse;font-size:12.8px;font-variant-numeric:tabular-nums}
+table.ref th,table.ref td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.ref th{font-family:var(--f-mono);font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.07em;font-weight:500}
+table.ref td.hl{color:var(--track-bright);font-family:var(--f-mono);font-size:12px}
+table.ref tr:last-child td{border-bottom:none}
+table.ref td b{font-weight:600}
+table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:1.5;margin-top:3px}
+
+/* ---------- grids ---------- */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:520px){.grid-2{grid-template-columns:1fr}}
+.food-cat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;font-size:12.5px;line-height:1.6;color:var(--muted)}
+.food-cat b{color:var(--track-bright);display:block;font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;margin-bottom:4px;letter-spacing:.06em}
+
+/* ---------- checklist ---------- */
+.check-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 13px;margin-bottom:6px;cursor:pointer;width:100%;text-align:left;color:inherit}
+.check-item.on{background:linear-gradient(90deg,var(--go-wash),var(--surface) 70%);border-color:var(--go-dim)}
+.check-box{width:18px;height:18px;border-radius:3px;border:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--go)}
+.check-item.on .check-box{border-color:var(--go);background:var(--go-dim)}
+.check-label{flex:1;font-size:13.5px}
+.check-label b{display:block;font-weight:600}
+.check-label span{color:var(--muted);font-size:11.8px;display:block;margin-top:1px}
+
+/* streak grid */
+.streak-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-bottom:8px}
+.sq{aspect-ratio:1;border-radius:2px;background:var(--surface-2);border:1px solid var(--line-soft)}
+.sq.today{outline:1px solid var(--track);outline-offset:1px}
+
+/* ---------- benchmark bars ---------- */
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:7px}
+.bench-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+.bench-name{font-family:var(--f-display);font-size:19px;letter-spacing:.04em}
+.bench-name em{font-family:var(--f-mono);font-size:10.5px;font-style:normal;color:var(--muted);letter-spacing:.05em;margin-left:8px;text-transform:uppercase}
+.bench-now{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bench-now .to-go{color:var(--muted);font-size:11.5px}
+.bar{position:relative;height:8px;background:var(--surface-3);border-radius:2px;overflow:hidden}
+.bar-fill{position:absolute;left:0;top:0;bottom:0;background:var(--track);border-radius:2px;transition:width .4s ease}
+.bar-fill.hit{background:var(--go)}
+.bar-scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:10px;color:var(--muted-2);margin-top:5px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+/* ---------- charts ---------- */
+.chart-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 8px;margin-bottom:10px}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.chart-title{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.chart-val{font-family:var(--f-mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.chart-val small{color:var(--muted);font-size:11px;font-weight:400;margin-left:6px}
+.chart-tip{position:absolute;pointer-events:none;background:var(--surface-3);border:1px solid var(--line);border-radius:3px;padding:5px 8px;font-family:var(--f-mono);font-size:11px;color:var(--chalk);white-space:nowrap;opacity:0;transition:opacity .1s;font-variant-numeric:tabular-nums;z-index:5}
+.chart-legend{display:flex;gap:14px;font-family:var(--f-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:2px;flex-wrap:wrap}
+.swatch{display:inline-block;width:14px;height:2px;vertical-align:3px;margin-right:5px}
+.swatch.dash{height:0;border-top:2px dashed currentColor}
+.swatch.dot{width:8px;height:8px;border-radius:50%;background:currentColor;vertical-align:0}
+
+/* ---------- timer ---------- */
+.clock{font-family:var(--f-mono);font-size:clamp(46px,15vw,80px);font-weight:600;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-align:center;margin:6px 0 2px}
+.clock.rest{color:var(--warn)}
+.clock.rest.soon{color:var(--track-bright)}
+.clock-mode{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;text-align:center;color:var(--muted);margin-bottom:14px}
+.clock-mode b{color:var(--chalk)}
+.timer-btns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.big-btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:16px 10px;border-radius:3px;border:1px solid var(--line);background:var(--surface-2);color:var(--chalk);cursor:pointer}
+.big-btn.go{background:var(--track);border-color:var(--track);color:#fff}
+.big-btn.go:hover{background:var(--track-bright)}
+.big-btn:disabled{opacity:.35;cursor:not-allowed}
+.lap-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;font-family:var(--f-mono);font-size:12.5px;padding:8px 2px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.lap-row .n{color:var(--muted)}
+.lap-row .d{text-align:right;font-weight:600}
+.d.up{color:var(--track-bright)}
+.d.dn{color:var(--go)}
+.d.ok{color:var(--muted)}
+
+/* ---------- routine steps ---------- */
+.routine-step{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:11px 14px;margin-bottom:6px}
+.step-num{font-family:var(--f-mono);font-size:10.5px;color:var(--track-bright);width:16px;flex-shrink:0;padding-top:2px}
+.step-text{flex:1;font-size:13.5px}
+.step-text b{font-weight:600}
+.step-text span{color:var(--muted);font-size:11.8px;display:block;margin-top:2px}
+.toggle-row{display:flex;gap:7px;margin-bottom:14px}
+.toggle-btn{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);padding:9px 14px;border-radius:3px;cursor:pointer;flex:1}
+.toggle-btn[aria-pressed="true"]{background:var(--track);color:#fff;border-color:var(--track)}
+
+/* ---------- footer ---------- */
+.statusbar{position:fixed;left:0;right:0;bottom:0;background:rgba(18,24,27,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 16px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);display:flex;justify-content:center;gap:8px;align-items:center;letter-spacing:.04em}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--go);flex-shrink:0}
+.dot.bad{background:var(--track)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">13-week block · 400m / mile / 5K</p>
+    <h1>TRAINING · RECOVERY · NUTRITION</h1>
+    <div class="goal-row">
+      <div class="goal-chip">400m <b>sub-55</b></div>
+      <div class="goal-chip">Mile <b>sub-4:50</b></div>
+      <div class="goal-chip">5K <b>sub-16:50</b></div>
+    </div>
+    <div class="hero-meta">
+      <span>Weight <span class="val" id="heroWeight">—</span> lb <span style="color:var(--muted)">→ goal 122–124</span></span>
+      <span id="heroTrend"></span>
+    </div>
+    <div class="blockbar" id="blockBar"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" aria-selected="true" data-tab="today">Today</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="week">This Week</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="timer">Timer</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="progress">Progress</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="nutrition">Nutrition</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="protocols">Protocols</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="skincare">Skincare</button>
+  </nav>
+
+  <!-- ============ TODAY ============ -->
+  <div class="panel active" id="panel-today" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Today's Session <span class="tag" id="todayDateTag"></span></h2>
+      <div id="todaySession"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Readiness</h2>
+      <div id="readinessBox"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Recovery &amp; Wellbeing <span class="tag" id="todayCount">0/11</span> <span class="tag" id="streakTag"></span></h2>
+      <div id="checklist"></div>
+      <div class="chart-wrap" style="margin-top:12px">
+        <div class="chart-head"><span class="chart-title">Last 28 days</span><span class="chart-title" id="gridSummary"></span></div>
+        <div class="streak-grid" id="streakGrid"></div>
+        <div class="chart-legend"><span>Darker = more of the day's list ticked</span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Weekly Reflection <span class="tag" id="reflWeekTag"></span></h2>
+      <p class="block-sub">One note per training week — energy, sleep, how the sessions actually felt.</p>
+      <textarea id="reflectionInput" rows="3" placeholder="How's this week actually going?"></textarea>
+      <div style="margin-top:8px"><button class="btn primary" id="saveReflectionBtn">Save this week's note</button></div>
+      <div id="reflectionLog" style="margin-top:12px"></div>
+    </section>
+  </div>
+
+  <!-- ============ THIS WEEK ============ -->
+  <div class="panel" id="panel-week" role="tabpanel">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+      <label for="weekSelect" class="chart-title">Week</label>
+      <select id="weekSelect"></select>
+      <span class="tag" id="phaseTag" style="font-family:var(--f-mono);font-size:10.5px;background:var(--surface-2);border:1px solid var(--line);padding:5px 9px;border-radius:3px;color:var(--track-bright);text-transform:uppercase;letter-spacing:.06em"></span>
+      <span class="tag" id="weekDone" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted)"></span>
+    </div>
+    <p class="block-sub" id="phaseNote"></p>
+    <div id="weekList"></div>
+  </div>
+
+  <!-- ============ TIMER ============ -->
+  <div class="panel" id="panel-timer" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Interval Timer</h2>
+      <p class="block-sub" id="timerSource">Targets load from today's session. Tap <b>Lap</b> at the end of each rep — the recovery clock starts itself.</p>
+
+      <div class="card">
+        <div class="clock" id="clockMain">0:00.0</div>
+        <div class="clock-mode" id="clockMode">Ready</div>
+        <div class="timer-btns">
+          <button class="big-btn go" id="btnPrimary">Start</button>
+          <button class="big-btn" id="btnStop" disabled>Pause</button>
+          <button class="big-btn" id="btnReset">Reset</button>
+        </div>
+        <div class="row-inputs" style="margin-bottom:4px">
+          <label class="chart-title" style="min-width:64px" for="tRep">Rep target</label>
+          <input type="text" id="tRep" placeholder="72 or 3:22" style="width:88px">
+          <label class="chart-title" style="min-width:64px" for="tRest">Recovery</label>
+          <input type="text" id="tRest" placeholder="90 or 2:00" style="width:88px">
+          <button class="btn" id="btnSound" aria-pressed="true">Sound on</button>
+        </div>
+        <p class="block-sub" style="margin:8px 0 0">Enter seconds (<code>72</code>) or mm:ss (<code>3:22</code>). Leave recovery blank for a plain lap timer.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Reps <span class="tag" id="lapSummary"></span></h2>
+      <div id="lapList"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Pace Converter</h2>
+      <p class="block-sub">Put in a distance and a time — get the pace and every split that matters at it.</p>
+      <div class="card">
+        <div class="add-row" style="margin-top:0">
+          <input type="text" id="paceDist" placeholder="Distance in m, e.g. 1609" value="1609">
+          <input type="text" id="paceTime" placeholder="Time, e.g. 4:50" value="4:50">
+          <button class="btn primary" id="paceBtn">Convert</button>
+        </div>
+        <div class="add-row">
+          <button class="btn ghost" data-preset="400:54.9">400 @ 54.9</button>
+          <button class="btn ghost" data-preset="1609:290">Mile @ 4:50</button>
+          <button class="btn ghost" data-preset="5000:1010">5K @ 16:50</button>
+        </div>
+        <div id="paceOut" style="margin-top:12px"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ PROGRESS ============ -->
+  <div class="panel" id="panel-progress" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Benchmarks</h2>
+      <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
+      <div id="benchList"></div>
+      <div class="add-row">
+        <select id="pbDistance">
+          <option value="200">200m</option><option value="400">400m</option>
+          <option value="800">800m</option><option value="1000">1000m</option>
+          <option value="mile">Mile</option><option value="5k">5K</option>
+        </select>
+        <input type="text" id="pbTimeInput" placeholder="e.g. 4:51, 57.2, or 3:15/km">
+        <button class="btn primary" id="pbBtn">Log test</button>
+      </div>
+      <div id="pbError"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Test History</h2>
+      <div id="pbHistory"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Morning Heart Rate</h2>
+      <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
+      <div id="hrChart"></div>
+      <div id="hrLog"></div>
+      <div class="add-row">
+        <input type="text" id="hrInput" inputmode="numeric" placeholder="Morning HR, e.g. 48">
+        <button class="btn primary" id="hrBtn">Log</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Weight</h2>
+      <div id="trendReadout"></div>
+      <div id="weightChart"></div>
+      <div id="weightLog"></div>
+      <div class="add-row">
+        <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
+        <button class="btn primary" id="weightBtn">Log</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Session History</h2>
+      <div id="sessionHistory"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Setup</h2>
+      <p class="block-sub">Set the Sunday you start Week 1 and the app tracks which week and day you're on by itself.</p>
+      <div class="card">
+        <div class="add-row" style="margin-top:0;align-items:center">
+          <label class="chart-title" for="startDate" style="min-width:96px">Block start (Sun)</label>
+          <input type="date" id="startDate">
+          <button class="btn" id="clearStart">Clear</button>
+        </div>
+        <p class="block-sub" id="startInfo" style="margin:10px 0 0"></p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Backup</h2>
+      <p class="block-sub">Everything is saved in this browser as you type. Export a file now and then — it's the only copy that survives clearing your browser data or moving to a new phone.</p>
+      <div class="card">
+        <div class="add-row" style="margin-top:0">
+          <button class="btn primary" id="exportBtn">Export backup</button>
+          <button class="btn" id="importBtn">Import backup</button>
+          <button class="btn" id="showTextBtn">Show as text</button>
+          <input type="file" id="importFile" accept=".json,application/json" class="sr">
+        </div>
+        <div id="backupMsg"></div>
+        <div id="backupText" style="display:none;margin-top:10px">
+          <textarea id="backupArea" rows="6" spellcheck="false" placeholder="Paste a backup here and press Restore"></textarea>
+          <div class="add-row"><button class="btn" id="restoreTextBtn">Restore from pasted text</button></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ NUTRITION ============ -->
+  <div class="panel" id="panel-nutrition" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Where You Are</h2>
+      <div id="calStep"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Daily Staples</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <thead><tr><th>Food</th><th>Amount</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Eggs</td><td class="hl">3–5</td><td>Protein, cholesterol, choline</td></tr>
+            <tr><td>Olive oil</td><td class="hl">2–3 tbsp</td><td>MUFA, anti-inflammatory</td></tr>
+            <tr><td>Leafy greens</td><td class="hl">1–2 cups</td><td>Magnesium, potassium</td></tr>
+            <tr><td>Greek yoghurt / kefir</td><td class="hl">1–2 servings</td><td>Gut health, protein</td></tr>
+            <tr><td>Berries</td><td class="hl">1 handful</td><td>Antioxidants</td></tr>
+            <tr><td>Garlic</td><td class="hl">1–2 cloves</td><td>Allicin, LH support</td></tr>
+            <tr><td>Potato / sweet potato</td><td class="hl">Daily, more on hard days</td><td>Glycogen, potassium</td></tr>
+            <tr><td>Organic chicken breast</td><td class="hl">Rotate in</td><td>Lean protein, light on digestion</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Weekly Rotation</h2>
+      <div class="grid-2">
+        <div class="food-cat"><b>Testosterone</b>Oysters 1–2× · grass-fed beef 3–4× · avocado 3–4× · pumpkin seeds 3–4× · raw honey</div>
+        <div class="food-cat"><b>Recovery</b>Wild salmon 2–3× · bone broth · chicken breast · rice/oats/potato around sessions</div>
+        <div class="food-cat"><b>Anti-aging</b>Brazil nuts 3–4× · dark chocolate/cacao · berries · olive oil</div>
+        <div class="food-cat"><b>Facial definition</b>Coconut water · banana · leafy greens · cruciferous veg 4–5×</div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Timing</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <thead><tr><th>Day type</th><th>Carbs</th><th>Focus</th></tr></thead>
+          <tbody>
+            <tr><td>Hard run — Sun / Tue / Thu</td><td class="hl">200–210g</td><td>Oats, rice or potato before; protein + carb within 2h after</td></tr>
+            <tr><td>Upper body / rest</td><td class="hl">150–170g</td><td>Protein and fat steady, carbs lower</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Recovery — No Shake Needed</h2>
+      <div class="grid-2">
+        <div class="food-cat"><b>Option 1</b>Eggs + rice or potato + berries</div>
+        <div class="food-cat"><b>Option 2</b>Greek yoghurt + honey + banana</div>
+        <div class="food-cat"><b>Option 3</b>Grass-fed beef + sweet potato</div>
+        <div class="food-cat"><b>Option 4 — fastest</b>Kefir + oats</div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Reverse Diet — Weeks 5–8</h2>
+      <p class="block-sub">Starts once 122–124 lb is confirmed flat for two weeks. Estimated maintenance <b>~2,300 kcal</b> — confirm it against the weight trend rather than following the table blindly to the end.</p>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <thead><tr><th>Step</th><th>Calories</th><th>Timing</th></tr></thead>
+          <tbody id="reverseTable"></tbody>
+        </table>
+      </div>
+      <p class="block-sub" style="margin-top:8px">Still flat at 2,300? Keep going in +75 steps until the 7-day average trends up. Protein (155–160g) and the fat floor (55–60g) stay fixed — every added calorie comes from carbs.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Reading the Weight Trend</h2>
+      <p class="block-sub">Always the 7-day average, never a single day. Applies from 122–124 lb onward.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="note flat"><b>Still losing — keep going</b><span style="font-family:var(--f-mono);font-size:11.5px;display:block;margin:2px 0 4px">123.4 → 122.9 → 122.5</span>Consistent drift down 0.3–1.0 lb/week. Normal cutting rate.</div>
+        <div class="note good"><b>Maintenance — this is the target</b><span style="font-family:var(--f-mono);font-size:11.5px;display:block;margin:2px 0 4px">123.0 → 123.2 → 122.9 → 123.1</span>Bouncing within ±0.5 lb, no clear direction, over 3–4 weeks. Hold this calorie number.</div>
+        <div class="note warn"><b>Past maintenance — step back</b><span style="font-family:var(--f-mono);font-size:11.5px;display:block;margin:2px 0 4px">123.0 → 123.6 → 124.3</span>Two or more consecutive weeks up 0.5+ lb. Drop back 75 kcal to the previous step.</div>
+        <div class="note stop"><b>The trap — early glycogen refill</b><span style="font-family:var(--f-mono);font-size:11.5px;display:block;margin:2px 0 4px">122.8 → 123.6 (looks alarming) → 123.5 → 123.4 (settles)</span>That week-2 jump is water and glycogen, not fat. It settles in 1–2 weeks. Do not abort the reverse because of it — this is the most common way people stall themselves.</div>
+      </div>
+      <p class="block-sub" style="margin-top:10px"><b>When to increase:</b> flat or down 4–5 days at the current step → +75 kcal. Just increased and the weight ticked up → wait another 4–5 days before judging. Up two weeks running after the refill period → you've found maintenance, stop.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Targets</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <tbody>
+            <tr><td>Calories</td><td class="hl" id="targetKcal">1,850 kcal</td></tr>
+            <tr><td>Protein</td><td class="hl">155–160g</td></tr>
+            <tr><td>Fat floor</td><td class="hl">55–60g</td></tr>
+            <tr><td>Water</td><td class="hl">3–3.5L</td></tr>
+            <tr><td>Sodium</td><td class="hl">2,300–3,000mg</td></tr>
+            <tr><td>Potassium</td><td class="hl">3,500–4,700mg</td></tr>
+            <tr><td>Steps</td><td class="hl">12,500–13,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ PROTOCOLS ============ -->
+  <div class="panel" id="panel-protocols" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Morning</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td><b>Daylight within 30–60 min of waking</b><span class="sub">10–20 min outside. Anchors circadian rhythm so the cortisol curve peaks in the morning instead of the evening. The single best non-drug lever for that night's sleep.</span></td></tr>
+        <tr><td><b>Morning HR reading</b><span class="sub">Before getting out of bed. Log it on the Progress tab — readiness uses it.</span></td></tr>
+        <tr><td><b>Delay caffeine 60–90 min after waking</b><span class="sub">Avoids the afternoon crash and blunts less of your natural cortisol peak. Cut caffeine entirely 8–10h before bed.</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Warm-up — Speed &amp; Mile Days</h2>
+      <p class="block-sub">Non-negotiable before Tuesday and Thursday. This is what stops a hamstring ending the whole block.</p>
+      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>10–15 min easy jog</b></span></div>
+      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Dynamic drills</b><span>Leg swings, high knees, A-skips, butt kicks</span></span></div>
+      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>3–4 build-ups</b><span>Progressively faster, finishing at target pace</span></span></div>
+      <div class="routine-step"><span class="step-num">4</span><span class="step-text"><b>2 min rest, then rep 1</b></span></div>
+      <p class="block-sub" style="margin-top:8px">Cool-down: 5–10 min easy jog or walk after every hard session.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Nervous System &amp; Stress</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td><b>Meditation, 10 min</b><span class="sub">Already in your routine. Directly lowers cortisol — the mechanism behind the facial puffiness you track.</span></td></tr>
+        <tr><td><b>Nasal breathing on easy runs</b><span class="sub">Forces you to actually run easy. If you can't hold it, you're going too hard on a day meant to be recovery.</span></td></tr>
+        <tr><td><b>Physiological sigh, 2–3 rounds</b><span class="sub">Double inhale through the nose, long slow exhale through the mouth. Fastest way to drop acute stress — useful between hard reps and before bed.</span></td></tr>
+        <tr><td><b>Post-session downregulation, 5 min</b><span class="sub">Slow breathing lying down after hard sessions. Shifts you out of sympathetic drive faster, so less cortisol lingers afterwards.</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Sleep</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td><b>No phone before bed</b><span class="sub">The highest-value habit on this whole list for you specifically.</span></td></tr>
+        <tr><td><b>Cool the room</b><span class="sub">Core temperature has to drop to enter deep sleep. Fan, window, cooler bedding — matters most in hot weather.</span></td></tr>
+        <tr><td><b>Dim lights 1–2h before bed</b><span class="sub">Bright overhead light suppresses melatonin onset.</span></td></tr>
+        <tr><td><b>Consistent wake time</b><span class="sub">More important than a consistent bedtime for circadian stability.</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Recovery &amp; Longevity</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td><b>Mobility, 10 min daily</b><span class="sub">Hip flexors, hamstrings, calves, ankles — the four that limit sprint mechanics and tighten up from sitting to study.</span></td></tr>
+        <tr><td><b>Easy walking after hard sessions</b><span class="sub">Clears metabolites and adds to your steps without adding training stress.</span></td></tr>
+        <tr><td><b>Sauna if you can get one</b><span class="sub">Genuine cardiovascular and longevity evidence, and heat adaptation helps running in warm weather. Non-hard days only, and hydrate properly around it.</span></td></tr>
+        <tr><td><b>Deliberate deload weeks</b><span class="sub">Weeks 4, 8 and 12 are built in. Taking them is what lets the adaptation land — skipping them is the most common way a block like this falls apart.</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">When to Pull Back</h2>
+      <p class="block-sub">Any two of these together means back off, not push harder. A week of backing off costs you almost nothing; pushing through costs you the block.</p>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td>Target pace missed on <b>rep 1</b> of a session — not rep 5, that's normal</td></tr>
+        <tr><td>Session-feel ratings climbing week to week at the same pace</td></tr>
+        <tr><td>Morning HR 5+ bpm above baseline for 3+ days running</td></tr>
+        <tr><td>Facial puffiness returning despite good sleep and sodium/potassium balance</td></tr>
+        <tr><td>Sleep quality or motivation dropping off</td></tr>
+        <tr><td>Soreness that doesn't clear within 48h</td></tr>
+      </tbody></table></div>
+      <p class="block-sub" style="margin-top:8px"><b>The response:</b> drop max-speed work entirely for 2–3 weeks, space the Tuesday speed session to every 10 days, add a rest day. Keep calories where they are — never cut further as a response to fatigue. If it persists past two weeks, bring the deload week forward rather than waiting for the schedule.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Worth Being Honest About</h2>
+      <div class="note flat"><b>The margin vs the foundation</b>Cold plunges post-training are popular but blunt the muscle adaptation signal from resistance work — if you use cold, keep it well away from lifting. And nothing on this list outranks sleep, adequate calories and taking rest days. Protocols are the margin; those three are the foundation.</div>
+    </section>
+  </div>
+
+  <!-- ============ SKINCARE ============ -->
+  <div class="panel" id="panel-skincare" role="tabpanel">
+    <div class="toggle-row">
+      <button class="toggle-btn" id="btnAM" aria-pressed="true">AM</button>
+      <button class="toggle-btn" id="btnPM" aria-pressed="false">PM</button>
+    </div>
+    <div id="routineAM">
+      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
+      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Squalane</b><span>Barrier support and hydration</span></span></div>
+      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>SPF50</b><span>Every day, non-negotiable</span></span></div>
+    </div>
+    <div id="routinePM" style="display:none">
+      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
+      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Retinol — 2× a week only</b><span>Otherwise squalane or beef tallow</span></span></div>
+      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>La Roche-Posay balm</b><span>On retinol nights, to buffer irritation</span></span></div>
+    </div>
+
+    <section class="block" style="margin-top:18px">
+      <h2 class="block-title">Retinol Nights <span class="tag" id="retinolTag"></span></h2>
+      <p class="block-sub">Two a week, spaced. Tap when you've used it tonight — this is the one thing here that's easy to lose track of.</p>
+      <div class="add-row" style="margin-top:0"><button class="btn primary" id="retinolBtn">Log tonight's retinol</button></div>
+      <div id="retinolLog" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Notes</h2>
+      <div class="note flat"><b>Deliberately short</b>Centella, BOJ niacinamide and a separate hydrating serum were dropped to reduce irritation load. Vitamin C is left out for the same reason while you're on retinol.</div>
+    </section>
+  </div>
+</div>
+
+<div class="statusbar"><span class="dot" id="saveDot"></span><span id="saveText">Loading…</span></div>
+
+<script>
+"use strict";
+
+/* ================= storage ================= */
+var DB = (function () {
+  var PRE = "fs2::", mem = {}, ok = true;
+  try { localStorage.setItem(PRE + "__t", "1"); localStorage.removeItem(PRE + "__t"); }
+  catch (e) { ok = false; }
+  var lastSaved = null;
+  function raw(k) { return ok ? localStorage.getItem(PRE + k) : (k in mem ? mem[k] : null); }
+  return {
+    get available() { return ok; },
+    get lastSaved() { return lastSaved; },
+    get: function (k, fb) {
+      var v = raw(k);
+      if (v == null) return fb;
+      try { return JSON.parse(v); } catch (e) { return fb; }
+    },
+    set: function (k, v) {
+      var s = JSON.stringify(v);
+      try { if (ok) localStorage.setItem(PRE + k, s); else mem[k] = s; }
+      catch (e) { ok = false; mem[k] = s; }
+      lastSaved = new Date();
+      renderSaveStatus();
+    },
+    remove: function (k) {
+      try { if (ok) localStorage.removeItem(PRE + k); else delete mem[k]; } catch (e) {}
+      lastSaved = new Date(); renderSaveStatus();
+    },
+    keys: function () {
+      var out = [];
+      if (ok) {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf(PRE) === 0) out.push(k.slice(PRE.length));
+        }
+      } else { for (var m in mem) out.push(m); }
+      return out;
+    },
+    dump: function () {
+      var o = {}; this.keys().forEach(function (k) { o[k] = raw(k); }); return o;
+    },
+    restore: function (obj) {
+      var self = this;
+      this.keys().forEach(function (k) { self.remove(k); });
+      Object.keys(obj).forEach(function (k) {
+        var v = obj[k];
+        try { if (ok) localStorage.setItem(PRE + k, v); else mem[k] = v; } catch (e) { mem[k] = v; }
+      });
+      lastSaved = new Date();
+    }
+  };
+})();
+
+function renderSaveStatus() {
+  var dot = document.getElementById("saveDot"), txt = document.getElementById("saveText");
+  if (!dot) return;
+  if (!DB.available) {
+    dot.className = "dot bad";
+    txt.textContent = "This browser is blocking storage — export a backup to keep your data";
+    return;
+  }
+  dot.className = "dot";
+  var t = DB.lastSaved;
+  txt.textContent = t
+    ? "Saved on this device · " + t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "Saved on this device";
+}
+
+/* ================= helpers ================= */
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function $(id) { return document.getElementById(id); }
+function today() { return dayStr(new Date()); }
+function dayStr(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function parseDay(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+function avg(a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; }
+
+/* time: "72" | "27.5" | "3:22" | "1:02:03" -> seconds */
+function toSec(str) {
+  if (str == null) return NaN;
+  var s = String(str).trim().replace(/\s/g, "");
+  if (!s) return NaN;
+  var parts = s.split(":");
+  if (parts.some(function (p) { return p === "" || isNaN(parseFloat(p)); })) return NaN;
+  var n = parts.map(parseFloat);
+  if (n.length === 1) return n[0];
+  if (n.length === 2) return n[0] * 60 + n[1];
+  if (n.length === 3) return n[0] * 3600 + n[1] * 60 + n[2];
+  return NaN;
+}
+function fmtSec(sec, dec) {
+  if (!isFinite(sec)) return "—";
+  var neg = sec < 0; sec = Math.abs(sec);
+  var m = Math.floor(sec / 60), s = sec - m * 60;
+  var ss = dec ? s.toFixed(dec) : String(Math.round(s));
+  if (+ss >= 60) { m += 1; ss = dec ? (0).toFixed(dec) : "0"; }
+  var pad = (dec ? (+ss < 10 ? "0" : "") : (+ss < 10 ? "0" : ""));
+  return (neg ? "−" : "") + m + ":" + pad + ss;
+}
+function fmtClock(ms) {
+  var t = Math.max(0, ms) / 1000;
+  var m = Math.floor(t / 60), s = t - m * 60;
+  return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1);
+}
+function fmtPace(secPerKm) { return fmtSec(secPerKm) + "/km"; }
+
+/* ================= plan templates ================= */
+var WEEK_TEMPLATES = {
+  1: [
+    { day: "SUN", type: "Aerobic — 5K", desc: "5 × 1000m @ 3:22/km, 90s recovery" },
+    { day: "MON", type: "Upper Body", desc: "Weights — back/biceps or shoulders/forearms. No running." },
+    { day: "TUE", type: "Speed — 400m/200m", desc: "5 × 200m @ 27.5s (2:17/km), 3 min recovery. No weights." },
+    { day: "WED", type: "Upper Body", desc: "Weights — whichever split remains. No running." },
+    { day: "THU", type: "Mile Pace", desc: "5 × 400m @ 72s (3:00/km), 90s recovery" },
+    { day: "FRI", type: "Legs + Easy Run", desc: "Legs (reduced volume) + 20–30 min genuinely easy run" },
+    { day: "SAT", type: "Rest", desc: "Full rest, or a very easy 15–20 min shakeout jog" }
+  ],
+  2: [
+    { day: "SUN", type: "Threshold — 5K", desc: "25 min continuous @ 3:40–3:45/km" },
+    { day: "MON", type: "Upper Body", desc: "Weights — back/biceps or shoulders/forearms. No running." },
+    { day: "TUE", type: "Speed — 300m", desc: "5 × 300m @ 42s, 4–5 min recovery. No weights." },
+    { day: "WED", type: "Upper Body", desc: "Weights. Optional: max speed 5 × 80m flat out if fresh." },
+    { day: "THU", type: "Mile Pace — Ladder", desc: "200-400-600-400-200m @ mile pace, recovery = rep duration" },
+    { day: "FRI", type: "Legs + Easy Run", desc: "Legs (reduced volume) + 20–30 min genuinely easy run" },
+    { day: "SAT", type: "Rest", desc: "Full rest, or a very easy 15–20 min shakeout jog" }
+  ],
+  3: [
+    { day: "SUN", type: "Aerobic — Overload", desc: "5 × 1000m @ 3:22/km, 75s recovery" },
+    { day: "MON", type: "Upper Body", desc: "Weights — back/biceps or shoulders/forearms. No running." },
+    { day: "TUE", type: "Speed — Overload", desc: "6 × 200m @ 27.5s, 2 min recovery" },
+    { day: "WED", type: "Upper Body", desc: "Weights — whichever split remains. No running." },
+    { day: "THU", type: "Mile Pace — Overload", desc: "6 × 400m @ 72s, 75s recovery" },
+    { day: "FRI", type: "Legs + Easy Run", desc: "Legs (reduced volume) + 20–30 min genuinely easy run" },
+    { day: "SAT", type: "Rest", desc: "Full rest, or a very easy 15–20 min shakeout jog" }
+  ],
+  4: [
+    { day: "SUN", type: "Deload", desc: "3 × 1000m @ 3:22/km, 90s recovery (reduced volume)" },
+    { day: "MON", type: "Upper Body", desc: "Light weights." },
+    { day: "TUE", type: "Deload", desc: "3 × 200m @ 27.5s, 3 min recovery" },
+    { day: "WED", type: "Rest", desc: "Extra rest day — deload." },
+    { day: "THU", type: "BENCHMARK TEST", desc: "3 × 800m — target 2:24 each. Log it on the Progress tab, then write what the result tells you in this week's reflection." },
+    { day: "FRI", type: "Light Legs + Easy", desc: "Light legs + 20 min easy run" },
+    { day: "SAT", type: "Rest", desc: "Full rest." }
+  ]
+};
+
+function templateForWeek(w) {
+  if (w === 13) return {
+    phase: "PB Attempt Week",
+    note: "Hold maintenance calories. Two clear easy or rest days before each attempt.",
+    days: [
+      { day: "SUN", type: "5K — PB ATTEMPT", desc: "All-out 5K attempt. Target sub-16:50 (3:22/km)." },
+      { day: "MON", type: "Easy", desc: "20 min easy jog, or full rest." },
+      { day: "TUE", type: "Rest", desc: "Full rest." },
+      { day: "WED", type: "Mile — PB ATTEMPT", desc: "All-out mile attempt. Target sub-4:50 (3:00/km)." },
+      { day: "THU", type: "Easy", desc: "20 min easy jog, or full rest." },
+      { day: "FRI", type: "Rest", desc: "Full rest — the freshest day is saved for the 400m." },
+      { day: "SAT", type: "400m — PB ATTEMPT", desc: "All-out 400m attempt. Target sub-55." }
+    ]
+  };
+  var phase = "Cutting — 1,850 kcal", note = "Still working toward 122–124 lb. Hold 1,850 kcal.";
+  if (w >= 5 && w <= 8) {
+    phase = "Reversing calories";
+    note = "Once 122–124 lb is confirmed flat for two weeks, increase +50–75 kcal every 4–5 days.";
+  } else if (w >= 9) {
+    phase = "Maintenance — hold steady";
+    note = "Hold wherever the weight stabilised during the reverse.";
+  }
+  return { phase: phase, note: note, days: WEEK_TEMPLATES[((w - 1) % 4) + 1] };
+}
+
+/* parse a session description into targets */
+function parseSession(desc) {
+  var out = { reps: null, dist: null, repSec: null, restSec: null };
+  var m = desc.match(/(\d+)\s*[x×]\s*(\d+)\s*m/i);
+  if (m) { out.reps = +m[1]; out.dist = +m[2]; }
+  var pace = desc.match(/@\s*(\d+):(\d{2})\s*\/\s*km/i);
+  var flat = desc.match(/@\s*(\d+(?:\.\d+)?)\s*s\b/i);
+  if (pace) {
+    var perKm = +pace[1] * 60 + +pace[2];
+    if (out.dist) out.repSec = perKm * out.dist / 1000;
+  } else if (flat) {
+    out.repSec = +flat[1];
+  }
+  var rmin = desc.match(/(\d+(?:\.\d+)?)\s*min(?:ute)?s?\s*recovery/i);
+  var rsec = desc.match(/(\d+)\s*s(?:ec)?\s*recovery/i);
+  if (rmin) out.restSec = +rmin[1] * 60;
+  else if (rsec) out.restSec = +rsec[1];
+  else if (/recovery\s*=\s*rep duration/i.test(desc) && out.repSec) out.restSec = out.repSec;
+  return out;
+}
+
+/* ================= state ================= */
+var settings = {}, weekData = [], weightLog = [], hrLog = [], sessionHistory = [],
+    reflections = [], pbLog = [], retinolLog = [], todayState = {}, viewWeek = 1;
+
+/* ================= block dates ================= */
+function blockWeekNow() {
+  if (!settings.startDate) return null;
+  var d = daysBetween(parseDay(settings.startDate), parseDay(today()));
+  if (d < 0) return null;
+  return Math.min(13, Math.floor(d / 7) + 1);
+}
+function dayIndexToday() { return new Date().getDay(); } /* 0 = Sunday, matches SUN-first templates */
+
+function renderBlockBar() {
+  var el = $("blockBar"), bw = blockWeekNow();
+  if (!settings.startDate) {
+    el.innerHTML = '<button class="linkish" data-goto="progress">Set your block start date →</button>';
+    return;
+  }
+  var segs = "";
+  for (var i = 1; i <= 13; i++) {
+    var cls = i === bw ? "now" : (bw && i < bw ? "past" : (i === 13 ? "pb" : ""));
+    segs += '<div class="blockbar-seg ' + cls + '" title="Week ' + i + '"></div>';
+  }
+  var right;
+  if (!bw) {
+    var away = -daysBetween(parseDay(today()), parseDay(settings.startDate));
+    right = "Starts in " + away + " day" + (away === 1 ? "" : "s");
+  } else if (bw === 13) {
+    right = "PB week — this is it";
+  } else {
+    var pbStart = new Date(parseDay(settings.startDate).getTime() + 12 * 7 * 86400000);
+    right = daysBetween(parseDay(today()), pbStart) + " days to PB week";
+  }
+  el.innerHTML = '<div class="blockbar-track">' + segs + "</div>" +
+    '<div class="blockbar-label"><span>' + (bw ? "Week " + bw + " of 13" : "Block not started") + "</span><span>" + esc(right) + "</span></div>";
+}
+
+/* ================= week plan ================= */
+function buildWeek(w) {
+  return templateForWeek(w).days.map(function (d) {
+    return { day: d.day, type: d.type, desc: d.desc, actual: "", notes: "", feel: "", done: false };
+  });
+}
+function loadWeek(w) {
+  var saved = DB.get("week-" + w, null);
+  var fresh = buildWeek(w);
+  if (saved && saved.length === fresh.length) {
+    weekData = fresh.map(function (d, i) {
+      return { day: d.day, type: d.type, desc: d.desc,
+        actual: saved[i].actual || "", notes: saved[i].notes || "",
+        feel: saved[i].feel || "", done: !!saved[i].done };
+    });
+  } else weekData = fresh;
+  renderWeek();
+}
+function saveWeek() { DB.set("week-" + viewWeek, weekData); }
+
+function splitLine(desc) {
+  var p = parseSession(desc);
+  if (!p.repSec && !p.dist) return "";
+  var bits = [];
+  if (p.reps && p.dist) bits.push("<span>Volume <b>" + p.reps + " × " + p.dist + "m</b> = " + ((p.reps * p.dist) / 1000).toFixed(1) + " km</span>");
+  if (p.repSec) bits.push("<span>Per rep <b>" + fmtSec(p.repSec, p.repSec % 1 ? 1 : 0) + "</b></span>");
+  if (p.repSec && p.dist) bits.push("<span>Pace <b>" + fmtPace(p.repSec / (p.dist / 1000)) + "</b></span>");
+  if (p.restSec) bits.push("<span>Recovery <b>" + fmtSec(p.restSec) + "</b></span>");
+  return bits.length ? '<div class="splits">' + bits.join("") + "</div>" : "";
+}
+
+function feelOptions(sel) {
+  var opts = ["1 — easy", "2 — comfortable", "3 — solid", "4 — hard", "5 — brutal"];
+  return '<option value="">Felt…</option>' + opts.map(function (o) {
+    return '<option value="' + o + '"' + (sel === o ? " selected" : "") + ">" + o + "</option>";
+  }).join("");
+}
+
+function dayCard(d, i, isToday) {
+  return '<div class="day-card' + (d.done ? " done" : "") + (isToday ? " today" : "") + '">' +
+    '<div class="day-top"><div class="day-name">' + d.day +
+      '<span>' + esc(d.type) + "</span>" + (isToday ? '<span class="today-pill">Today</span>' : "") + "</div>" +
+    '<button class="btn ' + (d.done ? "on" : "") + '" data-done="' + i + '">' + (d.done ? "✓ Done" : "Mark done") + "</button></div>" +
+    '<p class="session-desc">' + esc(d.desc) + "</p>" +
+    splitLine(d.desc) +
+    '<div class="row-inputs">' +
+      '<input type="text" placeholder="Actual result" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
+      '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
+      '<input type="text" placeholder="Notes" value="' + esc(d.notes) + '" data-field="notes" data-i="' + i + '">' +
+    "</div></div>";
+}
+
+function renderWeek() {
+  var t = templateForWeek(viewWeek);
+  $("phaseTag").textContent = t.phase;
+  $("phaseNote").textContent = t.note;
+  var done = weekData.filter(function (d) { return d.done; }).length;
+  $("weekDone").textContent = done + "/7 sessions done";
+  var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
+  $("weekList").innerHTML = weekData.map(function (d, i) {
+    return dayCard(d, i, isCurrent && i === ti);
+  }).join("");
+}
+
+function toggleDone(i) {
+  var d = weekData[i];
+  d.done = !d.done;
+  var key = viewWeek + "|" + d.day;
+  sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
+  if (d.done) {
+    sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day,
+      type: d.type, actual: d.actual || "—", feel: d.feel || "" });
+  }
+  DB.set("session-history", sessionHistory);
+  saveWeek(); renderWeek(); renderHistory(); renderReadiness(); renderToday();
+}
+
+/* ================= today ================= */
+function renderToday() {
+  var now = new Date();
+  $("todayDateTag").textContent = now.toLocaleDateString([], { weekday: "long", day: "numeric", month: "short" });
+  var bw = blockWeekNow(), el = $("todaySession");
+
+  if (!bw) {
+    el.innerHTML = '<div class="note flat"><b>No block date set</b>Set the Sunday you start Week 1 on the Progress tab and today\'s session will appear here automatically. Until then, use the This Week tab.</div>';
+    return;
+  }
+  var wasViewing = viewWeek;
+  if (viewWeek !== bw) { viewWeek = bw; $("weekSelect").value = bw; loadWeek(bw); }
+  var i = dayIndexToday(), d = weekData[i];
+  var p = parseSession(d.desc);
+  el.innerHTML = dayCard(d, i, true) +
+    (p.repSec ? '<div class="add-row"><button class="btn" data-timer="' + i + '">Open this in the timer →</button></div>' : "");
+  if (wasViewing !== viewWeek) renderWeek();
+}
+
+/* ================= checklist ================= */
+var CHECKLIST = [
+  { id: "sleep", label: "Sleep 8–10h, no phone", sub: "Biggest lever you have" },
+  { id: "meditation", label: "Meditation, 10 min", sub: "" },
+  { id: "water", label: "Water 3–3.5L", sub: "More on hot or hard days" },
+  { id: "steps", label: "Steps 12,500–13,000", sub: "" },
+  { id: "protein", label: "Protein 155–160g", sub: "" },
+  { id: "carbs", label: "Carbs on target for today", sub: "200–210g hard day / 150–170g rest day" },
+  { id: "potassium", label: "Potassium foods included", sub: "Avocado, sweet potato, salmon, banana, greens" },
+  { id: "sun", label: "Morning daylight, 10–20 min", sub: "Within 30–60 min of waking — anchors the cortisol curve" },
+  { id: "mobility", label: "Mobility, 10 min", sub: "Hips, hamstrings, calves, ankles" },
+  { id: "warmup", label: "Full warm-up before hard session", sub: "Jog + drills + build-ups. Speed and mile days only." },
+  { id: "skincare", label: "AM + PM skincare done", sub: "" }
+];
+var VITD = { id: "vitd", label: "Vitamin D — sun and food", sub: "Salmon, egg yolks, daylight. No tablets (reaction)." };
+
+function checklistFor(d) {
+  var m = d.getMonth();
+  if (m >= 9 || m <= 2) return CHECKLIST.slice(0, 8).concat([VITD], CHECKLIST.slice(8));
+  return CHECKLIST;
+}
+function dailyKey(d) { return "daily-" + dayStr(d); }
+
+function renderChecklist() {
+  var items = checklistFor(new Date()), n = 0;
+  $("checklist").innerHTML = items.map(function (it) {
+    var on = !!todayState[it.id]; if (on) n++;
+    return '<button class="check-item' + (on ? " on" : "") + '" data-check="' + it.id + '" aria-pressed="' + on + '">' +
+      '<span class="check-box">' + (on ? "✓" : "") + "</span>" +
+      '<span class="check-label"><b>' + esc(it.label) + "</b>" + (it.sub ? "<span>" + esc(it.sub) + "</span>" : "") + "</span></button>";
+  }).join("");
+  $("todayCount").textContent = n + "/" + items.length;
+  renderStreak();
+}
+function toggleCheck(id) {
+  todayState[id] = !todayState[id];
+  DB.set(dailyKey(new Date()), todayState);
+  renderChecklist(); renderReadiness();
+}
+
+function dayFraction(d) {
+  var st = DB.get(dailyKey(d), null);
+  if (!st) return null;
+  var items = checklistFor(d), n = 0;
+  items.forEach(function (it) { if (st[it.id]) n++; });
+  return n / items.length;
+}
+function renderStreak() {
+  var grid = $("streakGrid"), html = "", now = new Date(), filled = 0, sum = 0;
+  for (var k = 27; k >= 0; k--) {
+    var d = new Date(now.getTime() - k * 86400000);
+    var f = dayFraction(d);
+    var bg = "var(--surface-2)", border = "var(--line-soft)";
+    if (f !== null && f > 0) {
+      filled++; sum += f;
+      var a = 0.18 + 0.82 * f;
+      bg = "color-mix(in srgb, var(--go) " + Math.round(a * 100) + "%, var(--surface-2))";
+      border = "transparent";
+    }
+    html += '<div class="sq' + (k === 0 ? " today" : "") + '" style="background:' + bg + ';border-color:' + border +
+      '" title="' + dayStr(d) + (f === null ? " — nothing logged" : " — " + Math.round(f * 100) + "%") + '"></div>';
+  }
+  grid.innerHTML = html;
+  $("gridSummary").textContent = filled ? filled + " days logged · avg " + Math.round((sum / filled) * 100) + "%" : "Nothing logged yet";
+
+  var streak = 0;
+  for (var j = 0; j < 400; j++) {
+    var dd = new Date(now.getTime() - j * 86400000);
+    var fr = dayFraction(dd);
+    if (fr !== null && fr >= 0.7) streak++;
+    else if (j === 0) continue; /* today still in progress — don't break the streak */
+    else break;
+  }
+  $("streakTag").textContent = streak > 0 ? streak + "-day streak" : "No streak yet";
+}
+
+/* ================= readiness ================= */
+function renderReadiness() {
+  var signals = [], score = 0, haveData = false;
+
+  var sortedHR = hrLog.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+  if (sortedHR.length >= 4) {
+    haveData = true;
+    var base = Math.round(avg(sortedHR.slice(0, 14).map(function (h) { return h.hr; })));
+    var latest = sortedHR[0], diff = latest.hr - base;
+    if (latest.date !== today()) {
+      signals.push("No HR logged today — take it on waking for a sharper read. Baseline is " + base + ".");
+    } else if (diff >= 7) { score -= 2; signals.push("Morning HR " + latest.hr + " is " + diff + " above your " + base + " baseline — a clear recovery flag."); }
+    else if (diff >= 4) { score -= 1; signals.push("Morning HR " + latest.hr + " is " + diff + " above baseline (" + base + ") — mild elevation."); }
+    else if (diff <= -2) { score += 1; signals.push("Morning HR " + latest.hr + " is below your " + base + " baseline — well recovered."); }
+    else { score += 1; signals.push("Morning HR " + latest.hr + " is normal (baseline " + base + ")."); }
+
+    var streakHigh = 0;
+    for (var i = 0; i < Math.min(4, sortedHR.length); i++) { if (sortedHR[i].hr >= base + 5) streakHigh++; else break; }
+    if (streakHigh >= 3) { score -= 1; signals.push("That's " + streakHigh + " days running at 5+ above baseline — one of the pull-back criteria on its own."); }
+  } else {
+    signals.push("Morning HR: " + sortedHR.length + "/4 readings logged — a few more and this starts working.");
+  }
+
+  var rated = sessionHistory.filter(function (h) { return h.feel; }).slice(0, 3);
+  if (rated.length >= 2) {
+    haveData = true;
+    var nums = rated.map(function (h) { return parseInt(h.feel, 10); }).filter(function (n) { return !isNaN(n); });
+    var af = avg(nums);
+    if (af >= 4.5) { score -= 2; signals.push("Last " + nums.length + " sessions averaged " + af.toFixed(1) + "/5 — you're working very hard at target pace."); }
+    else if (af >= 3.7) { score -= 1; signals.push("Last " + nums.length + " sessions averaged " + af.toFixed(1) + "/5 — creeping toward hard."); }
+    else if (af <= 2.5) { score += 1; signals.push("Last " + nums.length + " sessions averaged " + af.toFixed(1) + "/5 — target paces feeling comfortable. That's adaptation."); }
+    else { score += 1; signals.push("Last " + nums.length + " sessions averaged " + af.toFixed(1) + "/5 — right where they should be."); }
+  } else {
+    signals.push("Rate a couple of sessions on the This Week tab to factor session-feel in.");
+  }
+
+  var engaged = Object.keys(todayState).some(function (k) { return todayState[k]; });
+  if (engaged) {
+    if (todayState.sleep) { score += 1; signals.push("Slept well — the best possible starting point."); }
+    else { score -= 1; signals.push("Sleep not ticked off today — the biggest single input to everything else."); }
+  }
+
+  var title, body, cls;
+  if (!haveData) {
+    title = "Not enough data yet";
+    body = "Log your morning HR and rate a couple of sessions, and this starts telling you when to push and when to back off.";
+    cls = "flat";
+  } else if (score <= -2) {
+    title = "Back off — take a rest day";
+    body = "Multiple signals pointing the same way. Swap today for full rest or an easy 20 min jog. Backing off one day costs you nothing; pushing through a genuine flag costs weeks. Keep calories where they are — never cut as a response to fatigue.";
+    cls = "stop";
+  } else if (score <= 0) {
+    title = "Hold steady — no extra load today";
+    body = "Do the session as written, but don't add anything on top and don't chase faster than target pace. If it still feels heavy by rep 2, cut the session short rather than grinding it out.";
+    cls = "warn";
+  } else if (score >= 3) {
+    title = "Well recovered — good to go";
+    body = "Everything reads green. Hit the session exactly as written at target pace — this is a day to nail the numbers cleanly, not to run faster than the plan says. The progression is in shrinking rest intervals, not extra speed.";
+    cls = "good";
+  } else {
+    title = "Good to train";
+    body = "Normal readiness. Run the session as written at target pace, full warm-up included.";
+    cls = "good";
+  }
+
+  $("readinessBox").innerHTML =
+    '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + esc(body) + "</div>" +
+    signals.map(function (s) {
+      return '<div class="log-item"><span class="l-main" style="font-family:var(--f-body);font-size:12.8px;font-weight:400">' + esc(s) + "</span></div>";
+    }).join("");
+}
+
+/* ================= charts ================= */
+function lineChart(host, opts) {
+  var pts = opts.points;
+  if (!pts.length) { host.innerHTML = '<div class="empty">' + esc(opts.emptyText || "Nothing logged yet.") + "</div>"; return; }
+  var W = Math.max(260, host.clientWidth || 320), H = opts.height || 92,
+      PL = 6, PR = 6, PT = 10, PB = 16;
+  var ys = pts.map(function (p) { return p.y; });
+  var lo = Math.min.apply(null, ys), hi = Math.max.apply(null, ys);
+  /* Reach toward a reference band only as far as its nearest edge — pulling the
+     whole band into range when the data sits well outside it flattens the series. */
+  if (opts.band) {
+    if (lo > opts.band[1]) lo = opts.band[1];
+    else if (hi < opts.band[0]) hi = opts.band[0];
+    else { lo = Math.min(lo, opts.band[0]); hi = Math.max(hi, opts.band[1]); }
+  }
+  if (opts.marker != null) { lo = Math.min(lo, opts.marker); hi = Math.max(hi, opts.marker); }
+  if (hi - lo < (opts.minSpan || 1)) { var mid = (hi + lo) / 2, h = (opts.minSpan || 1) / 2; lo = mid - h; hi = mid + h; }
+  var pad = (hi - lo) * 0.14; lo -= pad; hi += pad;
+  var n = pts.length;
+  function X(i) { return PL + (n === 1 ? (W - PL - PR) / 2 : (i * (W - PL - PR)) / (n - 1)); }
+  function Y(v) { return PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB); }
+
+  var line = pts.map(function (p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.y).toFixed(1); }).join(" ");
+  var area = line + " L" + X(n - 1).toFixed(1) + " " + (H - PB) + " L" + X(0).toFixed(1) + " " + (H - PB) + " Z";
+  var svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opts.aria || "") + '">';
+  svg += '<defs><linearGradient id="g' + opts.uid + '" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="' + (opts.color || "#F2EFE9") + '" stop-opacity=".22"/>' +
+    '<stop offset="100%" stop-color="' + (opts.color || "#F2EFE9") + '" stop-opacity="0"/></linearGradient></defs>';
+  if (opts.band) {
+    var by0 = Math.max(PT, Math.min(H - PB, Y(opts.band[1])));
+    var by1 = Math.max(PT, Math.min(H - PB, Y(opts.band[0])));
+    if (by1 - by0 >= 1) {
+      svg += '<rect x="' + PL + '" y="' + by0.toFixed(1) + '" width="' + (W - PL - PR) +
+        '" height="' + (by1 - by0).toFixed(1) + '" fill="#6FCF97" opacity=".12"/>';
+      svg += '<line x1="' + PL + '" y1="' + by0.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + by0.toFixed(1) +
+        '" stroke="#6FCF97" stroke-width="1" opacity=".55"/>';
+    }
+  }
+  svg += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - PR) + '" y2="' + (H - PB) + '" stroke="#33403F" stroke-width="1"/>';
+  if (opts.marker != null) {
+    svg += '<line x1="' + PL + '" y1="' + Y(opts.marker).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + Y(opts.marker).toFixed(1) +
+      '" stroke="' + (opts.markerColor || "#8B9B99") + '" stroke-width="1.5" stroke-dasharray="4 4" opacity=".8"/>';
+  }
+  svg += '<path d="' + area + '" fill="url(#g' + opts.uid + ')"/>';
+  svg += '<path d="' + line + '" fill="none" stroke="' + (opts.color || "#F2EFE9") + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  if (opts.overlay && opts.overlay.length === n) {
+    var ol = opts.overlay.map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); }).join(" ");
+    svg += '<path d="' + ol + '" fill="none" stroke="' + (opts.overlayColor || "#E2603F") + '" stroke-width="2" stroke-dasharray="5 4" opacity=".95"/>';
+  }
+  pts.forEach(function (p, i) {
+    if (p.flag) svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="3.5" fill="#C4432B" stroke="#1B2327" stroke-width="2"/>';
+  });
+  svg += '<circle cx="' + X(n - 1).toFixed(1) + '" cy="' + Y(pts[n - 1].y).toFixed(1) + '" r="4.5" fill="' + (opts.color || "#F2EFE9") + '" stroke="#1B2327" stroke-width="2"/>';
+  pts.forEach(function (p, i) {
+    svg += '<rect x="' + (X(i) - (W - PL - PR) / (2 * Math.max(1, n - 1)) - 4).toFixed(1) + '" y="0" width="' +
+      ((W - PL - PR) / Math.max(1, n - 1) + 8).toFixed(1) + '" height="' + H + '" fill="transparent" data-pi="' + i + '"/>';
+  });
+  svg += "</svg>";
+  host.innerHTML = svg + '<div class="chart-tip"></div>';
+
+  var tip = host.querySelector(".chart-tip"), svgEl = host.querySelector("svg");
+  svgEl.addEventListener("mousemove", function (e) {
+    var t = e.target.getAttribute && e.target.getAttribute("data-pi");
+    if (t == null) { tip.style.opacity = 0; return; }
+    var i = +t, p = pts[i];
+    tip.textContent = p.label;
+    tip.style.opacity = 1;
+    var left = Math.min(Math.max(X(i) - 40, 2), W - 100);
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(0, Y(p.y) - 34) + "px";
+  });
+  svgEl.addEventListener("mouseleave", function () { tip.style.opacity = 0; });
+}
+
+/* ================= weight ================= */
+function sortedWeights() {
+  return weightLog.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+}
+function rollingAvg(vals, n) {
+  return vals.map(function (_, i) {
+    var s = Math.max(0, i - n + 1);
+    return avg(vals.slice(s, i + 1));
+  });
+}
+function renderWeight() {
+  var asc = sortedWeights();
+  var latest = asc.length ? asc[asc.length - 1].weight : null;
+  $("heroWeight").textContent = latest == null ? "—" : latest.toFixed(1);
+
+  var host = $("weightChart");
+  if (!asc.length) {
+    host.innerHTML = '<div class="empty">No weights logged yet.</div>';
+    $("weightLog").innerHTML = "";
+    $("heroTrend").textContent = "";
+    renderTrend(); return;
+  }
+  var vals = asc.map(function (w) { return w.weight; });
+  var roll = rollingAvg(vals, 7);
+  host.innerHTML = '<div class="chart-wrap">' +
+    '<div class="chart-head"><span class="chart-title">Weight, last ' + Math.min(asc.length, 60) + " readings</span>" +
+    '<span class="chart-val">' + latest.toFixed(1) + ' lb<small>7-day avg ' + roll[roll.length - 1].toFixed(1) + "</small></span></div>" +
+    '<div id="wcInner" style="position:relative"></div>' +
+    '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>Daily</span>' +
+    '<span style="color:var(--track-bright)"><span class="swatch dash"></span>7-day average</span>' +
+    '<span style="color:var(--go)"><span class="swatch" style="background:currentColor"></span>Goal band 122–124</span></div></div>';
+
+  var trimmed = asc.slice(-60), trimVals = trimmed.map(function (w) { return w.weight; });
+  var trimRoll = rollingAvg(trimVals, 7);
+  lineChart($("wcInner"), {
+    uid: "w", height: 104, color: "#F2EFE9", band: [122, 124], minSpan: 3,
+    overlay: trimRoll, overlayColor: "#E2603F",
+    aria: "Body weight over time with 7-day average and 122 to 124 pound goal band",
+    points: trimmed.map(function (w, i) {
+      return { y: w.weight, label: w.date + "  " + w.weight.toFixed(1) + " lb  (avg " + trimRoll[i].toFixed(1) + ")" };
+    })
+  });
+
+  var desc = asc.slice().reverse();
+  $("weightLog").innerHTML = desc.slice(0, 14).map(function (w, i) {
+    var prev = desc[i + 1], delta = "";
+    if (prev) { var diff = w.weight - prev.weight; delta = " · " + (diff > 0 ? "+" : "") + diff.toFixed(1) + " lb"; }
+    return '<div class="log-item"><span class="l-main">' + w.date + "</span><span>" + w.weight.toFixed(1) + " lb" + delta +
+      ' <button class="del" data-delw="' + w.date + '" aria-label="Delete entry">×</button></span></div>';
+  }).join("");
+  renderTrend();
+}
+
+function renderTrend() {
+  var el = $("trendReadout"), hero = $("heroTrend");
+  var desc = sortedWeights().reverse();
+  if (desc.length < 4) {
+    el.innerHTML = '<div class="note flat"><b>Building your average</b>' + desc.length +
+      "/7 readings logged. Log daily — the 7-day average is what you act on, never a single day.</div>";
+    hero.textContent = "";
+    return;
+  }
+  var recent = desc.slice(0, 7).map(function (w) { return w.weight; }), rAvg = avg(recent);
+  var prior = desc.slice(7, 14).map(function (w) { return w.weight; });
+  var title, body, cls;
+
+  if (prior.length < 4) {
+    title = "7-day average " + rAvg.toFixed(1) + " lb";
+    body = "Need a second week of data before the trend means anything. Keep logging daily.";
+    cls = "flat";
+    hero.textContent = "";
+  } else {
+    var pAvg = avg(prior), change = rAvg - pAvg, atGoal = rAvg <= 124.0;
+    hero.innerHTML = "7-day avg <span style='color:var(--chalk)'>" + rAvg.toFixed(1) + "</span> (" +
+      (change >= 0 ? "+" : "") + change.toFixed(1) + " vs last week)";
+    if (change <= -0.3) {
+      title = "Trending down — " + rAvg.toFixed(1) + " lb (" + change.toFixed(1) + " vs last week)";
+      body = atGoal
+        ? "You're at or below goal weight and still dropping. Time to start the reverse — step up to the next calorie level below. Do not cut further."
+        : "Losing at a healthy rate. Hold 1,850 kcal — no need to cut lower.";
+      cls = atGoal ? "warn" : "good";
+    } else if (change >= 0.5) {
+      title = "Trending up — " + rAvg.toFixed(1) + " lb (+" + change.toFixed(1) + " vs last week)";
+      body = "If you increased calories in the last week or two this is likely glycogen refill — hold this step and give it another week before judging. If it climbs again next week, drop back 75 kcal to your previous step.";
+      cls = "warn";
+    } else {
+      title = "Flat — " + rAvg.toFixed(1) + " lb (" + (change >= 0 ? "+" : "") + change.toFixed(1) + " vs last week)";
+      body = atGoal
+        ? "This is what maintenance looks like. Mid-reverse, add 75 kcal and keep stepping up. Flat here 3+ weeks at a steady intake means that's your maintenance number — hold it."
+        : "Flat for a week is normal noise, not a stall. Hold 1,850 kcal and give it another week before changing anything.";
+      cls = "good";
+    }
+  }
+  el.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + esc(body) + "</div>";
+}
+
+function addWeight() {
+  var inp = $("weightInput"), v = parseFloat(inp.value);
+  if (isNaN(v) || v <= 0) { inp.focus(); return; }
+  weightLog = weightLog.filter(function (w) { return w.date !== today(); });
+  weightLog.push({ date: today(), weight: v });
+  DB.set("weight-log", weightLog);
+  inp.value = ""; renderWeight(); renderCalStep();
+}
+
+/* ================= morning HR ================= */
+function renderHR() {
+  var asc = hrLog.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+  var host = $("hrChart");
+  if (!asc.length) {
+    host.innerHTML = '<div class="empty">No readings yet — log a few mornings to establish your baseline.</div>';
+    $("hrLog").innerHTML = ""; return;
+  }
+  var desc = asc.slice().reverse();
+  var base = Math.round(avg(desc.slice(0, 14).map(function (h) { return h.hr; })));
+  var trimmed = asc.slice(-45);
+  host.innerHTML = '<div class="chart-wrap">' +
+    '<div class="chart-head"><span class="chart-title">Morning HR</span>' +
+    '<span class="chart-val">' + desc[0].hr + ' bpm<small>baseline ' + base + " · flag at " + (base + 5) + "</small></span></div>" +
+    '<div id="hrInner" style="position:relative"></div>' +
+    '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>Daily</span>' +
+    '<span style="color:var(--track-bright)"><span class="swatch dash"></span>Flag line, baseline +5</span>' +
+    '<span style="color:var(--track)"><span class="swatch dot"></span>Reading at or over the flag</span></div></div>';
+  lineChart($("hrInner"), {
+    uid: "h", height: 100, color: "#F2EFE9", marker: base + 5, markerColor: "#E2603F", minSpan: 8,
+    aria: "Morning heart rate over time against a baseline plus five flag line",
+    points: trimmed.map(function (h) {
+      return { y: h.hr, flag: h.hr >= base + 5, label: h.date + "  " + h.hr + " bpm" + (h.hr >= base + 5 ? "  ⚠ over flag" : "") };
+    })
+  });
+  $("hrLog").innerHTML = desc.slice(0, 10).map(function (h) {
+    var over = h.hr >= base + 5;
+    return '<div class="log-item"><span class="l-main">' + h.date + '</span><span style="' + (over ? "color:var(--track-bright)" : "") + '">' +
+      h.hr + " bpm" + (over ? " ⚠" : "") + ' <button class="del" data-delhr="' + h.date + '" aria-label="Delete entry">×</button></span></div>';
+  }).join("");
+}
+function addHR() {
+  var inp = $("hrInput"), v = parseInt(inp.value, 10);
+  if (isNaN(v) || v < 25 || v > 140) { inp.focus(); return; }
+  hrLog = hrLog.filter(function (h) { return h.date !== today(); });
+  hrLog.unshift({ date: today(), hr: v });
+  DB.set("hr-log", hrLog);
+  inp.value = ""; renderHR(); renderReadiness();
+}
+
+/* ================= benchmarks ================= */
+var BENCH = [
+  { id: "200", label: "200m", dist: 200, start: 27.8, target: 27.0, targetLabel: "faster than 27.8s" },
+  { id: "400", label: "400m", dist: 400, start: 57, target: 54.9, targetLabel: "sub-55" },
+  { id: "800", label: "800m", dist: 800, start: 151, target: 144, targetLabel: "2:24" },
+  { id: "1000", label: "1000m", dist: 1000, start: 197, target: 202, targetLabel: "3:22/km" },
+  { id: "mile", label: "Mile", dist: 1609, start: 293, target: 289.9, targetLabel: "sub-4:50" },
+  { id: "5k", label: "5K", dist: 5000, start: 1037, target: 1009.9, targetLabel: "sub-16:50" }
+];
+function benchById(id) { for (var i = 0; i < BENCH.length; i++) if (BENCH[i].id === id) return BENCH[i]; return null; }
+
+/* accepts "4:51", "57.2", "3:15/km" */
+function parseResult(id, str) {
+  var b = benchById(id), s = String(str).trim();
+  var km = s.match(/^(.+?)\s*\/\s*km$/i);
+  if (km) {
+    var perKm = toSec(km[1]);
+    if (!isFinite(perKm)) return NaN;
+    return perKm * b.dist / 1000;
+  }
+  return toSec(s);
+}
+function fmtResult(sec) {
+  if (!isFinite(sec)) return "—";
+  return sec < 60 ? sec.toFixed(sec % 1 ? 1 : 0) + "s" : fmtSec(sec, sec % 1 >= 0.05 ? 1 : 0);
+}
+function latestFor(id) {
+  for (var i = 0; i < pbLog.length; i++) if (pbLog[i].dist === id) return pbLog[i];
+  return null;
+}
+function renderBench() {
+  $("benchList").innerHTML = BENCH.map(function (b) {
+    var l = latestFor(b.id);
+    var cur = l ? l.sec : b.start;
+    var hit = cur <= b.target;
+    var pct = hit ? 1 : (b.start > b.target ? Math.max(0, Math.min(1, (b.start - cur) / (b.start - b.target))) : 0);
+    var toGo = cur - b.target;
+    return '<div class="bench">' +
+      '<div class="bench-top"><span class="bench-name">' + b.label + ' <em>target ' + esc(b.targetLabel) + "</em></span>" +
+      '<span class="bench-now">' + fmtResult(cur) +
+        (hit ? ' <span class="to-go" style="color:var(--go)">✓ at target</span>'
+             : ' <span class="to-go">' + toGo.toFixed(toGo < 10 ? 1 : 0) + "s to go</span>") +
+      "</span></div>" +
+      '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(1) + '%"></div></div>' +
+      '<div class="bar-scale"><span>block start ' + fmtResult(b.start) + "</span><span>" +
+        (hit ? "target reached" : Math.round(pct * 100) + "% of the gap closed") + "</span><span>" + fmtResult(b.target) + "</span></div>" +
+      "</div>";
+  }).join("");
+}
+function renderPBHistory() {
+  var el = $("pbHistory");
+  if (!pbLog.length) { el.innerHTML = '<div class="empty">No tests logged yet.</div>'; return; }
+  el.innerHTML = pbLog.slice(0, 20).map(function (p) {
+    var b = benchById(p.dist);
+    return '<div class="log-item"><span class="l-main">' + p.date + " · " + (b ? b.label : p.dist) + "</span><span>" +
+      esc(p.raw) + " · " + fmtPace(p.sec / (b.dist / 1000)) +
+      ' <button class="del" data-delpb="' + esc(p.id) + '" aria-label="Delete entry">×</button></span></div>';
+  }).join("");
+}
+function logPB() {
+  var id = $("pbDistance").value, raw = $("pbTimeInput").value.trim(), err = $("pbError");
+  var sec = parseResult(id, raw);
+  if (!raw || !isFinite(sec) || sec <= 0) {
+    err.innerHTML = '<div class="note warn" style="margin-top:8px"><b>Couldn\'t read that time</b>Use mm:ss (<code>4:51</code>), plain seconds (<code>57.2</code>), or a pace (<code>3:15/km</code>).</div>';
+    return;
+  }
+  err.innerHTML = "";
+  pbLog.unshift({ id: String(Date.now()), date: today(), dist: id, raw: raw, sec: sec });
+  DB.set("pb-log", pbLog);
+  $("pbTimeInput").value = "";
+  renderPBHistory(); renderBench();
+}
+
+/* ================= session history ================= */
+function renderHistory() {
+  var el = $("sessionHistory");
+  if (!sessionHistory.length) { el.innerHTML = '<div class="empty">No sessions logged yet.</div>'; return; }
+  el.innerHTML = sessionHistory.slice(0, 30).map(function (h) {
+    return '<div class="log-item"><span class="l-main">W' + h.week + " · " + h.date + " · " + h.day + " · " + esc(h.type) + "</span>" +
+      '<span class="l-body">' + esc(h.actual) + (h.feel ? " · " + esc(h.feel) : "") + "</span></div>";
+  }).join("");
+}
+
+/* ================= reflections ================= */
+function currentReflWeek() { return blockWeekNow() || viewWeek; }
+function renderReflections() {
+  $("reflWeekTag").textContent = "Week " + currentReflWeek();
+  var mine = reflections.filter(function (r) { return r.week === currentReflWeek(); })[0];
+  if (mine && !$("reflectionInput").value) $("reflectionInput").value = mine.text;
+  var el = $("reflectionLog");
+  if (!reflections.length) { el.innerHTML = '<div class="empty">No notes yet.</div>'; return; }
+  el.innerHTML = reflections.slice(0, 10).map(function (r) {
+    return '<div class="log-item"><span class="l-main">Week ' + r.week + '<br><span style="color:var(--muted-2)">' + r.date + "</span></span>" +
+      '<span class="l-body">' + esc(r.text) + "</span></div>";
+  }).join("");
+}
+function saveReflection() {
+  var inp = $("reflectionInput"), text = inp.value.trim();
+  if (!text) return;
+  var w = currentReflWeek();
+  reflections = reflections.filter(function (r) { return r.week !== w; });
+  reflections.unshift({ week: w, date: today(), text: text });
+  reflections.sort(function (a, b) { return b.week - a.week; });
+  DB.set("reflections", reflections);
+  renderReflections();
+}
+
+/* ================= reverse diet stepper ================= */
+var REVERSE = [1850, 1925, 2000, 2075, 2150, 2225, 2300];
+function renderReverseTable() {
+  var cur = settings.kcal || 1850;
+  $("reverseTable").innerHTML = REVERSE.map(function (k, i) {
+    var on = k === cur;
+    return "<tr" + (on ? ' style="background:var(--track-wash)"' : "") + "><td>" + (i === 0 ? "Start" : i) + "</td>" +
+      '<td class="hl">' + k.toLocaleString() + "</td><td>" +
+      (i === 0 ? "Baseline" : "Days " + (i * 5 - 4) + "–" + (i * 5) + (i === 6 ? " — estimated landing point" : "")) +
+      (on ? ' <b style="color:var(--go)">← you are here</b>' : "") + "</td></tr>";
+  }).join("");
+  $("targetKcal").textContent = cur.toLocaleString() + " kcal";
+}
+function renderCalStep() {
+  var cur = settings.kcal || 1850;
+  var since = settings.kcalSince || null;
+  var days = since ? daysBetween(parseDay(since), parseDay(today())) : null;
+  var desc = sortedWeights().reverse();
+  var advice = "Log a week of weights and this will tell you when to step.";
+  var cls = "flat";
+  if (desc.length >= 8) {
+    var rAvg = avg(desc.slice(0, 7).map(function (w) { return w.weight; }));
+    var pAvg = avg(desc.slice(7, 14).map(function (w) { return w.weight; }));
+    var change = rAvg - pAvg;
+    if (rAvg > 124) { advice = "Still above the 122–124 band. Hold here — the reverse starts once you're in the band and flat for two weeks."; cls = "flat"; }
+    else if (days !== null && days < 4) { advice = "Only " + days + " day" + (days === 1 ? "" : "s") + " at this step. Give it 4–5 before judging anything."; cls = "flat"; }
+    else if (change >= 0.5) { advice = "Up " + change.toFixed(1) + " lb on the week. If you stepped up recently that's glycogen — hold. If this is the second week up, drop back one step."; cls = "warn"; }
+    else { advice = "Flat or down at this step" + (days !== null ? " for " + days + " days" : "") + " — that's your cue to add 75 kcal."; cls = "good"; }
+  }
+  $("calStep").innerHTML =
+    '<div class="card"><div class="chart-head" style="margin-bottom:12px">' +
+      '<span class="chart-title">Current intake</span>' +
+      '<span class="chart-val" style="font-size:22px">' + cur.toLocaleString() + ' kcal<small>' +
+        (since ? "since " + since + (days !== null ? " · " + days + "d" : "") : "step not dated") + "</small></span></div>" +
+    '<div class="add-row" style="margin-top:0">' +
+      '<button class="btn" data-kcal="-75">− 75 kcal</button>' +
+      '<button class="btn primary" data-kcal="75">+ 75 kcal</button>' +
+      '<button class="btn ghost" data-kcal="reset">Reset to 1,850</button>' +
+    "</div></div>" +
+    '<div class="note ' + cls + '" style="margin-top:10px"><b>What the trend says</b>' + esc(advice) + "</div>";
+}
+function stepKcal(delta) {
+  if (delta === "reset") { settings.kcal = 1850; }
+  else { settings.kcal = Math.max(1200, (settings.kcal || 1850) + parseInt(delta, 10)); }
+  settings.kcalSince = today();
+  DB.set("settings", settings);
+  renderCalStep(); renderReverseTable();
+}
+
+/* ================= retinol ================= */
+function renderRetinol() {
+  var now = new Date(), cut = dayStr(new Date(now.getTime() - 6 * 86400000));
+  var week = retinolLog.filter(function (d) { return d >= cut; });
+  var tag = $("retinolTag");
+  tag.textContent = week.length + "/2 this week";
+  tag.style.color = week.length >= 2 ? "var(--go)" : "var(--muted)";
+  $("retinolLog").innerHTML = retinolLog.length
+    ? retinolLog.slice(0, 8).map(function (d) {
+        return '<div class="log-item"><span class="l-main">' + d + "</span><span>" +
+          parseDay(d).toLocaleDateString([], { weekday: "long" }) +
+          ' <button class="del" data-delret="' + d + '" aria-label="Delete entry">×</button></span></div>';
+      }).join("")
+    : '<div class="empty">No retinol nights logged yet.</div>';
+}
+function logRetinol() {
+  if (retinolLog.indexOf(today()) === -1) {
+    retinolLog.unshift(today());
+    retinolLog.sort().reverse();
+    DB.set("retinol-log", retinolLog);
+  }
+  renderRetinol();
+}
+
+/* ================= pace converter ================= */
+var PACE_ROWS = [
+  { label: "200m", d: 200 }, { label: "400m", d: 400 }, { label: "600m", d: 600 },
+  { label: "800m", d: 800 }, { label: "1000m", d: 1000 }, { label: "1200m", d: 1200 },
+  { label: "Mile", d: 1609 }, { label: "3K", d: 3000 }, { label: "5K", d: 5000 }
+];
+function runPace() {
+  var dist = parseFloat($("paceDist").value), t = toSec($("paceTime").value);
+  var out = $("paceOut");
+  if (!isFinite(dist) || dist <= 0 || !isFinite(t) || t <= 0) {
+    out.innerHTML = '<div class="note warn"><b>Check those numbers</b>Distance in metres, time as mm:ss or seconds.</div>';
+    return;
+  }
+  var perKm = t / (dist / 1000);
+  out.innerHTML = '<div class="chart-head" style="margin-bottom:10px"><span class="chart-title">Pace</span>' +
+    '<span class="chart-val">' + fmtPace(perKm) + '<small>' + (perKm / 10).toFixed(1) + "s per 100m</small></span></div>" +
+    '<div class="tbl-scroll"><table class="ref"><thead><tr><th>Distance</th><th>Split at this pace</th></tr></thead><tbody>' +
+    PACE_ROWS.map(function (r) {
+      var s = perKm * r.d / 1000;
+      return "<tr><td>" + r.label + '</td><td class="hl">' + (s < 60 ? s.toFixed(1) + "s" : fmtSec(s, 1)) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+}
+
+/* ================= interval timer ================= */
+var T = {
+  running: false, mode: "rep", t0: 0, elapsed: 0, laps: [], raf: null,
+  repTarget: null, restTarget: null, sound: true, beeped: false, wake: null
+};
+function timerTargets() {
+  T.repTarget = toSec($("tRep").value);
+  T.restTarget = toSec($("tRest").value);
+  if (!isFinite(T.repTarget)) T.repTarget = null;
+  if (!isFinite(T.restTarget)) T.restTarget = null;
+}
+function beep(freq, ms) {
+  if (!T.sound) return;
+  try {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    T.ac = T.ac || new Ctx();
+    var o = T.ac.createOscillator(), g = T.ac.createGain();
+    o.frequency.value = freq; o.type = "sine";
+    g.gain.setValueAtTime(0.001, T.ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25, T.ac.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, T.ac.currentTime + ms / 1000);
+    o.connect(g); g.connect(T.ac.destination);
+    o.start(); o.stop(T.ac.currentTime + ms / 1000 + 0.02);
+  } catch (e) {}
+}
+function tick() {
+  if (!T.running) return;
+  var now = performance.now(), ms = T.elapsed + (now - T.t0);
+  var clock = $("clockMain");
+  if (T.mode === "rest" && T.restTarget) {
+    var left = T.restTarget * 1000 - ms;
+    clock.textContent = fmtClock(Math.max(0, left));
+    clock.className = "clock rest" + (left <= 10000 ? " soon" : "");
+    if (left <= 10000 && left > 9000 && !T.beeped) { beep(660, 120); T.beeped = true; }
+    if (left <= 0) { beep(880, 320); startRep(); return; }
+  } else {
+    clock.textContent = fmtClock(ms);
+    clock.className = "clock";
+  }
+  T.raf = requestAnimationFrame(tick);
+}
+function setMode(m) {
+  T.mode = m;
+  var n = T.laps.length + 1;
+  $("clockMode").innerHTML = m === "rep"
+    ? "Rep <b>" + n + "</b>" + (T.repTarget ? " · target <b>" + fmtSec(T.repTarget, T.repTarget % 1 ? 1 : 0) + "</b>" : "")
+    : "Recovery" + (T.restTarget ? " · <b>" + fmtSec(T.restTarget) + "</b>" : "") + " · rep " + n + " next";
+  $("btnPrimary").textContent = T.running ? (m === "rep" ? "Lap" : "Skip rest") : (T.laps.length ? "Resume" : "Start");
+  $("btnPrimary").className = "big-btn go";
+}
+function startRep() {
+  T.mode = "rep"; T.elapsed = 0; T.t0 = performance.now(); T.beeped = false;
+  setMode("rep");
+  if (!T.running) { T.running = true; T.raf = requestAnimationFrame(tick); }
+}
+function timerStart() {
+  timerTargets();
+  requestWake();
+  if (!T.running) {
+    T.running = true; T.t0 = performance.now();
+    T.raf = requestAnimationFrame(tick);
+    setMode(T.mode);
+    $("btnStop").disabled = false;
+  }
+}
+function timerPrimary() {
+  timerTargets();
+  if (!T.running) { timerStart(); return; }
+  if (T.mode === "rep") {
+    var ms = T.elapsed + (performance.now() - T.t0);
+    T.laps.push(ms / 1000);
+    beep(520, 90);
+    renderLaps();
+    if (T.restTarget) { T.mode = "rest"; T.elapsed = 0; T.t0 = performance.now(); T.beeped = false; setMode("rest"); }
+    else { startRep(); }
+  } else {
+    beep(880, 200); startRep();
+  }
+}
+function timerPause() {
+  if (!T.running) return;
+  T.elapsed += performance.now() - T.t0;
+  T.running = false;
+  cancelAnimationFrame(T.raf);
+  setMode(T.mode);
+  releaseWake();
+}
+function timerReset() {
+  T.running = false; cancelAnimationFrame(T.raf);
+  T.elapsed = 0; T.laps = []; T.mode = "rep"; T.beeped = false;
+  $("clockMain").textContent = "0:00.0";
+  $("clockMain").className = "clock";
+  $("btnStop").disabled = true;
+  timerTargets(); setMode("rep");
+  $("clockMode").textContent = "Ready";
+  renderLaps(); releaseWake();
+}
+function renderLaps() {
+  var el = $("lapList");
+  if (!T.laps.length) { el.innerHTML = '<div class="empty">No reps yet. Tap Lap at the end of each one.</div>'; $("lapSummary").textContent = ""; return; }
+  var tgt = T.repTarget;
+  el.innerHTML = T.laps.map(function (s, i) {
+    var cls = "ok", d = "";
+    if (tgt) {
+      var diff = s - tgt;
+      cls = diff > 0.5 ? "up" : (diff < -0.5 ? "dn" : "ok");
+      d = (diff >= 0 ? "+" : "−") + Math.abs(diff).toFixed(1) + "s";
+    }
+    return '<div class="lap-row"><span class="n">Rep ' + (i + 1) + '</span><span>' + fmtSec(s, 1) + '</span><span class="d ' + cls + '">' + d + "</span></div>";
+  }).join("");
+  var mean = avg(T.laps);
+  $("lapSummary").textContent = T.laps.length + " reps · avg " + fmtSec(mean, 1) +
+    (tgt ? " · " + (mean - tgt >= 0 ? "+" : "−") + Math.abs(mean - tgt).toFixed(1) + "s vs target" : "");
+}
+function requestWake() {
+  try {
+    if (navigator.wakeLock && !T.wake) {
+      navigator.wakeLock.request("screen").then(function (w) { T.wake = w; }).catch(function () {});
+    }
+  } catch (e) {}
+}
+function releaseWake() { try { if (T.wake) { T.wake.release(); T.wake = null; } } catch (e) {} }
+
+function loadSessionIntoTimer(desc, label) {
+  var p = parseSession(desc);
+  timerReset();
+  $("tRep").value = p.repSec ? (p.repSec % 1 ? p.repSec.toFixed(1) : String(p.repSec)) : "";
+  $("tRest").value = p.restSec ? String(p.restSec) : "";
+  timerTargets(); setMode("rep");
+  $("clockMode").textContent = "Ready";
+  $("timerSource").innerHTML = "Loaded from <b>" + esc(label) + "</b> — " + esc(desc) +
+    ". Tap <b>Lap</b> at the end of each rep; the recovery clock starts itself.";
+  showTab("timer");
+}
+
+/* ================= backup ================= */
+function backupObject() {
+  return { app: "full-system", version: 2, exportedAt: new Date().toISOString(), data: DB.dump() };
+}
+function backupMsg(html, cls) {
+  $("backupMsg").innerHTML = '<div class="note ' + (cls || "flat") + '" style="margin-top:10px">' + html + "</div>";
+}
+function doExport() {
+  var json = JSON.stringify(backupObject(), null, 2);
+  var name = "full-system-backup-" + today() + ".json";
+  if (window.claude && window.claude.downloads) {
+    window.claude.downloads.save({ filename: name, data: json }).then(function () {
+      backupMsg("<b>Exported</b>Saved as " + esc(name) + ".", "good");
+    }).catch(function (err) {
+      if (err && err.code === "declined") backupMsg("<b>Export cancelled</b>Nothing was saved.", "flat");
+      else fallbackDownload(json, name);
+    });
+  } else fallbackDownload(json, name);
+}
+function fallbackDownload(json, name) {
+  try {
+    var url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    var a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    backupMsg("<b>Exported</b>Saved as " + esc(name) + ".", "good");
+  } catch (e) {
+    $("backupText").style.display = "block";
+    $("backupArea").value = json;
+    backupMsg("<b>Download blocked here</b>Your backup is in the box below — select it all and copy it somewhere safe.", "warn");
+  }
+}
+function applyBackup(text) {
+  var parsed;
+  try { parsed = JSON.parse(text); } catch (e) {
+    backupMsg("<b>That isn't a valid backup</b>The file or text couldn't be read as JSON.", "warn"); return;
+  }
+  var data = parsed && parsed.data;
+  if (!data || typeof data !== "object") {
+    backupMsg("<b>That isn't a Full System backup</b>Expected a file exported from this app.", "warn"); return;
+  }
+  if (!confirm("Restore this backup? Everything currently saved on this device will be replaced.")) return;
+  DB.restore(data);
+  backupMsg("<b>Restored</b>" + Object.keys(data).length + " records loaded from " +
+    esc(parsed.exportedAt ? parsed.exportedAt.slice(0, 10) : "backup") + ".", "good");
+  initState(); renderAll();
+}
+
+/* ================= tabs ================= */
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.setAttribute("aria-selected", String(t.dataset.tab === name));
+  });
+  document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
+  $("panel-" + name).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (name === "progress") { renderWeight(); renderHR(); }
+}
+
+/* ================= init ================= */
+function initState() {
+  settings = DB.get("settings", {});
+  weightLog = DB.get("weight-log", []);
+  hrLog = DB.get("hr-log", []);
+  sessionHistory = DB.get("session-history", []);
+  reflections = DB.get("reflections", []);
+  pbLog = DB.get("pb-log", []);
+  retinolLog = DB.get("retinol-log", []);
+  todayState = DB.get(dailyKey(new Date()), {});
+  viewWeek = blockWeekNow() || DB.get("active-week", 1);
+  $("startDate").value = settings.startDate || "";
+}
+function renderAll() {
+  $("weekSelect").value = viewWeek;
+  loadWeek(viewWeek);
+  renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
+  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
+  renderStartInfo(); renderSaveStatus(); renderLaps();
+}
+function renderStartInfo() {
+  var bw = blockWeekNow();
+  $("startInfo").textContent = settings.startDate
+    ? (bw ? "You're in week " + bw + " of 13. Today's session shows on the Today tab."
+          : "That date is in the future — the block hasn't started yet.")
+    : "No date set. Today's session and the block progress bar stay hidden until you set one.";
+}
+
+(function init() {
+  var sel = $("weekSelect");
+  for (var i = 1; i <= 13; i++) {
+    var o = document.createElement("option");
+    o.value = i; o.textContent = "Week " + i + (i === 13 ? " — PB attempts" : "");
+    sel.appendChild(o);
+  }
+  REVERSE.length;
+
+  initState();
+  renderAll();
+
+  /* tabs */
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () { showTab(t.dataset.tab); });
+  });
+
+  /* delegated clicks */
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest ? e.target.closest("[data-done],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret]") : null;
+    if (!el) return;
+    if (el.dataset.done != null) toggleDone(+el.dataset.done);
+    else if (el.dataset.check) toggleCheck(el.dataset.check);
+    else if (el.dataset.timer != null) {
+      var d = weekData[+el.dataset.timer];
+      loadSessionIntoTimer(d.desc, d.day + " · " + d.type);
+    }
+    else if (el.dataset.kcal) stepKcal(el.dataset.kcal);
+    else if (el.dataset.goto) showTab(el.dataset.goto);
+    else if (el.dataset.preset) {
+      var pr = el.dataset.preset.split(":");
+      $("paceDist").value = pr[0]; $("paceTime").value = pr[1]; runPace();
+    }
+    else if (el.dataset.delw) {
+      weightLog = weightLog.filter(function (w) { return w.date !== el.dataset.delw; });
+      DB.set("weight-log", weightLog); renderWeight(); renderCalStep();
+    }
+    else if (el.dataset.delhr) {
+      hrLog = hrLog.filter(function (h) { return h.date !== el.dataset.delhr; });
+      DB.set("hr-log", hrLog); renderHR(); renderReadiness();
+    }
+    else if (el.dataset.delpb) {
+      pbLog = pbLog.filter(function (p) { return p.id !== el.dataset.delpb; });
+      DB.set("pb-log", pbLog); renderPBHistory(); renderBench();
+    }
+    else if (el.dataset.delret) {
+      retinolLog = retinolLog.filter(function (d2) { return d2 !== el.dataset.delret; });
+      DB.set("retinol-log", retinolLog); renderRetinol();
+    }
+  });
+
+  /* delegated field edits */
+  document.addEventListener("change", function (e) {
+    var el = e.target;
+    if (el.dataset && el.dataset.field != null && el.dataset.i != null) {
+      weekData[+el.dataset.i][el.dataset.field] = el.value;
+      saveWeek();
+      var key = viewWeek + "|" + weekData[+el.dataset.i].day;
+      sessionHistory.forEach(function (h) {
+        if (h.key === key) { h.actual = weekData[+el.dataset.i].actual || "—"; h.feel = weekData[+el.dataset.i].feel || ""; }
+      });
+      DB.set("session-history", sessionHistory);
+      renderHistory(); renderReadiness();
+    }
+  });
+
+  $("weekSelect").addEventListener("change", function () {
+    viewWeek = parseInt(this.value, 10);
+    DB.set("active-week", viewWeek);
+    loadWeek(viewWeek); renderReflections();
+  });
+
+  $("startDate").addEventListener("change", function () {
+    settings.startDate = this.value || null;
+    DB.set("settings", settings);
+    viewWeek = blockWeekNow() || viewWeek;
+    $("weekSelect").value = viewWeek;
+    loadWeek(viewWeek);
+    renderBlockBar(); renderToday(); renderStartInfo(); renderReflections();
+  });
+  $("clearStart").addEventListener("click", function () {
+    settings.startDate = null; DB.set("settings", settings);
+    $("startDate").value = "";
+    renderBlockBar(); renderToday(); renderStartInfo();
+  });
+
+  $("weightBtn").addEventListener("click", addWeight);
+  $("weightInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addWeight(); });
+  $("hrBtn").addEventListener("click", addHR);
+  $("hrInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addHR(); });
+  $("pbBtn").addEventListener("click", logPB);
+  $("pbTimeInput").addEventListener("keydown", function (e) { if (e.key === "Enter") logPB(); });
+  $("saveReflectionBtn").addEventListener("click", saveReflection);
+  $("retinolBtn").addEventListener("click", logRetinol);
+  $("paceBtn").addEventListener("click", runPace);
+  $("paceTime").addEventListener("keydown", function (e) { if (e.key === "Enter") runPace(); });
+
+  $("btnPrimary").addEventListener("click", timerPrimary);
+  $("btnStop").addEventListener("click", timerPause);
+  $("btnReset").addEventListener("click", timerReset);
+  $("tRep").addEventListener("change", function () { timerTargets(); setMode(T.mode); renderLaps(); });
+  $("tRest").addEventListener("change", function () { timerTargets(); setMode(T.mode); });
+  $("btnSound").addEventListener("click", function () {
+    T.sound = !T.sound;
+    this.textContent = T.sound ? "Sound on" : "Sound off";
+    this.setAttribute("aria-pressed", String(T.sound));
+    this.classList.toggle("on", T.sound);
+  });
+
+  $("btnAM").addEventListener("click", function () { setRoutine("AM"); });
+  $("btnPM").addEventListener("click", function () { setRoutine("PM"); });
+
+  $("exportBtn").addEventListener("click", doExport);
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { applyBackup(String(r.result)); };
+    r.readAsText(f);
+    this.value = "";
+  });
+  $("showTextBtn").addEventListener("click", function () {
+    var box = $("backupText"), open = box.style.display !== "none";
+    box.style.display = open ? "none" : "block";
+    if (!open) $("backupArea").value = JSON.stringify(backupObject(), null, 2);
+    this.textContent = open ? "Show as text" : "Hide text";
+  });
+  $("restoreTextBtn").addEventListener("click", function () { applyBackup($("backupArea").value); });
+
+  runPace();
+
+  var rt;
+  window.addEventListener("resize", function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () { renderWeight(); renderHR(); }, 200);
+  });
+})();
+
+function setRoutine(which) {
+  $("btnAM").setAttribute("aria-pressed", String(which === "AM"));
+  $("btnPM").setAttribute("aria-pressed", String(which === "PM"));
+  $("routineAM").style.display = which === "AM" ? "block" : "none";
+  $("routinePM").style.display = which === "PM" ? "block" : "none";
+}
+</script>
