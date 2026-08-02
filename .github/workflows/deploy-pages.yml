@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/artifact-app-data-save-0fsmhi]
+    branches: [main, claude/coding-capabilities-21nmif]
   workflow_dispatch:
 
 permissions:
