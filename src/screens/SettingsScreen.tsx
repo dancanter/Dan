@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useStreak } from '../hooks/useStreak';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { BackupSection } from '../components/settings/BackupSection';
+import { clearAll } from '../lib/storage';
 import { formatDueDate } from '../lib/dates';
 
 const TEXT_SIZE_OPTIONS: { value: TextSize; label: string }[] = [
@@ -16,15 +17,19 @@ export function SettingsScreen() {
   const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
-  const { dueDate, resetProfile } = usePregnancyProfile();
-  const { resetStreak } = useStreak();
+  const { dueDate } = usePregnancyProfile();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
   const navigate = useNavigate();
 
   function handleReset() {
-    if (window.confirm('This clears your due date, streak, and saved progress on this device. Continue?')) {
-      resetProfile();
-      resetStreak();
+    if (
+      window.confirm(
+        'This clears everything saved on this device — your due date, journal, appointments, saved reads and progress. Download a backup first if you might want it back. Continue?',
+      )
+    ) {
+      // One sweep over the whole namespace, so a screen added later can't be
+      // silently left behind by a reset that lists keys by hand.
+      clearAll();
       navigate('/', { replace: true });
     }
   }
@@ -106,6 +111,8 @@ export function SettingsScreen() {
           </p>
         )}
       </section>
+
+      <BackupSection />
 
       <section className="mt-6" aria-labelledby="profile-heading">
         <h2 id="profile-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">

@@ -1,11 +1,16 @@
+import { Link } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useStreak } from '../hooks/useStreak';
+import { useJournal } from '../hooks/useJournal';
+import { useSavedItems } from '../hooks/useSavedItems';
 import { badges } from '../content';
 import { StreakBadge } from '../components/progress/StreakBadge';
 
 export function ProgressScreen() {
   const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const { currentStreak, totalDaysEngaged, viewedArticleIds, earnedBadgeIds } = useStreak();
+  const { daysLogged } = useJournal();
+  const { savedCount } = useSavedItems();
 
   return (
     <main id="main-content" className="mx-auto max-w-md px-4 pb-28 pt-8">
@@ -23,6 +28,19 @@ export function ProgressScreen() {
       <p className="mt-4 text-sm text-bump-muted dark:text-bump-muted-dark">
         You've read {viewedArticleIds.length} {viewedArticleIds.length === 1 ? 'article' : 'articles'} so far.
       </p>
+
+      <ul className="mt-4 space-y-2 text-sm">
+        <li>
+          <Link to="/saved" className="font-semibold text-bump-primary underline dark:text-bump-primary-dark">
+            {savedCount} saved {savedCount === 1 ? 'read' : 'reads'} →
+          </Link>
+        </li>
+        <li>
+          <Link to="/journal" className="font-semibold text-bump-primary underline dark:text-bump-primary-dark">
+            {daysLogged} {daysLogged === 1 ? 'day' : 'days'} in your journal →
+          </Link>
+        </li>
+      </ul>
 
       <section className="mt-8" aria-labelledby="badges-heading">
         <h2 id="badges-heading" className="mb-3 text-lg font-semibold text-bump-text dark:text-bump-text-dark">

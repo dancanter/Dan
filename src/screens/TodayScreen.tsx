@@ -1,6 +1,13 @@
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useStreak } from '../hooks/useStreak';
+import { useAppointments } from '../hooks/useAppointments';
+import {
+  appointmentKindLabel,
+  describeCountdown,
+  formatAppointmentDate,
+  formatAppointmentTime,
+} from '../lib/appointments';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { weekByNumber, contentItemById } from '../content';
@@ -12,6 +19,7 @@ import { StreakBadge } from '../components/progress/StreakBadge';
 export function TodayScreen() {
   const { currentWeek, isOnboarded } = usePregnancyProfile();
   const { currentStreak, totalDaysEngaged, recordEngagementToday } = useStreak();
+  const { nextAppointment, openQuestionCount } = useAppointments();
   const { reduceMotion } = useAccessibilitySettings();
   const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
 
@@ -47,6 +55,35 @@ export function TodayScreen() {
       <div className="mt-6">
         <StreakBadge currentStreak={currentStreak} totalDaysEngaged={totalDaysEngaged} />
       </div>
+
+      {nextAppointment && (
+        <section className="mt-6" aria-labelledby="next-appointment-heading">
+          <h2 id="next-appointment-heading" className="sr-only">
+            Your next appointment
+          </h2>
+          <Link
+            to="/appointments"
+            className="block rounded-2xl border border-bump-accent bg-bump-accent/10 p-4"
+          >
+            <span className="text-xs font-semibold uppercase tracking-wide text-bump-accent dark:text-bump-accent-dark">
+              Next appointment · {describeCountdown(nextAppointment.date)}
+            </span>
+            <p className="mt-1 text-base font-semibold text-bump-text dark:text-bump-text-dark">
+              {appointmentKindLabel(nextAppointment.kind)} —{' '}
+              {formatAppointmentDate(nextAppointment.date)}
+              {formatAppointmentTime(nextAppointment.time)
+                ? ` at ${formatAppointmentTime(nextAppointment.time)}`
+                : ''}
+            </p>
+            {openQuestionCount > 0 && (
+              <p className="mt-1 text-sm text-bump-muted dark:text-bump-muted-dark">
+                {openQuestionCount} {openQuestionCount === 1 ? 'question' : 'questions'} saved to
+                ask.
+              </p>
+            )}
+          </Link>
+        </section>
+      )}
 
       <div className="mt-6">
         {dailyTip ? (

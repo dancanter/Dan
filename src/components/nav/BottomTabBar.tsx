@@ -25,6 +25,15 @@ function WeeksIcon() {
   );
 }
 
+function JournalIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-6 w-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 0 1 2-2h11v18H7a2 2 0 0 0-2 2z" />
+      <path strokeLinecap="round" d="M9 7h5M9 11h5" />
+    </svg>
+  );
+}
+
 function ProgressIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-6 w-6">
@@ -45,6 +54,7 @@ function SettingsIcon() {
 const tabs: Tab[] = [
   { to: '/today', label: 'Today', icon: <TodayIcon /> },
   { to: '/weeks', label: 'Weeks', icon: <WeeksIcon /> },
+  { to: '/journal', label: 'Journal', icon: <JournalIcon /> },
   { to: '/progress', label: 'Progress', icon: <ProgressIcon /> },
   { to: '/settings', label: 'Settings', icon: <SettingsIcon /> },
 ];

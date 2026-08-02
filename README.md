@@ -24,7 +24,7 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 - **`vite-plugin-pwa`** — generates the manifest and offline service worker from a few lines of config rather than hand-rolled caching logic.
 - **React Router v6** — plain client-side routing; no SSR/SEO requirement here, so a static SPA keeps hosting free and deployment a one-command affair.
 - **Framer Motion** — for the "reveal today's tip" interaction, with first-class `prefers-reduced-motion` support.
-- **No backend** — all content is static, bundled data; personal state (due date, streak, viewed articles) lives in `localStorage`. This is a deliberate scope decision for a prototype stage, not an oversight — see "Next steps" below.
+- **No backend** — all content is static, bundled data, and everything personal stays on the device (see "Saving your data" below). No account, no server, nothing uploaded.
 - **Vitest + React Testing Library + axe-core** — component tests plus automated accessibility checks in CI, not just claimed accessibility.
 
 ## Content architecture — designed to grow
@@ -50,6 +50,24 @@ Two weeks are hand-curated end-to-end as a deeper worked example:
 
 Every other week (4–8, 10–19, 21–42) is assembled from the same underlying `ContentItem`s via `weeks/rotation.ts`, grouped by trimester (a nausea/folic-acid-heavy rotation for trimester 1, iron/dairy/weight for trimester 2, fatigue/breathlessness/swelling for trimester 3) — so no week is ever empty, whatever due date someone enters.
 
+## Saving your data
+
+Bump has three kinds of personal record, all editable and all saved as you go:
+
+- **A journal** — a date, how the day felt, any symptoms worth noting, and free text. Add, edit, delete.
+- **Appointments** — midwife visits, scans, classes and tests, with time, place and notes; the soonest one surfaces as a card on Today. Alongside them, a running list of **questions to ask**, tickable at the appointment.
+- **Saved reads** — bookmark any article and it's waiting on its own screen, kept separate from the automatic "what have I opened" history behind the streak.
+
+Everything goes through one storage module (`src/lib/storage.ts`) rather than scattered `localStorage` calls, which is what makes the saving trustworthy rather than incidental:
+
+- **One cache and listener set per key**, so a write is visible immediately everywhere it's read, including in other open tabs (via the `storage` event).
+- **Write failures are surfaced, not swallowed.** Private browsing and a full disk both make `localStorage.setItem` throw; Bump detects which, keeps the value in memory so nothing is lost mid-edit, and tells you in Settings instead of pretending the save worked.
+- **`navigator.storage.persist()`** is offered from Settings, asking the browser not to evict the data when space runs low.
+- **Backup files.** Settings can export everything to a dated JSON file and restore from one — on the same device or a new phone. Import validates the file first (right app, not a newer schema, keys inside our namespace) and shows you the record counts before replacing anything, so a bad file is rejected rather than half-applied.
+- **A versioned schema** (`SCHEMA_VERSION`) so a future data-shape change has somewhere to hang a migration, and old backups stay readable.
+
+This is deliberately device-local rather than an account and a server: it keeps hosting free, keeps something as personal as a pregnancy journal off anyone else's machine, and the export file means device-local doesn't have to mean fragile. Cross-device sync is the natural next step if it's wanted — see "Next steps".
+
 ## Engagement, without guilt
 
 The source content is deliberately anti-diet-culture and anti-guilt (see the weight & body image and "don't diet" material), so the app's engagement mechanics were designed to match that tone rather than undermine it:
@@ -61,7 +79,7 @@ The source content is deliberately anti-diet-culture and anti-guilt (see the wei
 
 ## Accessibility
 
-Built to a WCAG 2.1 AA target for an audience that may be dealing with fatigue, nausea, one-handed phone use, or unfamiliarity with apps like this: semantic HTML, ≥44×44px touch targets, ≥4.5:1 text contrast, `prefers-reduced-motion` respected throughout, an in-app text-size setting on top of OS-level scaling, aria-live announcements for streak/reveal updates, visible focus rings, and focus moved to each screen's heading on navigation. `axe-core` accessibility checks run automatically in `npm test` and in CI.
+Built to a WCAG 2.1 AA target for an audience that may be dealing with fatigue, nausea, one-handed phone use, or unfamiliarity with apps like this: semantic HTML, ≥44×44px touch targets, ≥4.5:1 text contrast, `prefers-reduced-motion` respected throughout, an in-app text-size setting on top of OS-level scaling, aria-live announcements for streak/reveal updates, visible focus rings, and focus moved to each screen's heading on navigation. The data-entry screens hold the same line: real `fieldset`/`legend` grouping, labelled inputs, `aria-pressed` toggles rather than styled divs, and an `aria-live` confirmation whenever something saves. `axe-core` checks run over every screen automatically in `npm test` and in CI.
 
 ## Running it
 
@@ -78,5 +96,6 @@ npm run lint
 ## Next steps
 
 - Populate the remaining placeholder weeks as more research is compiled.
-- Optional cross-device sync (e.g. Supabase) if this moves beyond a single-device prototype — deliberately out of scope for now to keep hosting free and the architecture simple.
+- Optional cross-device sync (e.g. Supabase) if this moves beyond a single device. The storage module is the seam for it: everything already funnels through one `snapshot`/`restore` pair, so sync means adding a remote adapter rather than rewriting the screens.
 - Expand automated accessibility coverage to every screen, and add end-to-end tests for the onboarding → daily-tip → article flow.
+- Reminders for upcoming appointments, once there's a reason to ask for notification permission.

@@ -4,6 +4,7 @@ import { contentItemById } from '../content';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useStreak } from '../hooks/useStreak';
 import { SourceList } from '../components/content/SourceList';
+import { SaveButton } from '../components/content/SaveButton';
 
 export function ArticleScreen() {
   const { articleId } = useParams<{ articleId: string }>();
@@ -45,6 +46,10 @@ export function ArticleScreen() {
       <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-bump-text dark:text-bump-text-dark">
         {item.body}
       </p>
+
+      <div className="mt-5">
+        <SaveButton itemId={item.id} title={item.title} />
+      </div>
 
       <SourceList sourceIds={item.sourceIds} />
     </main>
