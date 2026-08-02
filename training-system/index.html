@@ -197,6 +197,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .statusbar{position:fixed;left:0;right:0;bottom:0;background:rgba(18,24,27,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 16px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);display:flex;justify-content:center;gap:8px;align-items:center;letter-spacing:.04em}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--go);flex-shrink:0}
 .dot.bad{background:var(--track)}
+.dot.warn{background:var(--warn)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 
@@ -229,6 +230,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
   <!-- ============ TODAY ============ -->
   <div class="panel active" id="panel-today" role="tabpanel">
+    <div id="persistBanner"></div>
     <section class="block">
       <h2 class="block-title">Today's Session <span class="tag" id="todayDateTag"></span></h2>
       <div id="todaySession"></div>
@@ -646,12 +648,15 @@ var DB = (function () {
       return out;
     },
     dump: function () {
-      var o = {}; this.keys().forEach(function (k) { o[k] = raw(k); }); return o;
+      var o = {};
+      this.keys().forEach(function (k) { if (k.indexOf("__") !== 0) o[k] = raw(k); });
+      return o;
     },
     restore: function (obj) {
       var self = this;
-      this.keys().forEach(function (k) { self.remove(k); });
+      this.keys().forEach(function (k) { if (k.indexOf("__") !== 0) self.remove(k); });
       Object.keys(obj).forEach(function (k) {
+        if (k.indexOf("__") === 0) return;
         var v = obj[k];
         try { if (ok) localStorage.setItem(PRE + k, v); else mem[k] = v; } catch (e) { mem[k] = v; }
       });
@@ -660,19 +665,59 @@ var DB = (function () {
   };
 })();
 
+/* Writing successfully is not the same as the data still being there next time.
+   Some viewers hand back a fresh storage bucket on every open, so a write
+   reports success and then vanishes. Confirm it with a marker that has to
+   survive a reload before claiming anything is saved. */
+var PERSIST = "blocked";
+function probePersistence() {
+  if (!DB.available) { PERSIST = "blocked"; return; }
+  var marker = DB.get("__seen", null);
+  var hasData = DB.keys().some(function (k) { return k.indexOf("__") !== 0; });
+  if (marker || hasData) { PERSIST = "confirmed"; if (!marker) DB.set("__seen", new Date().toISOString()); }
+  else { PERSIST = "unconfirmed"; DB.set("__seen", new Date().toISOString()); }
+}
+function firstSeenDate() {
+  var m = DB.get("__seen", null);
+  return m ? String(m).slice(0, 10) : null;
+}
 function renderSaveStatus() {
   var dot = document.getElementById("saveDot"), txt = document.getElementById("saveText");
   if (!dot) return;
-  if (!DB.available) {
+  if (PERSIST === "confirmed") {
+    dot.className = "dot";
+    var t = DB.lastSaved;
+    txt.textContent = "Saving here · confirmed since " + (firstSeenDate() || "today") +
+      (t ? " · " + t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "");
+  } else if (PERSIST === "unconfirmed") {
+    dot.className = "dot warn";
+    txt.textContent = "Saving not confirmed yet — reopen this page to test it";
+  } else {
     dot.className = "dot bad";
-    txt.textContent = "This browser is blocking storage — export a backup to keep your data";
-    return;
+    txt.textContent = "This viewer is blocking storage — export a backup to keep your data";
   }
-  dot.className = "dot";
-  var t = DB.lastSaved;
-  txt.textContent = t
-    ? "Saved on this device · " + t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    : "Saved on this device";
+}
+
+/* Banner at the top of Today, shown until saving is proven to survive a reopen. */
+function renderPersistBanner() {
+  var el = $("persistBanner");
+  if (!el) return;
+  if (PERSIST === "confirmed") { el.innerHTML = ""; return; }
+  if (PERSIST === "blocked") {
+    el.innerHTML = '<div class="note stop" style="margin-bottom:16px"><b>This viewer will not keep your data</b>' +
+      "It blocks browser storage outright, so anything you enter is gone when you close the tab. " +
+      "Export a file before you close it, and import it back next time. " +
+      "For day-to-day use, open the app from your own device instead — it saves properly there." +
+      '<div class="add-row"><button class="btn primary" id="bannerExport">Save my data to a file</button>' +
+      '<button class="btn" id="bannerImport">Load a backup</button></div></div>';
+  } else {
+    el.innerHTML = '<div class="note warn" style="margin-bottom:16px"><b>Saving isn\'t confirmed yet</b>' +
+      "Put something in — a weight, a tick — then close this page and open it again. " +
+      "If the bar at the bottom turns green, your data is safe here. If it still says this, " +
+      "this viewer hands out fresh storage on every visit and the only thing that survives is an exported file." +
+      '<div class="add-row"><button class="btn" id="bannerExport">Save my data to a file</button>' +
+      '<button class="btn" id="bannerImport">Load a backup</button></div></div>';
+  }
 }
 
 /* ================= helpers ================= */
@@ -1723,7 +1768,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
-  renderStartInfo(); renderSaveStatus(); renderLaps();
+  renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderStartInfo() {
   var bw = blockWeekNow();
@@ -1742,6 +1787,7 @@ function renderStartInfo() {
   }
   REVERSE.length;
 
+  probePersistence();
   initState();
   renderAll();
 
@@ -1752,6 +1798,8 @@ function renderStartInfo() {
 
   /* delegated clicks */
   document.addEventListener("click", function (e) {
+    if (e.target.id === "bannerExport") { doExport(); return; }
+    if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
     var el = e.target.closest ? e.target.closest("[data-done],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
