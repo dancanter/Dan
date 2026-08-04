@@ -10,6 +10,7 @@ import { AppointmentsScreen } from './screens/AppointmentsScreen';
 import { GetHelpScreen } from './screens/GetHelpScreen';
 import { JournalScreen } from './screens/JournalScreen';
 import { SourcesScreen } from './screens/SourcesScreen';
+import { MethodologyScreen } from './screens/MethodologyScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { usePregnancyProfile } from './hooks/usePregnancyProfile';
 
@@ -38,6 +39,7 @@ function App() {
         <Route path="/help" element={<GetHelpScreen />} />
         <Route path="/journal" element={<JournalScreen />} />
         <Route path="/sources" element={<SourcesScreen />} />
+        <Route path="/methodology" element={<MethodologyScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -45,6 +47,10 @@ function App() {
       {!onOnboarding && (
         <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">
           <div className="mx-auto max-w-[920px] font-mono text-[11px] leading-relaxed text-soft">
+            <Link to="/methodology" className="underline">
+              How this is built
+            </Link>
+            {' · '}
             <Link to="/settings" className="underline">
               Settings &amp; accessibility
             </Link>

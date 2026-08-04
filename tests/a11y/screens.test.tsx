@@ -11,6 +11,7 @@ import { AppointmentsScreen } from '../../src/screens/AppointmentsScreen';
 import { GetHelpScreen } from '../../src/screens/GetHelpScreen';
 import { JournalScreen } from '../../src/screens/JournalScreen';
 import { SourcesScreen } from '../../src/screens/SourcesScreen';
+import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 
 function setOnboarded() {
@@ -30,6 +31,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Get Help', () => <GetHelpScreen />],
   ['Journal', () => <JournalScreen />],
   ['Sources', () => <SourcesScreen />],
+  ['Methodology', () => <MethodologyScreen />],
   ['Settings', () => <SettingsScreen />],
 ];
 

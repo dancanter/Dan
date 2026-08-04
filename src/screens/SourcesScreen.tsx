@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { sources, SOURCE_TIER_LABEL, type Source } from '../content';
 import { ScreenTitle } from '../components/ui/SectionHeading';
@@ -15,7 +16,11 @@ export function SourcesScreen() {
       <Note tone="calm" title="How this is built">
         Every recommendation is checked against a named source before it goes in. Where evidence is
         uncertain, that’s stated rather than smoothed over. Where a study has a funding conflict,
-        that’s flagged — see the dairy and iodine entries below.
+        that’s flagged — see the dairy and iodine entries below, or read the{' '}
+        <Link to="/methodology" className="font-semibold underline">
+          full process
+        </Link>
+        .
       </Note>
 
       {TIER_ORDER.map((tier) => {
