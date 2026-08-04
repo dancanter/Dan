@@ -1,31 +1,29 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 
-  --color-bump-bg: #fff8f5;
-  --color-bump-bg-dark: #201613;
-  --color-bump-surface: #ffffff;
-  --color-bump-surface-dark: #2b1e1a;
-  --color-bump-primary: #d97757;
-  --color-bump-primary-dark: #e8926f;
-  --color-bump-accent: #6b8f71;
-  --color-bump-accent-dark: #8fb497;
-  --color-bump-text: #2b201c;
-  --color-bump-text-dark: #f5ece7;
-  --color-bump-muted: #7a6a63;
-  --color-bump-muted-dark: #c9b8b0;
-  --color-bump-border: #ecdcd3;
-  --color-bump-border-dark: #3d2c26;
+  /* Field Notes palette */
+  --color-ink: #1f2a1f;
+  --color-soft: #4a5a4a;
+  --color-paper: #f4f0e6;
+  --color-card: #fffdf8;
+  --color-moss: #5c7a5e;
+  --color-mossd: #3a5540;
+  --color-mossp: #e4ebe0;
+  --color-clay: #b5652d;
+  --color-clayp: #f7e9db;
+  --color-sand: #dfd6bf;
+  --color-alert: #8b3a3a;
+  --color-alertp: #f9eaea;
+  --color-line: rgba(31, 42, 31, 0.14);
 }
 
 :root {
   --user-font-scale: 1;
   color-scheme: light;
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
 }
 
 html {
@@ -34,22 +32,22 @@ html {
 
 body {
   margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  background-color: var(--color-bump-bg);
-  color: var(--color-bump-text);
+  font-size: 16.5px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: var(--color-bump-bg-dark);
-    color: var(--color-bump-text-dark);
-  }
-}
-
-:root[data-theme='dark'] body {
-  background-color: var(--color-bump-bg-dark);
-  color: var(--color-bump-text-dark);
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 0 0.4em;
 }
 
 * {
@@ -57,9 +55,24 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-bump-primary);
+  outline: 3px solid #1d4ed8;
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 3px;
+}
+
+/* High-contrast mode: darken text/borders rather than swapping the whole
+   palette, so the paper-and-ink character survives. */
+.high-contrast {
+  --color-ink: #000000;
+  --color-soft: #2b2b2b;
+  --color-line: rgba(0, 0, 0, 0.55);
+  --color-mossd: #23412a;
+  --color-clay: #8a4413;
+  --color-alert: #6d2020;
+}
+
+.high-contrast :focus-visible {
+  outline-width: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -78,26 +91,31 @@ body {
   left: -9999px;
   top: 0;
   z-index: 100;
-  background: var(--color-bump-primary);
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0 0 0.5rem 0;
+  background: var(--color-ink);
+  color: #fff;
+  padding: 12px 18px;
   font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
 }
 
 .skip-link:focus {
-  left: 0;
+  left: 12px;
+  top: 12px;
 }
 
-.high-contrast {
-  --color-bump-text: #000000;
-  --color-bump-text-dark: #ffffff;
-  --color-bump-muted: #3a3a3a;
-  --color-bump-muted-dark: #e5e5e5;
-  --color-bump-border: #000000;
-  --color-bump-border-dark: #ffffff;
+/* Shared "field note" typographic bits used across screens. */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
-.high-contrast :focus-visible {
-  outline-width: 4px;
+.prose-note p {
+  margin: 0 0 0.6em;
+}
+
+.prose-note p:last-child {
+  margin-bottom: 0;
 }

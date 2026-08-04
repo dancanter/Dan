@@ -19,12 +19,12 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'Bump — Your Pregnancy Guide',
-        short_name: 'Bump',
+        name: 'Field Notes — A Pregnancy Guide',
+        short_name: 'Field Notes',
         description:
-          'A day-by-day, week-by-week pregnancy guide with evidence-based nutrition, symptom, and wellbeing tips from NHS, NICE, SACN and other trusted UK sources.',
-        theme_color: '#f4a89b',
-        background_color: '#fff8f5',
+          'An independent, evidence-based pregnancy guide. Week by week, sourced from NHS, NICE, RCOG and SACN guidance plus named peer-reviewed research.',
+        theme_color: '#5c7a5e',
+        background_color: '#f4f0e6',
         display: 'standalone',
         start_url: base,
         scope: base,
@@ -48,6 +48,26 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        // The display/mono typefaces come from Google Fonts, which sits
+        // outside the precache. Cache them at runtime so an installed,
+        // offline app still renders in its own type rather than falling
+        // back to system fonts.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-stylesheets' },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false,

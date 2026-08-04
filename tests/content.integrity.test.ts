@@ -1,22 +1,48 @@
 import { describe, expect, it } from 'vitest';
-import { validateContentIntegrity, allWeeks, allContentItems } from '../src/content';
+import {
+  validateContent,
+  guides,
+  symptoms,
+  myths,
+  babyWeekByNumber,
+  focusForWeek,
+  redFlags,
+  appointments,
+  MIN_WEEK,
+  MAX_WEEK,
+} from '../src/content';
 
 describe('content integrity', () => {
-  it('has no dangling references between weeks, content items, sources, and badges', () => {
-    const issues = validateContentIntegrity();
-    expect(issues).toEqual([]);
+  it('has no dangling citations, duplicate ids, or coverage gaps', () => {
+    expect(validateContent()).toEqual([]);
   });
 
-  it('covers the full pregnancy week range with no gaps', () => {
-    const weekNumbers = allWeeks.map((w) => w.week).sort((a, b) => a - b);
-    for (let i = 1; i < weekNumbers.length; i++) {
-      expect(weekNumbers[i]).toBe(weekNumbers[i - 1] + 1);
-    }
-  });
-
-  it('gives every content item at least one source citation', () => {
-    for (const item of allContentItems) {
+  it('cites at least one named source for every guide, symptom and myth', () => {
+    for (const item of [...guides, ...symptoms, ...myths]) {
       expect(item.sourceIds.length).toBeGreaterThan(0);
     }
+  });
+
+  it('covers every browsable week with baby development and focus items', () => {
+    for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
+      expect(babyWeekByNumber.get(w), `week ${w} baby data`).toBeDefined();
+      expect(focusForWeek(w).length, `week ${w} focus`).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives every symptom a non-empty "when to check" flag', () => {
+    for (const s of symptoms) {
+      expect(s.flag.trim().length, `symptom ${s.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps both urgent escalation levels populated', () => {
+    expect(redFlags.some((f) => f.level === 'maternity-unit')).toBe(true);
+    expect(redFlags.some((f) => f.level === 'emergency')).toBe(true);
+  });
+
+  it('orders appointments by week', () => {
+    const weeks = appointments.map((a) => a.week);
+    expect([...weeks].sort((a, b) => a - b)).toEqual(weeks);
   });
 });

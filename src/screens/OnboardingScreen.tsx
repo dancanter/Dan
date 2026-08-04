@@ -1,16 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { MAX_WEEK, MIN_WEEK, toISODate } from '../lib/dates';
+import { MAX_WEEK, MIN_WEEK } from '../content/schema';
+import { toISODate } from '../lib/dates';
 
 type Mode = 'due-date' | 'current-week';
 
 export function OnboardingScreen() {
-  const { setDueDate, setCurrentWeek } = usePregnancyProfile();
+  const { setDueDate, setCurrentWeek, setFirstPregnancy } = usePregnancyProfile();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('due-date');
   const [dueDateInput, setDueDateInput] = useState('');
   const [weekInput, setWeekInput] = useState('12');
+  const [first, setFirst] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   function handleSubmit(event: FormEvent) {
@@ -31,37 +33,35 @@ export function OnboardingScreen() {
       }
       setCurrentWeek(week);
     }
-
+    setFirstPregnancy(first);
     navigate('/today', { replace: true });
   }
 
+  const toggleClass = (active: boolean) =>
+    `min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+      active ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+    }`;
+
   return (
-    <main id="main-content" className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-6 py-10">
-      <div className="mb-8 text-center">
-        <span className="text-4xl" aria-hidden="true">
-          🌱
-        </span>
-        <h1 className="mt-3 text-2xl font-bold text-bump-text dark:text-bump-text-dark">Welcome to Bump</h1>
-        <p className="mt-2 text-bump-muted dark:text-bump-muted-dark">
-          A day-by-day, week-by-week guide to pregnancy — evidence-based, no guilt, no pressure.
+    <main id="main" className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-5 py-10">
+      <div className="mb-7 text-center">
+        <h1 className="font-display text-[30px] font-bold">Field Notes</h1>
+        <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
+        <p className="mt-4 text-[15px] text-soft">
+          Week by week, evidence-based, and honest about what the evidence does and doesn’t say.
+          No account, no tracking — everything stays on your device.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <fieldset>
-          <legend className="mb-2 text-sm font-semibold text-bump-text dark:text-bump-text-dark">
-            How would you like to get started?
-          </legend>
+        <fieldset className="border-0 p-0">
+          <legend className="mb-2 text-sm font-semibold">How would you like to start?</legend>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setMode('due-date')}
               aria-pressed={mode === 'due-date'}
-              className={`min-h-11 flex-1 rounded-xl border px-3 py-2 text-sm font-medium ${
-                mode === 'due-date'
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
+              className={toggleClass(mode === 'due-date')}
             >
               I know my due date
             </button>
@@ -69,20 +69,16 @@ export function OnboardingScreen() {
               type="button"
               onClick={() => setMode('current-week')}
               aria-pressed={mode === 'current-week'}
-              className={`min-h-11 flex-1 rounded-xl border px-3 py-2 text-sm font-medium ${
-                mode === 'current-week'
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
+              className={toggleClass(mode === 'current-week')}
             >
-              I know my current week
+              I know my week
             </button>
           </div>
         </fieldset>
 
         {mode === 'due-date' ? (
           <div>
-            <label htmlFor="due-date" className="mb-1 block text-sm font-semibold text-bump-text dark:text-bump-text-dark">
+            <label htmlFor="due-date" className="mb-1 block text-sm font-semibold">
               Your due date
             </label>
             <input
@@ -90,13 +86,13 @@ export function OnboardingScreen() {
               type="date"
               value={dueDateInput}
               min={toISODate(new Date())}
-              onChange={(event) => setDueDateInput(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-bump-border bg-bump-surface px-3 py-2 text-base text-bump-text dark:border-bump-border-dark dark:bg-bump-surface-dark dark:text-bump-text-dark"
+              onChange={(e) => setDueDateInput(e.target.value)}
+              className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
             />
           </div>
         ) : (
           <div>
-            <label htmlFor="current-week" className="mb-1 block text-sm font-semibold text-bump-text dark:text-bump-text-dark">
+            <label htmlFor="current-week" className="mb-1 block text-sm font-semibold">
               Current week of pregnancy
             </label>
             <input
@@ -106,27 +102,54 @@ export function OnboardingScreen() {
               min={MIN_WEEK}
               max={MAX_WEEK}
               value={weekInput}
-              onChange={(event) => setWeekInput(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-bump-border bg-bump-surface px-3 py-2 text-base text-bump-text dark:border-bump-border-dark dark:bg-bump-surface-dark dark:text-bump-text-dark"
+              onChange={(e) => setWeekInput(e.target.value)}
+              className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
             />
           </div>
         )}
 
+        <fieldset className="border-0 p-0">
+          <legend className="mb-2 text-sm font-semibold">Is this your first pregnancy?</legend>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setFirst(true)}
+              aria-pressed={first}
+              className={toggleClass(first)}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => setFirst(false)}
+              aria-pressed={!first}
+              className={toggleClass(!first)}
+            >
+              No
+            </button>
+          </div>
+          <p className="mt-1.5 text-[13px] text-soft">
+            First pregnancies are offered a couple of extra appointments — this just tailors the
+            timeline.
+          </p>
+        </fieldset>
+
         {error && (
-          <p role="alert" className="text-sm font-medium text-red-700 dark:text-red-300">
+          <p role="alert" className="text-sm font-semibold text-alert">
             {error}
           </p>
         )}
 
         <button
           type="submit"
-          className="min-h-11 w-full rounded-full bg-bump-primary px-4 py-3 text-base font-semibold text-white dark:bg-bump-primary-dark"
+          className="min-h-11 w-full rounded-lg bg-moss px-4 py-3 text-base font-semibold text-white hover:bg-mossd"
         >
-          Let's go
+          Start
         </button>
 
-        <p className="text-center text-xs text-bump-muted dark:text-bump-muted-dark">
-          No account needed. Your information stays on this device.
+        <p className="text-center font-mono text-[10.5px] leading-relaxed text-soft">
+          Not a substitute for medical advice, and not clinically reviewed. Always speak to your
+          midwife or GP about your own care.
         </p>
       </form>
     </main>

@@ -2,126 +2,141 @@ import { useNavigate } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useStreak } from '../hooks/useStreak';
+import { useProgress } from '../hooks/useProgress';
+import { useJournal } from '../hooks/useJournal';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { formatDueDate } from '../lib/dates';
+import { badges } from '../content';
+import { formatDate } from '../lib/dates';
+import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
 
-const TEXT_SIZE_OPTIONS: { value: TextSize; label: string }[] = [
+const TEXT_SIZES: { value: TextSize; label: string }[] = [
   { value: 'default', label: 'Default' },
   { value: 'large', label: 'Large' },
   { value: 'x-large', label: 'Extra large' },
 ];
 
 export function SettingsScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
+  useAutoFocusHeading<HTMLHeadingElement>();
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
   const { dueDate, resetProfile } = usePregnancyProfile();
-  const { resetStreak } = useStreak();
+  const { earnedBadgeIds, currentStreak, daysVisited, resetProgress } = useProgress();
+  const { resetJournal } = useJournal();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
   const navigate = useNavigate();
 
   function handleReset() {
-    if (window.confirm('This clears your due date, streak, and saved progress on this device. Continue?')) {
+    if (
+      window.confirm(
+        'This clears your due date, journal, streak and saved progress on this device. Continue?',
+      )
+    ) {
       resetProfile();
-      resetStreak();
+      resetProgress();
+      resetJournal();
       navigate('/', { replace: true });
     }
   }
 
   return (
-    <main id="main-content" className="mx-auto max-w-md px-4 pb-28 pt-8">
-      <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-bump-text outline-none dark:text-bump-text-dark">
-        Settings
-      </h1>
+    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
+      <ScreenTitle title="Settings" strap="Make this comfortable to read and use." />
 
-      <section className="mt-6" aria-labelledby="text-size-heading">
-        <h2 id="text-size-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Text size
-        </h2>
-        <div className="mt-2 flex gap-2" role="group" aria-labelledby="text-size-heading">
-          {TEXT_SIZE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setTextSize(option.value)}
-              aria-pressed={textSize === option.value}
-              className={`min-h-11 flex-1 rounded-xl border px-2 py-2 text-sm font-medium ${
-                textSize === option.value
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </section>
+      <SectionHeading>Text size</SectionHeading>
+      <div role="group" aria-label="Text size" className="flex gap-2">
+        {TEXT_SIZES.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => setTextSize(o.value)}
+            aria-pressed={textSize === o.value}
+            className={`min-h-11 flex-1 rounded-lg border px-2 text-sm font-medium ${
+              textSize === o.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
 
-      <section className="mt-6 space-y-3" aria-labelledby="display-heading">
-        <h2 id="display-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Display
-        </h2>
-        <label className="flex min-h-11 items-center justify-between rounded-xl border border-bump-border px-3 py-2 dark:border-bump-border-dark">
-          <span className="text-sm font-medium text-bump-text dark:text-bump-text-dark">Reduce motion</span>
+      <SectionHeading>Display</SectionHeading>
+      <div className="space-y-2.5">
+        <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
+          <span className="text-sm font-medium">Reduce motion</span>
           <input
             type="checkbox"
             checked={reduceMotion}
-            onChange={(event) => setReduceMotion(event.target.checked)}
+            onChange={(e) => setReduceMotion(e.target.checked)}
             className="h-5 w-5"
           />
         </label>
-        <label className="flex min-h-11 items-center justify-between rounded-xl border border-bump-border px-3 py-2 dark:border-bump-border-dark">
-          <span className="text-sm font-medium text-bump-text dark:text-bump-text-dark">High contrast</span>
+        <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
+          <span className="text-sm font-medium">High contrast</span>
           <input
             type="checkbox"
             checked={highContrast}
-            onChange={(event) => setHighContrast(event.target.checked)}
+            onChange={(e) => setHighContrast(e.target.checked)}
             className="h-5 w-5"
           />
         </label>
-      </section>
+      </div>
 
-      <section className="mt-6" aria-labelledby="install-heading">
-        <h2 id="install-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Install Bump
-        </h2>
-        {installed ? (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">Bump is already installed on this device. ✅</p>
-        ) : canPromptInstall ? (
-          <button
-            type="button"
-            onClick={promptInstall}
-            className="mt-2 min-h-11 w-full rounded-xl border border-bump-primary px-3 py-2 text-sm font-semibold text-bump-primary dark:text-bump-primary-dark"
-          >
-            Add Bump to your home screen
-          </button>
-        ) : isIOSManualInstall ? (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">
-            On iPhone or iPad: tap the Share icon, then "Add to Home Screen."
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">
-            Look for an install icon in your browser's address bar to add Bump to your device.
-          </p>
-        )}
-      </section>
-
-      <section className="mt-6" aria-labelledby="profile-heading">
-        <h2 id="profile-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Your details
-        </h2>
-        {dueDate && (
-          <p className="mt-2 text-sm text-bump-text dark:text-bump-text-dark">Due date: {formatDueDate(dueDate)}</p>
-        )}
+      <SectionHeading>Install Field Notes</SectionHeading>
+      {installed ? (
+        <p className="text-sm text-soft">Already installed on this device. ✅</p>
+      ) : canPromptInstall ? (
         <button
           type="button"
-          onClick={handleReset}
-          className="mt-3 min-h-11 w-full rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-800 dark:text-red-300"
+          onClick={promptInstall}
+          className="min-h-11 w-full rounded-lg border border-moss px-3 text-sm font-semibold text-mossd"
         >
-          Reset my data
+          Add to your home screen
         </button>
-      </section>
+      ) : isIOSManualInstall ? (
+        <p className="text-sm text-soft">
+          On iPhone or iPad: tap the Share icon, then “Add to Home Screen”.
+        </p>
+      ) : (
+        <p className="text-sm text-soft">
+          Look for an install icon in your browser’s address bar to add Field Notes to your device.
+        </p>
+      )}
+
+      <SectionHeading>Your progress</SectionHeading>
+      <p className="text-sm text-soft">
+        {currentStreak} day streak · visited on {daysVisited} day{daysVisited === 1 ? '' : 's'}.
+        However often you visit is the right amount.
+      </p>
+      <ul className="mt-3 grid list-none grid-cols-2 gap-2.5 p-0">
+        {badges.map((b) => {
+          const earned = earnedBadgeIds.includes(b.id);
+          return (
+            <li
+              key={b.id}
+              className={`rounded-xl border p-3 text-center ${
+                earned ? 'border-moss bg-mossp' : 'border-line bg-card opacity-60'
+              }`}
+            >
+              <span className="text-xl" aria-hidden="true">
+                {earned ? '🏅' : '·'}
+              </span>
+              <p className="mt-1 text-sm font-semibold">{b.title}</p>
+              <p className="mt-0.5 text-xs text-soft">{b.description}</p>
+              <span className="sr-only">{earned ? 'Earned' : 'Not yet earned'}</span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <SectionHeading>Your details</SectionHeading>
+      {dueDate && <p className="text-sm">Due date: {formatDate(dueDate)}</p>}
+      <button
+        type="button"
+        onClick={handleReset}
+        className="mt-3 min-h-11 w-full rounded-lg border border-alert/50 px-3 text-sm font-semibold text-alert"
+      >
+        Reset my data
+      </button>
     </main>
   );
 }

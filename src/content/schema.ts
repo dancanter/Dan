@@ -1,52 +1,104 @@
 export type Trimester = 1 | 2 | 3;
 
-export type ContentCategory =
-  | 'iron'
-  | 'dairy'
-  | 'omega3'
-  | 'fruit-veg-fibre'
-  | 'weight-body-image'
-  | 'hormones-symptoms'
-  | 'stress-mental-health'
-  | 'supplements'
-  | 'general-reassurance';
+export const MIN_WEEK = 4;
+export const MAX_WEEK = 42;
+export const DUE_WEEK = 40;
 
 export interface Source {
   id: string;
   label: string;
   organisation: string;
+  tier: 'gov' | 'nhs' | 'college' | 'charity' | 'research';
   url?: string;
-  note?: string;
+  /** Conflicts of interest, funding caveats, "background only" notes. */
+  caveat?: string;
 }
 
-export interface ContentItem {
+/** A long-form, citable entry in the Healthy Pregnancy reference section. */
+export interface Guide {
   id: string;
-  category: ContentCategory;
-  trimester: Trimester[];
+  section: GuideSection;
   title: string;
-  /** Short, scannable version shown in the daily "reveal" card. */
-  tip: string;
-  /** Fuller explanation shown in the article detail view. */
-  body: string;
+  /** One-line summary used in cards and search results. */
+  summary: string;
+  /** Paragraphs of plain-language body copy. */
+  body: string[];
   sourceIds: string[];
-  tags?: string[];
-  /** Marks content that should be visually flagged as urgent/red-flag guidance. */
-  isRedFlag?: boolean;
+  /** Renders with red-flag styling and an urgent tone. */
+  emphasis?: 'calm' | 'warn';
+  table?: {
+    head: string[];
+    rows: string[][];
+  };
 }
 
-export interface WeekMilestone {
-  title: string;
-  badgeId: string;
-}
+export type GuideSection =
+  | 'nutrition'
+  | 'supplements'
+  | 'food-safety'
+  | 'exercise'
+  | 'sleep'
+  | 'wellbeing'
+  | 'weight'
+  | 'medications'
+  | 'alcohol-smoking'
+  | 'travel'
+  | 'infections';
 
-export interface WeekPlan {
+export interface BabyWeek {
   week: number;
-  trimester: Trimester;
-  headline: string;
-  babySize?: string;
-  dailyTipIds: string[];
-  featuredArticleIds: string[];
-  milestone?: WeekMilestone;
+  /** Fruit/veg size comparison, phrased to follow "roughly the size of…". */
+  size: string;
+  development: string;
+}
+
+export interface Milestone {
+  week: number;
+  title: string;
+  /** Shown as a celebration when the user reaches this week. */
+  celebration?: string;
+}
+
+export interface Myth {
+  id: string;
+  claim: string;
+  verdict: 'myth' | 'true';
+  explanation: string;
+  sourceIds: string[];
+}
+
+export interface Appointment {
+  week: number;
+  title: string;
+  detail: string;
+  /** Only offered in first pregnancies. */
+  firstPregnancyOnly?: boolean;
+}
+
+export interface Symptom {
+  id: string;
+  icon: string;
+  name: string;
+  /** Plain-language explanation of the physiological driver. */
+  why: string;
+  help: string;
+  /** When this symptom stops being routine and needs checking. */
+  flag: string;
+  sourceIds: string[];
+}
+
+export interface RedFlag {
+  id: string;
+  title: string;
+  detail: string;
+  level: 'maternity-unit' | 'emergency';
+}
+
+export interface FocusItem {
+  /** Stable per-week key so ticked items persist correctly. */
+  id: string;
+  text: string;
+  sourceIds: string[];
 }
 
 export interface Badge {

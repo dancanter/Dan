@@ -1,64 +1,46 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { axe } from 'vitest-axe';
-import { TodayScreen } from '../../src/screens/TodayScreen';
-import { ArticleScreen } from '../../src/screens/ArticleScreen';
-import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import { OnboardingScreen } from '../../src/screens/OnboardingScreen';
+import { TodayScreen } from '../../src/screens/TodayScreen';
+import { BabyScreen } from '../../src/screens/BabyScreen';
+import { BodyScreen } from '../../src/screens/BodyScreen';
+import { HealthyScreen } from '../../src/screens/HealthyScreen';
+import { AppointmentsScreen } from '../../src/screens/AppointmentsScreen';
+import { GetHelpScreen } from '../../src/screens/GetHelpScreen';
+import { JournalScreen } from '../../src/screens/JournalScreen';
+import { SourcesScreen } from '../../src/screens/SourcesScreen';
+import { SettingsScreen } from '../../src/screens/SettingsScreen';
 
 function setOnboarded() {
-  window.localStorage.setItem('bump:profile', JSON.stringify({ dueDate: '2026-12-01' }));
+  window.localStorage.setItem(
+    'fieldnotes:profile',
+    JSON.stringify({ dueDate: '2027-01-01', babyName: null, firstPregnancy: true }),
+  );
 }
+
+const SCREENS: [string, () => React.ReactElement][] = [
+  ['Onboarding', () => <OnboardingScreen />],
+  ['Today', () => <TodayScreen />],
+  ['Baby', () => <BabyScreen />],
+  ['My Body', () => <BodyScreen />],
+  ['Healthy Pregnancy', () => <HealthyScreen />],
+  ['Appointments', () => <AppointmentsScreen />],
+  ['Get Help', () => <GetHelpScreen />],
+  ['Journal', () => <JournalScreen />],
+  ['Sources', () => <SourcesScreen />],
+  ['Settings', () => <SettingsScreen />],
+];
 
 describe('accessibility', () => {
   beforeEach(() => {
     window.localStorage.clear();
-  });
-
-  it('OnboardingScreen has no axe violations', async () => {
-    const { container } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <OnboardingScreen />
-      </MemoryRouter>,
-    );
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
-  });
-
-  it('TodayScreen has no axe violations', async () => {
     setOnboarded();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/today']}>
-        <Routes>
-          <Route path="/today" element={<TodayScreen />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
   });
 
-  it('ArticleScreen has no axe violations', async () => {
-    setOnboarded();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/article/iron-anaemia-risk']}>
-        <Routes>
-          <Route path="/article/:articleId" element={<ArticleScreen />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
-  });
-
-  it('SettingsScreen has no axe violations', async () => {
-    setOnboarded();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/settings']}>
-        <SettingsScreen />
-      </MemoryRouter>,
-    );
+  it.each(SCREENS)('%s has no axe violations', async (_name, Screen) => {
+    const { container } = render(<MemoryRouter>{Screen()}</MemoryRouter>);
     const results = await axe(container);
     expect(results.violations).toEqual([]);
   });
