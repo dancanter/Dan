@@ -28,10 +28,30 @@ function setProfile(profile: Record<string, unknown>) {
   window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
 }
 
+/** Writes a profile verbatim, without filling in any missing fields. */
+function setRawProfile(profile: Record<string, unknown>) {
+  window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
+}
+
 describe('the daily screen through the phases', () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.dispatchEvent(new StorageEvent('storage', { key: null }));
+  });
+
+  // This shipped broken: a profile saved before `birthDate` existed read back
+  // as `undefined`, `undefined !== null` was true, and every existing user was
+  // thrown into after-birth mode being told their baby was 0 days old.
+  it('leaves a profile saved before birthDate existed in pregnancy mode', () => {
+    setRawProfile({ dueDate: daysFromNow(60), babyName: null, firstPregnancy: true });
+    render(
+      <MemoryRouter>
+        <TodayScreen />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Week');
+    expect(screen.queryByText(/days old/)).toBeNull();
   });
 
   it('surfaces birth prep as the due date approaches', () => {

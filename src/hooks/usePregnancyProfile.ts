@@ -30,10 +30,17 @@ const INITIAL: PregnancyProfile = {
 };
 
 export function usePregnancyProfile() {
-  const [profile, setProfile, resetProfile] = usePersistedState<PregnancyProfile>(
+  const [stored, setProfile, resetProfile] = usePersistedState<PregnancyProfile>(
     STORAGE_KEY,
     INITIAL,
   );
+
+  // A profile saved before a field existed comes back without that key, and
+  // `undefined` is not `null` — which is exactly how adding `birthDate`
+  // silently flipped every existing user into after-birth mode. Filling from
+  // INITIAL means an old profile is always a complete one, so any field added
+  // later defaults properly instead of reading as "set".
+  const profile = useMemo(() => ({ ...INITIAL, ...stored }), [stored]);
 
   const currentWeek = useMemo(
     () => (profile.dueDate ? computeCurrentWeekFromDueDate(profile.dueDate) : null),
@@ -58,9 +65,13 @@ export function usePregnancyProfile() {
     currentWeek,
     daysToGo,
     trimester: currentWeek ? trimesterForWeek(currentWeek) : null,
-    isOnboarded: profile.dueDate !== null,
-    /** True once a birth date is recorded — the app's after-birth mode. */
-    hasBaby: profile.birthDate !== null,
+    isOnboarded: Boolean(profile.dueDate),
+    /**
+     * True only once a birth date has actually been recorded. Deliberately a
+     * truthiness check, not `!== null`, so a missing or malformed value can
+     * never read as "the baby is here".
+     */
+    hasBaby: Boolean(profile.birthDate),
     babyAgeDays,
     /** Completed weeks since birth, so the first seven days are week 0. */
     babyAgeWeeks: babyAgeDays === null ? null : Math.floor(babyAgeDays / 7),
