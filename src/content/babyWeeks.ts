@@ -7,6 +7,12 @@ import type { BabyWeek, Milestone } from './schema';
  * matters clinically.
  */
 export const babyWeeks: BabyWeek[] = [
+  // Weeks 1–3 exist because of how pregnancy is dated, not because there is
+  // anything to see. Said plainly here rather than padded out, since the
+  // honest answer — "you weren't pregnant yet" — is the useful one.
+  { week: 1, sizeLabel: 'No baby yet — this week is your period', size: 'nothing yet', development: 'Pregnancy is counted from the first day of your last period, so week 1 is your period. It is an odd system, but every due date, scan and appointment uses it — which is why you get called "4 weeks pregnant" about a fortnight after conception.' },
+  { week: 2, sizeLabel: 'No baby yet — conception happens around now', size: 'nothing yet', development: 'Your body releases an egg towards the end of this week. If it meets sperm, conception happens here — though you are still officially "2 weeks pregnant" before there is anything to be pregnant with.' },
+  { week: 3, sizeLabel: 'Smaller than a full stop', size: 'a full stop', development: 'A fertilised egg divides into a ball of around a hundred cells and travels down towards your womb. Nothing you would feel, and a test would still read negative.' },
   { week: 4, size: 'a poppy seed', development: 'The very beginnings — a cluster of cells is burrowing into your womb lining. Nothing visible yet, but a great deal underway.' },
   { week: 5, size: 'an apple pip', development: 'The neural tube — which becomes the brain and spinal cord — is forming. This is exactly why folic acid matters so much right now.' },
   { week: 6, size: 'a lentil', development: 'A heartbeat flickers into existence this week. Tiny buds that will become arms and legs are appearing.' },

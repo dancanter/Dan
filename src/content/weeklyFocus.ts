@@ -26,6 +26,24 @@ interface FocusRule {
  */
 const RULES: FocusRule[] = [
   {
+    id: 'early-dating',
+    text: 'Weeks 1 and 2 come before conception — there was nothing here you could have missed.',
+    sourceIds: ['nhs-week-by-week'],
+    applies: (w) => w <= 2,
+  },
+  {
+    id: 'test-timing',
+    text: 'A test is most reliable from the day your period is due — around week 4.',
+    sourceIds: ['nhs-week-by-week'],
+    applies: (w) => w === 3,
+  },
+  {
+    id: 'book-midwife',
+    text: 'Contact your GP or midwife to book in — your first appointment is by 10 weeks.',
+    sourceIds: ['nhs-antenatal-care'],
+    applies: (w) => w >= 4 && w <= 9,
+  },
+  {
     id: 'folic-acid',
     text: 'Take your 400mcg folic acid — most important in these first 12 weeks.',
     sourceIds: ['nhs-vitamins', 'rcog-healthy-eating'],
@@ -47,7 +65,9 @@ const RULES: FocusRule[] = [
     id: 'nausea',
     text: 'If nausea is rough, small frequent meals usually beat forcing three big ones.',
     sourceIds: ['nhs-morning-sickness'],
-    applies: (w) => w <= 13,
+    // Not before week 5 — nausea is impossible in the weeks that precede
+    // conception, and offering a remedy for it there reads as nonsense.
+    applies: (w) => w >= 5 && w <= 13,
   },
   {
     id: 'iron',
@@ -132,6 +152,13 @@ export interface WeekNote {
 }
 
 export function noteForWeek(week: number): WeekNote {
+  if (week <= 3) {
+    return {
+      tone: 'plain',
+      title: 'Why you can be "3 weeks pregnant" with no baby',
+      body: 'Pregnancy is dated from the first day of your last period, not from conception — so the first two weeks are before there is anything there. Everyone is measured this way, including your due date and every scan. You have not missed anything.',
+    };
+  }
   if (week <= 12) {
     return {
       tone: 'calm',

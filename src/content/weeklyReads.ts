@@ -30,13 +30,13 @@ const RULES: ReadRule[] = [
   {
     guideId: 'folic-acid',
     why: 'The window for this is now — it matters most before 12 weeks.',
-    from: 4,
+    from: 1,
     to: 12,
   },
   {
     guideId: 'eat-for-two',
     why: 'Worth reading early, before anyone says it to you.',
-    from: 4,
+    from: 1,
     to: 14,
   },
   {

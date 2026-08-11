@@ -1,6 +1,10 @@
 export type Trimester = 1 | 2 | 3;
 
-export const MIN_WEEK = 4;
+// Pregnancy is dated from the first day of the last period, so weeks 1 and 2
+// come before conception and there is no week 0. Starting at 1 rather than 4
+// means someone who has just found out can still read back over the weeks
+// they were pregnant without knowing it.
+export const MIN_WEEK = 1;
 export const MAX_WEEK = 42;
 export const DUE_WEEK = 40;
 
@@ -76,6 +80,11 @@ export interface BabyWeek {
   week: number;
   /** Fruit/veg size comparison, phrased to follow "roughly the size of…". */
   size: string;
+  /**
+   * Replaces the "roughly the size of…" heading entirely. Used for the weeks
+   * before conception, where there is no embryo to compare to anything.
+   */
+  sizeLabel?: string;
   development: string;
 }
 

@@ -36,7 +36,9 @@ export function BabyScreen() {
         </div>
         <div className="min-w-[200px] flex-1">
           <p className="label-mono mb-1 text-mossd">{trimesterLabel(week)}</p>
-          <h2 className="mb-1 text-[20px]">Roughly the size of {baby?.size}</h2>
+          <h2 className="mb-1 text-[20px]">
+            {baby?.sizeLabel ?? `Roughly the size of ${baby?.size}`}
+          </h2>
           <p className="m-0 text-[14.5px] text-soft">Week {week} of 40</p>
         </div>
       </div>

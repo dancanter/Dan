@@ -35,6 +35,12 @@ export const sources: Source[] = [
     tier: 'nhs',
   },
   {
+    id: 'nhs-week-by-week',
+    label: 'Week-by-week guide to pregnancy, including 1 to 3 weeks',
+    organisation: 'NHS',
+    tier: 'nhs',
+  },
+  {
     id: 'nhs-vitamins',
     label: 'Vitamins and supplements in pregnancy',
     organisation: 'NHS',

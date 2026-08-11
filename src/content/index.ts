@@ -8,6 +8,7 @@ import {
   guidesInSection,
   sectionsInPhase,
 } from './guides';
+import { MIN_WEEK, MAX_WEEK } from './schema';
 import { lossSections, lossIntro } from './loss';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
@@ -163,14 +164,14 @@ export function validateContent(): ContentIssue[] {
 
   // Baby weeks must cover the full browsable range with no holes, since the
   // Baby screen indexes straight into them.
-  for (let w = 4; w <= 42; w++) {
+  for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
     if (!babyWeekByNumber.has(w)) {
       issues.push({ kind: 'coverage-gap', detail: `No baby development entry for week ${w}` });
     }
   }
 
   // Every week must produce at least one focus item, or Today looks empty.
-  for (let w = 4; w <= 42; w++) {
+  for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
     if (focusForWeek(w).length === 0) {
       issues.push({ kind: 'coverage-gap', detail: `No focus items for week ${w}` });
     }
@@ -187,7 +188,7 @@ export function validateContent(): ContentIssue[] {
     }
   }
 
-  for (let w = 4; w <= 42; w++) {
+  for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
     if (readsForWeek(w).length === 0) {
       issues.push({
         kind: 'coverage-gap',
