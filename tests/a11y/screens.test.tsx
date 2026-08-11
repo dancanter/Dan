@@ -11,6 +11,7 @@ import { AppointmentsScreen } from '../../src/screens/AppointmentsScreen';
 import { GetHelpScreen } from '../../src/screens/GetHelpScreen';
 import { JournalScreen } from '../../src/screens/JournalScreen';
 import { SourcesScreen } from '../../src/screens/SourcesScreen';
+import { LossSupportScreen } from '../../src/screens/LossSupportScreen';
 import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 
@@ -29,6 +30,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Healthy Pregnancy', () => <HealthyScreen />],
   ['Appointments', () => <AppointmentsScreen />],
   ['Get Help', () => <GetHelpScreen />],
+  ['Loss support', () => <LossSupportScreen />],
   ['Journal', () => <JournalScreen />],
   ['Sources', () => <SourcesScreen />],
   ['Methodology', () => <MethodologyScreen />],

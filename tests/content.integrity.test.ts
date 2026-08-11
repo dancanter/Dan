@@ -8,6 +8,10 @@ import {
   focusForWeek,
   redFlags,
   appointments,
+  lossSections,
+  GUIDE_PHASES,
+  sectionsInPhase,
+  guidesInSection,
   MIN_WEEK,
   MAX_WEEK,
 } from '../src/content';
@@ -44,5 +48,22 @@ describe('content integrity', () => {
   it('orders appointments by week', () => {
     const weeks = appointments.map((a) => a.week);
     expect([...weeks].sort((a, b) => a - b)).toEqual(weeks);
+  });
+
+  it('cites a source for every pregnancy loss section', () => {
+    expect(lossSections.length).toBeGreaterThan(0);
+    for (const s of lossSections) {
+      expect(s.sourceIds.length, `loss section ${s.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('covers every life phase with at least one populated section', () => {
+    for (const phase of GUIDE_PHASES) {
+      const sections = sectionsInPhase(phase.id);
+      expect(sections.length, `phase ${phase.id}`).toBeGreaterThan(0);
+      for (const section of sections) {
+        expect(guidesInSection(section.id).length, `section ${section.id}`).toBeGreaterThan(0);
+      }
+    }
   });
 });

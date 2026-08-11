@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useProgress } from '../hooks/useProgress';
-import { GUIDE_SECTIONS, guidesInSection, type Guide } from '../content';
+import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
 import { ScreenTitle } from '../components/ui/SectionHeading';
 import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
@@ -82,11 +82,20 @@ export function HealthyScreen() {
     ),
   })).filter((s) => s.items.length > 0);
 
+  // Guidance now runs past pregnancy into birth, recovery and feeding, so
+  // it's grouped by phase — otherwise the list is one undifferentiated wall.
+  const phases = GUIDE_PHASES.map((phase) => ({
+    ...phase,
+    sections: sections.filter((s) => s.phase === phase.id),
+  })).filter((p) => p.sections.length > 0);
+
+  const totalMatches = sections.reduce((n, s) => n + s.items.length, 0);
+
   return (
     <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
       <ScreenTitle
-        title="Healthy Pregnancy"
-        strap="Everything that helps, and nothing that doesn’t."
+        title="Guidance"
+        strap="Everything that helps, and nothing that doesn’t — pregnancy through to feeding."
       />
 
       <div className="mb-5">
@@ -103,23 +112,31 @@ export function HealthyScreen() {
         />
         <p aria-live="polite" className="mt-1.5 font-mono text-[10.5px] text-soft">
           {q
-            ? `${sections.reduce((n, s) => n + s.items.length, 0)} entries match “${query}”`
-            : `${readGuideIds.length} entries read so far`}
+            ? `${totalMatches} ${totalMatches === 1 ? 'entry matches' : 'entries match'} “${query}”`
+            : `${guides.length} entries · ${readGuideIds.length} read so far`}
         </p>
       </div>
 
-      {sections.length === 0 && (
+      {phases.length === 0 && (
         <p className="text-[15px] italic text-soft">
           Nothing matches that yet. Try a different word — or check My Body for symptoms.
         </p>
       )}
 
-      {sections.map((section) => (
-        <section key={section.id} className="mb-7">
-          <h2 className="mb-1 text-[19px] text-mossd">{section.label}</h2>
-          <p className="mb-3 text-[14px] text-soft">{section.blurb}</p>
-          {section.items.map((g) => (
-            <GuideCard key={g.id} guide={g} onOpen={markGuideRead} />
+      {phases.map((phase) => (
+        <section key={phase.id} className="mb-9">
+          <div className="mb-4 border-b-2 border-ink pb-1.5">
+            <h2 className="mb-0.5 text-[22px]">{phase.label}</h2>
+            <p className="m-0 text-[14px] italic text-mossd">{phase.blurb}</p>
+          </div>
+          {phase.sections.map((section) => (
+            <section key={section.id} className="mb-7">
+              <h3 className="mb-1 text-[18px] text-mossd">{section.label}</h3>
+              <p className="mb-3 text-[14px] text-soft">{section.blurb}</p>
+              {section.items.map((g) => (
+                <GuideCard key={g.id} guide={g} onOpen={markGuideRead} />
+              ))}
+            </section>
           ))}
         </section>
       ))}

@@ -1,5 +1,14 @@
-import { sources, sourceById, SOURCE_TIER_LABEL } from './sources';
-import { guides, guideById, GUIDE_SECTIONS, guidesInSection } from './guides';
+import { sources as coreSources, SOURCE_TIER_LABEL } from './sources';
+import { extendedSources } from './sourcesExtended';
+import {
+  guides,
+  guideById,
+  GUIDE_SECTIONS,
+  GUIDE_PHASES,
+  guidesInSection,
+  sectionsInPhase,
+} from './guides';
+import { lossSections, lossIntro } from './loss';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -9,15 +18,21 @@ import { midwifeQuestions } from './midwifeQuestions';
 import { badges, badgeById, WEEK_BADGES } from './badges';
 import { focusForWeek, noteForWeek, trimesterForWeek, trimesterLabel } from './weeklyFocus';
 
+/** One registry, assembled from the two source files. */
+export const sources = [...coreSources, ...extendedSources];
+export const sourceById = new Map(sources.map((s) => [s.id, s]));
+
 export * from './schema';
 export {
-  sources,
-  sourceById,
   SOURCE_TIER_LABEL,
   guides,
   guideById,
   GUIDE_SECTIONS,
+  GUIDE_PHASES,
   guidesInSection,
+  sectionsInPhase,
+  lossSections,
+  lossIntro,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -92,6 +107,42 @@ export function validateContent(): ContentIssue[] {
   for (const t of helpTopics) {
     unique('helpTopic', t.id);
     check('Help topic', t.id, t.sourceIds);
+  }
+  for (const s of lossSections) {
+    unique('lossSection', s.id);
+    check('Loss section', s.id, s.sourceIds);
+  }
+
+  // Duplicate source ids would make the registry lookup silently pick one —
+  // worth catching now that sources come from two files.
+  const seenSourceIds = new Set<string>();
+  for (const s of sources) {
+    if (seenSourceIds.has(s.id)) {
+      issues.push({ kind: 'duplicate-id', detail: `Duplicate source id "${s.id}"` });
+    }
+    seenSourceIds.add(s.id);
+  }
+
+  // Every declared section must actually contain guides, or the browse
+  // hierarchy shows an empty heading.
+  for (const section of GUIDE_SECTIONS) {
+    if (guidesInSection(section.id).length === 0) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `Guide section "${section.id}" has no entries`,
+      });
+    }
+  }
+
+  // …and every guide must belong to a declared section.
+  const declaredSections = new Set(GUIDE_SECTIONS.map((s) => s.id));
+  for (const g of guides) {
+    if (!declaredSections.has(g.section)) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `Guide "${g.id}" is in undeclared section "${g.section}"`,
+      });
+    }
   }
 
   // Baby weeks must cover the full browsable range with no holes, since the

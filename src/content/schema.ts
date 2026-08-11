@@ -33,6 +33,7 @@ export interface Guide {
 }
 
 export type GuideSection =
+  // During pregnancy
   | 'nutrition'
   | 'supplements'
   | 'food-safety'
@@ -43,7 +44,33 @@ export type GuideSection =
   | 'medications'
   | 'alcohol-smoking'
   | 'travel'
-  | 'infections';
+  | 'infections'
+  | 'vaccinations'
+  | 'everyday-safety'
+  | 'skincare'
+  | 'health-conditions'
+  | 'work-rights'
+  // Birth
+  | 'birth-place'
+  | 'labour'
+  | 'pain-relief'
+  | 'birth-prep'
+  // After birth
+  | 'first-days'
+  | 'recovery'
+  | 'postnatal-mind'
+  | 'postnatal-support'
+  // Feeding
+  | 'feeding-basics'
+  | 'breastfeeding'
+  | 'bottle-feeding';
+
+/**
+ * Guidance now spans well past pregnancy itself, so sections are grouped by
+ * life phase — this drives both the browse hierarchy and what gets surfaced
+ * on the home screen as someone approaches their due date.
+ */
+export type GuidePhase = 'pregnancy' | 'birth' | 'after' | 'feeding';
 
 export interface BabyWeek {
   week: number;

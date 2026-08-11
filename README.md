@@ -21,15 +21,20 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 | **Home** | Week picker, this week's focus checklist, a daily myth card, and a prompt to save for your midwife |
 | **Baby** | Week-by-week development and size, milestone timeline, optional nickname |
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
-| **Healthy Pregnancy** | Searchable reference: nutrition, supplements, food safety, exercise, sleep, wellbeing, weight & body image, medications, alcohol & smoking, travel, infections |
+| **Guidance** | 108 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
 | **Get Help** | Red-flag symptoms, escalation levels, and movement guidance — reachable without onboarding |
+| **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
-| **Sources** | Every reference, grouped by evidence tier, with conflicts flagged |
+| **Sources** | All 106 references, grouped by evidence tier, with funding conflicts flagged |
 
 ## Design decisions worth explaining
 
-**Safety content is never gated.** `/help` renders without a due date set. Someone worried at 3am should not hit a setup screen.
+**Safety content is never gated.** `/help` and `/loss` both render without a due date set. Someone worried at 3am should not hit a setup screen.
+
+**Loss support is deliberately separate.** It has no streaks, no checklists, no week context, and is never surfaced on a daily screen — reachable only when someone goes looking. Tone-shifting content shouldn't ambush anyone mid-checklist.
+
+**Sources get excluded on judgement, not just included.** One observational cosmetics study was left out entirely: it named no specific ingredient, so a reader could do nothing with it except feel diffuse anxiety. Similarly, only the cross-confirmed practical guidance was taken from one wide-ranging review, not its single-study ingredient claims. Not every available citation improves an app.
 
 **No kick counting.** NHS and RCOG guidance is explicit that there's no target number and counting isn't recommended — so the app deliberately does *not* ship a kick counter, and the myth deck says so directly. Same reasoning behind the home-doppler myth card.
 
@@ -44,6 +49,8 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 React 18 · TypeScript · Vite · Tailwind v4 · `vite-plugin-pwa` (Workbox) · React Router · Framer Motion · Vitest + Testing Library + axe-core.
 
 No backend. All content ships with the bundle; everything personal (due date, journal, streak, ticks) stays in `localStorage` on the device and is never transmitted.
+
+Routes are code-split so the initial download stays ~105kB gzipped despite the content volume. Onboarding, Today and **Get Help** load eagerly — the daily entry point and the screen someone might need urgently should never wait on a chunk.
 
 ## Content architecture
 

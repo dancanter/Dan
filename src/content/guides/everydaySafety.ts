@@ -1,0 +1,132 @@
+import type { Guide } from '../schema';
+
+export const everydaySafetyGuides: Guide[] = [
+  {
+    id: 'dental',
+    section: 'everyday-safety',
+    title: 'Dental care — and it’s free',
+    summary: 'Free NHS dental care throughout pregnancy and for 12 months after.',
+    body: [
+      'Pregnancy hormones increase your risk of gum disease, sensitive teeth and toothache — plaque builds up more easily, and morning sickness (stomach acid on teeth) adds to it. Keep up brushing twice daily, daily flossing, and don’t skip check-ups.',
+      '**Free NHS dental care** — you’re entitled to it throughout pregnancy and for **12 months after your baby’s birth**. Ask your midwife, GP or health visitor for a Maternity Exemption Certificate application form. It covers check-ups, hygiene appointments, fillings, extractions and root canal treatment.',
+      'Proof you’ll need: a valid maternity exemption certificate, your MatB1 certificate, or your baby’s birth certificate once born.',
+      'Toothache in pregnancy — get it checked rather than waiting. Most dental treatment is safe in pregnancy; you just need to tell your dentist you’re pregnant.',
+    ],
+    sourceIds: ['nhs-free-dental', 'bupa-dental'],
+    emphasis: 'calm',
+  },
+  {
+    id: 'sex-in-pregnancy',
+    section: 'everyday-safety',
+    title: 'Sex in pregnancy',
+    summary: 'Safe unless you’ve been told otherwise. It can’t reach or harm your baby.',
+    body: [
+      'Sex is safe throughout pregnancy unless your midwife or doctor has specifically told you otherwise. It can’t physically reach or harm your baby. Changes in your sex drive — in either direction — are completely normal.',
+      'Sex and orgasm don’t increase miscarriage or early labour risk in a normal, uncomplicated pregnancy. Later on, orgasm or sex can trigger Braxton Hicks (practice) contractions — your womb tightening — which feel odd but aren’t a concern; lying down or a few slow breaths usually settles them.',
+      '**Avoid sex if:** you’ve had bleeding this pregnancy · your waters have broken · there’s a known problem with your cervix · you’re carrying twins or have a history of early labour and you’re in later pregnancy. Your midwife will tell you if any of these apply to you specifically.',
+      'If either partner has sex outside the relationship, use a condom to protect against STIs.',
+      'You’ll likely need to experiment with positions as pregnancy progresses — lying on your side tends to work better than positions with deep penetration or lying on your back.',
+    ],
+    sourceIds: ['nhs-wales-sex'],
+  },
+  {
+    id: 'chemicals-pollution',
+    section: 'everyday-safety',
+    title: 'Chemicals and air pollution — the calm version',
+    summary: 'Everyday exposure is very low risk. Two indoor things genuinely matter.',
+    body: [
+      'There’s **no official guidance to avoid all chemicals or pollution in pregnancy** — for most people, day-to-day exposure carries very low risk, and it’s largely outside your control anyway. High-level, sustained exposure is what the research actually links to problems, not living near a road or using ordinary cleaning products.',
+      '**Outdoor air:** avoid intense outdoor exercise on high-pollution days — move it indoors or away from busy roads. Face masks generally don’t help, as even charcoal-filter ones miss the smallest, most harmful particles.',
+      '**Smoking and secondhand smoke** — the single biggest indoor risk; genuinely linked to premature birth, low birthweight and SIDS. Ask household smokers to go outside.',
+      '**Carbon monoxide** — the most serious hidden indoor risk, being odourless and tasteless. Get cookers and heaters serviced on schedule, don’t block vents or chimneys, and fit a CO alarm.',
+      '**Cleaning products:** modern ones are low-risk used as directed. Ventilate, wear gloves, take extra care with oven cleaner, and **never mix cleaning products** — bleach with ammonia, or bleach with acid, both release genuinely dangerous gases. That’s a hard rule, not extra caution.',
+      '**Painting:** modern water-based paint is low-risk. Avoid solvent-based paint and paint stripping. Ventilate well and wear gloves.',
+      '**At work:** your employer must risk-assess your workplace early in pregnancy. Ask for chemical data sheets if you’re concerned, and contact Acas if you feel unsupported.',
+    ],
+    sourceIds: ['tommys-chemicals'],
+  },
+  {
+    id: 'diy-safety',
+    section: 'everyday-safety',
+    title: 'DIY and renovation',
+    summary: 'One job to hand over entirely: stripping old paint in pre-1980 homes.',
+    body: [
+      '**Get someone else to do these:**',
+      'Sanding, scraping or heat-stripping old paint in homes built before around 1980 — risk of lead dust (no safe exposure level in pregnancy) and possible asbestos in some materials. This is a firm hand-it-over, not a be-careful.',
+      'Climbing ladders or high step stools — pregnancy shifts your balance, and falls are a real, avoidable risk. Heavy lifting alone, too.',
+      '**Fine with precautions:** general decorating with water-based, low-VOC paint in a ventilated room, with gloves · dusty jobs with a proper mask, good ventilation, and a filtered vacuum rather than dry-sweeping · gardening with gloves always, since soil can carry toxoplasmosis risk.',
+      '**Cat litter:** ideally someone else does it. If you must — disposable gloves, change daily (the parasite isn’t infectious until 1–5 days after it’s passed), and wash hands thoroughly.',
+      '**Get checked if** you’ve had significant exposure to lead dust, strong solvents or fumes, or develop a persistent cough, chest tightness, headache or breathlessness after a DIY task.',
+    ],
+    sourceIds: ['tommys-chemicals', 'nhs-infections'],
+  },
+];
+
+export const skincareGuides: Guide[] = [
+  {
+    id: 'hair-treatments',
+    section: 'skincare',
+    title: 'Hair dye, relaxing and hair removal',
+    summary: 'Dye is considered safe. Waxing and shaving fine. Laser — wait.',
+    body: [
+      '**Hair dye** is considered safe — very little is absorbed through the scalp. Some suggest waiting until after 12 weeks as extra caution, though the actual risk is thought to be very small. Tell your hairdresser you’re pregnant and ask for a patch test, as skin can react differently during pregnancy.',
+      'At home: consider semi-permanent vegetable dye, patch test first, wear gloves, use a well-ventilated room, apply for the minimum time and rinse thoroughly. Highlighting (dye on strands, not scalp) reduces exposure further.',
+      '**Hair relaxing/straightening:** studies of Black pregnant women using hair relaxers found no increased risk of prematurity or low birthweight. Treating hair 3–4 times across a pregnancy isn’t thought to carry meaningful risk. Patch test first.',
+      '**Hair removal:** waxing, shaving, depilatory creams and hair bleaching are all considered safe throughout pregnancy and breastfeeding. Permanent removal (electrolysis, laser) isn’t well enough studied — best delayed until after pregnancy.',
+    ],
+    sourceIds: ['nct-beauty-treatments', 'putra-2022-topical'],
+  },
+  {
+    id: 'skincare-ingredients',
+    section: 'skincare',
+    title: 'Skincare ingredients — what to avoid, what’s fine',
+    summary: 'Retinoids are the real one. Most other actives are fine.',
+    body: [
+      '**Avoid: retinoids / retinoic acid** (tretinoin, adapalene, tazarotene) — genuinely the one with real caution behind it. Animal studies show malformation risk at high doses; two human studies of accidental first-trimester exposure found no clear pattern of harm, but the safest position is to avoid it throughout pregnancy. If you used it before realising you were pregnant, the risk appears low — mention it to your midwife rather than worrying alone.',
+      '**Use sparingly:** high-strength salicylic acid, or occlusive use over large areas. Small, limited areas (most face washes and spot treatments) are fine.',
+      '**Considered fine, evidence supports safety:** azelaic acid (genuinely the preferred pregnancy-safe option for acne and pigmentation) · vitamin C and vitamin E · AHAs such as glycolic and lactic acid at typical cosmetic concentrations up to 10% · niacinamide.',
+      '**Sunscreen:** physical/mineral (titanium dioxide, zinc oxide) is the safest choice, since it isn’t absorbed. Chemical sunscreen is still generally considered safe, but physical is the more cautious pick if you want to minimise absorption.',
+      '**Acne treatment specifically:** first-line and considered safe are azelaic acid, benzoyl peroxide, and topical erythromycin or clindamycin. Avoid oral or topical retinoids and oral tetracyclines (doxycycline, minocycline). Short courses of oral erythromycin are generally considered safe for more severe acne — a decision for your GP or dermatologist.',
+    ],
+    sourceIds: ['nct-beauty-treatments', 'putra-2022-topical', 'bozzo-2011-cosmetics'],
+  },
+  {
+    id: 'treatments-procedures',
+    section: 'skincare',
+    title: 'Massage, nails and cosmetic procedures',
+    summary: 'Massage is genuinely beneficial. Fillers and tattoos — avoid.',
+    body: [
+      '**Massage** is genuinely beneficial in pregnancy — linked to reduced stress and discomfort. Avoid deep tissue massage (small risk of missing an undiagnosed DVT). Don’t lie flat on your back for long periods; front-lying is fine with a pregnancy pillow or specialist table. Avoid direct belly massage. Keep essential oils diluted to around 2%.',
+      '**Nails:** no specific guidance to avoid nail treatments — polish and gel are applied externally and aren’t meaningfully absorbed. If you’re a nail technician yourself, that’s a workplace-ventilation question rather than a reason to skip a manicure.',
+      '**Avoid entirely:** dermal fillers · liposuction · sclerotherapy for varicose veins · tattoos and microblading.',
+      '**Generally considered safe with a qualified practitioner:** Botox · some chemical peels · laser and light therapy · microdermabrasion.',
+      '**Weight-loss injections:** the MHRA advises stopping GLP-1 medications immediately if you’re trying to conceive or become pregnant, and speaking to your GP as soon as possible. Safety in pregnancy and breastfeeding isn’t established.',
+    ],
+    sourceIds: ['nct-beauty-treatments'],
+  },
+  {
+    id: 'sun-sauna-tanning',
+    section: 'skincare',
+    title: 'Tanning, saunas and hot tubs',
+    summary: 'Self-tan fine. Tanning pills — avoid. Saunas — general overheating caution.',
+    body: [
+      '**Sunbeds and tanning booths:** no evidence of harm to your baby specifically, but WHO advises against them for general skin cancer risk — that applies regardless of pregnancy.',
+      '**Self-tan cream** is fine; patch test first. **Tanning pills: avoid** — potentially toxic. Tanning spray inhalation risk is unknown, so some caution is reasonable.',
+      '**Saunas and hot tubs:** no clear evidence of harm, and some countries (Finland) use them commonly in pregnancy with no higher complication rates. If used, safer after 12 weeks, for shorter periods, at lower temperatures. General overheating caution applies, same as with exercise.',
+    ],
+    sourceIds: ['nct-beauty-treatments'],
+  },
+  {
+    id: 'skin-changes',
+    section: 'skincare',
+    title: 'Pregnancy skin changes — reassurance',
+    summary: 'Melasma, linea nigra, skin tags — common, and they fade.',
+    body: [
+      '**Melasma ("mask of pregnancy")** — patchy facial darkening, affects up to 70% of women, fades within a year in most. Sun protection helps prevent it worsening.',
+      '**Linea nigra** — the dark line down the belly, affects around 9 in 10 women, fades after birth.',
+      '**Skin tags and scars** can increase or darken in pregnancy; removal should wait unless there’s a real reason not to.',
+      '**Stretch marks** — no cream or oil is proven to prevent them. A moisturiser can ease the itching and discomfort as skin stretches. They fade but don’t fully disappear, and they aren’t something you need to fix.',
+    ],
+    sourceIds: ['nct-beauty-treatments'],
+  },
+];

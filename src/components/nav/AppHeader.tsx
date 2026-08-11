@@ -4,7 +4,7 @@ const TABS = [
   { to: '/today', label: 'Home' },
   { to: '/baby', label: 'Baby' },
   { to: '/body', label: 'My Body' },
-  { to: '/healthy', label: 'Healthy Pregnancy' },
+  { to: '/healthy', label: 'Guidance' },
   { to: '/appointments', label: 'Appointments' },
   { to: '/help', label: 'Get Help', urgent: true },
   { to: '/journal', label: 'Journal' },

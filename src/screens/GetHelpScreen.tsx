@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { redFlags, helpTopics } from '../content';
 import { SourceList } from '../components/ui/SourceList';
@@ -82,6 +83,11 @@ export function GetHelpScreen() {
         midwife@tommys.org. Tommy’s also run a dedicated line for Black and Black Mixed-Heritage
         women and birthing people, in partnership with Five X More. Sands supports anyone affected
         by the death of a baby.
+        <br />
+        <br />
+        <Link to="/loss" className="font-semibold text-mossd underline">
+          Read more about pregnancy and baby loss →
+        </Link>
       </Note>
     </main>
   );
