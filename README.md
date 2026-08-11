@@ -18,7 +18,8 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 
 | Screen | What it does |
 | --- | --- |
-| **Home** | Week picker, this week's focus checklist, a daily myth card, and a prompt to save for your midwife |
+| **Home** | Week picker, this week's focus checklist, timed reading suggestions, a daily myth card, and a prompt to save for your midwife |
+| **Home, after birth** | The same route, switched over: days/weeks since birth, a postnatal checklist, recovery and feeding reads, and a mood check-in |
 | **Baby** | Week-by-week development and size, milestone timeline, optional nickname |
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
 | **Guidance** | 108 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
@@ -29,6 +30,10 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 | **Sources** | All 106 references, grouped by evidence tier, with funding conflicts flagged |
 
 ## Design decisions worth explaining
+
+**The daily screen is phase-aware, so the library reaches it.** 108 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
+
+**Once the baby arrives, Home becomes a different screen — on the same route.** Setting a birth date (not the due date passing, since babies arrive weeks either side) switches Home to weeks-since-birth: a postnatal checklist, recovery and feeding reads, and a mood check-in that surfaces postnatal depression guidance when it's needed. The pregnancy-only tabs disappear, because week-by-week foetal development is actively wrong at that point. Nothing bookmarked or installed breaks.
 
 **Safety content is never gated.** `/help` and `/loss` both render without a due date set. Someone worried at 3am should not hit a setup screen.
 
@@ -64,14 +69,16 @@ src/content/
   redFlags.ts      urgent escalation content
   myths.ts         the daily myth deck
   weeklyFocus.ts   rule-based weekly checklist (one rule, many weeks)
+  weeklyReads.ts   what surfaces on Home in a given week, and why now
+  afterBirth.ts    the same, keyed on weeks since birth
   index.ts         aggregation + validateContent()
 ```
 
-`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, or any week between 4 and 42 without baby data or focus items — so a content typo is a test failure, not a silently broken screen.
+`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, any week between 4 and 42 without baby data, focus items or suggested reading, any of the 52 weeks after birth without the same, and any reading rule pointing at a guide id that no longer exists — so a content typo is a test failure, not a silently broken screen.
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all ten screens in `npm test`.**
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all thirteen screens in `npm test`.**
 
 ## Running it
 

@@ -17,6 +17,8 @@ export const badges: Badge[] = [
   { id: 'myth-buster', title: 'Myth buster', description: 'Revealed 10 myth cards.' },
   { id: 'journal-keeper', title: 'Journal keeper', description: 'Saved 5 journal entries.' },
   { id: 'question-ready', title: 'Question ready', description: 'Saved a question for your midwife.' },
+  { id: 'baby-here', title: 'They’re here', description: 'Your baby arrived.' },
+  { id: 'checked-in', title: 'Checked in on yourself', description: 'Logged how you were doing after birth.' },
 ];
 
 export const badgeById = new Map(badges.map((b) => [b.id, b]));

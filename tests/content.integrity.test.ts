@@ -12,6 +12,10 @@ import {
   GUIDE_PHASES,
   sectionsInPhase,
   guidesInSection,
+  readsForWeek,
+  postnatalFocus,
+  postnatalReads,
+  POSTNATAL_MAX_WEEK,
   MIN_WEEK,
   MAX_WEEK,
 } from '../src/content';
@@ -54,6 +58,43 @@ describe('content integrity', () => {
     expect(lossSections.length).toBeGreaterThan(0);
     for (const s of lossSections) {
       expect(s.sourceIds.length, `loss section ${s.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('suggests reading for every browsable week', () => {
+    for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
+      expect(readsForWeek(w).length, `week ${w} reading`).toBeGreaterThan(0);
+    }
+  });
+
+  it('surfaces birth and feeding guidance before the due date, not after it', () => {
+    const lateReads = readsForWeek(38).map((r) => r.guide.section);
+    expect(lateReads.some((s) => ['labour', 'birth-prep', 'first-days'].includes(s))).toBe(true);
+
+    // …and does not lead with birth prep in the first trimester.
+    const earlyPhases = readsForWeek(8).map((r) => r.guide.section);
+    expect(earlyPhases.some((s) => ['labour', 'pain-relief', 'birth-prep'].includes(s))).toBe(
+      false,
+    );
+  });
+
+  it('covers a full year after birth with focus items and reading', () => {
+    for (let w = 0; w <= POSTNATAL_MAX_WEEK; w++) {
+      expect(postnatalFocus(w).length, `${w} weeks postnatal focus`).toBeGreaterThan(0);
+      expect(postnatalReads(w).length, `${w} weeks postnatal reading`).toBeGreaterThan(0);
+    }
+  });
+
+  it('never mixes pregnancy focus ids into the postnatal checklist', () => {
+    const pregnancyIds = new Set(
+      Array.from({ length: MAX_WEEK - MIN_WEEK + 1 }, (_, i) => focusForWeek(MIN_WEEK + i))
+        .flat()
+        .map((f) => f.id),
+    );
+    for (let w = 0; w <= POSTNATAL_MAX_WEEK; w++) {
+      for (const item of postnatalFocus(w)) {
+        expect(pregnancyIds.has(item.id), `postnatal item ${item.id}`).toBe(false);
+      }
     }
   });
 

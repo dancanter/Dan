@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useProgress } from '../hooks/useProgress';
 import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
@@ -6,7 +7,15 @@ import { ScreenTitle } from '../components/ui/SectionHeading';
 import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
 
-function GuideCard({ guide, onOpen }: { guide: Guide; onOpen: (id: string) => void }) {
+function GuideCard({
+  guide,
+  onOpen,
+  defaultOpen,
+}: {
+  guide: Guide;
+  onOpen: (id: string) => void;
+  defaultOpen?: boolean;
+}) {
   const border =
     guide.emphasis === 'warn'
       ? 'border-alert/40 bg-alertp'
@@ -16,6 +25,8 @@ function GuideCard({ guide, onOpen }: { guide: Guide; onOpen: (id: string) => vo
 
   return (
     <details
+      id={`guide-${guide.id}`}
+      open={defaultOpen}
       className={`mb-3 rounded-xl border px-4 py-3.5 ${border}`}
       onToggle={(e) => {
         if ((e.currentTarget as HTMLDetailsElement).open) onOpen(guide.id);
@@ -69,6 +80,21 @@ export function HealthyScreen() {
   useAutoFocusHeading<HTMLHeadingElement>();
   const { markGuideRead, readGuideIds } = useProgress();
   const [query, setQuery] = useState('');
+  const [params] = useSearchParams();
+  // `?open=<id>` lets the home screen link straight to an entry rather than
+  // dropping someone at the top of a 108-item library to go hunting.
+  const openId = params.get('open');
+  const scrolledTo = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!openId || scrolledTo.current === openId) return;
+    const el = document.getElementById(`guide-${openId}`);
+    if (!el) return;
+    scrolledTo.current = openId;
+    markGuideRead(openId);
+    el.scrollIntoView({ block: 'center' });
+    el.querySelector('summary')?.focus();
+  }, [openId, markGuideRead]);
 
   const q = query.trim().toLowerCase();
   const sections = GUIDE_SECTIONS.map((section) => ({
@@ -134,7 +160,12 @@ export function HealthyScreen() {
               <h3 className="mb-1 text-[18px] text-mossd">{section.label}</h3>
               <p className="mb-3 text-[14px] text-soft">{section.blurb}</p>
               {section.items.map((g) => (
-                <GuideCard key={g.id} guide={g} onOpen={markGuideRead} />
+                <GuideCard
+                  key={g.id}
+                  guide={g}
+                  onOpen={markGuideRead}
+                  defaultOpen={g.id === openId}
+                />
               ))}
             </section>
           ))}

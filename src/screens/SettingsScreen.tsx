@@ -19,7 +19,7 @@ export function SettingsScreen() {
   useAutoFocusHeading<HTMLHeadingElement>();
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
-  const { dueDate, resetProfile } = usePregnancyProfile();
+  const { dueDate, birthDate, setBirthDate, resetProfile } = usePregnancyProfile();
   const { earnedBadgeIds, currentStreak, daysVisited, resetProgress } = useProgress();
   const { resetJournal } = useJournal();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
@@ -130,6 +130,18 @@ export function SettingsScreen() {
 
       <SectionHeading>Your details</SectionHeading>
       {dueDate && <p className="text-sm">Due date: {formatDate(dueDate)}</p>}
+      {birthDate && (
+        <>
+          <p className="mt-1 text-sm">Baby’s birthday: {formatDate(birthDate)}</p>
+          <button
+            type="button"
+            onClick={() => setBirthDate(null)}
+            className="mt-2 min-h-11 w-full rounded-lg border border-line px-3 text-sm text-soft"
+          >
+            Switch back to pregnancy mode
+          </button>
+        </>
+      )}
       <button
         type="button"
         onClick={handleReset}

@@ -17,6 +17,15 @@ import { redFlags, helpTopics } from './redFlags';
 import { midwifeQuestions } from './midwifeQuestions';
 import { badges, badgeById, WEEK_BADGES } from './badges';
 import { focusForWeek, noteForWeek, trimesterForWeek, trimesterLabel } from './weeklyFocus';
+import { readsForWeek, weekReadGuideIds, type WeekRead } from './weeklyReads';
+import {
+  postnatalFocus,
+  postnatalReads,
+  postnatalNote,
+  postnatalStageLabel,
+  postnatalReadGuideIds,
+  POSTNATAL_MAX_WEEK,
+} from './afterBirth';
 
 /** One registry, assembled from the two source files. */
 export const sources = [...coreSources, ...extendedSources];
@@ -51,7 +60,14 @@ export {
   noteForWeek,
   trimesterForWeek,
   trimesterLabel,
+  readsForWeek,
+  postnatalFocus,
+  postnatalReads,
+  postnatalNote,
+  postnatalStageLabel,
+  POSTNATAL_MAX_WEEK,
 };
+export type { WeekRead };
 
 export interface ContentIssue {
   kind: 'missing-source' | 'duplicate-id' | 'coverage-gap';
@@ -157,6 +173,42 @@ export function validateContent(): ContentIssue[] {
   for (let w = 4; w <= 42; w++) {
     if (focusForWeek(w).length === 0) {
       issues.push({ kind: 'coverage-gap', detail: `No focus items for week ${w}` });
+    }
+  }
+
+  // The home screen surfaces guidance by week, so a renamed guide id must
+  // fail here rather than quietly leaving the daily reading card short.
+  for (const gid of [...weekReadGuideIds, ...postnatalReadGuideIds]) {
+    if (!guideById.has(gid)) {
+      issues.push({
+        kind: 'missing-source',
+        detail: `Weekly reading references unknown guide "${gid}"`,
+      });
+    }
+  }
+
+  for (let w = 4; w <= 42; w++) {
+    if (readsForWeek(w).length === 0) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `No suggested reading for week ${w}`,
+      });
+    }
+  }
+
+  // After-birth mode has to hold up for a full year, not just the first month.
+  for (let w = 0; w <= POSTNATAL_MAX_WEEK; w++) {
+    if (postnatalFocus(w).length === 0) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `No focus items ${w} weeks after birth`,
+      });
+    }
+    if (postnatalReads(w).length === 0) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `No suggested reading ${w} weeks after birth`,
+      });
     }
   }
 

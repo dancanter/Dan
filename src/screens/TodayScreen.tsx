@@ -11,6 +11,7 @@ import {
   milestones,
   myths,
   noteForWeek,
+  readsForWeek,
   trimesterLabel,
   WEEK_BADGES,
 } from '../content';
@@ -20,17 +21,21 @@ import { MilestoneCelebration } from '../components/week/MilestoneCelebration';
 import { FocusList } from '../components/today/FocusList';
 import { MythCard } from '../components/today/MythCard';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
+import { ReadingCard } from '../components/today/ReadingCard';
+import { BabyArrivedCard } from '../components/today/BabyArrivedCard';
+import { AfterBirthScreen } from './AfterBirthScreen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 
 export function TodayScreen() {
-  const { currentWeek, daysToGo, isOnboarded } = usePregnancyProfile();
+  const { currentWeek, daysToGo, isOnboarded, hasBaby } = usePregnancyProfile();
   const {
     isTicked,
     toggleTick,
     recordVisit,
     markMythRevealed,
     awardBadge,
+    readGuideIds,
     celebratedWeeks,
     markCelebrated,
     currentStreak,
@@ -58,10 +63,15 @@ export function TodayScreen() {
 
   if (!isOnboarded || currentWeek === null) return <Navigate to="/" replace />;
 
+  // Once the baby is here the daily screen is a different screen entirely —
+  // same route, so nothing anyone has bookmarked or installed breaks.
+  if (hasBaby) return <AfterBirthScreen />;
+
   const baby = babyWeekByNumber.get(week);
   const focus = focusForWeek(week);
   const note = noteForWeek(week);
   const myth = myths[dayOfYear() % myths.length];
+  const reads = readsForWeek(week);
 
   // Only ever celebrate the *most recent* milestone reached. Someone who
   // installs the app at week 30 has already passed four of them — they
@@ -144,6 +154,11 @@ export function TodayScreen() {
       <SectionHeading>This week’s focus</SectionHeading>
       <FocusList items={focus} week={week} isTicked={isTicked} onToggle={toggleTick} />
 
+      {/* The library runs to birth, recovery and feeding. This is what pulls
+          the right part of it onto the daily screen at the right week. */}
+      <SectionHeading>Worth reading now</SectionHeading>
+      <ReadingCard reads={reads} readGuideIds={readGuideIds} />
+
       <SectionHeading>Myth check</SectionHeading>
       <MythCard myth={myth} reduceMotionOverride={reduceMotion} onReveal={markMythRevealed} />
 
@@ -158,6 +173,8 @@ export function TodayScreen() {
       <Note tone={note.tone} title={note.title}>
         {note.body}
       </Note>
+
+      {currentWeek >= 34 && <BabyArrivedCard />}
     </main>
   );
 }

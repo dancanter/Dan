@@ -1,17 +1,32 @@
 import { NavLink } from 'react-router-dom';
+import { usePregnancyProfile } from '../../hooks/usePregnancyProfile';
 
-const TABS = [
+interface Tab {
+  to: string;
+  label: string;
+  urgent?: boolean;
+  /** Hidden once the baby has arrived — these are pregnancy-only screens. */
+  pregnancyOnly?: boolean;
+}
+
+const TABS: Tab[] = [
   { to: '/today', label: 'Home' },
-  { to: '/baby', label: 'Baby' },
-  { to: '/body', label: 'My Body' },
+  { to: '/baby', label: 'Baby', pregnancyOnly: true },
+  { to: '/body', label: 'My Body', pregnancyOnly: true },
   { to: '/healthy', label: 'Guidance' },
-  { to: '/appointments', label: 'Appointments' },
+  { to: '/appointments', label: 'Appointments', pregnancyOnly: true },
   { to: '/help', label: 'Get Help', urgent: true },
   { to: '/journal', label: 'Journal' },
   { to: '/sources', label: 'Sources' },
 ];
 
 export function AppHeader() {
+  const { hasBaby } = usePregnancyProfile();
+  // Week-by-week development, the antenatal timeline and the pregnancy
+  // symptom explorer are all actively wrong once the baby is here — better
+  // gone from the nav than left there giving stale answers.
+  const tabs = TABS.filter((t) => !(hasBaby && t.pregnancyOnly));
+
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink bg-paper">
       <div className="mx-auto max-w-[920px] px-4 pt-3">
@@ -27,7 +42,7 @@ export function AppHeader() {
           </span>
         </div>
         <nav aria-label="Sections" className="-mx-1 flex gap-0.5 overflow-x-auto">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <NavLink
               key={t.to}
               to={t.to}

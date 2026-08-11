@@ -14,17 +14,23 @@ import { SourcesScreen } from '../../src/screens/SourcesScreen';
 import { LossSupportScreen } from '../../src/screens/LossSupportScreen';
 import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
+import { AfterBirthScreen } from '../../src/screens/AfterBirthScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
     'fieldnotes:profile',
-    JSON.stringify({ dueDate: '2027-01-01', babyName: null, firstPregnancy: true }),
+    JSON.stringify({
+      dueDate: '2027-01-01',
+      babyName: null,
+      firstPregnancy: true,
+    }),
   );
 }
 
 const SCREENS: [string, () => React.ReactElement][] = [
   ['Onboarding', () => <OnboardingScreen />],
   ['Today', () => <TodayScreen />],
+  ['After birth', () => <AfterBirthScreen />],
   ['Baby', () => <BabyScreen />],
   ['My Body', () => <BodyScreen />],
   ['Healthy Pregnancy', () => <HealthyScreen />],
