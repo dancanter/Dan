@@ -61,6 +61,21 @@ export const nutritionGuides: Guide[] = [
     sourceIds: ['iannotti-2024'],
   },
   {
+    id: 'red-meat-quality',
+    section: 'nutrition',
+    title: 'Grass-fed red meat — worth it, if you can',
+    summary:
+      'A slightly better fat profile. Identical iron and B12 — which is the actual reason to eat it.',
+    body: [
+      'Grass-fed and grass-finished beef has a modestly better fatty acid profile than grain-finished: more omega-3, a lower omega-6 to omega-3 ratio, and more vitamin E and beta-carotene. That difference is real and consistently measured.',
+      'It is also small in absolute terms. Beef is not a meaningful omega-3 source either way — **one portion of oily fish does more for your omega-3 intake than switching every steak you eat**. If you only change one thing, change that one.',
+      '**The iron, protein, B12 and zinc are the same regardless of how the animal was fed** — and iron is the actual reason red meat matters in pregnancy. Nothing your baby needs is riding on this choice.',
+      'A labelling point worth knowing: in the UK, "grass-fed" does not guarantee **grass-finished**. Many cattle are grass-raised and then grain-finished, and the label still applies. Pasture for Life certification is the one that guarantees a 100% grass diet.',
+      'So: if it is affordable and available, it is a reasonable preference with no downside. If it is not — and it is consistently more expensive — you are not missing anything. Ordinary red meat, cooked through, does the job it needs to do here.',
+    ],
+    sourceIds: ['daley-2010-grassfed', 'iannotti-2024', 'sacn-2026', 'nhs-foods-to-avoid'],
+  },
+  {
     id: 'dairy-iodine',
     section: 'nutrition',
     title: 'Dairy — birth weight & iodine',

@@ -59,6 +59,14 @@ export const sources: Source[] = [
     tier: 'college',
   },
   {
+    id: 'daley-2010-grassfed',
+    label: 'Fatty acid profiles and antioxidant content in grass-fed and grain-fed beef',
+    organisation: 'Daley CA, et al. Nutrition Journal 2010;9:10',
+    tier: 'research',
+    caveat:
+      'A comparison of what is in the meat, not a study of what it does to anyone. No trial has shown better outcomes for a mother or baby from grass-fed over grain-fed — the differences are real but small in absolute terms.',
+  },
+  {
     id: 'anderson-2026-dairy',
     label:
       'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
