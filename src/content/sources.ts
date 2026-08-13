@@ -59,6 +59,15 @@ export const sources: Source[] = [
     tier: 'college',
   },
   {
+    id: 'anderson-2026-dairy',
+    label:
+      'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
+    organisation: 'Anderson GH, et al. University of Toronto, 2026',
+    tier: 'research',
+    caveat:
+      'A randomised trial, so it avoids the confounding that limits the observational dairy studies — but it ran 12 weeks and measured risk markers rather than disease outcomes, and it was not conducted in pregnancy. Funding is not confirmed here, and dairy trials are frequently industry-supported.',
+  },
+  {
     id: 'thorning-2017-matrix',
     label: 'Whole dairy matrix or single nutrients in assessment of health effects',
     organisation: 'Thorning TK, et al. Am J Clin Nutr 2017;105(5):1033–45',

@@ -81,9 +81,16 @@ export const nutritionGuides: Guide[] = [
       'UK guidance says lower-fat. Newer evidence is less certain — and calcium and iodine are identical either way.',
     body: [
       'UK guidance — NHS and the British Heart Foundation — has traditionally favoured lower-fat dairy, to help control calories and saturated fat.',
-      'That position is less settled than it used to be. Several recent reviews have found no adverse effect of full-fat dairy on weight, cholesterol or insulin resistance, and there is some evidence of lower diabetes risk with whole-fat dairy specifically. The proposed explanation is the **dairy matrix** — the idea that dairy fat behaves differently inside cheese or yoghurt than the same saturated fat eaten on its own. The evidence here is genuinely mixed rather than overturned, and this is one to watch rather than act on.',
+      'That position is less settled than it used to be. The best evidence is a 2026 randomised controlled trial from the University of Toronto: three servings of full-fat dairy a day for 12 weeks, with no adverse effect on weight, body composition or cholesterol, better blood pressure, and higher calcium, protein and vitamin D intake. Because people were randomised, it sidesteps the problem that limits the older studies here — people who drink five glasses of milk a day differ from people who don’t in a dozen ways a diet questionnaire can’t capture.',
+      'Two things it doesn’t settle. It ran for 12 weeks and measured risk markers rather than actual disease, so it says nothing about long-term outcomes. And it wasn’t done in pregnancy. The proposed explanation for results like these is the **dairy matrix** — that dairy fat behaves differently inside cheese or yoghurt than the same saturated fat eaten on its own — which is still an open question rather than a settled one.',
       'What is not in question: **calcium, iodine and protein are the same regardless of fat level.** Nothing your baby needs from dairy is lost by choosing one over the other — so this is a reasonable choice to make on your own preference and goals.',
     ],
-    sourceIds: ['nhs-dairy', 'bhf-dairy', 'thorning-2017-matrix', 'razmpoosh-2025'],
+    sourceIds: [
+      'nhs-dairy',
+      'bhf-dairy',
+      'anderson-2026-dairy',
+      'thorning-2017-matrix',
+      'razmpoosh-2025',
+    ],
   },
 ];

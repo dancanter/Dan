@@ -40,6 +40,7 @@ export const everydaySafetyGuides: Guide[] = [
       '**Smoking and secondhand smoke** — the single biggest indoor risk; genuinely linked to premature birth, low birthweight and SIDS. Ask household smokers to go outside.',
       '**Carbon monoxide** — the most serious hidden indoor risk, being odourless and tasteless. Get cookers and heaters serviced on schedule, don’t block vents or chimneys, and fit a CO alarm.',
       '**Cleaning products:** modern ones are low-risk used as directed. Ventilate, wear gloves, take extra care with oven cleaner, and **never mix cleaning products** — bleach with ammonia, or bleach with acid, both release genuinely dangerous gases. That’s a hard rule, not extra caution.',
+      'If there’s someone else in the house, the strong-smelling jobs — oven cleaner, bathroom sprays, anything that makes you cough — are a fair thing to hand over. If there isn’t, they’re still fine to do yourself: open a window, wear gloves, and don’t linger over them.',
       '**Painting:** modern water-based paint is low-risk. Avoid solvent-based paint and paint stripping. Ventilate well and wear gloves.',
       '**At work:** your employer must risk-assess your workplace early in pregnancy. Ask for chemical data sheets if you’re concerned, and contact Acas if you feel unsupported.',
     ],
