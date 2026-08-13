@@ -144,12 +144,12 @@ export const feedingGuides: Guide[] = [
     summary: 'No special diet. Most medicines are fine. Never bed-share after drinking.',
     body: [
       '**Diet:** no special diet needed — varied and balanced is the guidance. Caffeine under 300mg/day (roughly 3 mugs of instant coffee). Fish: 2 portions a week, one oily; limit shark, swordfish and marlin to 1 portion a week. Peanuts are fine unless you’re allergic yourself.',
-      '**Alcohol:** the safest approach is not drinking at all. NHS also states an occasional 1–2 units, once or twice a week, is considered unlikely to harm your baby, ideally with a 2–3 hour gap before feeding. **Never bed-share after drinking, regardless of amount** — that is a firm safety point, not a judgment call.',
+      '**Alcohol:** the safest approach is to avoid alcohol completely while breastfeeding. If you do drink occasionally, wait at least 2–3 hours per drink before feeding. **Never bed-share or fall asleep with your baby after any alcohol** — this is strongly linked to SIDS risk regardless of amount, and is a firm safety point rather than a judgment call. Regular or heavy drinking can reduce your milk supply and affect your baby’s sleep, growth and development.',
       '**Medication:** most medicines are compatible with breastfeeding — most antibiotics, paracetamol, asthma inhalers, and routine vaccinations (MMR, flu, whooping cough, COVID-19) are all fine. Check with a GP or pharmacist before ibuprofen or anything new, and never stop a prescribed medicine without checking first.',
       '**Contraception:** condoms any time · progestogen-only methods (pill, implant, injection) immediately after birth · combined pill from 6 weeks if breastfeeding · IUD timing discussed with your midwife.',
       '**Vitamin D:** breastfeeding mothers need 10mcg daily.',
     ],
-    sourceIds: ['nhs-breastfeeding'],
+    sourceIds: ['nhs-breastfeeding', 'rcm-infant-feeding', 'nhs-new-parents'],
   },
   {
     id: 'breastfeeding-special',

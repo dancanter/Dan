@@ -41,6 +41,32 @@ export const sources: Source[] = [
     tier: 'nhs',
   },
   {
+    id: 'nhs-dairy',
+    label: 'Milk and dairy foods — Eatwell Guide',
+    organisation: 'NHS',
+    tier: 'nhs',
+  },
+  {
+    id: 'bhf-dairy',
+    label: 'Dairy foods, saturated fat and heart health',
+    organisation: 'British Heart Foundation',
+    tier: 'charity',
+  },
+  {
+    id: 'rcm-infant-feeding',
+    label: 'Infant feeding guidance',
+    organisation: 'Royal College of Midwives',
+    tier: 'college',
+  },
+  {
+    id: 'thorning-2017-matrix',
+    label: 'Whole dairy matrix or single nutrients in assessment of health effects',
+    organisation: 'Thorning TK, et al. Am J Clin Nutr 2017;105(5):1033–45',
+    tier: 'research',
+    caveat:
+      'A narrative review rather than a trial, and dairy-industry research funding is common across this field. The "matrix" idea is widely discussed but not settled — treat it as an open question, not a reversal of UK guidance.',
+  },
+  {
     id: 'nhs-vitamins',
     label: 'Vitamins and supplements in pregnancy',
     organisation: 'NHS',
