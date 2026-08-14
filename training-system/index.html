@@ -163,6 +163,17 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .chart-legend{display:flex;gap:14px;font-family:var(--f-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:2px;flex-wrap:wrap}
 .swatch{display:inline-block;width:14px;height:2px;vertical-align:3px;margin-right:5px}
 .swatch.dash{height:0;border-top:2px dashed currentColor}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;opacity:.6}
+.stage.now{opacity:1;border-color:var(--track-dim);box-shadow:inset 3px 0 0 var(--track)}
+.stage-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.stage-name{font-family:var(--f-display);font-size:19px;letter-spacing:.04em}
+.stage-when{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stage-goal{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:8px}
+.stage ul{margin:0;padding-left:17px;font-size:13px;line-height:1.6}
+.stage li{margin-bottom:3px}
+.stage li b{font-weight:600}
+.stage .hold{color:var(--muted);font-size:12.3px;line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px solid var(--line-soft)}
+.stage .hold b{color:var(--warn);font-weight:600}
 .prog{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-family:var(--f-mono);font-size:10.5px;margin-bottom:10px}
 .prog .lbl{color:var(--muted-2);letter-spacing:.05em;text-transform:uppercase;margin-right:2px}
 .prog .step{padding:2px 6px;border:1px solid var(--line-soft);border-radius:2px;color:var(--muted-2);font-variant-numeric:tabular-nums}
@@ -447,6 +458,57 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <section class="block">
       <h2 class="block-title">Where You Are</h2>
       <div id="calStep"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Cellular Protocol — In Stages</h2>
+      <p class="block-sub">Built in order, because the same food does different work depending on whether you're in a deficit or not. Get to 122–124 first; the rest layers on as calories come back.</p>
+      <div id="stageList"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">What Each Group Is Doing</h2>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <thead><tr><th>Goal</th><th>Foods</th><th>Amount</th><th>The mechanism</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="4"><b>Testosterone<br>&amp; hormones</b></td><td>Wild oysters</td><td class="hl">1–2× week</td><td>Zinc, and by a distance the richest source there is. Deficiency genuinely suppresses testosterone — topping up beyond sufficiency does not.</td></tr>
+            <tr><td>Pasture-raised egg yolks</td><td class="hl">3–5 daily</td><td>Cholesterol is the literal substrate every steroid hormone is built from. Plus vitamin D and choline.</td></tr>
+            <tr><td>Grass-fed beef tallow</td><td class="hl">Cook with it</td><td>Total fat intake tracks with testosterone. This is why the 55–60g fat floor is a floor and not a target.</td></tr>
+            <tr><td>Ruminant liver</td><td class="hl">100g, once a week</td><td>Retinol, copper, B12, folate. Retinol is directly involved in steroid production. <b style="color:var(--warn)">Once a week, not daily</b> — see the note below.</td></tr>
+
+            <tr><td rowspan="3"><b>Collagen<br>&amp; skin</b></td><td>Collagen peptides</td><td class="hl">10–15g daily</td><td>The one with actual trial evidence for skin elasticity. Take it <b>with vitamin C, an hour before you train</b> — that timing is from the tendon-loading work, and it matters more than the dose.</td></tr>
+            <tr><td>Bone broth, marrow</td><td class="hl">2–3× week</td><td>Glycine and proline. Less reliable than peptides because the amino acid content varies wildly with how it was made — treat it as a bonus, not the source.</td></tr>
+            <tr><td>Citrus · cooked tomatoes</td><td class="hl">Daily · 3–4× week</td><td>Vitamin C is a required cofactor for collagen synthesis — without it the enzyme simply doesn't work. Lycopene needs cooking <b>and</b> fat; raw tomato barely gives you any.</td></tr>
+
+            <tr><td rowspan="4"><b>Longevity<br>&amp; autophagy</b></td><td>High-polyphenol EVOO</td><td class="hl">2–3 tbsp, raw</td><td>Hydroxytyrosol and oleocanthal. Polyphenols degrade with heat, light and age — finish dishes with it, keep it dark, cook with tallow instead.</td></tr>
+            <tr><td>Broccoli sprouts</td><td class="hl">20–30g, 3–4× week</td><td>10–100× the glucoraphanin of mature broccoli. <b>Eat raw</b> — the enzyme that converts it to sulforaphane is killed by heat. If it's cooked, mustard powder on top puts the enzyme back.</td></tr>
+            <tr><td>Pomegranate</td><td class="hl">3–4× week</td><td>Ellagitannins, which gut bacteria convert to urolithin A. Worth knowing: only about 40% of people carry the bacteria to do it. If you're not a converter, this does nothing for you and no amount fixes it.</td></tr>
+            <tr><td>Wild berries</td><td class="hl">Daily</td><td>Anthocyanins. Modest, cheap, no downside.</td></tr>
+
+            <tr><td rowspan="3"><b>Mitochondrial<br>energy</b></td><td>Beef heart</td><td class="hl">100g, once a week</td><td>The richest food source of CoQ10 there is, and cheap. Genuinely the standout item on this list.</td></tr>
+            <tr><td>Grass-fed beef</td><td class="hl">3–4× week</td><td>Creatine and stearic acid. Note the scale: you'd need roughly a kilo of beef for the creatine in one 5g scoop.</td></tr>
+            <tr><td>Whole dairy · kefir</td><td class="hl">1–2 daily</td><td>Protein, calcium, and live cultures in the fermented ones. <b style="color:var(--warn)">Pasteurised</b> — see the note below.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Bioavailability — What Actually Gets Absorbed</h2>
+      <p class="block-sub">This is where the real gains are. Most of these foods are worth two or three times more when paired correctly, and a couple are worth almost nothing when they aren't.</p>
+      <div class="grid-2">
+        <div class="food-cat"><b>Pair these</b>Lycopene + fat + heat · fat-soluble A, D, E, K with a fatty meal · vitamin C with plant iron · collagen + vitamin C an hour pre-training · creatine with carbs</div>
+        <div class="food-cat"><b>Keep these apart</b>Calcium blocks iron — no dairy with liver or beef · coffee and tea tannins block iron, leave an hour either side · zinc and iron compete, so oysters and liver on different days</div>
+        <div class="food-cat"><b>Heat rules</b>Sulforaphane: raw, or mustard powder if cooked · EVOO polyphenols: raw, finish with it · lycopene: the one that <em>wants</em> cooking · CoQ10: light cooking only</div>
+        <div class="food-cat"><b>Timing</b>Collagen 60 min pre-session · protein and carbs within 2h post · creatine any time, consistency beats timing · oily fish and fat-solubles with your largest meal</div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Two Honest Notes</h2>
+      <div class="note warn" style="margin-bottom:8px"><b>Liver — once a week, genuinely</b>100g of beef liver carries roughly five times the daily upper limit for vitamin A. Weekly is excellent; daily accumulates, and retinol toxicity shows up as headaches, joint pain and hair loss. The rest of this list has no ceiling worth worrying about. This one does.</div>
+      <div class="note warn"><b>Raw dairy — I'd use pasteurised</b>Pasteurisation costs you almost nothing nutritionally: protein, calcium and most vitamins survive it, and the enzymes people cite as the reason for raw don't survive stomach acid either way. What it removes is listeria, salmonella, campylobacter and E. coli O157. You're training four times a week in a deficit with a PB week to reach — a week of campylobacter would cost you more than every marginal gain on this page combined. Kefir and yoghurt give you live cultures from pasteurised milk with none of that risk.</div>
     </section>
 
     <section class="block">
@@ -1898,6 +1960,7 @@ function renderReverseTable() {
   $("targetKcal").textContent = cur.toLocaleString() + " kcal";
 }
 function renderCalStep() {
+  renderStages();
   var cur = settings.kcal || 1850;
   var since = settings.kcalSince || null;
   var days = since ? daysBetween(parseDay(since), parseDay(today())) : null;
@@ -1931,6 +1994,60 @@ function stepKcal(delta) {
   settings.kcalSince = today();
   DB.set("settings", settings);
   renderCalStep(); renderReverseTable();
+}
+
+/* ================= staged nutrition ================= */
+/* The same food does different work depending on whether you are in a deficit.
+   Stage 1 protects; stage 2 rebuilds as calories return; stage 3 runs everything. */
+var STAGES = [
+  { n: 1, name: "Protect", when: "Now → 122–124 lb held",
+    goal: "You are in a deficit, so testosterone drifts down, recovery slows and connective tissue is under more load than usual from the new sprint work. Nothing here is about optimisation yet — it is about not losing ground while the weight comes off.",
+    add: ["<b>Fat floor 55–60g, treated as untouchable.</b> This is the single biggest hormonal lever in the whole stage. Cut fat to make calories fit and testosterone goes with it.",
+          "<b>Oysters 1–2× a week</b> for zinc, <b>egg yolks daily</b> for the cholesterol every steroid hormone is built from.",
+          "<b>Liver 100g, once a week.</b> Retinol, copper, B12.",
+          "<b>Collagen peptides 10–15g daily with vitamin C</b>, an hour before you train. Start now — tendons and hamstrings are taking new load and this costs you nothing on the calorie budget.",
+          "<b>Cook in tallow</b>, finish with raw EVOO."],
+    hold: "<b>Hold back:</b> the autophagy and polyphenol group. A deficit already drives autophagy hard — stacking fasting-mimetics on top while you are trying to hold muscle works against you. Creatine waits too; it pulls water and would muddy the weight trend at exactly the point you need to read it cleanly." },
+  { n: 2, name: "Rebuild", when: "Reverse — 1,850 → ~2,300 kcal",
+    goal: "Calories are coming back in +75 steps. There is now room on the plate for the fat-soluble and energy-dense end of the list, and training quality starts climbing as glycogen refills.",
+    add: ["Everything from stage 1 continues.",
+          "<b>Beef heart 100g weekly</b> — the richest CoQ10 there is, and the standout item on the whole list.",
+          "<b>Cooked tomatoes with EVOO 3–4× a week.</b> Needs the fat and the heat to be worth anything.",
+          "<b>Broccoli sprouts 20–30g, raw, 3–4× a week.</b>",
+          "<b>Grass-fed beef 3–4× a week</b>, on days you are not eating liver."],
+    hold: "<b>Hold back:</b> creatine, still. Wait until maintenance is confirmed — a 1–2kg water shift mid-reverse is exactly the thing that makes people abort the reverse thinking they are gaining fat." },
+  { n: 3, name: "Perform", when: "Maintenance → PB week",
+    goal: "Weight stable, calories at maintenance, training at its highest quality. Everything runs, and this is the stage that actually earns the anti-ageing framing — cellular repair needs energy, and you finally have some spare.",
+    add: ["The full list, everything running together.",
+          "<b>Pomegranate 3–4× a week</b> for the urolithin A pathway.",
+          "<b>Creatine 3–5g daily</b> if you want it — comfortably the best-evidenced performance compound there is, and it is 400m-specific. Expect 1–2kg of water on the scale that is not fat.",
+          "<b>Wild berries daily</b>, high-polyphenol EVOO raw on everything."],
+    hold: "<b>PB week:</b> nothing new. Not one new food, supplement or dose in week 13. Whatever your gut has not already handled a hundred times does not get introduced the week you are trying to run three PBs." }
+];
+
+function currentStage() {
+  var desc = sortedWeights().reverse();
+  var kcal = settings.kcal || 1850;
+  var bw = blockWeekNow();
+  if (desc.length >= 4) {
+    var rAvg = avg(desc.slice(0, 7).map(function (w) { return w.weight; }));
+    if (rAvg > 124.0) return 1;
+  } else if (kcal <= 1850 && (!bw || bw < 5)) return 1;
+  if (kcal >= 2300 || (bw && bw >= 9)) return 3;
+  return kcal > 1850 ? 2 : 2;
+}
+
+function renderStages() {
+  var el = $("stageList"); if (!el) return;
+  var cur = currentStage();
+  el.innerHTML = STAGES.map(function (st) {
+    return '<div class="stage' + (st.n === cur ? " now" : "") + '">' +
+      '<div class="stage-head"><span class="stage-name">Stage ' + st.n + " — " + esc(st.name) + "</span>" +
+      '<span class="stage-when">' + esc(st.when) + (st.n === cur ? " · you are here" : "") + "</span></div>" +
+      '<p class="stage-goal">' + esc(st.goal) + "</p><ul>" +
+      st.add.map(function (a) { return "<li>" + a + "</li>"; }).join("") + "</ul>" +
+      '<div class="hold">' + st.hold + "</div></div>";
+  }).join("");
 }
 
 /* ================= retinol ================= */
@@ -2195,7 +2312,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
-  renderNiggles(); renderAdaptPicker();
+  renderNiggles(); renderAdaptPicker(); renderStages();
   renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderStartInfo() {

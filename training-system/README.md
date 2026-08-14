@@ -101,6 +101,18 @@ and it shows weeks before a benchmark test would.
 trend and says whether it's time to add 75 kcal, plus the staples, timing,
 rotation and trend-reading reference.
 
+It also carries a staged cellular protocol, because the same food does different
+work depending on whether you're in a deficit. Stage 1 protects (fat floor, zinc,
+cholesterol, collagen peptides — and deliberately *holds back* the polyphenol and
+autophagy group, since a deficit already drives autophagy and stacking
+fasting-mimetics on top works against holding muscle). Stage 2 rebuilds as
+calories return. Stage 3 runs everything. The current stage is derived from the
+7-day weight average and the calorie step, so it moves on its own. Alongside it:
+what each food group is mechanistically doing, and a bioavailability section —
+which pairings multiply absorption, which block it, and which foods are worth
+almost nothing prepared the wrong way (sulforaphane needs raw or added
+myrosinase; lycopene needs heat and fat; EVOO polyphenols degrade with heat).
+
 **Protocols / Skincare** — the morning, warm-up, nervous system, sleep, recovery
 and pull-back protocols, a PB-week protocol covering the taper, pre-attempt
 timing and how to pace each of the three attempts, and the AM/PM routines with a retinol-night counter.
