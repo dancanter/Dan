@@ -804,9 +804,57 @@ var WEEK_TEMPLATES = {
   ]
 };
 
+/* Weeks 3+ are a pool of sessions you assign to days rather than a fixed
+   weekday grid — which day a session lands on depends on how recovery is
+   actually going that week. The plan checks the spacing instead of dictating it. */
+var DELOAD_WEEKS = [4, 8, 12];
+function isDeload(w) { return DELOAD_WEEKS.indexOf(w) !== -1; }
+
+/* One pace (2:57/km, just under mile pace) with the rep length growing, and
+   200m work rotating back through — relaxed first time, at 400m race pace the
+   second, which is the only thing in the week feeding the sub-55. */
+var SPEED_ROTATION = {
+  3:  { type: "Speed — relaxed 200s", desc: "6 × 200m relaxed, full recovery" },
+  5:  { type: "Mile pace — 300s", desc: "6 × 300m @ 53s, 400m jog recovery" },
+  6:  { type: "Mile pace — 400s", desc: "6 × 400m @ 71s, equal-time jog recovery" },
+  7:  { type: "Mile pace — ladder", desc: "Ladder 200-400-600-400-200m @ mile pace, recovery = rep duration" },
+  9:  { type: "Speed — sharp 200s", desc: "6 × 200m @ 27.5s, full recovery" },
+  10: { type: "Mile pace — 400s", desc: "7 × 400m @ 71s, equal-time jog recovery" },
+  11: { type: "Mile pace — ladder", desc: "Ladder 200-400-600-400-200m @ mile pace, recovery = rep duration" }
+};
+
+function poolFor(w) {
+  var dl = isDeload(w);
+  var speed = SPEED_ROTATION[w] || SPEED_ROTATION[3];
+  if (dl) speed = { type: "Speed — deload", desc: "4 × 200m relaxed, full recovery" };
+  return [
+    { sid: "run1k", hard: 2, type: dl ? "5K pace — deload" : "Long intervals — 5K pace",
+      desc: (dl ? "3" : "5") + " × 1km @ 3:22/km, 90s recovery" },
+    { sid: "speed", hard: 2, type: speed.type, desc: speed.desc },
+    { sid: "thresh", hard: 2, type: "Threshold",
+      desc: (dl ? "15" : "25") + " min continuous @ 3:40–3:45/km" },
+    { sid: "easy", hard: 0, type: "Easy long run",
+      desc: dl ? "30–40 min genuinely easy" : "45–60 min genuinely easy — nasal breathing the whole way" },
+    { sid: "sprint", hard: 1, type: "80m sprints",
+      desc: "5 × 80m flat out, full recovery. Short and neural — this is what protects the sub-55." },
+    { sid: "bench", hard: 2, type: "BENCHMARK TEST",
+      desc: "3 × 800m — target 2:24 each. Log it on the Progress tab, then write what it tells you in this week's reflection." },
+    { sid: "rest", hard: 0, type: "Rest", desc: "Full rest, or a 20 min shakeout jog if you feel like moving." }
+  ];
+}
+/* index 0 = Sunday, matching the day columns */
+function layoutFor(w) {
+  return isDeload(w)
+    ? [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
+       { sid: "rest" }, { sid: "bench" }, { sid: "rest", gym: 1 }]
+    : [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
+       { sid: "rest" }, { sid: "thresh" }, { sid: "sprint", gym: 1 }];
+}
+var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
 function templateForWeek(w) {
   if (w === 13) return {
-    phase: "PB Attempt Week",
+    phase: "PB Attempt Week", flexible: false,
     note: "Hold maintenance calories. Two clear easy or rest days before each attempt.",
     days: [
       { day: "SUN", type: "5K — PB ATTEMPT", desc: "All-out 5K attempt. Target sub-16:50 (3:22/km)." },
@@ -826,14 +874,25 @@ function templateForWeek(w) {
     phase = "Maintenance — hold steady";
     note = "Hold wherever the weight stabilised during the reverse.";
   }
-  return { phase: phase, note: note, days: WEEK_TEMPLATES[((w - 1) % 4) + 1] };
+  if (w <= 2) {
+    return { phase: phase, note: note, flexible: false, days: WEEK_TEMPLATES[((w - 1) % 4) + 1] };
+  }
+  note += isDeload(w)
+    ? " Deload week — reduced volume and the 800m benchmark. Taking it is what lets the last three weeks land."
+    : " Move the sessions to whichever days suit you — the plan flags it if two hard days end up back to back.";
+  return { phase: phase, note: note, flexible: true, pool: poolFor(w), layout: layoutFor(w) };
+}
+
+function poolItem(pool, sid) {
+  for (var i = 0; i < pool.length; i++) if (pool[i].sid === sid) return pool[i];
+  return pool[pool.length - 1];
 }
 
 /* parse a session description into targets */
 function parseSession(desc) {
   var out = { reps: null, dist: null, repSec: null, restSec: null };
-  var m = desc.match(/(\d+)\s*[x×]\s*(\d+)\s*m/i);
-  if (m) { out.reps = +m[1]; out.dist = +m[2]; }
+  var m = desc.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(km|m)\b/i);
+  if (m) { out.reps = +m[1]; out.dist = +m[2] * (m[3].toLowerCase() === "km" ? 1000 : 1); }
   var pace = desc.match(/@\s*(\d+):(\d{2})\s*\/\s*km/i);
   var flat = desc.match(/@\s*(\d+(?:\.\d+)?)\s*s\b/i);
   if (pace) {
@@ -846,7 +905,9 @@ function parseSession(desc) {
   var rsec = desc.match(/(\d+)\s*s(?:ec)?\s*recovery/i);
   if (rmin) out.restSec = +rmin[1] * 60;
   else if (rsec) out.restSec = +rsec[1];
-  else if (/recovery\s*=\s*rep duration/i.test(desc) && out.repSec) out.restSec = out.repSec;
+  else if (/(recovery\s*=\s*rep duration|equal[- ]time)/i.test(desc) && out.repSec) out.restSec = out.repSec;
+  /* "full recovery" and "400m jog" are deliberately untimed — leave the timer's
+     rest field blank rather than inventing a number. */
   return out;
 }
 
@@ -889,22 +950,41 @@ function renderBlockBar() {
 }
 
 /* ================= week plan ================= */
+var currentPlan = null;
+
 function buildWeek(w) {
-  return templateForWeek(w).days.map(function (d) {
+  var t = templateForWeek(w);
+  if (t.flexible) {
+    return t.layout.map(function (l, i) {
+      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, actual: "", notes: "", feel: "", done: false };
+    });
+  }
+  return t.days.map(function (d) {
     return { day: d.day, type: d.type, desc: d.desc, actual: "", notes: "", feel: "", done: false };
   });
 }
 function loadWeek(w) {
+  currentPlan = templateForWeek(w);
   var saved = DB.get("week-" + w, null);
   var fresh = buildWeek(w);
   if (saved && saved.length === fresh.length) {
     weekData = fresh.map(function (d, i) {
-      return { day: d.day, type: d.type, desc: d.desc,
-        actual: saved[i].actual || "", notes: saved[i].notes || "",
+      var keep = { day: d.day, actual: saved[i].actual || "", notes: saved[i].notes || "",
         feel: saved[i].feel || "", done: !!saved[i].done };
+      if (currentPlan.flexible) {
+        /* an assignment the user made survives; anything else falls back to the default */
+        keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
+        keep.gym = saved[i].gym == null ? d.gym : !!saved[i].gym;
+      } else { keep.type = d.type; keep.desc = d.desc; }
+      return keep;
     });
   } else weekData = fresh;
   renderWeek();
+}
+/* the session a day is currently showing, whichever plan style the week uses */
+function sessionOf(d) {
+  if (currentPlan && currentPlan.flexible) return poolItem(currentPlan.pool, d.sid);
+  return { type: d.type, desc: d.desc, hard: 0 };
 }
 function saveWeek() { DB.set("week-" + viewWeek, weekData); }
 
@@ -926,13 +1006,25 @@ function feelOptions(sel) {
   }).join("");
 }
 
+function sessionOptions(pool, sel) {
+  return pool.map(function (o) {
+    return '<option value="' + o.sid + '"' + (sel === o.sid ? " selected" : "") + ">" + esc(o.type) + "</option>";
+  }).join("");
+}
+
 function dayCard(d, i, isToday) {
+  var s = sessionOf(d), flex = currentPlan && currentPlan.flexible;
   return '<div class="day-card' + (d.done ? " done" : "") + (isToday ? " today" : "") + '">' +
     '<div class="day-top"><div class="day-name">' + d.day +
-      '<span>' + esc(d.type) + "</span>" + (isToday ? '<span class="today-pill">Today</span>' : "") + "</div>" +
+      '<span>' + esc(s.type) + "</span>" + (isToday ? '<span class="today-pill">Today</span>' : "") + "</div>" +
     '<button class="btn ' + (d.done ? "on" : "") + '" data-done="' + i + '">' + (d.done ? "✓ Done" : "Mark done") + "</button></div>" +
-    '<p class="session-desc">' + esc(d.desc) + "</p>" +
-    splitLine(d.desc) +
+    (flex ? '<div class="row-inputs" style="margin-bottom:8px">' +
+      '<select data-field="sid" data-i="' + i + '" aria-label="Session for ' + d.day + '">' +
+        sessionOptions(currentPlan.pool, d.sid) + "</select>" +
+      '<button class="btn ' + (d.gym ? "on" : "") + '" data-gym="' + i + '" aria-pressed="' + !!d.gym + '">' +
+        (d.gym ? "✓ Gym" : "+ Gym") + "</button></div>" : "") +
+    '<p class="session-desc">' + esc(s.desc) + "</p>" +
+    splitLine(s.desc) +
     '<div class="row-inputs">' +
       '<input type="text" placeholder="Actual result" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
@@ -940,14 +1032,40 @@ function dayCard(d, i, isToday) {
     "</div></div>";
 }
 
+/* Two quality sessions on back-to-back days is the one arrangement that
+   reliably breaks a week like this, so say so rather than leaving it to be noticed. */
+function spacingCheck() {
+  if (!currentPlan || !currentPlan.flexible) return "";
+  var hard = weekData.map(function (d) { return sessionOf(d).hard >= 2; });
+  var clashes = [];
+  for (var i = 0; i < 7; i++) {
+    var j = (i + 1) % 7;
+    if (hard[i] && hard[j]) clashes.push(DAY_NAMES[i] + " → " + DAY_NAMES[j]);
+  }
+  var n = hard.filter(Boolean).length;
+  var gyms = weekData.filter(function (d) { return d.gym; }).length;
+  var meta = n + " hard " + (n === 1 ? "day" : "days") + " · " + gyms + " gym";
+  if (clashes.length) {
+    return '<div class="note stop" style="margin-bottom:12px"><b>Two hard days back to back</b>' +
+      esc(clashes.join(", ")) + ". The second one is run on a body that hasn't recovered from the first, " +
+      "so it costs you more than it earns. Move one to a rest day if you can. (" + meta + ")</div>";
+  }
+  if (n >= 4) {
+    return '<div class="note warn" style="margin-bottom:12px"><b>Four hard days is a lot</b>' +
+      "Spacing is fine, but that's more quality than this block is built around — especially in a deficit. (" + meta + ")</div>";
+  }
+  return '<div class="note good" style="margin-bottom:12px"><b>Spacing looks right</b>' +
+    "Every hard day has an easy or rest day after it. (" + meta + ")</div>";
+}
+
 function renderWeek() {
-  var t = templateForWeek(viewWeek);
+  var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
   $("phaseNote").textContent = t.note;
   var done = weekData.filter(function (d) { return d.done; }).length;
   $("weekDone").textContent = done + "/7 sessions done";
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = weekData.map(function (d, i) {
+  $("weekList").innerHTML = spacingCheck() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
 }
@@ -959,7 +1077,7 @@ function toggleDone(i) {
   sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
   if (d.done) {
     sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day,
-      type: d.type, actual: d.actual || "—", feel: d.feel || "" });
+      type: sessionOf(d).type + (d.gym ? " + gym" : ""), actual: d.actual || "—", feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
   saveWeek(); renderWeek(); renderHistory(); renderReadiness(); renderToday();
@@ -978,7 +1096,7 @@ function renderToday() {
   var wasViewing = viewWeek;
   if (viewWeek !== bw) { viewWeek = bw; $("weekSelect").value = bw; loadWeek(bw); }
   var i = dayIndexToday(), d = weekData[i];
-  var p = parseSession(d.desc);
+  var p = parseSession(sessionOf(d).desc);
   el.innerHTML = dayCard(d, i, true) +
     (p.repSec ? '<div class="add-row"><button class="btn" data-timer="' + i + '">Open this in the timer →</button></div>' : "");
   if (wasViewing !== viewWeek) renderWeek();
@@ -1800,13 +1918,18 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("[data-done],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret]") : null;
+    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
+    else if (el.dataset.gym != null) {
+      var gi = +el.dataset.gym;
+      weekData[gi].gym = !weekData[gi].gym;
+      saveWeek(); renderWeek(); renderToday();
+    }
     else if (el.dataset.check) toggleCheck(el.dataset.check);
     else if (el.dataset.timer != null) {
-      var d = weekData[+el.dataset.timer];
-      loadSessionIntoTimer(d.desc, d.day + " · " + d.type);
+      var d = weekData[+el.dataset.timer], sess = sessionOf(d);
+      loadSessionIntoTimer(sess.desc, d.day + " · " + sess.type);
     }
     else if (el.dataset.kcal) stepKcal(el.dataset.kcal);
     else if (el.dataset.goto) showTab(el.dataset.goto);
@@ -1838,6 +1961,7 @@ function renderStartInfo() {
     if (el.dataset && el.dataset.field != null && el.dataset.i != null) {
       weekData[+el.dataset.i][el.dataset.field] = el.value;
       saveWeek();
+      if (el.dataset.field === "sid") { renderWeek(); renderToday(); return; }
       var key = viewWeek + "|" + weekData[+el.dataset.i].day;
       sessionHistory.forEach(function (h) {
         if (h.key === key) { h.actual = weekData[+el.dataset.i].actual || "—"; h.feel = weekData[+el.dataset.i].feel || ""; }

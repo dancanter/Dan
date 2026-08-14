@@ -30,10 +30,30 @@ verdict computed from morning HR against its own rolling baseline, recent
 session-feel ratings and whether sleep was ticked, then the daily recovery
 checklist with a 28-day completion grid and streak.
 
-**This Week** — the seven-day plan for any of the 13 weeks, with per-session
-target splits derived from the session text, a result field, a 1–5 feel rating
-and notes. Weeks 1–3 progress by shrinking recovery intervals, week 4 deloads and
-benchmarks, and that four-week cycle repeats until week 13's PB attempts.
+**This Week** — weeks 1–2 are a fixed seven-day grid. From week 3 the week is a
+*pool* of sessions you assign to days, because which day a session lands on
+depends on how recovery is actually going: two hard runs (5 × 1km at 5K pace, and
+a rotating speed session), a threshold run, an easy long run, 80m sprints, and a
+gym toggle on any day. Reassigning a session re-checks the spacing and warns if
+two hard days end up back to back — including across the Saturday/Sunday
+boundary. Weeks 4, 8 and 12 deload and carry the 800m benchmark; week 13 is the
+PB attempts and stays fixed.
+
+The speed session rotates one pace (2:57/km, just under mile pace) with the rep
+length growing, and cycles 200m work back through:
+
+| Week | Session |
+|---|---|
+| 3 | 6 × 200m relaxed, full recovery |
+| 5 | 6 × 300m @ 53s, 400m jog |
+| 6 | 6 × 400m @ 71s, equal-time jog |
+| 7 | Ladder 200-400-600-400-200m @ mile pace |
+| 9 | 6 × 200m @ 27.5s, full recovery — 400m race pace |
+| 10 | 7 × 400m @ 71s, equal-time jog |
+| 11 | Ladder 200-400-600-400-200m @ mile pace |
+
+Every session's target splits are parsed out of its own text, so the volume, per-rep
+target, pace and recovery under each card stay correct if the wording changes.
 
 **Timer** — an interval timer for track sessions. Loads the rep target and
 recovery straight from the day's session, times each rep against the target with
