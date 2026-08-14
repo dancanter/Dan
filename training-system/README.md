@@ -103,7 +103,7 @@ rotation and trend-reading reference.
 
 **Protocols / Skincare** — the morning, warm-up, nervous system, sleep, recovery
 and pull-back protocols, a PB-week protocol covering the taper, pre-attempt
-timing and how to pace each of the three attempts,, and the AM/PM routines with a retinol-night counter.
+timing and how to pace each of the three attempts, and the AM/PM routines with a retinol-night counter.
 
 ## Backing it up
 
