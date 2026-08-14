@@ -85,12 +85,25 @@ time and the target has closed, morning HR against its baseline-plus-5 flag line
 weight against the 122–124 lb goal band with a 7-day average overlay, and the
 trend readout that says whether to hold, step up or step back.
 
+**Niggles** — log a body part and a severity (1 aware of it → 4 can't run on it)
+on the days you feel something. It tracks each area's own run of entries, so it
+can tell you it is worsening rather than just present. A live severity-2+ niggle
+in a hamstring, calf, achilles, quad or groin puts a block directly on the
+all-out sprint sessions in the week view, and readiness weights it heavily —
+severity 3 is enough on its own to turn the day's verdict to back off.
+
+**Adaptation** — the same session, at the same pace, plotted over the block from
+the 1–5 feel ratings. Feel dropping means the work is landing; feel climbing
+while the session has not got faster is the earliest pull-back signal available,
+and it shows weeks before a benchmark test would.
+
 **Nutrition** — the calorie stepper for the reverse diet, which reads the weight
 trend and says whether it's time to add 75 kcal, plus the staples, timing,
 rotation and trend-reading reference.
 
 **Protocols / Skincare** — the morning, warm-up, nervous system, sleep, recovery
-and pull-back protocols, and the AM/PM routines with a retinol-night counter.
+and pull-back protocols, a PB-week protocol covering the taper, pre-attempt
+timing and how to pace each of the three attempts,, and the AM/PM routines with a retinol-night counter.
 
 ## Backing it up
 

@@ -369,6 +369,23 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Niggles <span class="tag" id="niggleTag"></span></h2>
+      <p class="block-sub">A niggle announces itself for a week or two before it becomes an injury. Log it on the days you feel it — readiness reads this, and it will stop you sprinting on a bad hamstring.</p>
+      <div id="niggleActive"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0">
+          <select id="niggleArea" aria-label="Body part"></select>
+          <select id="niggleSev" aria-label="Severity"></select>
+        </div>
+        <div class="add-row">
+          <input type="text" id="niggleNote" placeholder="Optional — what brings it on">
+          <button class="btn primary" id="niggleBtn">Log</button>
+        </div>
+      </div>
+      <div id="niggleLog" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Weight</h2>
       <div id="trendReadout"></div>
       <div id="weightChart"></div>
@@ -377,6 +394,15 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
         <button class="btn primary" id="weightBtn">Log</button>
       </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Adaptation</h2>
+      <p class="block-sub">The same session, at the same pace, over time. Feel dropping means the work is landing. Feel climbing at an unchanged pace is the earliest warning you get — weeks before a benchmark would show it.</p>
+      <div class="add-row" style="margin-top:0;margin-bottom:10px">
+        <select id="adaptPick" aria-label="Session type"></select>
+      </div>
+      <div id="adaptOut"></div>
     </section>
 
     <section class="block">
@@ -566,6 +592,28 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <tr><td><b>Sauna if you can get one</b><span class="sub">Genuine cardiovascular and longevity evidence, and heat adaptation helps running in warm weather. Non-hard days only, and hydrate properly around it.</span></td></tr>
         <tr><td><b>Deliberate deload weeks</b><span class="sub">Weeks 4, 8 and 12 are built in. Taking them is what lets the adaptation land — skipping them is the most common way a block like this falls apart.</span></td></tr>
       </tbody></table></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">PB Week — Week 13</h2>
+      <p class="block-sub">Three attempts in seven days. The training is already banked by then; this week is about arriving fresh and not throwing one away in the first 200m.</p>
+
+      <div class="note flat" style="margin-bottom:10px"><b>The week</b>Sunday 5K · Wednesday mile · Saturday 400m. Two clear easy or rest days before each. Never move an attempt closer to the one before it — the 400m is last because it wants the freshest legs, and it is the one where fatigue costs you most.</div>
+
+      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref"><tbody>
+        <tr><td><b>Eating, 2–3h before</b><span class="sub">Familiar carbs, low fat, low fibre — porridge, toast and honey, rice. Nothing you have not eaten before a session. Stop drinking large volumes 45 min out, sip after that.</span></td></tr>
+        <tr><td><b>Caffeine</b><span class="sub">If you use it, 45–60 min before, and only at a dose you have already trained on. PB day is not the day to try it for the first time.</span></td></tr>
+        <tr><td><b>Warm-up — start 45 min before the gun</b><span class="sub">15 min easy jog · drills · 3–4 build-ups finishing at target pace · 5–8 min rest, staying warm · go. Same warm-up you have done all block, no improvising.</span></td></tr>
+        <tr><td><b>Between attempts</b><span class="sub">Day after: 20 min easy jog to clear it, or walk. Day before: full rest. Keep the calories up all week — a deficit on PB week costs you the times you have trained for.</span></td></tr>
+      </tbody></table></div>
+
+      <div class="block-title" style="font-size:17px;margin-top:16px">How to run each one</div>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
+        <tr><td><b>5K — 16:50 is 3:22/km</b><span class="sub">Even splits, and the first kilometre is the one that ruins it. Going through in 3:15 feels effortless and costs you 20 seconds over the last two kilometres. If anything, run the first km 2–3s slow.</span></td></tr>
+        <tr><td><b>Mile — 4:50 is 72s laps</b><span class="sub">First lap no faster than 70. Lap 3 is where the race is won: that is the one that drifts to 75 without you noticing, so it is the one to actively push.</span></td></tr>
+        <tr><td><b>400m — 55 is roughly 26.5 / 28.5</b><span class="sub">Committed from the gun, but relaxed — the last 100m is decided by how little you tie up, not by how hard you drive. Loose jaw, loose shoulders. Fighting the tightness makes it worse.</span></td></tr>
+      </tbody></table></div>
+      <p class="block-sub" style="margin-top:8px">Log each attempt on the Progress tab as you finish it — the benchmark bars close against your block-start times.</p>
     </section>
 
     <section class="block">
@@ -950,7 +998,7 @@ function parseSession(desc) {
 
 /* ================= state ================= */
 var settings = {}, weekData = [], weightLog = [], hrLog = [], sessionHistory = [],
-    reflections = [], pbLog = [], retinolLog = [], todayState = {}, viewWeek = 1;
+    reflections = [], pbLog = [], retinolLog = [], niggleLog = [], todayState = {}, viewWeek = 1;
 
 /* ================= block dates ================= */
 function blockWeekNow() {
@@ -1070,6 +1118,18 @@ function lastTime(sid, week) {
   return "";
 }
 
+/* Max-velocity work on a live hamstring or calf is the single likeliest way to
+   end the block, so say it on the card rather than hoping it is remembered. */
+function sprintWarning(sid) {
+  if (sid !== "sprint" && sid !== "spd200") return "";
+  var blocked = sprintBlocked();
+  if (!blocked.length) return "";
+  var names = blocked.map(function (n) { return n.area.toLowerCase() + " (severity " + n.sev + ")"; }).join(", ");
+  return '<div class="note stop" style="margin:0 0 10px"><b>Don\'t sprint on this</b>' +
+    "You have a live " + esc(names) + ". Flat-out running is exactly the load that turns that into a tear. " +
+    "Swap this for build-ups, or rest it — the speed keeps, a torn hamstring doesn't.</div>";
+}
+
 function sessionOptions(pool, sel) {
   return pool.map(function (o) {
     return '<option value="' + o.sid + '"' + (sel === o.sid ? " selected" : "") + ">" + esc(o.type) + "</option>";
@@ -1089,7 +1149,7 @@ function dayCard(d, i, isToday) {
         (d.gym ? "✓ Gym" : "+ Gym") + "</button></div>" : "") +
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
-    (flex ? progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
+    (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs">' +
       '<input type="text" placeholder="Actual result" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
@@ -1259,6 +1319,88 @@ function renderStreak() {
   $("streakTag").textContent = streak > 0 ? streak + "-day streak" : "No streak yet";
 }
 
+/* ================= niggles ================= */
+var NIGGLE_AREAS = ["Hamstring", "Calf", "Achilles", "Knee", "Hip / glute", "Quad",
+                    "Shin", "Foot", "Groin", "Lower back", "Other"];
+/* the ones max-velocity work loads hardest — a live niggle here blocks sprinting */
+var SPRINT_RISK = ["Hamstring", "Calf", "Achilles", "Quad", "Groin"];
+var NIGGLE_SEV = [
+  { v: 1, label: "1 — aware of it, doesn't affect running" },
+  { v: 2, label: "2 — feel it during, warms up and goes" },
+  { v: 3, label: "3 — there throughout, changing how I run" },
+  { v: 4, label: "4 — can't run on it" },
+  { v: 0, label: "0 — cleared, it's gone" }
+];
+
+function niggleFor(area) {
+  return niggleLog.filter(function (n) { return n.area === area; })
+    .sort(function (a, b) { return b.date.localeCompare(a.date); });
+}
+/* live = most recent entry for that area is non-zero and recent enough to matter */
+function activeNiggles() {
+  var cut = dayStr(new Date(Date.now() - 14 * 86400000));
+  var out = [];
+  NIGGLE_AREAS.forEach(function (area) {
+    var hist = niggleFor(area);
+    if (!hist.length) return;
+    var latest = hist[0];
+    if (latest.sev < 1 || latest.date < cut) return;
+    var run = [], i;
+    for (i = 0; i < hist.length; i++) { if (hist[i].sev < 1) break; run.push(hist[i]); }
+    var oldest = run[run.length - 1];
+    var trend = "flat";
+    if (run.length >= 2) {
+      var earlier = run[run.length - 1].sev;
+      if (latest.sev > earlier) trend = "worse";
+      else if (latest.sev < earlier) trend = "better";
+    }
+    out.push({ area: area, sev: latest.sev, date: latest.date, note: latest.note,
+      days: daysBetween(parseDay(oldest.date), parseDay(today())) + 1, entries: run.length, trend: trend });
+  });
+  return out.sort(function (a, b) { return b.sev - a.sev; });
+}
+function sprintBlocked() {
+  return activeNiggles().filter(function (n) {
+    return n.sev >= 2 && SPRINT_RISK.indexOf(n.area) !== -1;
+  });
+}
+
+function renderNiggles() {
+  var act = activeNiggles(), tag = $("niggleTag");
+  tag.textContent = act.length ? act.length + " live" : "none live";
+  tag.style.color = act.length ? (act[0].sev >= 3 ? "var(--track-bright)" : "var(--warn)") : "var(--go)";
+
+  $("niggleActive").innerHTML = act.length ? act.map(function (n) {
+    var cls = n.sev >= 3 ? "stop" : n.sev === 2 ? "warn" : "flat";
+    var trendText = n.trend === "worse" ? "Getting worse across " + n.entries + " entries — this is the one to act on."
+      : n.trend === "better" ? "Easing off across " + n.entries + " entries."
+      : n.entries > 1 ? "Unchanged across " + n.entries + " entries." : "First entry.";
+    var advice = n.sev >= 4 ? " Don't run on it. Rest until it settles, then rebuild from easy running."
+      : n.sev === 3 ? " Drop the hard sessions until it's back to a 1 or gone. Easy running only if it stays quiet."
+      : n.sev === 2 && n.days >= 5 ? " Five days at this level is no longer a niggle. Cut the speed work this week."
+      : " Keep logging it. If it reaches a 3, or climbs, back off before it decides for you.";
+    return '<div class="note ' + cls + '" style="margin-bottom:8px"><b>' + esc(n.area) + " · severity " + n.sev +
+      " · day " + n.days + "</b>" + trendText + advice +
+      (n.note ? " <em style=\"color:var(--muted-2)\">(" + esc(n.note) + ")</em>" : "") +
+      '<div class="add-row"><button class="btn" data-clearnig="' + esc(n.area) + '">Mark cleared</button></div></div>';
+  }).join("") : '<div class="note good"><b>Nothing live</b>No niggle logged in the last 14 days. Log one the first day you notice it, not the day it stops you.</div>';
+
+  $("niggleLog").innerHTML = niggleLog.length
+    ? niggleLog.slice(0, 12).map(function (n) {
+        return '<div class="log-item"><span class="l-main">' + n.date + " · " + esc(n.area) + "</span>" +
+          '<span class="l-body">' + (n.sev === 0 ? "cleared" : "severity " + n.sev) + (n.note ? " · " + esc(n.note) : "") +
+          ' <button class="del" data-delnig="' + esc(n.id) + '" aria-label="Delete entry">×</button></span></div>';
+      }).join("")
+    : '<div class="empty">Nothing logged.</div>';
+}
+function addNiggle(area, sev, note) {
+  niggleLog = niggleLog.filter(function (n) { return !(n.area === area && n.date === today()); });
+  niggleLog.unshift({ id: String(Date.now()), date: today(), area: area, sev: sev, note: note || "" });
+  niggleLog.sort(function (a, b) { return b.date.localeCompare(a.date); });
+  DB.set("niggle-log", niggleLog);
+  renderNiggles(); renderReadiness(); renderWeek(); renderToday();
+}
+
 /* ================= readiness ================= */
 function renderReadiness() {
   var signals = [], score = 0, haveData = false;
@@ -1294,6 +1436,18 @@ function renderReadiness() {
   } else {
     signals.push("Rate a couple of sessions on the This Week tab to factor session-feel in.");
   }
+
+  var ng = activeNiggles();
+  ng.forEach(function (n) {
+    haveData = true;
+    var worse = n.trend === "worse" ? ", and worsening" : "";
+    if (n.sev >= 4) { score -= 3; signals.push(n.area + " at severity 4 — you can't run on it. Nothing else on this page matters today."); }
+    else if (n.sev === 3) { score -= 2; signals.push(n.area + " at severity 3 for " + n.days + " days" + worse + " — it's changing how you run, which is how a niggle becomes an injury."); }
+    else if (n.sev === 2) {
+      if (n.days >= 5 || n.trend === "worse") { score -= 2; signals.push(n.area + " at severity 2 for " + n.days + " days" + worse + " — past the point where it clears on its own."); }
+      else { score -= 1; signals.push(n.area + " at severity 2, day " + n.days + " — warms up and goes, but keep it logged."); }
+    } else { signals.push(n.area + " at severity 1, day " + n.days + " — worth watching, not worth changing anything for."); }
+  });
 
   var engaged = Object.keys(todayState).some(function (k) { return todayState[k]; });
   if (engaged) {
@@ -1347,8 +1501,9 @@ function lineChart(host, opts) {
     else { lo = Math.min(lo, opts.band[0]); hi = Math.max(hi, opts.band[1]); }
   }
   if (opts.marker != null) { lo = Math.min(lo, opts.marker); hi = Math.max(hi, opts.marker); }
+  if (opts.domain) { lo = opts.domain[0]; hi = opts.domain[1]; }
   if (hi - lo < (opts.minSpan || 1)) { var mid = (hi + lo) / 2, h = (opts.minSpan || 1) / 2; lo = mid - h; hi = mid + h; }
-  var pad = (hi - lo) * 0.14; lo -= pad; hi += pad;
+  if (!opts.domain) { var pad = (hi - lo) * 0.14; lo -= pad; hi += pad; }
   var n = pts.length;
   function X(i) { return PL + (n === 1 ? (W - PL - PR) / 2 : (i * (W - PL - PR)) / (n - 1)); }
   function Y(v) { return PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB); }
@@ -1381,6 +1536,9 @@ function lineChart(host, opts) {
     svg += '<path d="' + ol + '" fill="none" stroke="' + (opts.overlayColor || "#E2603F") + '" stroke-width="2" stroke-dasharray="5 4" opacity=".95"/>';
   }
   pts.forEach(function (p, i) {
+    /* a short series needs a mark on every point or it reads as a bare line */
+    if (opts.dots) svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="4" fill="' +
+      (opts.color || "#F2EFE9") + '" stroke="#1B2327" stroke-width="2"/>';
     if (p.flag) svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="3.5" fill="#C4432B" stroke="#1B2327" stroke-width="2"/>';
   });
   svg += '<circle cx="' + X(n - 1).toFixed(1) + '" cy="' + Y(pts[n - 1].y).toFixed(1) + '" r="4.5" fill="' + (opts.color || "#F2EFE9") + '" stroke="#1B2327" stroke-width="2"/>';
@@ -1623,8 +1781,77 @@ function logPB() {
   renderPBHistory(); renderBench();
 }
 
+/* ================= adaptation ================= */
+var ADAPT_LABELS = { run1k: "Long intervals — 5K pace", speed: "Speed session", thresh: "Threshold",
+  easy: "Easy long run", sprint: "80m sprints", strides: "80m build-ups",
+  spd200: "200m speed endurance", spd400: "400m speed endurance", bench: "Benchmark test" };
+
+function adaptData(sid) {
+  return sessionHistory.filter(function (h) {
+    return h.sid === sid && h.feel && !isNaN(parseInt(h.feel, 10));
+  }).slice().sort(function (a, b) { return a.week - b.week; });
+}
+function renderAdaptPicker() {
+  var sel = $("adaptPick"), avail = {};
+  sessionHistory.forEach(function (h) { if (h.sid && h.feel) avail[h.sid] = true; });
+  var ids = Object.keys(avail);
+  var keep = sel.value;
+  sel.innerHTML = ids.length
+    ? ids.map(function (id) { return '<option value="' + id + '">' + esc(ADAPT_LABELS[id] || id) + "</option>"; }).join("")
+    : '<option value="">Nothing rated yet</option>';
+  if (ids.indexOf(keep) !== -1) sel.value = keep;
+  renderAdapt();
+}
+function renderAdapt() {
+  var sid = $("adaptPick").value, out = $("adaptOut");
+  if (!sid) {
+    out.innerHTML = '<div class="note flat"><b>Nothing to compare yet</b>Rate a session 1–5 when you mark it done. Once the same session has two ratings, its trend appears here.</div>';
+    return;
+  }
+  var rows = adaptData(sid);
+  if (rows.length < 2) {
+    out.innerHTML = '<div class="note flat"><b>One rating so far</b>Rate this session once more and the trend appears. Two points is the minimum; three or four is when it means something.</div>';
+    return;
+  }
+  var feels = rows.map(function (h) { return parseInt(h.feel, 10); });
+  var first = avg(feels.slice(0, Math.max(1, Math.floor(feels.length / 2))));
+  var last = avg(feels.slice(Math.floor(feels.length / 2)));
+  var change = last - first;
+  var title, body, cls;
+  if (change <= -0.6) {
+    title = "Getting easier — that's adaptation";
+    body = "Same session, feel dropping from " + first.toFixed(1) + " to " + last.toFixed(1) + "/5. The work is landing. Hold the plan and let the progression do the rest.";
+    cls = "good";
+  } else if (change >= 0.6) {
+    title = "Getting harder at the same pace";
+    body = "Feel climbing from " + first.toFixed(1) + " to " + last.toFixed(1) + "/5 without the session getting faster. That's the earliest pull-back signal there is — check it against your morning HR, and if both point the same way, back off before the benchmark tells you.";
+    cls = "stop";
+  } else {
+    title = "Holding steady";
+    body = "Feel flat around " + last.toFixed(1) + "/5 while the session progresses underneath you — recovery shrinking, reps going up. Holding level against increasing load is itself adaptation.";
+    cls = "good";
+  }
+  out.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + esc(body) + "</div>" +
+    '<div class="chart-wrap"><div class="chart-head"><span class="chart-title">How it felt, week by week</span>' +
+    '<span class="chart-val">' + feels[feels.length - 1] + '/5<small>' + rows.length + " sessions</small></span></div>" +
+    '<div id="adaptInner" style="position:relative"></div>' +
+    '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>1 easy → 5 brutal · lower is better</span></div></div>' +
+    '<div style="margin-top:10px">' + rows.slice().reverse().map(function (h) {
+      return '<div class="log-item"><span class="l-main">W' + h.week + " · " + h.date + '</span><span class="l-body">' +
+        esc(h.actual) + " · " + esc(h.feel) + "</span></div>";
+    }).join("") + "</div>";
+  lineChart($("adaptInner"), {
+    uid: "a", height: 96, color: "#F2EFE9", domain: [1, 5], dots: true,
+    aria: "Session feel rating by week, 1 easy to 5 brutal",
+    points: rows.map(function (h, i) {
+      return { y: feels[i], label: "W" + h.week + "  " + h.feel + (h.actual && h.actual !== "—" ? "  " + h.actual : "") };
+    })
+  });
+}
+
 /* ================= session history ================= */
 function renderHistory() {
+  if ($("adaptPick")) renderAdaptPicker();
   var el = $("sessionHistory");
   if (!sessionHistory.length) { el.innerHTML = '<div class="empty">No sessions logged yet.</div>'; return; }
   el.innerHTML = sessionHistory.slice(0, 30).map(function (h) {
@@ -1957,6 +2184,7 @@ function initState() {
   reflections = DB.get("reflections", []);
   pbLog = DB.get("pb-log", []);
   retinolLog = DB.get("retinol-log", []);
+  niggleLog = DB.get("niggle-log", []);
   todayState = DB.get(dailyKey(new Date()), {});
   viewWeek = blockWeekNow() || DB.get("active-week", 1);
   $("startDate").value = settings.startDate || "";
@@ -1967,6 +2195,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
+  renderNiggles(); renderAdaptPicker();
   renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderStartInfo() {
@@ -1999,7 +2228,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret]") : null;
+    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
@@ -2029,6 +2258,12 @@ function renderStartInfo() {
     else if (el.dataset.delpb) {
       pbLog = pbLog.filter(function (p) { return p.id !== el.dataset.delpb; });
       DB.set("pb-log", pbLog); renderPBHistory(); renderBench();
+    }
+    else if (el.dataset.clearnig) addNiggle(el.dataset.clearnig, 0, "");
+    else if (el.dataset.delnig) {
+      niggleLog = niggleLog.filter(function (n) { return n.id !== el.dataset.delnig; });
+      DB.set("niggle-log", niggleLog);
+      renderNiggles(); renderReadiness(); renderWeek(); renderToday();
     }
     else if (el.dataset.delret) {
       retinolLog = retinolLog.filter(function (d2) { return d2 !== el.dataset.delret; });
@@ -2114,6 +2349,18 @@ function renderStartInfo() {
     this.textContent = open ? "Show as text" : "Hide text";
   });
   $("restoreTextBtn").addEventListener("click", function () { applyBackup($("backupArea").value); });
+
+  $("niggleArea").innerHTML = NIGGLE_AREAS.map(function (a) {
+    return '<option value="' + esc(a) + '">' + esc(a) + "</option>";
+  }).join("");
+  $("niggleSev").innerHTML = NIGGLE_SEV.map(function (o) {
+    return '<option value="' + o.v + '">' + esc(o.label) + "</option>";
+  }).join("");
+  $("niggleBtn").addEventListener("click", function () {
+    addNiggle($("niggleArea").value, parseInt($("niggleSev").value, 10), $("niggleNote").value.trim());
+    $("niggleNote").value = "";
+  });
+  $("adaptPick").addEventListener("change", renderAdapt);
 
   runPace();
 
