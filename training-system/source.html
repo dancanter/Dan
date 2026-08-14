@@ -540,6 +540,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">This Week's Non-Negotiables <span class="tag" id="foodCount"></span></h2>
+      <p class="block-sub">The short version of everything above. These are the ones that are easy to go a whole week without noticing you missed. Resets every Monday.</p>
+      <div id="foodChecklist"></div>
+      <p class="block-sub" style="margin-top:10px">The daily ones — protein 155–160g, eggs, olive oil, greens, berries, kefir, water — are on the Today tab. This list is only the weekly items.</p>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Daily Staples</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref">
@@ -726,6 +733,20 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <tr><td><b>400m — 55 is roughly 26.5 / 28.5</b><span class="sub">Committed from the gun, but relaxed — the last 100m is decided by how little you tie up, not by how hard you drive. Loose jaw, loose shoulders. Fighting the tightness makes it worse.</span></td></tr>
       </tbody></table></div>
       <p class="block-sub" style="margin-top:8px">Log each attempt on the Progress tab as you finish it — the benchmark bars close against your block-start times.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Training in a Heat Wave</h2>
+      <p class="block-sub">Heat changes what the scale says, what your paces mean and what your sodium needs are — all at once, and all temporarily.</p>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref"><tbody>
+          <tr><td><b>Your weight will read high, and it isn't fat</b><span class="sub">Heat acclimation expands plasma volume by 10–20% within about 5–10 days — that is a genuine adaptation, and it is literally extra fluid. Add the aldosterone-driven sodium retention that comes with heavy sweating and you can carry 1–3 lb that has nothing to do with body composition. It masks fat loss; it does not stop it. Do not cut calories in response.</span></td></tr>
+          <tr><td><b>Your paces will be slower — that is correct, not a failure</b><span class="sub">Blood is diverted to the skin to shed heat, so less goes to working muscle. The same effort buys you a slower pace. Run the sessions on <b>effort</b>, not the target number, and expect 5–15s per km slower in real heat. Logging a 4/5 on an "easy" session in 30°C is the heat, not lost fitness.</span></td></tr>
+          <tr><td><b>Sodium goes up, not just water</b><span class="sub">Drinking a lot of water while under-replacing salt is how you end up flat, headachy and cramping. Aim at the top of the 2,300–3,000mg sodium range or above it on heavy sweat days, and keep potassium up with it. Weigh yourself before and after a long session if you want the real number — each pound lost is roughly 450ml to replace.</span></td></tr>
+          <tr><td><b>Sleep takes the hit, and everything follows</b><span class="sub">Core temperature has to fall to enter deep sleep, which a hot bedroom prevents. Poor sleep raises cortisol, cortisol holds fluid, and now the scale is lying to you for a second reason. Cool the room hard — this is the week that habit earns its place.</span></td></tr>
+          <tr><td><b>The upside</b><span class="sub">Heat training is a genuine stimulus. That plasma volume expansion improves cardiac output, and it carries over to cooler conditions for a few weeks afterwards. Ride it out and you come out of the heat wave fitter than you went in.</span></td></tr>
+        </tbody></table>
+      </div>
     </section>
 
     <section class="block">
@@ -2046,6 +2067,51 @@ function stepKcal(delta) {
   renderCalStep(); renderReverseTable();
 }
 
+/* ================= weekly food checklist ================= */
+/* Ranked by how much is lost by missing it, not by how exotic it is. Stage-gated
+   items stay visible but greyed until the stage they belong to. */
+var WEEKLY_FOODS = [
+  { id: "liver", label: "Liver — 100g, once", sub: "The highest nutrient density of anything you eat. Once a week, never daily.", stage: 1 },
+  { id: "oily", label: "Oily fish — 2–3×", sub: "Wild salmon, mackerel or sardines. Omega-3 is one of the few blood markers with real outcome data behind it.", stage: 1 },
+  { id: "oysters", label: "Oysters — 1–2×", sub: "Zinc, by a distance. Tinned smoked ones count and cost almost nothing.", stage: 1 },
+  { id: "beef", label: "Grass-fed beef — 3–4×", sub: "Creatine, iron, B12, stearic acid. Not on the same day as liver.", stage: 1 },
+  { id: "cruciferous", label: "Cruciferous veg — 4–5×", sub: "Broccoli, sprouts, cabbage, kale. Sprouts raw if you have them.", stage: 1 },
+  { id: "brazil", label: "Brazil nuts — 3–4×", sub: "Two or three nuts is a full day of selenium. More is genuinely toxic, so don't treat these as a snack.", stage: 1 },
+  { id: "broth", label: "Bone broth or marrow — 2–3×", sub: "Glycine and proline, feeding both collagen and glutathione.", stage: 1 },
+  { id: "tomato", label: "Cooked tomatoes + EVOO — 3–4×", sub: "Lycopene needs the heat and the fat. Raw tomato gives you almost none.", stage: 2 },
+  { id: "heart", label: "Beef heart — 100g, once", sub: "The richest CoQ10 there is, and cheap. The standout item on the whole list.", stage: 2 },
+  { id: "pom", label: "Pomegranate — 3–4×", sub: "Ellagitannins for the urolithin A pathway.", stage: 3 }
+];
+function foodWeekKey() {
+  var d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); /* back to Monday */
+  return "weekfood-" + dayStr(d);
+}
+var weekFood = {};
+function renderFoodChecklist() {
+  var el = $("foodChecklist"); if (!el) return;
+  weekFood = DB.get(foodWeekKey(), {});
+  var stage = currentStage(), n = 0, live = 0;
+  el.innerHTML = WEEKLY_FOODS.map(function (f) {
+    var locked = f.stage > stage;
+    if (!locked) { live++; if (weekFood[f.id]) n++; }
+    var on = !!weekFood[f.id] && !locked;
+    return '<button class="check-item' + (on ? " on" : "") + '" data-food="' + f.id + '"' +
+      (locked ? ' disabled style="opacity:.45;cursor:default"' : "") + ' aria-pressed="' + on + '">' +
+      '<span class="check-box">' + (on ? "✓" : "") + "</span>" +
+      '<span class="check-label"><b>' + esc(f.label) + (locked ? " · stage " + f.stage : "") + "</b><span>" +
+      (locked ? "Comes in at stage " + f.stage + ". " : "") + esc(f.sub) + "</span></span></button>";
+  }).join("");
+  $("foodCount").textContent = n + "/" + live;
+  $("foodCount").style.color = n >= live ? "var(--go)" : "var(--muted)";
+}
+function toggleFood(id) {
+  weekFood[id] = !weekFood[id];
+  DB.set(foodWeekKey(), weekFood);
+  renderFoodChecklist();
+}
+
 /* ================= staged nutrition ================= */
 /* The same food does different work depending on whether you are in a deficit.
    Stage 1 protects; stage 2 rebuilds as calories return; stage 3 runs everything. */
@@ -2089,6 +2155,7 @@ function currentStage() {
 
 function renderStages() {
   var el = $("stageList"); if (!el) return;
+  renderFoodChecklist();
   var cur = currentStage();
   el.innerHTML = STAGES.map(function (st) {
     return '<div class="stage' + (st.n === cur ? " now" : "") + '">' +
@@ -2395,7 +2462,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-food],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
@@ -2404,6 +2471,7 @@ function renderStartInfo() {
       saveWeek(); renderWeek(); renderToday();
     }
     else if (el.dataset.check) toggleCheck(el.dataset.check);
+    else if (el.dataset.food) toggleFood(el.dataset.food);
     else if (el.dataset.timer != null) {
       var d = weekData[+el.dataset.timer], sess = sessionOf(d);
       loadSessionIntoTimer(sess.desc, d.day + " · " + sess.type);
