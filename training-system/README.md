@@ -55,8 +55,14 @@ length growing, and cycles 200m work back through:
 Those reps are mile-pace work, not 400m work: 300m in 53s and 400m in 71s both
 come out at 2:57/km, while 400m race pace for a sub-55 goal is 2:17/km. They are
 run controlled, never all-out. The pool carries two genuinely 400m-specific
-sessions instead — `80m sprints — all out` (alactic, full recovery, run fresh)
-and `400m speed endurance` (3 × 300m @ 43–44s off 8–10 min).
+sessions instead: `80m build-ups` (the on-ramp), `80m sprints — all out`
+(alactic, full recovery, run fresh), `200m speed endurance — flat out`
+(3 reps, 10 min recovery) and `400m speed endurance` (3 × 300m @ 43–44s).
+
+Rep count and effort are locked together, which is why the rotation's 200s are
+run controlled: six reps only works at a controlled pace, and flat-out 200s cap
+out at three. Saturday is a full day off — the four gym sessions sit on Mon,
+Tue, Wed and Thu alongside the three hard runs.
 
 Every session's target splits are parsed out of its own text, so the volume, per-rep
 target, pace and recovery under each card stay correct if the wording changes.
