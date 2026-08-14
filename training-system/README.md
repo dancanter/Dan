@@ -64,6 +64,14 @@ run controlled: six reps only works at a controlled pace, and flat-out 200s cap
 out at three. Saturday is a full day off — the four gym sessions sit on Mon,
 Tue, Wed and Thu alongside the three hard runs.
 
+The repeating sessions progress across the block rather than repeating: the
+1km recovery shrinks 90s → 75s and then a sixth rep is added and it shrinks
+again; the threshold grows 25 → 32 min and then holds duration while the pace
+drops to 3:35–3:40; the easy run grows 45 → 70 min. Each card shows the arc its
+session sits on with the current week marked, and the last result you logged
+for that same session. A Block Arc table at the foot of the tab lays out all
+seven quality weeks side by side.
+
 Every session's target splits are parsed out of its own text, so the volume, per-rep
 target, pace and recovery under each card stay correct if the wording changes.
 

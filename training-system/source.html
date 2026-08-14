@@ -160,6 +160,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .chart-legend{display:flex;gap:14px;font-family:var(--f-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:2px;flex-wrap:wrap}
 .swatch{display:inline-block;width:14px;height:2px;vertical-align:3px;margin-right:5px}
 .swatch.dash{height:0;border-top:2px dashed currentColor}
+.prog{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-family:var(--f-mono);font-size:10.5px;margin-bottom:10px}
+.prog .lbl{color:var(--muted-2);letter-spacing:.05em;text-transform:uppercase;margin-right:2px}
+.prog .step{padding:2px 6px;border:1px solid var(--line-soft);border-radius:2px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.prog .step.past{color:var(--muted);border-color:var(--line)}
+.prog .step.now{color:var(--track-bright);border-color:var(--track-dim);background:var(--track-wash);font-weight:600}
+.lastime{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-bottom:9px;font-variant-numeric:tabular-nums}
+.lastime b{color:var(--chalk);font-weight:600}
 .swatch.dot{width:8px;height:8px;border-radius:50%;background:currentColor;vertical-align:0}
 
 /* ---------- timer ---------- */
@@ -267,6 +274,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </div>
     <p class="block-sub" id="phaseNote"></p>
     <div id="weekList"></div>
+
+    <section class="block" style="margin-top:26px">
+      <h2 class="block-title">The Block Arc</h2>
+      <p class="block-sub">Every quality week side by side. Deload weeks (4, 8, 12) cut the volume and carry the benchmark.</p>
+      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref" id="arcTable"></table></div>
+    </section>
   </div>
 
   <!-- ============ TIMER ============ -->
@@ -817,8 +830,22 @@ var SPEED_ROTATION = {
   7:  { type: "Mile pace — ladder", desc: "Ladder 200-400-600-400-200m @ mile pace, recovery = rep duration" },
   9:  { type: "Speed — race-pace 200s", desc: "4 × 200m @ 27.5s (400m race pace), 8–10 min recovery. Race pace, not maximum — run rep 1 flat out and you will not finish rep 4." },
   10: { type: "Mile pace — 400s", desc: "7 × 400m @ 71s, equal-time jog recovery" },
-  11: { type: "Mile pace — ladder", desc: "Ladder 200-400-600-400-200m @ mile pace, recovery = rep duration" }
+  11: { type: "Mile pace — long ladder", desc: "Ladder 200-400-600-800-600-400-200m @ mile pace, recovery = rep duration" }
 };
+
+/* The repeating sessions have to move week to week or the block stops producing
+   adaptation after about a month. Quality weeks are 3,5,6,7 then 9,10,11:
+   shrink the 1km recovery across each phase, then add a rep and shrink again;
+   grow the threshold, then hold the duration and take the pace down; and let
+   the easy run get genuinely long. */
+var PROG = {
+  run1k:  { 3: [5, 90], 5: [5, 85], 6: [5, 80], 7: [5, 75], 9: [6, 90], 10: [6, 85], 11: [6, 80] },
+  thresh: { 3: [25, "3:40–3:45"], 5: [28, "3:40–3:45"], 6: [30, "3:40–3:45"], 7: [32, "3:40–3:45"],
+            9: [25, "3:35–3:40"], 10: [28, "3:35–3:40"], 11: [30, "3:35–3:40"] },
+  easy:   { 3: "45–50", 5: "50–55", 6: "55–60", 7: "60", 9: "60–65", 10: "65", 11: "65–70" }
+};
+var PROG_WEEKS = [3, 5, 6, 7, 9, 10, 11];
+function progOf(kind, w) { return PROG[kind][w] || PROG[kind][3]; }
 
 function poolFor(w) {
   var dl = isDeload(w);
@@ -826,12 +853,15 @@ function poolFor(w) {
   if (dl) speed = { type: "Speed — deload", desc: "4 × 200m relaxed, full recovery" };
   return [
     { sid: "run1k", hard: 2, type: dl ? "5K pace — deload" : "Long intervals — 5K pace",
-      desc: (dl ? "3" : "5") + " × 1km @ 3:22/km, 90s recovery" },
+      desc: dl ? "3 × 1km @ 3:22/km, 90s recovery"
+               : progOf("run1k", w)[0] + " × 1km @ 3:22/km, " + progOf("run1k", w)[1] + "s recovery" },
     { sid: "speed", hard: 2, type: speed.type, desc: speed.desc },
     { sid: "thresh", hard: 2, type: "Threshold",
-      desc: (dl ? "15" : "25") + " min continuous @ 3:40–3:45/km" },
+      desc: dl ? "15 min continuous @ 3:40–3:45/km"
+               : progOf("thresh", w)[0] + " min continuous @ " + progOf("thresh", w)[1] + "/km" },
     { sid: "easy", hard: 0, type: "Easy long run",
-      desc: dl ? "30–40 min genuinely easy" : "45–60 min genuinely easy — nasal breathing the whole way" },
+      desc: dl ? "30–40 min genuinely easy"
+               : progOf("easy", w) + " min genuinely easy — nasal breathing the whole way" },
     { sid: "strides", hard: 1, type: "80m build-ups",
       desc: "6 × 80m accelerating to about 90–95% and easing off, walk back. The on-ramp: run these for 2–3 weeks before anything maximal, so the hamstrings meet sprint speed gradually." },
     { sid: "sprint", hard: 1, type: "80m sprints — all out",
@@ -1010,6 +1040,33 @@ function feelOptions(sel) {
   }).join("");
 }
 
+/* Show the arc a repeating session sits on, so "is this progressing" is
+   answerable at a glance rather than by comparing week to week by hand. */
+function progStrip(sid, w) {
+  var label, steps;
+  if (sid === "run1k") { label = "Reps / rec"; steps = PROG_WEEKS.map(function (k) { return PROG.run1k[k][0] + "×" + PROG.run1k[k][1] + "s"; }); }
+  else if (sid === "thresh") { label = "Duration"; steps = PROG_WEEKS.map(function (k) { return PROG.thresh[k][0] + "m"; }); }
+  else if (sid === "easy") { label = "Duration"; steps = PROG_WEEKS.map(function (k) { return PROG.easy[k] + "m"; }); }
+  else return "";
+  var here = PROG_WEEKS.indexOf(w);
+  if (here === -1) return "";
+  return '<div class="prog"><span class="lbl">' + label + "</span>" + steps.map(function (t, i) {
+    return '<span class="step ' + (i === here ? "now" : i < here ? "past" : "") + '" title="Week ' + PROG_WEEKS[i] + '">' + t + "</span>";
+  }).join("") + "</div>";
+}
+
+/* The same session, last time you did it — the cleanest read on adaptation. */
+function lastTime(sid, week) {
+  for (var i = 0; i < sessionHistory.length; i++) {
+    var h = sessionHistory[i];
+    if (h.sid === sid && h.week !== week && h.actual && h.actual !== "—") {
+      return '<div class="lastime">Last time (W' + h.week + "): <b>" + esc(h.actual) + "</b>" +
+        (h.feel ? " · felt " + esc(h.feel) : "") + "</div>";
+    }
+  }
+  return "";
+}
+
 function sessionOptions(pool, sel) {
   return pool.map(function (o) {
     return '<option value="' + o.sid + '"' + (sel === o.sid ? " selected" : "") + ">" + esc(o.type) + "</option>";
@@ -1029,6 +1086,7 @@ function dayCard(d, i, isToday) {
         (d.gym ? "✓ Gym" : "+ Gym") + "</button></div>" : "") +
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
+    (flex ? progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs">' +
       '<input type="text" placeholder="Actual result" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
@@ -1062,6 +1120,21 @@ function spacingCheck() {
     "Every hard day has an easy or rest day after it. (" + meta + ")</div>";
 }
 
+function renderArc() {
+  var el = $("arcTable"); if (!el) return;
+  var rows = PROG_WEEKS.map(function (w) {
+    var pool = poolFor(w), get = function (id) { return poolItem(pool, id).desc; };
+    var sp = poolItem(pool, "speed");
+    var k = PROG.run1k[w], t = PROG.thresh[w];
+    return "<tr" + (w === viewWeek ? ' style="background:var(--track-wash)"' : "") + "><td><b>W" + w + "</b></td>" +
+      '<td class="hl">' + k[0] + " × 1km / " + k[1] + "s</td>" +
+      "<td>" + esc(sp.type.replace(/^(Speed|Mile pace) — /, "")) + '<span class="sub">' + esc(sp.desc.split(". ")[0]) + "</span></td>" +
+      '<td class="hl">' + t[0] + " min<br>" + esc(t[1]) + "</td>" +
+      '<td class="hl">' + esc(PROG.easy[w]) + " min</td></tr>";
+  }).join("");
+  el.innerHTML = "<thead><tr><th>Week</th><th>5K pace</th><th>Speed session</th><th>Threshold</th><th>Easy</th></tr></thead><tbody>" + rows + "</tbody>";
+}
+
 function renderWeek() {
   var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
@@ -1072,6 +1145,7 @@ function renderWeek() {
   $("weekList").innerHTML = spacingCheck() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
+  renderArc();
 }
 
 function toggleDone(i) {
@@ -1080,7 +1154,7 @@ function toggleDone(i) {
   var key = viewWeek + "|" + d.day;
   sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
   if (d.done) {
-    sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day,
+    sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day, sid: d.sid || null,
       type: sessionOf(d).type + (d.gym ? " + gym" : ""), actual: d.actual || "—", feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
