@@ -44,13 +44,13 @@ length growing, and cycles 200m work back through:
 
 | Week | Session |
 |---|---|
-| 3 | 6 × 200m relaxed, full recovery |
+| 3 | 6 × 200m @ 29–30s, 3–4 min recovery |
 | 5 | 6 × 300m @ 53s, 400m jog |
 | 6 | 6 × 400m @ 71s, equal-time jog |
 | 7 | Ladder 200-400-600-400-200m @ mile pace |
-| 9 | 6 × 200m @ 27.5s, full recovery — 400m race pace |
+| 9 | 4 × 200m @ 27.5s off 8–10 min — 400m race pace |
 | 10 | 7 × 400m @ 71s, equal-time jog |
-| 11 | Ladder 200-400-600-400-200m @ mile pace |
+| 11 | Ladder 200-400-600-800-600-400-200m @ mile pace |
 
 Those reps are mile-pace work, not 400m work: 300m in 53s and 400m in 71s both
 come out at 2:57/km, while 400m race pace for a sub-55 goal is 2:17/km. They are
