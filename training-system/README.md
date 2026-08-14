@@ -52,6 +52,12 @@ length growing, and cycles 200m work back through:
 | 10 | 7 × 400m @ 71s, equal-time jog |
 | 11 | Ladder 200-400-600-400-200m @ mile pace |
 
+Those reps are mile-pace work, not 400m work: 300m in 53s and 400m in 71s both
+come out at 2:57/km, while 400m race pace for a sub-55 goal is 2:17/km. They are
+run controlled, never all-out. The pool carries two genuinely 400m-specific
+sessions instead — `80m sprints — all out` (alactic, full recovery, run fresh)
+and `400m speed endurance` (3 × 300m @ 43–44s off 8–10 min).
+
 Every session's target splits are parsed out of its own text, so the volume, per-rep
 target, pace and recovery under each card stay correct if the wording changes.
 

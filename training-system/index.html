@@ -835,8 +835,10 @@ function poolFor(w) {
       desc: (dl ? "15" : "25") + " min continuous @ 3:40–3:45/km" },
     { sid: "easy", hard: 0, type: "Easy long run",
       desc: dl ? "30–40 min genuinely easy" : "45–60 min genuinely easy — nasal breathing the whole way" },
-    { sid: "sprint", hard: 1, type: "80m sprints",
-      desc: "5 × 80m flat out, full recovery. Short and neural — this is what protects the sub-55." },
+    { sid: "sprint", hard: 1, type: "80m sprints — all out",
+      desc: "5 × 80m genuinely flat out, 3–4 min walk-back between reps. Do these fresh, before the gym, never after. Stop the moment times drop off — 4 fast ones beat 8 tired ones." },
+    { sid: "spd400", hard: 2, type: "400m speed endurance",
+      desc: "3 × 300m @ 43–44s, 8–10 min full recovery. This is the one that is actually at 400m pace — 95% effort, long rest, low reps." },
     { sid: "bench", hard: 2, type: "BENCHMARK TEST",
       desc: "3 × 800m — target 2:24 each. Log it on the Progress tab, then write what it tells you in this week's reflection." },
     { sid: "rest", hard: 0, type: "Rest", desc: "Full rest, or a 20 min shakeout jog if you feel like moving." }
@@ -894,7 +896,8 @@ function parseSession(desc) {
   var m = desc.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(km|m)\b/i);
   if (m) { out.reps = +m[1]; out.dist = +m[2] * (m[3].toLowerCase() === "km" ? 1000 : 1); }
   var pace = desc.match(/@\s*(\d+):(\d{2})\s*\/\s*km/i);
-  var flat = desc.match(/@\s*(\d+(?:\.\d+)?)\s*s\b/i);
+  /* a range like "@ 43–44s" targets the fast end — that is the number to chase */
+  var flat = desc.match(/@\s*(\d+(?:\.\d+)?)(?:\s*[–—-]\s*\d+(?:\.\d+)?)?\s*s\b/i);
   if (pace) {
     var perKm = +pace[1] * 60 + +pace[2];
     if (out.dist) out.repSec = perKm * out.dist / 1000;
