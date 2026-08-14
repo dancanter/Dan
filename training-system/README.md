@@ -113,6 +113,18 @@ which pairings multiply absorption, which block it, and which foods are worth
 almost nothing prepared the wrong way (sulforaphane needs raw or added
 myrosinase; lycopene needs heat and fat; EVOO polyphenols degrade with heat).
 
+Two sections keep the ambition honest. **Cellular ageing** ranks the levers by
+what the evidence supports — VO2max, zone 2, muscle mass and sleep sit above
+every food on the page, and the section says so — and names the tension that
+cannot be solved, only periodised: autophagy and AMPK are the longevity levers
+and they suppress recovery, while mTOR and high protein are the performance
+levers and they are the opposite of the longevity signal. It also flags that a
+long deficit in a lean endurance athlete is itself a pro-ageing state, which is
+the real argument for reversing on time. **Reversing without regaining** gives
+the three enforceable rules (steps held at 12,500–13,000, every added calorie a
+carb, progressions kept running) and the number that makes people quit: about
+2 lb of glycogen water in week two that contains no fat at all.
+
 **Protocols / Skincare** — the morning, warm-up, nervous system, sleep, recovery
 and pull-back protocols, a PB-week protocol covering the taper, pre-attempt
 timing and how to pace each of the three attempts, and the AM/PM routines with a retinol-night counter.
