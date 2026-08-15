@@ -174,6 +174,14 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .stage li b{font-weight:600}
 .stage .hold{color:var(--muted);font-size:12.3px;line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px solid var(--line-soft)}
 .stage .hold b{color:var(--warn);font-weight:600}
+.score{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.score:last-child{border-bottom:none}
+.score-name{font-size:13.5px}
+.score-name b{font-weight:600;display:block}
+.score-name span{color:var(--muted);font-size:11.8px;display:block;margin-top:2px;line-height:1.5}
+.score-num{font-family:var(--f-mono);font-size:15px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.score-bar{grid-column:1/-1;height:5px;background:var(--surface-3);border-radius:2px;overflow:hidden;margin-top:-2px}
+.score-fill{height:100%;border-radius:2px}
 .scale{position:relative;height:22px;margin:16px 0 6px;border-radius:3px;
   background:linear-gradient(90deg,#2B363B,#33403F 35%,#7A2C1C 72%,#C4432B)}
 .scale-mark{position:absolute;top:-5px;bottom:-5px;border-radius:2px}
@@ -614,6 +622,39 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <section class="block">
       <h2 class="block-title">The Stage You're On</h2>
       <div id="stageList"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Honest Scorecard</h2>
+      <p class="block-sub">Rated against what you actually want — how you look, and long-term health. Not against a generic diet.</p>
+      <div class="note good" style="margin-bottom:12px"><b>Overall: about 7.5 out of 10</b>
+        Genuinely better than most people manage, and the parts that are usually hard — protein, fat quality, no processed food, real consistency — you have already nailed. What is missing is the part that is normally <em>easy</em>. <b style="color:var(--chalk)">This is an excellent animal-food and fruit diet with a vegetable-shaped hole in it.</b></div>
+      <div class="card" style="padding:6px 14px">
+        <div class="score"><span class="score-name"><b>Consistency &amp; weighing</b><span>You weigh everything and eat the same structure daily. This is the single biggest predictor of whether any diet works, and most people never get here.</span></span><span class="score-num" style="color:var(--go)">10</span><span class="score-bar"><span class="score-fill" style="width:100%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Protein</b><span>155–160g across four feedings, spread evenly. Textbook.</span></span><span class="score-num" style="color:var(--go)">9</span><span class="score-bar"><span class="score-fill" style="width:90%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Food quality</b><span>Essentially zero ultra-processed food. Rare, and it does more than any supplement would.</span></span><span class="score-num" style="color:var(--go)">9</span><span class="score-bar"><span class="score-fill" style="width:90%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Fat quality</b><span>Tallow and avocado oil, no seed oils, yolks daily, nuts. Clean.</span></span><span class="score-num" style="color:var(--go)">9</span><span class="score-bar"><span class="score-fill" style="width:90%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Polyphenols</b><span>Berries twice, cacao twice, dark chocolate, pomegranate, grapes, olives. Well above average — and it is what most "anti-ageing" diets actually miss.</span></span><span class="score-num" style="color:var(--go)">8</span><span class="score-bar"><span class="score-fill" style="width:80%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Animal micronutrients</b><span>Organ meat, oysters and yolks cover iron, B12, folate, zinc, copper, choline — exactly what a coeliac runs short of.</span></span><span class="score-num" style="color:var(--go)">8</span><span class="score-bar"><span class="score-fill" style="width:80%;background:var(--go)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Omega-3</b><span>Only if "fish" actually means oily fish. As written it is one of four dinner options and could be white fish every time. Name it.</span></span><span class="score-num" style="color:var(--warn)">5</span><span class="score-bar"><span class="score-fill" style="width:50%;background:var(--warn)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Fibre</b><span>Roughly 18–22g against 30g+. GF rice cakes are stripped of it, and eggs and yoghurt have none. For a coeliac with gut healing on the goal list, this one matters more than it would for anyone else.</span></span><span class="score-num" style="color:var(--warn)">4</span><span class="score-bar"><span class="score-fill" style="width:40%;background:var(--warn)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Plant diversity</b><span>About 14–15 distinct plants a week against the 30 that actually moves gut diversity, and several of yours repeat daily rather than adding to the count.</span></span><span class="score-num" style="color:var(--warn)">4</span><span class="score-bar"><span class="score-fill" style="width:40%;background:var(--warn)"></span></span></div>
+        <div class="score"><span class="score-name"><b>Vegetables</b><span>Garlic, and beetroot occasionally. That is the entire vegetable content of your day. No greens, no cruciferous, no sprouts.</span></span><span class="score-num" style="color:var(--track-bright)">3</span><span class="score-bar"><span class="score-fill" style="width:30%;background:var(--track)"></span></span></div>
+      </div>
+
+      <div class="note stop" style="margin-top:12px"><b>The vegetable gap is costing you four things at once</b>
+        <b style="color:var(--chalk)">Potassium</b> — the actual lever on the sharp face you want, and greens are the densest source there is. <b style="color:var(--chalk)">Magnesium</b> — lost heavily in sweat, and low magnesium looks exactly like poor stress tolerance and broken sleep. <b style="color:var(--chalk)">Nrf2</b> — pathway 4 on your own list currently has nothing feeding it at all. <b style="color:var(--chalk)">Fibre diversity</b> — the thing your gut bacteria actually eat, which matters more for you than most.<br><br>
+        None of that is fixed by another supplement or a better cut of meat. It is fixed by putting a vegetable on the plate.</div>
+
+      <div class="note good" style="margin-top:8px"><b>Five changes, in order of what they buy you</b>
+        <b style="color:var(--chalk)">1 · A large handful of greens at dinner, every night.</b> Spinach, kale, chard, rocket. About 30 calories. This single change moves vegetables, potassium, magnesium, fibre and K1 at once, and it is the highest-value thing left on this page.<br><br>
+        <b style="color:var(--chalk)">2 · Broccoli sprouts, 20–30g raw, 3–4× a week.</b> No cooking. The only thing that feeds pathway 4.<br><br>
+        <b style="color:var(--chalk)">3 · Name the oily fish.</b> Salmon, mackerel or sardines, 2–3× a week, written into the rotation rather than left to chance.<br><br>
+        <b style="color:var(--chalk)">4 · A second vegetable, wherever it fits.</b> Spinach disappears into the smoothie completely — you will not taste it. Or two veg at dinner instead of one.<br><br>
+        <b style="color:var(--chalk)">5 · Schedule the liver and oysters.</b> They are on your weekly list but not in any actual meal, which is how things quietly never happen.</div>
+
+      <div class="note flat" style="margin-top:8px"><b>What I would not change</b>
+        The eggs — 4–5 yolks a day is right for your goals, not a risk. The saturated fat from tallow, in this context, with this training load. The honey and fruit sugar — the amounts are small and they come wrapped in polyphenols. The dairy. And the repetition itself: a diet you will actually eat every day beats a more varied one you abandon in a fortnight. Fix the vegetables and this goes to a 9.</div>
     </section>
 
     <section class="block">
