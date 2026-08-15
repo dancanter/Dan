@@ -260,6 +260,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Energy Today</h2>
+      <p class="block-sub">One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
+      <div id="energyPick"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Recovery &amp; Wellbeing <span class="tag" id="todayCount">0/11</span> <span class="tag" id="streakTag"></span></h2>
       <div id="checklist"></div>
       <div class="chart-wrap" style="margin-top:12px">
@@ -391,6 +397,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         </div>
         <p class="block-sub" style="margin:9px 0 0">Use what you actually averaged, weighed — not what you planned to eat.</p>
       </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Energy Trend</h2>
+      <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
+      <div id="energyChart"></div>
     </section>
 
     <section class="block">
@@ -541,8 +553,17 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block">
       <h2 class="block-title">Coeliac — Three Things That Matter Here</h2>
-      <div class="note good" style="margin-bottom:8px"><b>Certified GF oats: yes, probably — but test them properly</b>
-        Oats contain no gluten. They contain avenin, a different protein, and roughly <b>1 in 20 coeliacs reacts to avenin itself</b>. Ordinary oats are also almost always cross-contaminated in the supply chain, which is what certified GF oats solve. So: certified GF only, introduced deliberately on their own rather than alongside three other new things, and watched for a couple of weeks. If you have already been eating 62g of GF oats without symptoms, you are in the 95% and they are fine to keep.</div>
+      <div class="note stop" style="margin-bottom:8px"><b>GF oats leaving you drained — the "sometimes" is the clue</b>
+        A straightforward avenin reaction (the oat protein, not gluten — about 1 in 20 coeliacs reacts to it) would hit you <em>every</em> time. Intermittent points somewhere else, and there are two likely candidates.<br><br>
+        <b style="color:var(--chalk);display:inline">Contamination hot spots.</b> "Gluten free" permits up to 20ppm, and most GF oats are <em>mechanically sorted</em> — machines pulling wheat grains out of an oat batch. Sorting is imperfect, so contamination arrives in clumps rather than evenly. One bowl is clean, the next carries a grain. That is exactly what "sometimes" looks like. The alternative is <b>purity protocol</b> oats — grown, harvested and milled gluten-free from seed, never sorted after the fact. Different thing entirely, and worth looking for on the label.<br><br>
+        <b style="color:var(--chalk);display:inline">Dose and FODMAPs.</b> 62g is a large serving, and oats carry fructans. Secondary FODMAP intolerance is very common in coeliacs and often outlasts the gluten removal by years. A smaller portion being fine while a big one is not fits this rather than the avenin story.</div>
+
+      <div class="note warn" style="margin-bottom:8px"><b>How to actually settle it</b>
+        Guessing costs you months. <b>Drop oats completely for four weeks</b> — your breakfast is eggs and rice cakes anyway, so this costs you nothing, and the reverse ladder is already built oat-free. Rate your energy daily on the Today tab while you do it. If the drained days vanish, oats are implicated; reintroduce with purity protocol oats at 30g and work up. If the drained days keep happening without oats in your diet, it was never the oats — and the note below is where to look next.</div>
+
+      <div class="note stop" style="margin-bottom:8px"><b>Get your ferritin checked — this is the more likely explanation</b>
+        You are a coeliac, an endurance runner, and in a calorie deficit. Each of those independently depletes iron: coeliac through impaired absorption, distance running through foot-strike haemolysis, sweat loss and post-exercise hepcidin blocking uptake, and a deficit through simply eating less of it. <b style="color:var(--chalk)">Together that is about as high-risk a combination for iron deficiency as exists</b>, and intermittent fatigue is its cardinal symptom — well before anaemia shows up on a standard full blood count.<br><br>
+        Ask your GP for <b>ferritin, full blood count, B12, folate and vitamin D</b>, and for your coeliac antibodies (tTG-IgA) to confirm things are still controlled. Ferritin under about 30 will flatten an endurance athlete even with normal haemoglobin, and it is genuinely common to be told your bloods are "normal" when ferritin sits at 20. Ask for the number, not the verdict.</div>
       <div class="note warn" style="margin-bottom:8px"><b>Your absorption is the thing to actually watch</b>
         Coeliacs run low on iron, B12, folate, zinc, magnesium, vitamin D and calcium far more often than other people — the villous damage leaves a long shadow even on a strict GF diet. Your diet handles this unusually well: organ meat covers iron, B12, folate and copper; oysters cover zinc; eggs and oily fish cover D; dairy covers calcium. <b>Keep the organ meat weekly — for you it is doing more than it would for anyone else.</b></div>
       <div class="note flat"><b>Gut healing is an anti-ageing pathway for you specifically</b>
@@ -1484,6 +1505,52 @@ function addNiggle(area, sev, note) {
   renderNiggles(); renderReadiness(); renderWeek(); renderToday();
 }
 
+/* ================= daily energy ================= */
+var ENERGY = [
+  { v: 1, label: "Wiped" }, { v: 2, label: "Flat" }, { v: 3, label: "OK" },
+  { v: 4, label: "Good" }, { v: 5, label: "Flying" }
+];
+function renderEnergy() {
+  var el = $("energyPick"); if (!el) return;
+  var cur = todayState.energy || 0;
+  el.innerHTML = '<div class="add-row" style="margin-top:0">' + ENERGY.map(function (e) {
+    return '<button class="btn ' + (cur === e.v ? "on" : "") + '" data-energy="' + e.v +
+      '" style="flex:1" aria-pressed="' + (cur === e.v) + '">' + e.v + " · " + e.label + "</button>";
+  }).join("") + "</div>";
+}
+function setEnergy(v) {
+  todayState.energy = todayState.energy === v ? 0 : v;
+  DB.set(dailyKey(new Date()), todayState);
+  renderEnergy(); renderReadiness(); renderEnergyChart();
+}
+function energySeries(days) {
+  var out = [], now = new Date();
+  for (var k = days - 1; k >= 0; k--) {
+    var d = new Date(now.getTime() - k * 86400000);
+    var st = DB.get(dailyKey(d), null);
+    if (st && st.energy) out.push({ date: dayStr(d), v: st.energy });
+  }
+  return out;
+}
+function renderEnergyChart() {
+  var host = $("energyChart"); if (!host) return;
+  var pts = energySeries(30);
+  if (pts.length < 3) {
+    host.innerHTML = '<div class="empty">' + pts.length + '/3 days rated — tap a number on the Today tab each day.</div>';
+    return;
+  }
+  var recent = pts.slice(-7).map(function (p) { return p.v; });
+  host.innerHTML = '<div class="chart-wrap"><div class="chart-head"><span class="chart-title">Daily energy, last 30 days</span>' +
+    '<span class="chart-val">' + avg(recent).toFixed(1) + '/5<small>last 7 rated · ' + pts.length + " logged</small></span></div>" +
+    '<div id="energyInner" style="position:relative"></div>' +
+    '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>1 wiped → 5 flying · higher is better</span></div></div>';
+  lineChart($("energyInner"), {
+    uid: "e", height: 96, color: "#F2EFE9", domain: [1, 5], dots: true,
+    aria: "Daily energy rating over the last 30 days",
+    points: pts.map(function (p) { return { y: p.v, label: p.date + "  " + p.v + "/5" }; })
+  });
+}
+
 /* ================= readiness ================= */
 function renderReadiness() {
   var signals = [], score = 0, haveData = false;
@@ -1532,7 +1599,16 @@ function renderReadiness() {
     } else { signals.push(n.area + " at severity 1, day " + n.days + " — worth watching, not worth changing anything for."); }
   });
 
-  var engaged = Object.keys(todayState).some(function (k) { return todayState[k]; });
+  if (todayState.energy) {
+    haveData = true;
+    var lowRun = energySeries(3).filter(function (p) { return p.v <= 2; }).length;
+    if (todayState.energy <= 2 && lowRun >= 2) { score -= 2; signals.push("Energy at " + todayState.energy + "/5, and that's " + lowRun + " low days running — worth looking at iron and at what you're eating, not just at training load."); }
+    else if (todayState.energy <= 2) { score -= 1; signals.push("Energy " + todayState.energy + "/5 today."); }
+    else if (todayState.energy >= 4) { score += 1; signals.push("Energy " + todayState.energy + "/5 — a good day to use."); }
+  }
+
+  /* an energy rating is a number, not a tick — it must not count as engaging with the checklist */
+  var engaged = Object.keys(todayState).some(function (k) { return todayState[k] === true; });
   if (engaged) {
     if (todayState.sleep) { score += 1; signals.push("Slept well — the best possible starting point."); }
     else { score -= 1; signals.push("Sleep not ticked off today — the biggest single input to everything else."); }
@@ -2447,6 +2523,7 @@ function renderAll() {
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
+  renderEnergy(); renderEnergyChart();
   $("intakeInput").value = settings.intake || "";
   renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
@@ -2480,7 +2557,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-food],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
@@ -2490,6 +2567,7 @@ function renderStartInfo() {
     }
     else if (el.dataset.check) toggleCheck(el.dataset.check);
     else if (el.dataset.food) toggleFood(el.dataset.food);
+    else if (el.dataset.energy) setEnergy(parseInt(el.dataset.energy, 10));
     else if (el.dataset.timer != null) {
       var d = weekData[+el.dataset.timer], sess = sessionOf(d);
       loadSessionIntoTimer(sess.desc, d.day + " · " + sess.type);
