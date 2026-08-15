@@ -419,6 +419,43 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
     <section class="block">
+      <h2 class="block-title">Where The Cut Ends</h2>
+      <p class="block-sub">Written now, while you are thinking clearly. "When I feel comfortable" is not a stopping rule — it is a feeling, and it moves. Six weeks into a deficit it will have moved further.</p>
+      <div id="exitBox"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0;align-items:center">
+          <label class="chart-title" for="exitWeight" style="min-width:96px">Stop at (lb)</label>
+          <input type="text" id="exitWeight" inputmode="decimal" placeholder="e.g. 123" style="width:90px">
+          <label class="chart-title" for="exitDate" style="min-width:70px">Or by</label>
+          <input type="date" id="exitDate">
+        </div>
+        <div class="add-row">
+          <input type="text" id="exitNote" placeholder="Anything else that means stop — e.g. sessions getting harder">
+          <button class="btn primary" id="exitBtn">Set</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Whichever comes first. The date matters as much as the weight — it is the one a bad week cannot argue with.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Fortnightly Check-In <span class="tag" id="checkinTag"></span></h2>
+      <p class="block-sub">Photos and a tape measure track what you actually care about better than the scale does — the scale cannot tell fat from water, and a photo can. Same light, same time of day, same spot.</p>
+      <div id="checkinDue"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0">
+          <input type="text" id="waistInput" inputmode="decimal" placeholder="Waist (cm or in), optional">
+          <button class="btn" id="photoBtn">Photos taken</button>
+        </div>
+        <div class="add-row">
+          <input type="text" id="checkinNote" placeholder="How you think you look — your words">
+          <button class="btn primary" id="checkinBtn">Log check-in</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Keep the photos in your phone album — this just records that you took them, so you know which dates to compare.</p>
+      </div>
+      <div id="checkinLog" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Backup</h2>
       <p class="block-sub">Everything is saved in this browser as you type. Export a file now and then — it's the only copy that survives clearing your browser data or moving to a new phone.</p>
       <div class="card">
@@ -2573,6 +2610,57 @@ function stepKcal(delta) {
   renderCalStep(); renderReverseTable();
 }
 
+/* ================= cut exit rule ================= */
+/* A pre-committed stopping condition. The judgement you make now is better than
+   the one you will make six weeks into a deficit, so record it while it is good. */
+function renderExit() {
+  var el = $("exitBox"); if (!el) return;
+  var w = settings.exitWeight, d = settings.exitDate, n = settings.exitNote;
+  if (!w && !d) {
+    el.innerHTML = '<div class="note warn"><b>No stopping rule set</b>This is the one thing worth doing before you go any further. Pick a weight, a date, or both — whichever arrives first ends the cut and starts the reverse.</div>';
+    return;
+  }
+  var desc = sortedWeights().reverse();
+  var rAvg = desc.length >= 4 ? avg(desc.slice(0, 7).map(function (x) { return x.weight; })) : null;
+  var hitW = w && rAvg != null && rAvg <= w;
+  var hitD = d && today() >= d;
+  var daysLeft = d ? daysBetween(parseDay(today()), parseDay(d)) : null;
+  var parts = [];
+  if (w) parts.push("7-day average at or below <b>" + w + " lb</b>" + (rAvg != null ? " — currently " + rAvg.toFixed(1) : " — not enough weights yet"));
+  if (d) parts.push("or by <b>" + d + "</b>" + (daysLeft != null && daysLeft >= 0 ? " — " + daysLeft + " days" : " — passed"));
+  if (n) parts.push("or: " + esc(n));
+
+  if (hitW || hitD) {
+    el.innerHTML = '<div class="note good"><b>You have hit your stopping rule — the cut is done</b>' +
+      (hitW ? "Your 7-day average is at " + rAvg.toFixed(1) + ", at or under the " + w + " you set. " : "") +
+      (hitD ? "The date you set has arrived. " : "") +
+      "You wrote this rule when you were thinking clearly. Start the reverse — go to the ladder and take step 1. Do not renegotiate it now.</div>";
+  } else {
+    el.innerHTML = '<div class="note flat"><b>Your rule</b>' + parts.join("<br>") +
+      '<div class="add-row"><button class="btn" id="exitClear">Clear</button></div></div>';
+  }
+}
+
+/* ================= fortnightly check-in ================= */
+var checkins = [];
+function renderCheckins() {
+  var due = $("checkinDue"), tag = $("checkinTag"), log = $("checkinLog");
+  if (!due) return;
+  var last = checkins.length ? checkins[0] : null;
+  var since = last ? daysBetween(parseDay(last.date), parseDay(today())) : null;
+  tag.textContent = last ? since + " days since last" : "none yet";
+  tag.style.color = since != null && since >= 14 ? "var(--track-bright)" : "var(--muted)";
+  due.innerHTML = (since == null || since >= 14)
+    ? '<div class="note warn"><b>' + (since == null ? "Take your first set" : "Due now — " + since + " days") + "</b>Front, side and back, same light and same time of day. In two weeks these tell you more than fourteen weigh-ins would.</div>"
+    : '<div class="note good"><b>Next set in ' + (14 - since) + ' days</b>Last one ' + esc(last.date) + (last.waist ? " · waist " + esc(last.waist) : "") + ".</div>";
+  log.innerHTML = checkins.length
+    ? checkins.slice(0, 10).map(function (c) {
+        return '<div class="log-item"><span class="l-main">' + c.date + (c.photos ? " · 📷" : "") + (c.waist ? " · " + esc(c.waist) : "") + "</span>" +
+          '<span class="l-body">' + esc(c.note || "") + ' <button class="del" data-delchk="' + esc(c.id) + '" aria-label="Delete">×</button></span></div>';
+      }).join("")
+    : '<div class="empty">Nothing logged yet.</div>';
+}
+
 /* ================= empirical TDEE ================= */
 /* Back-calculated from intake against the actual weight trend, which beats any
    formula: a pound of fat is 3,500 kcal, so the gap between what you ate and
@@ -2964,7 +3052,7 @@ function showTab(name) {
   document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (name === "progress") { renderWeight(); renderHR(); renderTdee(); }
+  if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); }
   if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); }
 }
 
@@ -2978,6 +3066,7 @@ function initState() {
   pbLog = DB.get("pb-log", []);
   retinolLog = DB.get("retinol-log", []);
   niggleLog = DB.get("niggle-log", []);
+  checkins = DB.get("checkins", []);
   todayState = DB.get(dailyKey(new Date()), {});
   viewWeek = blockWeekNow() || DB.get("active-week", 1);
   $("startDate").value = settings.startDate || "";
@@ -2989,7 +3078,10 @@ function renderAll() {
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
-  renderEnergy(); renderEnergyChart(); renderRestCheck();
+  renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins();
+  $("exitWeight").value = settings.exitWeight || "";
+  $("exitDate").value = settings.exitDate || "";
+  $("exitNote").value = settings.exitNote || "";
   $("intakeInput").value = settings.intake || "";
   renderStartInfo(); renderTrendOnlyBtn(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
@@ -3028,7 +3120,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("#exitClear,[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
@@ -3060,6 +3152,16 @@ function renderStartInfo() {
     else if (el.dataset.delpb) {
       pbLog = pbLog.filter(function (p) { return p.id !== el.dataset.delpb; });
       DB.set("pb-log", pbLog); renderPBHistory(); renderBench();
+    }
+    else if (el.id === "exitClear") {
+      settings.exitWeight = null; settings.exitDate = null; settings.exitNote = null;
+      DB.set("settings", settings);
+      $("exitWeight").value = ""; $("exitDate").value = ""; $("exitNote").value = "";
+      renderExit();
+    }
+    else if (el.dataset.delchk) {
+      checkins = checkins.filter(function (c) { return c.id !== el.dataset.delchk; });
+      DB.set("checkins", checkins); renderCheckins();
     }
     else if (el.dataset.clearnig) addNiggle(el.dataset.clearnig, 0, "");
     else if (el.dataset.delnig) {
@@ -3102,6 +3204,28 @@ function renderStartInfo() {
     $("weekSelect").value = viewWeek;
     loadWeek(viewWeek);
     renderBlockBar(); renderToday(); renderStartInfo(); renderReflections();
+  });
+  $("exitBtn").addEventListener("click", function () {
+    var w = parseFloat($("exitWeight").value);
+    settings.exitWeight = isNaN(w) ? null : w;
+    settings.exitDate = $("exitDate").value || null;
+    settings.exitNote = $("exitNote").value.trim() || null;
+    DB.set("settings", settings); renderExit();
+  });
+  var photosTaken = false;
+  $("photoBtn").addEventListener("click", function () {
+    photosTaken = !photosTaken;
+    this.textContent = photosTaken ? "✓ Photos taken" : "Photos taken";
+    this.classList.toggle("on", photosTaken);
+  });
+  $("checkinBtn").addEventListener("click", function () {
+    checkins.unshift({ id: String(Date.now()), date: today(), waist: $("waistInput").value.trim(),
+      photos: photosTaken, note: $("checkinNote").value.trim() });
+    DB.set("checkins", checkins);
+    $("waistInput").value = ""; $("checkinNote").value = "";
+    photosTaken = false;
+    $("photoBtn").textContent = "Photos taken"; $("photoBtn").classList.remove("on");
+    renderCheckins();
   });
   $("trendOnlyBtn").addEventListener("click", function () {
     settings.trendOnly = !settings.trendOnly;
