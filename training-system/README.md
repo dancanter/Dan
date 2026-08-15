@@ -97,33 +97,18 @@ the 1–5 feel ratings. Feel dropping means the work is landing; feel climbing
 while the session has not got faster is the earliest pull-back signal available,
 and it shows weeks before a benchmark test would.
 
-**Nutrition** — the calorie stepper for the reverse diet, which reads the weight
-trend and says whether it's time to add 75 kcal, plus the staples, timing,
-rotation and trend-reading reference.
-
-It also carries a staged cellular protocol, because the same food does different
-work depending on whether you're in a deficit. Stage 1 protects (fat floor, zinc,
-cholesterol, collagen peptides — and deliberately *holds back* the polyphenol and
-autophagy group, since a deficit already drives autophagy and stacking
-fasting-mimetics on top works against holding muscle). Stage 2 rebuilds as
-calories return. Stage 3 runs everything. The current stage is derived from the
-7-day weight average and the calorie step, so it moves on its own. Alongside it:
-what each food group is mechanistically doing, and a bioavailability section —
-which pairings multiply absorption, which block it, and which foods are worth
-almost nothing prepared the wrong way (sulforaphane needs raw or added
-myrosinase; lycopene needs heat and fat; EVOO polyphenols degrade with heat).
-
-Two sections keep the ambition honest. **Cellular ageing** ranks the levers by
-what the evidence supports — VO2max, zone 2, muscle mass and sleep sit above
-every food on the page, and the section says so — and names the tension that
-cannot be solved, only periodised: autophagy and AMPK are the longevity levers
-and they suppress recovery, while mTOR and high protein are the performance
-levers and they are the opposite of the longevity signal. It also flags that a
-long deficit in a lean endurance athlete is itself a pro-ageing state, which is
-the real argument for reversing on time. **Reversing without regaining** gives
-the three enforceable rules (steps held at 12,500–13,000, every added calorie a
-carb, progressions kept running) and the number that makes people quit: about
-2 lb of glycogen water in week two that contains no fat at all.
+**Nutrition** — rebuilt around eight biological pathways rather than food
+groups: collagen hydroxylation, anti-glycation, eNOS microcirculation, Nrf2,
+lipid barrier, intracellular hydration, mitophagy and pulsed mTOR. Each carries
+what it does, what feeds it, and the one lever that decides whether it works at
+all — sprouts raw or the sulforaphane never forms, nitrate needs the oral
+bacteria that antibacterial mouthwash destroys, collagen is inert without
+vitamin C. Alongside: what each meal of the actual diet is feeding, coeliac
+notes (certified GF oats, the absorption deficits coeliacs carry, and gut
+healing as an ageing lever in its own right), a weekly checklist of the items
+easy to miss, the staged reverse with a gluten-free step ladder written against
+those meals, and an honest ranking that puts sleep, training and not staying in
+a deficit above every food on the page.
 
 **Protocols / Skincare** — the morning, warm-up, nervous system, sleep, recovery
 and pull-back protocols, a PB-week protocol covering the taper, pre-attempt
