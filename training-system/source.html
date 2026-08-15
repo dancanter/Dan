@@ -171,6 +171,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .stage li b{font-weight:600}
 .stage .hold{color:var(--muted);font-size:12.3px;line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px solid var(--line-soft)}
 .stage .hold b{color:var(--warn);font-weight:600}
+.scale{position:relative;height:22px;margin:16px 0 6px;border-radius:3px;
+  background:linear-gradient(90deg,#2B363B,#33403F 35%,#7A2C1C 72%,#C4432B)}
+.scale-mark{position:absolute;top:-5px;bottom:-5px;border-radius:2px}
+.scale-you{width:3px;background:var(--chalk);box-shadow:0 0 0 1px var(--bg)}
+.scale-goal{width:2px;background:var(--go);box-shadow:0 0 0 1px var(--bg)}
+.scale-lbl{position:absolute;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;top:-20px;transform:translateX(-50%)}
+.scale-ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:10px;color:var(--muted-2);font-variant-numeric:tabular-nums}
 .prog{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-family:var(--f-mono);font-size:10.5px;margin-bottom:10px}
 .prog .lbl{color:var(--muted-2);letter-spacing:.05em;text-transform:uppercase;margin-right:2px}
 .prog .step{padding:2px 6px;border:1px solid var(--line-soft);border-radius:2px;color:var(--muted-2);font-variant-numeric:tabular-nums}
@@ -238,6 +245,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <button class="tab" role="tab" aria-selected="false" data-tab="week">This Week</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="timer">Timer</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="progress">Progress</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="fitness">Fitness</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="nutrition">Nutrition</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="protocols">Protocols</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="skincare">Skincare</button>
@@ -351,32 +359,15 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   <!-- ============ PROGRESS ============ -->
   <div class="panel" id="panel-progress" role="tabpanel">
     <section class="block">
-      <h2 class="block-title">Benchmarks</h2>
-      <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
-      <div id="benchList"></div>
+      <h2 class="block-title">Weight</h2>
+      <div id="trendReadout"></div>
+      <div id="weightChart"></div>
+      <div id="weightLog"></div>
       <div class="add-row">
-        <select id="pbDistance">
-          <option value="200">200m</option><option value="400">400m</option>
-          <option value="800">800m</option><option value="1000">1000m</option>
-          <option value="mile">Mile</option><option value="5k">5K</option>
-        </select>
-        <input type="text" id="pbTimeInput" placeholder="e.g. 4:51, 57.2, or 3:15/km">
-        <button class="btn primary" id="pbBtn">Log test</button>
+        <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
+        <button class="btn primary" id="weightBtn">Log</button>
       </div>
-      <div id="pbError"></div>
     </section>
-
-    <section class="block">
-      <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
-      <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
-      <div id="vdotOut"></div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Test History</h2>
-      <div id="pbHistory"></div>
-    </section>
-
     <section class="block">
       <h2 class="block-title">Morning Heart Rate</h2>
       <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
@@ -387,7 +378,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <button class="btn primary" id="hrBtn">Log</button>
       </div>
     </section>
-
     <section class="block">
       <h2 class="block-title">Your Actual Maintenance</h2>
       <p class="block-sub">Worked out from what you've eaten and what the scale has done — not from a formula. This is the only number that is genuinely yours. It needs 14 days of weights to mean anything.</p>
@@ -401,55 +391,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <p class="block-sub" style="margin:9px 0 0">Use what you actually averaged, weighed — not what you planned to eat.</p>
       </div>
     </section>
-
-    <section class="block">
-      <h2 class="block-title">Energy Trend</h2>
-      <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
-      <div id="energyChart"></div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Niggles <span class="tag" id="niggleTag"></span></h2>
-      <p class="block-sub">A niggle announces itself for a week or two before it becomes an injury. Log it on the days you feel it — readiness reads this, and it will stop you sprinting on a bad hamstring.</p>
-      <div id="niggleActive"></div>
-      <div class="card" style="margin-top:10px">
-        <div class="add-row" style="margin-top:0">
-          <select id="niggleArea" aria-label="Body part"></select>
-          <select id="niggleSev" aria-label="Severity"></select>
-        </div>
-        <div class="add-row">
-          <input type="text" id="niggleNote" placeholder="Optional — what brings it on">
-          <button class="btn primary" id="niggleBtn">Log</button>
-        </div>
-      </div>
-      <div id="niggleLog" style="margin-top:10px"></div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Weight</h2>
-      <div id="trendReadout"></div>
-      <div id="weightChart"></div>
-      <div id="weightLog"></div>
-      <div class="add-row">
-        <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
-        <button class="btn primary" id="weightBtn">Log</button>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Adaptation</h2>
-      <p class="block-sub">The same session, at the same pace, over time. Feel dropping means the work is landing. Feel climbing at an unchanged pace is the earliest warning you get — weeks before a benchmark would show it.</p>
-      <div class="add-row" style="margin-top:0;margin-bottom:10px">
-        <select id="adaptPick" aria-label="Session type"></select>
-      </div>
-      <div id="adaptOut"></div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Session History</h2>
-      <div id="sessionHistory"></div>
-    </section>
-
     <section class="block">
       <h2 class="block-title">Setup</h2>
       <p class="block-sub">Set the Sunday you start Week 1 and the app tracks which week and day you're on by itself.</p>
@@ -462,7 +403,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <p class="block-sub" id="startInfo" style="margin:10px 0 0"></p>
       </div>
     </section>
-
     <section class="block">
       <h2 class="block-title">Backup</h2>
       <p class="block-sub">Everything is saved in this browser as you type. Export a file now and then — it's the only copy that survives clearing your browser data or moving to a new phone.</p>
@@ -482,6 +422,72 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
   </div>
 
+  <div class="panel" id="panel-fitness" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
+      <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
+      <div id="vdotOut"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">Benchmarks</h2>
+      <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
+      <div id="benchList"></div>
+      <div class="add-row">
+        <select id="pbDistance">
+          <option value="200">200m</option><option value="400">400m</option>
+          <option value="800">800m</option><option value="1000">1000m</option>
+          <option value="mile">Mile</option><option value="5k">5K</option>
+        </select>
+        <input type="text" id="pbTimeInput" placeholder="e.g. 4:51, 57.2, or 3:15/km">
+        <button class="btn primary" id="pbBtn">Log test</button>
+      </div>
+      <div id="pbError"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">Test History</h2>
+      <div id="pbHistory"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">Adaptation</h2>
+      <p class="block-sub">The same session, at the same pace, over time. Feel dropping means the work is landing. Feel climbing at an unchanged pace is the earliest warning you get — weeks before a benchmark would show it.</p>
+      <div class="add-row" style="margin-top:0;margin-bottom:10px">
+        <select id="adaptPick" aria-label="Session type"></select>
+      </div>
+      <div id="adaptOut"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">When To Rest</h2>
+      <p class="block-sub">Any <b>two</b> of these together means back off — not push harder. A week of backing off costs you almost nothing; pushing through costs you the block. These read from what you've actually logged.</p>
+      <div id="restCheck"></div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Niggles <span class="tag" id="niggleTag"></span></h2>
+      <p class="block-sub">A niggle announces itself for a week or two before it becomes an injury. Log it on the days you feel it — readiness reads this, and it will stop you sprinting on a bad hamstring.</p>
+      <div id="niggleActive"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0">
+          <select id="niggleArea" aria-label="Body part"></select>
+          <select id="niggleSev" aria-label="Severity"></select>
+        </div>
+        <div class="add-row">
+          <input type="text" id="niggleNote" placeholder="Optional — what brings it on">
+          <button class="btn primary" id="niggleBtn">Log</button>
+        </div>
+      </div>
+      <div id="niggleLog" style="margin-top:10px"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">Energy Trend</h2>
+      <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
+      <div id="energyChart"></div>
+    </section>
+    <section class="block">
+      <h2 class="block-title">Session History</h2>
+      <div id="sessionHistory"></div>
+    </section>
+  </div>
+
   <!-- ============ NUTRITION ============ -->
   <div class="panel" id="panel-nutrition" role="tabpanel">
     <section class="block">
@@ -490,132 +496,96 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
-      <h2 class="block-title">The Eight Pathways</h2>
-      <p class="block-sub">Everything below is organised by what it actually does. If a food isn't feeding one of these eight, it isn't on the page.</p>
-
-      <div class="note flat" style="margin-bottom:12px"><b>1 · Hydroxylation — collagen</b>
-        Builds and cross-links collagen. This is skin firmness and tendon integrity, directly.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> collagen peptides 10–15g daily · bone broth · berries, citrus, peppers for vitamin C · liver and oysters for copper and zinc.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> peptides <em>with</em> vitamin C, 60 min before you load the tissue. Without vitamin C the hydroxylase enzyme does not function at all — it isn't a booster, it's a required part.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>2 · Anti-glycation — AGE defence</b>
-        Stops sugars cross-linking onto proteins. Glycated collagen is stiff and dull — this is the pathway that decides whether your skin looks springy or leathery.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> beef and organ meat, the richest carnosine sources there are · cacao, berries, pomegranate.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> <b>how you cook.</b> Dry high heat — searing, grilling, frying, charring — creates AGEs directly. Baking, stewing, poaching and slow-cooking create a fraction. You already bake your dinner; the rule is simply never let anything char.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>3 · eNOS — microcirculation</b>
-        Nitric oxide opens the small vessels. This is skin perfusion and nutrient delivery — the difference between a face that looks lit and one that looks flat.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> beetroot · rocket and spinach · cacao flavanols · garlic · vitamin C, which protects nitric oxide once it's made.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> converting nitrate to nitrite depends on bacteria living on your tongue. <b>Antibacterial mouthwash wipes them out for hours and cancels the beetroot entirely.</b> If you use it, stop — it is the single most self-defeating habit against this pathway.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>4 · Nrf2 — cellular shielding</b>
-        Switches on your own antioxidant enzyme systems, which is vastly more powerful than swallowing antioxidants directly.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> <b>broccoli sprouts</b> — the most potent dietary Nrf2 activator known, 10–100× mature broccoli · garlic · green tea · turmeric.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> sprouts <b>raw</b>. Heat destroys the enzyme that converts glucoraphanin into sulforaphane, so cooked sprouts give you close to nothing. On cooked brassica, mustard powder puts the enzyme back.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>5 · Lipid barrier fluidity</b>
-        Cell membranes and the skin barrier. Determines how well skin holds water and how resilient it is.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> egg yolks for phosphatidylcholine — your 4 eggs are excellent here · oily fish 2–3× a week for EPA and DHA · beef tallow and avocado oil for cooking.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> keeping omega-6 seed oils low matters as much as adding omega-3, and cooking in tallow already does that for you.</div>
-
-      <div class="note good" style="margin-bottom:12px"><b>6 · Intracellular hydration — the one for a sharp face</b>
-        Water <em>inside</em> cells makes skin look full and firm. Water <em>outside</em> cells is what puffiness is. Same total water, opposite look.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> potassium — potato, avocado, beetroot, coconut water, greens · magnesium · glycine and taurine as cell osmolytes · and glycogen, which holds water inside muscle.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> it is the <b>sodium-to-potassium ratio</b>, never sodium alone. Push potassium to the top of 3,500–4,700mg and keep sodium steady. Cutting salt while potassium is low pushes water the wrong way and makes the puffiness worse.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>7 · Mitophagy — urolithin A</b>
-        Clears out damaged mitochondria so the healthy ones aren't dragged down. Energy and skin cell turnover.<br><br>
-        <b style="color:var(--chalk);display:inline">Eat:</b> pomegranate 3–4× a week · walnuts.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> the fruit contains no urolithin A — your gut bacteria make it from ellagitannins, and only about <b>40% of people carry the bacteria to do it</b>. No amount fixes that if you're not a converter. Worth knowing: exercise triggers mitophagy directly, so your running feeds this pathway whether or not the pomegranate does.</div>
-
-      <div class="note warn"><b>8 · Pulsed mTOR / autophagy</b>
-        The build-and-clear cycle. Chronic mTOR activation accelerates ageing; chronic autophagy wastes you away. <b style="color:var(--chalk)">This is the one you periodise, not maximise</b> — and it is why the plan comes in stages rather than as one list.<br><br>
-        <b style="color:var(--chalk);display:inline">Do:</b> a 12–14h overnight fast · protein clustered into your four meals rather than grazing · the cut is your clearing phase, the reverse is your building phase.<br>
-        <b style="color:var(--chalk);display:inline">The lever:</b> stop trying to run both at once. Anyone promising maximal autophagy and maximal building simultaneously is selling something.</div>
-    </section>
-
-    <section class="block">
-      <h2 class="block-title">Your Day — What Each Meal Is Doing</h2>
+      <h2 class="block-title">Your Day</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref">
-          <thead><tr><th>Meal</th><th>Feeding</th><th>Fix</th></tr></thead>
           <tbody>
-            <tr><td><b>Breakfast</b><span class="sub">4 eggs, 4 GF rice cakes</span></td><td class="hl">5 · 8</td><td>Four yolks is a strong lipid-barrier meal. Nothing to change.</td></tr>
-            <tr><td><b>Lunch</b><span class="sub">Collagen smoothie — Fage, berries, avocado, cacao, hazelnuts</span></td><td class="hl">1 · 2 · 3 · 6</td><td>The best-built meal you have. Dropping acai was right — the berries already cover it.</td></tr>
-            <tr><td><b>Dinner</b><span class="sub">Fish, chicken, lean beef or organ meat, baked + potato + garlic + beetroot</span></td><td class="hl">2 · 3 · 5 · 6</td><td>Organ meat and beetroot are both strong additions. <b>Add greens or broccoli sprouts</b> — pathway 4 has nothing feeding it otherwise.</td></tr>
-            <tr><td><b>Evening</b><span class="sub">Fage, kefir, berries, honey, dark chocolate, pomegranate</span></td><td class="hl">2 · 3 · 7</td><td>Pomegranate over grapes was the right swap — it is the only thing on your page feeding pathway 7.</td></tr>
-            <tr><td><b>Fats</b><span class="sub">Avocado oil, beef tallow</span></td><td class="hl">5</td><td>Both fine, and tallow is genuinely the better high-heat fat. See the note below on what you lose.</td></tr>
+            <tr><td><b>Breakfast</b><span class="sub">4 eggs · 4 GF rice cakes</span></td><td>Swap the rice cakes for <b>rice</b> or <b>potato</b> whenever you'd rather. Make it 4 eggs, not 1 — the yolks matter.</td></tr>
+            <tr><td><b>Lunch</b><span class="sub">Collagen smoothie — Fage, berries, avocado, cacao, hazelnuts</span></td><td>Your best meal. Have it <b>an hour before you train</b> on session days.</td></tr>
+            <tr><td><b>Dinner</b><span class="sub">Fish, chicken, lean beef or organ meat, baked · potato or rice · garlic · beetroot</span></td><td>Add <b>greens or broccoli sprouts</b>. Baked not seared — charring is what makes skin stiff.</td></tr>
+            <tr><td><b>Evening</b><span class="sub">Fage, kefir, berries, honey, dark chocolate, pomegranate, grapes</span></td><td>Grapes stay — go <b>red or black</b> over green, roughly triple the polyphenols.</td></tr>
+            <tr><td><b>Anytime</b><span class="sub">Olives · Brazil nuts</span></td><td><b>Olives are perfect for you.</b> They carry the same hydroxytyrosol as olive oil without you having to drink it — that was the one real gap from skipping the oil. 2–3 Brazil nuts covers selenium.</td></tr>
+            <tr><td><b>Cooking fat</b><span class="sub">Beef tallow · avocado oil</span></td><td>Tallow for anything hot. Both fine.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="note warn" style="margin-top:10px"><b>Skipping olive oil costs you polyphenols, not fat</b>
-        The anti-ageing value of extra virgin olive oil is hydroxytyrosol and oleocanthal, not its fatty acids — and beef tallow and avocado oil have essentially none. The fat side you cover fine. Replace the polyphenols from cacao, berries, pomegranate and dark chocolate, which you already eat daily. If you can stomach <b>whole olives</b>, they carry the same compounds without the oil texture — that is the cheapest way to close the gap.</div>
-      <div class="note stop" style="margin-top:8px"><b>Pathway 4 has nothing feeding it</b>
-        Nrf2 is arguably the highest-leverage pathway on the whole page and your day currently contains no sulforaphane at all. <b style="color:var(--chalk)">Broccoli sprouts, 20–30g, raw, 3–4× a week</b>, thrown on the dinner plate. They are cheap, need no cooking, and are the one clear hole in an otherwise complete diet.</div>
-    </section>
 
-    <section class="block">
-      <h2 class="block-title">Coeliac — Three Things That Matter Here</h2>
-      <div class="note stop" style="margin-bottom:8px"><b>GF oats leaving you drained — the "sometimes" is the clue</b>
-        A straightforward avenin reaction (the oat protein, not gluten — about 1 in 20 coeliacs reacts to it) would hit you <em>every</em> time. Intermittent points somewhere else, and there are two likely candidates.<br><br>
-        <b style="color:var(--chalk);display:inline">Contamination hot spots.</b> "Gluten free" permits up to 20ppm, and most GF oats are <em>mechanically sorted</em> — machines pulling wheat grains out of an oat batch. Sorting is imperfect, so contamination arrives in clumps rather than evenly. One bowl is clean, the next carries a grain. That is exactly what "sometimes" looks like. The alternative is <b>purity protocol</b> oats — grown, harvested and milled gluten-free from seed, never sorted after the fact. Different thing entirely, and worth looking for on the label.<br><br>
-        <b style="color:var(--chalk);display:inline">Dose and FODMAPs.</b> 62g is a large serving, and oats carry fructans. Secondary FODMAP intolerance is very common in coeliacs and often outlasts the gluten removal by years. A smaller portion being fine while a big one is not fits this rather than the avenin story.</div>
-
-      <div class="note warn" style="margin-bottom:8px"><b>How to actually settle it</b>
-        Guessing costs you months. <b>Drop oats completely for four weeks</b> — your breakfast is eggs and rice cakes anyway, so this costs you nothing, and the reverse ladder is already built oat-free. Rate your energy daily on the Today tab while you do it. If the drained days vanish, oats are implicated; reintroduce with purity protocol oats at 30g and work up. If the drained days keep happening without oats in your diet, it was never the oats — and the note below is where to look next.</div>
-
-      <div class="note stop" style="margin-bottom:8px"><b>Get your ferritin checked — this is the more likely explanation</b>
-        You are a coeliac, an endurance runner, and in a calorie deficit. Each of those independently depletes iron: coeliac through impaired absorption, distance running through foot-strike haemolysis, sweat loss and post-exercise hepcidin blocking uptake, and a deficit through simply eating less of it. <b style="color:var(--chalk)">Together that is about as high-risk a combination for iron deficiency as exists</b>, and intermittent fatigue is its cardinal symptom — well before anaemia shows up on a standard full blood count.<br><br>
-        Ask your GP for <b>ferritin, full blood count, B12, folate and vitamin D</b>, and for your coeliac antibodies (tTG-IgA) to confirm things are still controlled. Ferritin under about 30 will flatten an endurance athlete even with normal haemoglobin, and it is genuinely common to be told your bloods are "normal" when ferritin sits at 20. Ask for the number, not the verdict.</div>
-      <div class="note warn" style="margin-bottom:8px"><b>Your absorption is the thing to actually watch</b>
-        Coeliacs run low on iron, B12, folate, zinc, magnesium, vitamin D and calcium far more often than other people — the villous damage leaves a long shadow even on a strict GF diet. Your diet handles this unusually well: organ meat covers iron, B12, folate and copper; oysters cover zinc; eggs and oily fish cover D; dairy covers calcium. <b>Keep the organ meat weekly — for you it is doing more than it would for anyone else.</b></div>
-      <div class="note flat"><b>Gut healing is an anti-ageing pathway for you specifically</b>
-        Coeliac disease is autoimmune, and chronic low-grade inflammation is one of the more direct drivers of biological ageing. Which means strict gluten avoidance, the fermented dairy you already eat twice a day, and the polyphenols feeding your gut bacteria are not separate from this list — for you they sit near the top of it. Also worth knowing: GF processed foods like rice cakes are usually stripped of nutrients and fibre, so keep them as the carb vehicle rather than the carb source.</div>
+      <div class="note good" style="margin-top:10px"><b>Your three rices, ranked for what you want</b>
+        <b style="color:var(--chalk)">Black rice</b> is the best of them — the most anthocyanins of any rice by a distance, so it is actively feeding the same pathways your berries and cacao do. <b style="color:var(--chalk)">Basmati</b> next: the lowest blood-sugar spike of the three, which is the anti-glycation one. <b style="color:var(--chalk)">Jasmine</b> is the fastest-digesting, so save it for right around a session where that is exactly what you want. All three are naturally gluten free.</div>
     </section>
 
     <section class="block">
       <h2 class="block-title">This Week's Non-Negotiables <span class="tag" id="foodCount"></span></h2>
-      <p class="block-sub">The ones easy to go a whole week without noticing you missed. Resets every Monday.</p>
+      <p class="block-sub">The ones easy to miss for a whole week. Resets Monday.</p>
       <div id="foodChecklist"></div>
     </section>
 
     <section class="block">
-      <h2 class="block-title">The Slow Reverse — In Stages</h2>
-      <p class="block-sub">Get to 122–124 first. Then add calories back slowly enough that you keep the shape while the metabolic rate comes back up.</p>
+      <h2 class="block-title">Reversing — What To Add</h2>
+      <p class="block-sub">One rule: <b>protein and fat don't move.</b> Every calorie you add back is a carb. Add one unit below, hold it 4–5 days, check the 7-day average, add the next.</p>
+
+      <div class="block-title" style="font-size:17px">One unit ≈ 75 kcal — pick any</div>
+      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:14px">
+        <table class="ref">
+          <tbody>
+            <tr><td>Basmati, jasmine or black rice</td><td class="hl">20g dry</td></tr>
+            <tr><td>Potato, cooked</td><td class="hl">100g</td></tr>
+            <tr><td>Sweet potato, cooked</td><td class="hl">90g</td></tr>
+            <tr><td>Grapes</td><td class="hl">110g</td></tr>
+            <tr><td>GF rice cakes</td><td class="hl">3</td></tr>
+            <tr><td>Honey</td><td class="hl">25g</td></tr>
+            <tr><td>Banana</td><td class="hl">1 small</td></tr>
+            <tr><td>GF oats, dry <span class="sub">only if they agree with you</span></td><td class="hl">20g</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block-title" style="font-size:17px">Which meal each unit goes in</div>
+      <div class="card tbl-scroll" style="padding:4px 12px">
+        <table class="ref">
+          <thead><tr><th>Step</th><th>Add a unit to</th><th>Daily total</th></tr></thead>
+          <tbody id="reverseTable"></tbody>
+        </table>
+      </div>
+      <p class="block-sub" style="margin-top:8px">The evening meal never grows — it is your fattiest, so calories added there go to fat rather than glycogen.</p>
+
+      <div class="note stop" style="margin-top:10px"><b>Around step 2 or 3 the scale jumps ~2 lb. Ignore it.</b>
+        Extra carbs mean extra glycogen, and glycogen holds three times its weight in water. It lands within a week then settles. You've told me you gain when you eat more — this is that, and it is not fat. A pound of fat takes 3,500 surplus calories; you are adding 75 a day.</div>
+
+      <div class="note good" style="margin-top:8px"><b>New foods, only once you're at the top</b>
+        One at a time: creatine 3–5g (expect 1–2 lb of water, not fat), green tea daily, cooked tomato with your tallow for lycopene.</div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">The Stage You're On</h2>
       <div id="stageList"></div>
     </section>
 
     <section class="block">
-      <h2 class="block-title">The Ladder</h2>
-      <p class="block-sub">Each step is about +75 kcal, all carbohydrate, all naturally gluten free. Hold each one <b>4–5 days</b>, check the 7-day average, then take the next. Roughly five weeks end to end.</p>
+      <h2 class="block-title">The Eight Pathways</h2>
+      <p class="block-sub">Why each thing is on your plate, and the one rule that decides whether it works.</p>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref">
-          <thead><tr><th>Step</th><th>Change one thing</th><th>Daily average</th></tr></thead>
-          <tbody id="reverseTable"></tbody>
+          <thead><tr><th>Pathway</th><th>Your foods</th><th>The one rule</th></tr></thead>
+          <tbody>
+            <tr><td><b>1 · Collagen</b><span class="sub">Skin firmness</span></td><td>Collagen peptides, bone broth, berries, liver, oysters</td><td class="hl">Always with vitamin C. Without it the enzyme doesn't work at all.</td></tr>
+            <tr><td><b>2 · Anti-glycation</b><span class="sub">Stops skin stiffening</span></td><td>Beef, organ meat, cacao, berries, grapes, pomegranate</td><td class="hl">Bake, stew, poach. Never char.</td></tr>
+            <tr><td><b>3 · Microcirculation</b><span class="sub">That lit-from-within look</span></td><td>Beetroot, rocket, spinach, cacao, garlic</td><td class="hl">No antibacterial mouthwash — it kills the mouth bacteria that make this work.</td></tr>
+            <tr><td><b>4 · Nrf2 shielding</b><span class="sub">Your own defence system</span></td><td>Broccoli sprouts, garlic, green tea</td><td class="hl">Sprouts raw. Cooking destroys the enzyme that makes sulforaphane.</td></tr>
+            <tr><td><b>5 · Barrier fluidity</b><span class="sub">Skin holds water</span></td><td>Egg yolks, oily fish, tallow, avocado</td><td class="hl">4 yolks a day, oily fish 2–3× a week. Keep seed oils out.</td></tr>
+            <tr><td><b>6 · Cell hydration</b><span class="sub">Full face, not puffy</span></td><td>Potato, avocado, beetroot, greens, coconut water</td><td class="hl">Push potassium up. Don't cut salt — it's the ratio that matters.</td></tr>
+            <tr><td><b>7 · Mitophagy</b><span class="sub">Clears dead mitochondria</span></td><td>Pomegranate, walnuts</td><td class="hl">Only ~40% of people can convert it. Your running triggers this anyway.</td></tr>
+            <tr><td><b>8 · Build / clear cycle</b><span class="sub">The master switch</span></td><td>Everything, timed</td><td class="hl">12–14h overnight fast. Cut = clearing phase, reverse = building phase. Never both at once.</td></tr>
+          </tbody>
         </table>
       </div>
-      <div class="note warn" style="margin-top:10px"><b>Three things that must not move while you climb</b>
-        <b style="color:var(--chalk)">Protein stays 155–160g.</b> <b style="color:var(--chalk)">Fat stays at its floor</b> — no extra nuts, avocado, chocolate or oil, because fat is not what restores metabolic rate. <b style="color:var(--chalk)">Steps stay 12,500–13,000</b> — the one that silently slips, and the one that decides whether this works.</div>
-      <div class="note stop" style="margin-top:8px"><b>Around step 2 or 3 the scale jumps about 2 lb. Do not react to it.</b>
-        Roughly 100g more carbohydrate stores about 300g of glycogen, and glycogen holds around three times its weight in water. It arrives within a week and then settles. You have told me you put weight on when you eat more — <b style="color:var(--chalk)">this is that, and it is not fat.</b> A pound of fat needs 3,500 surplus calories; you are adding 75 a day. Stopping here is how people end up stuck at 1,800 kcal for a year.</div>
-      <div class="note good" style="margin-top:8px"><b>What to add once you are at the top</b>
-        Only then, and one at a time: <b>creatine 3–5g</b> if you want it (expect 1–2 lb of water that is not fat), <b>green tea</b> daily for pathway 4, and more cooked tomato with your fat source for lycopene. Nothing new in the last week before any test or attempt.</div>
     </section>
 
     <section class="block">
-      <h2 class="block-title">The Honest Ranking</h2>
-      <p class="block-sub">You said you care about how you look and your health rather than performance. Fair — but then this order matters more, not less, because it is not what people expect.</p>
-      <div class="card tbl-scroll" style="padding:4px 12px">
-        <table class="ref"><tbody>
-          <tr><td><b>1 · Sleep</b><span class="sub">The largest single input to facial puffiness there is, through cortisol and overnight fluid distribution. Nothing on this page compensates for missing it.</span></td></tr>
-          <tr><td><b>2 · Your easy runs and your lifting</b><span class="sub">Zone 2 running drives mitochondrial biogenesis and VO2max is the strongest single predictor of all-cause mortality in the literature. Muscle mass is among the best predictors of healthy ageing. You said you do not care about performance — you do not have to. The training does this for you regardless of whether you ever run a PB.</span></td></tr>
-          <tr><td><b>3 · Not staying in a deficit too long</b><span class="sub">A lean man in a long deficit has suppressed testosterone, falling bone density and blunted recovery. That is a pro-ageing state, and it outweighs every polyphenol here. It is the real reason to reverse on schedule.</span></td></tr>
-          <tr><td><b>4 · No alcohol</b><span class="sub">One night shows on your face for two days — dehydration, wrecked sleep architecture, inflammation. Nothing else moves this fast in the wrong direction.</span></td></tr>
-          <tr><td><b>5 · Everything on this page</b><span class="sub">Real, worth doing, and a fraction of the four above. Keeping the order straight is what stops you optimising pomegranate on six hours of sleep.</span></td></tr>
-        </tbody></table>
-      </div>
-      <div class="note warn" style="margin-top:10px"><b>One catch with ignoring performance</b>
-        Underfuelling your hard sessions raises cortisol, and cortisol holds water in exactly the place you do not want it. So there is a floor on how far you can stop caring about fuelling before it shows up in your face. You do not need to chase paces — but you do need to eat enough around the sessions you are doing.</div>
+      <h2 class="block-title">Coeliac</h2>
+      <div class="note warn" style="margin-bottom:8px"><b>The oats</b>Feeling drained only sometimes points at contamination hot spots — most GF oats are machine-sorted, so stray grains come in clumps rather than evenly. Look for <b>purity protocol</b> oats if you want them back. Or just leave them out; rice and potato do the same job.</div>
+      <div class="note stop" style="margin-bottom:8px"><b>Get your ferritin checked</b>Coeliac, distance running and a calorie deficit each drain iron independently, and intermittent tiredness is the first sign — well before anaemia shows up. Ask for <b>ferritin, full blood count, B12, folate, vitamin D</b>. Ask for the number: 20 gets called "normal" and will still flatten you.</div>
+      <div class="note flat"><b>Why your diet suits you</b>Organ meat covers iron, B12 and folate; oysters cover zinc; eggs and oily fish cover D. Those are exactly the things coeliacs run short on, so keep them weekly.</div>
     </section>
 
     <section class="block">
@@ -633,6 +603,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           </tbody>
         </table>
       </div>
+      <div class="note flat" style="margin-top:10px"><b>Above all of it</b>Sleep, your easy runs and lifting, not staying in a deficit too long, and no alcohol. Those four outrank every food on this page combined — which is worth remembering before optimising pomegranate on six hours' sleep.</div>
     </section>
   </div>
 
@@ -1505,7 +1476,7 @@ function addNiggle(area, sev, note) {
   niggleLog.unshift({ id: String(Date.now()), date: today(), area: area, sev: sev, note: note || "" });
   niggleLog.sort(function (a, b) { return b.date.localeCompare(a.date); });
   DB.set("niggle-log", niggleLog);
-  renderNiggles(); renderReadiness(); renderWeek(); renderToday();
+  renderNiggles(); renderReadiness(); renderRestCheck(); renderWeek(); renderToday();
 }
 
 /* ================= daily energy ================= */
@@ -1558,10 +1529,10 @@ function renderEnergyChart() {
 function renderReadiness() {
   var signals = [], score = 0, haveData = false;
 
-  var sortedHR = hrLog.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+  var sortedHR = hrSorted();
   if (sortedHR.length >= 4) {
     haveData = true;
-    var base = Math.round(avg(sortedHR.slice(0, 14).map(function (h) { return h.hr; })));
+    var base = hrBaseline();
     var latest = sortedHR[0], diff = latest.hr - base;
     if (latest.date !== today()) {
       signals.push("No HR logged today — take it on waking for a sharper read. Baseline is " + base + ".");
@@ -1571,7 +1542,7 @@ function renderReadiness() {
     else { score += 1; signals.push("Morning HR " + latest.hr + " is normal (baseline " + base + ")."); }
 
     var streakHigh = 0;
-    for (var i = 0; i < Math.min(4, sortedHR.length); i++) { if (sortedHR[i].hr >= base + 5) streakHigh++; else break; }
+    for (var si = 0; si < Math.min(4, sortedHR.length); si++) { if (sortedHR[si].hr >= base + 5) streakHigh++; else break; }
     if (streakHigh >= 3) { score -= 1; signals.push("That's " + streakHigh + " days running at 5+ above baseline — one of the pull-back criteria on its own."); }
   } else {
     signals.push("Morning HR: " + sortedHR.length + "/4 readings logged — a few more and this starts working.");
@@ -1832,6 +1803,19 @@ function addWeight() {
 }
 
 /* ================= morning HR ================= */
+/* Once there is enough history, leave the last three days out of the baseline —
+   otherwise a run of elevated mornings raises the very number it is measured
+   against, and a genuine flag reads as normal. */
+function hrSorted() {
+  return hrLog.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+}
+function hrBaseline() {
+  var sorted = hrSorted();
+  if (sorted.length < 4) return null;
+  var pool = sorted.length >= 10 ? sorted.slice(3, 21) : sorted.slice(0, 14);
+  if (!pool.length) pool = sorted.slice(0, 14);
+  return Math.round(avg(pool.map(function (h) { return h.hr; })));
+}
 function renderHR() {
   var asc = hrLog.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
   var host = $("hrChart");
@@ -1840,7 +1824,7 @@ function renderHR() {
     $("hrLog").innerHTML = ""; return;
   }
   var desc = asc.slice().reverse();
-  var base = Math.round(avg(desc.slice(0, 14).map(function (h) { return h.hr; })));
+  var base = hrBaseline();
   var trimmed = asc.slice(-45);
   host.innerHTML = '<div class="chart-wrap">' +
     '<div class="chart-head"><span class="chart-title">Morning HR</span>' +
@@ -2127,7 +2111,32 @@ function renderVdot() {
       : '<div class="note flat" style="margin-bottom:10px"><b>Level with block start</b>Log another benchmark and the trend starts telling you something.</div>')
     : '<div class="note flat" style="margin-bottom:10px"><b>Baseline only</b>This is computed from your block-start times. Log a benchmark test on a deload week and the line starts moving.</div>';
 
-  el.innerHTML = lean + progress + head + byDist +
+  var goalV = Math.max(vdotFor(5000, 1009.9), vdotFor(1609, 289.9));
+  var LEVELS = [
+    [40, "Untrained"], [46, "Active"], [51, "Runs regularly"], [56, "Good club runner"],
+    [61, "Strong club runner"], [66, "County level"], [71, "National level"], [76, "International"]
+  ];
+  var band = LEVELS[0][1];
+  LEVELS.forEach(function (L) { if (cur >= L[0]) band = L[1]; });
+  var pos = function (v) { return Math.max(0, Math.min(100, (v - 38) / (78 - 38) * 100)); };
+
+  var explain = '<div class="note good" style="margin-bottom:10px"><b>What ' + cur.toFixed(0) + ' actually means</b>' +
+    "VDOT is just a single number for aerobic fitness — how much oxygen your body can use, and how much of that you can hold onto for a race. Higher is fitter, and one point is worth roughly 12–15 seconds over 5K.<br><br>" +
+    "<b style=\"color:var(--chalk)\">Yours is " + cur.toFixed(0) + ", which is " + band.toLowerCase() +
+    " territory — comfortably inside the top few percent of the general population.</b> An untrained man your age sits near 40. Someone who runs a few times a week is around 48–52. National-level distance runners are 70+.<br><br>" +
+    "<b style=\"color:var(--chalk)\">Your three goals need about " + goalV.toFixed(0) + ".</b> " +
+    (cur >= goalV
+      ? "You are already there on paper — the job now is converting it on the day."
+      : "That is " + (goalV - cur).toFixed(1) + " points away. A well-run 10-week block usually buys 2–4 points, so it is well within range.") +
+    '<div class="scale">' +
+      '<span class="scale-mark scale-goal" style="left:' + pos(goalV).toFixed(1) + '%"></span>' +
+      '<span class="scale-mark scale-you" style="left:' + pos(cur).toFixed(1) + '%"></span>' +
+      '<span class="scale-lbl" style="left:' + pos(cur).toFixed(1) + '%;color:var(--chalk)">You ' + cur.toFixed(0) + "</span>" +
+      '<span class="scale-lbl" style="left:' + pos(goalV).toFixed(1) + '%;top:26px;color:var(--go)">Goal ' + goalV.toFixed(0) + "</span>" +
+    "</div>" +
+    '<div class="scale-ticks" style="margin-top:22px"><span>38 untrained</span><span>58 club</span><span>78 elite</span></div></div>';
+
+  el.innerHTML = lean + progress + explain + head + byDist +
     '<div class="block-title" style="font-size:17px;margin-top:16px">Your training paces at this fitness</div>' + paceTbl +
     '<div class="block-title" style="font-size:17px;margin-top:16px">Equivalent performances</div>' + equiv +
     '<div class="note flat" style="margin-top:10px"><b>Why your 400m is not in here</b>VDOT models aerobic power, and a 400m is roughly 60–70% anaerobic. Running one through this formula produces a number, but a meaningless one. Your 400m and 200m progress lives in the benchmark bars above, where it belongs.</div>';
@@ -2141,6 +2150,79 @@ function renderVdot() {
       })
     });
   }
+}
+
+/* ================= when to rest ================= */
+/* The classic pull-back criteria, but scored against logged data instead of
+   left to memory. Two tripped is the threshold — that is the standard rule. */
+function restCriteria() {
+  var out = [];
+
+  var hs = hrSorted();
+  if (hs.length >= 4) {
+    var base = hrBaseline(), run = 0;
+    for (var i = 0; i < hs.length; i++) { if (hs[i].hr >= base + 5) run++; else break; }
+    out.push({ name: "Morning HR 5+ above baseline for 3 days", tripped: run >= 3,
+      detail: run === 0 ? "At baseline (" + base + ")" : run + " day" + (run === 1 ? "" : "s") + " above " + (base + 5) });
+  } else out.push({ name: "Morning HR 5+ above baseline for 3 days", tripped: false, unknown: true,
+    detail: hs.length + "/4 readings — not enough yet" });
+
+  var rated = sessionHistory.filter(function (h) { return h.feel && !isNaN(parseInt(h.feel, 10)); });
+  if (rated.length >= 4) {
+    var recent = avg(rated.slice(0, 2).map(function (h) { return parseInt(h.feel, 10); }));
+    var older = avg(rated.slice(2, 5).map(function (h) { return parseInt(h.feel, 10); }));
+    out.push({ name: "Sessions feeling harder at the same pace", tripped: recent - older >= 0.7,
+      detail: older.toFixed(1) + " → " + recent.toFixed(1) + "/5" });
+  } else out.push({ name: "Sessions feeling harder at the same pace", tripped: false, unknown: true,
+    detail: rated.length + "/4 rated sessions" });
+
+  var eSer = energySeries(4);
+  var low = 0;
+  for (var j = eSer.length - 1; j >= 0; j--) { if (eSer[j].v <= 2) low++; else break; }
+  out.push({ name: "Energy at 2/5 or below, two days running", tripped: low >= 2,
+    detail: eSer.length ? (low ? low + " low day" + (low === 1 ? "" : "s") : "Last rated " + eSer[eSer.length - 1].v + "/5") : "Nothing rated yet",
+    unknown: !eSer.length });
+
+  var ng = activeNiggles().filter(function (n) { return n.sev >= 2; });
+  out.push({ name: "A niggle at severity 2 or above", tripped: ng.length > 0,
+    detail: ng.length ? ng.map(function (n) { return n.area + " (" + n.sev + ")"; }).join(", ") : "Nothing live" });
+
+  var w = sortedWeights().reverse();
+  if (w.length >= 8) {
+    var r7 = avg(w.slice(0, 7).map(function (x) { return x.weight; }));
+    var p7 = avg(w.slice(7, 14).map(function (x) { return x.weight; }));
+    out.push({ name: "Weight falling faster than 1.5 lb a week", tripped: (p7 - r7) > 1.5,
+      detail: (r7 - p7 >= 0 ? "+" : "") + (r7 - p7).toFixed(1) + " lb this week" });
+  } else out.push({ name: "Weight falling faster than 1.5 lb a week", tripped: false, unknown: true,
+    detail: w.length + "/8 weigh-ins" });
+
+  return out;
+}
+function renderRestCheck() {
+  var el = $("restCheck"); if (!el) return;
+  var c = restCriteria();
+  var n = c.filter(function (x) { return x.tripped; }).length;
+  var verdict = n >= 2
+    ? { cls: "stop", t: n + " of these are tripped — back off",
+        b: "Two or more together is the line. Swap today for full rest or an easy 20 minutes, drop the max-speed work for a fortnight, and add a rest day. Keep calories where they are — never cut as a response to fatigue. If it does not clear in two weeks, bring the deload week forward rather than waiting for it." }
+    : n === 1
+    ? { cls: "warn", t: "One tripped — watch it",
+        b: "One on its own is not a reason to change the plan. Run the session as written, do not add anything on top, and if a second one trips this week, back off then." }
+    : { cls: "good", t: "Nothing tripped — train as planned",
+        b: "All clear on what you have logged. The two criteria this cannot see for you are sleep quality dropping off and soreness that does not clear within 48 hours — you have to judge those yourself." };
+
+  el.innerHTML = '<div class="note ' + verdict.cls + '" style="margin-bottom:10px"><b>' + esc(verdict.t) + "</b>" + esc(verdict.b) + "</div>" +
+    c.map(function (x) {
+      var mark = x.tripped ? "✕" : x.unknown ? "–" : "✓";
+      var col = x.tripped ? "var(--track-bright)" : x.unknown ? "var(--muted-2)" : "var(--go)";
+      return '<div class="log-item"><span class="l-main" style="font-family:var(--f-body);font-size:12.8px;font-weight:400">' +
+        '<b style="color:' + col + ';font-family:var(--f-mono);margin-right:8px">' + mark + "</b>" + esc(x.name) + "</span>" +
+        '<span class="l-body">' + esc(x.detail) + "</span></div>";
+    }).join("") +
+    '<div class="log-item"><span class="l-main" style="font-family:var(--f-body);font-size:12.8px;font-weight:400">' +
+    '<b style="color:var(--muted-2);font-family:var(--f-mono);margin-right:8px">–</b>Sleep quality or motivation dropping off</span><span class="l-body">Your call</span></div>' +
+    '<div class="log-item"><span class="l-main" style="font-family:var(--f-body);font-size:12.8px;font-weight:400">' +
+    '<b style="color:var(--muted-2);font-family:var(--f-mono);margin-right:8px">–</b>Soreness not clearing within 48h</span><span class="l-body">Your call</span></div>';
 }
 
 /* ================= session history ================= */
@@ -2184,14 +2266,14 @@ var REVERSE = [1850, 1925, 2000, 2075, 2150, 2225, 2300];
    no oats, since coeliac makes those a deliberate test rather than a default. */
 var LADDER = [
   { label: "Start", change: "The diet as written", kcal: 1800 },
-  { label: "1", change: "Dinner potato <b>+100g</b>", kcal: 1875 },
-  { label: "2", change: "Evening pomegranate <b>+100g</b>, or honey +25g", kcal: 1950 },
-  { label: "3", change: "Breakfast <b>+2 GF rice cakes</b>", kcal: 2025 },
-  { label: "4", change: "<b>One small banana</b> into the lunch smoothie", kcal: 2100 },
-  { label: "5", change: "Dinner potato <b>+100g</b> again", kcal: 2175 },
-  { label: "6", change: "Dinner <b>+150g sweet potato</b> alongside", kcal: 2250 },
-  { label: "7", change: "Evening honey <b>+25g</b> and more berries", kcal: 2325 },
-  { label: "8+", change: "Same pattern until the 7-day average genuinely rises two weeks running", kcal: null }
+  { label: "1", change: "<b>Dinner</b> — rice or potato", kcal: 1875 },
+  { label: "2", change: "<b>Evening</b> — grapes or honey", kcal: 1950 },
+  { label: "3", change: "<b>Breakfast</b> — rice cakes or rice", kcal: 2025 },
+  { label: "4", change: "<b>Lunch smoothie</b> — a banana", kcal: 2100 },
+  { label: "5", change: "<b>Dinner</b> — another unit", kcal: 2175 },
+  { label: "6", change: "<b>Breakfast</b> — another unit", kcal: 2250 },
+  { label: "7", change: "<b>Dinner</b> — another unit", kcal: 2325 },
+  { label: "8+", change: "Same pattern until the 7-day average rises two weeks running", kcal: null }
 ];
 function renderReverseTable() {
   var cur = settings.kcal || 1850;
@@ -2633,7 +2715,8 @@ function showTab(name) {
   document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (name === "progress") { renderWeight(); renderHR(); renderVdot(); }
+  if (name === "progress") { renderWeight(); renderHR(); renderTdee(); }
+  if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); }
 }
 
 /* ================= init ================= */
@@ -2657,7 +2740,7 @@ function renderAll() {
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
-  renderEnergy(); renderEnergyChart();
+  renderEnergy(); renderEnergyChart(); renderRestCheck();
   $("intakeInput").value = settings.intake || "";
   renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
@@ -2728,7 +2811,7 @@ function renderStartInfo() {
     else if (el.dataset.delnig) {
       niggleLog = niggleLog.filter(function (n) { return n.id !== el.dataset.delnig; });
       DB.set("niggle-log", niggleLog);
-      renderNiggles(); renderReadiness(); renderWeek(); renderToday();
+      renderNiggles(); renderReadiness(); renderRestCheck(); renderWeek(); renderToday();
     }
     else if (el.dataset.delret) {
       retinolLog = retinolLog.filter(function (d2) { return d2 !== el.dataset.delret; });
