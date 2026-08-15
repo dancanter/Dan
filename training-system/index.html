@@ -370,6 +370,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
+      <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
+      <div id="vdotOut"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Test History</h2>
       <div id="pbHistory"></div>
     </section>
@@ -1938,7 +1944,7 @@ function logPB() {
   pbLog.unshift({ id: String(Date.now()), date: today(), dist: id, raw: raw, sec: sec });
   DB.set("pb-log", pbLog);
   $("pbTimeInput").value = "";
-  renderPBHistory(); renderBench();
+  renderPBHistory(); renderBench(); renderVdot();
 }
 
 /* ================= adaptation ================= */
@@ -2007,6 +2013,137 @@ function renderAdapt() {
       return { y: feels[i], label: "W" + h.week + "  " + h.feel + (h.actual && h.actual !== "—" ? "  " + h.actual : "") };
     })
   });
+}
+
+/* ================= VDOT / aerobic fitness ================= */
+/* Daniels' VDOT: estimate oxygen cost at race velocity, divide by the fraction
+   of VO2max sustainable for that duration. Valid from about 1500m upward — a
+   400m is anaerobic and running it through this produces a fantasy number. */
+var AEROBIC = { "800": 800, "1000": 1000, "mile": 1609, "5k": 5000 };
+
+function vdotFor(distM, sec) {
+  var t = sec / 60, v = distM / t;
+  var vo2 = -4.60 + 0.182258 * v + 0.000104 * v * v;
+  var pct = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+  return vo2 / pct;
+}
+/* invert the oxygen-cost curve to get the velocity that costs a given VO2 */
+function paceAtPct(vd, pct) {
+  var target = vd * pct;
+  var a = 0.000104, b = 0.182258, c = -(4.60 + target);
+  var v = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+  return 60000 / v; /* seconds per km */
+}
+function timeAt(vd, distM) {
+  /* solve for the time whose VDOT equals vd at this distance */
+  var lo = 30, hi = 3600, mid;
+  for (var i = 0; i < 60; i++) {
+    mid = (lo + hi) / 2;
+    if (vdotFor(distM, mid) > vd) lo = mid; else hi = mid;
+  }
+  return mid;
+}
+function aerobicTests() {
+  var out = [];
+  BENCH.forEach(function (b) {
+    if (AEROBIC[b.id]) out.push({ date: "block start", dist: b.id, sec: b.start, baseline: true,
+      vdot: vdotFor(AEROBIC[b.id], b.start) });
+  });
+  pbLog.slice().reverse().forEach(function (pb) {
+    if (AEROBIC[pb.dist]) out.push({ date: pb.date, dist: pb.dist, sec: pb.sec,
+      vdot: vdotFor(AEROBIC[pb.dist], pb.sec) });
+  });
+  return out;
+}
+function renderVdot() {
+  var el = $("vdotOut"); if (!el) return;
+  var lbl = { "800": "800m", "1000": "1000m", mile: "Mile", "5k": "5K" };
+  var tests = aerobicTests();
+  var live = tests.filter(function (t) { return !t.baseline; });
+  var baselines = {};
+  tests.forEach(function (t) { if (t.baseline) baselines[t.dist] = t.vdot; });
+  /* Compare like with like. A speed-leaning athlete's mile VDOT sits well above
+     their 5K VDOT, so measuring a new 5K against the mile baseline reports a
+     personal best as a decline. */
+  var best = null;
+  live.forEach(function (t) { if (!best || t.vdot > best.vdot) best = t; });
+  var cur = best ? best.vdot : Math.max.apply(null, Object.keys(baselines).map(function (k) { return baselines[k]; }));
+  var base = best ? baselines[best.dist] : cur;
+  var delta = cur - base;
+  var head = '<div class="chart-wrap"><div class="chart-head">' +
+    '<span class="chart-title">Current VDOT</span>' +
+    '<span class="chart-val" style="font-size:26px">' + cur.toFixed(1) +
+    '<small>≈ ' + cur.toFixed(0) + ' ml/kg/min' +
+    (best ? " · from your " + lbl[best.dist] + ", " + (delta >= 0 ? "+" : "") + delta.toFixed(1) + " on block start" : "") + "</small></span></div>";
+
+  if (tests.length >= 2) {
+    head += '<div id="vdotInner" style="position:relative"></div>' +
+      '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>Every aerobic test, oldest first · higher is fitter</span></div>';
+  }
+  head += "</div>";
+
+  var byDist = '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref">' +
+    "<thead><tr><th>Test</th><th>Time</th><th>Implies</th></tr></thead><tbody>" +
+    tests.slice().reverse().slice(0, 8).map(function (t) {
+      return "<tr><td>" + esc(lbl[t.dist]) + '<span class="sub">' + esc(t.date) + "</span></td>" +
+        '<td class="hl">' + fmtResult(t.sec) + "</td>" +
+        '<td class="hl">VDOT ' + t.vdot.toFixed(1) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  var paces = [
+    ["Easy", 0.70, "Your long run. If it feels too slow, it is correct."],
+    ["Threshold", 0.88, "The 25–32 min continuous run."],
+    ["Interval", 0.98, "The 5 × 1km reps."],
+    ["Repetition", 1.06, "Short, fast reps."]
+  ];
+  var paceTbl = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Zone</th><th>Pace</th><th>Where it is used</th></tr></thead><tbody>" +
+    paces.map(function (pz) {
+      return "<tr><td><b>" + pz[0] + "</b></td>" + '<td class="hl">' + fmtSec(paceAtPct(cur, pz[1])) + "/km</td>" +
+        "<td>" + esc(pz[2]) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  var equiv = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Distance</th><th>What this fitness is worth</th></tr></thead><tbody>" +
+    [["800m", 800], ["1000m", 1000], ["Mile", 1609], ["3K", 3000], ["5K", 5000]].map(function (d) {
+      return "<tr><td>" + d[0] + '</td><td class="hl">' + fmtResult(timeAt(cur, d[1])) + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  /* a mile VDOT well above the 5K VDOT means speed-leaning, and vice versa */
+  var mileT = tests.filter(function (t) { return t.dist === "mile"; }).pop();
+  var fiveT = tests.filter(function (t) { return t.dist === "5k"; }).pop();
+  var lean = "";
+  if (mileT && fiveT) {
+    var gap = mileT.vdot - fiveT.vdot;
+    if (gap >= 1.2) lean = '<div class="note warn" style="margin-bottom:10px"><b>You are speed-leaning</b>Your mile implies VDOT ' +
+      mileT.vdot.toFixed(1) + " but your 5K implies " + fiveT.vdot.toFixed(1) +
+      ". Evenly trained, those match. The gap says your aerobic endurance is the side with room in it — which is what the easy long run and the threshold are for.</div>";
+    else if (gap <= -1.2) lean = '<div class="note warn" style="margin-bottom:10px"><b>You are endurance-leaning</b>Your 5K implies VDOT ' +
+      fiveT.vdot.toFixed(1) + " against " + mileT.vdot.toFixed(1) +
+      " from the mile. Your engine is ahead of your speed, so the sprint and mile-pace work is where the gains are sitting.</div>";
+  }
+
+  var progress = live.length
+    ? (delta >= 0.5 ? '<div class="note good" style="margin-bottom:10px"><b>Fitness is up ' + delta.toFixed(1) + ' VDOT points on your ' + esc(lbl[best.dist]) + '</b>Worth roughly ' +
+        Math.abs(timeAt(base, 5000) - timeAt(cur, 5000)).toFixed(0) + " seconds over 5K against where you started the block. That is measured, not felt.</div>"
+      : delta <= -0.5 ? '<div class="note warn" style="margin-bottom:10px"><b>Down ' + Math.abs(delta).toFixed(1) + ' VDOT points on block start</b>One test is not a trend, and heat alone costs several points on the day. Check it against your energy log and morning HR before reading anything into it.</div>'
+      : '<div class="note flat" style="margin-bottom:10px"><b>Level with block start</b>Log another benchmark and the trend starts telling you something.</div>')
+    : '<div class="note flat" style="margin-bottom:10px"><b>Baseline only</b>This is computed from your block-start times. Log a benchmark test on a deload week and the line starts moving.</div>';
+
+  el.innerHTML = lean + progress + head + byDist +
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Your training paces at this fitness</div>' + paceTbl +
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Equivalent performances</div>' + equiv +
+    '<div class="note flat" style="margin-top:10px"><b>Why your 400m is not in here</b>VDOT models aerobic power, and a 400m is roughly 60–70% anaerobic. Running one through this formula produces a number, but a meaningless one. Your 400m and 200m progress lives in the benchmark bars above, where it belongs.</div>';
+
+  if (tests.length >= 2) {
+    lineChart($("vdotInner"), {
+      uid: "v", height: 100, color: "#F2EFE9", dots: true, minSpan: 3,
+      aria: "Estimated VDOT across logged aerobic tests",
+      points: tests.map(function (t) {
+        return { y: t.vdot, label: t.date + "  " + lbl[t.dist] + " " + fmtResult(t.sec) + "  VDOT " + t.vdot.toFixed(1) };
+      })
+    });
+  }
 }
 
 /* ================= session history ================= */
@@ -2499,7 +2636,7 @@ function showTab(name) {
   document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (name === "progress") { renderWeight(); renderHR(); }
+  if (name === "progress") { renderWeight(); renderHR(); renderVdot(); }
 }
 
 /* ================= init ================= */
@@ -2520,7 +2657,7 @@ function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
-  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
+  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart();

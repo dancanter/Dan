@@ -85,6 +85,16 @@ time and the target has closed, morning HR against its baseline-plus-5 flag line
 weight against the 122–124 lb goal band with a 7-day average overlay, and the
 trend readout that says whether to hold, step up or step back.
 
+**Fitness** — an estimated VDOT and VO2max derived from the logged benchmark
+times using Daniels' formulas, charted across the block. Only aerobic tests
+(800m upward) feed it; a 400m is largely anaerobic and would produce a
+meaningless number, so it is excluded and the section says why. It also derives
+the training paces that fitness implies — easy, threshold, interval, repetition
+— and equivalent times at every distance. Comparisons are strictly
+like-for-like: a new 5K is measured against the 5K baseline, never against a
+mile baseline, since a speed-leaning athlete's mile VDOT sits well above their
+5K VDOT and mixing them reports a personal best as a decline.
+
 **Niggles** — log a body part and a severity (1 aware of it → 4 can't run on it)
 on the days you feel something. It tracks each area's own run of entries, so it
 can tell you it is worsening rather than just present. A live severity-2+ niggle
