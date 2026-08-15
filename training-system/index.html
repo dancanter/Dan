@@ -380,6 +380,20 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Your Actual Maintenance</h2>
+      <p class="block-sub">Worked out from what you've eaten and what the scale has done — not from a formula. This is the only number that is genuinely yours. It needs 14 days of weights to mean anything.</p>
+      <div id="tdeeOut"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0;align-items:center">
+          <label class="chart-title" for="intakeInput" style="min-width:110px">Actual daily intake</label>
+          <input type="text" id="intakeInput" inputmode="numeric" placeholder="e.g. 1799" style="width:110px">
+          <button class="btn primary" id="intakeBtn">Set</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Use what you actually averaged, weighed — not what you planned to eat.</p>
+      </div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Niggles <span class="tag" id="niggleTag"></span></h2>
       <p class="block-sub">A niggle announces itself for a week or two before it becomes an injury. Log it on the days you feel it — readiness reads this, and it will stop you sprinting on a bad hamstring.</p>
       <div id="niggleActive"></div>
@@ -645,6 +659,42 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <div class="note stop"><b>The trap — early glycogen refill</b><span style="font-family:var(--f-mono);font-size:11.5px;display:block;margin:2px 0 4px">122.8 → 123.6 (looks alarming) → 123.5 → 123.4 (settles)</span>That week-2 jump is water and glycogen, not fat. It settles in 1–2 weeks. Do not abort the reverse because of it — this is the most common way people stall themselves.</div>
       </div>
       <p class="block-sub" style="margin-top:10px"><b>When to increase:</b> flat or down 4–5 days at the current step → +75 kcal. Just increased and the weight ticked up → wait another 4–5 days before judging. Up two weeks running after the refill period → you've found maintenance, stop.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Salt Sensitivity — What's Actually Happening</h2>
+      <div class="note stop" style="margin-bottom:10px"><b>It's water, and cutting salt is the wrong fix</b>
+        A gram of sodium holds roughly 100–200ml of water, so a salty day can put 1–3 lb on the scale overnight. It is gone in two or three days and it was never fat. The instinct is to cut sodium — but you are an endurance runner sweating hard in a heat wave, and under-replacing sodium drops your plasma volume, flattens your sessions, brings on cramp and headaches, and raises aldosterone. Higher aldosterone means you retain <em>harder</em> the next time you do eat salt. Chronic salt restriction makes salt sensitivity worse, not better.</div>
+      <div class="note good" style="margin-bottom:10px"><b>The actual lever is potassium, not sodium</b>
+        Fluid balance runs off the sodium-to-potassium <em>ratio</em>, not sodium alone. Push potassium to the top of the 3,500–4,700mg range — avocado, potato with skin, banana, coconut water, leafy greens, salmon, yoghurt — and the same sodium intake retains substantially less water. This is the single most effective thing you can do about puffiness, and it works with your training rather than against it.</div>
+      <div class="note warn"><b>And keep it steady</b>
+        Erratic sodium is what produces the big swings you are noticing. A consistent intake day to day gives you a scale you can actually read; spiking and restricting gives you 3 lb of noise sitting on top of a 0.3 lb weekly signal.</div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">"I Put Loads On When I Eat A Lot"</h2>
+      <div class="note flat" style="margin-bottom:10px"><b>Check the arithmetic — it is physically not fat</b>
+        A pound of fat is 3,500 kcal <em>above</em> maintenance. To put on 3 lb of actual fat in a day you would need to eat about 12,000 calories on top of what you burn. What a big day actually adds is food still in your gut (1–2 lb), glycogen and the water bound to it (a large carb meal stores 2–3 lb of water), and sodium. All of it clears within a few days.</div>
+      <div class="note warn"><b>Why this one matters more than it looks</b>
+        This belief is the single most likely thing to make your reverse diet fail. The reverse works by adding calories back deliberately, and week two of it will put 2 lb on the scale from glycogen water — exactly the pattern you are describing. If you read that as fat and pull the calories back, you stay stuck at 1,800 kcal with a suppressed metabolic rate indefinitely. Knowing it is coming is what gets you through it.</div>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">Cortisol, Puffiness &amp; Looking Lean</h2>
+      <p class="block-sub">What you are describing — holding water, puffiness, a face that changes day to day — is mostly cortisol and fluid distribution, not body fat. These are the levers, in order.</p>
+      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px">
+        <table class="ref"><tbody>
+          <tr><td><b>Enough carbohydrate — yes, really</b><span class="sub">Training hard on low carb availability raises cortisol substantially. The 200–210g on hard days is not a concession, it is the cortisol control. Dropping carbs to accelerate the cut is the fastest way to a puffier face and a worse session in the same week.</span></td></tr>
+          <tr><td><b>Magnesium</b><span class="sub">Lost heavily in sweat, and directly involved in regulating the stress axis and sleep depth. Pumpkin seeds, dark leafy greens, 85% dark chocolate, almonds, avocado. Deficiency is common in endurance athletes and it looks exactly like poor stress tolerance and broken sleep.</span></td></tr>
+          <tr><td><b>Omega-3 — 2–3× a week</b><span class="sub">One of the few dietary interventions shown to blunt the cortisol response to stress, and it works on the inflammation side of puffiness at the same time.</span></td></tr>
+          <tr><td><b>Water, more than you think</b><span class="sub">Counterintuitive but reliable: under-drinking raises ADH and you retain more. 3–3.5L, more in this heat. Chronic mild dehydration is a common cause of the puffiness people blame on salt.</span></td></tr>
+          <tr><td><b>Glycine before bed</b><span class="sub">About 3g lowers core temperature and improves sleep quality in trials. Your collagen peptides already supply it — take them in the evening on days you are not training late and you get both effects from one thing.</span></td></tr>
+          <tr><td><b>Vitamin C</b><span class="sub">Your adrenal glands hold the highest concentration of vitamin C in the body and stress depletes it. Citrus, peppers, berries — daily, and it doubles as the collagen cofactor.</span></td></tr>
+          <tr><td><b>Alcohol — the fastest route to a puffy face</b><span class="sub">One night shows on your face for two days: dehydration, poor sleep architecture, inflammation, and a direct hit to the next day's session. Nothing else on this page moves the needle as fast in the wrong direction.</span></td></tr>
+          <tr><td><b>Sleep, again</b><span class="sub">It is the largest single input to facial puffiness there is, through cortisol and overnight fluid distribution. In a heat wave this is the habit to defend hardest — cool the room properly.</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="note good"><b>The honest summary</b>Adequate carbs, high potassium, steady sodium, plenty of water, real sleep, no alcohol. That combination does more for how lean and defined you look than any further calorie cut would — and unlike a calorie cut, none of it costs you your sessions.</div>
     </section>
 
     <section class="block">
@@ -1710,6 +1760,7 @@ function rollingAvg(vals, n) {
   });
 }
 function renderWeight() {
+  if ($("tdeeOut")) renderTdee();
   var asc = sortedWeights();
   var latest = asc.length ? asc[asc.length - 1].weight : null;
   $("heroWeight").textContent = latest == null ? "—" : latest.toFixed(1);
@@ -2068,6 +2119,58 @@ function stepKcal(delta) {
   settings.kcalSince = today();
   DB.set("settings", settings);
   renderCalStep(); renderReverseTable();
+}
+
+/* ================= empirical TDEE ================= */
+/* Back-calculated from intake against the actual weight trend, which beats any
+   formula: a pound of fat is 3,500 kcal, so the gap between what you ate and
+   what you lost is what you burned. Needs two clean 7-day windows to be worth
+   anything at all. */
+function tdeeEstimate() {
+  var asc = sortedWeights();
+  var intake = settings.intake || settings.kcal || 1850;
+  if (asc.length < 14) return { ok: false, have: asc.length, intake: intake };
+  var early = asc.slice(0, 7), late = asc.slice(-7);
+  var eAvg = avg(early.map(function (w) { return w.weight; }));
+  var lAvg = avg(late.map(function (w) { return w.weight; }));
+  var days = daysBetween(parseDay(early[3].date), parseDay(late[3].date));
+  if (days < 7) return { ok: false, have: asc.length, intake: intake };
+  var deltaLb = lAvg - eAvg;
+  return { ok: true, intake: intake, days: days, deltaLb: deltaLb,
+    perWeek: deltaLb / days * 7,
+    tdee: Math.round(intake - (deltaLb * 3500 / days)) };
+}
+function renderTdee() {
+  var el = $("tdeeOut"); if (!el) return;
+  var r = tdeeEstimate();
+  $("intakeInput").placeholder = "e.g. " + r.intake;
+  if (!r.ok) {
+    el.innerHTML = '<div class="note flat"><b>' + r.have + '/14 days of weights</b>' +
+      "Log daily and this fills in. Below two weeks the water noise is bigger than the fat signal, and any number it produced would be fiction.</div>";
+    return;
+  }
+  var deficit = r.tdee - r.intake;
+  var pct = Math.round(deficit / r.tdee * 100);
+  var title, body, cls;
+  if (Math.abs(r.perWeek) < 0.25) {
+    title = "Maintenance looks like ~" + r.tdee.toLocaleString() + " kcal";
+    body = "Weight has held within " + Math.abs(r.perWeek).toFixed(1) + " lb/week while eating " + r.intake.toLocaleString() +
+      ". If that holds for another two weeks it is real, and the answer is not to eat less — it is to raise the burn side with steps and session quality.";
+    cls = "warn";
+  } else if (r.perWeek < 0) {
+    title = "Burning ~" + r.tdee.toLocaleString() + " kcal · losing " + Math.abs(r.perWeek).toFixed(1) + " lb/week";
+    body = "Eating " + r.intake.toLocaleString() + " against that is a deficit of about " + deficit.toLocaleString() +
+      " kcal a day, roughly " + pct + "%. " + (pct >= 25
+        ? "That is steep for someone running three quality sessions a week. Steep deficits raise cortisol, and cortisol holds water — which is often why the scale looks flatter than the fat loss actually is."
+        : "That is a sustainable rate. Hold it.");
+    cls = pct >= 25 ? "warn" : "good";
+  } else {
+    title = "Gaining " + r.perWeek.toFixed(1) + " lb/week on " + r.intake.toLocaleString() + " kcal";
+    body = "That puts maintenance somewhere below " + r.tdee.toLocaleString() + ". If you have just stepped calories up, give it another week before acting — glycogen water arrives fast and then stops.";
+    cls = "warn";
+  }
+  el.innerHTML = '<div class="note ' + cls + '"><b>' + esc(title) + "</b>" + esc(body) +
+    " <em style=\"color:var(--muted-2)\">(from " + r.days + " days of weights)</em></div>";
 }
 
 /* ================= weekly food checklist ================= */
@@ -2432,7 +2535,8 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
-  renderNiggles(); renderAdaptPicker(); renderStages();
+  renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
+  $("intakeInput").value = settings.intake || "";
   renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderStartInfo() {
@@ -2599,6 +2703,11 @@ function renderStartInfo() {
     $("niggleNote").value = "";
   });
   $("adaptPick").addEventListener("change", renderAdapt);
+  $("intakeBtn").addEventListener("click", function () {
+    var v = parseInt($("intakeInput").value, 10);
+    if (isNaN(v) || v < 800 || v > 6000) { $("intakeInput").focus(); return; }
+    settings.intake = v; DB.set("settings", settings); renderTdee();
+  });
 
   runPace();
 
