@@ -412,6 +412,10 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           <button class="btn" id="clearStart">Clear</button>
         </div>
         <p class="block-sub" id="startInfo" style="margin:10px 0 0"></p>
+        <div class="add-row" style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px">
+          <button class="btn" id="trendOnlyBtn" style="flex:1">Hide daily weights</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Shows only the 7-day average and hides individual daily numbers. Nothing is deleted — the daily figure is mostly water and has never once been the number you act on.</p>
       </div>
     </section>
     <section class="block">
@@ -703,6 +707,18 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           </tbody>
         </table>
       </div>
+
+      <div class="note stop" style="margin-top:12px"><b>March: 129 to 124 in a week was not five pounds of fat</b>
+        Five pounds of fat in seven days needs a deficit of about 17,500 calories — roughly 2,500 a day below maintenance. At your size that is not physically possible. <b style="color:var(--chalk)">That was water, essentially all of it</b>, which is exactly what cutting sodium does.<br><br>
+        And you did look better, because losing interstitial water genuinely does sharpen a face. The catch is what happens next: sodium restriction raises aldosterone, your body gets more aggressive at holding sodium, and the water comes back — often with interest. <b style="color:var(--chalk)">Nothing was gained and nothing was lost except water.</b> Treating it as a template means repeating a trick that expires, and making your scale readings even more volatile than they already are, which given how the mornings are going is the last thing you need.</div>
+
+      <div class="note good" style="margin-bottom:12px;margin-top:8px"><b>What to actually do about the salt</b>
+        You have been adding <em>extra</em> because food tastes flat. So the move is not to cut below target — it is to <b style="color:var(--chalk)">stop adding extra and go back to steady</b>, inside 2,300–3,000mg. Steady is what gives you a scale you can read. Cutting is what gives you a five-pound swing that means nothing.<br><br>
+        Cutting salt would also be actively risky right now: you are running four times a week in a heat wave and drinking 3–3.5L. Restricting sodium while drinking that much drops plasma volume, flattens sessions, brings on cramp and headaches, and at the extreme is genuinely dangerous. <b style="color:var(--chalk)">Push potassium up instead</b> — same effect on how you look, none of the downside.</div>
+
+      <div class="note warn" style="margin-bottom:12px"><b>Losing your taste is itself worth a look</b>
+        Reduced taste sensitivity is a recognised sign of <b style="color:var(--chalk)">zinc deficiency</b> — and you are coeliac (impaired absorption), in a deficit (eating less of it) and an endurance athlete (losing it in sweat). That is three independent risk factors stacked. Oysters are on your weekly list but were never written into an actual meal, which is exactly how these things go missing.<br><br>
+        Add zinc to the bloods you are already getting done for ferritin — it is not on a standard panel, so ask for it by name. If it comes back low, the flat taste, the extra salt and the fatigue may all have been one thing.</div>
 
       <div class="note warn" style="margin-top:12px"><b>The one you waved off, and I am going to raise once more</b>
         You said you are fine with dairy and I took that at face value. But <b style="color:var(--chalk)">"no stomach trouble" is not the same as "no effect on your face"</b> — and at four to five servings a day, dairy is the single biggest untested variable in your diet. It is one of the two most common contributors to facial puffiness and to acne, and the mechanism is not digestive: dairy reliably raises IGF-1, which is implicated in both. Worth knowing that elevated IGF-1 also sits awkwardly beside your ageing goals, even as it helps muscle.<br><br>
@@ -1929,8 +1945,10 @@ function rollingAvg(vals, n) {
 function renderWeight() {
   if ($("tdeeOut")) renderTdee();
   var asc = sortedWeights();
+  var trendOnly = !!settings.trendOnly;
   var latest = asc.length ? asc[asc.length - 1].weight : null;
-  $("heroWeight").textContent = latest == null ? "—" : latest.toFixed(1);
+  var avgNow = asc.length ? avg(asc.slice(-7).map(function (w) { return w.weight; })) : null;
+  $("heroWeight").textContent = latest == null ? "—" : (trendOnly ? avgNow.toFixed(1) : latest.toFixed(1));
 
   var host = $("weightChart");
   if (!asc.length) {
@@ -1942,21 +1960,24 @@ function renderWeight() {
   var vals = asc.map(function (w) { return w.weight; });
   var roll = rollingAvg(vals, 7);
   host.innerHTML = '<div class="chart-wrap">' +
-    '<div class="chart-head"><span class="chart-title">Weight, last ' + Math.min(asc.length, 60) + " readings</span>" +
-    '<span class="chart-val">' + latest.toFixed(1) + ' lb<small>7-day avg ' + roll[roll.length - 1].toFixed(1) + "</small></span></div>" +
+    '<div class="chart-head"><span class="chart-title">' + (trendOnly ? "7-day average" : "Weight, last " + Math.min(asc.length, 60) + " readings") + "</span>" +
+    '<span class="chart-val">' + (trendOnly ? roll[roll.length - 1].toFixed(1) + " lb<small>7-day average</small>"
+      : latest.toFixed(1) + ' lb<small>7-day avg ' + roll[roll.length - 1].toFixed(1) + "</small>") + "</span></div>" +
     '<div id="wcInner" style="position:relative"></div>' +
-    '<div class="chart-legend"><span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>Daily</span>' +
-    '<span style="color:var(--track-bright)"><span class="swatch dash"></span>7-day average</span>' +
+    '<div class="chart-legend">' + (trendOnly ? '' : '<span style="color:var(--chalk)"><span class="swatch" style="background:currentColor"></span>Daily</span>') +
+    '<span style="color:var(--track-bright)"><span class="swatch' + (trendOnly ? '' : ' dash') + '" style="' + (trendOnly ? 'background:currentColor' : '') + '"></span>7-day average</span>' +
     '<span style="color:var(--go)"><span class="swatch" style="background:currentColor"></span>Goal band 122–124</span></div></div>';
 
   var trimmed = asc.slice(-60), trimVals = trimmed.map(function (w) { return w.weight; });
   var trimRoll = rollingAvg(trimVals, 7);
   lineChart($("wcInner"), {
-    uid: "w", height: 104, color: "#F2EFE9", band: [122, 124], minSpan: 3,
-    overlay: trimRoll, overlayColor: "#E2603F",
-    aria: "Body weight over time with 7-day average and 122 to 124 pound goal band",
+    uid: "w", height: 104, color: trendOnly ? "#E2603F" : "#F2EFE9", band: [122, 124], minSpan: 3,
+    overlay: trendOnly ? null : trimRoll, overlayColor: "#E2603F",
+    aria: trendOnly ? "Seven day average body weight over time" : "Body weight over time with 7-day average and 122 to 124 pound goal band",
     points: trimmed.map(function (w, i) {
-      return { y: w.weight, label: w.date + "  " + w.weight.toFixed(1) + " lb  (avg " + trimRoll[i].toFixed(1) + ")" };
+      return trendOnly
+        ? { y: trimRoll[i], label: w.date + "  avg " + trimRoll[i].toFixed(1) + " lb" }
+        : { y: w.weight, label: w.date + "  " + w.weight.toFixed(1) + " lb  (avg " + trimRoll[i].toFixed(1) + ")" };
     })
   });
 
@@ -1964,7 +1985,8 @@ function renderWeight() {
   $("weightLog").innerHTML = desc.slice(0, 14).map(function (w, i) {
     var prev = desc[i + 1], delta = "";
     if (prev) { var diff = w.weight - prev.weight; delta = " · " + (diff > 0 ? "+" : "") + diff.toFixed(1) + " lb"; }
-    return '<div class="log-item"><span class="l-main">' + w.date + "</span><span>" + w.weight.toFixed(1) + " lb" + delta +
+    return '<div class="log-item"><span class="l-main">' + w.date + "</span><span>" +
+      (trendOnly ? '<span style="color:var(--go)">✓ logged</span>' : w.weight.toFixed(1) + " lb" + delta) +
       ' <button class="del" data-delw="' + w.date + '" aria-label="Delete entry">×</button></span></div>';
   }).join("");
   renderTrend();
@@ -2962,7 +2984,12 @@ function renderAll() {
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck();
   $("intakeInput").value = settings.intake || "";
-  renderStartInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
+  renderStartInfo(); renderTrendOnlyBtn(); renderSaveStatus(); renderLaps(); renderPersistBanner();
+}
+function renderTrendOnlyBtn() {
+  var b = $("trendOnlyBtn"); if (!b) return;
+  b.textContent = settings.trendOnly ? "✓ Showing 7-day average only" : "Hide daily weights";
+  b.classList.toggle("on", !!settings.trendOnly);
 }
 function renderStartInfo() {
   var bw = blockWeekNow();
@@ -3068,6 +3095,11 @@ function renderStartInfo() {
     $("weekSelect").value = viewWeek;
     loadWeek(viewWeek);
     renderBlockBar(); renderToday(); renderStartInfo(); renderReflections();
+  });
+  $("trendOnlyBtn").addEventListener("click", function () {
+    settings.trendOnly = !settings.trendOnly;
+    DB.set("settings", settings);
+    renderTrendOnlyBtn(); renderWeight();
   });
   $("clearStart").addEventListener("click", function () {
     settings.startDate = null; DB.set("settings", settings);
