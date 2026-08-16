@@ -174,6 +174,16 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .stage li b{font-weight:600}
 .stage .hold{color:var(--muted);font-size:12.3px;line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px solid var(--line-soft)}
 .stage .hold b{color:var(--warn);font-weight:600}
+.stone{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line-soft)}
+.stone:last-child{border-bottom:none}
+.stone-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);margin-left:4px}
+.stone.done .stone-dot{background:var(--go);border-color:var(--go)}
+.stone.now .stone-dot{background:var(--track);border-color:var(--track);box-shadow:0 0 0 4px var(--track-wash)}
+.stone-w{font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums}
+.stone.done .stone-w{color:var(--muted)}
+.stone.now .stone-w{color:var(--chalk);font-weight:600}
+.stone-when{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.stone.done .stone-when{color:var(--go)}
 .score{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
 .score:last-child{border-bottom:none}
 .score-name{font-size:13.5px}
@@ -369,6 +379,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
   <!-- ============ PROGRESS ============ -->
   <div class="panel" id="panel-progress" role="tabpanel">
+    <section class="block">
+      <h2 class="block-title">Are You On Track</h2>
+      <div id="trackBox"></div>
+    </section>
+
     <section class="block">
       <h2 class="block-title">Weight</h2>
       <div id="trendReadout"></div>
@@ -1953,7 +1968,7 @@ function resetWeightLog() {
   DB.set("weight-archive", archive);
   weightLog = [];
   DB.set("weight-log", weightLog);
-  renderWeight(); renderCalStep(); renderRestCheck(); renderExit();
+  renderWeight(); renderCalStep(); renderRestCheck(); renderExit(); renderTrack();
   $("weightInput").focus();
 }
 
@@ -1963,7 +1978,7 @@ function addWeight() {
   weightLog = weightLog.filter(function (w) { return w.date !== today(); });
   weightLog.push({ date: today(), weight: v });
   DB.set("weight-log", weightLog);
-  inp.value = ""; renderWeight(); renderCalStep();
+  inp.value = ""; renderWeight(); renderCalStep(); renderTrack(); renderExit();
 }
 
 /* ================= morning HR ================= */
@@ -2488,6 +2503,128 @@ function stepKcal(delta) {
   renderCalStep(); renderReverseTable();
 }
 
+/* ================= projection ================= */
+/* Reads the actual 7-day trend against the target and date already committed
+   to, and says plainly whether it lands. Everything here is derived — nothing
+   is a rule of thumb dressed up as a measurement. */
+function projection() {
+  var asc = sortedWeights();
+  var target = settings.exitWeight, date = settings.exitDate;
+  if (!target) return { state: "no-target" };
+  if (asc.length < 8) return { state: "thin", have: asc.length, target: target, date: date };
+
+  var vals = asc.map(function (w) { return w.weight; });
+  var roll = rollingAvg(vals, 7);
+  var cur = roll[roll.length - 1];
+  var start = roll[0];
+  var spanDays = daysBetween(parseDay(asc[0].date), parseDay(asc[asc.length - 1].date)) || 1;
+
+  /* rate from the last fortnight of averages, which is the shortest window
+     where water noise has largely cancelled out */
+  var backIdx = Math.max(0, roll.length - 15);
+  var backDays = daysBetween(parseDay(asc[backIdx].date), parseDay(asc[asc.length - 1].date)) || 1;
+  var perWeek = (cur - roll[backIdx]) / backDays * 7;
+
+  var toGo = cur - target;
+  var daysLeft = date ? daysBetween(parseDay(today()), parseDay(date)) : null;
+  var weeksNeeded = perWeek < -0.05 ? toGo / -perWeek : null;
+  var etaDays = weeksNeeded != null ? Math.round(weeksNeeded * 7) : null;
+  var eta = etaDays != null ? dayStr(new Date(Date.now() + etaDays * 86400000)) : null;
+  var neededRate = (daysLeft && daysLeft > 0) ? toGo / (daysLeft / 7) : null;
+  var projected = daysLeft != null ? cur + perWeek * (daysLeft / 7) : null;
+
+  return { state: "ok", cur: cur, start: start, target: target, date: date, spanDays: spanDays,
+    perWeek: perWeek, toGo: toGo, daysLeft: daysLeft, eta: eta, etaDays: etaDays,
+    neededRate: neededRate, projected: projected, asc: asc, roll: roll };
+}
+
+function stones(pr) {
+  /* one stone per pound between the starting average and the target */
+  var out = [], hi = Math.ceil(pr.start), lo = Math.floor(pr.target);
+  for (var w = hi; w >= lo; w--) {
+    var hitIdx = -1;
+    for (var i = 0; i < pr.roll.length; i++) { if (pr.roll[i] <= w) { hitIdx = i; break; } }
+    var done = hitIdx !== -1;
+    var proj = null;
+    if (!done && pr.perWeek < -0.05) {
+      proj = Math.round((pr.cur - w) / -pr.perWeek * 7);
+      if (proj < 0) proj = 0;
+    }
+    out.push({ w: w, done: done, date: done ? pr.asc[hitIdx].date : null,
+      projDays: proj, isNow: !done && out.every(function (o) { return o.done; }) });
+  }
+  return out;
+}
+
+function renderTrack() {
+  var el = $("trackBox"); if (!el) return;
+  var pr = projection();
+
+  if (pr.state === "no-target") {
+    el.innerHTML = '<div class="note warn"><b>Set your target first</b>Put a stop weight and a date into the stopping rule below, and this fills in — stepping stones, a projected finish, and a straight answer on whether you are going to make it.</div>';
+    return;
+  }
+  if (pr.state === "thin") {
+    el.innerHTML = '<div class="note flat"><b>' + pr.have + '/8 weigh-ins</b>Nothing honest can be said yet. Eight readings is the minimum before a rate means anything — below that you would be reading water.</div>';
+    return;
+  }
+
+  /* fatigue overrides the weight verdict — never recommend a bigger deficit into a hole */
+  var eSer = energySeries(10), lowE = eSer.filter(function (p) { return p.v <= 2; }).length;
+  var rated = sessionHistory.filter(function (h) { return h.feel && !isNaN(parseInt(h.feel, 10)); });
+  var feelUp = false;
+  if (rated.length >= 4) {
+    feelUp = avg(rated.slice(0, 2).map(function (h) { return parseInt(h.feel, 10); })) -
+             avg(rated.slice(2, 5).map(function (h) { return parseInt(h.feel, 10); })) >= 0.7;
+  }
+  var fatigued = (lowE >= 3 && eSer.length >= 5) || feelUp;
+  var tooFast = pr.perWeek <= -1.5;
+  var onTrack = pr.projected != null && pr.projected <= pr.target + 0.2;
+
+  var title, body, cls;
+  if (pr.perWeek >= 0.15) {
+    cls = "stop"; title = "Going the wrong way — up " + pr.perWeek.toFixed(1) + " lb/week";
+    body = "Before changing anything: has intake actually been at target every day, and have steps actually been 12,500+? Those two account for nearly every reversal. If both are genuinely clean and this holds another week, it is real and the intake number needs to come down — but check the two first, because cutting on top of drift just makes you tired at the same weight.";
+  } else if (tooFast) {
+    cls = "warn"; title = "Too fast — " + Math.abs(pr.perWeek).toFixed(1) + " lb/week";
+    body = "Over about 1.3 lb a week at your weight you are taking muscle with the fat, and it shows up in sessions before it shows on the scale. Add 100–150 kcal back as carbs. You will still make the date — you are ahead of the line you need.";
+  } else if (fatigued) {
+    cls = "warn"; title = "Hold — you are running on empty";
+    body = (lowE >= 3 ? "Three or more low-energy days in the last ten. " : "") +
+      (feelUp ? "Sessions are getting harder at unchanged paces. " : "") +
+      "Whatever the weight is doing, this is not the moment to cut further. Take 2–3 days at maintenance — around " + Math.round((settings.intake || 1800) + 500) +
+      " kcal, extra from carbs, protein unchanged — then resume. You will gain a pound of glycogen water and lose it again within days of restarting.";
+  } else if (pr.perWeek > -0.1) {
+    cls = "warn"; title = "Flat — " + pr.cur.toFixed(1) + " lb";
+    body = "No meaningful movement. In order: check intake is actually at target and steps are actually at 12,500–13,000, because drift explains most stalls. If both are clean, <b>add activity before you cut calories</b> — 2,000 more steps or a 20 minute walk costs you nothing in recovery, where another 150 kcal off raises cortisol and holds water. Only if that does nothing after a week should the intake come down, and not below about 1,700.";
+  } else if (onTrack) {
+    cls = "good"; title = "On track — " + Math.abs(pr.perWeek).toFixed(1) + " lb/week";
+    body = "At this rate you reach " + pr.target + " lb around <b>" + pr.eta + "</b>" +
+      (pr.daysLeft != null ? ", which is " + (pr.etaDays <= pr.daysLeft ? (pr.daysLeft - pr.etaDays) + " days clear of your date" : Math.abs(pr.daysLeft - pr.etaDays) + " days past it") : "") +
+      ". Change nothing. The single most common way this goes wrong from here is deciding to speed it up.";
+  } else {
+    var short = (pr.projected - pr.target);
+    cls = "warn"; title = "Behind — projecting " + pr.projected.toFixed(1) + " lb by " + pr.date;
+    body = "That is " + short.toFixed(1) + " lb short. You need " + Math.abs(pr.neededRate).toFixed(1) +
+      " lb/week and you are doing " + Math.abs(pr.perWeek).toFixed(1) +
+      ". In order: confirm intake and steps are genuinely on target, then <b>add activity rather than cutting calories</b> — an extra 2,000 steps is roughly 80–100 kcal with no recovery cost. Only if a clean week changes nothing should intake drop, by 100 kcal, and not below about 1,700.";
+  }
+
+  var st = stones(pr);
+  var stoneHtml = st.map(function (o) {
+    return '<div class="stone' + (o.done ? " done" : o.isNow ? " now" : "") + '">' +
+      '<span class="stone-dot"></span>' +
+      '<span class="stone-w">' + o.w + " lb</span>" +
+      '<span class="stone-when">' + (o.done ? "✓ " + o.date : o.projDays != null ? "~" + o.projDays + " days" : "—") + "</span></div>";
+  }).join("");
+
+  el.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + body + "</div>" +
+    '<div class="chart-wrap"><div class="chart-head"><span class="chart-title">Stepping stones</span>' +
+    '<span class="chart-val">' + pr.cur.toFixed(1) + ' lb<small>7-day avg · ' + pr.toGo.toFixed(1) + " to go</small></span></div>" +
+    stoneHtml +
+    '<div class="chart-legend" style="margin-top:8px"><span>Dates are when the 7-day average first crossed. Projections assume the current rate holds.</span></div></div>';
+}
+
 /* ================= cut exit rule ================= */
 /* A pre-committed stopping condition. The judgement you make now is better than
    the one you will make six weeks into a deficit, so record it while it is good. */
@@ -2930,7 +3067,7 @@ function showTab(name) {
   document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); }
+  if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); renderTrack(); }
   if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); }
 }
 
@@ -2956,7 +3093,7 @@ function renderAll() {
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
-  renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins();
+  renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
   $("exitDate").value = settings.exitDate || "";
   $("exitNote").value = settings.exitNote || "";
@@ -3088,7 +3225,7 @@ function renderStartInfo() {
     settings.exitWeight = isNaN(w) ? null : w;
     settings.exitDate = $("exitDate").value || null;
     settings.exitNote = $("exitNote").value.trim() || null;
-    DB.set("settings", settings); renderExit();
+    DB.set("settings", settings); renderExit(); renderTrack();
   });
   var photosTaken = false;
   $("photoBtn").addEventListener("click", function () {
