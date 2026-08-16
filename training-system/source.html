@@ -375,6 +375,10 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
         <button class="btn primary" id="weightBtn">Log</button>
       </div>
+      <div class="add-row">
+        <button class="btn ghost" id="resetWeightBtn">Start a fresh log</button>
+      </div>
+      <p class="block-sub" style="margin-top:8px">Clears the weight history so a new run reads cleanly from day one. The old entries are archived rather than deleted, and stay in your backup file.</p>
     </section>
     <section class="block">
       <h2 class="block-title">Morning Heart Rate</h2>
@@ -1936,6 +1940,20 @@ function renderTrend() {
   el.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + esc(body) + "</div>";
 }
 
+/* A fresh run needs a clean baseline, but nothing should be genuinely
+   destroyed — the old log moves aside rather than being deleted. */
+function resetWeightLog() {
+  if (!weightLog.length) { $("weightInput").focus(); return; }
+  if (!confirm("Archive " + weightLog.length + " weight entries and start a fresh log?\n\nThey stay in your backup file, but will no longer show in the chart, the trend or the maintenance estimate.")) return;
+  var archive = DB.get("weight-archive", []);
+  archive.push({ archivedAt: today(), entries: weightLog });
+  DB.set("weight-archive", archive);
+  weightLog = [];
+  DB.set("weight-log", weightLog);
+  renderWeight(); renderCalStep(); renderRestCheck(); renderExit();
+  $("weightInput").focus();
+}
+
 function addWeight() {
   var inp = $("weightInput"), v = parseFloat(inp.value);
   if (isNaN(v) || v <= 0) { inp.focus(); return; }
@@ -3096,6 +3114,7 @@ function renderStartInfo() {
   });
 
   $("weightBtn").addEventListener("click", addWeight);
+  $("resetWeightBtn").addEventListener("click", resetWeightLog);
   $("weightInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addWeight(); });
   $("hrBtn").addEventListener("click", addHR);
   $("hrInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addHR(); });
