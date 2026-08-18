@@ -431,6 +431,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           <button class="btn" id="clearStart">Clear</button>
         </div>
         <p class="block-sub" id="startInfo" style="margin:10px 0 0"></p>
+        <div class="add-row" style="margin-top:12px;align-items:center">
+          <label class="chart-title" for="deloadInput" style="min-width:96px">Deload weeks</label>
+          <input type="text" id="deloadInput" placeholder="4, 8, 12" style="width:110px">
+          <button class="btn" id="deloadBtn">Set</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Which weeks run reduced volume. Move them to line up with a holiday or time off, or leave blank for the default 4, 8 and 12. <b>Setting <code>0</code> removes them entirely</b> — not recommended for a 13-week block, but it is your call.</p>
         <div class="add-row" style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px">
           <button class="btn" id="trendOnlyBtn" style="flex:1">Hide daily weights</button>
         </div>
@@ -1105,8 +1111,12 @@ var WEEK_TEMPLATES = {
 /* Weeks 3+ are a pool of sessions you assign to days rather than a fixed
    weekday grid — which day a session lands on depends on how recovery is
    actually going that week. The plan checks the spacing instead of dictating it. */
-var DELOAD_WEEKS = [4, 8, 12];
-function isDeload(w) { return DELOAD_WEEKS.indexOf(w) !== -1; }
+var DELOAD_WEEKS_DEFAULT = [4, 8, 12];
+function deloadWeeks() {
+  var v = settings.deloadWeeks;
+  return (v && v.length) ? v : DELOAD_WEEKS_DEFAULT;
+}
+function isDeload(w) { return deloadWeeks().indexOf(w) !== -1; }
 
 /* One pace (2:57/km, just under mile pace) with the rep length growing, and
    200m work rotating back through — relaxed first time, at 400m race pace the
@@ -1171,11 +1181,13 @@ function layoutFor(w) {
      hard days available are Mon, Wed and Fri. So rather than moving the day,
      move which session sits on it: threshold runs fine on legs tired from the
      long run, and the 5x1km gets a clear rest day either side of it. */
+  /* Sunday long run and Saturday off leave Mon/Wed/Fri as the only three
+     non-adjacent hard days there are — verified, not assumed. */
   return isDeload(w)
-    ? [{ sid: "easy" }, { sid: "thresh", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "run1k", gym: 1 },
+    ? [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
        { sid: "rest", gym: 1 }, { sid: "bench" }, { sid: "rest" }]
-    : [{ sid: "easy" }, { sid: "thresh", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "run1k", gym: 1 },
-       { sid: "rest", gym: 1 }, { sid: "speed" }, { sid: "rest" }];
+    : [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
+       { sid: "rest", gym: 1 }, { sid: "thresh" }, { sid: "rest" }];
 }
 var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -3104,7 +3116,11 @@ function renderAll() {
   $("exitDate").value = settings.exitDate || "";
   $("exitNote").value = settings.exitNote || "";
   $("intakeInput").value = settings.intake || "";
-  renderStartInfo(); renderTrendOnlyBtn(); renderSaveStatus(); renderLaps(); renderPersistBanner();
+  renderStartInfo(); renderTrendOnlyBtn(); renderDeloadInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
+}
+function renderDeloadInfo() {
+  var i = $("deloadInput"); if (!i) return;
+  i.value = settings.deloadWeeks ? settings.deloadWeeks.join(", ") : "";
 }
 function renderTrendOnlyBtn() {
   var b = $("trendOnlyBtn"); if (!b) return;
@@ -3247,6 +3263,14 @@ function renderStartInfo() {
     photosTaken = false;
     $("photoBtn").textContent = "Photos taken"; $("photoBtn").classList.remove("on");
     renderCheckins();
+  });
+  $("deloadBtn").addEventListener("click", function () {
+    var raw = $("deloadInput").value.trim();
+    var list = raw ? raw.split(/[,\s]+/).map(function (x) { return parseInt(x, 10); })
+                        .filter(function (n) { return !isNaN(n) && n >= 0 && n <= 13; }) : [];
+    settings.deloadWeeks = list.length ? list : null;
+    DB.set("settings", settings);
+    renderDeloadInfo(); loadWeek(viewWeek); renderToday();
   });
   $("trendOnlyBtn").addEventListener("click", function () {
     settings.trendOnly = !settings.trendOnly;
