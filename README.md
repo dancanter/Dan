@@ -22,17 +22,17 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 | **Home, after birth** | The same route, switched over: days/weeks since birth, a postnatal checklist, recovery and feeding reads, and a mood check-in |
 | **Baby** | Week-by-week development and size, milestone timeline, optional nickname |
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
-| **Guidance** | 108 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
+| **Guidance** | 110 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
 | **Get Help** | Red-flag symptoms, escalation levels, and movement guidance — reachable without onboarding |
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
-| **Sources** | All 106 references, grouped by evidence tier, with funding conflicts flagged |
+| **Sources** | All 115 references, grouped by evidence tier, with funding conflicts flagged |
 
 ## Design decisions worth explaining
 
-**The daily screen is phase-aware, so the library reaches it.** 108 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
+**The daily screen is phase-aware, so the library reaches it.** 110 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
 
 **Once the baby arrives, Home becomes a different screen — on the same route.** Setting a birth date (not the due date passing, since babies arrive weeks either side) switches Home to weeks-since-birth: a postnatal checklist, recovery and feeding reads, and a mood check-in that surfaces postnatal depression guidance when it's needed. The pregnancy-only tabs disappear, because week-by-week foetal development is actively wrong at that point. Nothing bookmarked or installed breaks.
 
@@ -67,7 +67,8 @@ src/content/
   schema.ts        the contract — Source, Guide, Symptom, Myth, BabyWeek, …
   sources.ts       citation registry, tiered gov → nhs → college → charity → research
   guides/          the Healthy Pregnancy reference, grouped by section
-  babyWeeks.ts     development + size for weeks 4–42, plus milestones
+  babyWeeks.ts     development + size for weeks 1–42, plus milestones
+  equity.ts        maternal health inequalities, and what to do about them
   symptoms.ts      the symptom explorer
   redFlags.ts      urgent escalation content
   myths.ts         the daily myth deck
@@ -77,7 +78,7 @@ src/content/
   index.ts         aggregation + validateContent()
 ```
 
-`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, any week between 4 and 42 without baby data, focus items or suggested reading, any of the 52 weeks after birth without the same, and any reading rule pointing at a guide id that no longer exists — so a content typo is a test failure, not a silently broken screen.
+`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, any week between 1 and 42 without baby data, focus items or suggested reading, any of the 52 weeks after birth without the same, and any reading rule pointing at a guide id that no longer exists — so a content typo is a test failure, not a silently broken screen.
 
 ## Accessibility
 
