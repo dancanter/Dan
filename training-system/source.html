@@ -433,7 +433,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           <input type="text" id="deloadInput" placeholder="4, 8, 12" style="width:110px">
           <button class="btn" id="deloadBtn">Set</button>
         </div>
-        <p class="block-sub" style="margin:9px 0 0">Which weeks run reduced volume. Move them to line up with a holiday or time off, or leave blank for the default 4, 8 and 12. <b>Setting <code>0</code> removes them entirely</b> — not recommended for a 13-week block, but it is your call.</p>
+        <p class="block-sub" style="margin:9px 0 0">Which weeks run reduced volume. Default is <b>8 and 12</b> — week 4 is left as a normal week since Rome is your break. Move them to line up with time off, or set <code>0</code> to remove them entirely.</p>
         <div class="add-row" style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px">
           <button class="btn" id="trendOnlyBtn" style="flex:1">Hide daily weights</button>
         </div>
@@ -748,7 +748,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <tr><td><b>Mobility, 10 min daily</b><span class="sub">Hip flexors, hamstrings, calves, ankles — the four that limit sprint mechanics and tighten up from sitting to study.</span></td></tr>
         <tr><td><b>Easy walking after hard sessions</b><span class="sub">Clears metabolites and adds to your steps without adding training stress.</span></td></tr>
         <tr><td><b>Sauna if you can get one</b><span class="sub">Genuine cardiovascular and longevity evidence, and heat adaptation helps running in warm weather. Non-hard days only, and hydrate properly around it.</span></td></tr>
-        <tr><td><b>Deliberate deload weeks</b><span class="sub">Weeks 4, 8 and 12 are built in. Taking them is what lets the adaptation land — skipping them is the most common way a block like this falls apart.</span></td></tr>
+        <tr><td><b>Deliberate deload weeks</b><span class="sub">Set on the Progress tab, defaulting to 8 and 12. Taking them is what lets the adaptation land — skipping them is the most common way a block like this falls apart. Real time off counts as one.</span></td></tr>
       </tbody></table></div>
     </section>
 
@@ -1108,7 +1108,9 @@ var WEEK_TEMPLATES = {
 /* Weeks 3+ are a pool of sessions you assign to days rather than a fixed
    weekday grid — which day a session lands on depends on how recovery is
    actually going that week. The plan checks the spacing instead of dictating it. */
-var DELOAD_WEEKS_DEFAULT = [4, 8, 12];
+/* Week 4 is deliberately not a deload — Rome covers that slot as real time off.
+   Weeks 8 and 12 stay, and the field in Setup overrides all of it. */
+var DELOAD_WEEKS_DEFAULT = [8, 12];
 function deloadWeeks() {
   var v = settings.deloadWeeks;
   return (v && v.length) ? v : DELOAD_WEEKS_DEFAULT;
@@ -1214,7 +1216,7 @@ function templateForWeek(w) {
     return { phase: phase, note: note, flexible: false, days: WEEK_TEMPLATES[((w - 1) % 4) + 1] };
   }
   note += isDeload(w)
-    ? " Deload week — reduced volume and the 800m benchmark. Taking it is what lets the last three weeks land."
+    ? " Deload week — reduced volume and the 800m benchmark."
     : " Move the sessions to whichever days suit you — the plan flags it if two hard days end up back to back.";
   return { phase: phase, note: note, flexible: true, pool: poolFor(w), layout: layoutFor(w) };
 }
