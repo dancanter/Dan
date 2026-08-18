@@ -1167,11 +1167,15 @@ function poolFor(w) {
 }
 /* index 0 = Sunday, matching the day columns */
 function layoutFor(w) {
+  /* With Saturday off and the long run on Sunday, the only three non-adjacent
+     hard days available are Mon, Wed and Fri. So rather than moving the day,
+     move which session sits on it: threshold runs fine on legs tired from the
+     long run, and the 5x1km gets a clear rest day either side of it. */
   return isDeload(w)
-    ? [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
+    ? [{ sid: "easy" }, { sid: "thresh", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "run1k", gym: 1 },
        { sid: "rest", gym: 1 }, { sid: "bench" }, { sid: "rest" }]
-    : [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
-       { sid: "rest", gym: 1 }, { sid: "thresh" }, { sid: "rest" }];
+    : [{ sid: "easy" }, { sid: "thresh", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "run1k", gym: 1 },
+       { sid: "rest", gym: 1 }, { sid: "speed" }, { sid: "rest" }];
 }
 var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
