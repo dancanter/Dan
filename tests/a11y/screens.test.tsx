@@ -15,6 +15,7 @@ import { LossSupportScreen } from '../../src/screens/LossSupportScreen';
 import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import { AfterBirthScreen } from '../../src/screens/AfterBirthScreen';
+import { EquityScreen } from '../../src/screens/EquityScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -37,6 +38,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Appointments', () => <AppointmentsScreen />],
   ['Get Help', () => <GetHelpScreen />],
   ['Loss support', () => <LossSupportScreen />],
+  ['Inequalities', () => <EquityScreen />],
   ['Journal', () => <JournalScreen />],
   ['Sources', () => <SourcesScreen />],
   ['Methodology', () => <MethodologyScreen />],

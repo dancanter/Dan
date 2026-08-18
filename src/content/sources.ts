@@ -59,6 +59,52 @@ export const sources: Source[] = [
     tier: 'college',
   },
   {
+    id: 'mbrrace-2026',
+    label: 'Saving Lives, Improving Mothers’ Care — UK confidential enquiry into maternal deaths',
+    organisation: 'MBRRACE-UK, 2021–2023 report (Jan 2025) and 2022–2024 report (Jan 2026)',
+    tier: 'gov',
+    caveat:
+      'The published ratios move between annual reports as the rolling three-year window shifts. Figures here are stated as ranges for that reason — check the latest report for the current numbers.',
+  },
+  {
+    id: 'rcog-mbrrace',
+    label: 'Statement on the MBRRACE-UK maternal mortality findings',
+    organisation: 'Royal College of Obstetricians and Gynaecologists, 2025',
+    tier: 'college',
+  },
+  {
+    id: 'weq-black-maternal-health',
+    label: 'Black maternal health — Third Report of Session 2022–23',
+    organisation: 'Women and Equalities Committee, House of Commons, 2023',
+    tier: 'gov',
+  },
+  {
+    id: 'adesina-2025',
+    label: 'Ethnic disparities in UK maternal outcomes',
+    organisation: 'Adesina O, et al. British Journal of Midwifery, 2025',
+    tier: 'research',
+  },
+  {
+    id: 'five-x-more',
+    label: 'Black maternity experiences and advocacy guidance',
+    organisation: 'Five X More',
+    tier: 'charity',
+  },
+  {
+    id: 'birthrights',
+    label: 'Your rights in pregnancy and birth',
+    organisation: 'Birthrights',
+    tier: 'charity',
+  },
+  {
+    id: 'tommys-caffeine',
+    label: 'Limiting your caffeine intake in pregnancy, and the stillbirth research summary',
+    organisation: 'Tommy’s Maternal and Fetal Health Research Centre, 2024',
+    tier: 'charity',
+    caveat:
+      'Observational, so it cannot fully separate caffeine from sugar in cola or taurine in energy drinks. The dose-response pattern tracks caffeine amount closely, which is why the practical advice — treat 200mg as a ceiling, not a target — holds regardless.',
+  },
+  {
     id: 'daley-2010-grassfed',
     label: 'Fatty acid profiles and antioxidant content in grass-fed and grain-fed beef',
     organisation: 'Daley CA, et al. Nutrition Journal 2010;9:10',

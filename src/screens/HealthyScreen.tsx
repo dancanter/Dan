@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useProgress } from '../hooks/useProgress';
 import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
@@ -146,6 +146,15 @@ export function HealthyScreen() {
       {phases.length === 0 && (
         <p className="text-[15px] italic text-soft">
           Nothing matches that yet. Try a different word — or check My Body for symptoms.
+        </p>
+      )}
+
+      {!q && (
+        <p className="mb-6 rounded-xl border border-line bg-sand px-4 py-3 text-[14.5px]">
+          Not everyone gets the same standard of maternity care in the UK.{' '}
+          <Link to="/inequalities" className="font-semibold underline">
+            Inequalities in maternity care →
+          </Link>
         </p>
       )}
 

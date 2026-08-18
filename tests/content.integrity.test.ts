@@ -9,6 +9,7 @@ import {
   redFlags,
   appointments,
   lossSections,
+  equitySections,
   GUIDE_PHASES,
   sectionsInPhase,
   guidesInSection,
@@ -96,6 +97,20 @@ describe('content integrity', () => {
         expect(pregnancyIds.has(item.id), `postnatal item ${item.id}`).toBe(false);
       }
     }
+  });
+
+  it('pairs the inequalities figures with something a reader can act on', () => {
+    expect(equitySections.length).toBeGreaterThan(0);
+    for (const s of equitySections) {
+      expect(s.sourceIds.length, `equity section ${s.id}`).toBeGreaterThan(0);
+    }
+    // The actions are the point of the module — a version of it that only
+    // states disparities and stops would be worse than not shipping it.
+    const actions = equitySections.filter((s) => s.tone === 'action');
+    expect(actions.length).toBeGreaterThan(0);
+    expect(actions.some((s) => s.body.some((p) => /self-refer/i.test(p)))).toBe(true);
+    expect(actions.some((s) => s.body.some((p) => /interpreter/i.test(p)))).toBe(true);
+    expect(actions.some((s) => s.body.some((p) => /second opinion/i.test(p)))).toBe(true);
   });
 
   it('covers every life phase with at least one populated section', () => {

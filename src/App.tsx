@@ -36,6 +36,9 @@ const LossSupportScreen = lazy(() =>
     default: m.LossSupportScreen,
   })),
 );
+const EquityScreen = lazy(() =>
+  import('./screens/EquityScreen').then((m) => ({ default: m.EquityScreen })),
+);
 const MethodologyScreen = lazy(() =>
   import('./screens/MethodologyScreen').then((m) => ({
     default: m.MethodologyScreen,
@@ -90,6 +93,8 @@ function App() {
           <Route path="/help" element={<GetHelpScreen />} />
           {/* Also ungated, and kept off every daily surface — see LossSupportScreen. */}
           <Route path="/loss" element={<LossSupportScreen />} />
+          {/* Ungated too — half of it is what to do when you aren't listened to. */}
+          <Route path="/inequalities" element={<EquityScreen />} />
           <Route path="/journal" element={<JournalScreen />} />
           <Route path="/sources" element={<SourcesScreen />} />
           <Route path="/methodology" element={<MethodologyScreen />} />
@@ -103,6 +108,10 @@ function App() {
           <div className="mx-auto max-w-[920px] font-mono text-[11px] leading-relaxed text-soft">
             <Link to="/methodology" className="underline">
               How this is built
+            </Link>
+            {' · '}
+            <Link to="/inequalities" className="underline">
+              Inequalities in maternity care
             </Link>
             {' · '}
             <Link to="/settings" className="underline">

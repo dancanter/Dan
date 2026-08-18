@@ -10,6 +10,7 @@ import {
 } from './guides';
 import { MIN_WEEK, MAX_WEEK } from './schema';
 import { lossSections, lossIntro } from './loss';
+import { equitySections, equityIntro } from './equity';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -43,6 +44,8 @@ export {
   sectionsInPhase,
   lossSections,
   lossIntro,
+  equitySections,
+  equityIntro,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -128,6 +131,19 @@ export function validateContent(): ContentIssue[] {
   for (const s of lossSections) {
     unique('lossSection', s.id);
     check('Loss section', s.id, s.sourceIds);
+  }
+  for (const s of equitySections) {
+    unique('equitySection', s.id);
+    check('Equity section', s.id, s.sourceIds);
+  }
+
+  // The disparity figures are only defensible if the actions that follow them
+  // are actually present — that pairing is the whole design of the module.
+  if (!equitySections.some((s) => s.tone === 'action')) {
+    issues.push({
+      kind: 'coverage-gap',
+      detail: 'Inequalities module has no actionable section',
+    });
   }
 
   // Duplicate source ids would make the registry lookup silently pick one —

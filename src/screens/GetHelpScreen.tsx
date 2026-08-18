@@ -89,6 +89,20 @@ export function GetHelpScreen() {
           Read more about pregnancy and baby loss →
         </Link>
       </Note>
+
+      {/* Belongs on this screen specifically: the people most likely to have
+        been dismissed are the people most likely to be reading it. */}
+      <Note tone="calm" title="If you don’t feel you’re being listened to">
+        You can ask to speak to a senior midwife, ask for a second opinion, or contact the
+        hospital’s PALS team. If you feel dismissed and still think something is wrong, going back
+        and asking again is always allowed — and there is documented evidence behind that concern,
+        particularly for Black and Asian women.
+        <br />
+        <br />
+        <Link to="/inequalities" className="font-semibold text-mossd underline">
+          Inequalities in maternity care, and what you can do →
+        </Link>
+      </Note>
     </main>
   );
 }

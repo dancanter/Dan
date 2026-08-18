@@ -26,6 +26,7 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
 | **Get Help** | Red-flag symptoms, escalation levels, and movement guidance — reachable without onboarding |
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
+| **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
 | **Sources** | All 106 references, grouped by evidence tier, with funding conflicts flagged |
 
@@ -34,6 +35,8 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 **The daily screen is phase-aware, so the library reaches it.** 108 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
 
 **Once the baby arrives, Home becomes a different screen — on the same route.** Setting a birth date (not the due date passing, since babies arrive weeks either side) switches Home to weeks-since-birth: a postnatal checklist, recovery and feeding reads, and a mood check-in that surfaces postnatal depression guidance when it's needed. The pregnancy-only tabs disappear, because week-by-week foetal development is actively wrong at that point. Nothing bookmarked or installed breaks.
+
+**Disparities are stated, then made actionable.** UK maternal mortality is unevenly distributed — MBRRACE-UK data shows Black women at roughly 2–2.3× the risk of White women, and women in the most deprived areas at ~1.9×. A statistic like that is the wrong thing to drop into a daily checklist, and useless on its own. So it lives on its own route, and every figure is followed by something a reader can use: self-refer without a GP, ask for a professional interpreter, ask for a second opinion, contact PALS, go back and ask again. `validateContent()` fails the build if the actionable section ever disappears.
 
 **Safety content is never gated.** `/help` and `/loss` both render without a due date set. Someone worried at 3am should not hit a setup screen.
 
@@ -78,7 +81,7 @@ src/content/
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all thirteen screens in `npm test`.**
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all fourteen screens in `npm test`.**
 
 ## Running it
 
