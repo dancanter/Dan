@@ -81,14 +81,10 @@ export function usePregnancyProfile() {
     setCurrentWeek: (week: number) =>
       setProfile((p) => ({
         ...p,
-        dueDate: computeDueDateFromCurrentWeek(
-          Math.min(MAX_WEEK, Math.max(MIN_WEEK, week)),
-        ),
+        dueDate: computeDueDateFromCurrentWeek(Math.min(MAX_WEEK, Math.max(MIN_WEEK, week))),
       })),
-    setBabyName: (name: string) =>
-      setProfile((p) => ({ ...p, babyName: name.trim() || null })),
-    setFirstPregnancy: (value: boolean) =>
-      setProfile((p) => ({ ...p, firstPregnancy: value })),
+    setBabyName: (name: string) => setProfile((p) => ({ ...p, babyName: name.trim() || null })),
+    setFirstPregnancy: (value: boolean) => setProfile((p) => ({ ...p, firstPregnancy: value })),
     resetProfile,
   };
 }

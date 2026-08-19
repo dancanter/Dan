@@ -95,6 +95,22 @@ export const postnatalGuides: Guide[] = [
     sourceIds: ['nhs-postnatal-depression', 'tommys-pnd'],
   },
   {
+    id: 'postpartum-psychosis',
+    section: 'postnatal-mind',
+    title: 'Postpartum psychosis — a medical emergency',
+    summary: 'Rare, sudden, and needs same-day help. Not the same as postnatal depression.',
+    emphasis: 'warn',
+    body: [
+      'Postpartum psychosis affects around **1 in every 500 mothers**. It usually begins suddenly in the first two weeks after birth, and it is a medical emergency — not a more severe version of postnatal depression, but a different condition with a different urgency.',
+      '**Signs:** hallucinations (seeing or hearing things that are not there), delusions or beliefs that are out of character and clearly not true, a high or elated mood, talking or thinking much faster than usual, severe confusion, restlessness, feeling suspicious or fearful, acting out of character, or not sleeping at all without feeling tired.',
+      '**Often the person affected does not realise they are unwell.** That is part of the condition, and it is why this entry is written as much for a partner, friend or relative as for a mother. If someone close to you is behaving in a way that seems genuinely out of character in the first weeks after birth, act on it rather than waiting to see.',
+      '**What to do:** call your GP, midwife or health visitor for a same-day assessment, or **call 111**. If you think there is any immediate danger to her or the baby, **call 999 or go to A&E**. Do not leave the person alone while waiting.',
+      '**The outlook is genuinely good.** Most women make a full recovery with the right treatment, usually through a specialist perinatal mental health team or a mother and baby unit, which admits mothers together with their babies rather than separating them.',
+      '**Action on Postpartum Psychosis (APP)** runs a peer support network of women who have been through it, which many people find more useful than anything else in the early weeks.',
+    ],
+    sourceIds: ['nhs-postpartum-psychosis', 'app-network', 'tommys-pnd'],
+  },
+  {
     id: 'sex-contraception-after',
     section: 'recovery',
     title: 'Sex, contraception and fertility after birth',

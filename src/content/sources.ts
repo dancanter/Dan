@@ -7,24 +7,28 @@ export const sources: Source[] = [
     label: 'Nutrition and maternal weight outcomes',
     organisation: 'SACN — UK Department of Health & Social Care, 2026',
     tier: 'gov',
+    reviewed: '2026',
   },
   {
     id: 'nice-ng201-sleep',
     label: 'NG201, evidence review W: Maternal sleep position during pregnancy',
     organisation: 'NICE, August 2021',
     tier: 'gov',
+    reviewed: 'August 2021',
   },
   {
     id: 'nice-ng247',
     label: 'NG247, Maternal and child nutrition',
     organisation: 'NICE, 2025',
     tier: 'gov',
+    reviewed: '2025',
   },
   {
     id: 'mhra-paracetamol',
     label: 'MHRA statement on paracetamol use in pregnancy',
     organisation: 'MHRA via GOV.UK, September 2025',
     tier: 'gov',
+    reviewed: 'September 2025',
   },
 
   // ── NHS ────────────────────────────────────────────────────────────
@@ -59,10 +63,23 @@ export const sources: Source[] = [
     tier: 'college',
   },
   {
+    id: 'nhs-postpartum-psychosis',
+    label: 'Postpartum psychosis',
+    organisation: 'NHS',
+    tier: 'nhs',
+  },
+  {
+    id: 'app-network',
+    label: 'Action on Postpartum Psychosis — support and peer network',
+    organisation: 'APP',
+    tier: 'charity',
+  },
+  {
     id: 'mbrrace-2026',
     label: 'Saving Lives, Improving Mothers’ Care — UK confidential enquiry into maternal deaths',
     organisation: 'MBRRACE-UK, 2021–2023 report (Jan 2025) and 2022–2024 report (Jan 2026)',
     tier: 'gov',
+    reviewed: 'January 2026',
     caveat:
       'The published ratios move between annual reports as the rolling three-year window shifts. Figures here are stated as ranges for that reason — check the latest report for the current numbers.',
   },
@@ -77,6 +94,7 @@ export const sources: Source[] = [
     label: 'Black maternal health — Third Report of Session 2022–23',
     organisation: 'Women and Equalities Committee, House of Commons, 2023',
     tier: 'gov',
+    reviewed: '2023',
   },
   {
     id: 'adesina-2025',
@@ -101,6 +119,7 @@ export const sources: Source[] = [
     label: 'Limiting your caffeine intake in pregnancy, and the stillbirth research summary',
     organisation: 'Tommy’s Maternal and Fetal Health Research Centre, 2024',
     tier: 'charity',
+    reviewed: 'August 2024',
     caveat:
       'Observational, so it cannot fully separate caffeine from sugar in cola or taurine in energy drinks. The dose-response pattern tracks caffeine amount closely, which is why the practical advice — treat 200mg as a ceiling, not a target — holds regardless.',
   },
@@ -114,8 +133,7 @@ export const sources: Source[] = [
   },
   {
     id: 'anderson-2026-dairy',
-    label:
-      'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
+    label: 'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
     organisation: 'Anderson GH, et al. University of Toronto, 2026',
     tier: 'research',
     caveat:
@@ -146,6 +164,7 @@ export const sources: Source[] = [
     label: 'Weight gain in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
+    reviewed: 'March 2026',
   },
   {
     id: 'nhs-mental-health',
@@ -252,12 +271,14 @@ export const sources: Source[] = [
     label: 'Hormones in pregnancy and labour',
     organisation: 'NCT (reviewed February 2025)',
     tier: 'charity',
+    reviewed: 'February 2025',
   },
   {
     id: 'nct-emotions',
     label: 'Common emotions when expecting a baby',
     organisation: 'NCT (reviewed January 2025)',
     tier: 'charity',
+    reviewed: 'January 2025',
   },
   {
     id: 'tommys-sleep-on-side',

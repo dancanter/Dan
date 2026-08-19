@@ -11,13 +11,14 @@ import {
 import { MIN_WEEK, MAX_WEEK } from './schema';
 import { lossSections, lossIntro } from './loss';
 import { equitySections, equityIntro } from './equity';
+import { afterLossSections, afterLossIntro } from './afterLoss';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
 import { appointments } from './appointments';
 import { redFlags, helpTopics } from './redFlags';
+import { urgentSymptoms, urgentById, URGENT_DISCLAIMER } from './urgent';
 import { midwifeQuestions } from './midwifeQuestions';
-import { badges, badgeById, WEEK_BADGES } from './badges';
 import { focusForWeek, noteForWeek, trimesterForWeek, trimesterLabel } from './weeklyFocus';
 import { readsForWeek, weekReadGuideIds, type WeekRead } from './weeklyReads';
 import {
@@ -46,6 +47,8 @@ export {
   lossIntro,
   equitySections,
   equityIntro,
+  afterLossSections,
+  afterLossIntro,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -56,10 +59,10 @@ export {
   appointments,
   redFlags,
   helpTopics,
+  urgentSymptoms,
+  urgentById,
+  URGENT_DISCLAIMER,
   midwifeQuestions,
-  badges,
-  badgeById,
-  WEEK_BADGES,
   focusForWeek,
   noteForWeek,
   trimesterForWeek,
@@ -72,6 +75,7 @@ export {
   POSTNATAL_MAX_WEEK,
 };
 export type { WeekRead };
+export type { UrgentSymptom, UrgentAction } from './urgent';
 
 export interface ContentIssue {
   kind: 'missing-source' | 'duplicate-id' | 'coverage-gap';
@@ -132,9 +136,25 @@ export function validateContent(): ContentIssue[] {
     unique('lossSection', s.id);
     check('Loss section', s.id, s.sourceIds);
   }
+  for (const s of urgentSymptoms) {
+    unique('urgentSymptom', s.id);
+    check('Urgent symptom', s.id, s.sourceIds);
+    // The three-part structure is the safety design — an entry missing its
+    // action line would leave someone with an explanation and no instruction.
+    if (!s.now.trim()) {
+      issues.push({ kind: 'coverage-gap', detail: `Urgent symptom "${s.id}" has no action line` });
+    }
+    if (!s.why.trim()) {
+      issues.push({ kind: 'coverage-gap', detail: `Urgent symptom "${s.id}" has no explanation` });
+    }
+  }
   for (const s of equitySections) {
     unique('equitySection', s.id);
     check('Equity section', s.id, s.sourceIds);
+  }
+  for (const s of afterLossSections) {
+    unique('afterLossSection', s.id);
+    check('After-loss section', s.id, s.sourceIds);
   }
 
   // The disparity figures are only defensible if the actions that follow them
@@ -225,15 +245,6 @@ export function validateContent(): ContentIssue[] {
       issues.push({
         kind: 'coverage-gap',
         detail: `No suggested reading ${w} weeks after birth`,
-      });
-    }
-  }
-
-  for (const badgeRef of WEEK_BADGES) {
-    if (!badgeById.has(badgeRef.badgeId)) {
-      issues.push({
-        kind: 'missing-source',
-        detail: `WEEK_BADGES references unknown badge "${badgeRef.badgeId}"`,
       });
     }
   }

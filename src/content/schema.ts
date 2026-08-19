@@ -14,6 +14,12 @@ export interface Source {
   organisation: string;
   tier: 'gov' | 'nhs' | 'college' | 'charity' | 'research';
   url?: string;
+  /**
+   * When the source itself was last reviewed or published, shown to the
+   * reader. Optional and deliberately left empty rather than guessed —
+   * a fabricated review date is worse than a missing one.
+   */
+  reviewed?: string;
   /** Conflicts of interest, funding caveats, "background only" notes. */
   caveat?: string;
 }
@@ -135,10 +141,4 @@ export interface FocusItem {
   id: string;
   text: string;
   sourceIds: string[];
-}
-
-export interface Badge {
-  id: string;
-  title: string;
-  description: string;
 }

@@ -53,9 +53,7 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
       )}
 
       <div aria-live="polite" className="sr-only">
-        {revealed
-          ? `${myth.verdict === 'myth' ? 'Myth' : 'True'}. ${myth.explanation}`
-          : ''}
+        {revealed ? `${myth.verdict === 'myth' ? 'Myth' : 'True'}. ${myth.explanation}` : ''}
       </div>
     </div>
   );

@@ -16,6 +16,10 @@ import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import { AfterBirthScreen } from '../../src/screens/AfterBirthScreen';
 import { EquityScreen } from '../../src/screens/EquityScreen';
+import { MovementsScreen } from '../../src/screens/MovementsScreen';
+import { PregnancyChangedScreen } from '../../src/screens/PregnancyChangedScreen';
+import { AfterLossHomeScreen } from '../../src/screens/AfterLossHomeScreen';
+import { MaternityNumberScreen } from '../../src/screens/GetHelpScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -37,6 +41,10 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Healthy Pregnancy', () => <HealthyScreen />],
   ['Appointments', () => <AppointmentsScreen />],
   ['Get Help', () => <GetHelpScreen />],
+  ['Maternity number', () => <MaternityNumberScreen />],
+  ['Movement journal', () => <MovementsScreen />],
+  ['Pregnancy changed', () => <PregnancyChangedScreen />],
+  ['Support after loss', () => <AfterLossHomeScreen />],
   ['Loss support', () => <LossSupportScreen />],
   ['Inequalities', () => <EquityScreen />],
   ['Journal', () => <JournalScreen />],

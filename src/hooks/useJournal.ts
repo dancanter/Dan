@@ -66,7 +66,10 @@ export function useJournal() {
     [setEntries],
   );
 
-  const moodHistory = entries.filter((e) => e.kind === 'mood').slice(0, 14).reverse();
+  const moodHistory = entries
+    .filter((e) => e.kind === 'mood')
+    .slice(0, 14)
+    .reverse();
 
   return { entries, add, remove, moodHistory, resetJournal: reset };
 }

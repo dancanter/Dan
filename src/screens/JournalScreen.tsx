@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal, JOURNAL_LABEL, MOODS, type JournalKind } from '../hooks/useJournal';
-import { useProgress } from '../hooks/useProgress';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
@@ -19,7 +18,6 @@ const MOOD_EMOJI = new Map<string, string>(MOODS.map((m) => [m.value, m.emoji]))
 export function JournalScreen() {
   const { currentWeek } = usePregnancyProfile();
   const { entries, add, remove, moodHistory } = useJournal();
-  const { awardBadge } = useProgress();
   useAutoFocusHeading<HTMLHeadingElement>();
 
   const [tab, setTab] = useState<JournalKind>('mood');
@@ -30,8 +28,6 @@ export function JournalScreen() {
     if (!text.trim()) return;
     add(kind, text, currentWeek);
     setDraft('');
-    if (entries.length + 1 >= 5) awardBadge('journal-keeper');
-    if (kind === 'question') awardBadge('question-ready');
   }
 
   return (
@@ -65,9 +61,7 @@ export function JournalScreen() {
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'mood' && (
           <>
-            <p className="text-[15px]">
-              How are you today? No scores, no streaks — just noticing.
-            </p>
+            <p className="text-[15px]">How are you today? No scores, no streaks — just noticing.</p>
             <div className="my-4 flex flex-wrap justify-center gap-2">
               {MOODS.map((m) => (
                 <button
@@ -146,7 +140,9 @@ export function JournalScreen() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={
-                  tab === 'question' ? 'Something to ask…' : 'e.g. heartburn most evenings this week'
+                  tab === 'question'
+                    ? 'Something to ask…'
+                    : 'e.g. heartburn most evenings this week'
                 }
                 className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
               />

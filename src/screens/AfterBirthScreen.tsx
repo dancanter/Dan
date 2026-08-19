@@ -19,7 +19,7 @@ import { Note } from '../components/ui/Note';
  */
 export function AfterBirthScreen() {
   const { babyName, babyAgeDays, babyAgeWeeks } = usePregnancyProfile();
-  const { isTicked, toggleTick, recordVisit, readGuideIds, awardBadge } = useProgress();
+  const { isTicked, toggleTick, recordVisit, readGuideIds } = useProgress();
   const { add: addJournal } = useJournal();
   const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const [mood, setMood] = useState<string | null>(null);
@@ -100,7 +100,6 @@ export function AfterBirthScreen() {
               type="button"
               onClick={() => {
                 addJournal('mood', m.value, null);
-                awardBadge('checked-in');
                 setMood(m.value);
               }}
               aria-pressed={mood === m.value}

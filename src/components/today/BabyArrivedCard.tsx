@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { usePregnancyProfile } from '../../hooks/usePregnancyProfile';
-import { useProgress } from '../../hooks/useProgress';
 import { toISODate } from '../../lib/dates';
 
 /**
@@ -14,7 +13,6 @@ import { toISODate } from '../../lib/dates';
  */
 export function BabyArrivedCard() {
   const { setBirthDate } = usePregnancyProfile();
-  const { awardBadge } = useProgress();
   const [open, setOpen] = useState(false);
   const today = toISODate(new Date());
   const [value, setValue] = useState(today);
@@ -53,7 +51,6 @@ export function BabyArrivedCard() {
           type="button"
           onClick={() => {
             setBirthDate(value);
-            awardBadge('baby-here');
           }}
           disabled={!value}
           className="min-h-11 flex-1 rounded-lg bg-moss px-3 text-sm font-semibold text-white disabled:opacity-50"

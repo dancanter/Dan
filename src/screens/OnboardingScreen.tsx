@@ -48,8 +48,8 @@ export function OnboardingScreen() {
         <h1 className="font-display text-[30px] font-bold">Field Notes</h1>
         <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
         <p className="mt-4 text-[15px] text-soft">
-          Week by week, evidence-based, and honest about what the evidence does and doesn’t say.
-          No account, no tracking — everything stays on your device.
+          Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
+          account, no tracking — everything stays on your device.
         </p>
       </div>
 

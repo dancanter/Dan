@@ -53,9 +53,7 @@ export function SourcesScreen() {
                       <span className="font-semibold">{s.label}</span>
                     )}
                     <div className="text-soft">{s.organisation}</div>
-                    {s.caveat && (
-                      <em className="mt-1 block text-[13.5px] text-soft">{s.caveat}</em>
-                    )}
+                    {s.caveat && <em className="mt-1 block text-[13.5px] text-soft">{s.caveat}</em>}
                   </div>
                 </li>
               ))}

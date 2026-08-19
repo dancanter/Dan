@@ -14,12 +14,7 @@ interface Props {
  * blocking: it's dismissible, focus moves to it for screen readers, and
  * the confetti is skipped entirely under reduced-motion.
  */
-export function MilestoneCelebration({
-  title,
-  message,
-  reduceMotionOverride,
-  onDismiss,
-}: Props) {
+export function MilestoneCelebration({ title, message, reduceMotionOverride, onDismiss }: Props) {
   const reduce = useReducedMotionSafe(reduceMotionOverride);
   const dialogRef = useRef<HTMLDivElement>(null);
 

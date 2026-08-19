@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { usePregnancyProfile } from '../../hooks/usePregnancyProfile';
+import { usePregnancyStatus } from '../../hooks/usePregnancyStatus';
 
 interface Tab {
   to: string;
@@ -22,10 +23,11 @@ const TABS: Tab[] = [
 
 export function AppHeader() {
   const { hasBaby } = usePregnancyProfile();
+  const { isAfterLoss } = usePregnancyStatus();
   // Week-by-week development, the antenatal timeline and the pregnancy
   // symptom explorer are all actively wrong once the baby is here — better
   // gone from the nav than left there giving stale answers.
-  const tabs = TABS.filter((t) => !(hasBaby && t.pregnancyOnly));
+  const tabs = TABS.filter((t) => !((hasBaby || isAfterLoss) && t.pregnancyOnly));
 
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink bg-paper">

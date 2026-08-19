@@ -4,7 +4,7 @@ import { SkipLink } from './components/a11y/SkipLink';
 import { AppHeader } from './components/nav/AppHeader';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { TodayScreen } from './screens/TodayScreen';
-import { GetHelpScreen } from './screens/GetHelpScreen';
+import { GetHelpScreen, UrgentDetailScreen, MaternityNumberScreen } from './screens/GetHelpScreen';
 import { usePregnancyProfile } from './hooks/usePregnancyProfile';
 
 // Onboarding, Today and Get Help load eagerly — the daily entry point and
@@ -36,6 +36,14 @@ const LossSupportScreen = lazy(() =>
     default: m.LossSupportScreen,
   })),
 );
+const PregnancyChangedScreen = lazy(() =>
+  import('./screens/PregnancyChangedScreen').then((m) => ({
+    default: m.PregnancyChangedScreen,
+  })),
+);
+const MovementsScreen = lazy(() =>
+  import('./screens/MovementsScreen').then((m) => ({ default: m.MovementsScreen })),
+);
 const EquityScreen = lazy(() =>
   import('./screens/EquityScreen').then((m) => ({ default: m.EquityScreen })),
 );
@@ -52,10 +60,7 @@ const SettingsScreen = lazy(() =>
 
 function ScreenLoading() {
   return (
-    <p
-      role="status"
-      className="mx-auto max-w-[780px] px-4 py-10 text-[15px] italic text-soft"
-    >
+    <p role="status" className="mx-auto max-w-[780px] px-4 py-10 text-[15px] italic text-soft">
       Loading…
     </p>
   );
@@ -75,13 +80,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={
-              isOnboarded ? (
-                <Navigate to="/today" replace />
-              ) : (
-                <OnboardingScreen />
-              )
-            }
+            element={isOnboarded ? <Navigate to="/today" replace /> : <OnboardingScreen />}
           />
           <Route path="/today" element={<TodayScreen />} />
           <Route path="/baby" element={<BabyScreen />} />
@@ -91,10 +90,17 @@ function App() {
           {/* Reachable with or without onboarding — someone worried should
             never hit a setup wall before the red-flag guidance. */}
           <Route path="/help" element={<GetHelpScreen />} />
+          {/* Eager, like /help itself — an urgent detail screen must never
+            wait on a network fetch for its chunk. */}
+          <Route path="/help/number" element={<MaternityNumberScreen />} />
+          <Route path="/help/:symptomId" element={<UrgentDetailScreen />} />
           {/* Also ungated, and kept off every daily surface — see LossSupportScreen. */}
           <Route path="/loss" element={<LossSupportScreen />} />
           {/* Ungated too — half of it is what to do when you aren't listened to. */}
           <Route path="/inequalities" element={<EquityScreen />} />
+          {/* Ungated: someone may reach this before ever completing setup. */}
+          <Route path="/changed" element={<PregnancyChangedScreen />} />
+          <Route path="/movements" element={<MovementsScreen />} />
           <Route path="/journal" element={<JournalScreen />} />
           <Route path="/sources" element={<SourcesScreen />} />
           <Route path="/methodology" element={<MethodologyScreen />} />
@@ -118,14 +124,14 @@ function App() {
               Settings &amp; accessibility
             </Link>
             <p className="mt-3">
-              © 2026 Dan Canter. Field Notes is an independent, evidence-based
-              pregnancy guide — not a substitute for medical advice, and not
-              clinically reviewed. Always speak to your midwife or GP about your
-              own care.
+              © 2026 Dan Canter. Field Notes is an independent, evidence-based pregnancy guide — not
+              a substitute for medical advice, and not clinically reviewed.{' '}
+              <strong>It cannot check whether you or your baby are well.</strong> Always contact
+              your maternity unit if something feels wrong.
             </p>
             <p className="mt-2">
-              Sourced from NHS, NICE, RCOG and SACN guidance plus named
-              peer-reviewed research. Full references in{' '}
+              Sourced from NHS, NICE, RCOG and SACN guidance plus named peer-reviewed research. Full
+              references in{' '}
               <Link to="/sources" className="underline">
                 Sources
               </Link>

@@ -1,11 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useProgress } from '../hooks/useProgress';
 import { useJournal } from '../hooks/useJournal';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { badges } from '../content';
 import { formatDate } from '../lib/dates';
 import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
 
@@ -20,16 +19,14 @@ export function SettingsScreen() {
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
   const { dueDate, birthDate, setBirthDate, resetProfile } = usePregnancyProfile();
-  const { earnedBadgeIds, currentStreak, daysVisited, resetProgress } = useProgress();
+  const { resetProgress } = useProgress();
   const { resetJournal } = useJournal();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
   const navigate = useNavigate();
 
   function handleReset() {
     if (
-      window.confirm(
-        'This clears your due date, journal, streak and saved progress on this device. Continue?',
-      )
+      window.confirm('This clears your due date, journal and saved notes on this device. Continue?')
     ) {
       resetProfile();
       resetProgress();
@@ -102,31 +99,17 @@ export function SettingsScreen() {
         </p>
       )}
 
-      <SectionHeading>Your progress</SectionHeading>
-      <p className="text-sm text-soft">
-        {currentStreak} day streak · visited on {daysVisited} day{daysVisited === 1 ? '' : 's'}.
-        However often you visit is the right amount.
+      <SectionHeading>If things have changed</SectionHeading>
+      <p className="mb-3 text-sm text-soft">
+        Pause tracking, switch to support after loss, or delete your data. You won’t be asked what
+        happened.
       </p>
-      <ul className="mt-3 grid list-none grid-cols-2 gap-2.5 p-0">
-        {badges.map((b) => {
-          const earned = earnedBadgeIds.includes(b.id);
-          return (
-            <li
-              key={b.id}
-              className={`rounded-xl border p-3 text-center ${
-                earned ? 'border-moss bg-mossp' : 'border-line bg-card opacity-60'
-              }`}
-            >
-              <span className="text-xl" aria-hidden="true">
-                {earned ? '🏅' : '·'}
-              </span>
-              <p className="mt-1 text-sm font-semibold">{b.title}</p>
-              <p className="mt-0.5 text-xs text-soft">{b.description}</p>
-              <span className="sr-only">{earned ? 'Earned' : 'Not yet earned'}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <Link
+        to="/changed"
+        className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-3 text-sm font-semibold no-underline"
+      >
+        My pregnancy has changed
+      </Link>
 
       <SectionHeading>Your details</SectionHeading>
       {dueDate && <p className="text-sm">Due date: {formatDate(dueDate)}</p>}

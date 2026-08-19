@@ -21,7 +21,11 @@ export function BabyScreen() {
 
   return (
     <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-2 border-b-2 border-ink pb-2 text-[25px] outline-none">
+      <h1
+        ref={headingRef}
+        tabIndex={-1}
+        className="mb-2 border-b-2 border-ink pb-2 text-[25px] outline-none"
+      >
         {babyName ? babyName : 'Your Baby'}
       </h1>
       <p className="mb-5 text-[15px] italic text-mossd">What’s developing, week by week.</p>
@@ -30,7 +34,10 @@ export function BabyScreen() {
 
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex h-[92px] w-[92px] flex-none -rotate-4 flex-col items-center justify-center rounded-full border-[1.5px] border-clay bg-clayp">
-          <span className="absolute inset-[7px] rounded-full border border-clay opacity-40" aria-hidden="true" />
+          <span
+            className="absolute inset-[7px] rounded-full border border-clay opacity-40"
+            aria-hidden="true"
+          />
           <b className="font-display text-[30px] leading-none text-clay">{week}</b>
           <span className="label-mono font-normal text-clay">weeks</span>
         </div>
@@ -100,9 +107,9 @@ export function BabyScreen() {
       </div>
 
       <Note tone="calm" title="A note on sizes">
-        The fruit-and-veg comparisons are a rough, friendly guide — babies vary enormously and{' '}
-        {who} being bigger or smaller than “a mango” this week means nothing on its own. Your
-        midwife measuring your bump is the measurement that matters.
+        The fruit-and-veg comparisons are a rough, friendly guide — babies vary enormously and {who}{' '}
+        being bigger or smaller than “a mango” this week means nothing on its own. Your midwife
+        measuring your bump is the measurement that matters.
       </Note>
     </main>
   );

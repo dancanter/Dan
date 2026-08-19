@@ -20,6 +20,23 @@ export const methodologySections: MethodologySection[] = [
     ],
   },
   {
+    id: 'boundary',
+    title: 'What this app cannot do',
+    body: [
+      '**Field Notes never assesses whether you or your baby are well.** It has no way to. It cannot tell you whether a pattern of movements is reassuring, whether a symptom is serious, or whether you need to be seen. Nothing in it should ever be read as a verdict.',
+      'That boundary is why the Movement Journal records times and never a count or a total, why there is no kick counter, and why the "contact your maternity unit" line on that screen is permanent rather than appearing only when the app decides something looks wrong.',
+      'What it can do is help you understand what is happening, prepare for decisions, recognise when to seek care, and get to a phone number quickly. **If something feels wrong, contact your maternity unit — regardless of anything this app says.**',
+    ],
+  },
+  {
+    id: 'review-dates',
+    title: 'Review dates, and where they are missing',
+    body: [
+      'Guidance changes. NHS pages carry review dates, MBRRACE figures shift with each annual report, and a source that was current last year may not be now — so the review date is shown next to the source wherever the source publishes one.',
+      '**Where it is missing, nothing is shown rather than a guess.** A fabricated review date would be worse than an absent one, because it would look like a check that never happened. Filling those gaps is ongoing work, and it is a real limitation of the app as it stands today.',
+    ],
+  },
+  {
     id: 'hierarchy',
     title: 'The evidence hierarchy',
     body: [

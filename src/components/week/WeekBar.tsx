@@ -66,7 +66,9 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
         />
       </div>
       <div className="mt-1.5 flex justify-between font-mono text-[10.5px] text-soft">
-        <span>Week {week} of {DUE_WEEK}</span>
+        <span>
+          Week {week} of {DUE_WEEK}
+        </span>
         <span>
           {daysToGo !== null && daysToGo > 0
             ? `${daysToGo} day${daysToGo === 1 ? '' : 's'} to go`

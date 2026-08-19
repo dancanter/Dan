@@ -13,11 +13,7 @@ export function LossSupportScreen() {
 
   return (
     <main id="main" className="mx-auto max-w-[720px] px-4 pt-8 pb-24">
-      <h1
-        ref={headingRef}
-        tabIndex={-1}
-        className="mb-3 text-[26px] outline-none"
-      >
+      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[26px] outline-none">
         Pregnancy and baby loss
       </h1>
       <p className="mb-7 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[15.5px] leading-relaxed">

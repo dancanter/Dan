@@ -1,7 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal } from '../hooks/useJournal';
-import { useProgress } from '../hooks/useProgress';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { appointments, helpTopics } from '../content';
 import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
@@ -13,7 +12,6 @@ import { RichText } from '../components/ui/RichText';
 export function AppointmentsScreen() {
   const { currentWeek, isOnboarded, firstPregnancy } = usePregnancyProfile();
   const { add: addJournal } = useJournal();
-  const { awardBadge } = useProgress();
   useAutoFocusHeading<HTMLHeadingElement>();
 
   if (!isOnboarded || currentWeek === null) return <Navigate to="/" replace />;
@@ -24,7 +22,10 @@ export function AppointmentsScreen() {
 
   return (
     <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle title="Appointments" strap="What’s coming up, and how to get the most from it." />
+      <ScreenTitle
+        title="Appointments"
+        strap="What’s coming up, and how to get the most from it."
+      />
 
       <Note tone="calm" title="Starting your care">
         You don’t need a GP referral — self-refer for NHS pregnancy care as soon as you know you’re
@@ -84,7 +85,6 @@ export function AppointmentsScreen() {
       <MidwifeQuestionCard
         onSave={(q) => {
           addJournal('question', q, currentWeek);
-          awardBadge('question-ready');
         }}
       />
 
