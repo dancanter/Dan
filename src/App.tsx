@@ -41,6 +41,12 @@ const PregnancyChangedScreen = lazy(() =>
     default: m.PregnancyChangedScreen,
   })),
 );
+const GalleryScreen = lazy(() =>
+  import('./screens/GalleryScreen').then((m) => ({ default: m.GalleryScreen })),
+);
+const PrivacyScreen = lazy(() =>
+  import('./screens/PrivacyScreen').then((m) => ({ default: m.PrivacyScreen })),
+);
 const MovementsScreen = lazy(() =>
   import('./screens/MovementsScreen').then((m) => ({ default: m.MovementsScreen })),
 );
@@ -101,6 +107,8 @@ function App() {
           {/* Ungated: someone may reach this before ever completing setup. */}
           <Route path="/changed" element={<PregnancyChangedScreen />} />
           <Route path="/movements" element={<MovementsScreen />} />
+          <Route path="/gallery" element={<GalleryScreen />} />
+          <Route path="/privacy" element={<PrivacyScreen />} />
           <Route path="/journal" element={<JournalScreen />} />
           <Route path="/sources" element={<SourcesScreen />} />
           <Route path="/methodology" element={<MethodologyScreen />} />
@@ -122,6 +130,10 @@ function App() {
             {' · '}
             <Link to="/settings" className="underline">
               Settings &amp; accessibility
+            </Link>
+            {' · '}
+            <Link to="/privacy" className="underline">
+              Privacy
             </Link>
             <p className="mt-3">
               © 2026 Dan Canter. Field Notes is an independent, evidence-based pregnancy guide — not

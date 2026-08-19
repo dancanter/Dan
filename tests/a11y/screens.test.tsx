@@ -20,6 +20,8 @@ import { MovementsScreen } from '../../src/screens/MovementsScreen';
 import { PregnancyChangedScreen } from '../../src/screens/PregnancyChangedScreen';
 import { AfterLossHomeScreen } from '../../src/screens/AfterLossHomeScreen';
 import { MaternityNumberScreen } from '../../src/screens/GetHelpScreen';
+import { PrivacyScreen } from '../../src/screens/PrivacyScreen';
+import { GalleryScreen } from '../../src/screens/GalleryScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -43,6 +45,8 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Get Help', () => <GetHelpScreen />],
   ['Maternity number', () => <MaternityNumberScreen />],
   ['Movement journal', () => <MovementsScreen />],
+  ['Bump gallery', () => <GalleryScreen />],
+  ['Privacy', () => <PrivacyScreen />],
   ['Pregnancy changed', () => <PregnancyChangedScreen />],
   ['Support after loss', () => <AfterLossHomeScreen />],
   ['Loss support', () => <LossSupportScreen />],

@@ -12,6 +12,7 @@ import { MIN_WEEK, MAX_WEEK } from './schema';
 import { lossSections, lossIntro } from './loss';
 import { equitySections, equityIntro } from './equity';
 import { afterLossSections, afterLossIntro } from './afterLoss';
+import { privacySections } from './privacy';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -49,6 +50,7 @@ export {
   equityIntro,
   afterLossSections,
   afterLossIntro,
+  privacySections,
   babyWeeks,
   babyWeekByNumber,
   milestones,

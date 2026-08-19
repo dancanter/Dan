@@ -191,9 +191,9 @@ export function TodayScreen() {
       <div className="grid grid-cols-2 gap-2">
         {[
           { to: '/journal', label: 'How I’m feeling' },
-          { to: '/journal', label: 'Question for my midwife' },
-          { to: '/body', label: 'Log a symptom' },
           { to: '/movements', label: 'Movement journal' },
+          { to: '/body', label: 'Log a symptom' },
+          { to: '/gallery', label: 'Bump gallery' },
         ].map((a) => (
           <Link
             key={a.label}
