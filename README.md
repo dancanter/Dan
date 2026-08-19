@@ -24,7 +24,7 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 | **Home, after birth** | The same route, switched over: days/weeks since birth, a postnatal checklist, recovery and feeding reads, and a mood check-in |
 | **Baby** | Week-by-week development and size, milestone timeline, optional nickname |
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
-| **Guidance** | 110 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
+| **Guidance** | 111 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
 | **Get Help** | 12 urgent symptoms in plain language, each opening to *what to do now* (one-tap call), *why it matters*, then reassurance where true |
 | **Movement journal** | Times and kinds of movement. Explicitly **not** a kick counter — no count, no target, no verdict |
@@ -33,11 +33,11 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
-| **Sources** | All 115 references, grouped by evidence tier, with funding conflicts flagged |
+| **Sources** | All 117 references, grouped by evidence tier, with funding conflicts flagged |
 
 ## Design decisions worth explaining
 
-**The daily screen is phase-aware, so the library reaches it.** 110 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
+**The daily screen is phase-aware, so the library reaches it.** 111 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
 
 **Once the baby arrives, Home becomes a different screen — on the same route.** Setting a birth date (not the due date passing, since babies arrive weeks either side) switches Home to weeks-since-birth: a postnatal checklist, recovery and feeding reads, and a mood check-in that surfaces postnatal depression guidance when it's needed. The pregnancy-only tabs disappear, because week-by-week foetal development is actively wrong at that point. Nothing bookmarked or installed breaks.
 
@@ -55,7 +55,7 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 
 **No kick counting.** NHS and RCOG guidance is explicit that there's no target number and counting isn't recommended — so the app deliberately does *not* ship a kick counter, and the myth deck says so directly. Same reasoning behind the home-doppler myth card.
 
-**Engagement without guilt.** The source material is deliberately anti-diet-culture, so the mechanics match it: streaks never use loss-framing, days-visited is tracked separately so a gap erases nothing, badges are tied to weeks reached rather than perfect attendance, and milestone celebrations show **once** — someone installing at week 30 gets one warm moment, not five queued pop-ups.
+**Engagement without guilt.** With the scoring gone, what's left has to earn its place honestly: milestone celebrations show **once** — someone installing at week 30 gets one warm moment, not five queued pop-ups — the bump gallery has no completeness indicator, and no screen ever implies you've fallen behind.
 
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
 
