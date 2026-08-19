@@ -22,6 +22,7 @@ import { AfterLossHomeScreen } from '../../src/screens/AfterLossHomeScreen';
 import { MaternityNumberScreen } from '../../src/screens/GetHelpScreen';
 import { PrivacyScreen } from '../../src/screens/PrivacyScreen';
 import { GalleryScreen } from '../../src/screens/GalleryScreen';
+import { ExploreScreen } from '../../src/screens/ExploreScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -37,6 +38,7 @@ function setOnboarded() {
 const SCREENS: [string, () => React.ReactElement][] = [
   ['Onboarding', () => <OnboardingScreen />],
   ['Today', () => <TodayScreen />],
+  ['Explore', () => <ExploreScreen />],
   ['After birth', () => <AfterBirthScreen />],
   ['Baby', () => <BabyScreen />],
   ['My Body', () => <BodyScreen />],

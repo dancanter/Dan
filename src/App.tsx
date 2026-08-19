@@ -41,6 +41,9 @@ const PregnancyChangedScreen = lazy(() =>
     default: m.PregnancyChangedScreen,
   })),
 );
+const ExploreScreen = lazy(() =>
+  import('./screens/ExploreScreen').then((m) => ({ default: m.ExploreScreen })),
+);
 const GalleryScreen = lazy(() =>
   import('./screens/GalleryScreen').then((m) => ({ default: m.GalleryScreen })),
 );
@@ -89,6 +92,7 @@ function App() {
             element={isOnboarded ? <Navigate to="/today" replace /> : <OnboardingScreen />}
           />
           <Route path="/today" element={<TodayScreen />} />
+          <Route path="/explore" element={<ExploreScreen />} />
           <Route path="/baby" element={<BabyScreen />} />
           <Route path="/body" element={<BodyScreen />} />
           <Route path="/healthy" element={<HealthyScreen />} />

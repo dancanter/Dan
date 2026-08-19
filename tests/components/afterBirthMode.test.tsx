@@ -34,6 +34,27 @@ function setRawProfile(profile: Record<string, unknown>) {
   window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
 }
 
+describe('onboarding asks for as little as possible', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+  });
+
+  it('asks only for a due date, and never gates Get Help behind it', async () => {
+    const { OnboardingScreen } = await import('../../src/screens/OnboardingScreen');
+    const { container } = render(
+      <MemoryRouter>
+        <OnboardingScreen />
+      </MemoryRouter>,
+    );
+    const text = container.textContent ?? '';
+    // The first-pregnancy question moved to Appointments, where it is the
+    // first thing that actually changes what someone sees.
+    expect(text).not.toContain('Is this your first pregnancy?');
+    expect(screen.getByRole('link', { name: /get help/i })).toBeDefined();
+  });
+});
+
 describe('the daily screen through the phases', () => {
   beforeEach(() => {
     window.localStorage.clear();

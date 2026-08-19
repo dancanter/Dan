@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { MAX_WEEK, MIN_WEEK } from '../content/schema';
 import { toISODate } from '../lib/dates';
@@ -7,12 +7,11 @@ import { toISODate } from '../lib/dates';
 type Mode = 'due-date' | 'current-week';
 
 export function OnboardingScreen() {
-  const { setDueDate, setCurrentWeek, setFirstPregnancy } = usePregnancyProfile();
+  const { setDueDate, setCurrentWeek } = usePregnancyProfile();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('due-date');
   const [dueDateInput, setDueDateInput] = useState('');
   const [weekInput, setWeekInput] = useState('12');
-  const [first, setFirst] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   function handleSubmit(event: FormEvent) {
@@ -33,7 +32,6 @@ export function OnboardingScreen() {
       }
       setCurrentWeek(week);
     }
-    setFirstPregnancy(first);
     navigate('/today', { replace: true });
   }
 
@@ -50,6 +48,10 @@ export function OnboardingScreen() {
         <p className="mt-4 text-[15px] text-soft">
           Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
           account, no tracking — everything stays on your device.
+        </p>
+        <p className="mt-2 text-[14px] text-soft">
+          Your due date is the only thing needed to start. Anything else is asked later, and only
+          where it changes something.
         </p>
       </div>
 
@@ -108,32 +110,6 @@ export function OnboardingScreen() {
           </div>
         )}
 
-        <fieldset className="border-0 p-0">
-          <legend className="mb-2 text-sm font-semibold">Is this your first pregnancy?</legend>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setFirst(true)}
-              aria-pressed={first}
-              className={toggleClass(first)}
-            >
-              Yes
-            </button>
-            <button
-              type="button"
-              onClick={() => setFirst(false)}
-              aria-pressed={!first}
-              className={toggleClass(!first)}
-            >
-              No
-            </button>
-          </div>
-          <p className="mt-1.5 text-[13px] text-soft">
-            First pregnancies are offered a couple of extra appointments — this just tailors the
-            timeline.
-          </p>
-        </fieldset>
-
         {error && (
           <p role="alert" className="text-sm font-semibold text-alert">
             {error}
@@ -147,9 +123,17 @@ export function OnboardingScreen() {
           Start
         </button>
 
+        <p className="text-center text-[14px] text-soft">
+          Worried about something right now?{' '}
+          <Link to="/help" className="font-semibold underline">
+            Get help
+          </Link>{' '}
+          — no setup needed.
+        </p>
+
         <p className="text-center font-mono text-[10.5px] leading-relaxed text-soft">
-          Not a substitute for medical advice, and not clinically reviewed. Always speak to your
-          midwife or GP about your own care.
+          Not a substitute for medical advice, and not clinically reviewed. It cannot check whether
+          you or your baby are well. Always speak to your midwife or GP about your own care.
         </p>
       </form>
     </main>

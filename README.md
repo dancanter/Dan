@@ -16,6 +16,8 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 
 ## What's in it
 
+Navigation is three layers — **Today**, **Explore**, and **Get Help** — with Get Help visually set apart and permanently one tap away rather than competing with browsing tabs.
+
 | Screen | What it does |
 | --- | --- |
 | **Home** | Week picker, this week's focus checklist, timed reading suggestions, a daily myth card, and a prompt to save for your midwife |
@@ -24,7 +26,10 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
 | **Guidance** | 110 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
-| **Get Help** | Red-flag symptoms, escalation levels, and movement guidance — reachable without onboarding |
+| **Get Help** | 12 urgent symptoms in plain language, each opening to *what to do now* (one-tap call), *why it matters*, then reassurance where true |
+| **Movement journal** | Times and kinds of movement. Explicitly **not** a kick counter — no count, no target, no verdict |
+| **Bump gallery** | Optional weekly photos in IndexedDB, with a time-lapse. No prompts, no completeness indicator |
+| **My pregnancy has changed** | Pause · support after loss · delete (export offered first) · go back. Never asks what happened |
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
@@ -38,7 +43,11 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 
 **Disparities are stated, then made actionable.** UK maternal mortality is unevenly distributed — MBRRACE-UK data shows Black women at roughly 2–2.3× the risk of White women, and women in the most deprived areas at ~1.9×. A statistic like that is the wrong thing to drop into a daily checklist, and useless on its own. So it lives on its own route, and every figure is followed by something a reader can use: self-refer without a GP, ask for a professional interpreter, ask for a second opinion, contact PALS, go back and ask again. `validateContent()` fails the build if the actionable section ever disappears.
 
-**Safety content is never gated.** `/help` and `/loss` both render without a due date set. Someone worried at 3am should not hit a setup screen.
+**Safety content is never gated, and onboarding asks for one thing.** A due date, and nothing else — everything else is asked later, in context, where it first changes something. `/help`, `/loss`, `/inequalities` and `/changed` all render without any setup, and Get Help is linked from the onboarding screen itself.
+
+**The app never assesses whether anyone is well, and says so.** That boundary drives real design decisions rather than sitting in a disclaimer: the Movement Journal stores times and kinds but no count or total, the "contact your maternity unit" line there is permanent rather than appearing when the app decides something looks wrong, and the statement itself renders on every urgent screen. A test asserts *what to do now* precedes *why this matters* on all 12 of them — an explanation above an instruction is the wrong way round for someone frightened.
+
+**No streaks, points or badges.** They were built, then removed on reflection: a streak turns a missed day into a small failure for someone exhausted, and a badge for reaching week 24 rewards the passage of time as though it were earned. What survives is only what a reader gets something back from — entries read, myths turned over, focus items ticked.
 
 **Loss support is deliberately separate.** It has no streaks, no checklists, no week context, and is never surfaced on a daily screen — reachable only when someone goes looking. Tone-shifting content shouldn't ambush anyone mid-checklist.
 
@@ -69,6 +78,9 @@ src/content/
   guides/          the Healthy Pregnancy reference, grouped by section
   babyWeeks.ts     development + size for weeks 1–42, plus milestones
   equity.ts        maternal health inequalities, and what to do about them
+  urgent.ts        the urgent flow — action, then explanation, then reassurance
+  afterLoss.ts     support-after-loss content
+  privacy.ts       the plain-English privacy page
   symptoms.ts      the symptom explorer
   redFlags.ts      urgent escalation content
   myths.ts         the daily myth deck
@@ -82,7 +94,7 @@ src/content/
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all fourteen screens in `npm test`.**
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty screens in `npm test`.**
 
 ## Running it
 

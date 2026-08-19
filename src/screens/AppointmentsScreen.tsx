@@ -10,7 +10,7 @@ import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
 
 export function AppointmentsScreen() {
-  const { currentWeek, isOnboarded, firstPregnancy } = usePregnancyProfile();
+  const { currentWeek, isOnboarded, firstPregnancy, setFirstPregnancy } = usePregnancyProfile();
   const { add: addJournal } = useJournal();
   useAutoFocusHeading<HTMLHeadingElement>();
 
@@ -36,6 +36,38 @@ export function AppointmentsScreen() {
           ? 'First pregnancy: around 10 appointments plus 2 scans.'
           : 'If you’ve given birth before: usually around 7 appointments plus 2 scans.'}
       </Note>
+
+      {/* Asked here rather than in onboarding: this is the first and only
+        place it changes what anyone sees. */}
+      <fieldset className="mb-5 rounded-xl border border-line bg-card px-4 py-3.5">
+        <legend className="px-1 text-sm font-semibold">Is this your first pregnancy?</legend>
+        <p className="mb-2.5 text-[13.5px] text-soft">
+          First pregnancies are offered a couple of extra appointments. This only tailors the
+          timeline below.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setFirstPregnancy(true)}
+            aria-pressed={firstPregnancy}
+            className={`min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+              firstPregnancy ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+            }`}
+          >
+            Yes, my first
+          </button>
+          <button
+            type="button"
+            onClick={() => setFirstPregnancy(false)}
+            aria-pressed={!firstPregnancy}
+            className={`min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+              !firstPregnancy ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+            }`}
+          >
+            I’ve given birth before
+          </button>
+        </div>
+      </fieldset>
 
       {next && (
         <div className="my-4 rounded-xl border border-clay/40 bg-clayp p-4">
