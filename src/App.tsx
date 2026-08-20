@@ -124,6 +124,10 @@ function App() {
       {!onOnboarding && (
         <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">
           <div className="mx-auto max-w-[920px] font-mono text-[11px] leading-relaxed text-soft">
+            <Link to="/explore" className="underline">
+              Everything in the app
+            </Link>
+            {' · '}
             <Link to="/methodology" className="underline">
               How this is built
             </Link>
