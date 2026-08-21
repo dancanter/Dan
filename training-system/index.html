@@ -513,6 +513,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="vdotOut"></div>
     </section>
     <section class="block">
+      <h2 class="block-title">Block Bests</h2>
+      <p class="block-sub">Derived from what you log, so deleting a session corrects them. Beat one and it updates itself.</p>
+      <div id="bestsBox"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Benchmarks</h2>
       <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
       <div id="benchList"></div>
@@ -1234,6 +1240,38 @@ function poolItem(pool, sid) {
   return pool[pool.length - 1];
 }
 
+/* "5 × 1km", "6x400m", "3 x 300" -> reps and rep distance in metres */
+function parseReps(txt) {
+  var m = String(txt || "").match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(km|m)?/i);
+  if (!m) {
+    var one = String(txt || "").match(/^\s*(\d+(?:\.\d+)?)\s*(km|m)\b/i);
+    if (one) return { reps: 1, dist: +one[1] * (one[2].toLowerCase() === "km" ? 1000 : 1) };
+    return null;
+  }
+  var d = +m[2], unit = (m[3] || "").toLowerCase();
+  if (unit === "km") d *= 1000;
+  else if (!unit && d <= 15) d *= 1000;  /* "5 × 1" almost certainly means km */
+  return { reps: +m[1], dist: d };
+}
+/* "3:18, 3:16, 3:15" or "66 67 66" -> seconds */
+function parseSplits(txt) {
+  if (!txt) return [];
+  return String(txt).split(/[,;/]+|\s{2,}|\s(?=\d)/).map(function (x) { return toSec(x.trim()); })
+    .filter(function (n) { return isFinite(n) && n > 0; });
+}
+/* everything derivable from what was typed, so it only gets typed once */
+function deriveSession(d) {
+  var rp = parseReps(d.detail), sp = parseSplits(d.splits);
+  var out = { dist: rp ? rp.dist : null, avgPace: null, bestRep: null };
+  if (sp.length && out.dist) {
+    out.bestRep = Math.min.apply(null, sp);
+    out.avgPace = avg(sp) / (out.dist / 1000);
+  }
+  if (!out.avgPace && d.avgpace) { var m = toSec(d.avgpace); if (isFinite(m)) out.avgPace = m; }
+  if (!out.bestRep && d.bestrep) { var b = toSec(d.bestrep); if (isFinite(b)) out.bestRep = b; }
+  return out;
+}
+
 /* parse a session description into targets */
 function parseSession(desc) {
   var out = { reps: null, dist: null, repSec: null, restSec: null };
@@ -1303,7 +1341,7 @@ function buildWeek(w) {
   var t = templateForWeek(w);
   if (t.flexible) {
     return t.layout.map(function (l, i) {
-      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, detail: "", actual: "", notes: "", feel: "", done: false };
+      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, detail: "", splits: "", avgpace: "", bestrep: "", actual: "", notes: "", feel: "", done: false };
     });
   }
   return t.days.map(function (d) {
@@ -1316,7 +1354,8 @@ function loadWeek(w) {
   var fresh = buildWeek(w);
   if (saved && saved.length === fresh.length) {
     weekData = fresh.map(function (d, i) {
-      var keep = { day: d.day, detail: saved[i].detail || "", actual: saved[i].actual || "",
+      var keep = { day: d.day, detail: saved[i].detail || "", splits: saved[i].splits || "",
+        avgpace: saved[i].avgpace || "", bestrep: saved[i].bestrep || "", actual: saved[i].actual || "",
         notes: saved[i].notes || "", feel: saved[i].feel || "", done: !!saved[i].done };
       if (currentPlan.flexible) {
         /* an assignment the user made survives; anything else falls back to the default */
@@ -1403,6 +1442,16 @@ function sessionOptions(pool, sel) {
   }).join("");
 }
 
+function derivedLine(d) {
+  var v = deriveSession(d);
+  if (!v.avgPace && !v.bestRep) return "";
+  var bits = [];
+  if (v.avgPace) bits.push("<span>Avg <b>" + fmtSec(v.avgPace) + "/km</b></span>");
+  if (v.bestRep) bits.push("<span>Best rep <b>" + fmtResult(v.bestRep) + "</b></span>");
+  if (v.dist) bits.push("<span>Rep <b>" + (v.dist >= 1000 ? (v.dist / 1000) + "km" : v.dist + "m") + "</b></span>");
+  return '<div class="splits">' + bits.join("") + "</div>";
+}
+
 function dayCard(d, i, isToday) {
   var s = sessionOf(d), flex = currentPlan && currentPlan.flexible;
   return '<div class="day-card' + (d.done ? " done" : "") + (isToday ? " today" : "") + '">' +
@@ -1419,10 +1468,15 @@ function dayCard(d, i, isToday) {
     (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs" style="margin-bottom:6px">' +
       '<input type="text" placeholder="Reps / distance" value="' + esc(d.detail || "") + '" data-field="detail" data-i="' + i + '">' +
-      '<input type="text" placeholder="Time / splits" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
+      '<input type="text" placeholder="Splits — 3:18, 3:16, 3:15" value="' + esc(d.splits || "") + '" data-field="splits" data-i="' + i + '" style="flex:2">' +
     "</div>" +
-    '<div class="row-inputs">' +
+    '<div class="row-inputs" style="margin-bottom:6px">' +
+      '<input type="text" placeholder="Avg /km" value="' + esc(d.avgpace || "") + '" data-field="avgpace" data-i="' + i + '" style="min-width:70px">' +
+      '<input type="text" placeholder="Best rep" value="' + esc(d.bestrep || "") + '" data-field="bestrep" data-i="' + i + '" style="min-width:70px">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
+    "</div>" +
+    '<div data-derived="' + i + '">' + derivedLine(d) + "</div>" +
+    '<div class="row-inputs">' +
       '<input type="text" placeholder="Notes" value="' + esc(d.notes) + '" data-field="notes" data-i="' + i + '">' +
     "</div></div>";
 }
@@ -1507,15 +1561,17 @@ function renderWeek() {
 function toggleDone(i) {
   var d = weekData[i];
   d.done = !d.done;
-  var key = viewWeek + "|" + d.day;
+  var key = viewWeek + "|" + d.day, dv = deriveSession(d);
   sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
   if (d.done) {
     sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day, sid: d.sid || null,
       type: sessionOf(d).type + (d.gym ? " + gym" : ""), detail: d.detail || "",
-      actual: d.actual || "—", feel: d.feel || "" });
+      splits: d.splits || "", avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist,
+      actual: d.splits || (dv.avgPace ? fmtSec(dv.avgPace) + "/km" : "") || d.actual || "—",
+      feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
-  saveWeek(); renderWeek(); renderHistory(); renderReadiness(); renderToday();
+  saveWeek(); renderWeek(); renderHistory(); renderBests(); renderReadiness(); renderToday();
 }
 
 /* ================= today ================= */
@@ -2461,6 +2517,65 @@ function renderRestCheck() {
     '<b style="color:var(--muted-2);font-family:var(--f-mono);margin-right:8px">–</b>Soreness not clearing within 48h</span><span class="l-body">Your call</span></div>';
 }
 
+/* ================= block bests ================= */
+/* Computed from history rather than stored, so a deleted or corrected session
+   flows straight through instead of leaving a stale record standing. */
+function blockBests() {
+  var bySession = {}, byRep = {};
+  sessionHistory.forEach(function (h) {
+    if (h.avgPace) {
+      var k = (h.detail || h.type || "").trim().toLowerCase();
+      if (k && (!bySession[k] || h.avgPace < bySession[k].avgPace)) {
+        bySession[k] = { label: h.detail || h.type, avgPace: h.avgPace, date: h.date, type: h.type };
+      }
+    }
+    if (h.bestRep && h.repDist) {
+      var d = String(h.repDist);
+      if (!byRep[d] || h.bestRep < byRep[d].sec) {
+        byRep[d] = { dist: h.repDist, sec: h.bestRep, date: h.date, from: h.detail || h.type };
+      }
+    }
+  });
+  return {
+    sessions: Object.keys(bySession).map(function (k) { return bySession[k]; })
+      .sort(function (a, b) { return a.avgPace - b.avgPace; }),
+    reps: Object.keys(byRep).map(function (k) { return byRep[k]; })
+      .sort(function (a, b) { return b.dist - a.dist; })
+  };
+}
+function distLabel(m) { return m >= 1000 ? (m % 1000 ? (m / 1000).toFixed(1) : m / 1000) + "km" : m + "m"; }
+
+function renderBests() {
+  var el = $("bestsBox"); if (!el) return;
+  var b = blockBests();
+  if (!b.sessions.length && !b.reps.length) {
+    el.innerHTML = '<div class="note flat"><b>Nothing logged yet</b>Put your reps and splits into a session on the This Week tab and mark it done — the average pace and your best single rep are worked out for you and land here.</div>';
+    return;
+  }
+  var sess = b.sessions.length
+    ? '<div class="block-title" style="font-size:17px">Best session average</div>' +
+      '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:14px"><table class="ref">' +
+      "<thead><tr><th>Session</th><th>Avg pace</th><th>When</th></tr></thead><tbody>" +
+      b.sessions.map(function (x) {
+        return "<tr><td>" + esc(x.label) + "</td>" +
+          '<td class="hl">' + fmtSec(x.avgPace) + "/km</td>" +
+          '<td><span class="sub" style="margin:0">' + esc(x.date) + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>"
+    : "";
+  var reps = b.reps.length
+    ? '<div class="block-title" style="font-size:17px">Best single rep</div>' +
+      '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+      "<thead><tr><th>Distance</th><th>Best</th><th>Pace</th><th>From</th></tr></thead><tbody>" +
+      b.reps.map(function (x) {
+        return "<tr><td><b>" + distLabel(x.dist) + "</b></td>" +
+          '<td class="hl">' + fmtResult(x.sec) + "</td>" +
+          '<td class="hl">' + fmtSec(x.sec / (x.dist / 1000)) + "/km</td>" +
+          '<td><span class="sub" style="margin:0">' + esc(x.from) + " · " + esc(x.date) + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>"
+    : "";
+  el.innerHTML = sess + reps;
+}
+
 /* ================= session history ================= */
 function renderHistory() {
   if ($("adaptPick")) renderAdaptPicker();
@@ -3125,7 +3240,7 @@ function showTab(name) {
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); renderTrack(); }
-  if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); }
+  if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); renderBests(); }
 }
 
 /* ================= init ================= */
@@ -3148,7 +3263,7 @@ function renderAll() {
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
-  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
@@ -3258,6 +3373,23 @@ function renderStartInfo() {
       weekData[+el.dataset.i][el.dataset.field] = el.value;
       saveWeek();
       if (el.dataset.field === "sid") { renderWeek(); renderToday(); return; }
+      if (["detail", "splits", "avgpace", "bestrep"].indexOf(el.dataset.field) !== -1) {
+        var ix = +el.dataset.i, wd = weekData[ix];
+        var dv2 = deriveSession(wd), k2 = viewWeek + "|" + wd.day;
+        sessionHistory.forEach(function (h) {
+          if (h.key === k2) {
+            h.detail = wd.detail || ""; h.splits = wd.splits || "";
+            h.actual = wd.splits || (dv2.avgPace ? fmtSec(dv2.avgPace) + "/km" : "") || "—";
+            h.avgPace = dv2.avgPace; h.bestRep = dv2.bestRep; h.repDist = dv2.dist;
+          }
+        });
+        DB.set("session-history", sessionHistory);
+        /* patch the derived line only — re-rendering the card here would drop
+           focus and discard anything half-typed in the sibling fields */
+        var line = derivedLine(wd);
+        document.querySelectorAll('[data-derived="' + ix + '"]').forEach(function (n) { n.innerHTML = line; });
+        renderBests(); renderHistory(); return;
+      }
       var key = viewWeek + "|" + weekData[+el.dataset.i].day;
       sessionHistory.forEach(function (h) {
         if (h.key === key) { h.actual = weekData[+el.dataset.i].actual || "—"; h.feel = weekData[+el.dataset.i].feel || ""; }
