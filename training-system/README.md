@@ -1,6 +1,6 @@
 # Full System — training, recovery, nutrition
 
-A single-file tracker for a 13-week block aimed at a sub-55 400m, a sub-4:50 mile
+A single-file tracker for a 13-week block aimed at a sub-55 400m, a sub-4:45 mile
 and a sub-16:50 5K, plus the recovery, nutrition and skincare routines around it.
 
 Open `index.html` in a browser. No build step, no server, no account — everything
@@ -36,8 +36,13 @@ depends on how recovery is actually going: two hard runs (5 × 1km at 5K pace, a
 a rotating speed session), a threshold run, an easy long run, 80m sprints, and a
 gym toggle on any day. Reassigning a session re-checks the spacing and warns if
 two hard days end up back to back — including across the Saturday/Sunday
-boundary. Weeks 4, 8 and 12 deload and carry the 800m benchmark; week 13 is the
-PB attempts and stays fixed.
+boundary. Weeks 8 and 12 deload — week 4 is left as a normal week, since Rome is the break.
+
+The 100m sprint formats (`Uphill 100m sprints`, `Bonus sprints`) are marked
+alactic and are **not counted as effort sessions** by the weekly intensity
+check. They are run off full recovery and stopped while the reps are still fast,
+so no rep is run to fatigue. What they do carry is hamstring risk, and the
+niggle block handles that separately.
 
 The speed session rotates one pace (2:57/km, just under mile pace) with the rep
 length growing, and cycles 200m work back through:
@@ -80,13 +85,35 @@ recovery straight from the day's session, times each rep against the target with
 the delta colour-coded, and runs the recovery countdown by itself with an audio
 cue. Holds a screen wake lock while it runs. A pace converter sits underneath it.
 
-**Progress** — benchmark bars showing how much of the gap between the block-start
-time and the target has closed, morning HR against its baseline-plus-5 flag line,
+**Progress** — morning HR against its baseline-plus-5 flag line,
 weight against the 122–124 lb goal band with a 7-day average overlay, and the
 trend readout that says whether to hold, step up or step back.
 
-**Fitness** — an estimated VDOT and VO2max derived from the logged benchmark
-times using Daniels' formulas, charted across the block. Only aerobic tests
+**Fitness** — leads with **Closing On The Goal**: every aerobic effort logged is
+read according to how it was actually *run* — a benchmark test as a race, a
+continuous threshold run at 88% of VO2max, a single all-out rep of 800m or more
+as a short time trial — and the median of those becomes the current fitness
+estimate. The median rather than the best, because the best estimate is always
+the one whose method flatters you most. From it: a predicted mile and 5K, the
+VDOT each goal actually needs, how far along the bar you are, and a "work on
+these" block argued from your own logged sessions — which goal is genuinely
+harder, whether your speed or your engine is the limiter, what your last six
+weeks are short of, and how many weeks the remaining points take at a realistic
+rate of gain.
+
+The average pace of a rep set is deliberately *not* used as evidence. The
+textbook way of reading one assumes short recovery, which makes the set a
+continuous aerobic stimulus; these sessions are run all out off full recovery,
+which is a different thing — 4 × 800 at 2:24 off long rests reads as VDOT 67
+through that formula, and as a 5K that cannot be run. Set averages stay in Block
+Bests, where they are a training number rather than a fitness estimate.
+
+Benchmark bars sit under it. There are **no seeded block-start times**: a bar
+measured from a number that was never run measures nothing, so the first test
+logged at a distance becomes that distance's start line, and the bar stays empty
+and says so until then.
+
+Below that, an estimated VDOT and VO2max charted across the block. Only aerobic tests
 (800m upward) feed it; a 400m is largely anaerobic and would produce a
 meaningless number, so it is excluded and the section says why. It also derives
 the training paces that fitness implies — easy, threshold, interval, repetition

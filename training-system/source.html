@@ -505,6 +505,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
   <div class="panel" id="panel-fitness" role="tabpanel">
     <section class="block">
+      <h2 class="block-title">Closing On The Goal</h2>
+      <p class="block-sub">Every aerobic effort you have logged, read according to how it was actually run, turned into a predicted mile and 5K — then the gap to 4:45 and 16:50, and what to train to shut it.</p>
+      <div id="goalOut"></div>
+    </section>
+    <section class="block">
       <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
       <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
       <div id="vdotOut"></div>
@@ -1190,8 +1195,8 @@ function poolFor(w) {
       desc: "3K flat out. Sits between your mile and 5K and is the most informative single test there is." + short },
     { sid: "eff_mixed", hard: 2, group: "effort", type: "Mixed set",
       desc: "Your own combination — 2×800 + 2×600 + 2×400, or whatever you fancy. All out, full recovery." + short },
-    { sid: "eff_hill", hard: 2, group: "effort", type: "Uphill 100m sprints",
-      desc: "100m uphill, all out, walk back down. You choose how many." + short },
+    { sid: "eff_hill", hard: 0, alactic: 1, group: "effort", type: "Uphill 100m sprints",
+      desc: "100m uphill, all out, walk back down. You choose how many. Not counted as an effort session — full recovery, no rep run tired." + short },
     { sid: "eff_thresh", hard: 2, group: "effort", type: "Threshold — continuous",
       desc: "25–30 min continuous at comfortably hard — the pace where you could speak a sentence but would not want to. No reps, no stopping." + short },
 
@@ -1204,8 +1209,8 @@ function poolFor(w) {
     /* ---- bonus ---- */
     { sid: "bonus_strides", hard: 0, group: "bonus", type: "Strides after an easy run",
       desc: "6 × 20 seconds, building to fast and relaxed, full walk back. Costs you nothing and keeps your turnover alive." },
-    { sid: "bonus_sprint", hard: 1, group: "bonus", type: "Bonus sprints",
-      desc: "5–8 × 100–200m, flat or uphill. Short and sharp, full recovery. Optional — only if you have the energy." },
+    { sid: "bonus_sprint", hard: 0, alactic: 1, group: "bonus", type: "Bonus sprints",
+      desc: "5–8 × 100m, flat or uphill. Full recovery between every one. Not counted as an effort session — you stop while they are still fast, so nothing is run to fatigue." },
 
     { sid: "gymonly", hard: 0, group: "other", type: "Gym only", desc: "No run today." },
     { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." }
@@ -1597,6 +1602,9 @@ function intensityNote() {
       ". More quality does not mean more adaptation — it means more fatigue at the same fitness, and in a deficit it comes out of recovery you do not have spare. " +
       "<b style=\"color:var(--chalk)\">Make the rest of this week easy running only.</b></div>";
   }
+  /* Sprints are not in this count. Alactic work off full recovery, stopped
+     while the reps are still fast, does not produce the fatigue a rep set does.
+     What it does carry is hamstring risk, and the niggle block handles that. */
   return '<div class="note warn" style="margin-bottom:12px"><b>' + load.toFixed(load % 1 ? 1 : 0) + " effort sessions this week</b>" +
     "One above the two this plan is built on. Fine occasionally, and not fine as a habit — the two easy days are what makes the effort days work. Keep whatever is left of the week genuinely easy.</div>";
 }
@@ -1627,7 +1635,7 @@ function toggleDone(i) {
       feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
-  saveWeek(); renderWeek(); renderHistory(); renderBests(); renderReadiness(); renderToday();
+  saveWeek(); renderWeek(); renderHistory(); renderBests(); renderGoal(); renderReadiness(); renderToday();
 }
 
 /* ================= today ================= */
@@ -2204,13 +2212,15 @@ function addHR() {
 }
 
 /* ================= benchmarks ================= */
+/* No seeded block-start times. A bar measured from a number you never ran
+   measures nothing — the first test you log at a distance is its start line. */
 var BENCH = [
-  { id: "200", label: "200m", dist: 200, start: 27.8, target: 27.0, targetLabel: "faster than 27.8s" },
-  { id: "400", label: "400m", dist: 400, start: 57, target: 54.9, targetLabel: "sub-55" },
-  { id: "800", label: "800m", dist: 800, start: 151, target: 144, targetLabel: "2:24" },
-  { id: "1000", label: "1000m", dist: 1000, start: 197, target: 202, targetLabel: "3:22/km" },
-  { id: "mile", label: "Mile", dist: 1609, start: 293, target: 289.9, targetLabel: "sub-4:50" },
-  { id: "5k", label: "5K", dist: 5000, start: 1037, target: 1009.9, targetLabel: "sub-16:50" }
+  { id: "200", label: "200m", dist: 200, target: 27.0, targetLabel: "27.0" },
+  { id: "400", label: "400m", dist: 400, target: 54.9, targetLabel: "sub-55" },
+  { id: "800", label: "800m", dist: 800, target: 144, targetLabel: "2:24" },
+  { id: "1000", label: "1000m", dist: 1000, target: 202, targetLabel: "3:22" },
+  { id: "mile", label: "Mile", dist: 1609, target: 284.9, targetLabel: "sub-4:45" },
+  { id: "5k", label: "5K", dist: 5000, target: 1009.9, targetLabel: "sub-16:50" }
 ];
 function benchById(id) { for (var i = 0; i < BENCH.length; i++) if (BENCH[i].id === id) return BENCH[i]; return null; }
 
@@ -2233,13 +2243,29 @@ function latestFor(id) {
   for (var i = 0; i < pbLog.length; i++) if (pbLog[i].dist === id) return pbLog[i];
   return null;
 }
+function firstFor(id) {
+  for (var i = pbLog.length - 1; i >= 0; i--) if (pbLog[i].dist === id) return pbLog[i];
+  return null;
+}
+function bestFor(id) {
+  var best = null;
+  pbLog.forEach(function (p) { if (p.dist === id && (!best || p.sec < best.sec)) best = p; });
+  return best;
+}
 function renderBench() {
   $("benchList").innerHTML = BENCH.map(function (b) {
-    var l = latestFor(b.id);
-    var cur = l ? l.sec : b.start;
-    var hit = cur <= b.target;
-    var pct = hit ? 1 : (b.start > b.target ? Math.max(0, Math.min(1, (b.start - cur) / (b.start - b.target))) : 0);
-    var toGo = cur - b.target;
+    var start = firstFor(b.id), best = bestFor(b.id);
+    if (!best) {
+      return '<div class="bench">' +
+        '<div class="bench-top"><span class="bench-name">' + b.label + ' <em>target ' + esc(b.targetLabel) + "</em></span>" +
+        '<span class="bench-now" style="color:var(--muted-2);font-size:15px">not tested</span></div>' +
+        '<div class="bar"><div class="bar-fill" style="width:0%"></div></div>' +
+        '<div class="bar-scale"><span>the first test you log becomes the start line</span><span></span><span>' +
+        fmtResult(b.target) + "</span></div></div>";
+    }
+    var cur = best.sec, hit = cur <= b.target, toGo = cur - b.target;
+    var only = start.id === best.id && pbLog.filter(function (p) { return p.dist === b.id; }).length === 1;
+    var pct = hit ? 1 : (start.sec > b.target ? Math.max(0, Math.min(1, (start.sec - cur) / (start.sec - b.target))) : 0);
     return '<div class="bench">' +
       '<div class="bench-top"><span class="bench-name">' + b.label + ' <em>target ' + esc(b.targetLabel) + "</em></span>" +
       '<span class="bench-now">' + fmtResult(cur) +
@@ -2247,8 +2273,8 @@ function renderBench() {
              : ' <span class="to-go">' + toGo.toFixed(toGo < 10 ? 1 : 0) + "s to go</span>") +
       "</span></div>" +
       '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(1) + '%"></div></div>' +
-      '<div class="bar-scale"><span>block start ' + fmtResult(b.start) + "</span><span>" +
-        (hit ? "target reached" : Math.round(pct * 100) + "% of the gap closed") + "</span><span>" + fmtResult(b.target) + "</span></div>" +
+      '<div class="bar-scale"><span>' + (only ? "your start line, " + esc(start.date) : "started " + fmtResult(start.sec) + " · " + esc(start.date)) + "</span><span>" +
+        (hit ? "target reached" : only ? "—" : Math.round(pct * 100) + "% of the gap closed") + "</span><span>" + fmtResult(b.target) + "</span></div>" +
       "</div>";
   }).join("");
 }
@@ -2273,7 +2299,7 @@ function logPB() {
   pbLog.unshift({ id: String(Date.now()), date: today(), dist: id, raw: raw, sec: sec });
   DB.set("pb-log", pbLog);
   $("pbTimeInput").value = "";
-  renderPBHistory(); renderBench(); renderVdot();
+  renderPBHistory(); renderBench(); renderVdot(); renderGoal();
 }
 
 /* ================= adaptation ================= */
@@ -2374,10 +2400,6 @@ function timeAt(vd, distM) {
 }
 function aerobicTests() {
   var out = [];
-  BENCH.forEach(function (b) {
-    if (AEROBIC[b.id]) out.push({ date: "block start", dist: b.id, sec: b.start, baseline: true,
-      vdot: vdotFor(AEROBIC[b.id], b.start) });
-  });
   pbLog.slice().reverse().forEach(function (pb) {
     if (AEROBIC[pb.dist]) out.push({ date: pb.date, dist: pb.dist, sec: pb.sec,
       vdot: vdotFor(AEROBIC[pb.dist], pb.sec) });
@@ -2388,22 +2410,29 @@ function renderVdot() {
   var el = $("vdotOut"); if (!el) return;
   var lbl = { "800": "800m", "1000": "1000m", mile: "Mile", "5k": "5K" };
   var tests = aerobicTests();
-  var live = tests.filter(function (t) { return !t.baseline; });
-  var baselines = {};
-  tests.forEach(function (t) { if (t.baseline) baselines[t.dist] = t.vdot; });
+  var fit = currentFitness();
+  if (!fit) {
+    el.innerHTML = '<div class="note flat"><b>Nothing to work this out from yet</b>' +
+      "There are no seeded starting times any more, so this stays empty until you log something real — a benchmark test, a threshold run, or any rep set at 600m or longer with an average pace on it.</div>";
+    return;
+  }
+  var cur = fit.v;
   /* Compare like with like. A speed-leaning athlete's mile VDOT sits well above
-     their 5K VDOT, so measuring a new 5K against the mile baseline reports a
+     their 5K VDOT, so measuring a new 5K against a mile start line reports a
      personal best as a decline. */
-  var best = null;
-  live.forEach(function (t) { if (!best || t.vdot > best.vdot) best = t; });
-  var cur = best ? best.vdot : Math.max.apply(null, Object.keys(baselines).map(function (k) { return baselines[k]; }));
-  var base = best ? baselines[best.dist] : cur;
-  var delta = cur - base;
+  var firsts = {}, best = null;
+  tests.forEach(function (t) {
+    if (firsts[t.dist] === undefined) firsts[t.dist] = t.vdot;
+    if (!best || t.vdot > best.vdot) best = t;
+  });
+  var base = best ? firsts[best.dist] : cur;
+  var delta = best ? best.vdot - base : 0;
+  var sameDist = best ? tests.filter(function (t) { return t.dist === best.dist; }).length : 0;
   var head = '<div class="chart-wrap"><div class="chart-head">' +
     '<span class="chart-title">Current VDOT</span>' +
     '<span class="chart-val" style="font-size:26px">' + cur.toFixed(1) +
-    '<small>≈ ' + cur.toFixed(0) + ' ml/kg/min' +
-    (best ? " · from your " + lbl[best.dist] + ", " + (delta >= 0 ? "+" : "") + delta.toFixed(1) + " on block start" : "") + "</small></span></div>";
+    '<small>≈ ' + cur.toFixed(0) + " ml/kg/min · median of " + fit.n + " logged effort" + (fit.n === 1 ? "" : "s") +
+    " (" + fit.lo.toFixed(1) + "–" + fit.hi.toFixed(1) + ")</small></span></div>";
 
   if (tests.length >= 2) {
     head += '<div id="vdotInner" style="position:relative"></div>' +
@@ -2411,7 +2440,7 @@ function renderVdot() {
   }
   head += "</div>";
 
-  var byDist = '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref">' +
+  var byDist = !tests.length ? "" : '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref">' +
     "<thead><tr><th>Test</th><th>Time</th><th>Implies</th></tr></thead><tbody>" +
     tests.slice().reverse().slice(0, 8).map(function (t) {
       return "<tr><td>" + esc(lbl[t.dist]) + '<span class="sub">' + esc(t.date) + "</span></td>" +
@@ -2452,14 +2481,14 @@ function renderVdot() {
       " from the mile. Your engine is ahead of your speed, so the sprint and mile-pace work is where the gains are sitting.</div>";
   }
 
-  var progress = live.length
-    ? (delta >= 0.5 ? '<div class="note good" style="margin-bottom:10px"><b>Fitness is up ' + delta.toFixed(1) + ' VDOT points on your ' + esc(lbl[best.dist]) + '</b>Worth roughly ' +
-        Math.abs(timeAt(base, 5000) - timeAt(cur, 5000)).toFixed(0) + " seconds over 5K against where you started the block. That is measured, not felt.</div>"
-      : delta <= -0.5 ? '<div class="note warn" style="margin-bottom:10px"><b>Down ' + Math.abs(delta).toFixed(1) + ' VDOT points on block start</b>One test is not a trend, and heat alone costs several points on the day. Check it against your energy log and morning HR before reading anything into it.</div>'
-      : '<div class="note flat" style="margin-bottom:10px"><b>Level with block start</b>Log another benchmark and the trend starts telling you something.</div>')
-    : '<div class="note flat" style="margin-bottom:10px"><b>Baseline only</b>This is computed from your block-start times. Log a benchmark test on a deload week and the line starts moving.</div>';
+  var progress = sameDist >= 2
+    ? (delta >= 0.5 ? '<div class="note good" style="margin-bottom:10px"><b>Your ' + esc(lbl[best.dist]) + ' is up ' + delta.toFixed(1) + ' VDOT points</b>Worth roughly ' +
+        Math.abs(timeAt(base, 5000) - timeAt(base + delta, 5000)).toFixed(0) + " seconds over 5K against your first test at that distance. That is measured, not felt.</div>"
+      : delta <= -0.5 ? '<div class="note warn" style="margin-bottom:10px"><b>Down ' + Math.abs(delta).toFixed(1) + ' VDOT points at ' + esc(lbl[best.dist]) + '</b>One test is not a trend, and heat alone costs several points on the day. Check it against your energy log and morning HR before reading anything into it.</div>'
+      : '<div class="note flat" style="margin-bottom:10px"><b>Level with your first ' + esc(lbl[best.dist]) + '</b>Log another and the trend starts telling you something.</div>')
+    : '<div class="note flat" style="margin-bottom:10px"><b>No trend line yet</b>A trend needs two tests at the <em>same</em> distance. There is no seeded block start any more — the first time you test a distance is its start line, so the second one is where the line begins to mean something.</div>';
 
-  var goalV = Math.max(vdotFor(5000, 1009.9), vdotFor(1609, 289.9));
+  var goalV = Math.max(vdotFor(5000, benchById("5k").target), vdotFor(1609, benchById("mile").target));
   var LEVELS = [
     [40, "Untrained"], [46, "Active"], [51, "Runs regularly"], [56, "Good club runner"],
     [61, "Strong club runner"], [66, "County level"], [71, "National level"], [76, "International"]
@@ -2472,7 +2501,7 @@ function renderVdot() {
     "VDOT is just a single number for aerobic fitness — how much oxygen your body can use, and how much of that you can hold onto for a race. Higher is fitter, and one point is worth roughly 12–15 seconds over 5K.<br><br>" +
     "<b style=\"color:var(--chalk)\">Yours is " + cur.toFixed(0) + ", which is " + band.toLowerCase() +
     " territory — comfortably inside the top few percent of the general population.</b> An untrained man your age sits near 40. Someone who runs a few times a week is around 48–52. National-level distance runners are 70+.<br><br>" +
-    "<b style=\"color:var(--chalk)\">Your three goals need about " + goalV.toFixed(0) + ".</b> " +
+    "<b style=\"color:var(--chalk)\">Your mile goal is the harder of the two and needs about " + goalV.toFixed(0) + ".</b> " +
     (cur >= goalV
       ? "You are already there on paper — the job now is converting it on the day."
       : "That is " + (goalV - cur).toFixed(1) + " points away. A well-run 10-week block usually buys 2–4 points, so it is well within range.") +
@@ -2498,6 +2527,194 @@ function renderVdot() {
       })
     });
   }
+}
+
+/* ================= closing on the goal ================= */
+/* A race, a threshold run and a rep set are three different efforts. Putting
+   all three through the race formula would flatter the two that are not races,
+   so each source is read according to how it was actually run. */
+function vdotFromPace(perKm, pct) {
+  var lo = 25, hi = 90, mid;
+  for (var i = 0; i < 50; i++) {
+    mid = (lo + hi) / 2;
+    if (paceAtPct(mid, pct) > perKm) lo = mid; else hi = mid;
+  }
+  return mid;
+}
+var THRESH_SID = { eff_thresh: 1, eff_prog: 1 };
+function fitnessEvidence() {
+  var out = [];
+  pbLog.forEach(function (pb) {
+    if (!AEROBIC[pb.dist]) return;
+    out.push({ v: vdotFor(AEROBIC[pb.dist], pb.sec), date: pb.date, dist: AEROBIC[pb.dist], tier: "test",
+      what: benchById(pb.dist).label + " test — " + fmtResult(pb.sec),
+      how: "Run as a test, so it is read straight as a race." });
+  });
+  sessionHistory.forEach(function (h) {
+    if (h.bestRep && h.repDist >= 800) {
+      out.push({ v: vdotFor(h.repDist, h.bestRep), date: h.date, dist: h.repDist, tier: "rep",
+        what: "Best " + distLabel(h.repDist) + " rep — " + fmtResult(h.bestRep),
+        how: "One rep off full recovery. Reads slightly fast for a whole race." });
+    }
+    if (!h.avgPace) return;
+    if (THRESH_SID[h.sid]) {
+      out.push({ v: vdotFromPace(h.avgPace, 0.88), date: h.date, dist: 5000, tier: "thresh",
+        what: String(h.type || "Threshold").split(" — ")[0] + " — " + fmtSec(h.avgPace) + "/km",
+        how: "Continuous and comfortably hard, so it is read as threshold pace rather than race pace." });
+    }
+    /* The average pace of a rep set is deliberately not used. The textbook way
+       of reading one assumes short recovery, which makes the set a continuous
+       aerobic stimulus. Your sessions are run all out off full recovery, which
+       is a different thing entirely — 4 x 800 at 2:24 off long rests reads as
+       VDOT 67 through that formula and as a 5K you cannot run. The set average
+       is still tracked, in Block Bests, where it is a training number rather
+       than a fitness estimate. */
+  });
+  return out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+}
+function median(vs) {
+  var a = vs.slice().sort(function (x, y) { return x - y; }), m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+function currentFitness() {
+  var ev = fitnessEvidence();
+  if (!ev.length) return null;
+  var vs = ev.map(function (e) { return e.v; }).sort(function (a, b) { return a - b; });
+  var d0 = ev[0].date;
+  /* The median, never the best. Your best estimate is always the one whose
+     method flatters you most, and a plan built on it is a plan you miss. */
+  return { v: median(vs), lo: vs[0], hi: vs[vs.length - 1], n: vs.length, ev: ev,
+    start: median(ev.filter(function (e) { return e.date === d0; }).map(function (e) { return e.v; })),
+    startDate: d0 };
+}
+
+var GOALS = [{ id: "mile", label: "Mile", dist: 1609 }, { id: "5k", label: "5K", dist: 5000 }];
+
+function renderGoal() {
+  var el = $("goalOut"); if (!el) return;
+  var fit = currentFitness();
+  if (!fit) {
+    el.innerHTML = '<div class="note flat"><b>Nothing to predict from yet</b>' +
+      "This runs off what you actually put in — a benchmark test, a threshold run, or any rep set at 600m or longer with an average pace on it. " +
+      "Log one and a predicted mile and 5K appear here, with the gap to 4:45 and 16:50 and what to train to shut it.</div>";
+    return;
+  }
+  var cur = fit.v, spread = fit.hi - fit.lo;
+  var conf = fit.n >= 4 && spread <= 3 ? "solid" : fit.n >= 3 ? "rough" : "thin";
+
+  var head = '<div class="note ' + (conf === "solid" ? "good" : "flat") + '" style="margin-bottom:12px">' +
+    "<b>Predicting off VDOT " + cur.toFixed(1) + " — confidence " + conf + "</b>" +
+    "The median of " + fit.n + " logged effort" + (fit.n === 1 ? "" : "s") + ", which on their own imply anywhere from " +
+    fit.lo.toFixed(1) + " to " + fit.hi.toFixed(1) + ". " +
+    (spread > 4
+      ? "That is a wide spread. A single all-out time trial over a proper distance tightens it more than another ten sessions will."
+      : fit.n < 3
+        ? "Two or three data points is not much to hang a prediction on. It will firm up as you log more."
+        : "Tight enough to plan against.") + "</div>";
+
+  var cards = GOALS.map(function (g) {
+    var b = benchById(g.id), req = vdotFor(g.dist, b.target);
+    /* A prediction to a tenth of a second implies a precision this does not
+       have. Round it — the honest unit here is seconds. */
+    var pred = Math.round(timeAt(cur, g.dist)), gap = pred - b.target, pts = req - cur, hit = pts <= 0;
+    /* Measure from whichever is lower, your start or where you are now. Going
+       backwards should read as nothing gained, not as a broken bar. */
+    var floor = Math.min(fit.start, cur), span = req - floor;
+    var pct = hit ? 1 : span > 0 ? Math.max(0, Math.min(1, (cur - floor) / span)) : 0;
+    var moved = cur - fit.start;
+    return '<div class="bench">' +
+      '<div class="bench-top"><span class="bench-name">' + g.label + " <em>goal " + esc(b.targetLabel.replace("sub-", "")) + "</em></span>" +
+      '<span class="bench-now">' + fmtResult(pred) +
+        (hit ? ' <span class="to-go" style="color:var(--go)">✓ on paper</span>'
+             : ' <span class="to-go">' + (gap < 60 ? gap.toFixed(0) + "s" : fmtSec(gap)) + " to find</span>") +
+      "</span></div>" +
+      '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(1) + '%"></div></div>' +
+      '<div class="bar-scale"><span>started VDOT ' + fit.start.toFixed(1) + " · " + esc(fit.startDate) + "</span><span>" +
+        (hit ? "there on paper"
+             : moved <= -0.3 ? moved.toFixed(1) + " on your start"
+             : moved < 0.05 ? "start line"
+             : Math.round(pct * 100) + "% of the way") + "</span><span>needs " + req.toFixed(1) + "</span></div>" +
+      "</div>";
+  }).join("");
+
+  /* ---- what to work on, argued from the logged data rather than in general ---- */
+  var mileReq = vdotFor(1609, benchById("mile").target), fiveReq = vdotFor(5000, benchById("5k").target);
+  var adv = [];
+
+  var harder = mileReq > fiveReq ? "mile" : "5K";
+  adv.push(["The " + harder + " is the harder goal",
+    "4:45 needs VDOT " + mileReq.toFixed(1) + ". 16:50 needs " + fiveReq.toFixed(1) + ". Same fitness, two different asks — " +
+    "at the fitness that runs 16:50 you would be running about " + fmtResult(Math.round(timeAt(fiveReq, 1609))) + " for the mile, and at the fitness that runs 4:45 you would be around " +
+    fmtResult(Math.round(timeAt(mileReq, 5000))) + " for 5K. " +
+    (harder === "mile"
+      ? "So hitting 4:45 hands you 16:50 on the way past. Chasing 16:50 first leaves the mile still outstanding — and the last bit of it is speed, not engine."
+      : "So the 5K is the one that will still be sitting there when the mile falls.")]);
+
+  var shortV = [], longV = [];
+  fit.ev.forEach(function (e) { (e.dist <= 1609 ? shortV : longV).push(e.v); });
+  if (shortV.length && longV.length) {
+    var lean = avg(shortV) - avg(longV);
+    if (lean >= 1.5) adv.push(["Your engine is the limiter, not your legs",
+      "Your short stuff implies VDOT " + avg(shortV).toFixed(1) + ", your long stuff " + avg(longV).toFixed(1) +
+      ". Evenly built, those two match. A " + lean.toFixed(1) + "-point gap that way round means the speed is already there and the aerobic side is what is holding both goals up. " +
+      "<b style=\"color:var(--chalk)\">The threshold run and the long easy run are the sessions that move this</b> — and they are the two easiest to skip because neither feels impressive."]);
+    else if (lean <= -1.5) adv.push(["Your speed is the limiter",
+      "Your long stuff implies VDOT " + avg(longV).toFixed(1) + " against " + avg(shortV).toFixed(1) +
+      " from the short stuff. The engine is ahead of the legs, so the 4:45 is the one at risk — a mile is won on the last 600m, and that is a speed problem. " +
+      "<b style=\"color:var(--chalk)\">400m and 600m reps at mile pace, and the sprints, are where this comes from.</b>"]);
+    else adv.push(["Evenly built",
+      "Short " + avg(shortV).toFixed(1) + ", long " + avg(longV).toFixed(1) + " — no meaningful lean either way. " +
+      "Nothing to correct, so keep the spread of sessions you are already running and let the volume do it."]);
+  } else {
+    adv.push(["Only one end of the range is logged",
+      shortV.length
+        ? "Everything here is 1600m or shorter, so there is no read on your aerobic side at all. Log a threshold run or a 5K test and this section can actually tell you which half is holding you back."
+        : "Everything here is long, so there is no read on your speed. Log a rep set at 600m–1km with the average pace and this can tell you which half is holding you back."]);
+  }
+
+  var recent = sessionHistory.filter(function (h) {
+    var d = daysBetween(parseDay(h.date), parseDay(today()));
+    return isFinite(d) && d <= 42;
+  });
+  var nThresh = recent.filter(function (h) { return THRESH_SID[h.sid]; }).length;
+  var nLong = recent.filter(function (h) { return h.sid === "easy_long"; }).length;
+  var gaps = [];
+  if (nThresh === 0) gaps.push("<b style=\"color:var(--chalk)\">no threshold run in six weeks</b> — it is the single highest-yield session for the 5K number, and the one nobody misses because it never hurts enough to remember");
+  else if (nThresh <= 1) gaps.push("only one threshold run in six weeks");
+  if (nLong === 0) gaps.push("<b style=\"color:var(--chalk)\">no long easy run in six weeks</b> — the aerobic base under both goals is built there, at a pace that feels like it is doing nothing");
+  else if (nLong <= 2) gaps.push(nLong + " long run" + (nLong === 1 ? "" : "s") + " in six weeks");
+  if (gaps.length) adv.push(["What your last six weeks are short of", gaps.join("; ") + "."]);
+
+  var need = Math.max(0, Math.max(mileReq, fiveReq) - cur);
+  if (need > 0) {
+    var fast = Math.ceil(need / 0.4), slow = Math.ceil(need / 0.2);
+    adv.push(["How long that takes, honestly",
+      need.toFixed(1) + " points to the harder goal. A block that goes well buys 2–4 VDOT points in ten weeks, so " +
+      (fast === slow ? "roughly " + fast + " weeks" : "somewhere between " + fast + " and " + slow + " weeks") +
+      " of uninterrupted training. " +
+      "<b style=\"color:var(--chalk)\">And that rate assumes you are eating enough.</b> In a deficit the realistic figure is the slow end or worse — you can hold fitness while cutting, but building it is the thing the calories were going to pay for. " +
+      "Getting to 123 first and then training properly fed will be faster than trying to do both at once."]);
+  } else {
+    adv.push(["You are there on paper",
+      "The fitness to run both goals is already logged. What is left is not training — it is a rested day, decent conditions, and pacing the first lap slower than you want to."]);
+  }
+
+  var advHtml = '<div class="card" style="padding:2px 14px 12px;margin-top:12px">' +
+    '<div class="block-title" style="font-size:17px;margin-top:12px">Work on these</div>' +
+    adv.map(function (a) {
+      return '<p style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+        '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">' + a[0] + "</b>" + a[1] + "</p>";
+    }).join("") + "</div>";
+
+  var evTbl = '<div class="block-title" style="font-size:17px;margin-top:16px">What this is built on</div>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Effort</th><th>Implies</th><th>How it is read</th></tr></thead><tbody>" +
+    fit.ev.slice().reverse().slice(0, 12).map(function (e) {
+      return "<tr><td>" + esc(e.what) + '<span class="sub">' + esc(e.date) + "</span></td>" +
+        '<td class="hl">' + e.v.toFixed(1) + "</td><td>" + e.how + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  el.innerHTML = head + cards + advHtml + evTbl;
 }
 
 /* ================= when to rest ================= */
@@ -3296,7 +3513,7 @@ function showTab(name) {
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); renderTrack(); }
-  if (name === "fitness") { renderVdot(); renderEnergyChart(); renderRestCheck(); renderBests(); }
+  if (name === "fitness") { renderVdot(); renderGoal(); renderEnergyChart(); renderRestCheck(); renderBests(); }
 }
 
 /* ================= init ================= */
@@ -3318,7 +3535,7 @@ function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
-  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderHistory();
+  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
