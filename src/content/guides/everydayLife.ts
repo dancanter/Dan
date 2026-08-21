@@ -24,13 +24,14 @@ export const medicationGuides: Guide[] = [
     ],
     sourceIds: ['nhs-headaches', 'mhra-paracetamol'],
   },
-  {
+      {
     id: 'meds-avoid',
     section: 'medications',
     title: 'What to avoid',
-    summary: 'Ibuprofen and other NSAIDs, and anything with codeine, unless prescribed.',
+    summary: 'Ibuprofen and similar painkillers. Anything with codeine.',
     body: [
-      'Avoid ibuprofen and other NSAIDs, and anything containing codeine, unless specifically prescribed by your doctor.',
+      'Avoid ibuprofen and painkillers like it. Avoid anything with codeine in it.',
+      'The one exception is if your doctor has prescribed it for you.',
     ],
     sourceIds: ['nhs-headaches'],
     emphasis: 'warn',
@@ -46,14 +47,14 @@ export const medicationGuides: Guide[] = [
     ],
     sourceIds: ['nhs-medicines'],
   },
-  {
+    {
     id: 'bumps',
     section: 'medications',
     title: 'Where to look something up',
     summary: 'The bumps website, or ask your GP to contact the UK Teratology Information Service.',
     body: [
-      'The **bumps** website (Best Use of Medicines in Pregnancy) has information on individual medicines.',
-      'If it’s not there, your GP, midwife or pharmacist can contact the UK Teratology Information Service on your behalf.',
+      '**bumps** is a website with information on single medicines. The name is short for Best Use of Medicines in Pregnancy.',
+      'If your medicine is not listed, ask your GP, midwife or pharmacist. They can contact the UK Teratology Information Service for you.',
     ],
     sourceIds: ['nhs-medicines'],
   },

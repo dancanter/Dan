@@ -38,16 +38,16 @@ export const equitySections: EquitySection[] = [
       'The overall maternal death rate has risen slightly in recent years even as the ethnic gap has narrowed — so this is an active safety priority, not a solved problem.',
     ],
   },
-  {
+    {
     id: 'why',
     title: 'Why — what the evidence actually shows',
     sourceIds: ['weq-black-maternal-health', 'adesina-2025'],
     body: [
-      'The obvious question is whether this is really about something else — age, existing health conditions, deprivation. Researchers have tested exactly that, and the answer is no: those factors **do not fully explain the gap**. A UK national study found Black women’s higher risk barely changed after adjusting for deprivation, age and health conditions.',
-      '**Access to care.** Black women are around four times more likely than White women to book late for antenatal care or miss recommended visits. That matters because early care is where screening happens and where problems get caught.',
-      '**Care that fits the person.** Official reviews of maternal deaths found Black women over-represented among cases where care had not been properly tailored to individual circumstances.',
-      '**Being listened to.** Studies and national surveys repeatedly find that women from ethnic minority backgrounds are more likely to report their concerns — especially about pain — being dismissed or not taken seriously.',
-      'Racism and bias, including unconscious bias, are now formally recognised by NHS leadership and in government reports as contributing factors. You are not imagining it, and you are not being oversensitive if this has been your experience.',
+      'The obvious question is whether this is really about something else. Age, perhaps. Health conditions. Or poverty. Researchers have tested exactly that, and the answer is no — **those things do not explain the gap**. One UK study found that Black women’s higher risk barely moved once age, health and deprivation were accounted for.',
+      '**Getting care early.** Black women are around four times more likely to book late for antenatal care, or to miss visits. That matters, because early care is where screening happens and where problems get picked up.',
+      '**Care that fits the person.** Reviews of maternal deaths found Black women were over-represented in cases where the care given had not been shaped around them.',
+      '**Being listened to.** Studies and national surveys keep finding the same thing. Women from ethnic minority backgrounds are more likely to say their concerns were brushed aside, especially about pain.',
+      'NHS leaders and government reports now name racism and bias as part of the cause. You are not imagining it. You are not being oversensitive if this has happened to you.',
     ],
   },
   {
@@ -63,14 +63,14 @@ export const equitySections: EquitySection[] = [
       '**Ask what is in place locally.** Many Local Maternity Systems now have specific equity action plans. Your midwife can tell you what yours does.',
     ],
   },
-  {
+    {
     id: 'more',
     title: 'Organisations worth knowing',
     sourceIds: ['five-x-more', 'birthrights'],
     body: [
-      '**Five X More** — Black-led maternal health charity, and the source of the UK’s most detailed research on Black women’s maternity experiences. They also publish a practical guide to advocating for yourself in appointments.',
-      '**Birthrights** — UK charity specialising in your legal rights in pregnancy and birth, including the right to make decisions about your own care.',
-      '**Muslim Women’s Network UK** — research and support specifically on Muslim women’s maternity experiences.',
+      '**Five X More** is a Black-led charity. They run the UK’s most detailed research into what Black women actually experience in maternity care. They also publish a practical guide to speaking up for yourself in appointments.',
+      '**Birthrights** is a charity that deals with your rights in pregnancy and birth. That includes your right to make decisions about your own care.',
+      '**Muslim Women’s Network UK** works on what Muslim women experience in maternity care, and offers support.',
     ],
   },
 ];

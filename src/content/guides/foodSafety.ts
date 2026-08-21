@@ -42,7 +42,7 @@ export const foodSafetyGuides: Guide[] = [
     title: 'Caffeine, herbal tea & the rest',
     summary: 'Treat 200mg as a ceiling, not a target. Peanuts are completely fine.',
     body: [
-      '**Caffeine:** the NHS limit is 200mg a day. UK research since suggests aiming lower is worthwhile — Tommy’s tracked over 1,000 UK pregnancies and found stillbirth risk rose with caffeine intake, and varied by source: energy drinks carried the highest associated risk (1.85×), then instant coffee (1.34×) and cola (1.23×).',
+      '**Caffeine:** the NHS limit is 200mg a day. Newer UK research suggests aiming lower is worth it. Tommy’s followed over 1,000 UK pregnancies. Stillbirth risk rose as caffeine intake rose, and it varied by what people drank. Energy drinks carried the highest risk (1.85×), then instant coffee (1.34×), then cola (1.23×).',
       'The study couldn’t fully separate caffeine from the sugar in cola or the taurine in energy drinks — but the pattern tracked caffeine amount closely. Tommy’s own conclusion is the useful one: **the national guideline should be the limit, not the goal.** Cutting down further lowers risk further, even inside the "allowed" range. Decaf, fruit tea and water all count.',
       '**Hidden caffeine** is where people get caught out. Some paracetamol combination products contain it — check the label and avoid combined formulas where you can. A single coffee-shop drink can use up the whole day’s allowance, so it’s worth checking size and strength before ordering.',
       'If you’ve already had a lot of caffeine, including in a previous pregnancy — **please don’t turn this into blame.** Loss is very rarely caused by anything a parent did or didn’t do, and in many stillbirths no single cause is ever found.',

@@ -1,14 +1,24 @@
 import type { Guide } from '../schema';
 
 export const workRightsGuides: Guide[] = [
-  {
+    {
     id: 'four-rights',
     section: 'work-rights',
     title: 'The four legal rights',
     summary: 'Antenatal care, maternity leave, maternity pay, and protection from unfair treatment.',
     body: [
-      'Pregnant employees in the UK have four main legal rights: **paid time off for antenatal care**, **maternity leave**, **maternity pay or maternity allowance**, and **protection against unfair treatment, discrimination or dismissal**.',
-      '"Antenatal care" isn’t just medical appointments — it includes antenatal or parenting classes if your doctor or midwife recommends them.',
+      'If you are pregnant and employed in the UK, you have four legal rights.',
+      '"Antenatal care" means more than medical appointments. It also covers antenatal or parenting classes, if your doctor or midwife suggests them.',
+    ],
+    lists: [
+      {
+        items: [
+          'Paid time off for antenatal care',
+          'Maternity leave',
+          'Maternity pay, or maternity allowance',
+          'Protection from unfair treatment, discrimination, or being sacked',
+        ],
+      },
     ],
     sourceIds: ['govuk-employee-rights'],
     emphasis: 'calm',
@@ -60,15 +70,15 @@ export const workRightsGuides: Guide[] = [
     ],
     sourceIds: ['govuk-employee-rights', 'acas-discrimination'],
   },
-  {
+    {
     id: 'work-practical',
     section: 'work-rights',
     title: 'Two things people don’t know',
     summary: 'Illness near your due date triggers maternity leave automatically. Some leave is compulsory.',
     body: [
-      '**Pregnancy-related illness near your due date:** if you’re off work with a pregnancy-related illness in the 4 weeks before your baby is due, maternity leave and Statutory Maternity Pay start automatically — regardless of what you’d previously arranged.',
-      '**Compulsory leave:** even if you’re not taking Statutory Maternity Leave, you must take 2 weeks off after the birth — 4 weeks if you work in a factory.',
-      'Your employer also can’t change your contract terms and conditions without your agreement. If they do, that’s a breach of contract.',
+      '**Being ill near your due date.** Say you are off work with something pregnancy-related, in the 4 weeks before your baby is due. Your maternity leave and pay start automatically. That happens whatever you had arranged before.',
+      '**Some leave you have to take.** You must take 2 weeks off after the birth. If you work in a factory, it is 4 weeks. This applies even if you are not taking Statutory Maternity Leave.',
+      'Your employer also cannot change your contract without you agreeing. If they do, they have broken it.',
     ],
     sourceIds: ['govuk-employee-rights'],
   },

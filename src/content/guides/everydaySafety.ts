@@ -77,31 +77,55 @@ export const skincareGuides: Guide[] = [
     ],
     sourceIds: ['nct-beauty-treatments', 'putra-2022-topical'],
   },
-  {
+    {
     id: 'skincare-ingredients',
     section: 'skincare',
     title: 'Skincare ingredients — what to avoid, what’s fine',
     summary: 'Retinoids are the real one. Most other actives are fine.',
     body: [
-      '**Avoid: retinoids / retinoic acid** (tretinoin, adapalene, tazarotene) — genuinely the one with real caution behind it. Animal studies show malformation risk at high doses; two human studies of accidental first-trimester exposure found no clear pattern of harm, but the safest position is to avoid it throughout pregnancy. If you used it before realising you were pregnant, the risk appears low — mention it to your midwife rather than worrying alone.',
-      '**Use sparingly:** high-strength salicylic acid, or occlusive use over large areas. Small, limited areas (most face washes and spot treatments) are fine.',
-      '**Considered fine, evidence supports safety:** azelaic acid (genuinely the preferred pregnancy-safe option for acne and pigmentation) · vitamin C and vitamin E · AHAs such as glycolic and lactic acid at typical cosmetic concentrations up to 10% · niacinamide.',
-      '**Sunscreen:** physical/mineral (titanium dioxide, zinc oxide) is the safest choice, since it isn’t absorbed. Chemical sunscreen is still generally considered safe, but physical is the more cautious pick if you want to minimise absorption.',
-      '**Acne treatment specifically:** first-line and considered safe are azelaic acid, benzoyl peroxide, and topical erythromycin or clindamycin. Avoid oral or topical retinoids and oral tetracyclines (doxycycline, minocycline). Short courses of oral erythromycin are generally considered safe for more severe acne — a decision for your GP or dermatologist.',
+      '**Retinoids are the one to avoid.** That means tretinoin, adapalene and tazarotene. Animal studies show a risk of malformation at high doses. Two human studies of women who used it early by accident found no clear pattern of harm — but the safest position is still to avoid it for the whole pregnancy.',
+      'If you used it before you knew you were pregnant, the risk looks low. Mention it to your midwife rather than worrying on your own.',
+      '**Use sparingly:** strong salicylic acid, or covering large areas with it. Small patches are fine, which covers most face washes and spot treatments.',
+      '**Sunscreen.** Mineral sunscreen is the safest pick, because it sits on the skin rather than soaking in. Look for titanium dioxide or zinc oxide. Chemical sunscreen is still considered safe. Mineral is just the more cautious choice.',
+      '**For acne.** Azelaic acid, benzoyl peroxide, and erythromycin or clindamycin creams are all fine. Avoid retinoids, in any form. Avoid tetracycline tablets such as doxycycline and minocycline. For worse acne, a short course of erythromycin tablets is usually safe — but that is your GP’s call, not a shelf decision.',
+    ],
+    lists: [
+      {
+        title: 'Fine to use — the evidence supports these',
+        items: [
+          'Azelaic acid. The best pregnancy-safe option for acne and dark patches',
+          'Vitamin C and vitamin E',
+          'AHAs, such as glycolic and lactic acid, up to the usual 10%',
+          'Niacinamide',
+        ],
+      },
     ],
     sourceIds: ['nct-beauty-treatments', 'putra-2022-topical', 'bozzo-2011-cosmetics'],
   },
-  {
+    {
     id: 'treatments-procedures',
     section: 'skincare',
     title: 'Massage, nails and cosmetic procedures',
     summary: 'Massage is genuinely beneficial. Fillers and tattoos — avoid.',
     body: [
-      '**Massage** is genuinely beneficial in pregnancy — linked to reduced stress and discomfort. Avoid deep tissue massage (small risk of missing an undiagnosed DVT). Don’t lie flat on your back for long periods; front-lying is fine with a pregnancy pillow or specialist table. Avoid direct belly massage. Keep essential oils diluted to around 2%.',
-      '**Nails:** no specific guidance to avoid nail treatments — polish and gel are applied externally and aren’t meaningfully absorbed. If you’re a nail technician yourself, that’s a workplace-ventilation question rather than a reason to skip a manicure.',
-      '**Avoid entirely:** dermal fillers · liposuction · sclerotherapy for varicose veins · tattoos and microblading.',
-      '**Generally considered safe with a qualified practitioner:** Botox · some chemical peels · laser and light therapy · microdermabrasion.',
-      '**Weight-loss injections:** the MHRA advises stopping GLP-1 medications immediately if you’re trying to conceive or become pregnant, and speaking to your GP as soon as possible. Safety in pregnancy and breastfeeding isn’t established.',
+      '**Massage is good for you in pregnancy.** It is linked to less stress and less discomfort. A few rules: skip deep tissue massage, because of the small chance of missing a clot. Do not lie flat on your back for long. Lying face down is fine with a pregnancy pillow or a proper table. Avoid massage straight onto your bump. Keep essential oils diluted to about 2%.',
+      '**Nails are fine.** There is no guidance against nail treatments. Polish and gel sit on the outside and are not really absorbed. If you work as a nail technician, that is a question about ventilation at work — not a reason to skip a manicure.',
+      '**Weight-loss injections.** The MHRA says stop GLP-1 medicines straight away if you are trying to conceive, or find out you are pregnant. Speak to your GP as soon as you can. We do not yet know if they are safe in pregnancy or while breastfeeding.',
+    ],
+    lists: [
+      {
+        title: 'Avoid entirely',
+        items: [
+          'Dermal fillers',
+          'Liposuction',
+          'Sclerotherapy for varicose veins',
+          'Tattoos and microblading',
+        ],
+      },
+      {
+        title: 'Fine with a qualified practitioner',
+        items: ['Botox', 'Some chemical peels', 'Laser and light therapy', 'Microdermabrasion'],
+      },
     ],
     sourceIds: ['nct-beauty-treatments'],
   },

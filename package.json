@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "readability": "npx vite-node scripts/readability-report.ts"
   },
   "dependencies": {
     "framer-motion": "^12.43.0",

@@ -146,8 +146,8 @@ export const helpTopics: HelpTopic[] = [
     id: 'movements-why',
     title: 'Why movements matter — the honest version',
     body: [
-      "In around half of stillbirths, the mother had noticed reduced movements beforehand. That statistic sounds frightening, but it doesn't mean reduced movements usually lead to loss — most people who report one episode go on to have a straightforward pregnancy and a healthy baby.",
-      "It also doesn't mean it's ever a parent's fault for not noticing sooner. The point of checking early is simply that problems found sooner are usually treatable.",
+      "In about half of stillbirths, the mother had noticed her baby moving less first. That sounds frightening. But it does not mean reduced movements usually lead to loss. Most women who report it once go on to have a normal pregnancy and a healthy baby.",
+      "It also does not mean it is ever a parent's fault for not spotting it sooner. Checking early matters for one reason: problems found early can usually be treated.",
     ],
     sourceIds: ['tommys-movements'],
   },

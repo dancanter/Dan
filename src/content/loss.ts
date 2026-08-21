@@ -36,20 +36,22 @@ export const lossSections: LossSection[] = [
     title: 'Symptoms — and the honest uncertainty',
     sourceIds: ['miscarriage-uk'],
     body: [
-      'Bleeding, cramping, backache, passing tissue, or reducing pregnancy symptoms can all occur with miscarriage — but **none of these prove a miscarriage is happening, and their absence doesn’t rule one out either**.',
-      'Some pregnancies with early bleeding continue perfectly normally. Some losses are found only on a routine scan with no symptoms at all.',
-      'This uncertainty is genuinely hard to sit with, and it’s why assessment matters rather than trying to read the signs yourself.',
+      'Bleeding, cramping, backache, passing tissue, or pregnancy symptoms easing off can all happen with a miscarriage. But **none of them prove one is happening. And not having them does not rule one out.**',
+      'Some pregnancies bleed early and carry on perfectly well. Some losses are found on a routine scan, with no symptoms at all.',
+      'That uncertainty is hard to sit with. It is also why being checked matters, rather than trying to read the signs yourself.',
     ],
   },
-  {
+    {
     id: 'urgent',
     title: 'Get help urgently for',
     tone: 'urgent',
     sourceIds: ['miscarriage-uk', 'nhs-get-help'],
     body: [
-      'Severe or worsening abdominal pain · sharp or one-sided pain · shoulder-tip pain · pain when passing stools alongside abdominal pain · feeling faint, dizzy or weak · heavy bleeding (soaking more than one pad an hour) · collapse.',
-      '**Call 999** if you collapse, have severe pain, or bleed very heavily — these can mean ectopic pregnancy or significant internal bleeding.',
-      'Otherwise, contact your GP, midwife, 111, or your local Early Pregnancy Unit for any bleeding or pain that worries you. Use pads rather than tampons so bleeding can be monitored properly.',
+      'Severe pain, or pain that is getting worse. Sharp pain, or pain on one side. Pain in the tip of your shoulder. Pain when you poo, along with tummy pain.',
+      'Feeling faint, dizzy or weak. Heavy bleeding — soaking more than one pad an hour.',
+      '**Call 999** if you collapse, if the pain is severe, or if you are bleeding very heavily. These can mean an ectopic pregnancy, or bleeding inside.',
+      'For any bleeding or pain that worries you, call your GP, your midwife, 111, or your local Early Pregnancy Unit.',
+      'Use pads rather than tampons, so the bleeding can be checked properly.',
     ],
   },
   {

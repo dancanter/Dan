@@ -36,15 +36,15 @@ export const exerciseGuides: Guide[] = [
     ],
     sourceIds: ['nhs-exercise'],
   },
-  {
+    {
     id: 'exercise-gd',
     section: 'exercise',
     title: 'Exercise and gestational diabetes',
-    summary:
-      'The single most effective lifestyle intervention for preventing it — more than diet alone.',
+    summary: 'The most effective lifestyle change for preventing it — more so than diet alone.',
     body: [
-      'Physical activity is one of the most effective things you can do to lower your risk of gestational diabetes — on current evidence, more effective than diet changes alone. A 2026 analysis of over 100 trials and 36,000 women ranked exercise-based approaches as the single most effective lifestyle intervention for preventing it.',
-      'Different activities suit different stages: aerobic and strength work tend to fit earlier pregnancy, swimming and gentler activity often feel better later on.',
+      'Being active is one of the best things you can do to lower your risk of gestational diabetes. On current evidence it works better than changing your diet alone.',
+      'A 2026 review pooled over 100 trials and 36,000 women. Exercise came out top of every lifestyle approach they tested.',
+      'What suits you will change as you go. Aerobic and strength work tend to fit earlier on. Swimming and gentler movement often feel better later.',
     ],
     sourceIds: ['allotey-2026'],
   },

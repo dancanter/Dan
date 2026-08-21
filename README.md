@@ -57,6 +57,8 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 
 **Engagement without guilt.** With the scoring gone, what's left has to earn its place honestly: milestone celebrations show **once** — someone installing at week 30 gets one warm moment, not five queued pop-ups — the bump gallery has no completeness indicator, and no screen ever implies you've fallen behind.
 
+**Readability is measured, then enforced.** NHS guidance targets a reading age of about 9–11 for public-facing health information. An audit (`npm run readability`) scores every entry with Flesch–Kincaid: the content started at a **mean grade of 8.3 — reading age ~13 — with 99 of 183 entries above grade 8 and a worst case of 15.5.** Rewriting the worst offenders brought that to **mean 7.2, worst case 10.3**. Four tests now hold the line: a ceiling on the mean, a ceiling per entry, a stricter ceiling for the urgent flow (nobody frightened should have to parse a clause), and a 45-word sentence limit. Every future simplification should pull those ceilings down.
+
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
 
 **Content is data, not JSX.** Everything lives in typed files under `src/content/`. Adding research means editing data — no component changes.
@@ -94,7 +96,7 @@ src/content/
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty screens in `npm test`.**
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty screens in `npm test`.** Readability is checked in the same run.
 
 ## Running it
 
@@ -106,6 +108,7 @@ npm run preview
 npm test           # content integrity, component and accessibility tests
 npm run typecheck
 npm run lint
+npm run readability   # Flesch–Kincaid audit, worst entries first
 ```
 
 ## Next

@@ -40,6 +40,23 @@ function GuideCard({
       </summary>
       <div className="mt-3">
         <RichText paragraphs={guide.body} />
+        {guide.lists?.map((list) => (
+          <div key={list.title ?? 'list'} className="mt-3">
+            {list.title && (
+              <p className="label-mono mb-1.5 text-mossd">{list.title}</p>
+            )}
+            <ul className="m-0 list-none p-0">
+              {list.items.map((item) => (
+                <li key={item} className="mb-1 flex gap-2 text-[15px]">
+                  <span aria-hidden="true" className="text-moss">
+                    ·
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         {guide.table && (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full border-collapse text-sm">

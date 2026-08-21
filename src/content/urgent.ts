@@ -100,7 +100,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'My skin is itching, especially my hands and feet',
     action: 'maternity-unit',
     now: 'Call your maternity unit and ask for a liver function blood test.',
-    why: 'Itching without a rash, particularly on the palms and soles and worse at night, can be intrahepatic cholestasis of pregnancy (ICP) — a liver condition that needs monitoring and treatment. It is diagnosed with a blood test, not by looking at your skin.',
+    why: 'Itching with no rash, on the palms and soles, and worse at night, can mean a liver condition called ICP. It needs watching and treating. A blood test finds it. Looking at your skin does not.',
     sourceIds: ['nhs-get-help'],
   },
   {
@@ -108,7 +108,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'I have a high temperature',
     action: 'maternity-unit',
     now: 'Call your maternity unit if your temperature is 38°C or above.',
-    why: 'A raised temperature usually means an infection somewhere, and infections in pregnancy are treated more promptly than they otherwise might be.',
+    why: 'A high temperature usually means an infection. In pregnancy, infections are treated faster than they otherwise would be.',
     sourceIds: ['nhs-get-help', 'nhs-infections'],
   },
   {

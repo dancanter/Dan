@@ -1,15 +1,15 @@
 import type { Guide } from '../schema';
 
 export const healthConditionGuides: Guide[] = [
-  {
+    {
     id: 'conditions-overview',
     section: 'health-conditions',
     title: 'If you have an existing condition — start here',
     summary: 'See your specialist early. Never stop medication without asking.',
     body: [
-      'If you have an existing health condition, the single most useful thing you can do is see your specialist or GP **as early as possible** — ideally before you conceive, or as soon as you find out you’re pregnant.',
-      'Your care will usually involve a team (your specialist, an obstetrician, and your midwife) working together and planning ahead, rather than you having to coordinate everything yourself. This is standard practice, not a sign your case is especially worrying.',
-      '**The one rule that applies across every condition here:** never stop or change your regular medication without talking to your specialist first. Stopping can be more dangerous than continuing, even when a medicine feels like something you "shouldn’t" take in pregnancy.',
+      'If you have a health condition already, see your specialist or GP **as early as you can**. Before you conceive is best. As soon as you find out is the next best thing.',
+      'A team will usually look after you — your specialist, an obstetrician and your midwife. They plan together, so you are not left to join it all up yourself. This is normal practice. It does not mean your case is worrying.',
+      '**One rule covers every condition here: never stop or change your medicine without asking your specialist first.** Stopping can be more dangerous than carrying on. That holds even when a medicine feels like something you should not take.',
     ],
     sourceIds: ['nice-ng121'],
     emphasis: 'calm',
@@ -27,15 +27,16 @@ export const healthConditionGuides: Guide[] = [
     ],
     sourceIds: ['nhs-asthma-pregnancy'],
   },
-  {
+    {
     id: 'congenital-heart',
     section: 'health-conditions',
     title: 'Congenital heart disease',
     summary: 'See your cardiologist before conceiving, even if you haven’t needed one for years.',
     body: [
-      'If you were born with a heart condition, see your cardiologist before trying to conceive, even if you haven’t needed one for years — pregnancy puts real strain on the heart. You’ll be cared for by a team including a cardiologist, obstetrician and midwife, sometimes at a specialist cardiac pregnancy clinic.',
-      'Depending on your specific condition, there’s a chance your baby could inherit it — worth discussing with a specialist. You’ll get regular growth scans, as some conditions can affect how well nutrients reach your baby.',
-      'Labour and birth plans are individual to your condition — a caesarean isn’t automatic just because you have heart disease, but an assisted delivery to reduce pushing strain is common.',
+      'If you were born with a heart condition, see your cardiologist before you try to conceive. Do this even if you have not needed one for years. Pregnancy puts real strain on the heart.',
+      'A team will care for you — a cardiologist, an obstetrician and a midwife. Some areas have a specialist heart clinic for pregnancy.',
+      'Your baby may inherit the condition, depending on which one you have. Ask your specialist about this. You will also be offered regular growth scans, as some conditions affect how well nutrients reach your baby.',
+      'Your birth plan will be built around your condition. A caesarean is not automatic. An assisted birth is common, because it means less pushing.',
     ],
     sourceIds: ['nhs-chd-pregnancy'],
   },
@@ -65,16 +66,32 @@ export const healthConditionGuides: Guide[] = [
     ],
     sourceIds: ['nhs-diabetes-pregnancy'],
   },
-  {
+    {
     id: 'epilepsy',
     section: 'health-conditions',
     title: 'Epilepsy',
     summary: 'Stopping suddenly is often more dangerous than continuing. Specialist decision.',
     body: [
-      'Most people with epilepsy have healthy pregnancies, but seizure frequency can change unpredictably. See a specialist before conceiving if possible.',
-      'Some epilepsy medicines carry risks to your baby’s development — but **stopping suddenly is often more dangerous than continuing**, so this is a decision for your specialist, not something to do alone.',
-      '**Urgent help needed if:** you’re pregnant and haven’t yet discussed it with a specialist · vomiting is affecting your medicine’s effectiveness · your seizures have changed. **Call 999 if:** a seizure lasts longer than usual or over 5 minutes, or you don’t recover normally between seizures.',
-      'Breastfeeding while on epilepsy medicine is usually fine — check with your specialist.',
+      'Most people with epilepsy have healthy pregnancies. Seizures can become more or less frequent, and there is no way to predict which. See a specialist before you conceive if you can.',
+      'Some epilepsy medicines carry risks to your baby. But **stopping suddenly is often more dangerous than carrying on.** This is a decision for your specialist, not one to make alone.',
+      'Breastfeeding while taking epilepsy medicine is usually fine. Check with your specialist.',
+    ],
+    lists: [
+      {
+        title: 'Get help urgently if',
+        items: [
+          'You are pregnant and have not yet spoken to a specialist',
+          'You are being sick, and it is stopping your medicine working',
+          'Your seizures have changed',
+        ],
+      },
+      {
+        title: 'Call 999 if',
+        items: [
+          'A seizure lasts longer than usual, or more than 5 minutes',
+          'You do not recover as you normally would between seizures',
+        ],
+      },
     ],
     sourceIds: ['nhs-epilepsy-pregnancy'],
   },
@@ -108,15 +125,16 @@ export const vaccinationGuides: Guide[] = [
     sourceIds: ['nhs-vaccinations-pregnancy', 'nhs-flu-jab', 'nhs-whooping-cough', 'govuk-rsv'],
     emphasis: 'calm',
   },
-  {
+    {
     id: 'vaccines-live-travel',
     section: 'vaccinations',
     title: 'Live vaccines, travel and malaria',
     summary: 'Live vaccines are usually postponed. Malaria is genuinely serious in pregnancy.',
     body: [
-      '**Live vaccines** — MMR, BCG, oral typhoid and yellow fever are usually postponed until after birth. There’s a theoretical risk, though no evidence of birth defects has been found. Occasionally a live vaccine may still be recommended if the risk of the actual infection is judged higher — a discussion with your midwife or GP, not a decision to make alone.',
-      '**Travel vaccines:** best to avoid travel to areas needing vaccination while pregnant if possible. If unavoidable, discuss risks and benefits with your GP — untreated infection is often more dangerous to your baby than the vaccine.',
-      '**Malaria** is particularly serious in pregnancy, potentially fatal for both of you. Avoid affected areas if you can. If travel is unavoidable, antimalarial tablets are available — the choice depends on destination, pregnancy stage and your history, so this needs proper medical guidance, not self-selection. Bite prevention matters regardless: pregnancy-safe repellent, covering skin dusk to dawn, and sleeping under a net.',
+      '**Live vaccines** are usually put off until after the birth. These are MMR, BCG, oral typhoid and yellow fever. The risk is a theoretical one — no birth defects have been found. Now and then a live vaccine is still advised, when the infection itself is the bigger risk. That is a conversation with your midwife or GP.',
+      '**Travel vaccines.** If you can, avoid travelling somewhere that needs one. If you cannot, talk it through with your GP. An untreated infection is often more dangerous to your baby than the vaccine is.',
+      '**Malaria is serious in pregnancy** and can be fatal for both of you. Avoid affected areas if at all possible.',
+      'If you have to travel, there are tablets you can take. Which one depends on where you are going, how far along you are, and your health history — so this needs a doctor, not a shelf. Avoiding bites matters just as much: use a repellent that is safe in pregnancy, cover your skin from dusk to dawn, and sleep under a net.',
     ],
     sourceIds: ['nhs-vaccinations-pregnancy', 'nhs-travel'],
   },

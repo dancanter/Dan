@@ -14,7 +14,7 @@ export const myths: Myth[] = [
     claim: 'You should gain a specific amount of weight',
     verdict: 'myth',
     explanation:
-      "UK guidance deliberately doesn't set a target range, because the evidence doesn't support one number working for everyone.",
+      "UK guidance sets no target on purpose. The evidence does not support one number that works for everyone.",
     sourceIds: ['sacn-2026'],
   },
   {
@@ -46,7 +46,7 @@ export const myths: Myth[] = [
     claim: 'Pregnancy always makes you feel worse about your body',
     verdict: 'myth',
     explanation:
-      'Research found body image dissatisfaction was actually lower during pregnancy than before it. Attention shifts from appearance to function.',
+      'Research found women felt better about their bodies while pregnant than before. Attention shifts from how your body looks to what it is doing.',
     sourceIds: ['linde-body-image'],
   },
   {
@@ -78,7 +78,7 @@ export const myths: Myth[] = [
     claim: 'Relaxation techniques actually do something',
     verdict: 'true',
     explanation:
-      'A meta-analysis of 32 trials and nearly 4,000 women found breathing, music and mindfulness meaningfully reduced stress, anxiety and low mood.',
+      'A review of 32 trials, covering nearly 4,000 women, looked at breathing, music and mindfulness. All three cut stress, worry and low mood.',
     sourceIds: ['abera-2024'],
   },
   {
@@ -94,7 +94,7 @@ export const myths: Myth[] = [
     claim: 'Paracetamol in pregnancy causes autism',
     verdict: 'myth',
     explanation:
-      'The UK medicines regulator (MHRA) has confirmed paracetamol remains safe in pregnancy and there is no evidence it causes autism.',
+      'The MHRA, which regulates medicines in the UK, has confirmed that paracetamol is still safe in pregnancy. There is no evidence that it causes autism.',
     sourceIds: ['mhra-paracetamol', 'nhs-headaches'],
   },
   {
@@ -110,7 +110,7 @@ export const myths: Myth[] = [
     claim: 'Exercise is risky for the baby',
     verdict: 'myth',
     explanation:
-      'The opposite. Exercise is safe and beneficial, and is the single most effective lifestyle intervention for preventing gestational diabetes.',
+      'The opposite is true. Exercise is safe, and it is good for you. It is also the best lifestyle change for preventing gestational diabetes.',
     sourceIds: ['nhs-exercise', 'allotey-2026'],
   },
   {

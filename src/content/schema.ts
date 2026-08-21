@@ -40,6 +40,12 @@ export interface Guide {
     head: string[];
     rows: string[][];
   };
+  /**
+   * Real lists, for content that is a list. A packing checklist written as
+   * one dot-separated paragraph reads as a single 58-word sentence — bad for
+   * a scanning reader and bad for every readability measure.
+   */
+  lists?: { title?: string; items: string[] }[];
 }
 
 export type GuideSection =

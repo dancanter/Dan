@@ -38,8 +38,8 @@ export const privacySections: PrivacySection[] = [
     id: 'offline',
     title: 'It works with no signal',
     body: [
-      'The whole app — including every urgent-help screen and your saved maternity unit number — is stored on your device after the first visit, and works with no internet connection at all.',
-      'That is a deliberate safety decision, not a technical nicety. The screen someone needs most is the one they might need in a lift, a car park, or a rural area with no bars.',
+      'After your first visit, the whole app is stored on your device. That includes every urgent-help screen, and the maternity number you saved. It all works with no internet at all.',
+      'That was a safety choice, not a technical one. The screen you need most is the one you might need in a lift, a car park, or somewhere with no signal.',
     ],
   },
   {
@@ -55,8 +55,8 @@ export const privacySections: PrivacySection[] = [
     id: 'wrong',
     title: 'If something here is wrong',
     body: [
-      'Health guidance changes, and this app is maintained by one person rather than an organisation with a review cycle. Some sources will fall out of date before they are updated here.',
-      'If you spot something inaccurate, out of date, or badly worded, it can be reported as an issue on the project’s public GitHub repository — the whole thing is open source, including every word of the content and the reasoning behind each editorial decision.',
+      'Health guidance changes. One person maintains this app, not an organisation with a review cycle. Some sources will go out of date before they are updated here.',
+      'If you spot something wrong, out of date, or badly worded, you can report it on the project’s public GitHub page. The whole thing is open source — every word of the content, and the reasoning behind each decision.',
       '**This app has not been clinically reviewed.** That is stated plainly rather than buried, and it is the single biggest limitation it has.',
     ],
   },

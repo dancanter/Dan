@@ -13,14 +13,15 @@ export const wellbeingGuides: Guide[] = [
     sourceIds: ['alves-2021'],
     emphasis: 'calm',
   },
-  {
+    {
     id: 'relaxation',
     section: 'wellbeing',
     title: 'Relaxation genuinely works',
-    summary: 'A meta-analysis of 32 trials found real reductions in stress, anxiety and low mood.',
+    summary: 'A review of 32 trials found real reductions in stress, anxiety and low mood.',
     body: [
-      'A meta-analysis of 32 trials and nearly 4,000 women found relaxation techniques — breathing, music, progressive muscle relaxation, yoga, mindfulness — meaningfully reduced stress, anxiety and low mood on validated scales, with a modest associated increase in birth weight.',
-      'You don’t need an app or a class. Five minutes of slow breathing counts.',
+      'Researchers pooled 32 trials covering nearly 4,000 women. They looked at breathing, music, muscle relaxation, yoga and mindfulness.',
+      'All of it cut stress, worry and low mood, measured on proper scales. Birth weight also went up slightly.',
+      'You do not need an app or a class. Five minutes of slow breathing counts.',
     ],
     sourceIds: ['abera-2024'],
   },
@@ -59,14 +60,14 @@ export const wellbeingGuides: Guide[] = [
 ];
 
 export const weightGuides: Guide[] = [
-  {
+    {
     id: 'no-target-number',
     section: 'weight',
     title: 'There’s no single "correct" number',
     summary: 'UK guidance deliberately sets no fixed weight-gain target.',
     body: [
-      'Weight gain varies enormously, and current UK guidance deliberately sets no fixed target — because the evidence doesn’t support one number working for everyone.',
-      'If you’re worrying about a number, you can genuinely let that go.',
+      'How much weight women gain varies hugely. UK guidance sets no target on purpose, because the evidence does not support one number that works for everyone.',
+      'If you are worrying about a number, you can let that go.',
     ],
     sourceIds: ['sacn-2026', 'nhs-weight-gain'],
     emphasis: 'calm',
@@ -93,13 +94,14 @@ export const weightGuides: Guide[] = [
     ],
     sourceIds: ['chahal-2024'],
   },
-  {
+    {
     id: 'cravings',
     section: 'weight',
     title: 'Cravings are normal',
     summary: 'Fighting them caused more distress than allowing them in moderation.',
     body: [
-      'Extremely common and nothing to feel guilty about. Research on how women actually experience cravings found that fighting them caused more distress than allowing them in moderation — and guilt was an unhelpful companion either way.',
+      'Cravings are very common, and nothing to feel guilty about.',
+      'Researchers asked women how they actually deal with them. Fighting a craving caused more distress than giving in to it a bit. Guilt made things worse either way.',
     ],
     sourceIds: ['blau-cravings'],
   },

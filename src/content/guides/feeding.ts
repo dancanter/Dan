@@ -71,15 +71,15 @@ export const feedingGuides: Guide[] = [
     ],
     sourceIds: ['ohid-infant-feeding-2024', 'who-infant-feeding'],
   },
-  {
+    {
     id: 'feeding-benefits-calibrated',
     section: 'feeding-basics',
     title: 'What the evidence actually says about benefits',
-    summary: 'Population-level associations — not guarantees for any individual baby.',
+    summary: 'Patterns across large groups — not promises about any one baby.',
     body: [
-      'Breastfeeding is linked to a lower chance of infections like diarrhoea and pneumonia in babies, and some evidence links it to lower rates of later childhood overweight.',
-      'These are **population-level associations, not guarantees for any individual baby**. However you feed, you’re giving your baby what they need.',
-      'Keeping you and your baby together after birth (rather than baby going to a nursery), and feeding as often as your baby wants rather than on a schedule, are both part of the "Baby Friendly" standard UK hospitals are assessed against.',
+      'Breastfeeding is linked to fewer infections in babies, such as diarrhoea and chest infections. Some evidence links it to lower rates of being overweight later in childhood.',
+      'These are **patterns across large groups of people. They are not promises about any one baby.** However you feed yours, you are giving them what they need.',
+      'UK hospitals are checked against a standard called "Baby Friendly". Two parts of it: you and your baby stay together after the birth, and you feed when your baby wants rather than by the clock.',
     ],
     sourceIds: ['who-infant-feeding'],
   },
@@ -243,16 +243,16 @@ export const feedingGuides: Guide[] = [
     ],
     sourceIds: ['nhs-bottle-feeding', 'nhs-making-formula'],
   },
-  {
+    {
     id: 'combining-feeding',
     section: 'bottle-feeding',
     title: 'Combining breast and bottle',
     summary: 'Both directions — and how to protect supply if you want to.',
     body: [
-      'Introducing formula alongside breastfeeding will reduce your milk supply somewhat, and there’s some evidence babies can find switching between different sucking actions tricky. Neither is a reason not to do it if it’s what works for you.',
-      '**Introducing formula:** do it gradually to avoid engorgement or mastitis. Start a few weeks before returning to work if that’s the plan. If your baby is 6+ months and cup-drinking, you may not need a bottle at all.',
-      '**First bottle tips:** offer when your baby is relaxed, not ravenous; it can help if someone else gives it, away from the smell of your milk; try a different feeding position than usual.',
-      '**Going the other way — more breastfeeding, fewer bottles:** skin-to-skin contact, expressing regularly (ideally around 8 times a day including once overnight), bottle-feeding while skin-to-skin, feeding often even if briefly at first, and reducing bottles gradually as supply increases. A lactation aid — a fine tube taped near the nipple — is a real option a midwife or health visitor can show you.',
+      'Adding formula will lower your milk supply a little. Some babies also find it tricky to switch between the two ways of sucking. Neither is a reason to avoid it, if mixing is what works for you.',
+      '**Adding formula in.** Do it slowly, so you avoid engorgement or mastitis. If you are going back to work, start a few weeks before. If your baby is over 6 months and drinks from a cup, you may not need a bottle at all.',
+      '**The first bottle.** Offer it when your baby is relaxed rather than starving. It often helps if someone else gives it, away from the smell of your milk. Try a different position from the one you usually feed in.',
+      '**Going the other way, towards more breastfeeding.** Lots of skin-to-skin. Express often — about 8 times a day, including once at night. Give bottles while skin-to-skin. Offer the breast often, even if only briefly at first. Then drop bottles slowly as your supply builds. A midwife or health visitor can also show you a lactation aid, which is a fine tube taped near the nipple.',
     ],
     sourceIds: ['nhs-combine-feeding'],
   },
