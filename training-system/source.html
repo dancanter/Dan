@@ -319,9 +319,9 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <div id="weekList"></div>
 
     <section class="block" style="margin-top:26px">
-      <h2 class="block-title">The Block Arc</h2>
-      <p class="block-sub">Every quality week side by side. Deload weeks (4, 8, 12) cut the volume and carry the benchmark.</p>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref" id="arcTable"></table></div>
+      <h2 class="block-title">What You Haven't Trained</h2>
+      <p class="block-sub">Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
+      <div id="suggestBox"></div>
     </section>
   </div>
 
@@ -1146,52 +1146,60 @@ function progOf(kind, w) { return PROG[kind][w] || PROG[kind][3]; }
 
 function poolFor(w) {
   var dl = isDeload(w);
-  var speed = SPEED_ROTATION[w] || SPEED_ROTATION[3];
-  if (dl) speed = { type: "Speed — deload", desc: "4 × 200m relaxed, full recovery" };
+  var short = dl ? " Deload week — keep it short, fewer reps than usual." : "";
   return [
-    { sid: "run1k", hard: 2, type: dl ? "5K pace — deload" : "Long intervals — 5K pace",
-      desc: dl ? "3 × 1km @ 3:22/km, 90s recovery"
-               : progOf("run1k", w)[0] + " × 1km @ 3:22/km, " + progOf("run1k", w)[1] + "s recovery" },
-    { sid: "speed", hard: 2, type: speed.type, desc: speed.desc },
-    { sid: "thresh", hard: 2, type: "Threshold",
-      desc: dl ? "15 min continuous @ 3:40–3:45/km"
-               : progOf("thresh", w)[0] + " min continuous @ " + progOf("thresh", w)[1] + "/km" },
-    { sid: "easy", hard: 0, type: "Easy long run",
-      desc: dl ? "30–40 min genuinely easy"
-               : progOf("easy", w) + " min genuinely easy — nasal breathing the whole way" },
-    { sid: "easyshort", hard: 0, type: "Easy recovery run",
-      desc: "25–35 min genuinely easy, nasal breathing the whole way. Volume without cost — if you cannot hold the nasal breathing you are running it too hard and it stops being recovery." },
-    { sid: "strides", hard: 1, type: "80m build-ups",
-      desc: "6 × 80m accelerating to about 90–95% and easing off, walk back. The on-ramp: run these for 2–3 weeks before anything maximal, so the hamstrings meet sprint speed gradually." },
-    { sid: "sprint", hard: 1, type: "80m sprints — all out",
-      desc: "5 × 80m genuinely flat out, 3–4 min walk-back. Best folded into the start of the speed day, after the full warm-up and before the main set — never cold, never after a lift. Stop the moment times drop off." },
-    { sid: "spd200", hard: 2, type: "200m speed endurance — flat out",
-      desc: "3 × 200m genuinely flat out, 10 min full recovery. Three is the ceiling for all-out 200s. When rep 3 drops off badly, the session is over — pushing a fourth trains nothing." },
-    { sid: "spd400", hard: 2, type: "400m speed endurance",
-      desc: "3 × 300m @ 43–44s, 8–10 min full recovery. This is the one that is actually at 400m pace — 95% effort, long rest, low reps." },
-    { sid: "bench", hard: 2, type: "BENCHMARK TEST",
-      desc: "3 × 800m — target 2:24 each. Log it on the Progress tab, then write what it tells you in this week's reflection." },
-    { sid: "rest", hard: 0, type: "Rest", desc: "Full rest, or a 20 min shakeout jog if you feel like moving." }
+    /* ---- effort sessions: you pick, all out, full recovery, no target pace ---- */
+    { sid: "eff_mile", hard: 2, group: "effort", type: "1 mile — all out",
+      desc: "One mile, flat out." + short },
+    { sid: "eff_5k", hard: 2, group: "effort", type: "5K — all out",
+      desc: "5K, flat out." + short },
+    { sid: "eff_1k", hard: 2, group: "effort", type: "1km reps",
+      desc: "1km reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_800", hard: 2, group: "effort", type: "800m reps",
+      desc: "800m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_600", hard: 2, group: "effort", type: "600m reps",
+      desc: "600m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_400", hard: 2, group: "effort", type: "400m reps",
+      desc: "400m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_200", hard: 2, group: "effort", type: "200m reps",
+      desc: "200m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_mixed", hard: 2, group: "effort", type: "Mixed set",
+      desc: "Your own combination — 2×800 + 2×600 + 2×400, or whatever you fancy. All out, full recovery." + short },
+    { sid: "eff_hill", hard: 2, group: "effort", type: "Uphill 100m sprints",
+      desc: "100m uphill, all out, walk back down. You choose how many." + short },
+    { sid: "eff_thresh", hard: 2, group: "effort", type: "Threshold — continuous",
+      desc: "25–30 min continuous at comfortably hard — the pace where you could speak a sentence but would not want to. No reps, no stopping." + short },
+
+    /* ---- easy ---- */
+    { sid: "easy_long", hard: 0, group: "easy", type: "Long easy run",
+      desc: "8–10km, smooth and conversational. If you cannot hold a conversation you are running it too hard." },
+    { sid: "easy_short", hard: 0, group: "easy", type: "Short easy run",
+      desc: "5km, smooth and conversational." },
+
+    /* ---- bonus ---- */
+    { sid: "bonus_sprint", hard: 1, group: "bonus", type: "Bonus sprints",
+      desc: "5–8 × 100–200m, flat or uphill. Short and sharp, full recovery. Optional — only if you have the energy." },
+
+    { sid: "gymonly", hard: 0, group: "other", type: "Gym only", desc: "No run today." },
+    { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." }
   ];
 }
-/* index 0 = Sunday, matching the day columns */
+/* index 0 = Sunday */
 function layoutFor(w) {
-  /* With Saturday off and the long run on Sunday, the only three non-adjacent
-     hard days available are Mon, Wed and Fri. So rather than moving the day,
-     move which session sits on it: threshold runs fine on legs tired from the
-     long run, and the 5x1km gets a clear rest day either side of it. */
-  /* Sunday long run and Saturday off leave Mon/Wed/Fri as the only three
-     non-adjacent hard days there are — verified, not assumed. */
-  return isDeload(w)
-    ? [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
-       { sid: "rest", gym: 1 }, { sid: "bench" }, { sid: "rest" }]
-    : [{ sid: "easy" }, { sid: "run1k", gym: 1 }, { sid: "rest", gym: 1 }, { sid: "speed", gym: 1 },
-       { sid: "rest", gym: 1 }, { sid: "thresh" }, { sid: "rest" }];
+  return [
+    { sid: "eff_1k", gym: 1 },      /* SUN — effort + upper gym */
+    { sid: "easy_short" },          /* MON — easy, your pick of distance */
+    { sid: "gymonly", gym: 1 },     /* TUE — gym only */
+    { sid: "eff_400", gym: 1 },     /* WED — effort + paired gym */
+    { sid: "easy_long" },           /* THU — the distance you did not do Monday */
+    { sid: "gymonly", gym: 1 },     /* FRI — gym, bonus sprints optional */
+    { sid: "rest" }                 /* SAT — full rest */
+  ];
 }
 var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 function templateForWeek(w) {
-  if (w === 13) return {
+  if (false) return {
     phase: "PB Attempt Week", flexible: false,
     note: "Hold maintenance calories. Two clear easy or rest days before each attempt.",
     days: [
@@ -1212,12 +1220,9 @@ function templateForWeek(w) {
     phase = "Maintenance — hold steady";
     note = "Hold wherever the weight stabilised during the reverse.";
   }
-  if (w <= 2) {
-    return { phase: phase, note: note, flexible: false, days: WEEK_TEMPLATES[((w - 1) % 4) + 1] };
-  }
   note += isDeload(w)
-    ? " Deload week — reduced volume and the 800m benchmark."
-    : " Move the sessions to whichever days suit you — the plan flags it if two hard days end up back to back.";
+    ? " Deload week — same structure, just keep the effort sessions short."
+    : " Two effort days, two easy days, gym 4×, Saturday off. You pick which session goes where.";
   return { phase: phase, note: note, flexible: true, pool: poolFor(w), layout: layoutFor(w) };
 }
 
@@ -1295,7 +1300,7 @@ function buildWeek(w) {
   var t = templateForWeek(w);
   if (t.flexible) {
     return t.layout.map(function (l, i) {
-      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, actual: "", notes: "", feel: "", done: false };
+      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, detail: "", actual: "", notes: "", feel: "", done: false };
     });
   }
   return t.days.map(function (d) {
@@ -1308,8 +1313,8 @@ function loadWeek(w) {
   var fresh = buildWeek(w);
   if (saved && saved.length === fresh.length) {
     weekData = fresh.map(function (d, i) {
-      var keep = { day: d.day, actual: saved[i].actual || "", notes: saved[i].notes || "",
-        feel: saved[i].feel || "", done: !!saved[i].done };
+      var keep = { day: d.day, detail: saved[i].detail || "", actual: saved[i].actual || "",
+        notes: saved[i].notes || "", feel: saved[i].feel || "", done: !!saved[i].done };
       if (currentPlan.flexible) {
         /* an assignment the user made survives; anything else falls back to the default */
         keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
@@ -1385,8 +1390,13 @@ function sprintWarning(sid) {
 }
 
 function sessionOptions(pool, sel) {
-  return pool.map(function (o) {
-    return '<option value="' + o.sid + '"' + (sel === o.sid ? " selected" : "") + ">" + esc(o.type) + "</option>";
+  var groups = [["effort", "Effort — all out"], ["easy", "Easy"], ["bonus", "Bonus"], ["other", "Other"]];
+  return groups.map(function (g) {
+    var items = pool.filter(function (o) { return (o.group || "other") === g[0]; });
+    if (!items.length) return "";
+    return '<optgroup label="' + g[1] + '">' + items.map(function (o) {
+      return '<option value="' + o.sid + '"' + (sel === o.sid ? " selected" : "") + ">" + esc(o.type) + "</option>";
+    }).join("") + "</optgroup>";
   }).join("");
 }
 
@@ -1404,8 +1414,11 @@ function dayCard(d, i, isToday) {
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
     (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
+    '<div class="row-inputs" style="margin-bottom:6px">' +
+      '<input type="text" placeholder="Reps / distance" value="' + esc(d.detail || "") + '" data-field="detail" data-i="' + i + '">' +
+      '<input type="text" placeholder="Time / splits" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
+    "</div>" +
     '<div class="row-inputs">' +
-      '<input type="text" placeholder="Actual result" value="' + esc(d.actual) + '" data-field="actual" data-i="' + i + '">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
       '<input type="text" placeholder="Notes" value="' + esc(d.notes) + '" data-field="notes" data-i="' + i + '">' +
     "</div></div>";
@@ -1423,33 +1436,56 @@ function spacingCheck() {
   }
   var n = hard.filter(Boolean).length;
   var gyms = weekData.filter(function (d) { return d.gym; }).length;
-  var meta = n + " hard " + (n === 1 ? "day" : "days") + " · " + gyms + " gym";
+  var meta = n + " effort " + (n === 1 ? "day" : "days") + " · " + gyms + " gym";
   if (clashes.length) {
-    return '<div class="note stop" style="margin-bottom:12px"><b>Two hard days back to back</b>' +
+    return '<div class="note stop" style="margin-bottom:12px"><b>Two effort days back to back</b>' +
       esc(clashes.join(", ")) + ". The second one is run on a body that hasn't recovered from the first, " +
       "so it costs you more than it earns. Move one to a rest day if you can. (" + meta + ")</div>";
   }
   if (n >= 4) {
-    return '<div class="note warn" style="margin-bottom:12px"><b>Four hard days is a lot</b>' +
+    return '<div class="note warn" style="margin-bottom:12px"><b>Four effort days is a lot</b>' +
       "Spacing is fine, but that's more quality than this block is built around — especially in a deficit. (" + meta + ")</div>";
   }
   return '<div class="note good" style="margin-bottom:12px"><b>Spacing looks right</b>' +
-    "Every hard day has an easy or rest day after it. (" + meta + ")</div>";
+    "Every effort day has an easy or rest day after it. (" + meta + ")</div>";
 }
 
-function renderArc() {
-  var el = $("arcTable"); if (!el) return;
-  var rows = PROG_WEEKS.map(function (w) {
-    var pool = poolFor(w), get = function (id) { return poolItem(pool, id).desc; };
-    var sp = poolItem(pool, "speed");
-    var k = PROG.run1k[w], t = PROG.thresh[w];
-    return "<tr" + (w === viewWeek ? ' style="background:var(--track-wash)"' : "") + "><td><b>W" + w + "</b></td>" +
-      '<td class="hl">' + k[0] + " × 1km / " + k[1] + "s</td>" +
-      "<td>" + esc(sp.type.replace(/^(Speed|Mile pace) — /, "")) + '<span class="sub">' + esc(sp.desc.split(". ")[0]) + "</span></td>" +
-      '<td class="hl">' + t[0] + " min<br>" + esc(t[1]) + "</td>" +
-      '<td class="hl">' + esc(PROG.easy[w]) + " min</td></tr>";
-  }).join("");
-  el.innerHTML = "<thead><tr><th>Week</th><th>5K pace</th><th>Speed session</th><th>Threshold</th><th>Easy</th></tr></thead><tbody>" + rows + "</tbody>";
+/* Free choice drifts toward what you enjoy. Ranking by staleness surfaces the
+   formats being avoided, which is where the untapped adaptation usually is. */
+function renderSuggest() {
+  var el = $("suggestBox"); if (!el) return;
+  var pool = poolFor(viewWeek).filter(function (o) { return o.group === "effort" || o.group === "easy"; });
+  var rows = pool.map(function (o) {
+    var last = null;
+    for (var i = 0; i < sessionHistory.length; i++) {
+      if (sessionHistory[i].sid === o.sid) { last = sessionHistory[i]; break; }
+    }
+    var days = last ? daysBetween(parseDay(last.date), parseDay(today())) : null;
+    return { o: o, last: last, days: days, sort: days == null ? 9999 : days };
+  }).sort(function (a, b) { return b.sort - a.sort; });
+
+  var never = rows.filter(function (r) { return r.days == null && r.o.group === "effort"; });
+  var stale = rows.filter(function (r) { return r.days != null && r.days >= 21 && r.o.group === "effort"; });
+
+  var head = "";
+  if (never.length) {
+    head = '<div class="note warn" style="margin-bottom:10px"><b>Never done: ' + never.slice(0, 3).map(function (r) { return esc(r.o.type); }).join(", ") +
+      "</b>Worth one of these next effort day. A format you have never run is a format you have no idea how you handle, and the ones people skip are usually the ones that would move the needle.</div>";
+  } else if (stale.length) {
+    head = '<div class="note warn" style="margin-bottom:10px"><b>Not touched in a while: ' + esc(stale[0].o.type) +
+      "</b>" + stale[0].days + " days since the last one. Rotate it back in — you have drifted toward the sessions you like.</div>";
+  } else {
+    head = '<div class="note good" style="margin-bottom:10px"><b>Good spread</b>Nothing has been neglected. Keep picking freely.</div>';
+  }
+
+  el.innerHTML = head + '<div class="card" style="padding:6px 14px">' + rows.map(function (r) {
+    var when = r.days == null ? "never" : r.days === 0 ? "today" : r.days + "d ago";
+    var col = r.days == null ? "var(--track-bright)" : r.days >= 21 ? "var(--warn)" : "var(--muted)";
+    return '<div class="stone" style="grid-template-columns:1fr auto">' +
+      '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(r.o.type) +
+      (r.o.group === "easy" ? ' <span style="color:var(--muted-2);font-size:11.5px">easy</span>' : "") + "</span>" +
+      '<span class="stone-when" style="color:' + col + '">' + when + "</span></div>";
+  }).join("") + "</div>";
 }
 
 function renderWeek() {
@@ -1462,7 +1498,7 @@ function renderWeek() {
   $("weekList").innerHTML = spacingCheck() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
-  renderArc();
+  renderSuggest();
 }
 
 function toggleDone(i) {
@@ -1472,7 +1508,8 @@ function toggleDone(i) {
   sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
   if (d.done) {
     sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day, sid: d.sid || null,
-      type: sessionOf(d).type + (d.gym ? " + gym" : ""), actual: d.actual || "—", feel: d.feel || "" });
+      type: sessionOf(d).type + (d.gym ? " + gym" : ""), detail: d.detail || "",
+      actual: d.actual || "—", feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
   saveWeek(); renderWeek(); renderHistory(); renderReadiness(); renderToday();
@@ -2428,7 +2465,7 @@ function renderHistory() {
   if (!sessionHistory.length) { el.innerHTML = '<div class="empty">No sessions logged yet.</div>'; return; }
   el.innerHTML = sessionHistory.slice(0, 30).map(function (h) {
     return '<div class="log-item"><span class="l-main">W' + h.week + " · " + h.date + " · " + h.day + " · " + esc(h.type) + "</span>" +
-      '<span class="l-body">' + esc(h.actual) + (h.feel ? " · " + esc(h.feel) : "") + "</span></div>";
+      '<span class="l-body">' + (h.detail ? esc(h.detail) + " · " : "") + esc(h.actual) + (h.feel ? " · " + esc(h.feel) : "") + "</span></div>";
   }).join("");
 }
 
