@@ -991,7 +991,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "21 Aug 13:20";
+var BUILD = "21 Aug 13:24";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1381,6 +1381,10 @@ function loadWeek(w) {
       var keep = { day: d.day, detail: saved[i].detail || "", splits: saved[i].splits || "",
         avgpace: saved[i].avgpace || "", bestrep: saved[i].bestrep || "", actual: saved[i].actual || "",
         notes: saved[i].notes || "", feel: saved[i].feel || "", done: !!saved[i].done };
+      /* Sessions logged before the pace fields existed kept their result in a
+         single free-text box that no longer has an input. Surface it rather than
+         letting it sit in storage invisibly. */
+      if (keep.actual && !keep.splits && !keep.avgpace && !keep.detail) keep.splits = keep.actual;
       if (currentPlan.flexible) {
         /* an assignment the user made survives; anything else falls back to the default */
         keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
