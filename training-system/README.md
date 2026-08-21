@@ -30,52 +30,31 @@ verdict computed from morning HR against its own rolling baseline, recent
 session-feel ratings and whether sleep was ticked, then the daily recovery
 checklist with a 28-day completion grid and streak.
 
-**This Week** — weeks 1–2 are a fixed seven-day grid. From week 3 the week is a
-*pool* of sessions you assign to days, because which day a session lands on
-depends on how recovery is actually going: two hard runs (5 × 1km at 5K pace, and
-a rotating speed session), a threshold run, an easy long run, 80m sprints, and a
-gym toggle on any day. Reassigning a session re-checks the spacing and warns if
-two hard days end up back to back — including across the Saturday/Sunday
-boundary. Weeks 8 and 12 deload — week 4 is left as a normal week, since Rome is the break.
+**This Week** — a rolling, count-based system rather than a day-locked one,
+rebuilt to match the 2025 block that actually produced the PBs. Nothing is
+assigned to a day: every day starts empty and you record what you did, on
+whatever day you did it. The targets are counted over a **trailing seven days** —
+roughly two effort runs, two easy runs, four gym sessions — so five sessions one
+week and three the next is the same plan, not a failure.
 
-The 100m sprint formats (`Uphill 100m sprints`, `Bonus sprints`) are marked
-alactic and are **not counted as effort sessions** by the weekly intensity
-check. They are run off full recovery and stopped while the reps are still fast,
-so no rep is run to fatigue. What they do carry is hamstring risk, and the
-niggle block handles that separately.
+The effort menu is every distance from 100m to 10K, all out, full recovery, no
+prescribed pace. The easy menu is the two runs actually used: 5km and 5 mile,
+conversational. Sprints (100m flat or uphill) sit in their own bucket and are
+never counted as effort — alactic work off full recovery, stopped while the reps
+are still fast, so nothing is run to fatigue.
 
-The speed session rotates one pace (2:57/km, just under mile pace) with the rep
-length growing, and cycles 200m work back through:
+**Rest is deliberately not tracked.** There is no spacing check, no back-to-back
+warning, and nothing that asks why you did not run yesterday. The 2025 log has
+eight breaks of two or more days off and two pairs of back-to-back effort days,
+and the PBs came anyway.
 
-| Week | Session |
-|---|---|
-| 3 | 6 × 200m @ 29–30s, 3–4 min recovery |
-| 5 | 6 × 300m @ 53s, 400m jog |
-| 6 | 6 × 400m @ 71s, equal-time jog |
-| 7 | Ladder 200-400-600-400-200m @ mile pace |
-| 9 | 4 × 200m @ 27.5s off 8–10 min — 400m race pace |
-| 10 | 7 × 400m @ 71s, equal-time jog |
-| 11 | Ladder 200-400-600-800-600-400-200m @ mile pace |
+**The 2025 Block** — that log, kept as data so the figures under it are counted
+rather than claimed: what it averaged per week (which is where the ~2 and ~2
+targets come from), which effort formats kept recurring despite free choice
+every session, and how the rest actually fell.
 
-Those reps are mile-pace work, not 400m work: 300m in 53s and 400m in 71s both
-come out at 2:57/km, while 400m race pace for a sub-55 goal is 2:17/km. They are
-run controlled, never all-out. The pool carries two genuinely 400m-specific
-sessions instead: `80m build-ups` (the on-ramp), `80m sprints — all out`
-(alactic, full recovery, run fresh), `200m speed endurance — flat out`
-(3 reps, 10 min recovery) and `400m speed endurance` (3 × 300m @ 43–44s).
-
-Rep count and effort are locked together, which is why the rotation's 200s are
-run controlled: six reps only works at a controlled pace, and flat-out 200s cap
-out at three. Saturday is a full day off — the four gym sessions sit on Mon,
-Tue, Wed and Thu alongside the three hard runs.
-
-The repeating sessions progress across the block rather than repeating: the
-1km recovery shrinks 90s → 75s and then a sixth rep is added and it shrinks
-again; the threshold grows 25 → 32 min and then holds duration while the pace
-drops to 3:35–3:40; the easy run grows 45 → 70 min. Each card shows the arc its
-session sits on with the current week marked, and the last result you logged
-for that same session. A Block Arc table at the foot of the tab lays out all
-seven quality weeks side by side.
+**What You Haven't Trained** — free choice drifts toward what is going well.
+Ranking the menu by how long since each format was last run is what catches it.
 
 Every session's target splits are parsed out of its own text, so the volume, per-rep
 target, pace and recovery under each card stay correct if the wording changes.

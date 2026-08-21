@@ -316,12 +316,27 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <span class="tag" id="weekDone" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted)"></span>
     </div>
     <p class="block-sub" id="phaseNote"></p>
+
+    <section class="block" style="margin-top:4px">
+      <h2 class="block-title">Rolling Targets</h2>
+      <p class="block-sub">Counted over the last seven days, not owed on particular days. Five sessions one week and three the next is the same plan.</p>
+      <div id="rollBox"></div>
+    </section>
+
+    <h2 class="block-title" style="margin-top:26px">The Week</h2>
+    <p class="block-sub">A place to record what you did, on whatever day you did it. Nothing is assigned — every day starts empty.</p>
     <div id="weekList"></div>
 
     <section class="block" style="margin-top:26px">
       <h2 class="block-title">What You Haven't Trained</h2>
       <p class="block-sub">Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
       <div id="suggestBox"></div>
+    </section>
+
+    <section class="block" style="margin-top:26px">
+      <h2 class="block-title">The 2025 Block</h2>
+      <p class="block-sub">The log that produced the 5km, 10km and mile PBs, kept as the reference the targets above were set from. Everything under it is counted from these rows.</p>
+      <div id="bpBox"></div>
     </section>
   </div>
 
@@ -1193,39 +1208,48 @@ function poolFor(w) {
       desc: "Longer hills than the 100s. Strong and controlled up, walk or jog down. Big strength gain, low impact." + short },
     { sid: "eff_3k", hard: 2, group: "effort", type: "3K time trial",
       desc: "3K flat out. Sits between your mile and 5K and is the most informative single test there is." + short },
+    { sid: "eff_500", hard: 2, group: "effort", type: "500m reps",
+      desc: "All out, full recovery. As many as you fancy." + short },
+    { sid: "eff_10k", hard: 2, group: "effort", type: "10K — all out",
+      desc: "One continuous 10K, run hard. Rare, and it takes a few days back." + short },
     { sid: "eff_mixed", hard: 2, group: "effort", type: "Mixed set",
       desc: "Your own combination — 2×800 + 2×600 + 2×400, or whatever you fancy. All out, full recovery." + short },
-    { sid: "eff_hill", hard: 0, alactic: 1, group: "effort", type: "Uphill 100m sprints",
-      desc: "100m uphill, all out, walk back down. You choose how many. Not counted as an effort session — full recovery, no rep run tired." + short },
     { sid: "eff_thresh", hard: 2, group: "effort", type: "Threshold — continuous",
       desc: "25–30 min continuous at comfortably hard — the pace where you could speak a sentence but would not want to. No reps, no stopping." + short },
 
     /* ---- easy ---- */
-    { sid: "easy_long", hard: 0, group: "easy", type: "Long easy run",
-      desc: "8–10km, smooth and conversational. If you cannot hold a conversation you are running it too hard." },
-    { sid: "easy_short", hard: 0, group: "easy", type: "Short easy run",
+    { sid: "easy_long", hard: 0, group: "easy", type: "Easy 5 mile",
+      desc: "5 miles, smooth and conversational. If you cannot hold a conversation you are running it too hard." },
+    { sid: "easy_short", hard: 0, group: "easy", type: "Easy 5km",
       desc: "5km, smooth and conversational." },
 
     /* ---- bonus ---- */
     { sid: "bonus_strides", hard: 0, group: "bonus", type: "Strides after an easy run",
       desc: "6 × 20 seconds, building to fast and relaxed, full walk back. Costs you nothing and keeps your turnover alive." },
+    { sid: "eff_hill", hard: 0, alactic: 1, group: "bonus", type: "Uphill 100m sprints",
+      desc: "100m uphill, all out, walk back down. You choose how many. Not counted as an effort session — full recovery, no rep run tired." + short },
     { sid: "bonus_sprint", hard: 0, alactic: 1, group: "bonus", type: "Bonus sprints",
       desc: "5–8 × 100m, flat or uphill. Full recovery between every one. Not counted as an effort session — you stop while they are still fast, so nothing is run to fatigue." },
 
     { sid: "gymonly", hard: 0, group: "other", type: "Gym only", desc: "No run today." },
-    { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." }
+    { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." },
+    { sid: "none", hard: 0, group: "other", type: "Nothing yet",
+      desc: "Pick what you actually did, or leave it. No day owes you a session." }
   ];
 }
-/* index 0 = Sunday */
+/* index 0 = Sunday. Nothing is assigned to a day — the week is a place to
+   record what happened, and the targets are counted across it rather than
+   spent on particular days. The gym flags are the one exception: four a week,
+   unattached to whatever running lands around them. */
 function layoutFor(w) {
   return [
-    { sid: "eff_1k", gym: 1 },      /* SUN — effort + upper gym */
-    { sid: "easy_short" },          /* MON — easy, your pick of distance */
-    { sid: "gymonly", gym: 1 },     /* TUE — gym only */
-    { sid: "eff_400", gym: 1 },     /* WED — effort + paired gym */
-    { sid: "easy_long" },           /* THU — the distance you did not do Monday */
-    { sid: "gymonly", gym: 1 },     /* FRI — gym, bonus sprints optional */
-    { sid: "rest" }                 /* SAT — full rest */
+    { sid: "none", gym: 1 },  /* SUN */
+    { sid: "none" },          /* MON */
+    { sid: "none", gym: 1 },  /* TUE */
+    { sid: "none", gym: 1 },  /* WED */
+    { sid: "none" },          /* THU */
+    { sid: "none", gym: 1 },  /* FRI */
+    { sid: "none" }           /* SAT */
   ];
 }
 var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -1253,13 +1277,16 @@ function templateForWeek(w) {
     note = "Hold wherever the weight stabilised during the reverse.";
   }
   note += isDeload(w)
-    ? " Deload week — same structure, just keep the effort sessions short."
-    : " Two effort days, two easy days, gym 4×, Saturday off. You pick which session goes where.";
+    ? " Deload week — keep the effort sessions short."
+    : " Roughly two effort runs and two easy runs a week, counted across the week rather than owed on particular days. Gym 4×. Rest whenever you need it.";
   return { phase: phase, note: note, flexible: true, pool: poolFor(w), layout: layoutFor(w) };
 }
 
 function poolItem(pool, sid) {
   for (var i = 0; i < pool.length; i++) if (pool[i].sid === sid) return pool[i];
+  /* An id from an older version of the plan falls through to "Nothing yet",
+     which is last in the pool — better unset than silently relabelled as
+     something that was never run. Whatever was logged against it is kept. */
   return pool[pool.length - 1];
 }
 
@@ -1387,11 +1414,16 @@ function loadWeek(w) {
          single free-text box that no longer has an input. Surface it rather than
          letting it sit in storage invisibly. */
       if (keep.actual && !keep.splits && !keep.avgpace && !keep.detail) keep.splits = keep.actual;
-      if (currentPlan.flexible) {
-        /* an assignment the user made survives; anything else falls back to the default */
-        keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
-        keep.gym = saved[i].gym == null ? d.gym : !!saved[i].gym;
-      } else { keep.type = d.type; keep.desc = d.desc; }
+      keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
+      keep.gym = saved[i].gym == null ? d.gym : !!saved[i].gym;
+      /* Rows written before the menu existed carry their own name and never had
+         an id. Show the name they were actually logged under rather than
+         guessing which menu item it maps to — a wrong guess relabels a session
+         you did run as one you did not. */
+      if (!saved[i].sid && saved[i].type) {
+        keep.legacyType = saved[i].type;
+        keep.legacyDesc = saved[i].desc || "";
+      }
       return keep;
     });
   } else weekData = fresh;
@@ -1399,8 +1431,12 @@ function loadWeek(w) {
 }
 /* the session a day is currently showing, whichever plan style the week uses */
 function sessionOf(d) {
-  if (currentPlan && currentPlan.flexible) return poolItem(currentPlan.pool, d.sid);
-  return { type: d.type, desc: d.desc, hard: 0 };
+  var it = poolItem(currentPlan ? currentPlan.pool : poolFor(1), d.sid);
+  if (it.sid === "none" && d.legacyType) {
+    return { sid: "none", hard: 0, group: "other", type: d.legacyType,
+      desc: d.legacyDesc || "Logged before the menu existed — the name and the result are exactly as you entered them." };
+  }
+  return it;
 }
 function saveWeek() { DB.set("week-" + viewWeek, weekData); }
 
@@ -1513,29 +1549,9 @@ function dayCard(d, i, isToday) {
 
 /* Two quality sessions on back-to-back days is the one arrangement that
    reliably breaks a week like this, so say so rather than leaving it to be noticed. */
-function spacingCheck() {
-  if (!currentPlan || !currentPlan.flexible) return "";
-  var hard = weekData.map(function (d) { return sessionOf(d).hard >= 2; });
-  var clashes = [];
-  for (var i = 0; i < 7; i++) {
-    var j = (i + 1) % 7;
-    if (hard[i] && hard[j]) clashes.push(DAY_NAMES[i] + " → " + DAY_NAMES[j]);
-  }
-  var n = hard.filter(Boolean).length;
-  var gyms = weekData.filter(function (d) { return d.gym; }).length;
-  var meta = n + " effort " + (n === 1 ? "day" : "days") + " · " + gyms + " gym";
-  if (clashes.length) {
-    return '<div class="note stop" style="margin-bottom:12px"><b>Two effort days back to back</b>' +
-      esc(clashes.join(", ")) + ". The second one is run on a body that hasn't recovered from the first, " +
-      "so it costs you more than it earns. Move one to a rest day if you can. (" + meta + ")</div>";
-  }
-  if (n >= 4) {
-    return '<div class="note warn" style="margin-bottom:12px"><b>Four effort days is a lot</b>' +
-      "Spacing is fine, but that's more quality than this block is built around — especially in a deficit. (" + meta + ")</div>";
-  }
-  return '<div class="note good" style="margin-bottom:12px"><b>Spacing looks right</b>' +
-    "Every effort day has an easy or rest day after it. (" + meta + ")</div>";
-}
+/* No spacing check. Two effort days back to back is not an error — the 2025
+   block that produced the PBs did it repeatedly, and the recovery was taken
+   afterwards by feel rather than scheduled in advance. */
 
 /* Free choice drifts toward what you enjoy. Ranking by staleness surfaces the
    formats being avoided, which is where the untapped adaptation usually is. */
@@ -1613,13 +1629,67 @@ function renderWeek() {
   var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
   $("phaseNote").textContent = t.note;
-  var done = weekData.filter(function (d) { return d.done; }).length;
-  $("weekDone").textContent = done + "/7 sessions done";
+  $("weekDone").textContent = weekData.filter(function (d) { return d.done; }).length + " logged this week";
+  renderRolling();
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = intensityNote() + spacingCheck() + weekData.map(function (d, i) {
+  $("weekList").innerHTML = intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
   renderSuggest();
+}
+
+/* ================= rolling load ================= */
+/* The targets are counted over a trailing window, not spent on named days. A
+   week with five sessions and a week with three both count toward the same
+   average, which is what actually happened the year this worked. */
+var LEGACY_GROUP = { run1k: "effort", speed: "effort", thresh: "effort", spd200: "effort",
+  spd400: "effort", bench: "effort", easy: "easy", sprint: "bonus", strides: "bonus" };
+function groupOfSid(sid) {
+  if (!sid) return null;
+  var pool = poolFor(1);
+  for (var i = 0; i < pool.length; i++) {
+    if (pool[i].sid === sid) return pool[i].alactic ? "bonus" : pool[i].group;
+  }
+  return LEGACY_GROUP[sid] || null;
+}
+function rollingLoad(days) {
+  var out = { effort: 0, easy: 0, bonus: 0, gym: 0, runs: 0 };
+  sessionHistory.forEach(function (h) {
+    var ago = daysBetween(parseDay(h.date), parseDay(today()));
+    if (!isFinite(ago) || ago < 0 || ago >= days) return;
+    if (/\+ gym/.test(h.type || "")) out.gym++;
+    var g = groupOfSid(h.sid);
+    if (g === "effort" || g === "easy" || g === "bonus") { out[g]++; out.runs++; }
+  });
+  return out;
+}
+function loadBar(label, n, target, note) {
+  var pct = Math.max(0, Math.min(1, n / target));
+  var hit = n >= target;
+  return '<div class="bench">' +
+    '<div class="bench-top"><span class="bench-name">' + label + " <em>" + note + "</em></span>" +
+    '<span class="bench-now">' + n + '<span class="to-go"> of ~' + target + "</span></span></div>" +
+    '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(0) + '%"></div></div></div>';
+}
+function renderRolling() {
+  var el = $("rollBox"); if (!el) return;
+  var w = rollingLoad(7), m = rollingLoad(28), wks = 4;
+  var bars = loadBar("Effort", w.effort, 2, "all out, your pick of distance") +
+    loadBar("Easy", w.easy, 2, "5km or 5 mile, conversational") +
+    loadBar("Gym", w.gym, 4, "unattached to the running");
+  var sprintLine = w.bonus
+    ? w.bonus + " sprint session" + (w.bonus === 1 ? "" : "s") + " on top, which is how last year ran too — they are not counted as effort."
+    : "No sprints this week. Last year they went in most weeks, 100m unless you fancied 200m, and they were never counted as an effort session.";
+  var avg = '<div class="note flat" style="margin-top:12px"><b>Last 28 days, per week</b>' +
+    (m.runs
+      ? (m.effort / wks).toFixed(1) + " effort · " + (m.easy / wks).toFixed(1) + " easy · " +
+        (m.gym / wks).toFixed(1) + " gym — " + (m.runs / wks).toFixed(1) + " runs a week all in. " +
+        "<b style=\"color:var(--chalk)\">The 2025 block that produced the PBs averaged 2.0 effort and 1.6 easy,</b> so anything near that is the rate that has already worked for you.<br><br>" + sprintLine
+      : "Nothing logged in the last four weeks, so there is no average to show yet.") + "</div>";
+  el.innerHTML = bars + avg +
+    '<div class="note good" style="margin-top:10px"><b>Rest is not tracked here on purpose</b>' +
+    "Two or three days off in a row is not a gap in the plan — your 2025 log is full of them, and the PBs came anyway. " +
+    "Nothing in this app will ask you why you did not run yesterday.</div>";
 }
 
 function toggleDone(i) {
@@ -1636,6 +1706,86 @@ function toggleDone(i) {
   }
   DB.set("session-history", sessionHistory);
   saveWeek(); renderWeek(); renderHistory(); renderBests(); renderGoal(); renderReadiness(); renderToday();
+}
+
+/* ================= the 2025 block ================= */
+/* The log that produced the PBs, kept as data so the numbers under it are
+   counted rather than claimed. This is the reference the rolling targets were
+   set from — it is not a plan to repeat day for day, because it never was one. */
+var BLUEPRINT = [
+  ["03-17", "bonus", "100m sprints"], ["03-18", "effort", "4 × 500m"],
+  ["03-19", "easy", "Easy 5 mile"], ["03-21", "easy", "Easy 5 mile"],
+  ["03-24", "effort", "Mile all out, then 2 × 200m"], ["03-25", "effort", "5 × 200m"],
+  ["03-26", "easy", "Easy 30 min"], ["03-30", "easy", "Easy 5 mile"],
+  ["03-31", "easy", "5 mile"], ["04-02", "effort", "4 × 800m"],
+  ["04-04", "effort", "5 × 400m"], ["04-06", "effort", "6 × 200m"],
+  ["04-07", "easy", "Easy 5 mile"], ["04-10", "effort", "4 × 1km"],
+  ["04-11", "effort", "5km all out"], ["04-12", "easy", "Easy recovery run"],
+  ["04-14", "easy", "5 mile"], ["04-15", "effort", "5 × 400m"],
+  ["04-17", "effort", "Fast mile, then 2.5 mile recovery"], ["04-19", "easy", "Easy 5km"],
+  ["04-22", "easy", "5 mile"], ["04-23", "effort", "4 × 1km"],
+  ["04-25", "effort", "Fast 5km"], ["04-28", "easy", "5 mile"],
+  ["04-29", "effort", "6 × 400m"], ["05-01", "effort", "5km — PB", 1],
+  ["05-05", "effort", "10km — PB", 1], ["05-07", "effort", "4 × 1km"],
+  ["05-09", "effort", "5 × 400m"], ["05-10", "easy", "Easy 5km"],
+  ["05-12", "easy", "5 mile"], ["05-14", "effort", "6 × 200m, then 5km at a fair effort"],
+  ["05-19", "easy", "5 mile"], ["05-20", "effort", "5 × 400m"],
+  ["05-22", "effort", "Mile — PB", 1], ["05-23", "easy", "Easy 5km"],
+  ["05-26", "easy", "Easy 5 mile"]
+];
+function blueprintStats() {
+  var n = { effort: 0, easy: 0, bonus: 0 }, freq = {}, gaps = [], prev = null;
+  BLUEPRINT.forEach(function (r) {
+    n[r[1]]++;
+    /* Only the effort formats. The easy runs repeat by definition — they are
+       the same two runs every time, and counting them says nothing. */
+    if (r[1] === "effort") {
+      var key = r[2].replace(/ — PB$/, "");
+      freq[key] = (freq[key] || 0) + 1;
+    }
+    var d = parseDay("2025-" + r[0]);
+    /* A gap of n days between two sessions is n-1 days not running. */
+    if (prev) gaps.push({ off: daysBetween(prev.d, d) - 1, hardPair: prev.g === "effort" && r[1] === "effort" });
+    prev = { d: d, g: r[1] };
+  });
+  var span = daysBetween(parseDay("2025-" + BLUEPRINT[0][0]), parseDay("2025-" + BLUEPRINT[BLUEPRINT.length - 1][0]));
+  var weeks = span / 7;
+  return { n: n, weeks: weeks, span: span,
+    perWeek: { effort: n.effort / weeks, easy: n.easy / weeks, all: BLUEPRINT.length / weeks },
+    longestOff: Math.max.apply(null, gaps.map(function (g) { return g.off; })),
+    breaks2plus: gaps.filter(function (g) { return g.off >= 2; }).length,
+    hardBackToBack: gaps.filter(function (g) { return g.off === 0 && g.hardPair; }).length,
+    repeats: Object.keys(freq).filter(function (k) { return freq[k] >= 2; })
+      .map(function (k) { return { name: k, n: freq[k] }; })
+      .sort(function (a, b) { return b.n - a.n; }) };
+}
+function renderBlueprint() {
+  var el = $("bpBox"); if (!el) return;
+  var b = blueprintStats();
+  var head = '<div class="note good" style="margin-bottom:12px"><b>What it actually averaged</b>' +
+    b.perWeek.effort.toFixed(1) + " effort and " + b.perWeek.easy.toFixed(1) + " easy runs a week, " +
+    b.perWeek.all.toFixed(1) + " runs a week all in, across " + Math.round(b.weeks) + " weeks. " +
+    "<b style=\"color:var(--chalk)\">That is where the ~2 and ~2 targets come from</b> — they are your own numbers, not a template.</div>";
+
+  var honest = '<div class="note flat" style="margin-bottom:12px"><b>Two things in here worth not losing</b>' +
+    "<b style=\"color:var(--chalk)\">It was not as random as it reads.</b> " +
+    b.repeats.slice(0, 4).map(function (r) { return r.name + " ×" + r.n; }).join(", ") +
+    ". Free choice every session, and yet the same handful of formats kept coming back — that repetition is what let them get faster. " +
+    "Picking purely by mood tends to drift toward whatever is going well that month, and the What You Haven't Trained list above is there to catch it.<br><br>" +
+    "<b style=\"color:var(--chalk)\">The rest was real rest, and the hard days were not spaced.</b> " +
+    b.breaks2plus + " breaks of two or more days off, the longest " + b.longestOff + " days. " +
+    "And " + b.hardBackToBack + " times you ran two effort sessions on consecutive days anyway. " +
+    "Neither of those is a mistake to design out — it is what autoregulating actually looks like on paper.</div>";
+
+  var rows = BLUEPRINT.slice().reverse().map(function (r) {
+    var col = r[1] === "effort" ? "var(--track-bright)" : r[1] === "easy" ? "var(--muted)" : "var(--go)";
+    return "<tr><td>" + r[0].replace("-", "/") + "</td>" +
+      '<td class="hl"' + (r[3] ? ' style="color:var(--go)"' : "") + ">" + esc(r[2]) + "</td>" +
+      '<td><span style="color:' + col + ';font-size:11px;text-transform:uppercase;letter-spacing:.05em">' + r[1] + "</span></td></tr>";
+  }).join("");
+  el.innerHTML = head + honest +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>2025</th><th>Session</th><th></th></tr></thead><tbody>" + rows + "</tbody></table></div>";
 }
 
 /* ================= today ================= */
@@ -3536,7 +3686,7 @@ function renderAll() {
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
-  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";

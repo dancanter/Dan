@@ -7,6 +7,9 @@ Edit source.html, then run this.
 """
 import base64
 import pathlib
+import shutil
+import subprocess
+import tempfile
 
 HERE = pathlib.Path(__file__).parent
 FACES = [
@@ -32,5 +35,21 @@ source = (HERE / "source.html").read_text()
 source = source.replace("/*@BUILD@*/", datetime.datetime.now().strftime("%d %b %H:%M"))
 if "/*@FONTS@*/" not in source:
     raise SystemExit("source.html is missing the /*@FONTS@*/ placeholder")
+
+# A syntax error in the inlined script leaves a page that renders its markup and
+# then does nothing at all — no error visible unless the console is open. Catch
+# it here rather than shipping a build where every section is silently empty.
+node = shutil.which("node")
+if node:
+    start = source.index("<script>") + len("<script>")
+    with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as fh:
+        fh.write(source[start:source.rindex("</script>")])
+        fh.flush()
+        check = subprocess.run([node, "--check", fh.name], capture_output=True, text=True)
+    if check.returncode:
+        raise SystemExit("script does not parse:\n" + check.stderr)
+else:
+    print("note: node not found, skipping the syntax check")
+
 (HERE / "index.html").write_text(source.replace("/*@FONTS@*/", "\n".join(faces)))
 print("wrote index.html")
