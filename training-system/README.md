@@ -35,7 +35,15 @@ rebuilt to match the 2025 block that actually produced the PBs. Nothing is
 assigned to a day: every day starts empty and you record what you did, on
 whatever day you did it. The targets are counted over a **trailing seven days** —
 roughly two effort runs, two easy runs, four gym sessions — so five sessions one
-week and three the next is the same plan, not a failure.
+week and three the next is the same plan, not a failure. The window slides a day
+at a time and never resets on a Sunday: a session leaves the count exactly seven
+days after you ran it, and the window's dates sit beside the heading.
+
+Counting comes off the week grids, not the session log, so a session counts on
+the day it happened rather than the day it was ticked, and a gym session counts
+from the **+ Gym** button alone — a gym-only day never gets marked done, so
+counting gym from the log missed it entirely. Nothing is pre-ticked: the toggle
+is the record that you trained, not a plan to.
 
 The effort menu is every distance from 100m to 10K, all out, full recovery, no
 prescribed pace. The easy menu is the two runs actually used: 5km and 5 mile,
