@@ -70,6 +70,12 @@ section.block{margin-bottom:26px}
 .note.stop{border-left-color:var(--track);background:linear-gradient(90deg,var(--track-wash),var(--surface) 60%)}
 .note.flat{border-left-color:var(--line)}
 .note.flat b{color:var(--muted)}
+/* Everything explanatory carries data-detail and is off by default. The app is
+   for recording and for the few numbers that change what you do; the reasoning
+   behind them is one tap away rather than in the way. Nothing is deleted. */
+body:not(.detail) [data-detail]{display:none}
+.mode-row{display:flex;justify-content:flex-end;margin:-4px 0 14px}
+.mode-row .btn{font-size:11.5px;padding:5px 11px}
 
 /* ---------- day cards ---------- */
 .day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;position:relative}
@@ -248,7 +254,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <h1>TRAINING · RECOVERY · NUTRITION</h1>
     <div class="goal-row">
       <div class="goal-chip">400m <b>sub-55</b></div>
-      <div class="goal-chip">Mile <b>sub-4:50</b></div>
+      <div class="goal-chip">Mile <b>sub-4:45</b></div>
       <div class="goal-chip">5K <b>sub-16:50</b></div>
     </div>
     <div class="hero-meta">
@@ -265,9 +271,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <button class="tab" role="tab" aria-selected="false" data-tab="progress">Progress</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fitness">Fitness</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="nutrition">Nutrition</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="protocols">Protocols</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="protocols" data-detail>Protocols</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="skincare">Skincare</button>
   </nav>
+
+  <div class="mode-row"><button class="btn" id="detailBtn" aria-pressed="false">Show the reasoning</button></div>
 
   <!-- ============ TODAY ============ -->
   <div class="panel active" id="panel-today" role="tabpanel">
@@ -284,7 +292,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block">
       <h2 class="block-title">Energy Today</h2>
-      <p class="block-sub">One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
+      <p class="block-sub" data-detail>One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
       <div id="energyPick"></div>
     </section>
 
@@ -319,23 +327,24 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block" style="margin-top:4px">
       <h2 class="block-title">Rolling Targets <span class="tag" id="rollRange" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">The last seven days, counted on the day you did the work — not owed on particular days, and not reset on a Sunday. The window slides forward one day at a time, so a session drops out of it exactly a week after you ran it. Five sessions one week and three the next is the same plan.</p>
+      <p class="block-sub">Roughly two effort runs, two easy runs and four gym sessions in any seven days.</p>
+      <p class="block-sub" data-detail>Counted on the day you did the work — not owed on particular days, and not reset on a Sunday. The window slides forward one day at a time, so a session drops out of it exactly a week after you ran it. Five sessions one week and three the next is the same plan.</p>
       <div id="rollBox"></div>
     </section>
 
     <h2 class="block-title" style="margin-top:26px">The Week</h2>
-    <p class="block-sub">A place to record what you did, on whatever day you did it. Nothing is assigned — every day starts empty.</p>
+    <p class="block-sub">Record what you did, on whatever day you did it.</p>
     <div id="weekList"></div>
 
     <section class="block" style="margin-top:26px">
       <h2 class="block-title">What You Haven't Trained</h2>
-      <p class="block-sub">Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
+      <p class="block-sub" data-detail>Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
       <div id="suggestBox"></div>
     </section>
 
-    <section class="block" style="margin-top:26px">
+    <section class="block" data-detail style="margin-top:26px">
       <h2 class="block-title">The 2025 Block</h2>
-      <p class="block-sub">The log that produced the 5km, 10km and mile PBs, kept as the reference the targets above were set from. Everything under it is counted from these rows.</p>
+      <p class="block-sub">The log that produced the 5km, 10km and mile PBs. Everything under it is counted from these rows.</p>
       <div id="bpBox"></div>
     </section>
   </div>
@@ -410,7 +419,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <p class="block-sub" style="margin-top:8px">Clears the weight history so a new run reads cleanly from day one. The old entries are archived rather than deleted, and stay in your backup file.</p>
     </section>
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Morning Heart Rate</h2>
       <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
       <div id="hrChart"></div>
@@ -455,7 +464,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <p class="block-sub" style="margin:9px 0 0">Shows only the 7-day average and hides individual daily numbers. Nothing is deleted — the daily figure is mostly water and has never once been the number you act on.</p>
       </div>
 
-      <div class="note flat" style="margin-top:12px"><b>How often to weigh — it changes by phase</b>
+      <div class="note flat" data-detail style="margin-top:12px"><b>How often to weigh — it changes by phase</b>
         <b style="color:var(--chalk)">Now, during the cut: once a week is fine.</b> You have a stopping rule and photos doing the real work, so weight is only there to tell you the rule has been met. One reading a week is enough for that.<br><br>
         <b style="color:var(--chalk)">During the reverse: once a week is too coarse.</b> You will be deciding whether to add 75 kcal every 4–5 days — which means a single weigh-in per decision, and a single reading carries the full 2–4 lb of daily noise from water, glycogen and gut contents. Two weeks could differ by 3 lb for no reason at all and you would step the calories on it. <b style="color:var(--chalk)">Go to three times a week, or daily with the number hidden</b>, so there is an average underneath the decision.<br><br>
         Whichever you pick: same days, same time, after the toilet, before food or drink. And never act on one reading — the average or nothing.</div>
@@ -521,10 +530,10 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   <div class="panel" id="panel-fitness" role="tabpanel">
     <section class="block">
       <h2 class="block-title">Closing On The Goal</h2>
-      <p class="block-sub">Every aerobic effort you have logged, read according to how it was actually run, turned into a predicted mile and 5K — then the gap to 4:45 and 16:50, and what to train to shut it.</p>
+      <p class="block-sub">Where your logged running says you are, and what to train next.</p>
       <div id="goalOut"></div>
     </section>
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
       <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
       <div id="vdotOut"></div>
@@ -554,7 +563,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">Test History</h2>
       <div id="pbHistory"></div>
     </section>
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Adaptation</h2>
       <p class="block-sub">The same session, at the same pace, over time. Feel dropping means the work is landing. Feel climbing at an unchanged pace is the earliest warning you get — weeks before a benchmark would show it.</p>
       <div class="add-row" style="margin-top:0;margin-bottom:10px">
@@ -584,7 +593,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <div id="niggleLog" style="margin-top:10px"></div>
     </section>
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Energy Trend</h2>
       <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
       <div id="energyChart"></div>
@@ -631,8 +640,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Protein and fat do not move. Every calorie you add back is a carb. <b>Add one unit, hold 4–5 days, check the average, add the next.</b></p>
       <div id="stageList" style="margin-bottom:14px"></div>
 
-      <div class="block-title" style="font-size:17px">One unit ≈ 75 kcal</div>
-      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:14px">
+      <div class="block-title" data-detail style="font-size:17px">One unit ≈ 75 kcal</div>
+      <div class="card tbl-scroll" data-detail style="padding:4px 12px;margin-bottom:14px">
         <table class="ref"><tbody>
           <tr><td>Rice — basmati, jasmine or black</td><td class="hl">20g dry</td></tr>
           <tr><td>Potato</td><td class="hl">100g cooked</td></tr>
@@ -644,21 +653,21 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         </tbody></table>
       </div>
 
-      <div class="block-title" style="font-size:17px">Which meal</div>
-      <div class="card tbl-scroll" style="padding:4px 12px">
+      <div class="block-title" data-detail style="font-size:17px">Which meal</div>
+      <div class="card tbl-scroll" data-detail style="padding:4px 12px">
         <table class="ref">
           <thead><tr><th>Step</th><th>Add a unit to</th><th>Daily</th></tr></thead>
           <tbody id="reverseTable"></tbody>
         </table>
       </div>
-      <p class="block-sub" style="margin-top:8px">The evening bowl never grows — it is your fattiest meal, so calories added there go to fat rather than glycogen.</p>
+      <p class="block-sub" data-detail style="margin-top:8px">The evening bowl never grows — it is your fattiest meal, so calories added there go to fat rather than glycogen.</p>
 
       <div class="note stop" style="margin-top:10px"><b>Around step 2 or 3 the scale jumps ~2 lb. Ignore it.</b>More carbs means more glycogen, and glycogen holds three times its weight in water. It lands within a week then settles. A pound of fat takes 3,500 surplus calories; you are adding 75 a day.</div>
 
-      <div class="note good" style="margin-top:8px"><b>Fats come after, not during</b>Butter, aged cheese, fattier cuts — all fine, once maintenance is confirmed and held 2–3 weeks. Carbs restore metabolic rate; fat barely does. Add fat during the climb and you spend your calorie ceiling before the rate recovers. <b style="color:var(--chalk)">Watch protein when the cuts get fattier</b> — 200g chicken breast is 62g protein, 200g ribeye about 46g for nearly double the calories.</div>
+      <div class="note good" data-detail style="margin-top:8px"><b>Fats come after, not during</b>Butter, aged cheese, fattier cuts — all fine, once maintenance is confirmed and held 2–3 weeks. Carbs restore metabolic rate; fat barely does. Add fat during the climb and you spend your calorie ceiling before the rate recovers. <b style="color:var(--chalk)">Watch protein when the cuts get fattier</b> — 200g chicken breast is 62g protein, 200g ribeye about 46g for nearly double the calories.</div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">The Eight Pathways</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref">
@@ -677,7 +686,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Your Health — The Vital Bits</h2>
 
       <div class="note stop" style="margin-bottom:10px"><b>The standard coeliac test cannot work on you</b>
@@ -701,7 +710,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         Hard exercise lowers mucosal IgA in everyone; you start lower and a 29% deficit lowers it further. Do not train through illness, take the deload weeks, protect sleep, reverse on schedule. Two weeks ill costs more than any session gains.</div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Honest Verdict</h2>
       <div class="note good" style="margin-bottom:10px"><b>Diet: about 8/10 — and it is near its ceiling</b>
         Protein, fat quality, no processed food, polyphenols, organ meat, the sockeye and the consistency to weigh it all are genuinely strong. The gap is vegetables, fibre and plant variety — real, but constrained by your digestion, which is why the fix is blended spinach and sprouts rather than a plate of broccoli.</div>
@@ -711,7 +720,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         Below about 10% body fat a male face reads gaunt rather than sharp, and recovery, sleep and testosterone go with it. The leanest weight and the fastest weight are not the same weight.</div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Targets</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref"><tbody>
@@ -738,7 +747,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </tbody></table></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Warm-up — Speed &amp; Mile Days</h2>
       <p class="block-sub">Non-negotiable before Tuesday and Thursday. This is what stops a hamstring ending the whole block.</p>
       <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>10–15 min easy jog</b></span></div>
@@ -748,7 +757,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub" style="margin-top:8px">Cool-down: 5–10 min easy jog or walk after every hard session.</p>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Nervous System &amp; Stress</h2>
       <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
         <tr><td><b>Meditation, 10 min</b><span class="sub">Already in your routine. Directly lowers cortisol — the mechanism behind the facial puffiness you track.</span></td></tr>
@@ -758,7 +767,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </tbody></table></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Sleep</h2>
       <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
         <tr><td><b>No phone before bed</b><span class="sub">The highest-value habit on this whole list for you specifically.</span></td></tr>
@@ -768,7 +777,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </tbody></table></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Recovery &amp; Longevity</h2>
       <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
         <tr><td><b>Mobility, 10 min daily</b><span class="sub">Hip flexors, hamstrings, calves, ankles — the four that limit sprint mechanics and tighten up from sitting to study.</span></td></tr>
@@ -778,7 +787,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </tbody></table></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">PB Week — Week 13</h2>
       <p class="block-sub">Three attempts in seven days. The training is already banked by then; this week is about arriving fresh and not throwing one away in the first 200m.</p>
 
@@ -800,7 +809,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub" style="margin-top:8px">Log each attempt on the Progress tab as you finish it — the benchmark bars close against your block-start times.</p>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Training in a Heat Wave</h2>
       <p class="block-sub">Heat changes what the scale says, what your paces mean and what your sodium needs are — all at once, and all temporarily.</p>
       <div class="card tbl-scroll" style="padding:4px 12px">
@@ -814,7 +823,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">When to Pull Back</h2>
       <p class="block-sub">Any two of these together means back off, not push harder. A week of backing off costs you almost nothing; pushing through costs you the block.</p>
       <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
@@ -828,7 +837,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub" style="margin-top:8px"><b>The response:</b> drop max-speed work entirely for 2–3 weeks, space the Tuesday speed session to every 10 days, add a rest day. Keep calories where they are — never cut further as a response to fatigue. If it persists past two weeks, bring the deload week forward rather than waiting for the schedule.</p>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">The Honest Anti-Ageing Ranking</h2>
 
       <div class="note stop" style="margin-bottom:12px"><b>Your diet is near the ceiling of what diet can do — and that ceiling is lower than you think</b>
@@ -881,7 +890,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         Which is genuinely good news: <b style="color:var(--chalk)">you are already doing the top three.</b> The diet is close to done. Wear sunscreen, sleep, ask about tretinoin, don't isolate yourself, and stop looking for a food that does what training and sleep already do.</div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Worth Being Honest About</h2>
       <div class="note flat"><b>The margin vs the foundation</b>Cold plunges post-training are popular but blunt the muscle adaptation signal from resistance work — if you use cold, keep it well away from lifting. And nothing on this list outranks sleep, adequate calories and taking rest days. Protocols are the margin; those three are the foundation.</div>
     </section>
@@ -912,7 +921,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="retinolLog" style="margin-top:10px"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Notes</h2>
       <div class="note stop" style="margin-bottom:10px"><b>Retinoids are out — so ignore what I said about tretinoin</b>
         Puffiness plus irritation even going slowly means your skin is not tolerating it, and prescription tretinoin is <em>stronger</em>, not gentler. Pushing through would make it worse. Scratch that recommendation entirely.<br><br>
@@ -1233,8 +1242,7 @@ function poolFor(w) {
 
     { sid: "gymonly", hard: 0, group: "other", type: "Gym only", desc: "No run today." },
     { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." },
-    { sid: "none", hard: 0, group: "other", type: "Nothing yet",
-      desc: "Pick what you actually did, or leave it. No day owes you a session." }
+    { sid: "none", hard: 0, group: "other", type: "Nothing yet", desc: "" }
   ];
 }
 /* index 0 = Sunday. Nothing is assigned to a day — the week is a place to
@@ -1715,6 +1723,30 @@ function windowLabel(days) {
   var f = { weekday: "short", day: "numeric", month: "short" };
   return from.toLocaleDateString([], f) + " → today";
 }
+/* Off by default: the app is for recording, and for the handful of numbers that
+   change what you do. Everything explanatory is tagged data-detail and sits
+   behind this. Nothing is removed — the switch brings all of it back. */
+function applyDetail() {
+  var on = !!settings.detail, btn = $("detailBtn");
+  document.body.classList.toggle("detail", on);
+  /* Protocols is reference from top to bottom, so it goes with the reasoning.
+     Switching away while it is open would otherwise leave a blank page. */
+  if (!on) {
+    var act = document.querySelector(".tab[aria-selected='true']");
+    if (act && act.dataset.tab === "protocols") showTab("today");
+  }
+  if (btn) {
+    btn.textContent = on ? "Hide the reasoning" : "Show the reasoning";
+    btn.className = "btn" + (on ? " on" : "");
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+}
+function toggleDetail() {
+  settings.detail = !settings.detail;
+  DB.set("settings", settings);
+  applyDetail();
+}
+
 function renderRolling() {
   var el = $("rollBox"); if (!el) return;
   var w = rollingLoad(7), m = rollingLoad(28), wks = 4;
@@ -1726,7 +1758,7 @@ function renderRolling() {
   var sprintLine = w.bonus
     ? w.bonus + " sprint session" + (w.bonus === 1 ? "" : "s") + " on top, which is how last year ran too — they are not counted as effort."
     : "No sprints this week. Last year they went in most weeks, 100m unless you fancied 200m, and they were never counted as an effort session.";
-  var avg = '<div class="note flat" style="margin-top:12px"><b>Last 28 days, per week</b>' +
+  var avg = '<div class="note flat" data-detail style="margin-top:12px"><b>Last 28 days, per week</b>' +
     (m.runs
       ? (m.effort / wks).toFixed(1) + " effort · " + (m.easy / wks).toFixed(1) + " easy · " +
         (m.gym / wks).toFixed(1) + " gym — " + (m.runs / wks).toFixed(1) + " runs a week all in. " +
@@ -1737,10 +1769,10 @@ function renderRolling() {
     "Without it no day has a real date, so these are counted from when you ticked things rather than when you did them. " +
     'Set it under <button class="linkish" data-goto="progress">Progress → Setup</button>.</div>';
   el.innerHTML = undated + bars + avg +
-    '<div class="note flat" style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
+    '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
     "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
-    '<div class="note good" style="margin-top:10px"><b>Rest is not tracked here on purpose</b>' +
+    '<div class="note good" data-detail style="margin-top:10px"><b>Rest is not tracked here on purpose</b>' +
     "Two or three days off in a row is not a gap in the plan — your 2025 log is full of them, and the PBs came anyway. " +
     "Nothing in this app will ask you why you did not run yesterday.</div>";
 }
@@ -2805,7 +2837,7 @@ function renderGoal() {
   var cur = fit.v, spread = fit.hi - fit.lo;
   var conf = fit.n >= 4 && spread <= 3 ? "solid" : fit.n >= 3 ? "rough" : "thin";
 
-  var head = '<div class="note ' + (conf === "solid" ? "good" : "flat") + '" style="margin-bottom:12px">' +
+  var head = '<div data-goalhead class="note ' + (conf === "solid" ? "good" : "flat") + '" style="margin-bottom:12px">' +
     "<b>Predicting off VDOT " + cur.toFixed(1) + " — confidence " + conf + "</b>" +
     "The median of " + fit.n + " logged effort" + (fit.n === 1 ? "" : "s") + ", which on their own imply anywhere from " +
     fit.lo.toFixed(1) + " to " + fit.hi.toFixed(1) + ". " +
@@ -2909,15 +2941,20 @@ function renderGoal() {
         '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">' + a[0] + "</b>" + a[1] + "</p>";
     }).join("") + "</div>";
 
-  var evTbl = '<div class="block-title" style="font-size:17px;margin-top:16px">What this is built on</div>' +
+  var evTbl = '<div data-goalev><div class="block-title" style="font-size:17px;margin-top:16px">What this is built on</div>' +
     '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Effort</th><th>Implies</th><th>How it is read</th></tr></thead><tbody>" +
     fit.ev.slice().reverse().slice(0, 12).map(function (e) {
       return "<tr><td>" + esc(e.what) + '<span class="sub">' + esc(e.date) + "</span></td>" +
         '<td class="hl">' + e.v.toFixed(1) + "</td><td>" + e.how + "</td></tr>";
-    }).join("") + "</tbody></table></div>";
+    }).join("") + "</tbody></table></div></div>";
 
   el.innerHTML = head + cards + advHtml + evTbl;
+  /* The confidence note and the evidence table are the workings, not the
+     answer. The predicted times and what to train stay on screen. */
+  ["[data-goalhead]", "[data-goalev]"].forEach(function (sel) {
+    var n = el.querySelector(sel); if (n) n.setAttribute("data-detail", "");
+  });
 }
 
 /* ================= when to rest ================= */
@@ -3704,7 +3741,7 @@ function applyBackup(text) {
   DB.restore(data);
   backupMsg("<b>Restored</b>" + Object.keys(data).length + " records loaded from " +
     esc(parsed.exportedAt ? parsed.exportedAt.slice(0, 10) : "backup") + ".", "good");
-  initState(); renderAll();
+  initState(); applyDetail(); renderAll();
 }
 
 /* ================= tabs ================= */
@@ -3875,6 +3912,7 @@ function renderStartInfo() {
     }
   });
 
+  $("detailBtn").addEventListener("click", toggleDetail);
   $("weekSelect").addEventListener("change", function () {
     viewWeek = parseInt(this.value, 10);
     DB.set("active-week", viewWeek);

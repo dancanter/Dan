@@ -23,6 +23,22 @@ The fonts have to be inlined rather than linked: the app is published as a Claud
 Artifact, where a strict CSP blocks requests to external hosts, so a
 `@import url(fonts.googleapis.com/...)` silently falls back to a system face.
 
+## Simple by default
+
+The app opens with everything explanatory hidden. What stays on screen is the
+recording surface — the week grid, weight, HR, tests, niggles, check-ins — plus
+the handful of numbers that change what you do: the rolling targets, readiness,
+the predicted mile and 5K, and what to train next.
+
+A single **Show the reasoning** switch under the tabs brings all of it back:
+the VO2max workings, training paces, equivalent performances, adaptation and
+energy trends, the 2025 log, the eight pathways, and the whole Protocols tab,
+which is reference from top to bottom and so is hidden with them. Nothing is
+deleted, the choice is saved, and it roughly halves what there is to read.
+
+Anything explanatory carries `data-detail`; one CSS rule hides it. Warnings that
+need acting on are never tagged, so they show in both modes.
+
 ## What's in it
 
 **Today** — the session pulled from the plan for the actual date, a readiness
