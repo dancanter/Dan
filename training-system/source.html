@@ -318,8 +318,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <p class="block-sub" id="phaseNote"></p>
 
     <section class="block" style="margin-top:4px">
-      <h2 class="block-title">Rolling Targets</h2>
-      <p class="block-sub">Counted over the last seven days, not owed on particular days. Five sessions one week and three the next is the same plan.</p>
+      <h2 class="block-title">Rolling Targets <span class="tag" id="rollRange" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">The last seven days, counted on the day you did the work — not owed on particular days, and not reset on a Sunday. The window slides forward one day at a time, so a session drops out of it exactly a week after you ran it. Five sessions one week and three the next is the same plan.</p>
       <div id="rollBox"></div>
     </section>
 
@@ -1242,14 +1242,16 @@ function poolFor(w) {
    spent on particular days. The gym flags are the one exception: four a week,
    unattached to whatever running lands around them. */
 function layoutFor(w) {
+  /* Gym starts off too. The toggle is the record that you did it, not a plan
+     for it, so anything pre-ticked would count as done before it happened. */
   return [
-    { sid: "none", gym: 1 },  /* SUN */
-    { sid: "none" },          /* MON */
-    { sid: "none", gym: 1 },  /* TUE */
-    { sid: "none", gym: 1 },  /* WED */
-    { sid: "none" },          /* THU */
-    { sid: "none", gym: 1 },  /* FRI */
-    { sid: "none" }           /* SAT */
+    { sid: "none" },  /* SUN */
+    { sid: "none" },  /* MON */
+    { sid: "none" },  /* TUE */
+    { sid: "none" },  /* WED */
+    { sid: "none" },  /* THU */
+    { sid: "none" },  /* FRI */
+    { sid: "none" }   /* SAT */
   ];
 }
 var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -1652,10 +1654,44 @@ function groupOfSid(sid) {
   }
   return LEGACY_GROUP[sid] || null;
 }
+/* Week 1 day 0 is the block-start Sunday, so every slot in every week grid has
+   a real calendar date. */
+function slotDate(w, i) {
+  if (!settings.startDate) return null;
+  var d = parseDay(settings.startDate);
+  d.setDate(d.getDate() + (w - 1) * 7 + i);
+  return d;
+}
+/* Counted off the week grids rather than session history. History only gains a
+   row when a day is marked done, which a gym-only day never is — and its date
+   is the day you ticked the box, not the day you trained. The grids carry both
+   correctly. */
 function rollingLoad(days) {
-  var out = { effort: 0, easy: 0, bonus: 0, gym: 0, runs: 0 };
+  var out = { effort: 0, easy: 0, bonus: 0, gym: 0, runs: 0, dated: !!settings.startDate };
+  var now = parseDay(today());
+  if (out.dated) {
+    var bw = blockWeekNow() || 13, from = Math.max(1, bw - Math.ceil(days / 7) - 1);
+    for (var w = from; w <= bw; w++) {
+      var rows = w === viewWeek ? weekData : DB.get("week-" + w, null);
+      if (!rows) continue;
+      rows.forEach(function (d, i) {
+        var dt = slotDate(w, i);
+        if (!dt) return;
+        var ago = daysBetween(dt, now);
+        /* future days are not achievements */
+        if (ago < 0 || ago >= days) return;
+        if (d.gym) out.gym++;
+        if (!d.done) return;
+        var g = groupOfSid(d.sid);
+        if (g === "effort" || g === "easy" || g === "bonus") { out[g]++; out.runs++; }
+      });
+    }
+    return out;
+  }
+  /* No block start set, so nothing has a real date — fall back to when each
+     session was ticked, which is the best available. */
   sessionHistory.forEach(function (h) {
-    var ago = daysBetween(parseDay(h.date), parseDay(today()));
+    var ago = daysBetween(parseDay(h.date), now);
     if (!isFinite(ago) || ago < 0 || ago >= days) return;
     if (/\+ gym/.test(h.type || "")) out.gym++;
     var g = groupOfSid(h.sid);
@@ -1671,9 +1707,19 @@ function loadBar(label, n, target, note) {
     '<span class="bench-now">' + n + '<span class="to-go"> of ~' + target + "</span></span></div>" +
     '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(0) + '%"></div></div></div>';
 }
+/* The window slides a day at a time rather than resetting on a Sunday, so
+   saying which days are in it stops the numbers looking arbitrary. */
+function windowLabel(days) {
+  var from = parseDay(today());
+  from.setDate(from.getDate() - (days - 1));
+  var f = { weekday: "short", day: "numeric", month: "short" };
+  return from.toLocaleDateString([], f) + " → today";
+}
 function renderRolling() {
   var el = $("rollBox"); if (!el) return;
   var w = rollingLoad(7), m = rollingLoad(28), wks = 4;
+  var range = $("rollRange");
+  if (range) range.textContent = windowLabel(7);
   var bars = loadBar("Effort", w.effort, 2, "all out, your pick of distance") +
     loadBar("Easy", w.easy, 2, "5km or 5 mile, conversational") +
     loadBar("Gym", w.gym, 4, "unattached to the running");
@@ -1686,7 +1732,14 @@ function renderRolling() {
         (m.gym / wks).toFixed(1) + " gym — " + (m.runs / wks).toFixed(1) + " runs a week all in. " +
         "<b style=\"color:var(--chalk)\">The 2025 block that produced the PBs averaged 2.0 effort and 1.6 easy,</b> so anything near that is the rate that has already worked for you.<br><br>" + sprintLine
       : "Nothing logged in the last four weeks, so there is no average to show yet.") + "</div>";
-  el.innerHTML = bars + avg +
+  var undated = w.dated ? "" :
+    '<div class="note warn" style="margin-bottom:12px"><b>No block start date set</b>' +
+    "Without it no day has a real date, so these are counted from when you ticked things rather than when you did them. " +
+    'Set it under <button class="linkish" data-goto="progress">Progress → Setup</button>.</div>';
+  el.innerHTML = undated + bars + avg +
+    '<div class="note flat" style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
+    "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
+    "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
     '<div class="note good" style="margin-top:10px"><b>Rest is not tracked here on purpose</b>' +
     "Two or three days off in a row is not a gap in the plan — your 2025 log is full of them, and the PBs came anyway. " +
     "Nothing in this app will ask you why you did not run yesterday.</div>";
