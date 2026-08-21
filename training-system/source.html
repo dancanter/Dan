@@ -1169,6 +1169,20 @@ function poolFor(w) {
       desc: "400m reps, all out, full recovery between. You choose how many." + short },
     { sid: "eff_200", hard: 2, group: "effort", type: "200m reps",
       desc: "200m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_300", hard: 2, group: "effort", type: "300m reps",
+      desc: "300m reps, all out, full recovery between. You choose how many." + short },
+    { sid: "eff_ladder", hard: 2, group: "effort", type: "Ladder 200-400-600-400-200",
+      desc: "200-400-600-400-200m, all out, recovery equal to the rep you just ran. Enter the average pace rather than splits — the reps are different distances." + short },
+    { sid: "eff_ladder_desc", hard: 2, group: "effort", type: "Descending 1000-800-600-400-200",
+      desc: "1000-800-600-400-200m, each one faster than the last. The finish is the point — the 200 should be your quickest of the day." + short },
+    { sid: "eff_fartlek", hard: 2, group: "effort", type: "Fartlek",
+      desc: "20–30 min alternating hard and easy entirely by feel. No watch, no reps — surge to a lamppost, ease off, go again." + short },
+    { sid: "eff_prog", hard: 2, group: "effort", type: "Progression run",
+      desc: "6–8km starting easy and finishing hard. Last kilometre should be the fastest and it should hurt." + short },
+    { sid: "eff_hillreps", hard: 2, group: "effort", type: "Hill reps — 200–400m",
+      desc: "Longer hills than the 100s. Strong and controlled up, walk or jog down. Big strength gain, low impact." + short },
+    { sid: "eff_3k", hard: 2, group: "effort", type: "3K time trial",
+      desc: "3K flat out. Sits between your mile and 5K and is the most informative single test there is." + short },
     { sid: "eff_mixed", hard: 2, group: "effort", type: "Mixed set",
       desc: "Your own combination — 2×800 + 2×600 + 2×400, or whatever you fancy. All out, full recovery." + short },
     { sid: "eff_hill", hard: 2, group: "effort", type: "Uphill 100m sprints",
@@ -1183,6 +1197,8 @@ function poolFor(w) {
       desc: "5km, smooth and conversational." },
 
     /* ---- bonus ---- */
+    { sid: "bonus_strides", hard: 0, group: "bonus", type: "Strides after an easy run",
+      desc: "6 × 20 seconds, building to fast and relaxed, full walk back. Costs you nothing and keeps your turnover alive." },
     { sid: "bonus_sprint", hard: 1, group: "bonus", type: "Bonus sprints",
       desc: "5–8 × 100–200m, flat or uphill. Short and sharp, full recovery. Optional — only if you have the energy." },
 
@@ -1260,12 +1276,15 @@ function parseSplits(txt) {
 function deriveSession(d) {
   var rp = parseReps(d.detail), sp = parseSplits(d.splits);
   var out = { dist: rp ? rp.dist : null, avgPace: null, bestRep: null };
+  /* What you typed wins. Splits only fill the gaps, and only when every rep is
+     the same distance — on a ladder the reps differ, so averaging their times
+     would be meaningless and the pace has to be entered directly. */
+  var m = toSec(d.avgpace); if (isFinite(m) && m > 0) out.avgPace = m;
+  var b = toSec(d.bestrep); if (isFinite(b) && b > 0) out.bestRep = b;
   if (sp.length && out.dist) {
-    out.bestRep = Math.min.apply(null, sp);
-    out.avgPace = avg(sp) / (out.dist / 1000);
+    if (!out.bestRep) out.bestRep = Math.min.apply(null, sp);
+    if (!out.avgPace) out.avgPace = avg(sp) / (out.dist / 1000);
   }
-  if (!out.avgPace && d.avgpace) { var m = toSec(d.avgpace); if (isFinite(m)) out.avgPace = m; }
-  if (!out.bestRep && d.bestrep) { var b = toSec(d.bestrep); if (isFinite(b)) out.bestRep = b; }
   return out;
 }
 
@@ -1465,11 +1484,11 @@ function dayCard(d, i, isToday) {
     (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs" style="margin-bottom:6px">' +
       '<input type="text" placeholder="Reps / distance" value="' + esc(d.detail || "") + '" data-field="detail" data-i="' + i + '">' +
-      '<input type="text" placeholder="Splits — 3:18, 3:16, 3:15" value="' + esc(d.splits || "") + '" data-field="splits" data-i="' + i + '" style="flex:2">' +
+      '<input type="text" placeholder="Avg pace /km" value="' + esc(d.avgpace || "") + '" data-field="avgpace" data-i="' + i + '" style="min-width:88px">' +
+      '<input type="text" placeholder="Best rep" value="' + esc(d.bestrep || "") + '" data-field="bestrep" data-i="' + i + '" style="min-width:76px">' +
     "</div>" +
     '<div class="row-inputs" style="margin-bottom:6px">' +
-      '<input type="text" placeholder="Avg /km" value="' + esc(d.avgpace || "") + '" data-field="avgpace" data-i="' + i + '" style="min-width:70px">' +
-      '<input type="text" placeholder="Best rep" value="' + esc(d.bestrep || "") + '" data-field="bestrep" data-i="' + i + '" style="min-width:70px">' +
+      '<input type="text" placeholder="Splits, optional — 3:18, 3:16, 3:15" value="' + esc(d.splits || "") + '" data-field="splits" data-i="' + i + '" style="flex:2">' +
       '<select data-field="feel" data-i="' + i + '">' + feelOptions(d.feel) + "</select>" +
     "</div>" +
     '<div data-derived="' + i + '">' + derivedLine(d) + "</div>" +
@@ -1542,6 +1561,37 @@ function renderSuggest() {
   }).join("") + "</div>";
 }
 
+/* Counts effort actually completed, not planned. Stays silent at two, because
+   two is the plan and a warning that fires every week gets ignored. */
+function intensityNote() {
+  var plan = currentPlan;
+  if (!plan || !plan.flexible) return "";
+  var load = 0, names = [];
+  weekData.forEach(function (d) {
+    if (!d.done) return;
+    var h = sessionOf(d).hard;
+    if (h >= 2) { load += 1; names.push(sessionOf(d).type); }
+    else if (h === 1) { load += 0.5; names.push(sessionOf(d).type); }
+  });
+  if (load <= 2) return "";
+
+  /* fatigue markers make the same load mean more */
+  var eSer = energySeries(7), lowE = eSer.filter(function (p) { return p.v <= 2; }).length;
+  var hs = hrSorted(), base = hrBaseline(), hrUp = 0;
+  if (base) for (var i = 0; i < Math.min(3, hs.length); i++) { if (hs[i].hr >= base + 5) hrUp++; else break; }
+  var flagged = lowE >= 2 || hrUp >= 2;
+
+  if (load >= 4 || (load >= 3 && flagged)) {
+    return '<div class="note stop" style="margin-bottom:12px"><b>That is too much intensity this week</b>' +
+      load.toFixed(load % 1 ? 1 : 0) + " effort sessions logged against a plan built on two" +
+      (flagged ? ", and " + (lowE >= 2 ? "your energy has been low" : "your morning HR is up on baseline") : "") +
+      ". More quality does not mean more adaptation — it means more fatigue at the same fitness, and in a deficit it comes out of recovery you do not have spare. " +
+      "<b style=\"color:var(--chalk)\">Make the rest of this week easy running only.</b></div>";
+  }
+  return '<div class="note warn" style="margin-bottom:12px"><b>' + load.toFixed(load % 1 ? 1 : 0) + " effort sessions this week</b>" +
+    "One above the two this plan is built on. Fine occasionally, and not fine as a habit — the two easy days are what makes the effort days work. Keep whatever is left of the week genuinely easy.</div>";
+}
+
 function renderWeek() {
   var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
@@ -1549,7 +1599,7 @@ function renderWeek() {
   var done = weekData.filter(function (d) { return d.done; }).length;
   $("weekDone").textContent = done + "/7 sessions done";
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = spacingCheck() + weekData.map(function (d, i) {
+  $("weekList").innerHTML = intensityNote() + spacingCheck() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
   renderSuggest();
