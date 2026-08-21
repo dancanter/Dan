@@ -913,7 +913,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   </div>
 </div>
 
-<div class="statusbar"><span class="dot" id="saveDot"></span><span id="saveText">Loading…</span></div>
+<div class="statusbar"><span class="dot" id="saveDot"></span><span id="saveText">Loading…</span><span style="color:var(--muted-2)">·</span><span id="buildStamp" style="color:var(--muted-2)"></span></div>
 
 <script>
 "use strict";
@@ -987,6 +987,11 @@ function probePersistence() {
 function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
+}
+var BUILD = "/*@BUILD@*/";
+function renderBuild() {
+  var el = document.getElementById("buildStamp");
+  if (el) el.textContent = "build " + BUILD;
 }
 function renderSaveStatus() {
   var dot = document.getElementById("saveDot"), txt = document.getElementById("saveText");
@@ -3317,7 +3322,7 @@ function renderAll() {
   $("exitDate").value = settings.exitDate || "";
   $("exitNote").value = settings.exitNote || "";
   $("intakeInput").value = settings.intake || "";
-  renderStartInfo(); renderTrendOnlyBtn(); renderDeloadInfo(); renderSaveStatus(); renderLaps(); renderPersistBanner();
+  renderStartInfo(); renderTrendOnlyBtn(); renderDeloadInfo(); renderBuild(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderDeloadInfo() {
   var i = $("deloadInput"); if (!i) return;

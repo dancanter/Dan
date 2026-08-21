@@ -25,7 +25,11 @@ for family, weight, filename in FACES:
         % (family, weight, b64)
     )
 
+import datetime
+
 source = (HERE / "source.html").read_text()
+# stamp the build so the running copy can be identified at a glance
+source = source.replace("/*@BUILD@*/", datetime.datetime.now().strftime("%d %b %H:%M"))
 if "/*@FONTS@*/" not in source:
     raise SystemExit("source.html is missing the /*@FONTS@*/ placeholder")
 (HERE / "index.html").write_text(source.replace("/*@FONTS@*/", "\n".join(faces)))
