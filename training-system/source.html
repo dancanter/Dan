@@ -419,7 +419,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <p class="block-sub" style="margin-top:8px">Clears the weight history so a new run reads cleanly from day one. The old entries are archived rather than deleted, and stay in your backup file.</p>
     </section>
-    <section class="block" data-detail>
+    <section class="block">
       <h2 class="block-title">Morning Heart Rate</h2>
       <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
       <div id="hrChart"></div>
@@ -3757,10 +3757,19 @@ function showTab(name) {
 }
 
 /* ================= init ================= */
+/* One unreadable row used to take the whole render down with it, and a page
+   that stops rendering looks exactly like a page that lost your data. Drop the
+   rows that cannot be read and keep everything else. */
+function usable(rows, field) {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter(function (r) {
+    return r && typeof r.date === "string" && isFinite(parseFloat(r[field]));
+  });
+}
 function initState() {
   settings = DB.get("settings", {});
-  weightLog = DB.get("weight-log", []);
-  hrLog = DB.get("hr-log", []);
+  weightLog = usable(DB.get("weight-log", []), "weight");
+  hrLog = usable(DB.get("hr-log", []), "hr");
   sessionHistory = DB.get("session-history", []);
   reflections = DB.get("reflections", []);
   pbLog = DB.get("pb-log", []);
