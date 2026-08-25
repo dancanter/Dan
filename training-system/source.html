@@ -447,7 +447,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Set the Sunday you start Week 1 and the app tracks which week and day you're on by itself.</p>
       <div class="card">
         <div class="add-row" style="margin-top:0;align-items:center">
-          <label class="chart-title" for="startDate" style="min-width:96px">Block start (Sun)</label>
+          <label class="chart-title" for="startDate" style="min-width:96px">Block start (Mon)</label>
           <input type="date" id="startDate">
           <button class="btn" id="clearStart">Clear</button>
         </div>
@@ -1262,7 +1262,7 @@ function layoutFor(w) {
     { sid: "none" }   /* SAT */
   ];
 }
-var DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+var DAY_NAMES = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 function templateForWeek(w) {
   if (false) return {
@@ -1370,7 +1370,8 @@ function blockWeekNow() {
   if (d < 0) return null;
   return Math.min(13, Math.floor(d / 7) + 1);
 }
-function dayIndexToday() { return new Date().getDay(); } /* 0 = Sunday, matches SUN-first templates */
+/* 0 = Monday. getDay() counts from Sunday, so it needs rotating. */
+function dayIndexToday() { return (new Date().getDay() + 6) % 7; }
 
 function renderBlockBar() {
   var el = $("blockBar"), bw = blockWeekNow();
@@ -1784,7 +1785,12 @@ function renderRolling() {
     '<div class="note warn" style="margin-bottom:12px"><b>No block start date set</b>' +
     "Without it no day has a real date, so these are counted from when you ticked things rather than when you did them. " +
     'Set it under <button class="linkish" data-goto="progress">Progress → Setup</button>.</div>';
-  el.innerHTML = undated + bars + runs + avg +
+  var orphan = settings.orphanNote
+    ? '<div class="note warn" style="margin-bottom:12px"><b>One day did not survive the move to Monday-first weeks</b>' +
+      "It sat on the Sunday the block used to start on, which is now the day before week 1. Here is what was in it, so you can put it back on a day that exists: <b style=\"color:var(--chalk)\">" +
+      esc(settings.orphanNote) + '</b><br><br><button class="linkish" id="orphanOk">Got it, clear this</button></div>'
+    : "";
+  el.innerHTML = undated + orphan + bars + runs + avg +
     '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
     "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
@@ -3782,6 +3788,61 @@ function usable(rows, field) {
     return r && typeof r.date === "string" && isFinite(parseFloat(r[field]));
   });
 }
+/* Weeks used to run Sunday first. Re-cut them Monday first without moving a
+   single session off the day it was actually done: the block start steps
+   forward to its Monday, Monday-to-Saturday keep the week number they had, and
+   each Sunday moves to the end of the week before it, which is where a
+   Monday-first calendar puts it. Everything is placed by date, never by
+   position in the array. */
+function rowHasContent(r) {
+  return !!(r && (r.done || r.detail || r.splits || r.avgpace || r.bestrep ||
+    r.actual || r.notes || r.feel || r.gym || (r.sid && r.sid !== "none") || r.type));
+}
+function migrateToMonday() {
+  if (settings.weekStart === "mon") return;
+  settings.weekStart = "mon";
+
+  /* The re-cut is pure array arithmetic and does not need the block start, so
+     it runs either way. Without a start date there is simply no date to shift
+     afterwards — but the grids still have to move, or Sunday's session would
+     quietly relabel itself as Monday's. */
+  var old = {}, w;
+  for (w = 1; w <= 14; w++) {
+    var rows = DB.get("week-" + w, null);
+    if (rows && rows.length === 7) old[w] = rows;
+  }
+  var fresh = {}, orphans = [];
+  Object.keys(old).forEach(function (key) {
+    var n = +key;
+    old[n].forEach(function (row, i) {
+      /* days since the new Monday start; the old Sunday start is day -1 */
+      var k = (n - 1) * 7 + i - 1;
+      if (k < 0) { if (rowHasContent(row)) orphans.push(row); return; }
+      var m = Math.floor(k / 7) + 1, j = k % 7;
+      if (m > 13) { if (rowHasContent(row)) orphans.push(row); return; }
+      if (!fresh[m]) fresh[m] = buildWeek(m);
+      row.day = DAY_NAMES[j];
+      fresh[m][j] = row;
+    });
+  });
+  Object.keys(fresh).forEach(function (m) { DB.set("week-" + m, fresh[m]); });
+
+  if (settings.startDate) {
+    var d = parseDay(settings.startDate);
+    d.setDate(d.getDate() + 1);
+    settings.startDate = dayStr(d);
+  }
+  /* The one day that now sits before the block cannot be filed anywhere real.
+     Keep what was in it and say so rather than dropping it quietly. */
+  if (orphans.length) {
+    settings.orphanNote = orphans.map(function (r) {
+      return [r.day, r.type || r.sid, r.detail, r.avgpace, r.splits, r.actual, r.feel, r.notes]
+        .filter(function (x) { return x && x !== "none"; }).join(" · ");
+    }).join(" | ");
+  }
+  DB.set("settings", settings);
+}
+
 function initState() {
   settings = DB.get("settings", {});
   weightLog = usable(DB.get("weight-log", []), "weight");
@@ -3792,6 +3853,7 @@ function initState() {
   retinolLog = DB.get("retinol-log", []);
   niggleLog = DB.get("niggle-log", []);
   checkins = DB.get("checkins", []);
+  migrateToMonday();
   todayState = DB.get(dailyKey(new Date()), {});
   viewWeek = blockWeekNow() || DB.get("active-week", 1);
   $("startDate").value = settings.startDate || "";
@@ -3849,8 +3911,9 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("#exitClear,[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
+    if (el.id === "orphanOk") { delete settings.orphanNote; DB.set("settings", settings); renderRolling(); return; }
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
       var gi = +el.dataset.gym;

@@ -56,6 +56,16 @@ week and three the next is the same plan, not a failure. The window slides a day
 at a time and never resets on a Sunday: a session leaves the count exactly seven
 days after you ran it, and the window's dates sit beside the heading.
 
+Weeks run **Monday to Sunday**. They used to run Sunday first, and the one-time
+migration re-cuts every stored week by date rather than by position: the block
+start steps forward to its Monday, Monday-to-Saturday keep the week number they
+had, and each Sunday moves to the end of the week before it. No session changes
+the calendar date it was logged on. The single day that cannot be placed — the
+Sunday the block used to start on, now the day before week 1 — is kept as a
+note on the Week tab with its contents spelled out, rather than dropped
+quietly. The re-cut runs whether or not a block start is set, since it is
+positional; only the date shift needs one.
+
 Counting comes off the week grids, not the session log, so a session counts on
 the day it happened rather than the day it was ticked, and a gym session counts
 from the **+ Gym** button alone — a gym-only day never gets marked done, so
