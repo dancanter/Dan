@@ -13,6 +13,7 @@ import { lossSections, lossIntro } from './loss';
 import { equitySections, equityIntro } from './equity';
 import { afterLossSections, afterLossIntro } from './afterLoss';
 import { privacySections } from './privacy';
+import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -51,6 +52,9 @@ export {
   afterLossSections,
   afterLossIntro,
   privacySections,
+  glossary,
+  glossaryLookup,
+  findGlossaryEntry,
   babyWeeks,
   babyWeekByNumber,
   milestones,

@@ -3,8 +3,9 @@ import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useMaternityUnit } from '../hooks/useMaternityUnit';
 import { urgentSymptoms, urgentById, URGENT_DISCLAIMER, helpTopics } from '../content';
 import { CallButton } from '../components/help/CallButton';
+import { ReadAloud } from '../components/help/ReadAloud';
 import { SourceList } from '../components/ui/SourceList';
-import { RichText } from '../components/ui/RichText';
+import { RichText, RichLine } from '../components/ui/RichText';
 
 /**
  * The most important screen in the app, and deliberately the plainest.
@@ -141,6 +142,7 @@ export function UrgentDetailScreen() {
       <h2 className="label-mono mb-2 text-mossd">What to do now</h2>
       <p className="mb-3 text-[17.5px] font-medium leading-snug">{symptom.now}</p>
       <CallButton action={symptom.action} />
+      <ReadAloud now={symptom.now} why={symptom.why} />
 
       {symptom.dont && (
         <ul className="mt-4 mb-0 list-none p-0">
@@ -154,7 +156,9 @@ export function UrgentDetailScreen() {
 
       {/* 2. Why this matters. */}
       <h2 className="label-mono mt-8 mb-2 text-mossd">Why this matters</h2>
-      <p className="m-0 text-[15.5px] leading-relaxed">{symptom.why}</p>
+      <p className="m-0 text-[15.5px] leading-relaxed">
+        <RichLine text={symptom.why} />
+      </p>
 
       {/* 3. Reassurance — only where it is true. */}
       {symptom.reassurance && (

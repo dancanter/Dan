@@ -26,7 +26,7 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
 | **Guidance** | 111 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
-| **Get Help** | 12 urgent symptoms in plain language, each opening to *what to do now* (one-tap call), *why it matters*, then reassurance where true |
+| **Get Help** | 12 urgent symptoms in plain language, each opening to *what to do now* (one-tap call, read-aloud), *why it matters*, then reassurance where true |
 | **Movement journal** | Times and kinds of movement. Explicitly **not** a kick counter — no count, no target, no verdict |
 | **Bump gallery** | Optional weekly photos in IndexedDB, with a time-lapse. No prompts, no completeness indicator |
 | **My pregnancy has changed** | Pause · support after loss · delete (export offered first) · go back. Never asks what happened |
@@ -58,6 +58,10 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 **Engagement without guilt.** With the scoring gone, what's left has to earn its place honestly: milestone celebrations show **once** — someone installing at week 30 gets one warm moment, not five queued pop-ups — the bump gallery has no completeness indicator, and no screen ever implies you've fallen behind.
 
 **Readability is measured, then enforced.** NHS guidance targets a reading age of about 9–11 for public-facing health information. An audit (`npm run readability`) scores every entry with Flesch–Kincaid: the content started at a **mean grade of 8.3 — reading age ~13 — with 99 of 183 entries above grade 8 and a worst case of 15.5.** Rewriting the worst offenders brought that to **mean 7.2, worst case 10.3**. Four tests now hold the line: a ceiling on the mean, a ceiling per entry, a stricter ceiling for the urgent flow (nobody frightened should have to parse a clause), and a 45-word sentence limit. Every future simplification should pull those ceilings down.
+
+**The glossary is the other half of the readability work.** The audit caps the score penalty for terms like *pre-eclampsia* because they have no shorter accurate synonym — but capping a penalty does nothing for a reader who doesn't know the word. So the same terms carry plain-English definitions, and become tappable **automatically wherever they already appear** in body copy: adding an entry to `glossary.ts` needs no change to any content file. A test fails if a definition uses another glossary term inside itself.
+
+**Read-aloud, on the urgent screens only.** Someone frightened at 3am, hands shaking, possibly without their glasses, should be able to be *told* what to do. It reads the action line before the explanation — the same order the screen uses — and is deliberately absent from the browsing screens, where it would be a gimmick rather than an accessibility feature. Where the browser can't speak, the control is hidden rather than shown dead.
 
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
 
