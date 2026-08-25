@@ -100,6 +100,22 @@ rather than claimed: what it averaged per week (which is where the ~2 and ~2
 targets come from), which effort formats kept recurring despite free choice
 every session, and how the rest actually fell.
 
+**Week Review** — the week you are looking at, read back off its own grid
+rather than a rolling window, since a review is about a week that finished.
+Every run with its average pace and best rep; the gym count broken down by split
+(shoulders & forearms, chest & triceps, back & biceps, legs — logged from a
+dropdown that appears when you tick **+ Gym**); lowest and average weight against
+the week before; then a verdict.
+
+The verdict counts recovery markers over that week — morning HR against
+baseline, energy ratings, live niggles, average session feel, effort count. Two
+or more agreeing says back off; one says hold; a quiet week with nothing
+flagged says push. The suggested sessions for next week follow the verdict
+rather than ignoring it: a back-off week gets one effort, two easy and rest,
+and never an all-out time trial, and no week is ever offered two of them.
+Ranking is by what has gone longest unrun, measured off the week grids so it
+agrees with the review above it.
+
 **What You Haven't Trained** — free choice drifts toward what is going well.
 Ranking the menu by how long since each format was last run is what catches it.
 

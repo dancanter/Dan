@@ -340,6 +340,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <div id="weekList"></div>
 
     <section class="block" style="margin-top:26px">
+      <h2 class="block-title">Week Review <span class="tag" id="reviewTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">What the week you are looking at actually contained, and what it says about the next one.</p>
+      <div id="reviewBox"></div>
+    </section>
+
+    <section class="block" style="margin-top:26px">
       <h2 class="block-title">What You Haven't Trained</h2>
       <p class="block-sub" data-detail>Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
       <div id="suggestBox"></div>
@@ -1020,7 +1026,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "25 Aug 08:36";
+var BUILD = "25 Aug 19:42";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1267,6 +1273,22 @@ function layoutFor(w) {
 }
 var DAY_NAMES = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
+var GYM_SPLITS = [
+  { id: "sf", label: "Shoulders & forearms" },
+  { id: "ct", label: "Chest & triceps" },
+  { id: "bb", label: "Back & biceps" },
+  { id: "legs", label: "Legs" }
+];
+function gymLabel(id) {
+  for (var i = 0; i < GYM_SPLITS.length; i++) if (GYM_SPLITS[i].id === id) return GYM_SPLITS[i].label;
+  return "Not said";
+}
+function gymOptions(sel) {
+  return '<option value="">Which split…</option>' + GYM_SPLITS.map(function (g) {
+    return '<option value="' + g.id + '"' + (sel === g.id ? " selected" : "") + ">" + g.label + "</option>";
+  }).join("");
+}
+
 function templateForWeek(w) {
   if (false) return {
     phase: "PB Attempt Week", flexible: false,
@@ -1408,7 +1430,7 @@ function buildWeek(w) {
   var t = templateForWeek(w);
   if (t.flexible) {
     return t.layout.map(function (l, i) {
-      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, detail: "", splits: "", avgpace: "", bestrep: "", actual: "", notes: "", feel: "", done: false };
+      return { day: DAY_NAMES[i], sid: l.sid, gym: !!l.gym, gymSplit: "", detail: "", splits: "", avgpace: "", bestrep: "", actual: "", notes: "", feel: "", done: false };
     });
   }
   return t.days.map(function (d) {
@@ -1430,6 +1452,7 @@ function loadWeek(w) {
       if (keep.actual && !keep.splits && !keep.avgpace && !keep.detail) keep.splits = keep.actual;
       keep.sid = saved[i].sid && poolItem(currentPlan.pool, saved[i].sid).sid === saved[i].sid ? saved[i].sid : d.sid;
       keep.gym = saved[i].gym == null ? d.gym : !!saved[i].gym;
+      keep.gymSplit = saved[i].gymSplit || "";
       /* Rows written before the menu existed carry their own name and never had
          an id. Show the name they were actually logged under rather than
          guessing which menu item it maps to — a wrong guess relabels a session
@@ -1542,7 +1565,9 @@ function dayCard(d, i, isToday) {
       '<select data-field="sid" data-i="' + i + '" aria-label="Session for ' + d.day + '">' +
         sessionOptions(currentPlan.pool, d.sid) + "</select>" +
       '<button class="btn ' + (d.gym ? "on" : "") + '" data-gym="' + i + '" aria-pressed="' + !!d.gym + '">' +
-        (d.gym ? "✓ Gym" : "+ Gym") + "</button></div>" : "") +
+        (d.gym ? "✓ Gym" : "+ Gym") + "</button>" +
+      (d.gym ? '<select data-field="gymSplit" data-i="' + i + '" aria-label="Gym split for ' + d.day + '" style="min-width:150px">' +
+        gymOptions(d.gymSplit) + "</select>" : "") + "</div>" : "") +
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
     (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
@@ -1650,7 +1675,7 @@ function renderWeek() {
   $("weekList").innerHTML = intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
-  renderSuggest();
+  renderSuggest(); renderReview();
 }
 
 /* ================= rolling load ================= */
@@ -1896,6 +1921,202 @@ function renderBlueprint() {
   el.innerHTML = head + honest +
     '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>2025</th><th>Session</th><th></th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+}
+
+/* ================= week review ================= */
+/* Everything here is read back off the week grid and the logs, for the week
+   being viewed rather than a rolling window — a review is about a week that
+   finished, so its edges have to be the week's own. */
+function weekRange(w) {
+  var a = slotDate(w, 0), b = slotDate(w, 6);
+  return a && b ? { from: a, to: b } : null;
+}
+function inRange(dateStr, r) {
+  if (!r || !dateStr) return false;
+  var d = parseDay(dateStr);
+  return d >= r.from && d <= r.to;
+}
+function weekRows(w) {
+  return w === viewWeek ? weekData : DB.get("week-" + w, null);
+}
+function reviewData(w) {
+  var rows = weekRows(w); if (!rows) return null;
+  var r = weekRange(w);
+  var out = { runs: [], gym: [], effort: 0, easy: 0, bonus: 0, feels: [], range: r };
+  rows.forEach(function (d) {
+    if (d.gym) out.gym.push(d.gymSplit || "");
+    if (!d.done) return;
+    var g = groupOfSid(d.sid);
+    if (g !== "effort" && g !== "easy" && g !== "bonus") return;
+    out[g]++;
+    var dv = deriveSession(d), f = parseInt(d.feel, 10);
+    if (isFinite(f)) out.feels.push(f);
+    out.runs.push({ day: d.day, type: sessionOf(d).type, detail: d.detail || "",
+      avgPace: dv.avgPace, bestRep: dv.bestRep, dist: dv.dist, feel: d.feel || "" });
+  });
+
+  /* weight: this week against the one before it */
+  var prev = w > 1 ? weekRange(w - 1) : null;
+  var here = weightLog.filter(function (x) { return inRange(x.date, r); }).map(function (x) { return x.weight; });
+  var back = prev ? weightLog.filter(function (x) { return inRange(x.date, prev); }).map(function (x) { return x.weight; }) : [];
+  out.weight = here.length
+    ? { low: Math.min.apply(null, here), avg: avg(here), n: here.length,
+        prevAvg: back.length ? avg(back) : null }
+    : null;
+
+  /* the recovery markers, over the same week */
+  var hrHere = hrLog.filter(function (x) { return inRange(x.date, r); });
+  var base = hrBaseline();
+  out.hrUp = base ? hrHere.filter(function (x) { return x.hr >= base + 5; }).length : 0;
+  out.hrBase = base;
+  out.lowEnergy = energySeries(14).filter(function (pt) { return inRange(pt.date, r) && pt.v <= 2; }).length;
+  out.niggle = activeNiggles().filter(function (n) { return n.sev >= 2; }).length;
+  return out;
+}
+
+function reviewVerdict(v) {
+  var flags = [], easeOff = 0;
+  if (v.hrUp >= 2) { easeOff++; flags.push("morning HR was 5+ over your " + v.hrBase + " baseline on " + v.hrUp + " days"); }
+  if (v.lowEnergy >= 2) { easeOff++; flags.push(v.lowEnergy + " days rated 2 or below for energy"); }
+  if (v.niggle) { easeOff++; flags.push("a niggle at severity 2 or worse still live"); }
+  if (v.feels.length >= 2 && avg(v.feels) >= 4.3) { easeOff++; flags.push("your sessions averaged " + avg(v.feels).toFixed(1) + " out of 5 for effort, so everything felt hard"); }
+  if (v.effort >= 4) { easeOff++; flags.push(v.effort + " effort sessions against a target of two"); }
+
+  if (easeOff >= 2) {
+    var list = flags.length > 1
+      ? flags.slice(0, -1).join(", ") + " and " + flags[flags.length - 1]
+      : flags[0];
+    return { tone: "stop", head: "Back off next week", ease: true,
+      body: (flags.length === 2 ? "Two things point the same way" : flags.length + " things point the same way") +
+        ": " + list + ". <b style=\"color:var(--chalk)\">Make next week one effort session, two easy runs, and take the rest.</b> " +
+        "Fitness is built while you recover from the work, not while you do it." };
+  }
+  if (easeOff === 1) return { tone: "warn", head: "Hold where you are",
+    body: "Only one thing worth noting — " + flags[0] + ". Not enough to change the plan on, and enough to mean next week is not the week to add anything. " +
+      "Repeat what you did and see whether it clears." };
+
+  var total = v.effort + v.easy + v.bonus;
+  if (v.effort <= 1 && total <= 3) return { tone: "good", head: "You have room to push",
+    body: "Only " + v.effort + " effort session" + (v.effort === 1 ? "" : "s") + " and " + total + " runs, with nothing flagged in your HR, energy or feel ratings. " +
+      "<b style=\"color:var(--chalk)\">Next week take it to two efforts and four runs.</b> That is the rate the 2025 block ran at, and you are recovering fine at less than it." };
+  if (v.effort >= 2 && v.easy >= 2 && !easeOff) return { tone: "good", head: "That is the week, repeat it",
+    body: v.effort + " efforts, " + v.easy + " easy, nothing complaining. This is exactly the shape that produced the PBs last year. " +
+      "Adding a third effort is not the upgrade — running these same sessions faster is." };
+  return { tone: "flat", head: "Solid, nothing to change",
+    body: v.effort + " effort, " + v.easy + " easy, " + v.gym.length + " gym. Nothing in the recovery markers objecting. Keep going." };
+}
+
+/* Next week's shortlist: ranked by what has gone longest unrun, but the count
+   and the kind both follow the verdict. Suggesting two all-out time trials in
+   the week you have just been told to back off would make the verdict noise. */
+var ALL_OUT = { eff_mile: 1, eff_5k: 1, eff_10k: 1, eff_3k: 1 };
+/* Days since a session id was last completed, read off the week grids so it
+   agrees with the review above it. Session history dates a row from when it was
+   ticked, which is not always the day it was run. */
+function daysSinceSid(sid) {
+  var best = null, now = parseDay(today());
+  for (var w = 1; w <= 13; w++) {
+    var rows = weekRows(w);
+    if (!rows) continue;
+    for (var i = 0; i < rows.length; i++) {
+      if (!rows[i].done || rows[i].sid !== sid) continue;
+      var d = slotDate(w, i);
+      if (!d || d > now) continue;
+      var ago = daysBetween(d, now);
+      if (best === null || ago < best) best = ago;
+    }
+  }
+  if (best !== null) return best;
+  /* no dated grid entry — fall back to history so an old block still counts */
+  for (var k = 0; k < sessionHistory.length; k++) {
+    if (sessionHistory[k].sid === sid) return daysBetween(parseDay(sessionHistory[k].date), now);
+  }
+  return 9999;
+}
+function reviewSuggest(v, verdict) {
+  var out = [], ease = !!verdict.ease;
+  var ranked = poolFor(viewWeek)
+    .filter(function (o) { return o.group === "effort" && o.sid !== "none"; })
+    .map(function (o) { return { o: o, days: daysSinceSid(o.sid) }; })
+    .sort(function (a, b) { return b.days - a.days; });
+
+  var want = ease ? 1 : 2, usedTest = false;
+  ranked.forEach(function (x) {
+    if (out.length >= want) return;
+    /* one all-out test in a week at most, and none at all on a back-off week —
+       a 5K time trial is the single hardest thing on the menu */
+    if (ALL_OUT[x.o.sid]) { if (ease || usedTest) return; usedTest = true; }
+    out.push({ what: x.o.type, why: x.days === 9999 ? "never run" : x.days + " days since the last one" });
+  });
+
+  out.push({ what: "Easy 5 mile", why: ease ? "and keep it genuinely easy" : "the aerobic upkeep" });
+  out.push({ what: "Easy 5km", why: ease ? "or another 5 mile — nothing harder" : "or a 5 mile again if you fancy it" });
+  if (!ease) {
+    out.push({ what: "Sprints — 80–100m",
+      why: v.bonus > 0 ? "you did them this week, keep the habit" : "none this week — this is the one that slips" });
+  } else {
+    out.push({ what: "Rest", why: "the other two or three days, properly" });
+  }
+  return out;
+}
+
+function renderReview() {
+  var el = $("reviewBox"); if (!el) return;
+  var w = viewWeek, v = reviewData(w);
+  if (!v) { el.innerHTML = '<div class="empty">Nothing logged for this week yet.</div>'; return; }
+  var r = v.range;
+  var fmtD = function (d) { return d.toLocaleDateString([], { day: "numeric", month: "short" }); };
+  $("reviewTag").textContent = r ? fmtD(r.from) + " – " + fmtD(r.to) : "Week " + w;
+
+  var total = v.runs.length;
+  var runs = total
+    ? '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:12px"><table class="ref">' +
+      "<thead><tr><th>Session</th><th>Avg pace</th><th>Best rep</th></tr></thead><tbody>" +
+      v.runs.map(function (x) {
+        return "<tr><td>" + esc(x.type) + (x.detail ? '<span class="sub">' + esc(x.detail) + "</span>" : "") + "</td>" +
+          '<td class="hl">' + (x.avgPace ? fmtSec(x.avgPace) + "/km" : "—") + "</td>" +
+          '<td class="hl">' + (x.bestRep ? fmtResult(x.bestRep) : "—") + "</td></tr>";
+      }).join("") + "</tbody></table></div>"
+    : '<div class="note flat" style="margin-bottom:12px"><b>No runs logged this week</b>If that is wrong, the sessions need marking done on the grid above.</div>';
+
+  var counts = {};
+  v.gym.forEach(function (g) { var k = g || "unsaid"; counts[k] = (counts[k] || 0) + 1; });
+  var gymLine = v.gym.length
+    ? v.gym.length + " session" + (v.gym.length === 1 ? "" : "s") + " — " +
+      Object.keys(counts).map(function (k) {
+        return (k === "unsaid" ? "split not said" : gymLabel(k)) + " ×" + counts[k];
+      }).join(", ")
+    : "None ticked this week.";
+
+  var wt = v.weight
+    ? 'Lowest <span style="color:var(--chalk);font-weight:600">' + v.weight.low.toFixed(1) + " lb</span>, average " + v.weight.avg.toFixed(1) +
+      " over " + v.weight.n + " weigh-in" + (v.weight.n === 1 ? "" : "s") + ". " +
+      (v.weight.prevAvg
+        ? (function () {
+            var d = v.weight.avg - v.weight.prevAvg;
+            return Math.abs(d) < 0.15
+              ? "Level with last week's " + v.weight.prevAvg.toFixed(1) + "."
+              : (d < 0 ? "Down " : "Up ") + Math.abs(d).toFixed(1) + " on last week's " + v.weight.prevAvg.toFixed(1) + ".";
+          })()
+        : "No week before this one to compare against.")
+    : "Nothing weighed this week.";
+
+  var verdict = reviewVerdict(v);
+  var sugg = reviewSuggest(v, verdict);
+
+  el.innerHTML =
+    '<div class="note flat" style="margin-bottom:12px"><b>Running — ' + total + " run" + (total === 1 ? "" : "s") + "</b>" +
+      v.effort + " effort · " + v.easy + " easy · " + v.bonus + " sprint" + (v.bonus === 1 ? "" : "s") + "</div>" +
+    runs +
+    '<div class="note flat" style="margin-bottom:12px"><b>Gym</b>' + esc(gymLine) + "</div>" +
+    '<div class="note flat" style="margin-bottom:12px"><b>Weight</b>' + wt + "</div>" +
+    '<div class="note ' + verdict.tone + '" style="margin-bottom:12px"><b>' + verdict.head + "</b>" + verdict.body + "</div>" +
+    '<div class="block-title" style="font-size:17px">Suggested for next week</div>' +
+    '<div class="card" style="padding:6px 14px">' + sugg.map(function (x) {
+      return '<div class="stone" style="grid-template-columns:1fr auto">' +
+        '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(x.what) + "</span>" +
+        '<span class="stone-when" style="color:var(--muted-2)">' + esc(x.why) + "</span></div>";
+    }).join("") + "</div>";
 }
 
 /* ================= today ================= */
@@ -3977,6 +4198,7 @@ function renderStartInfo() {
       weekData[+el.dataset.i][el.dataset.field] = el.value;
       saveWeek();
       if (el.dataset.field === "sid") { renderWeek(); renderToday(); return; }
+      if (el.dataset.field === "gymSplit") { renderReview(); return; }
       if (["detail", "splits", "avgpace", "bestrep"].indexOf(el.dataset.field) !== -1) {
         var ix = +el.dataset.i, wd = weekData[ix];
         var dv2 = deriveSession(wd), k2 = viewWeek + "|" + wd.day;
