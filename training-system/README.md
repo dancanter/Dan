@@ -50,7 +50,8 @@ checklist with a 28-day completion grid and streak.
 rebuilt to match the 2025 block that actually produced the PBs. Nothing is
 assigned to a day: every day starts empty and you record what you did, on
 whatever day you did it. The targets are counted over a **trailing seven days** —
-roughly two effort runs, two easy runs, four gym sessions — so five sessions one
+roughly two effort runs, two easy runs, one 80–100m sprint session and four gym
+sessions, against a 4–5 runs a week readout — so five sessions one
 week and three the next is the same plan, not a failure. The window slides a day
 at a time and never resets on a Sunday: a session leaves the count exactly seven
 days after you ran it, and the window's dates sit beside the heading.
@@ -66,6 +67,18 @@ prescribed pace. The easy menu is the two runs actually used: 5km and 5 mile,
 conversational. Sprints (100m flat or uphill) sit in their own bucket and are
 never counted as effort — alactic work off full recovery, stopped while the reps
 are still fast, so nothing is run to fatigue.
+
+A 200m session is a hard effort *and* covers the sprint slot, so the sprint bar
+reads "covered by your 200m session" rather than asking for both — which is what
+the 2025 log actually did. The 80–100m sprints are the only running that is not
+an effort session: relaxed rather than maximal, stopped the moment the pace
+drops.
+
+Two efforts is the aim, not a ceiling. Three in a week with nothing wrong in the
+energy or morning-HR log is not flagged at all — the 2025 block had weeks like
+that. Three *with* a fatigue marker, or four regardless, gets the pull-back
+note. That check counts the same trailing seven days the targets do, so four
+efforts spread across a Saturday and a Sunday still register.
 
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has

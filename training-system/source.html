@@ -1206,7 +1206,7 @@ function poolFor(w) {
     { sid: "eff_300", hard: 2, group: "effort", type: "300m reps",
       desc: "300m reps, all out, full recovery between. You choose how many." + short },
     { sid: "eff_ladder", hard: 2, group: "effort", type: "Ladder 200-400-600-400-200",
-      desc: "200-400-600-400-200m, all out, recovery equal to the rep you just ran. Enter the average pace rather than splits — the reps are different distances." + short },
+      desc: "200-400-600-400-200m, all out, 1:1 recovery — rest as long as the rep you just ran. Enter the average pace rather than splits, since the reps are different distances." + short },
     { sid: "eff_ladder_desc", hard: 2, group: "effort", type: "Descending 1000-800-600-400-200",
       desc: "1000-800-600-400-200m, each one faster than the last. The finish is the point — the 200 should be your quickest of the day." + short },
     { sid: "eff_fartlek", hard: 2, group: "effort", type: "Fartlek",
@@ -1228,17 +1228,17 @@ function poolFor(w) {
 
     /* ---- easy ---- */
     { sid: "easy_long", hard: 0, group: "easy", type: "Easy 5 mile",
-      desc: "5 miles, smooth and conversational. If you cannot hold a conversation you are running it too hard." },
+      desc: "5 miles / 8km, smooth and conversational. There to keep the aerobic volume ticking over, not to prove anything. If you cannot hold a conversation you are running it too hard." },
     { sid: "easy_short", hard: 0, group: "easy", type: "Easy 5km",
-      desc: "5km, smooth and conversational." },
+      desc: "5km, smooth and conversational. The recovery option when the 5 mile is too much." },
 
     /* ---- bonus ---- */
     { sid: "bonus_strides", hard: 0, group: "bonus", type: "Strides after an easy run",
       desc: "6 × 20 seconds, building to fast and relaxed, full walk back. Costs you nothing and keeps your turnover alive." },
     { sid: "eff_hill", hard: 0, alactic: 1, group: "bonus", type: "Uphill 100m sprints",
-      desc: "100m uphill, all out, walk back down. You choose how many. Not counted as an effort session — full recovery, no rep run tired." + short },
-    { sid: "bonus_sprint", hard: 0, alactic: 1, group: "bonus", type: "Bonus sprints",
-      desc: "5–8 × 100m, flat or uphill. Full recovery between every one. Not counted as an effort session — you stop while they are still fast, so nothing is run to fatigue." },
+      desc: "100m uphill, hard but relaxed, walk all the way back down. You choose how many. Stop when the pace goes rather than at a number. Not an effort session." + short },
+    { sid: "bonus_sprint", hard: 0, alactic: 1, group: "bonus", type: "Sprints — 80–100m",
+      desc: "4–8 × 80–100m, flat or uphill, full recovery. Fast and relaxed rather than absolutely maximal — accelerations with good mechanics. No heavy breathing, and you stop the moment the pace drops off. Not an effort session." },
 
     { sid: "gymonly", hard: 0, group: "other", type: "Gym only", desc: "No run today." },
     { sid: "rest", hard: 0, group: "other", type: "Rest", desc: "Full rest." },
@@ -1606,13 +1606,14 @@ function renderSuggest() {
 function intensityNote() {
   var plan = currentPlan;
   if (!plan || !plan.flexible) return "";
-  var load = 0, names = [];
-  weekData.forEach(function (d) {
-    if (!d.done) return;
-    var h = sessionOf(d).hard;
-    if (h >= 2) { load += 1; names.push(sessionOf(d).type); }
-    else if (h === 1) { load += 0.5; names.push(sessionOf(d).type); }
-  });
+  /* The same trailing seven days the targets use. Counting the calendar week
+     instead would miss four efforts spread across a Saturday and a Sunday, and
+     would keep flagging the week you are looking at rather than the one you
+     are in. */
+  var load = rollingLoad(7).effort;
+  /* Two is the aim, not a ceiling. A third quality session in a week you feel
+     good is something the 2025 block did repeatedly, so it only gets flagged
+     when the fatigue markers agree that it was too much. */
   if (load <= 2) return "";
 
   /* fatigue markers make the same load mean more */
@@ -1631,8 +1632,8 @@ function intensityNote() {
   /* Sprints are not in this count. Alactic work off full recovery, stopped
      while the reps are still fast, does not produce the fatigue a rep set does.
      What it does carry is hamstring risk, and the niggle block handles that. */
-  return '<div class="note warn" style="margin-bottom:12px"><b>' + load.toFixed(load % 1 ? 1 : 0) + " effort sessions this week</b>" +
-    "One above the two this plan is built on. Fine occasionally, and not fine as a habit — the two easy days are what makes the effort days work. Keep whatever is left of the week genuinely easy.</div>";
+  return '<div class="note flat" data-detail style="margin-bottom:12px"><b>' + load.toFixed(load % 1 ? 1 : 0) + " effort sessions this week</b>" +
+    "One above the usual two, with nothing in your energy or morning HR objecting. Your 2025 block had weeks like this and they were not the problem — three is only worth worrying about when it becomes the average.</div>";
 }
 
 function renderWeek() {
@@ -1675,7 +1676,7 @@ function slotDate(w, i) {
    is the day you ticked the box, not the day you trained. The grids carry both
    correctly. */
 function rollingLoad(days) {
-  var out = { effort: 0, easy: 0, bonus: 0, gym: 0, runs: 0, dated: !!settings.startDate };
+  var out = { effort: 0, easy: 0, bonus: 0, gym: 0, runs: 0, s200: 0, dated: !!settings.startDate };
   var now = parseDay(today());
   if (out.dated) {
     var bw = blockWeekNow() || 13, from = Math.max(1, bw - Math.ceil(days / 7) - 1);
@@ -1690,6 +1691,7 @@ function rollingLoad(days) {
         if (ago < 0 || ago >= days) return;
         if (d.gym) out.gym++;
         if (!d.done) return;
+        if (d.sid === "eff_200") out.s200++;
         var g = groupOfSid(d.sid);
         if (g === "effort" || g === "easy" || g === "bonus") { out[g]++; out.runs++; }
       });
@@ -1702,6 +1704,7 @@ function rollingLoad(days) {
     var ago = daysBetween(parseDay(h.date), now);
     if (!isFinite(ago) || ago < 0 || ago >= days) return;
     if (/\+ gym/.test(h.type || "")) out.gym++;
+    if (h.sid === "eff_200") out.s200++;
     var g = groupOfSid(h.sid);
     if (g === "effort" || g === "easy" || g === "bonus") { out[g]++; out.runs++; }
   });
@@ -1752,9 +1755,22 @@ function renderRolling() {
   var w = rollingLoad(7), m = rollingLoad(28), wks = 4;
   var range = $("rollRange");
   if (range) range.textContent = windowLabel(7);
+  /* A 200m session is a hard effort in its own right, and it also does the job
+     the 80-100s do — so it covers the sprint slot rather than adding to it. */
+  var sprintCovered = w.s200 > 0 && !w.bonus;
   var bars = loadBar("Effort", w.effort, 2, "all out, your pick of distance") +
     loadBar("Easy", w.easy, 2, "5km or 5 mile, conversational") +
+    loadBar("Sprints", sprintCovered ? 1 : w.bonus, 1,
+      sprintCovered ? "covered by your 200m session" : "80–100m, relaxed, full recovery") +
     loadBar("Gym", w.gym, 4, "unattached to the running");
+  var total = w.effort + w.easy + w.bonus;
+  var runs = '<div class="note ' + (total >= 4 && total <= 5 ? "good" : "flat") + '" style="margin-top:12px">' +
+    "<b>" + total + " run" + (total === 1 ? "" : "s") + " in the last seven days</b>" +
+    (total >= 4 && total <= 5
+      ? "Right in the 4–5 that has worked for you before."
+      : total > 5
+        ? "Above the 4–5 you have historically run best on. Not wrong, but it is more than the blueprint."
+        : "The blueprint sits at 4–5. Worth knowing, not worth forcing — a light week is a light week.") + "</div>";
   var sprintLine = w.bonus
     ? w.bonus + " sprint session" + (w.bonus === 1 ? "" : "s") + " on top, which is how last year ran too — they are not counted as effort."
     : "No sprints this week. Last year they went in most weeks, 100m unless you fancied 200m, and they were never counted as an effort session.";
@@ -1768,7 +1784,7 @@ function renderRolling() {
     '<div class="note warn" style="margin-bottom:12px"><b>No block start date set</b>' +
     "Without it no day has a real date, so these are counted from when you ticked things rather than when you did them. " +
     'Set it under <button class="linkish" data-goto="progress">Progress → Setup</button>.</div>';
-  el.innerHTML = undated + bars + avg +
+  el.innerHTML = undated + bars + runs + avg +
     '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
     "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
