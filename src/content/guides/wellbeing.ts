@@ -13,7 +13,7 @@ export const wellbeingGuides: Guide[] = [
     sourceIds: ['alves-2021'],
     emphasis: 'calm',
   },
-    {
+  {
     id: 'relaxation',
     section: 'wellbeing',
     title: 'Relaxation genuinely works',
@@ -60,7 +60,7 @@ export const wellbeingGuides: Guide[] = [
 ];
 
 export const weightGuides: Guide[] = [
-    {
+  {
     id: 'no-target-number',
     section: 'weight',
     title: 'There’s no single "correct" number',
@@ -94,7 +94,7 @@ export const weightGuides: Guide[] = [
     ],
     sourceIds: ['chahal-2024'],
   },
-    {
+  {
     id: 'cravings',
     section: 'weight',
     title: 'Cravings are normal',

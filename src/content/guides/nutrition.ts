@@ -39,8 +39,7 @@ export const nutritionGuides: Guide[] = [
     id: 'oily-fish',
     section: 'nutrition',
     title: 'Oily fish & omega-3',
-    summary:
-      'Two portions of fish a week, one oily — one of the widest gaps in the whole UK diet.',
+    summary: 'Two portions of fish a week, one oily — one of the widest gaps in the whole UK diet.',
     body: [
       'Two portions of fish a week (140g each), at least one oily — salmon, mackerel, sardines. This is one of the widest gaps in the whole UK diet: average intake is around 42g a week against a 140g target, and 77% of women ate no oily fish at all across a four-day survey.',
       'Oily fish is the main dietary source of long-chain omega-3 fats, important for your baby’s brain and eye development. The UK recommendation is 0.45g/day, which two portions is designed to deliver.',

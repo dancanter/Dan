@@ -41,7 +41,7 @@ export const lossSections: LossSection[] = [
       'That uncertainty is hard to sit with. It is also why being checked matters, rather than trying to read the signs yourself.',
     ],
   },
-    {
+  {
     id: 'urgent',
     title: 'Get help urgently for',
     tone: 'urgent',

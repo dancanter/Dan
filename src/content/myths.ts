@@ -14,7 +14,7 @@ export const myths: Myth[] = [
     claim: 'You should gain a specific amount of weight',
     verdict: 'myth',
     explanation:
-      "UK guidance sets no target on purpose. The evidence does not support one number that works for everyone.",
+      'UK guidance sets no target on purpose. The evidence does not support one number that works for everyone.',
     sourceIds: ['sacn-2026'],
   },
   {

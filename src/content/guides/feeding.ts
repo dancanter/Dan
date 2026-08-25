@@ -5,7 +5,8 @@ export const feedingGuides: Guide[] = [
     id: 'feeding-nobody-figured-out',
     section: 'feeding-basics',
     title: 'Nobody has it figured out from day one',
-    summary: '73% of mothers who breastfed hit a difficulty. You’d be in the majority, not failing.',
+    summary:
+      '73% of mothers who breastfed hit a difficulty. You’d be in the majority, not failing.',
     body: [
       'Breastfeeding difficulties are the norm, not the exception. In a 2024 national survey, **73% of mothers who breastfed experienced a difficulty** — most commonly engorgement (42%), baby not latching well (25%), or feeling they didn’t have enough milk (25%).',
       'If you’re struggling, you are in the majority, not failing at something everyone else finds easy.',
@@ -71,7 +72,7 @@ export const feedingGuides: Guide[] = [
     ],
     sourceIds: ['ohid-infant-feeding-2024', 'who-infant-feeding'],
   },
-    {
+  {
     id: 'feeding-benefits-calibrated',
     section: 'feeding-basics',
     title: 'What the evidence actually says about benefits',
@@ -243,7 +244,7 @@ export const feedingGuides: Guide[] = [
     ],
     sourceIds: ['nhs-bottle-feeding', 'nhs-making-formula'],
   },
-    {
+  {
     id: 'combining-feeding',
     section: 'bottle-feeding',
     title: 'Combining breast and bottle',

@@ -9,7 +9,9 @@ function report() {
   const over = scores.filter((s) => s.grade > 8);
 
   console.log(`Entries: ${scores.length}`);
-  console.log(`Mean Flesch–Kincaid grade: ${avg.toFixed(1)} (reading age ~${(avg + 5).toFixed(0)})`);
+  console.log(
+    `Mean Flesch–Kincaid grade: ${avg.toFixed(1)} (reading age ~${(avg + 5).toFixed(0)})`,
+  );
   console.log(`Above grade 8 (reading age 13+): ${over.length}\n`);
   console.log('WORST 25');
   console.log('grade  ease   words  kind        id');

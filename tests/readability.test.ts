@@ -14,10 +14,12 @@ import { allScores } from '../scripts/readability';
  * moment someone writes a paragraph in a hurry.
  */
 
-/** No single entry may be harder than this. Current worst is ~10.3. */
-const MAX_GRADE = 11;
-/** The body of content as a whole. Currently ~7.2. */
-const MAX_MEAN_GRADE = 7.6;
+/** No single entry may be harder than this. Current worst is ~10.1. */
+const MAX_GRADE = 10.5;
+/** The body of content as a whole. Currently ~7.0. */
+const MAX_MEAN_GRADE = 7.3;
+/** The urgent flow, held to the strictest bar in the app. */
+const MAX_URGENT_GRADE = 9.5;
 
 describe('readability', () => {
   const scores = allScores();
@@ -28,20 +30,23 @@ describe('readability', () => {
   });
 
   it('has no single entry above the ceiling', () => {
-    const worst = [...scores].sort((a, b) => b.grade - a.grade).slice(0, 5);
-    for (const s of worst) {
-      expect(s.grade, `${s.kind} "${s.id}" scores ${s.grade.toFixed(1)}`).toBeLessThanOrEqual(
-        MAX_GRADE,
-      );
-    }
+    // Filters the whole set rather than sampling the worst few — checking a
+    // slice would let a sixth regression through silently.
+    const over = scores.filter((s) => s.grade > MAX_GRADE);
+    expect(
+      over.map((s) => `${s.kind}/${s.id} (${s.grade.toFixed(1)})`),
+      `entries above grade ${MAX_GRADE}`,
+    ).toEqual([]);
   });
 
   it('holds the urgent flow to a lower bar than everything else', () => {
     // Someone reading these is frightened, and possibly at 3am. They get the
     // strictest ceiling in the app.
-    for (const s of scores.filter((s) => s.kind === 'urgent')) {
-      expect(s.grade, `urgent "${s.id}" scores ${s.grade.toFixed(1)}`).toBeLessThanOrEqual(10);
-    }
+    const over = scores.filter((s) => s.kind === 'urgent' && s.grade > MAX_URGENT_GRADE);
+    expect(
+      over.map((s) => `${s.id} (${s.grade.toFixed(1)})`),
+      `urgent entries above grade ${MAX_URGENT_GRADE}`,
+    ).toEqual([]);
   });
 
   it('keeps sentences short enough to follow', () => {

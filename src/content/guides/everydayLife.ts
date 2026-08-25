@@ -17,14 +17,15 @@ export const medicationGuides: Guide[] = [
     id: 'paracetamol',
     section: 'medications',
     title: 'Paracetamol — and the autism question',
-    summary: 'First-choice painkiller. The MHRA has confirmed there is no evidence it causes autism.',
+    summary:
+      'First-choice painkiller. The MHRA has confirmed there is no evidence it causes autism.',
     body: [
       'Paracetamol is the first-choice painkiller in pregnancy, taken at the lowest effective dose for the shortest time.',
       'The UK’s medicines regulator (MHRA) has confirmed paracetamol in pregnancy remains safe, and that there is **no evidence it causes autism**. If you’ve seen claims otherwise online, that’s the official position.',
     ],
     sourceIds: ['nhs-headaches', 'mhra-paracetamol'],
   },
-      {
+  {
     id: 'meds-avoid',
     section: 'medications',
     title: 'What to avoid',
@@ -47,7 +48,7 @@ export const medicationGuides: Guide[] = [
     ],
     sourceIds: ['nhs-medicines'],
   },
-    {
+  {
     id: 'bumps',
     section: 'medications',
     title: 'Where to look something up',

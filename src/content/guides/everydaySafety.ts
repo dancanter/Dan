@@ -77,7 +77,7 @@ export const skincareGuides: Guide[] = [
     ],
     sourceIds: ['nct-beauty-treatments', 'putra-2022-topical'],
   },
-    {
+  {
     id: 'skincare-ingredients',
     section: 'skincare',
     title: 'Skincare ingredients — what to avoid, what’s fine',
@@ -102,7 +102,7 @@ export const skincareGuides: Guide[] = [
     ],
     sourceIds: ['nct-beauty-treatments', 'putra-2022-topical', 'bozzo-2011-cosmetics'],
   },
-    {
+  {
     id: 'treatments-procedures',
     section: 'skincare',
     title: 'Massage, nails and cosmetic procedures',

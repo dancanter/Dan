@@ -27,7 +27,7 @@ export const postnatalGuides: Guide[] = [
     sourceIds: ['nhs-early-days'],
     emphasis: 'warn',
   },
-    {
+  {
     id: 'postnatal-check',
     section: 'first-days',
     title: 'Your 6-week postnatal check',
@@ -85,7 +85,7 @@ export const postnatalGuides: Guide[] = [
     ],
     sourceIds: ['nhs-post-pregnancy-body'],
   },
-    {
+  {
     id: 'lasting-problems',
     section: 'recovery',
     title: 'Problems that last — the honest one',
@@ -115,7 +115,7 @@ export const postnatalGuides: Guide[] = [
     ],
     sourceIds: ['nhs-postnatal-depression', 'tommys-pnd'],
   },
-    {
+  {
     id: 'postpartum-psychosis',
     section: 'postnatal-mind',
     title: 'Postpartum psychosis — a medical emergency',

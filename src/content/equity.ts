@@ -38,12 +38,12 @@ export const equitySections: EquitySection[] = [
       'The overall maternal death rate has risen slightly in recent years even as the ethnic gap has narrowed — so this is an active safety priority, not a solved problem.',
     ],
   },
-    {
+  {
     id: 'why',
     title: 'Why — what the evidence actually shows',
     sourceIds: ['weq-black-maternal-health', 'adesina-2025'],
     body: [
-      'The obvious question is whether this is really about something else. Age, perhaps. Health conditions. Or poverty. Researchers have tested exactly that, and the answer is no — **those things do not explain the gap**. One UK study found that Black women’s higher risk barely moved once age, health and deprivation were accounted for.',
+      'The obvious question is whether this is really about something else. Age, perhaps. Health conditions. Or deprivation. Researchers have tested exactly that, and the answer is no — **those things do not explain the gap**. One UK study found that Black women’s higher risk barely moved once age, health and deprivation were accounted for.',
       '**Getting care early.** Black women are around four times more likely to book late for antenatal care, or to miss visits. That matters, because early care is where screening happens and where problems get picked up.',
       '**Care that fits the person.** Reviews of maternal deaths found Black women were over-represented in cases where the care given had not been shaped around them.',
       '**Being listened to.** Studies and national surveys keep finding the same thing. Women from ethnic minority backgrounds are more likely to say their concerns were brushed aside, especially about pain.',
@@ -63,7 +63,7 @@ export const equitySections: EquitySection[] = [
       '**Ask what is in place locally.** Many Local Maternity Systems now have specific equity action plans. Your midwife can tell you what yours does.',
     ],
   },
-    {
+  {
     id: 'more',
     title: 'Organisations worth knowing',
     sourceIds: ['five-x-more', 'birthrights'],

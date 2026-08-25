@@ -46,15 +46,74 @@ function words(text: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Clinical terms with no simpler accurate synonym.
+ *
+ * Flesch–Kincaid punishes long words, but "pre-eclampsia" cannot be shortened
+ * without losing the thing a reader needs in order to look it up or say it to
+ * a midwife. Penalising those words pushes the content towards vagueness,
+ * which is the opposite of the goal — so they are capped at two syllables
+ * rather than excluded, keeping word and sentence counts honest while
+ * removing a penalty that no rewrite could ever clear.
+ *
+ * Keep this list short and defensible. It is for terms that must survive,
+ * not an escape hatch for prose that could simply be written better.
+ */
+const CLINICAL_TERMS = new Set([
+  'intrahepatic',
+  'cholestasis',
+  'icp',
+  'eclampsia',
+  'gestational',
+  'diabetes',
+  'antenatal',
+  'postnatal',
+  'perinatal',
+  'postpartum',
+  'psychosis',
+  'caesarean',
+  'epidural',
+  'haemorrhage',
+  'thrombosis',
+  'anaemia',
+  'obstetrician',
+  'cardiologist',
+  'contraception',
+  'vaccination',
+  'vaccinations',
+  'immunisation',
+  'incontinence',
+  'episiotomy',
+  'ultrasound',
+  'placenta',
+  'placental',
+  'ectopic',
+  'miscarriage',
+  'stillbirth',
+  'breastfeeding',
+  'paracetamol',
+  'ibuprofen',
+  'retinoid',
+  'retinoids',
+  'deprivation',
+  'mbrrace',
+  'toxoplasmosis',
+  'listeria',
+  'colostrum',
+  'meconium',
+  'lochia',
+]);
+
+const CLINICAL_SYLLABLE_CAP = 2;
+
 /** Standard heuristic syllable count — good enough for a relative ranking. */
 function syllables(word: string): number {
   const w = word.toLowerCase().replace(/[^a-z]/g, '');
   if (w.length <= 3) return 1;
-  const trimmed = w
-    .replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '')
-    .replace(/^y/, '');
+  const trimmed = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '');
   const groups = trimmed.match(/[aeiouy]{1,2}/g);
-  return Math.max(1, groups ? groups.length : 1);
+  const count = Math.max(1, groups ? groups.length : 1);
+  return CLINICAL_TERMS.has(w) ? Math.min(count, CLINICAL_SYLLABLE_CAP) : count;
 }
 
 export interface Score {
@@ -92,7 +151,9 @@ export function allScores(): Score[] {
   const out: Score[] = [];
   for (const g of guides) out.push(score(g.id, 'guide', [g.summary, ...g.body].join(' ')));
   for (const u of urgentSymptoms)
-    out.push(score(u.id, 'urgent', [u.now, u.why, u.reassurance ?? '', ...(u.dont ?? [])].join(' ')));
+    out.push(
+      score(u.id, 'urgent', [u.now, u.why, u.reassurance ?? '', ...(u.dont ?? [])].join(' ')),
+    );
   for (const s of symptoms) out.push(score(s.id, 'symptom', [s.why, s.help, s.flag].join(' ')));
   for (const m of myths) out.push(score(m.id, 'myth', m.explanation));
   for (const t of helpTopics) out.push(score(t.id, 'helpTopic', t.body.join(' ')));

@@ -36,7 +36,7 @@ export const exerciseGuides: Guide[] = [
     ],
     sourceIds: ['nhs-exercise'],
   },
-    {
+  {
     id: 'exercise-gd',
     section: 'exercise',
     title: 'Exercise and gestational diabetes',
@@ -55,8 +55,7 @@ export const sleepGuides: Guide[] = [
     id: 'sleep-position',
     section: 'sleep',
     title: 'Sleep position — from 28 weeks',
-    summary:
-      'Go to sleep on your side, every sleep including naps. Either side is fine.',
+    summary: 'Go to sleep on your side, every sleep including naps. Either side is fine.',
     body: [
       'Go to sleep on your side rather than your back, for every sleep including naps. Going to sleep on your back has been linked to roughly double the risk of stillbirth and triple the risk of a smaller baby.',
       'It’s the position you *fall asleep in* that matters, since that’s what you hold longest — if you wake up on your back, just roll back onto your side.',

@@ -91,7 +91,7 @@ export const birthGuides: Guide[] = [
     ],
     sourceIds: ['nhs-giving-birth'],
   },
-    {
+  {
     id: 'antenatal-classes',
     section: 'birth-prep',
     title: 'Antenatal classes & hypnobirthing',
@@ -119,7 +119,7 @@ export const birthGuides: Guide[] = [
     ],
     sourceIds: ['nhs-birthing-ball'],
   },
-    {
+  {
     id: 'hospital-bag',
     section: 'birth-prep',
     title: 'Hospital bag checklist',
@@ -174,7 +174,7 @@ export const birthGuides: Guide[] = [
     ],
     sourceIds: ['nhs-hospital-bag'],
   },
-    {
+  {
     id: 'birth-plan',
     section: 'birth-prep',
     title: 'Your birth plan',

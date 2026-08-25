@@ -30,8 +30,7 @@ export const redFlags: RedFlag[] = [
     id: 'swelling',
     level: 'maternity-unit',
     title: 'Sudden or severe swelling',
-    detail:
-      'Face, hands or feet, especially alongside headache or vision changes.',
+    detail: 'Face, hands or feet, especially alongside headache or vision changes.',
   },
   {
     id: 'fluid',
@@ -68,8 +67,7 @@ export const redFlags: RedFlag[] = [
     id: 'instinct',
     level: 'maternity-unit',
     title: 'You just feel something is wrong',
-    detail:
-      "Even if you can't explain why. This counts. Say exactly that.",
+    detail: "Even if you can't explain why. This counts. Say exactly that.",
   },
   {
     id: 'heavy-bleeding',
@@ -146,7 +144,7 @@ export const helpTopics: HelpTopic[] = [
     id: 'movements-why',
     title: 'Why movements matter — the honest version',
     body: [
-      "In about half of stillbirths, the mother had noticed her baby moving less first. That sounds frightening. But it does not mean reduced movements usually lead to loss. Most women who report it once go on to have a normal pregnancy and a healthy baby.",
+      'In about half of stillbirths, the mother had noticed her baby moving less first. That sounds frightening. But it does not mean reduced movements usually lead to loss. Most women who report it once go on to have a normal pregnancy and a healthy baby.',
       "It also does not mean it is ever a parent's fault for not spotting it sooner. Checking early matters for one reason: problems found early can usually be treated.",
     ],
     sourceIds: ['tommys-movements'],

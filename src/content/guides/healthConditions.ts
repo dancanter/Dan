@@ -1,7 +1,7 @@
 import type { Guide } from '../schema';
 
 export const healthConditionGuides: Guide[] = [
-    {
+  {
     id: 'conditions-overview',
     section: 'health-conditions',
     title: 'If you have an existing condition — start here',
@@ -27,7 +27,7 @@ export const healthConditionGuides: Guide[] = [
     ],
     sourceIds: ['nhs-asthma-pregnancy'],
   },
-    {
+  {
     id: 'congenital-heart',
     section: 'health-conditions',
     title: 'Congenital heart disease',
@@ -66,7 +66,7 @@ export const healthConditionGuides: Guide[] = [
     ],
     sourceIds: ['nhs-diabetes-pregnancy'],
   },
-    {
+  {
     id: 'epilepsy',
     section: 'health-conditions',
     title: 'Epilepsy',
@@ -125,7 +125,7 @@ export const vaccinationGuides: Guide[] = [
     sourceIds: ['nhs-vaccinations-pregnancy', 'nhs-flu-jab', 'nhs-whooping-cough', 'govuk-rsv'],
     emphasis: 'calm',
   },
-    {
+  {
     id: 'vaccines-live-travel',
     section: 'vaccinations',
     title: 'Live vaccines, travel and malaria',

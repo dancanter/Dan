@@ -100,7 +100,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'My skin is itching, especially my hands and feet',
     action: 'maternity-unit',
     now: 'Call your maternity unit and ask for a liver function blood test.',
-    why: 'Itching with no rash, on the palms and soles, and worse at night, can mean a liver condition called ICP. It needs watching and treating. A blood test finds it. Looking at your skin does not.',
+    why: 'Itching with no rash, on your palms and soles, and worse at night, can mean a liver condition. Its full name is intrahepatic cholestasis of pregnancy, usually shortened to ICP. It needs monitoring and treatment. A blood test finds it — looking at your skin does not.',
     sourceIds: ['nhs-get-help'],
   },
   {

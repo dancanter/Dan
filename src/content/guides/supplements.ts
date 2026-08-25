@@ -50,7 +50,8 @@ export const supplementGuides: Guide[] = [
     id: 'vitamin-a',
     section: 'supplements',
     title: 'Vitamin A, liver and pâté',
-    summary: 'The one nutrient where more is worse. Liver is the exception to "nutrient-dense is good".',
+    summary:
+      'The one nutrient where more is worse. Liver is the exception to "nutrient-dense is good".',
     body: [
       'Avoid supplements containing vitamin A (retinol), and avoid **liver and liver products including pâté**, throughout pregnancy. Too much vitamin A can harm your baby’s development.',
       '**Why liver specifically, when it is otherwise one of the most nutritious foods there is.** That reputation is deserved — liver is exceptionally rich in iron, B12 and folate, and outside pregnancy it is a genuinely good food. The problem is dose. Vitamin A in pregnancy is not a "keep it moderate" nutrient: a single portion of lamb’s liver can contain **several times the daily upper limit**, so the amount arrives in one sitting rather than building up gradually. That is why UK guidance says avoid rather than limit — there is no useful portion size to recommend.',

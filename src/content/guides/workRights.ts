@@ -1,11 +1,12 @@
 import type { Guide } from '../schema';
 
 export const workRightsGuides: Guide[] = [
-    {
+  {
     id: 'four-rights',
     section: 'work-rights',
     title: 'The four legal rights',
-    summary: 'Antenatal care, maternity leave, maternity pay, and protection from unfair treatment.',
+    summary:
+      'Antenatal care, maternity leave, maternity pay, and protection from unfair treatment.',
     body: [
       'If you are pregnant and employed in the UK, you have four legal rights.',
       '"Antenatal care" means more than medical appointments. It also covers antenatal or parenting classes, if your doctor or midwife suggests them.',
@@ -70,11 +71,12 @@ export const workRightsGuides: Guide[] = [
     ],
     sourceIds: ['govuk-employee-rights', 'acas-discrimination'],
   },
-    {
+  {
     id: 'work-practical',
     section: 'work-rights',
     title: 'Two things people don’t know',
-    summary: 'Illness near your due date triggers maternity leave automatically. Some leave is compulsory.',
+    summary:
+      'Illness near your due date triggers maternity leave automatically. Some leave is compulsory.',
     body: [
       '**Being ill near your due date.** Say you are off work with something pregnancy-related, in the 4 weeks before your baby is due. Your maternity leave and pay start automatically. That happens whatever you had arranged before.',
       '**Some leave you have to take.** You must take 2 weeks off after the birth. If you work in a factory, it is 4 weeks. This applies even if you are not taking Statutory Maternity Leave.',
