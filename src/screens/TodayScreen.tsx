@@ -12,6 +12,7 @@ import {
   focusForWeek,
   milestones,
   myths,
+  newReadsBetween,
   noteForWeek,
   readsForWeek,
   trimesterLabel,
@@ -19,6 +20,7 @@ import {
 import { dayOfYear } from '../lib/dates';
 import { WeekBar } from '../components/week/WeekBar';
 import { FocusList } from '../components/today/FocusList';
+import { FirstVisitNote } from '../components/today/FirstVisitNote';
 import { LeadRead } from '../components/today/LeadRead';
 import { WhatChanged } from '../components/today/WhatChanged';
 import { MythCard } from '../components/today/MythCard';
@@ -115,9 +117,18 @@ export function TodayScreen() {
   const focus = focusForWeek(week);
   const note = noteForWeek(week);
   const myth = myths[dayOfYear() % myths.length];
+
   // The most-relevant read is promoted to the top of the screen; the rest stay
   // as a quiet list further down. One thing to read beats five to choose from.
-  const [lead, ...rest] = readsForWeek(week);
+  const [lead, ...others] = readsForWeek(week);
+
+  // Anything "Since you were last here" is about to surface is dropped from
+  // that list — otherwise the same two guides appear twice within a screen's
+  // height, and both of them start to read as padding.
+  const surfacedAbove = new Set(
+    viewWeek === null ? newReadsBetween(previousWeek, currentWeek).map((r) => r.guide.id) : [],
+  );
+  const rest = others.filter((r) => !surfacedAbove.has(r.guide.id));
 
   // Only ever celebrate the *most recent* milestone reached. Someone who
   // installs the app at week 30 has already passed four of them — they
@@ -188,6 +199,8 @@ export function TodayScreen() {
 
       {/* Only on the reader's actual week. Browsing ahead to week 34 should
           not claim anything has changed. */}
+      {viewWeek === null && <FirstVisitNote />}
+
       {viewWeek === null && (
         <WhatChanged
           previousWeek={previousWeek}

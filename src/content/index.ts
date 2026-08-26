@@ -23,7 +23,7 @@ import { redFlags, helpTopics } from './redFlags';
 import { urgentSymptoms, urgentById, URGENT_DISCLAIMER } from './urgent';
 import { midwifeQuestions } from './midwifeQuestions';
 import { focusForWeek, noteForWeek, trimesterForWeek, trimesterLabel } from './weeklyFocus';
-import { readsForWeek, weekReadGuideIds, type WeekRead } from './weeklyReads';
+import { readsForWeek, newReadsBetween, weekReadGuideIds, type WeekRead } from './weeklyReads';
 import {
   postnatalFocus,
   postnatalReads,
@@ -77,6 +77,7 @@ export {
   trimesterForWeek,
   trimesterLabel,
   readsForWeek,
+  newReadsBetween,
   postnatalFocus,
   postnatalReads,
   postnatalNote,

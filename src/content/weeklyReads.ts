@@ -242,5 +242,21 @@ export function readsForWeek(week: number): WeekRead[] {
     .filter((r) => r.guide);
 }
 
+/**
+ * What became relevant between two weeks — the reads suggested now that were
+ * not suggested then.
+ *
+ * This lives here rather than in a component because two parts of the daily
+ * screen need to agree on it. "Since you were last here" surfaces these, and
+ * the ordinary reading list below has to leave them out — otherwise the same
+ * two guides appear twice within a screen's height, which makes both look
+ * like padding. Computing it in one place is what keeps them in step.
+ */
+export function newReadsBetween(previousWeek: number | null, week: number): WeekRead[] {
+  if (previousWeek === null || previousWeek >= week) return [];
+  const before = new Set(readsForWeek(previousWeek).map((r) => r.guide.id));
+  return readsForWeek(week).filter((r) => !before.has(r.guide.id));
+}
+
 /** Every guide id referenced above, for the content integrity check. */
 export const weekReadGuideIds = RULES.map((r) => r.guideId);

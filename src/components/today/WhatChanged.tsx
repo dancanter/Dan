@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { readsForWeek, trimesterForWeek } from '../../content';
+import { newReadsBetween, trimesterForWeek } from '../../content';
 
 interface Props {
   previousWeek: number | null;
@@ -29,9 +29,9 @@ interface Props {
 export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props) {
   if (previousWeek === null || previousWeek >= currentWeek) return null;
 
-  const before = new Set(readsForWeek(previousWeek).map((r) => r.guide.id));
-  const fresh = readsForWeek(currentWeek).filter(
-    (r) => !before.has(r.guide.id) && r.guide.id !== excludeGuideId,
+  // Shared with the reading list below, which drops whatever appears here.
+  const fresh = newReadsBetween(previousWeek, currentWeek).filter(
+    (r) => r.guide.id !== excludeGuideId,
   );
   const weeksOn = currentWeek - previousWeek;
   const newTrimester = trimesterForWeek(previousWeek) !== trimesterForWeek(currentWeek);
