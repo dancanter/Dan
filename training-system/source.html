@@ -1743,7 +1743,7 @@ function rollingLoad(days) {
     var bw = blockWeekNow() || 13, from = Math.max(1, bw - Math.ceil(days / 7) - 1);
     for (var w = from; w <= bw; w++) {
       var rows = w === viewWeek ? weekData : DB.get("week-" + w, null);
-      if (!rows) continue;
+      if (!Array.isArray(rows)) continue;
       rows.forEach(function (d, i) {
         var dt = slotDate(w, i);
         if (!dt) return;
@@ -1969,7 +1969,8 @@ function inRange(dateStr, r) {
   return d >= r.from && d <= r.to;
 }
 function weekRows(w) {
-  return w === viewWeek ? weekData : DB.get("week-" + w, null);
+  var rows = w === viewWeek ? weekData : DB.get("week-" + w, null);
+  return Array.isArray(rows) ? rows : null;
 }
 function reviewData(w) {
   var rows = weekRows(w); if (!rows) return null;
@@ -4080,12 +4081,15 @@ function migrateToMonday() {
   var old = {}, w;
   for (w = 1; w <= 14; w++) {
     var rows = DB.get("week-" + w, null);
-    if (rows && rows.length === 7) old[w] = rows;
+    /* length alone is not enough — a seven-character string passes it and then
+       throws on forEach, inside initState, before a single listener is on. */
+    if (Array.isArray(rows) && rows.length === 7) old[w] = rows;
   }
   var fresh = {}, orphans = [];
   Object.keys(old).forEach(function (key) {
     var n = +key;
     old[n].forEach(function (row, i) {
+      if (!row || typeof row !== "object") return;
       /* days since the new Monday start; the old Sunday start is day -1 */
       var k = (n - 1) * 7 + i - 1;
       if (k < 0) { if (rowHasContent(row)) orphans.push(row); return; }
@@ -4124,7 +4128,9 @@ function initState() {
   retinolLog = DB.get("retinol-log", []);
   niggleLog = DB.get("niggle-log", []);
   checkins = DB.get("checkins", []);
-  migrateToMonday();
+  /* Nothing in a one-time migration is worth a dead app. If it cannot run,
+     leave the data exactly as it was and carry on. */
+  try { migrateToMonday(); } catch (e) { try { console.error(e); } catch (e2) {} }
   todayState = DB.get(dailyKey(new Date()), {});
   viewWeek = blockWeekNow() || DB.get("active-week", 1);
   $("startDate").value = settings.startDate || "";
@@ -4171,7 +4177,13 @@ function renderStartInfo() {
 
   probePersistence();
   initState();
-  renderAll();
+  applyDetail();
+
+  /* Every listener goes on before the first render. renderAll used to run
+     here, and a render that threw took every click handler below it with it —
+     leaving a page that looked completely normal and did nothing at all. The
+     first render now happens at the end, wrapped, so a bad record costs you
+     that one section instead of the whole app. */
 
   /* tabs */
   document.querySelectorAll(".tab").forEach(function (t) {
@@ -4273,6 +4285,19 @@ function renderStartInfo() {
   });
 
   $("detailBtn").addEventListener("click", toggleDetail);
+
+  try {
+    renderAll();
+  } catch (err) {
+    /* Say what happened. A silent failure here is indistinguishable from lost
+       data, and the tabs still work, so the rest of the app stays usable. */
+    var box = document.getElementById("persistBanner");
+    if (box) box.innerHTML = '<div class="note stop" style="margin-bottom:12px"><b>Something in your saved data could not be drawn</b>' +
+      "The tabs and your records are fine — one section failed to render. " +
+      '<b style="color:var(--chalk)">' + esc(String(err && err.message || err)) + "</b><br><br>" +
+      "Export a backup from Progress before changing anything.</div>";
+    try { console.error(err); } catch (e2) {}
+  }
   $("weekSelect").addEventListener("change", function () {
     viewWeek = parseInt(this.value, 10);
     DB.set("active-week", viewWeek);
