@@ -99,6 +99,20 @@ replaces it, since feeling rough does not expire at midnight; it goes stale
 after three days with nothing new logged, and clears the moment you log a 3 or
 better.
 
+**What To Do This Week** — each of the 13 weeks has a shape: which two efforts
+it leans on and why, with the easy runs and the sprint slot under them. Which
+day anything lands on is still free. Weeks 1–3 build the engine both goals sit
+on; 5–7 sharpen (threshold for the 5K, ladders and 600s for the mile, a 3K to
+see where you are); 9–11 go race-specific, one week leaning mile, one 5K, one
+rehearsing the finish; 13 is the two attempts. The mile needs a higher fitness
+than 16:50 does, so the speed work sits late, once the base under it exists.
+
+**Deload weeks are 4, 8 and 12** — every fourth. The deload view replaces the
+week's shape with what to do and what not to: one effort at half the usual reps
+and full pace, two shorter easy runs, sprints optional; no time trials, no long
+rep sets or threshold, no making up missed sessions, and no third effort because
+you feel good — feeling good in a deload is the deload working.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,

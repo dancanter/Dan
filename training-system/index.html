@@ -329,6 +329,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <p class="block-sub" id="phaseNote"></p>
 
     <section class="block" style="margin-top:4px">
+      <h2 class="block-title">What To Do This Week</h2>
+      <div id="planBox"></div>
+    </section>
+
+    <section class="block" style="margin-top:26px">
       <h2 class="block-title">Rolling Targets <span class="tag" id="rollRange" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Roughly two effort runs, two easy runs and four gym sessions in any seven days.</p>
       <p class="block-sub" data-detail>Counted on the day you did the work — not owed on particular days, and not reset on a Sunday. The window slides forward one day at a time, so a session drops out of it exactly a week after you ran it. Five sessions one week and three the next is the same plan.</p>
@@ -349,6 +354,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">What You Haven't Trained</h2>
       <p class="block-sub" data-detail>Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
       <div id="suggestBox"></div>
+    </section>
+
+    <section class="block" style="margin-top:26px">
+      <h2 class="block-title">The Whole Block</h2>
+      <p class="block-sub">All 13 weeks, and why they are in that order.</p>
+      <div id="blockPlanBox"></div>
     </section>
 
     <section class="block" data-detail style="margin-top:26px">
@@ -466,7 +477,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           <input type="text" id="deloadInput" placeholder="4, 8, 12" style="width:110px">
           <button class="btn" id="deloadBtn">Set</button>
         </div>
-        <p class="block-sub" style="margin:9px 0 0">Which weeks run reduced volume. Default is <b>8 and 12</b> — week 4 is left as a normal week since Rome is your break. Move them to line up with time off, or set <code>0</code> to remove them entirely.</p>
+        <p class="block-sub" style="margin:9px 0 0">Which weeks run reduced volume. Default is <b>4, 8 and 12</b> — every fourth week. Move them to line up with time off, or set <code>0</code> to remove them entirely.</p>
         <div class="add-row" style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px">
           <button class="btn" id="trendOnlyBtn" style="flex:1">Hide daily weights</button>
         </div>
@@ -1026,7 +1037,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "26 Aug 07:11";
+var BUILD = "26 Aug 09:26";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1159,7 +1170,7 @@ var WEEK_TEMPLATES = {
    actually going that week. The plan checks the spacing instead of dictating it. */
 /* Week 4 is deliberately not a deload — Rome covers that slot as real time off.
    Weeks 8 and 12 stay, and the field in Setup overrides all of it. */
-var DELOAD_WEEKS_DEFAULT = [8, 12];
+var DELOAD_WEEKS_DEFAULT = [4, 8, 12];
 function deloadWeeks() {
   var v = settings.deloadWeeks;
   return (v && v.length) ? v : DELOAD_WEEKS_DEFAULT;
@@ -1710,7 +1721,7 @@ function renderWeek() {
   $("weekList").innerHTML = energyNote(false) + intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
-  renderSuggest(); renderReview();
+  renderSuggest(); renderReview(); renderPlan(); renderBlockPlan();
 }
 
 /* ================= rolling load ================= */
@@ -1956,6 +1967,144 @@ function renderBlueprint() {
   el.innerHTML = head + honest +
     '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>2025</th><th>Session</th><th></th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+}
+
+/* ================= the block plan ================= */
+/* A shape for each week, not a prescription. Which session you run on which day
+   is still yours; what changes across the block is what the two efforts are
+   pointed at, because the two goals want different things and cannot both be
+   chased hard in the same week. */
+var BLOCK_PLAN = {
+  1:  { phase: "Base", focus: "Long reps and volume",
+        efforts: ["1km reps", "400m reps"],
+        why: "Start where the aerobic side is. Long reps build the engine that both goals sit on." },
+  2:  { phase: "Base", focus: "Long reps and volume",
+        efforts: ["800m reps", "Threshold — continuous"],
+        why: "First threshold of the block. It is the single highest-yield session for the 5K number." },
+  3:  { phase: "Base", focus: "Add some speed back",
+        efforts: ["1km reps", "200m reps"],
+        why: "A 200m session keeps the top end alive while the volume is still climbing — and it covers your sprint slot." },
+  4:  { phase: "Deload", focus: "Absorb the first three weeks", efforts: [], why: "" },
+  5:  { phase: "Sharpen", focus: "Threshold plus mile-pace reps",
+        efforts: ["Threshold — continuous", "600m reps"],
+        why: "The 5K goal needs threshold volume. 600s are the shortest rep that still feels aerobic — they bridge the two." },
+  6:  { phase: "Sharpen", focus: "Mile pace",
+        efforts: ["Ladder 200-400-600-400-200", "1km reps"],
+        why: "The ladder is the most mile-specific thing on the menu: it teaches you to hold form as the distance changes under fatigue." },
+  7:  { phase: "Sharpen", focus: "Test where you are",
+        efforts: ["3K time trial", "400m reps"],
+        why: "A 3K is the cheapest honest read on both goals — hard enough to mean something, short enough that it does not cost you a week." },
+  8:  { phase: "Deload", focus: "Absorb the sharpening block", efforts: [], why: "" },
+  9:  { phase: "Race specific", focus: "Mile speed",
+        efforts: ["600m reps", "200m reps"],
+        why: "This is where the mile is won or lost. Fast 600s off full recovery are the closest thing to the last lap." },
+  10: { phase: "Race specific", focus: "5K endurance",
+        efforts: ["Threshold — continuous", "1km reps"],
+        why: "Swing back to the 5K. A set of 1km reps at close to goal pace tells you whether 16:50 is real yet." },
+  11: { phase: "Race specific", focus: "Sharpen and rehearse",
+        efforts: ["Descending 1000-800-600-400-200", "400m reps"],
+        why: "Descending sets rehearse finishing fast off tired legs, which is exactly what a PB attempt asks for." },
+  12: { phase: "Deload", focus: "Taper into the attempts", efforts: [], why: "" },
+  13: { phase: "PB attempts", focus: "Race", race: true,
+        efforts: ["1 mile — all out", "5K — all out"],
+        why: "Two attempts, at least three days apart, each on fresh legs. Nothing else that week matters." }
+};
+function planFor(w) { return BLOCK_PLAN[w] || null; }
+
+function deloadAdvice() {
+  return '<div class="note good" style="margin-bottom:12px"><b>Deload week — this is the week the work turns into fitness</b>' +
+    "You do not get faster during the hard weeks. You get faster while you recover from them, and that only happens if you actually drop the load. " +
+    '<span style="color:var(--chalk);font-weight:600">Cut the volume roughly in half and keep the speed.</span> Short and sharp beats long and easy here — drop reps, not pace.</div>' +
+
+    '<div class="card" style="padding:2px 14px 12px;margin-bottom:12px">' +
+    '<div class="block-title" style="font-size:17px;margin-top:12px">Do</div>' +
+    '<p style="margin:8px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+    '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">One effort session, half the usual reps</b>' +
+    "4 × 200m or 3 × 400m, run at the pace you normally would. Same speed, a third of the volume. You finish feeling like you could have done more — that is the point.</p>" +
+    '<p style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+    '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">Two easy runs, shorter than usual</b>' +
+    "5km rather than 5 mile, and genuinely conversational.</p>" +
+    '<p style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+    '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">Sprints if you want them</b>' +
+    "80–100m off full recovery costs nothing and keeps your turnover alive. Gym as normal, or a session lighter if you fancy.</p>" +
+    "</div>" +
+
+    '<div class="note stop" style="margin-bottom:12px"><b>Do not</b>' +
+    "<b style=\"color:var(--chalk)\">No time trials.</b> No all-out mile, 5K, 10K or 3K — a test is the hardest session on the menu and it undoes the week entirely.<br><br>" +
+    "<b style=\"color:var(--chalk)\">No long rep sets.</b> No 5 × 1km, no threshold, no ladders. Those are the sessions you are recovering from.<br><br>" +
+    "<b style=\"color:var(--chalk)\">No making up missed sessions.</b> A week you skipped is gone; stacking it onto a deload is how a deload becomes a hard week with a nicer name.<br><br>" +
+    "<b style=\"color:var(--chalk)\">Do not add a third effort because you feel good.</b> Feeling good in week 4 is the deload working, not evidence you did not need it.</div>" +
+
+    '<div class="note flat" data-detail style="margin-bottom:12px"><b>You will not lose anything</b>' +
+    "Aerobic fitness takes two to three weeks of doing nothing to start slipping, and you are not doing nothing. What drops in seven days is fatigue, and it is fatigue that has been hiding your actual fitness. " +
+    "Expect the week after a deload to feel quick.</div>";
+}
+
+function renderPlan() {
+  var el = $("planBox"); if (!el) return;
+  var w = viewWeek, pl = planFor(w), dl = isDeload(w);
+  var head = '<div class="note flat" style="margin-bottom:12px"><b>Week ' + w + " — " +
+    (dl ? "Deload" : (pl ? pl.phase : "Open")) + "</b>" +
+    (dl ? "Half the volume, all of the speed." : (pl ? pl.focus + ". " + pl.why : "No shape set for this week — pick freely from the menu.")) + "</div>";
+
+  if (dl) { el.innerHTML = head + deloadAdvice(); return; }
+  if (!pl || !pl.efforts.length) { el.innerHTML = head; return; }
+  if (pl.race) {
+    el.innerHTML = head +
+      '<div class="card" style="padding:6px 14px;margin-bottom:12px">' +
+      pl.efforts.map(function (t, i) {
+        return '<div class="stone" style="grid-template-columns:1fr auto">' +
+          '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(t) + "</span>" +
+          '<span class="stone-when" style="color:var(--go)">attempt ' + (i + 1) + "</span></div>";
+      }).join("") + "</div>" +
+      '<div class="note good" style="margin-bottom:12px"><b>How to run the week</b>' +
+      "<span style=\"color:var(--chalk);font-weight:600\">At least three days between the two attempts</span>, and nothing harder than an easy 20–30 minutes in between. " +
+      "Take the two days before each one completely off or very easy. Warm up properly — you cannot run a PB off a cold start — and go out at goal pace rather than faster. " +
+      "Every mile PB you have ever missed was lost in the first lap, not the last.</div>" +
+      '<div class="note stop"><b>Nothing else this week</b>' +
+      "No rep sets, no threshold, no sprints, no gym in the 48 hours before an attempt. There is no session you can add now that makes you faster on the day, and several that make you slower.</div>";
+    return;
+  }
+
+  var rows = pl.efforts.map(function (t, i) {
+    return '<div class="stone" style="grid-template-columns:1fr auto">' +
+      '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(t) + "</span>" +
+      '<span class="stone-when" style="color:var(--muted-2)">effort ' + (i + 1) + "</span></div>";
+  }).join("") +
+  '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">Easy 5 mile</span>' +
+    '<span class="stone-when" style="color:var(--muted-2)">easy 1</span></div>' +
+  '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">Easy 5km or 5 mile</span>' +
+    '<span class="stone-when" style="color:var(--muted-2)">easy 2</span></div>' +
+  '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">Sprints — 80–100m</span>' +
+    '<span class="stone-when" style="color:var(--muted-2)">' +
+      (pl.efforts.indexOf("200m reps") !== -1 ? "covered by the 200s" : "unless you did 200s") + "</span></div>";
+
+  el.innerHTML = head + '<div class="card" style="padding:6px 14px">' + rows + "</div>" +
+    '<p class="block-sub" style="margin-top:8px">Any day you like, in any order. The shape is the point, not the timetable.</p>';
+}
+
+function renderBlockPlan() {
+  var el = $("blockPlanBox"); if (!el) return;
+  var rows = "";
+  for (var w = 1; w <= 13; w++) {
+    var pl = planFor(w), dl = isDeload(w), now = w === viewWeek;
+    rows += "<tr" + (now ? ' style="background:var(--surface-2)"' : "") + "><td><b>" + w + "</b>" +
+      (now ? '<span class="sub">you are here</span>' : "") + "</td>" +
+      '<td class="hl"' + (dl ? ' style="color:var(--go)"' : "") + ">" + esc(dl ? "Deload" : pl.phase) + "</td>" +
+      "<td>" + esc(dl ? "One short effort, two shorter easy runs, no tests" : pl.efforts.join(" + ")) + "</td></tr>";
+  }
+  el.innerHTML = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Wk</th><th>Phase</th><th>The two efforts</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+    '<div class="note flat" style="margin-top:12px"><b>How this gets you to 4:45 and 16:50</b>' +
+    "The two goals want opposite things, so the block alternates rather than splitting every week down the middle. " +
+    '<span style="color:var(--chalk);font-weight:600">Weeks 1–3 build the engine</span> both goals sit on. ' +
+    '<span style="color:var(--chalk);font-weight:600">Weeks 5–7 sharpen</span> — threshold for the 5K, ladders and 600s for the mile, then a 3K to see where you actually are. ' +
+    '<span style="color:var(--chalk);font-weight:600">Weeks 9–11 go race specific</span>, one week leaning mile, one leaning 5K, one rehearsing the finish. ' +
+    "Every fourth week you drop the volume and let it land.<br><br>" +
+    "The mile is the harder of the two — it needs a higher fitness than 16:50 does — which is why the speed work sits later, when the aerobic base underneath it is already built.</div>";
 }
 
 /* ================= week review ================= */
