@@ -90,6 +90,15 @@ that. Three *with* a fatigue marker, or four regardless, gets the pull-back
 note. That check counts the same trailing seven days the targets do, so four
 efforts spread across a Saturday and a Sunday still register.
 
+**A bad energy rating blocks hard running.** Rate your energy 2 or below on the
+Today tab and every effort session in the week gets a stop note, a banner sits
+above the grid, and readiness says so outright — it overrides the score rather
+than being one signal among several, because it is the one thing you reported
+directly. Easy running is never blocked. The rating stands until a better one
+replaces it, since feeling rough does not expire at midnight; it goes stale
+after three days with nothing new logged, and clears the moment you log a 3 or
+better.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,

@@ -1026,7 +1026,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "25 Aug 19:42";
+var BUILD = "26 Aug 07:02";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1524,8 +1524,43 @@ function lastTime(sid, week) {
 
 /* Max-velocity work on a live hamstring or calf is the single likeliest way to
    end the block, so say it on the card rather than hoping it is remembered. */
+/* A bad energy rating stands until a better one replaces it — "I feel rough"
+   does not expire at midnight. After three days with nothing new logged it goes
+   stale, and the honest answer is that the app no longer knows. */
+function energyBlock() {
+  var pts = energySeries(4);
+  if (!pts.length) return null;
+  var last = pts[pts.length - 1];
+  if (last.v > 2) return null;
+  var ago = daysBetween(parseDay(last.date), parseDay(today()));
+  if (ago > 3) return null;
+  var run = 0;
+  for (var i = pts.length - 1; i >= 0; i--) { if (pts[i].v <= 2) run++; else break; }
+  return { v: last.v, date: last.date, ago: ago, run: run };
+}
+function whenRated(e) {
+  return e.ago === 0 ? "today" : e.ago === 1 ? "yesterday" : e.ago + " days ago";
+}
+function energyNote(inline) {
+  var e = energyBlock();
+  if (!e) return "";
+  return '<div class="note stop" style="margin:' + (inline ? "0 0 10px" : "0 0 12px") + '"><b>Not a day for a hard run</b>' +
+    "You rated your energy " + e.v + "/5 " + whenRated(e) +
+    (e.run >= 2 ? ", and that is " + e.run + " days running" : "") +
+    '. <b style="color:var(--chalk)">Leave the effort sessions until you have logged a normal day.</b> ' +
+    "Run flat, an all-out session gives you the fatigue and not the adaptation, and it takes the next few days with it. " +
+    "Easy running is fine, and so is nothing. Rate your energy on the Today tab and this clears itself the moment you log a 3 or better.</div>";
+}
+/* Effort ids all start eff_; the two sprint formats are deliberately excluded
+   from that group, so this catches exactly the sessions worth blocking. */
+function energyWarning(sid) {
+  if (String(sid).indexOf("eff_") !== 0) return "";
+  var it = poolItem(poolFor(viewWeek), sid);
+  if (!it || it.hard < 2) return "";
+  return energyNote(true);
+}
 function sprintWarning(sid) {
-  if (sid !== "sprint" && sid !== "spd200") return "";
+  if (sid !== "bonus_sprint" && sid !== "eff_hill") return "";
   var blocked = sprintBlocked();
   if (!blocked.length) return "";
   var names = blocked.map(function (n) { return n.area.toLowerCase() + " (severity " + n.sev + ")"; }).join(", ");
@@ -1570,7 +1605,7 @@ function dayCard(d, i, isToday) {
         gymOptions(d.gymSplit) + "</select>" : "") + "</div>" : "") +
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
-    (flex ? sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
+    (flex ? energyWarning(d.sid) + sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs" style="margin-bottom:6px">' +
       '<input type="text" placeholder="Reps / distance" value="' + esc(d.detail || "") + '" data-field="detail" data-i="' + i + '">' +
       '<input type="text" placeholder="Avg pace /km" value="' + esc(d.avgpace || "") + '" data-field="avgpace" data-i="' + i + '" style="min-width:88px">' +
@@ -1672,7 +1707,7 @@ function renderWeek() {
   $("weekDone").textContent = weekData.filter(function (d) { return d.done; }).length + " logged this week";
   renderRolling();
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = intensityNote() + weekData.map(function (d, i) {
+  $("weekList").innerHTML = energyNote(false) + intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
   renderSuggest(); renderReview();
@@ -2312,7 +2347,7 @@ function renderEnergy() {
 function setEnergy(v) {
   todayState.energy = todayState.energy === v ? 0 : v;
   DB.set(dailyKey(new Date()), todayState);
-  renderEnergy(); renderReadiness(); renderEnergyChart();
+  renderEnergy(); renderReadiness(); renderEnergyChart(); renderWeek(); renderToday();
 }
 function energySeries(days) {
   var out = [], now = new Date();
@@ -2406,6 +2441,21 @@ function renderReadiness() {
   }
 
   var title, body, cls;
+  /* A low energy rating is not one signal among several — it is the one thing
+     here you reported directly, and it settles the question on its own. */
+  var eb = energyBlock();
+  if (eb && haveData) {
+    $("readinessBox").innerHTML =
+      '<div class="note stop" style="margin-bottom:10px"><b>No hard running today</b>' +
+      "You rated your energy " + eb.v + "/5 " + whenRated(eb) +
+      (eb.run >= 2 ? ", " + eb.run + " days running" : "") +
+      '. <b style="color:var(--chalk)">Easy running or nothing until you log a normal day.</b> ' +
+      "Nothing else on this page overrides that — you are the one who reported it.</div>" +
+      signals.map(function (sg) {
+        return '<div class="log-item"><span class="l-main" style="font-family:var(--f-body);font-size:12.8px;font-weight:400">' + esc(sg) + "</span></div>";
+      }).join("");
+    return;
+  }
   if (!haveData) {
     title = "Not enough data yet";
     body = "Log your morning HR and rate a couple of sessions, and this starts telling you when to push and when to back off.";
