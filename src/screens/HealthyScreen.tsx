@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useProgress } from '../hooks/useProgress';
 import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
 import { ScreenTitle } from '../components/ui/SectionHeading';
@@ -94,7 +93,6 @@ function GuideCard({
 }
 
 export function HealthyScreen() {
-  useAutoFocusHeading<HTMLHeadingElement>();
   const { markGuideRead, readGuideIds } = useProgress();
   const [query, setQuery] = useState('');
   const [params] = useSearchParams();

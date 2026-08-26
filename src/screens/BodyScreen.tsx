@@ -1,13 +1,11 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { symptoms, symptomById } from '../content';
 import { ScreenTitle } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { SourceList } from '../components/ui/SourceList';
 
 export function BodyScreen() {
-  useAutoFocusHeading<HTMLHeadingElement>();
   const [openId, setOpenId] = useState<string | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const selected = openId ? symptomById.get(openId) : undefined;

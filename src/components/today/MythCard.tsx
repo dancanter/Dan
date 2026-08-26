@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import type { Myth } from '../../content';
 import { SourceList } from '../ui/SourceList';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
@@ -34,12 +33,10 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
           Tap to reveal →
         </button>
       ) : (
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduce ? 0 : 0.3 }}
-          className="border-t border-line pt-3 text-left"
-        >
+        // A fade-and-rise, in CSS rather than Framer Motion. This card is on
+        // the eagerly-loaded home screen, so importing an animation library
+        // for one transition put ~100kB of it in front of every first paint.
+        <div className={`border-t border-line pt-3 text-left ${reduce ? '' : 'reveal-in'}`}>
           <span
             className={`label-mono inline-block rounded px-2.5 py-1 font-normal ${
               myth.verdict === 'myth' ? 'bg-alertp text-alert' : 'bg-mossp text-mossd'
@@ -49,7 +46,7 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
           </span>
           <p className="mt-2 text-[15px]">{myth.explanation}</p>
           <SourceList sourceIds={myth.sourceIds} />
-        </motion.div>
+        </div>
       )}
 
       <div aria-live="polite" className="sr-only">

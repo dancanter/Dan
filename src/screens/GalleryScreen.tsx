@@ -4,7 +4,14 @@ import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
-import { allPhotos, savePhoto, deletePhoto, downscale, type BumpPhoto } from '../lib/photoStore';
+import {
+  allPhotos,
+  savePhoto,
+  deletePhoto,
+  downscale,
+  PhotoStoreUnavailable,
+  type BumpPhoto,
+} from '../lib/photoStore';
 import { SectionHeading } from '../components/ui/SectionHeading';
 
 /**
@@ -28,10 +35,24 @@ export function GalleryScreen() {
   const [playing, setPlaying] = useState(false);
   const [frame, setFrame] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
-    const rows = await allPhotos();
+    let rows: BumpPhoto[];
+    try {
+      rows = await allPhotos();
+    } catch (err) {
+      // Some browsers simply will not open a database — private windows,
+      // managed devices. An empty grid would read as "your photos are gone",
+      // which is a horrible thing to imply, so say what actually happened.
+      if (err instanceof PhotoStoreUnavailable) {
+        setUnavailable(true);
+        return;
+      }
+      throw err;
+    }
+    setUnavailable(false);
     setPhotos(rows);
     setUrls((prev) => {
       prev.forEach((u) => URL.revokeObjectURL(u));
@@ -48,10 +69,7 @@ export function GalleryScreen() {
 
   useEffect(() => {
     if (!playing || photos.length < 2) return;
-    const id = window.setInterval(
-      () => setFrame((f) => (f + 1) % photos.length),
-      600,
-    );
+    const id = window.setInterval(() => setFrame((f) => (f + 1) % photos.length), 600);
     return () => window.clearInterval(id);
   }, [playing, photos.length]);
 
@@ -62,6 +80,9 @@ export function GalleryScreen() {
     try {
       await savePhoto(currentWeek, await downscale(file));
       await refresh();
+    } catch (err) {
+      if (err instanceof PhotoStoreUnavailable) setUnavailable(true);
+      else throw err;
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -84,6 +105,14 @@ export function GalleryScreen() {
         Entirely optional, and there’s no schedule to keep. Photos stay on this device — they are
         never uploaded anywhere.
       </p>
+
+      {unavailable && (
+        <p className="mb-5 rounded-xl border border-clay bg-clayp px-4 py-3 text-[14.5px] leading-relaxed">
+          This browser won’t let the app store photos on your device — usually a private window, or
+          storage turned off in your settings. Nothing has been lost. Everything else in the app
+          works as normal.
+        </p>
+      )}
 
       <input
         ref={fileRef}

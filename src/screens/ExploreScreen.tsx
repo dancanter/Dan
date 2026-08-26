@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import { guides, sources } from '../content';
@@ -106,7 +105,6 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
 ];
 
 export function ExploreScreen() {
-  useAutoFocusHeading<HTMLHeadingElement>();
   const { hasBaby } = usePregnancyProfile();
   const { isAfterLoss } = usePregnancyStatus();
   const hide = hasBaby || isAfterLoss;

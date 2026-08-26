@@ -14,6 +14,7 @@ import { equitySections, equityIntro } from './equity';
 import { afterLossSections, afterLossIntro } from './afterLoss';
 import { privacySections } from './privacy';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
+import { sourceUrl, sourceLinkKind } from './sourceLinks';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -55,6 +56,8 @@ export {
   glossary,
   glossaryLookup,
   findGlossaryEntry,
+  sourceUrl,
+  sourceLinkKind,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -84,7 +87,7 @@ export type { WeekRead };
 export type { UrgentSymptom, UrgentAction } from './urgent';
 
 export interface ContentIssue {
-  kind: 'missing-source' | 'duplicate-id' | 'coverage-gap';
+  kind: 'missing-source' | 'duplicate-id' | 'coverage-gap' | 'bad-url';
   detail: string;
 }
 
@@ -180,6 +183,23 @@ export function validateContent(): ContentIssue[] {
       issues.push({ kind: 'duplicate-id', detail: `Duplicate source id "${s.id}"` });
     }
     seenSourceIds.add(s.id);
+
+    // A citation that opens the wrong page is worse than one that opens
+    // nothing, so a hand-written link has to at least be a real https URL.
+    if (s.url !== undefined) {
+      let ok = false;
+      try {
+        ok = new URL(s.url).protocol === 'https:';
+      } catch {
+        ok = false;
+      }
+      if (!ok) {
+        issues.push({
+          kind: 'bad-url',
+          detail: `Source "${s.id}" has a url that is not a valid https address`,
+        });
+      }
+    }
   }
 
   // Every declared section must actually contain guides, or the browse

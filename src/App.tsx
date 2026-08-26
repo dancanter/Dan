@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, Link } from 'react-router-dom';
 import { SkipLink } from './components/a11y/SkipLink';
+import { ErrorBoundary } from './components/a11y/ErrorBoundary';
 import { AppHeader } from './components/nav/AppHeader';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { TodayScreen } from './screens/TodayScreen';
@@ -85,41 +86,45 @@ function App() {
       <SkipLink />
       {!onOnboarding && <AppHeader />}
 
-      <Suspense fallback={<ScreenLoading />}>
-        <Routes>
-          <Route
-            path="/"
-            element={isOnboarded ? <Navigate to="/today" replace /> : <OnboardingScreen />}
-          />
-          <Route path="/today" element={<TodayScreen />} />
-          <Route path="/explore" element={<ExploreScreen />} />
-          <Route path="/baby" element={<BabyScreen />} />
-          <Route path="/body" element={<BodyScreen />} />
-          <Route path="/healthy" element={<HealthyScreen />} />
-          <Route path="/appointments" element={<AppointmentsScreen />} />
-          {/* Reachable with or without onboarding — someone worried should
+      {/* Keyed on the path so navigating away from a screen that threw clears
+          the failure, rather than pinning the whole app to one broken route. */}
+      <ErrorBoundary key={location.pathname}>
+        <Suspense fallback={<ScreenLoading />}>
+          <Routes>
+            <Route
+              path="/"
+              element={isOnboarded ? <Navigate to="/today" replace /> : <OnboardingScreen />}
+            />
+            <Route path="/today" element={<TodayScreen />} />
+            <Route path="/explore" element={<ExploreScreen />} />
+            <Route path="/baby" element={<BabyScreen />} />
+            <Route path="/body" element={<BodyScreen />} />
+            <Route path="/healthy" element={<HealthyScreen />} />
+            <Route path="/appointments" element={<AppointmentsScreen />} />
+            {/* Reachable with or without onboarding — someone worried should
             never hit a setup wall before the red-flag guidance. */}
-          <Route path="/help" element={<GetHelpScreen />} />
-          {/* Eager, like /help itself — an urgent detail screen must never
+            <Route path="/help" element={<GetHelpScreen />} />
+            {/* Eager, like /help itself — an urgent detail screen must never
             wait on a network fetch for its chunk. */}
-          <Route path="/help/number" element={<MaternityNumberScreen />} />
-          <Route path="/help/:symptomId" element={<UrgentDetailScreen />} />
-          {/* Also ungated, and kept off every daily surface — see LossSupportScreen. */}
-          <Route path="/loss" element={<LossSupportScreen />} />
-          {/* Ungated too — half of it is what to do when you aren't listened to. */}
-          <Route path="/inequalities" element={<EquityScreen />} />
-          {/* Ungated: someone may reach this before ever completing setup. */}
-          <Route path="/changed" element={<PregnancyChangedScreen />} />
-          <Route path="/movements" element={<MovementsScreen />} />
-          <Route path="/gallery" element={<GalleryScreen />} />
-          <Route path="/privacy" element={<PrivacyScreen />} />
-          <Route path="/journal" element={<JournalScreen />} />
-          <Route path="/sources" element={<SourcesScreen />} />
-          <Route path="/methodology" element={<MethodologyScreen />} />
-          <Route path="/settings" element={<SettingsScreen />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+            <Route path="/help/number" element={<MaternityNumberScreen />} />
+            <Route path="/help/:symptomId" element={<UrgentDetailScreen />} />
+            {/* Also ungated, and kept off every daily surface — see LossSupportScreen. */}
+            <Route path="/loss" element={<LossSupportScreen />} />
+            {/* Ungated too — half of it is what to do when you aren't listened to. */}
+            <Route path="/inequalities" element={<EquityScreen />} />
+            {/* Ungated: someone may reach this before ever completing setup. */}
+            <Route path="/changed" element={<PregnancyChangedScreen />} />
+            <Route path="/movements" element={<MovementsScreen />} />
+            <Route path="/gallery" element={<GalleryScreen />} />
+            <Route path="/privacy" element={<PrivacyScreen />} />
+            <Route path="/journal" element={<JournalScreen />} />
+            <Route path="/sources" element={<SourcesScreen />} />
+            <Route path="/methodology" element={<MethodologyScreen />} />
+            <Route path="/settings" element={<SettingsScreen />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
 
       {!onOnboarding && (
         <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">

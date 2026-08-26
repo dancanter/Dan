@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal, JOURNAL_LABEL, MOODS, type JournalKind } from '../hooks/useJournal';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { formatDate } from '../lib/dates';
@@ -18,7 +17,6 @@ const MOOD_EMOJI = new Map<string, string>(MOODS.map((m) => [m.value, m.emoji]))
 export function JournalScreen() {
   const { currentWeek } = usePregnancyProfile();
   const { entries, add, remove, moodHistory } = useJournal();
-  useAutoFocusHeading<HTMLHeadingElement>();
 
   const [tab, setTab] = useState<JournalKind>('mood');
   const [draft, setDraft] = useState('');

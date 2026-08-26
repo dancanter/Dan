@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useProgress } from '../hooks/useProgress';
@@ -15,7 +14,6 @@ const TEXT_SIZES: { value: TextSize; label: string }[] = [
 ];
 
 export function SettingsScreen() {
-  useAutoFocusHeading<HTMLHeadingElement>();
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
   const { dueDate, birthDate, setBirthDate, resetProfile } = usePregnancyProfile();

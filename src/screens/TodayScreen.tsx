@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
@@ -17,7 +17,6 @@ import {
 } from '../content';
 import { dayOfYear } from '../lib/dates';
 import { WeekBar } from '../components/week/WeekBar';
-import { MilestoneCelebration } from '../components/week/MilestoneCelebration';
 import { FocusList } from '../components/today/FocusList';
 import { MythCard } from '../components/today/MythCard';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
@@ -27,6 +26,19 @@ import { AfterBirthScreen } from './AfterBirthScreen';
 import { AfterLossHomeScreen } from './AfterLossHomeScreen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
+
+/**
+ * The only thing in the app still using Framer Motion, and on most days it
+ * does not mount at all — a milestone is reached seven times across a whole
+ * pregnancy, and each one shows once. Loading an animation library eagerly for
+ * that put it in front of every first paint, on the screen that has to open
+ * fastest. Lazy, so the cost is paid on the seven days it is actually used.
+ */
+const MilestoneCelebration = lazy(() =>
+  import('../components/week/MilestoneCelebration').then((m) => ({
+    default: m.MilestoneCelebration,
+  })),
+);
 
 export function TodayScreen() {
   const { currentWeek, daysToGo, isOnboarded, hasBaby } = usePregnancyProfile();
@@ -112,12 +124,16 @@ export function TodayScreen() {
   return (
     <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
       {pendingMilestone?.celebration && (
-        <MilestoneCelebration
-          title={`Week ${pendingMilestone.week}`}
-          message={pendingMilestone.celebration}
-          reduceMotionOverride={reduceMotion}
-          onDismiss={() => markCelebrated(pendingMilestone.week)}
-        />
+        // No fallback: a celebration that arrives a moment late is fine, and
+        // a "Loading…" placeholder over the home screen would not be.
+        <Suspense fallback={null}>
+          <MilestoneCelebration
+            title={`Week ${pendingMilestone.week}`}
+            message={pendingMilestone.celebration}
+            reduceMotionOverride={reduceMotion}
+            onDismiss={() => markCelebrated(pendingMilestone.week)}
+          />
+        </Suspense>
       )}
 
       <WeekBar week={week} onChange={setViewWeek} daysToGo={viewWeek === null ? daysToGo : null} />

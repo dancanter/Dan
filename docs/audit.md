@@ -1,5 +1,10 @@
 # Phase 1 audit — August 2026
 
+> **Status:** all P0 findings and P1 findings 4–7 are fixed as of the commit
+> following this one. Each is marked ✅ below with what was done. Findings 8–13
+> remain open and belong to Phases 3 and 4. The one thing that could not be
+> completed in full is finding 1 — see the note under it.
+
 Written against commit `1b32e29`, by inspection rather than from the README. Where the
 README and the code disagreed, the code won and the README is listed as a finding.
 
@@ -57,27 +62,44 @@ Phase 3's glossary work.
 
 ### P0 — fix before anything else
 
-**1. Not one of the 122 sources has a URL.**
+**1. Not one of the 122 sources has a URL.** ✅ *partly fixed*
 `Source.url` exists in the schema. `SourceList` and `SourcesScreen` both already render an
 `<a>` when it's present. Zero sources populate it. So the app's central claim — every entry
-sourced, evidence inspectable — currently terminates in a name a reader cannot check. This
-is the highest value-per-hour fix in the entire brief and it needs no new code, only data.
+sourced, evidence inspectable — currently terminates in a name a reader cannot check.
 
-**2. Focus is not moved on 8 of 21 screens.**
-`useAutoFocusHeading` returns a ref. Explore, Appointments, Journal, Guidance, Settings, My
-Body, Sources and Methodology all *call the hook and discard the return value* — the effect
-runs and focuses nothing. These are precisely the screens that use `ScreenTitle`, which
-sets `tabIndex={-1}` and an id but has no way to accept a ref. A keyboard or screen-reader
-user navigating to Guidance is left at the previous screen's focus position. WCAG 2.4.3,
-and the README claims it's handled throughout.
+*Done:* `sourceLinks.ts` derives a link from the permanent identifier the citation already
+carries — DOI, PMC or PubMed id — preferring free full text over the paywalled version of
+record. Nothing is hand-typed, so nothing can drift, and a new paper added with a PMC id
+becomes checkable automatically. 11 of 122 now open.
 
-**3. The urgent detail screen is not in the axe suite.**
-21 screens are tested. `UrgentDetailScreen` is not — the most safety-critical screen in the
-app, and the only one carrying the glossary buttons and the read-aloud control.
+*Not done, and deliberately:* the NHS, NICE, RCOG and charity pages carry no such
+identifier, so a link for them has to be a real URL someone has checked. This session had no
+network egress, so checking was impossible, and a guessed slug looks identical to a real one
+until someone taps it. They are left unlinked, and the Sources screen now says how many open
+and why the rest don't. **This is the single highest-value piece of work still outstanding**
+— roughly 60 URLs, each needing one visit to confirm. `validateContent()` already rejects
+anything that isn't a valid https address.
+
+**2. Focus is not moved on 8 of 21 screens.** ✅ *fixed*
+`ScreenTitle` now owns focus management, so there is no ref for a screen to forget. The eight
+dead hook calls are gone, and `tests/a11y/screens.test.tsx` asserts focus lands on the `<h1>`
+for the screens that were broken. Verified in a real browser as well as in jsdom.
+
+*The problem was:* `useAutoFocusHeading` returns a ref. Explore, Appointments, Journal,
+Guidance, Settings, My Body, Sources and Methodology all *called the hook and discarded the
+return value* — the effect ran and focused nothing. These were precisely the screens using
+`ScreenTitle`, which set `tabIndex={-1}` and an id but had no way to accept a ref. Every one
+of those files looked correct, which is what made it survive. WCAG 2.4.3.
+
+**3. The urgent detail screen is not in the axe suite.** ✅ *fixed*
+21 screens were tested. `UrgentDetailScreen` was not — the most safety-critical screen in the
+app, and the only one carrying the glossary buttons and the read-aloud control. Now covered;
+it passed without changes, but it was passing untested.
 
 ### P1 — fix during Phase 2/7
 
-**4. First paint is ~197 kB gzipped, not the ~105 kB the README claims.**
+**4. First paint is ~197 kB gzipped, not the ~105 kB the README claims.** ✅ *half fixed —
+now 150 kB*
 Measured: entry chunk 109.3 kB + content 55.4 kB + router 17.0 kB + ~15 kB across fourteen
 smaller `modulepreload`s. Two root causes, both precise:
 
@@ -89,18 +111,33 @@ smaller `modulepreload`s. Two root causes, both precise:
   `MythCard` and `MilestoneCelebration`. Roughly 100 kB raw for two decorative animations
   on one screen.
 
-**5. IndexedDB failure is unhandled.** `photoStore.openDb()` rejects and nothing catches it.
-It surfaces today as an unhandled rejection in the test run, and in Firefox private
-browsing or a locked-down iOS profile it is a blank gallery plus a console error. Needs a
-caught failure and an honest message.
+*Done:* the myth card's reveal is now a CSS animation, and `MilestoneCelebration` — the only
+remaining Framer Motion consumer, and one that mounts seven times in a whole pregnancy — is
+lazily loaded behind `Suspense`. The dev-only `import './content'` in `main.tsx` is now a
+dynamic dev-only import. The entry chunk went 109 → 67 kB gzipped and first-paint JS went
+197 → 150 kB.
 
-**6. The a11y suite's `beforeEach` does not actually reset state.** `localStorage.clear()`
-fires no `StorageEvent` for same-window writes in jsdom, so `usePersistedState`'s module
-cache survives between tests. It passes only because every test writes an identical
-profile. The first test that needs a different one will silently get the first one's.
+*Still open:* the content chunk (54 kB) remains in the first-paint graph, because Today and
+Get Help import through the `src/content/index.ts` barrel, which re-exports all 111 guides
+with their full bodies. Today needs about four titles. Fixing it properly means separating a
+lightweight guide index (id, title, summary, section) from the bodies, which touches every
+content file — the "giant rewrite" the brief warns against doing early. It is the right next
+performance job, and it should happen before Phase 6 adds more content.
 
-**7. There is no error boundary anywhere.** A throw inside any lazily-loaded screen blanks
-the whole app — including on the way to `/help`.
+**5. IndexedDB failure is unhandled.** ✅ *fixed* — `photoStore` now throws a typed
+`PhotoStoreUnavailable` for a browser that refuses to open a database (private windows,
+managed devices, and the `onblocked` path Firefox uses), and the gallery says so rather than
+rendering an empty grid that reads as *your photos are gone*. The unhandled rejection that
+was polluting the test run is gone.
+
+**6. The a11y suite's `beforeEach` does not actually reset state.** ✅ *fixed* — the helper
+now dispatches a `StorageEvent`, which is what invalidates `usePersistedState`'s module
+cache. It was passing only because every test happened to write an identical profile.
+
+**7. There is no error boundary anywhere.** ✅ *fixed* — every route is wrapped, keyed on
+pathname so navigating away clears the failure. The fallback is not a generic apology: it
+offers 111 and 999 as plain `tel:` anchors, because routing is one of the things that might
+have thrown.
 
 ### P2 — Phase 3/4 work
 
@@ -141,12 +178,17 @@ than a hazard.
 **Guidance is one page rendering 111 `<details>` elements.** Fine now; it will not stay fine
 as the library grows.
 
-## Recommended order
+## What's left
 
-1. Source URLs (P0-1) — data only, largest trust gain.
-2. Shared screen shell, which fixes focus on 8 screens (P0-2, P2-11) and unblocks Phase 2.
-3. Urgent screen into the axe suite; error boundary; IndexedDB failure path (P0-3, P1-5, P1-7).
-4. Break the content barrel and lazy the motion components (P1-4) — before Phase 6.
-5. Correct the README (P3-13).
+In order:
 
-Then Phase 2 proper.
+1. **The ~60 unlinked source URLs** (rest of P0-1). Needs network access to verify each one.
+   Highest remaining trust gain in the whole brief, and it's data entry, not engineering.
+2. **Break the content barrel** (rest of P1-4) — before Phase 6 adds more content, not after.
+3. **A shared screen shell** (P2-11) — eleven screens still hand-roll their own `<main>` and
+   `<h1>`. Phase 2's visual-calm work gets several times cheaper afterwards.
+4. Then Phase 3 (evidence labels, freshness, "why we say this" — P2-8, P2-9, P2-10) and
+   Phase 4 (natural-language search — P2-7).
+
+Findings 12 and 13 are handled: the README's three overstatements are corrected, and the
+readability tail is recorded as a known, measured position rather than a claim.

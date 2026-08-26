@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { methodologySections } from '../content/methodology';
 import { sources, SOURCE_TIER_LABEL, type Source } from '../content';
 import { ScreenTitle } from '../components/ui/SectionHeading';
@@ -9,7 +8,6 @@ import { Note } from '../components/ui/Note';
 const TIER_ORDER: Source['tier'][] = ['gov', 'nhs', 'college', 'charity', 'research'];
 
 export function MethodologyScreen() {
-  useAutoFocusHeading<HTMLHeadingElement>();
 
   const withCaveats = sources.filter((s) => s.caveat).length;
 

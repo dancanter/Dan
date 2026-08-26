@@ -112,6 +112,24 @@ h4 {
   font-weight: 600;
 }
 
+/* The myth card's reveal. In CSS because it sits on the eagerly-loaded home
+   screen, and one transition is not worth an animation library in front of
+   every first paint. The reduced-motion block above already flattens it. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-in {
+  animation: reveal-in 0.3s ease-out both;
+}
+
 .prose-note p {
   margin: 0 0 0.6em;
 }

@@ -1,7 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal } from '../hooks/useJournal';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { appointments, helpTopics } from '../content';
 import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
@@ -12,7 +11,6 @@ import { RichText } from '../components/ui/RichText';
 export function AppointmentsScreen() {
   const { currentWeek, isOnboarded, firstPregnancy, setFirstPregnancy } = usePregnancyProfile();
   const { add: addJournal } = useJournal();
-  useAutoFocusHeading<HTMLHeadingElement>();
 
   if (!isOnboarded || currentWeek === null) return <Navigate to="/" replace />;
 

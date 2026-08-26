@@ -65,15 +65,19 @@ Navigation is three layers — **Today**, **Explore**, and **Get Help** — with
 
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
 
+**A citation you can't open is only half a citation.** "Every entry sourced" used to stop at a name — you could see a claim came from somewhere, but not go and check it. Links are now *derived* rather than typed in: every research citation already carries a permanent identifier, so `sourceUrl()` turns a DOI, PMC or PubMed id into a resolver URL, preferring free full text over the paywalled version of record. Nothing is hand-typed, so nothing drifts, and a new paper added with a PMC id becomes checkable with no extra work. The NHS, NICE and charity pages have no such identifier and are deliberately **not** linked yet — a guessed URL looks exactly like a real one right up until someone taps it, and a dead link on a sources page costs more trust than a missing one. The Sources screen says plainly how many of the 122 open and why the rest don't.
+
 **Content is data, not JSX.** Everything lives in typed files under `src/content/`. Adding research means editing data — no component changes.
 
 ## Stack
 
-React 18 · TypeScript · Vite · Tailwind v4 · `vite-plugin-pwa` (Workbox) · React Router · Framer Motion · Vitest + Testing Library + axe-core.
+React 19 · TypeScript · Vite · Tailwind v4 · `vite-plugin-pwa` (Workbox) · React Router · Framer Motion · Vitest + Testing Library + axe-core.
 
-No backend. All content ships with the bundle; everything personal (due date, journal, streak, ticks) stays in `localStorage` on the device and is never transmitted.
+No backend. All content ships with the bundle; everything personal (due date, journal, ticks, photos) stays in `localStorage` and IndexedDB on the device and is never transmitted.
 
-Routes are code-split so the initial download stays ~105kB gzipped despite the content volume. Onboarding, Today and **Get Help** load eagerly — the daily entry point and the screen someone might need urgently should never wait on a chunk.
+Routes are code-split, and Onboarding, Today and **Get Help** load eagerly — the daily entry point and the screen someone might need urgently should never wait on a chunk. First paint is **150kB gzipped of JavaScript** across 20 modules. Two thirds of the remaining weight is the content library itself, which is still pulled in eagerly because Today imports it through a barrel that re-exports all 111 guides; splitting that is the next performance job and is written up in [`docs/audit.md`](docs/audit.md).
+
+Framer Motion is used for exactly one thing — the milestone celebration — and is lazily loaded, because a milestone occurs seven times in a pregnancy and shows once each. The myth card's reveal is a CSS animation for the same reason: it sits on the eagerly-loaded home screen.
 
 ## Content architecture
 
@@ -96,11 +100,15 @@ src/content/
   index.ts         aggregation + validateContent()
 ```
 
-`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, any week between 1 and 42 without baby data, focus items or suggested reading, any of the 52 weeks after birth without the same, and any reading rule pointing at a guide id that no longer exists — so a content typo is a test failure, not a silently broken screen.
+`validateContent()` runs in dev and in CI. It fails on a dangling citation, a duplicate id, a symptom missing its "when to check" flag, a hand-written source URL that isn't a valid https address, any week between 1 and 42 without baby data, focus items or suggested reading, any of the 52 weeks after birth without the same, and any reading rule pointing at a guide id that no longer exists — so a content typo is a test failure, not a silently broken screen.
+
+**Nothing crashes to a blank page.** An error boundary wraps every route, and its fallback isn't a generic apology — it's the two things that matter when the app itself is broken: call 111, or call 999. Those are plain `tel:` anchors rather than routes, because routing is one of the things that might have failed. Same reasoning behind the bump gallery's IndexedDB handling: a browser that refuses to open a database (a private window, a managed device) gets told so explicitly, because an empty grid reads as *your photos are gone*.
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` for streaks and reveals, focus moved to each screen's heading on navigation, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty screens in `npm test`.** Readability is checked in the same run.
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` on reveals, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty-two screens in `npm test`**, including the urgent detail screen. Readability is checked in the same run.
+
+**Focus management belongs to the heading, not to each screen.** It used to be every screen's own job — call the hook, attach the returned ref — and eight of them called it and dropped the ref, so the effect ran and focused nothing. Every one of those files looked correct. `ScreenTitle` now owns it, so there is no ref to forget, and a test asserts focus actually lands on the `<h1>` for the screens that used to be broken.
 
 ## Running it
 

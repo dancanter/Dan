@@ -21,9 +21,39 @@ export interface BumpPhoto {
   takenAt: string;
 }
 
+/**
+ * Thrown when the browser will not give us a database at all — Firefox in
+ * private browsing, a locked-down iOS profile, storage disabled by policy.
+ * A distinct type so the gallery can say "this browser won't let me store
+ * photos" rather than showing an empty grid and looking broken.
+ */
+export class PhotoStoreUnavailable extends Error {
+  constructor(cause?: unknown) {
+    super('This browser will not let the app store photos on your device.');
+    this.name = 'PhotoStoreUnavailable';
+    this.cause = cause;
+  }
+}
+
+export function photosSupported(): boolean {
+  try {
+    return typeof indexedDB !== 'undefined' && indexedDB !== null;
+  } catch {
+    // Accessing the property itself throws in some locked-down contexts.
+    return false;
+  }
+}
+
 function openDb(): Promise<IDBDatabase> {
+  if (!photosSupported()) return Promise.reject(new PhotoStoreUnavailable());
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, VERSION);
+    let req: IDBOpenDBRequest;
+    try {
+      req = indexedDB.open(DB_NAME, VERSION);
+    } catch (err) {
+      reject(new PhotoStoreUnavailable(err));
+      return;
+    }
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) {
@@ -31,11 +61,16 @@ function openDb(): Promise<IDBDatabase> {
       }
     };
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => reject(new PhotoStoreUnavailable(req.error));
+    // Firefox private browsing resolves neither handler; it blocks instead.
+    req.onblocked = () => reject(new PhotoStoreUnavailable());
   });
 }
 
-function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+function tx<T>(
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
   return openDb().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
