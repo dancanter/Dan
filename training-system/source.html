@@ -291,6 +291,16 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Calories Today <span class="tag" id="kcalTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div class="add-row" style="margin-top:0;align-items:center">
+        <input type="text" id="kcalToday" inputmode="numeric" placeholder="What you actually ate" style="width:150px">
+        <button class="btn primary" id="kcalTodayBtn">Log</button>
+        <button class="btn" id="kcalOnTargetBtn">On target</button>
+      </div>
+      <div id="kcalOut" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Energy Today</h2>
       <p class="block-sub" data-detail>One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
       <div id="energyPick"></div>
@@ -2009,7 +2019,10 @@ var BLOCK_PLAN = {
   3:  { phase: "Base", focus: "Add some speed back",
         efforts: ["1km reps", "200m reps"],
         why: "A 200m session keeps the top end alive while the volume is still climbing — and it covers your sprint slot." },
-  4:  { phase: "Deload", focus: "Absorb the first three weeks", efforts: [], why: "" },
+  4:  { phase: "Deload", focus: "Absorb the first three weeks", deload: 1,
+        efforts: ["4 × 200m — same pace, a third of the reps"],
+        easy: ["Easy 5km", "Easy 5km"],
+        why: "You have had three weeks of 1km reps, 200s and threshold. The one session keeps your legs sharp without adding to any of it." },
   5:  { phase: "Sharpen", focus: "Threshold plus mile-pace reps",
         efforts: ["Threshold — continuous", "600m reps"],
         why: "The 5K goal needs threshold volume. 600s are the shortest rep that still feels aerobic — they bridge the two." },
@@ -2019,7 +2032,10 @@ var BLOCK_PLAN = {
   7:  { phase: "Sharpen", focus: "Test where you are",
         efforts: ["3K time trial", "400m reps"],
         why: "A 3K is the cheapest honest read on both goals — hard enough to mean something, short enough that it does not cost you a week." },
-  8:  { phase: "Deload", focus: "Absorb the sharpening block", efforts: [], why: "" },
+  8:  { phase: "Deload", focus: "Absorb the sharpening block", deload: 1,
+        efforts: ["3 × 400m — full pace, walk-back recovery"],
+        easy: ["Easy 5km", "Easy 5km"],
+        why: "Weeks 5–7 were threshold, ladders and a 3K. 400s are short enough to recover from and fast enough to keep the top end." },
   9:  { phase: "Race specific", focus: "Mile speed",
         efforts: ["600m reps", "200m reps"],
         why: "This is where the mile is won or lost. Fast 600s off full recovery are the closest thing to the last lap." },
@@ -2029,7 +2045,10 @@ var BLOCK_PLAN = {
   11: { phase: "Race specific", focus: "Sharpen and rehearse",
         efforts: ["Descending 1000-800-600-400-200", "400m reps"],
         why: "Descending sets rehearse finishing fast off tired legs, which is exactly what a PB attempt asks for." },
-  12: { phase: "Deload", focus: "Taper into the attempts", efforts: [], why: "" },
+  12: { phase: "Deload", focus: "Taper into the attempts", deload: 1, taper: 1,
+        efforts: ["3 × 300m at goal mile pace — not flat out"],
+        easy: ["Easy 5km", "Easy 5km — or rest"],
+        why: "This is a taper, not a training week. Just enough at race pace to remind your legs what it feels like, and nothing that costs you anything." },
   13: { phase: "PB attempts", focus: "Race", race: true,
         efforts: ["1 mile — all out", "5K — all out", "400m — all out"],
         why: "Three attempts, three days apart, each on legs as fresh as the week allows. Nothing else that week matters." }
@@ -2095,9 +2114,41 @@ function renderPlan() {
   var w = viewWeek, pl = planFor(w), dl = isDeload(w);
   var head = '<div class="note flat" style="margin-bottom:12px"><b>Week ' + w + " — " +
     (dl ? "Deload" : (pl ? pl.phase : "Open")) + "</b>" +
-    (dl ? "Half the volume, all of the speed." : (pl ? pl.focus + ". " + pl.why : "No shape set for this week — pick freely from the menu.")) + "</div>";
+    (dl ? (pl && pl.why ? pl.focus + ". " + pl.why : "Half the volume, all of the speed.")
+        : (pl ? pl.focus + ". " + pl.why : "No shape set for this week — pick freely from the menu.")) + "</div>";
 
-  if (dl) { el.innerHTML = head + deloadAdvice(); return; }
+  if (dl) {
+    /* A deload still needs to say what to run. "Cut the volume" is advice;
+       "4 x 200m and two easy 5ks" is a week you can actually go and do. */
+    var dp = pl && pl.deload ? pl : null;
+    var spent = deloadSoFar(viewWeek).length > 0;
+    var list = "";
+    if (dp) {
+      list = '<div class="card" style="padding:6px 14px;margin-bottom:12px">' +
+        dp.efforts.map(function (t) {
+          /* the one effort is gone once the week has already had quality in it */
+          return '<div class="stone" style="grid-template-columns:1fr auto">' +
+            '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:' +
+            (spent ? "var(--muted-2);text-decoration:line-through" : "var(--chalk)") + '">' + esc(t) + "</span>" +
+            '<span class="stone-when" style="color:' + (spent ? "var(--track-bright)" : "var(--muted-2)") + '">' +
+            (spent ? "already spent this week" : "the one effort") + "</span></div>";
+        }).join("") +
+        dp.easy.map(function (t, i) {
+          return '<div class="stone" style="grid-template-columns:1fr auto">' +
+            '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(t) + "</span>" +
+            '<span class="stone-when" style="color:var(--muted-2)">easy ' + (i + 1) + "</span></div>";
+        }).join("") +
+        '<div class="stone" style="grid-template-columns:1fr auto">' +
+          '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">Strides — 4–6 × 80–100m</span>' +
+          '<span class="stone-when" style="color:var(--muted-2)">only if legs feel fresh</span></div>' +
+        '<div class="stone" style="grid-template-columns:1fr auto">' +
+          '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">Rest</span>' +
+          '<span class="stone-when" style="color:var(--muted-2)">the other three days</span></div>' +
+        "</div>";
+    }
+    el.innerHTML = head + list + deloadAdvice();
+    return;
+  }
   if (!pl || !pl.efforts.length) { el.innerHTML = head; return; }
   if (pl.race) {
     el.innerHTML = head +
@@ -2150,7 +2201,9 @@ function renderBlockPlan() {
     rows += "<tr" + (now ? ' style="background:var(--surface-2)"' : "") + "><td><b>" + w + "</b>" +
       (now ? '<span class="sub">you are here</span>' : "") + "</td>" +
       '<td class="hl"' + (dl ? ' style="color:var(--go)"' : "") + ">" + esc(dl ? "Deload" : pl.phase) + "</td>" +
-      "<td>" + esc(dl ? "One short effort, two shorter easy runs, no tests" : pl.efforts.join(" + ")) + "</td></tr>";
+      "<td>" + esc(dl && pl && pl.deload ? pl.efforts[0] + " + two easy 5km"
+                  : dl ? "One short effort, two shorter easy runs, no tests"
+                  : pl.efforts.join(" + ")) + "</td></tr>";
   }
   el.innerHTML = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Wk</th><th>Phase</th><th>The two efforts</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
@@ -3473,6 +3526,179 @@ function renderGoal() {
   });
 }
 
+/* ================= what you actually ate ================= */
+function kcalSeries(days) {
+  var out = [], now = new Date();
+  for (var k = days - 1; k >= 0; k--) {
+    var d = new Date(now.getTime() - k * 86400000);
+    var st = DB.get(dailyKey(d), null);
+    if (st && isFinite(parseFloat(st.kcal))) out.push({ date: dayStr(d), v: parseFloat(st.kcal) });
+  }
+  return out;
+}
+function targetKcal() { return settings.intake || settings.kcal || 1800; }
+
+function logKcal(v) {
+  todayState.kcal = v;
+  DB.set(dailyKey(new Date()), todayState);
+  renderKcal(); renderTrack(); renderReadiness();
+}
+function renderKcal() {
+  var el = $("kcalOut"); if (!el) return;
+  var t = targetKcal(), inp = $("kcalToday");
+  inp.placeholder = "e.g. " + t;
+  if (todayState.kcal && document.activeElement !== inp) inp.value = todayState.kcal;
+  $("kcalTag").textContent = "target " + t.toLocaleString();
+
+  var ser = kcalSeries(14);
+  var week = ser.filter(function (x) {
+    return daysBetween(parseDay(x.date), parseDay(today())) < 7;
+  });
+  var today_ = todayState.kcal ? parseFloat(todayState.kcal) : null;
+
+  var head = today_ != null
+    ? (function () {
+        var d = today_ - t;
+        return '<div class="note ' + (Math.abs(d) <= 75 ? "good" : Math.abs(d) <= 200 ? "flat" : "warn") + '"><b>' +
+          today_.toLocaleString() + " kcal today</b>" +
+          (Math.abs(d) <= 75 ? "On target." : (d > 0 ? "That is " + Math.round(d) + " over" : Math.round(-d) + " under") +
+            " your " + t.toLocaleString() + ". " +
+            (d > 0 ? "One day over changes nothing. A fortnight of them is the commonest reason a stall is not really a stall."
+                   : "Under-eating a deficit does not speed it up — it just takes the difference out of your sessions.")) + "</div>";
+      })()
+    : '<div class="note flat"><b>Nothing logged today</b>Put the real number in, not the planned one. This is what turns a stall into an explanation.</div>';
+
+  if (!week.length) return void (el.innerHTML = head);
+  var avgW = avg(week.map(function (x) { return x.v; }));
+  var drift = avgW - t;
+  var rows = ser.slice().reverse().slice(0, 7).map(function (x) {
+    var d = x.v - t;
+    return '<div class="log-item"><span class="l-main">' + x.date + "</span><span>" + x.v.toLocaleString() +
+      ' <span style="color:' + (Math.abs(d) <= 75 ? "var(--go)" : "var(--warn)") + '">' +
+      (d >= 0 ? "+" : "") + Math.round(d) + "</span></span></div>";
+  }).join("");
+  el.innerHTML = head +
+    '<div class="note ' + (Math.abs(drift) <= 60 ? "good" : "warn") + '" style="margin-top:10px"><b>' +
+    week.length + "-day average " + Math.round(avgW).toLocaleString() + " kcal</b>" +
+    (Math.abs(drift) <= 60
+      ? "Tracking clean against your " + t.toLocaleString() + ". Whatever the scale is doing, it is not intake drift."
+      : (drift > 0
+          ? "That is " + Math.round(drift) + " a day over your " + t.toLocaleString() + " — about " +
+            (drift * 7 / 3500).toFixed(1) + " lb a week of the deficit gone. Fix this before touching anything else."
+          : "That is " + Math.round(-drift) + " a day under target. Eating below the number you set is not extra progress, it is extra fatigue.")) +
+    "</div>" + '<div style="margin-top:10px">' + rows + "</div>";
+}
+
+/* ================= why the weight is doing that ================= */
+/* The verdict says what to do. This says what is actually going on, which is
+   the part that stops a flat fortnight feeling like a personal failure. */
+function weightMechanism(pr) {
+  if (!pr || (pr.state !== "ok" && pr.state !== "provisional")) return "";
+  var t = targetKcal();
+  var week = kcalSeries(10).filter(function (x) { return daysBetween(parseDay(x.date), parseDay(today())) < 8; });
+  var normal = week.filter(function (x) { return x.v < t + 400; });
+  var adherence = normal.length >= 4 ? avg(normal.map(function (x) { return x.v; })) - t : null;
+  var refedRecently = daysSinceRefeed();
+  var eSer = energySeries(10), lowE = eSer.filter(function (x) { return x.v <= 2; }).length;
+  var base = hrBaseline(), hs = hrSorted();
+  var hrUp = base ? hs.slice(0, 5).filter(function (h) { return h.hr >= base + 5; }).length : 0;
+  var vals = sortedWeights().slice(-7).map(function (w) { return w.weight; });
+  var swing = vals.length >= 4 ? Math.max.apply(null, vals) - Math.min.apply(null, vals) : null;
+  var rate = pr.state === "ok" ? pr.perWeek : null;
+
+  var bits = [];
+  if (swing != null && swing >= 2) {
+    bits.push("<b>Your daily readings swing " + swing.toFixed(1) + " lb.</b> That is water, glycogen and gut contents, not fat — " +
+      "a pound of fat is 3,500 kcal and you cannot gain or lose two of them in a day. Only the 7-day average means anything.");
+  }
+  if (rate != null && rate > -0.15) {
+    if (refedRecently != null && refedRecently <= 4) {
+      bits.push("<b>You refed " + (refedRecently === 0 ? "today" : refedRecently + " day" + (refedRecently === 1 ? "" : "s") + " ago") +
+        ", so the flat reading is that.</b> A refeed puts 2–3 lb of glycogen water on within a day and it takes four or five to leave. " +
+        "There is nothing to diagnose until it has.");
+    } else if (adherence != null && adherence > 100) {
+      bits.push("<b>The stall is intake, not metabolism.</b> You are averaging " + Math.round(adherence) +
+        " kcal a day over your target, which is most of the deficit gone. Nothing else needs changing until that does.");
+    } else if (adherence != null) {
+      bits.push("<b>You are eating what you said you would, and the scale is not moving — so it is almost certainly water.</b> " +
+        "A deficit this size in a training block raises cortisol, cortisol holds sodium, sodium holds water, and the fat you are losing " +
+        "underneath gets hidden by it. It shows up as a sudden two-pound drop a week or so later, usually after a rest day.");
+    } else {
+      bits.push("<b>Flat with no intake logged means there is nothing to diagnose from.</b> " +
+        "Log what you actually eat for a week and this can tell you whether the stall is intake drift or water.");
+    }
+    if (lowE >= 2 || hrUp >= 2) {
+      bits.push("<b>And the fatigue markers agree.</b> " +
+        (hrUp >= 2 ? "Your morning HR is up on baseline. " : "") + (lowE >= 2 ? "Your energy is down. " : "") +
+        "That is the cortisol side of it. Cutting harder here makes the water worse, not better.");
+    }
+  } else if (rate != null && rate <= -1.3) {
+    bits.push("<b>That is faster than fat can actually come off at your weight.</b> Some of it is real, and some is glycogen and " +
+      "the water bound to it — about 3g of water per gram of glycogen. Below about 1.3 lb a week you start taking muscle with it, " +
+      "and muscle is what your 400m time is made of.");
+  } else if (rate != null && rate >= 0.15) {
+    bits.push("<b>Going up in a deficit is nearly always water, not fat.</b> To gain a real pound you would have to eat 3,500 kcal " +
+      "over maintenance. Look at salt, a hard session in the last 48 hours, or a refeed day — all three hold water for several days.");
+  } else if (rate != null) {
+    bits.push("<b>This is the rate that works.</b> Slow enough to keep the muscle and the sessions, fast enough to get there.");
+  }
+  if (!bits.length) return "";
+  return '<div class="note flat" style="margin-top:10px"><b>What is actually happening</b>' + bits.join("<br><br>") + "</div>";
+}
+
+/* ================= refeeds ================= */
+function daysSinceRefeed() {
+  var ser = kcalSeries(21), t = targetKcal(), last = null;
+  ser.forEach(function (x) { if (x.v >= t + 400) last = x.date; });
+  return last ? daysBetween(parseDay(last), parseDay(today())) : null;
+}
+function refeedAdvice(pr) {
+  var t = targetKcal();
+  var week = kcalSeries(10).filter(function (x) { return daysBetween(parseDay(x.date), parseDay(today())) < 8; });
+  /* A refeed day is a decision, not drift — averaging it in would read a
+     deliberate 2,500 as overeating and refuse the next one on those grounds. */
+  var normal = week.filter(function (x) { return x.v < t + 400; });
+  var adherence = normal.length >= 4 ? avg(normal.map(function (x) { return x.v; })) - t : null;
+  var eSer = energySeries(10), lowE = eSer.filter(function (x) { return x.v <= 2; }).length;
+  var base = hrBaseline(), hs = hrSorted();
+  var hrUp = base ? hs.slice(0, 5).filter(function (h) { return h.hr >= base + 5; }).length : 0;
+  var flat = pr && pr.state === "ok" && pr.perWeek > -0.15;
+  var since = daysSinceRefeed();
+
+  /* a refeed still in your system comes before any other reading */
+  if (since != null && since <= 3) {
+    return '<div class="note flat" style="margin-top:10px"><b>You refed ' + (since === 0 ? "today" : since + " day" + (since === 1 ? "" : "s") + " ago") + "</b>" +
+      "Expect the scale up for another 2–4 days. Do not read anything into it and do not cut in response — that is the water, and it leaves on its own.</div>";
+  }
+  /* eating over target is not a refeed problem */
+  if (adherence != null && adherence > 100) {
+    return '<div class="note warn" style="margin-top:10px"><b>Not a refeed week</b>' +
+      "A refeed is for a deficit that has been run properly and has stopped paying. You are averaging " + Math.round(adherence) +
+      " over target, so there is no accumulated deficit for one to release. Hit the number for a week first.</div>";
+  }
+  var reasons = [];
+  if (flat && adherence != null) reasons.push("the scale has been flat while you have been eating to target");
+  if (lowE >= 2) reasons.push("two or more low-energy days in the last ten");
+  if (hrUp >= 2) reasons.push("morning HR up on baseline");
+  if (since != null && since >= 14) reasons.push("it has been " + since + " days since your last one");
+
+  if (reasons.length >= 2) {
+    var list = reasons.length > 1 ? reasons.slice(0, -1).join(", ") + " and " + reasons[reasons.length - 1] : reasons[0];
+    return '<div class="note good" style="margin-top:10px"><b>Take a refeed — one day, not a weekend</b>' +
+      "Two things line up: " + list + ". " +
+      '<span style="color:var(--chalk);font-weight:600">One day at about ' + (t + 600).toLocaleString() +
+      " kcal, every extra calorie from carbs.</span> Protein stays where it is, fat stays low — fat does not refill glycogen and does not move leptin. " +
+      "Put it on an easy or rest day, not before a hard session.<br><br>" +
+      "You will be 2–3 lb heavier the next morning. That is glycogen pulling water in at roughly 3g per gram, and it is the point of doing it — " +
+      "it comes off within four or five days and usually takes some real weight with it.</div>";
+  }
+  if (reasons.length === 1) {
+    return '<div class="note flat" style="margin-top:10px"><b>Not yet — one flag, not two</b>' +
+      "Worth noting that " + reasons[0] + ", but one signal on its own is not a refeed. If a second one appears this week, take the day.</div>";
+  }
+  return "";
+}
+
 /* ================= when to rest ================= */
 /* The classic pull-back criteria, but scored against logged data instead of
    left to memory. Two tripped is the threshold — that is the standard rule. */
@@ -3783,7 +4009,8 @@ function renderTrack() {
       (pr.span > 0 ? "only " + pr.span + " day" + (pr.span === 1 ? "" : "s") + " of them" : "none yet") + ". " +
       "Measuring from a part-formed average means measuring from a single morning, which carries the whole 2–4 lb of daily water swing — that is how you get told you are losing a pound a week during a fortnight that was flat. " +
       '<b style="color:var(--chalk)">Keep weighing; a few more days and this becomes a real number.</b> ' +
-      "You are " + Math.abs(pr.toGo).toFixed(1) + " lb " + (pr.toGo > 0 ? "off" : "under") + " " + pr.target + ".</div>";
+      "You are " + Math.abs(pr.toGo).toFixed(1) + " lb " + (pr.toGo > 0 ? "off" : "under") + " " + pr.target + ".</div>" +
+      weightMechanism(pr) + refeedAdvice(pr);
     return;
   }
   if (pr.state === "thin") {
@@ -3840,6 +4067,7 @@ function renderTrack() {
       ". In order: confirm intake and steps are genuinely on target, then <b>add activity rather than cutting calories</b> — an extra 2,000 steps is roughly 80–100 kcal with no recovery cost. Only if a clean week changes nothing should intake drop, by 100 kcal, and not below about 1,700.";
   }
 
+  var extra = weightMechanism(pr) + refeedAdvice(pr);
   var st = stones(pr);
   var stoneHtml = st.map(function (o) {
     return '<div class="stone' + (o.done ? " done" : o.isNow ? " now" : "") + '">' +
@@ -3849,7 +4077,8 @@ function renderTrack() {
   }).join("");
 
   el.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + body + "</div>" +
-    '<div class="chart-wrap"><div class="chart-head"><span class="chart-title">Stepping stones</span>' +
+    extra +
+    '<div class="chart-wrap" style="margin-top:10px"><div class="chart-head"><span class="chart-title">Stepping stones</span>' +
     '<span class="chart-val">' + pr.cur.toFixed(1) + ' lb<small>7-day avg · ' + pr.toGo.toFixed(1) + " to go</small></span></div>" +
     stoneHtml +
     '<div class="chart-legend" style="margin-top:8px"><span>Dates are when the 7-day average first crossed. Projections assume the current rate holds.</span></div></div>';
@@ -4391,7 +4620,7 @@ function renderAll() {
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
-  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
@@ -4535,6 +4764,14 @@ function renderStartInfo() {
     }
   });
 
+  $("kcalTodayBtn").addEventListener("click", function () {
+    var v = parseFloat($("kcalToday").value);
+    if (!isFinite(v) || v <= 0) { $("kcalToday").focus(); return; }
+    logKcal(Math.round(v));
+  });
+  $("kcalOnTargetBtn").addEventListener("click", function () {
+    $("kcalToday").value = targetKcal(); logKcal(targetKcal());
+  });
   $("detailBtn").addEventListener("click", toggleDetail);
 
   try {

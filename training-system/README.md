@@ -131,6 +131,26 @@ that and says to make the rest of the week easy running only.
 The heavier sessions (5 mile threshold, 10km threshold, 10K/5K/mile all-out) are
 flagged `occasional`: benchmarks to rotate, not part of the weekly menu.
 
+**Calories Today** (on the Today tab) — log what you actually ate, or tap **On
+target**. It shows the day against your number and a 7-day average, and says
+plainly whether a stall is intake drift or something else.
+
+That feeds two things on Progress. **What Is Actually Happening** explains the
+mechanism rather than only the verdict: how big the daily water swing is, whether
+a flat scale is drift or cortisol holding water, whether a fast drop is fat or
+glycogen, and why a gain in a deficit is almost never fat. **Refeeds** are
+recommended only when two markers agree — flat while eating to target, low
+energy, HR up on baseline, or a fortnight since the last one — and refused
+outright when the average is over target, because a refeed releases an
+accumulated deficit and there isn't one. Refeed days are excluded from the
+adherence average, so a deliberate 2,500 doesn't read as overeating, and a
+refeed inside four days explains the scale before anything else is diagnosed.
+
+**Deload weeks name their sessions** like every other week — 4 × 200m in week 4,
+3 × 400m in week 8, 3 × 300m at goal mile pace in the week-12 taper, each with
+two easy 5ks, optional strides and rest. If the week has already had quality in
+it, the effort is struck through and marked spent.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,
