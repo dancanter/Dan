@@ -1206,11 +1206,11 @@ function poolFor(w) {
   var short = dl ? " Deload week — keep it short, fewer reps than usual." : "";
   return [
     /* ---- effort sessions: you pick, all out, full recovery, no target pace ---- */
-    { sid: "eff_mile", hard: 2, group: "effort", type: "1 mile — all out",
+    { sid: "eff_mile", hard: 2, group: "effort", occasional: 1, type: "1 mile — all out",
       desc: "One mile, flat out." + short },
     { sid: "eff_400tt", hard: 2, group: "effort", type: "400m — all out",
       desc: "One 400m, flat out, off a full warm-up. Nothing else that day." + short },
-    { sid: "eff_5k", hard: 2, group: "effort", type: "5K — all out",
+    { sid: "eff_5k", hard: 2, group: "effort", occasional: 1, type: "5K — all out",
       desc: "5K, flat out." + short },
     { sid: "eff_1k", hard: 2, group: "effort", type: "1km reps",
       desc: "1km reps, all out, full recovery between. You choose how many." + short },
@@ -1238,10 +1238,16 @@ function poolFor(w) {
       desc: "3K flat out. Sits between your mile and 5K and is the most informative single test there is." + short },
     { sid: "eff_500", hard: 2, group: "effort", type: "500m reps",
       desc: "All out, full recovery. As many as you fancy." + short },
-    { sid: "eff_10k", hard: 2, group: "effort", type: "10K — all out",
-      desc: "One continuous 10K, run hard. Rare, and it takes a few days back." + short },
+    { sid: "eff_10k", hard: 2, group: "effort", occasional: 1, type: "10K — all out",
+      desc: "One continuous 10K, run hard. A test, not a session — give it extra recovery and nothing hard the day after." + short },
     { sid: "eff_mixed", hard: 2, group: "effort", type: "Mixed set",
       desc: "Your own combination — 2×800 + 2×600 + 2×400, or whatever you fancy. All out, full recovery." + short },
+    { sid: "eff_mile_reps", hard: 2, group: "effort", type: "3 × 1 mile",
+      desc: "Three miles, hard but controlled, full recovery between. The most specific mile-goal session there is." + short },
+    { sid: "eff_thresh_8k", hard: 2, group: "effort", occasional: 1, type: "5 mile threshold",
+      desc: "8km continuous, strong and controlled. A big session — occasional, not part of the rotation." + short },
+    { sid: "eff_thresh_10k", hard: 2, group: "effort", occasional: 1, type: "10km threshold",
+      desc: "10km continuous at a controlled hard effort. Substantial — treat it like a test and give it its own week." + short },
     { sid: "eff_thresh", hard: 2, group: "effort", type: "Threshold — continuous",
       desc: "25–30 min continuous at comfortably hard — the pace where you could speak a sentence but would not want to. No reps, no stopping." + short },
 
@@ -1569,6 +1575,26 @@ function energyWarning(sid) {
   if (!it || it.hard < 2) return "";
   return energyNote(true);
 }
+/* Easy runs quietly becoming threshold runs is the commonest way a plan like
+   this stops working — the hard days stop being hard because the easy days
+   never were. Both paces come from the times actually logged. */
+function easyPaceWarning(d) {
+  if (groupOfSid(d.sid) !== "easy") return "";
+  var pace = toSec(d.avgpace);
+  if (!isFinite(pace) || pace <= 0) return "";
+  var tv = trainingFitness();
+  if (!tv) return "";
+  var easy = paceAtPct(tv, 0.70), thresh = paceAtPct(tv, 0.88);
+  if (pace > easy - 15) return "";
+  var atThreshold = pace <= thresh + 12;
+  return '<div class="note ' + (atThreshold ? "stop" : "warn") + '" style="margin:0 0 10px"><b>' +
+    (atThreshold ? "That is a threshold run, not an easy run" : "Quicker than easy") + "</b>" +
+    "You ran " + fmtSec(pace) + "/km. Your easy pace is <span style=\"color:var(--chalk);font-weight:600\">" +
+    fmtSec(easy) + "/km</span> and your threshold is " + fmtSec(thresh) + "/km, both worked out from the times you have logged. " +
+    (atThreshold
+      ? "So this counts as one of your two quality sessions for the week, not as recovery. If it was meant to be easy, it needs to be around a minute per kilometre slower — and yes, that will feel absurdly slow."
+      : "Not a disaster, but easy days only work when they are properly easy. The hard days stop being hard when the easy ones are not.") + "</div>";
+}
 function sprintWarning(sid) {
   if (sid !== "bonus_sprint" && sid !== "eff_hill") return "";
   var blocked = sprintBlocked();
@@ -1615,7 +1641,7 @@ function dayCard(d, i, isToday) {
         gymOptions(d.gymSplit) + "</select>" : "") + "</div>" : "") +
     '<p class="session-desc">' + esc(s.desc) + "</p>" +
     splitLine(s.desc) +
-    (flex ? energyWarning(d.sid) + sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
+    (flex ? energyWarning(d.sid) + easyPaceWarning(d) + sprintWarning(d.sid) + progStrip(d.sid, viewWeek) + lastTime(d.sid, viewWeek) : "") +
     '<div class="row-inputs" style="margin-bottom:6px">' +
       '<input type="text" placeholder="Reps / distance" value="' + esc(d.detail || "") + '" data-field="detail" data-i="' + i + '">' +
       '<input type="text" placeholder="Avg pace /km" value="' + esc(d.avgpace || "") + '" data-field="avgpace" data-i="' + i + '" style="min-width:88px">' +
@@ -1836,7 +1862,7 @@ function renderRolling() {
     loadBar("Easy", w.easy, 2, "5km or 5 mile, conversational") +
     loadBar("Sprints", sprintCovered ? 1 : w.bonus, 1,
       sprintCovered ? "covered by your 200m session" : "80–100m, relaxed, full recovery") +
-    loadBar("Gym", w.gym, 4, "unattached to the running");
+    loadBar("Gym", w.gym, 4, "4 main, a 5th optional");
   var total = w.effort + w.easy + w.bonus;
   var runs = '<div class="note ' + (total >= 4 && total <= 5 ? "good" : "flat") + '" style="margin-top:12px">' +
     "<b>" + total + " run" + (total === 1 ? "" : "s") + " in the last seven days</b>" +
@@ -2010,8 +2036,33 @@ var BLOCK_PLAN = {
 };
 function planFor(w) { return BLOCK_PLAN[w] || null; }
 
+/* What has already gone into this week, quality-wise — including an easy run
+   that was actually run at threshold, which is the one that catches people. */
+function deloadSoFar(w) {
+  var rows = weekRows(w) || [], out = [];
+  var tv = trainingFitness(), thresh = tv ? paceAtPct(tv, 0.88) : null;
+  rows.forEach(function (d) {
+    if (!d || !d.done) return;
+    var g = groupOfSid(d.sid);
+    if (g === "effort") { out.push(sessionOf(d).type); return; }
+    if (g === "easy" && thresh) {
+      var pace = toSec(d.avgpace);
+      if (isFinite(pace) && pace > 0 && pace <= thresh + 12) {
+        out.push((d.detail || "an easy run") + " at " + fmtSec(pace) + "/km — threshold pace, not easy");
+      }
+    }
+  });
+  return out;
+}
 function deloadAdvice() {
-  return '<div class="note good" style="margin-bottom:12px"><b>Deload week — this is the week the work turns into fitness</b>' +
+  var done = deloadSoFar(viewWeek);
+  var already = done.length
+    ? '<div class="note stop" style="margin-bottom:12px"><b>This week has already had quality in it</b>' +
+      done.map(function (x) { return esc(x); }).join("; ") + ". " +
+      '<span style="color:var(--chalk);font-weight:600">Make the rest of the week easy running only</span> — or nothing, ' +
+      "plus a few relaxed strides if your legs genuinely feel fresh. Adding a rep session on top of this turns the deload into another quality week, which is the one thing it cannot be.</div>"
+    : "";
+  return already + '<div class="note good" style="margin-bottom:12px"><b>Deload week — this is the week the work turns into fitness</b>' +
     "You do not get faster during the hard weeks. You get faster while you recover from them, and that only happens if you actually drop the load. " +
     '<span style="color:var(--chalk);font-weight:600">Cut the volume roughly in half and keep the speed.</span> Short and sharp beats long and easy here — drop reps, not pace.</div>' +
 
@@ -3143,7 +3194,7 @@ function renderVdot() {
   var paceTbl = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Zone</th><th>Pace</th><th>Where it is used</th></tr></thead><tbody>" +
     paces.map(function (pz) {
-      return "<tr><td><b>" + pz[0] + "</b></td>" + '<td class="hl">' + fmtSec(paceAtPct(cur, pz[1])) + "/km</td>" +
+      return "<tr><td><b>" + pz[0] + "</b></td>" + '<td class="hl">' + fmtSec(paceAtPct(trainingFitness() || cur, pz[1])) + "/km</td>" +
         "<td>" + esc(pz[2]) + "</td></tr>";
     }).join("") + "</tbody></table></div>";
 
@@ -3272,6 +3323,20 @@ function currentFitness() {
   return { v: median(vs), lo: vs[0], hi: vs[vs.length - 1], n: vs.length, ev: ev,
     start: median(ev.filter(function (e) { return e.date === d0; }).map(function (e) { return e.v; })),
     startDate: d0 };
+}
+
+/* Training paces come from the most conservative estimate, not the median.
+   Prescribing off an inflated number makes easy runs too fast, which is the
+   exact failure this is meant to catch — and a single 800m rep always reads
+   faster than the 5K that actually governs an easy pace. */
+function trainingFitness() {
+  var fit = currentFitness();
+  if (!fit) return null;
+  var aerobic = fit.ev.filter(function (e) { return e.dist >= 3000; });
+  if (aerobic.length) {
+    return aerobic.reduce(function (a, b) { return b.v < a.v ? b : a; }).v;
+  }
+  return fit.lo;
 }
 
 var GOALS = [{ id: "mile", label: "Mile", dist: 1609 }, { id: "5k", label: "5K", dist: 5000 }];
@@ -3655,11 +3720,19 @@ function projection() {
   var start = roll[0];
   var spanDays = daysBetween(parseDay(asc[0].date), parseDay(asc[asc.length - 1].date)) || 1;
 
-  /* rate from the last fortnight of averages, which is the shortest window
-     where water noise has largely cancelled out */
-  var backIdx = Math.max(0, roll.length - 15);
-  var backDays = daysBetween(parseDay(asc[backIdx].date), parseDay(asc[asc.length - 1].date)) || 1;
-  var perWeek = (cur - roll[backIdx]) / backDays * 7;
+  /* Both ends of the rate must be genuine seven-day averages. A partial window
+     is one morning's reading carrying the full 2–4 lb of daily water swing, and
+     measuring from one reported 1.2 lb/week across a fortnight that was
+     actually flat. Rate from the last fortnight of complete windows. */
+  var FIRST_FULL = 6;
+  var lastIdx = roll.length - 1;
+  var backIdx = Math.max(FIRST_FULL, roll.length - 15);
+  var provisional = lastIdx <= FIRST_FULL || (lastIdx - backIdx) < 4;
+  var perWeek = 0, backDays = 0;
+  if (!provisional) {
+    backDays = daysBetween(parseDay(asc[backIdx].date), parseDay(asc[lastIdx].date)) || 1;
+    perWeek = (cur - roll[backIdx]) / backDays * 7;
+  }
 
   var toGo = cur - target;
   var daysLeft = date ? daysBetween(parseDay(today()), parseDay(date)) : null;
@@ -3669,6 +3742,10 @@ function projection() {
   var neededRate = (daysLeft && daysLeft > 0) ? toGo / (daysLeft / 7) : null;
   var projected = daysLeft != null ? cur + perWeek * (daysLeft / 7) : null;
 
+  if (provisional) {
+    return { state: "provisional", cur: cur, target: target, date: date,
+      have: asc.length, span: lastIdx - FIRST_FULL + 1, toGo: cur - target };
+  }
   return { state: "ok", cur: cur, start: start, target: target, date: date, spanDays: spanDays,
     perWeek: perWeek, toGo: toGo, daysLeft: daysLeft, eta: eta, etaDays: etaDays,
     neededRate: neededRate, projected: projected, asc: asc, roll: roll };
@@ -3698,6 +3775,15 @@ function renderTrack() {
 
   if (pr.state === "no-target") {
     el.innerHTML = '<div class="note warn"><b>Set your target first</b>Put a stop weight and a date into the stopping rule below, and this fills in — stepping stones, a projected finish, and a straight answer on whether you are going to make it.</div>';
+    return;
+  }
+  if (pr.state === "provisional") {
+    el.innerHTML = '<div class="note flat"><b>7-day average is ' + pr.cur.toFixed(1) + ' lb — no honest rate yet</b>' +
+      "A rate needs two <em>complete</em> seven-day averages a few days apart, and you have " +
+      (pr.span > 0 ? "only " + pr.span + " day" + (pr.span === 1 ? "" : "s") + " of them" : "none yet") + ". " +
+      "Measuring from a part-formed average means measuring from a single morning, which carries the whole 2–4 lb of daily water swing — that is how you get told you are losing a pound a week during a fortnight that was flat. " +
+      '<b style="color:var(--chalk)">Keep weighing; a few more days and this becomes a real number.</b> ' +
+      "You are " + Math.abs(pr.toGo).toFixed(1) + " lb " + (pr.toGo > 0 ? "off" : "under") + " " + pr.target + ".</div>";
     return;
   }
   if (pr.state === "thin") {
@@ -3730,14 +3816,22 @@ function renderTrack() {
       (feelUp ? "Sessions are getting harder at unchanged paces. " : "") +
       "Whatever the weight is doing, this is not the moment to cut further. Take 2–3 days at maintenance — around " + Math.round((settings.intake || 1800) + 500) +
       " kcal, extra from carbs, protein unchanged — then resume. You will gain a pound of glycogen water and lose it again within days of restarting.";
-  } else if (pr.perWeek > -0.1) {
-    cls = "warn"; title = "Flat — " + pr.cur.toFixed(1) + " lb";
-    body = "No meaningful movement. In order: check intake is actually at target and steps are actually at 12,500–13,000, because drift explains most stalls. If both are clean, <b>add activity before you cut calories</b> — 2,000 more steps or a 20 minute walk costs you nothing in recovery, where another 150 kcal off raises cortisol and holds water. Only if that does nothing after a week should the intake come down, and not below about 1,700.";
+  } else if (pr.perWeek > -0.15) {
+    cls = "warn"; title = "Flat — " + pr.cur.toFixed(1) + " lb, " + Math.abs(pr.perWeek).toFixed(1) + " lb/week";
+    body = "No meaningful movement. In order: check intake is actually at target and steps are actually at 12,500–13,000, because drift explains most stalls. If both are clean, <b>add activity before you cut calories</b> — 2,000 more steps or a 20 minute walk costs you nothing in recovery, where another 150 kcal off raises cortisol and holds water. Only if that does nothing after a week should the intake come down, and not below about 1,700." +
+      (pr.date ? "" : " <b>And put a date in the stopping rule below</b> — without one this cannot tell you whether you are going to make it.");
   } else if (onTrack) {
     cls = "good"; title = "On track — " + Math.abs(pr.perWeek).toFixed(1) + " lb/week";
     body = "At this rate you reach " + pr.target + " lb around <b>" + pr.eta + "</b>" +
       (pr.daysLeft != null ? ", which is " + (pr.etaDays <= pr.daysLeft ? (pr.daysLeft - pr.etaDays) + " days clear of your date" : Math.abs(pr.daysLeft - pr.etaDays) + " days past it") : "") +
       ". Change nothing. The single most common way this goes wrong from here is deciding to speed it up.";
+  } else if (pr.projected == null) {
+    /* A stop weight with no date: there is a rate but nothing to measure it
+       against, so say that instead of throwing on a null projection. */
+    cls = "warn"; title = "Losing " + Math.abs(pr.perWeek).toFixed(1) + " lb/week — but no deadline set";
+    body = "You are " + pr.toGo.toFixed(1) + " lb off " + pr.target + ", and at this rate that is about " +
+      (pr.etaDays != null ? Math.ceil(pr.etaDays / 7) + " more week" + (Math.ceil(pr.etaDays / 7) === 1 ? "" : "s") : "an unknown number of weeks") + ". " +
+      "<b>Put a date in the stopping rule below</b> and this turns into a straight yes or no on whether you make it — which is the only version of this that is any use.";
   } else {
     var short = (pr.projected - pr.target);
     cls = "warn"; title = "Behind — projecting " + pr.projected.toFixed(1) + " lb by " + pr.date;

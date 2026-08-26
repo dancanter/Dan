@@ -115,6 +115,22 @@ and full pace, two shorter easy runs, sprints optional; no time trials, no long
 rep sets or threshold, no making up missed sessions, and no third effort because
 you feel good — feeling good in a deload is the deload working.
 
+**Easy runs are checked against your own easy pace.** Log an average pace on an
+easy run and it is compared to the easy and threshold paces derived from your
+logged times. Inside threshold and it says so outright — that run counted as one
+of your two quality sessions, not as recovery. Training paces come from the
+*most conservative* aerobic estimate rather than the median, because a single
+800m rep always reads faster than the 5K that actually governs an easy pace, and
+prescribing off the inflated number is what makes easy runs too fast in the
+first place.
+
+**A deload week knows what is already in it.** If the week has logged quality —
+including an easy run actually run at threshold — the deload view leads with
+that and says to make the rest of the week easy running only.
+
+The heavier sessions (5 mile threshold, 10km threshold, 10K/5K/mile all-out) are
+flagged `occasional`: benchmarks to rotate, not part of the weekly menu.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,
