@@ -16,34 +16,43 @@ Good maternal health information exists, but it's scattered across PDFs, NHS pag
 
 ## What's in it
 
-Navigation is three layers — **Today**, **Explore**, and **Get Help** — with Get Help visually set apart and permanently one tap away rather than competing with browsing tabs.
+Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appointments · **Get Help** · Journal · Sources — with Get Help set apart in red and present on every screen. An **Explore** route lists everything in one place for anything not in the bar. The pregnancy-only tabs disappear once a birth date is set, or in support-after-loss mode.
 
 | Screen | What it does |
 | --- | --- |
 | **Home** | Week picker, this week's focus checklist, timed reading suggestions, a daily myth card, and a prompt to save for your midwife |
+| **Home, first visit** | One dismissible card: what the app cannot do, and where urgent help is. Not a tour |
 | **Home, after birth** | The same route, switched over: days/weeks since birth, a postnatal checklist, recovery and feeding reads, and a mood check-in |
 | **Baby** | Week-by-week development and size, milestone timeline, optional nickname |
 | **My Body** | 16-symptom explorer — why it's happening, what helps, and when it stops being routine |
 | **Guidance** | 111 searchable, individually-cited entries across four life phases — *During pregnancy* (nutrition, supplements, food safety, exercise, sleep, wellbeing, weight, medications, vaccinations, existing conditions, alcohol & smoking, **work rights**, everyday safety, skincare, travel, infections), *Birth & labour*, *After birth*, and *Feeding* |
 | **Appointments** | Your antenatal timeline, tailored to first vs subsequent pregnancy |
-| **Get Help** | 12 urgent symptoms in plain language, each opening to *what to do now* (one-tap call, read-aloud), *why it matters*, then reassurance where true |
+| **Get Help** | 13 urgent symptoms in plain language, each opening to *what to do now* (one-tap call, read-aloud), *why it matters*, then reassurance where true |
 | **Movement journal** | Times and kinds of movement. Explicitly **not** a kick counter — no count, no target, no verdict |
 | **Bump gallery** | Optional weekly photos in IndexedDB, with a time-lapse. No prompts, no completeness indicator |
 | **My pregnancy has changed** | Pause · support after loss · delete (export offered first) · go back. Never asks what happened |
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
-| **Sources** | All 117 references, grouped by evidence tier, with funding conflicts flagged |
+| **Sources** | All 122 references, grouped by evidence tier, with funding conflicts flagged. The research papers link straight through |
 
 ## Design decisions worth explaining
 
 **The daily screen is phase-aware, so the library reaches it.** 111 entries is more than anyone will browse. Rules in `weeklyReads.ts` decide what surfaces on Home in a given week, and each suggestion leads with *why now* rather than its title — "packed from around 37 weeks" is what makes someone tap. Birth prep appears from week 24, labour and feeding from 34, recovery from 37. Same content, arriving when it's useful.
 
+**One thing on Home is allowed to be big.** Today used to be six sections of identical visual weight, so nothing told you where to start — and on a screen opened by someone exhausted or nauseous, "everything is equally important" reads as "work out what matters yourself". Now the most relevant read for the week is promoted into its own card; the rest drop to a quiet list; and the myth card and midwife prompt move below the quick actions, because they were only competing with the week's guidance by being the same size.
+
+**"Since you were last here" tracks the week, and deliberately never the date.** Someone who opens the app once a fortnight should get something useful rather than the same screen again — you're in a new week, here's what became relevant while you were away. What it never says is how long it's been: *"you haven't been here in 9 days"* is a streak wearing a different hat, aimed at exactly the wrong audience. A test asserts the banner never says *day*, *missed*, *behind* or *streak*, and never appears on a first visit, an unchanged week, or while browsing ahead.
+
+**No guide appears twice on one screen.** Building the above produced the same bug twice — the promoted read relisted inside "since you were last here", then the newly-relevant reads relisted under "also relevant now". Both sides now read from one `newReadsBetween()` in the content layer instead of each deriving it, and a test holds the line. Neither was visible in jsdom; both were obvious in a screenshot.
+
 **Once the baby arrives, Home becomes a different screen — on the same route.** Setting a birth date (not the due date passing, since babies arrive weeks either side) switches Home to weeks-since-birth: a postnatal checklist, recovery and feeding reads, and a mood check-in that surfaces postnatal depression guidance when it's needed. The pregnancy-only tabs disappear, because week-by-week foetal development is actively wrong at that point. Nothing bookmarked or installed breaks.
 
 **Disparities are stated, then made actionable.** UK maternal mortality is unevenly distributed — MBRRACE-UK data shows Black women at roughly 2–2.3× the risk of White women, and women in the most deprived areas at ~1.9×. A statistic like that is the wrong thing to drop into a daily checklist, and useless on its own. So it lives on its own route, and every figure is followed by something a reader can use: self-refer without a GP, ask for a professional interpreter, ask for a second opinion, contact PALS, go back and ask again. `validateContent()` fails the build if the actionable section ever disappears.
 
-**Safety content is never gated, and onboarding asks for one thing.** A due date, and nothing else — everything else is asked later, in context, where it first changes something. `/help`, `/loss`, `/inequalities` and `/changed` all render without any setup, and Get Help is linked from the onboarding screen itself.
+**Safety content is never gated, and onboarding asks for one thing.** A due date, and nothing else — everything else is asked later, in context, where it first changes something. `/help`, `/loss`, `/inequalities` and `/changed` all render without any setup, and Get Help is linked from the onboarding screen itself. Since that leaves a first-time reader arriving at a full daily screen having been told nothing, one dismissible card says the two things easiest to get wrong about a pregnancy app — it cannot tell you whether you or your baby are well, and urgent guidance is one tap away. Not a modal and not a tour: a tour would put four screens between someone and the help they may have opened the app to find.
+
+**Every screen is the same shell, and there are three widths.** Screens used to write their own `<main>` and `<h1>`, and they had drifted to six different max-widths, three heading sizes and three top paddings. Nothing was wrong on any one screen, but moving between them the page kept quietly resizing under you. Width is now chosen on what the content *is* — `focus` for a single decision, `reading` for prose, `default` for lists — rather than how much of it there happens to be.
 
 **The app never assesses whether anyone is well, and says so.** That boundary drives real design decisions rather than sitting in a disclaimer: the Movement Journal stores times and kinds but no count or total, the "contact your maternity unit" line there is permanent rather than appearing when the app decides something looks wrong, and the statement itself renders on every urgent screen. A test asserts *what to do now* precedes *why this matters* on all 12 of them — an explanation above an instruction is the wrong way round for someone frightened.
 
@@ -117,7 +126,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build + PWA manifest and service worker
 npm run preview
-npm test           # content integrity, component and accessibility tests
+npm test           # content integrity, component and accessibility tests (110)
 npm run typecheck
 npm run lint
 npm run readability   # Flesch–Kincaid audit, worst entries first
