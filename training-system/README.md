@@ -104,7 +104,9 @@ it leans on and why, with the easy runs and the sprint slot under them. Which
 day anything lands on is still free. Weeks 1–3 build the engine both goals sit
 on; 5–7 sharpen (threshold for the 5K, ladders and 600s for the mile, a 3K to
 see where you are); 9–11 go race-specific, one week leaning mile, one 5K, one
-rehearsing the finish; 13 is the two attempts. The mile needs a higher fitness
+rehearsing the finish; 13 is the three attempts — mile Monday, 5K Thursday,
+400m Sunday, with the 400m last because it is the least important of the three
+and something has to pay for the order. The mile needs a higher fitness
 than 16:50 does, so the speed work sits late, once the base under it exists.
 
 **Deload weeks are 4, 8 and 12** — every fourth. The deload view replaces the

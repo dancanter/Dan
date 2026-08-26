@@ -1208,6 +1208,8 @@ function poolFor(w) {
     /* ---- effort sessions: you pick, all out, full recovery, no target pace ---- */
     { sid: "eff_mile", hard: 2, group: "effort", type: "1 mile — all out",
       desc: "One mile, flat out." + short },
+    { sid: "eff_400tt", hard: 2, group: "effort", type: "400m — all out",
+      desc: "One 400m, flat out, off a full warm-up. Nothing else that day." + short },
     { sid: "eff_5k", hard: 2, group: "effort", type: "5K — all out",
       desc: "5K, flat out." + short },
     { sid: "eff_1k", hard: 2, group: "effort", type: "1km reps",
@@ -2003,8 +2005,8 @@ var BLOCK_PLAN = {
         why: "Descending sets rehearse finishing fast off tired legs, which is exactly what a PB attempt asks for." },
   12: { phase: "Deload", focus: "Taper into the attempts", efforts: [], why: "" },
   13: { phase: "PB attempts", focus: "Race", race: true,
-        efforts: ["1 mile — all out", "5K — all out"],
-        why: "Two attempts, at least three days apart, each on fresh legs. Nothing else that week matters." }
+        efforts: ["1 mile — all out", "5K — all out", "400m — all out"],
+        why: "Three attempts, three days apart, each on legs as fresh as the week allows. Nothing else that week matters." }
 };
 function planFor(w) { return BLOCK_PLAN[w] || null; }
 
@@ -2052,12 +2054,18 @@ function renderPlan() {
       pl.efforts.map(function (t, i) {
         return '<div class="stone" style="grid-template-columns:1fr auto">' +
           '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(t) + "</span>" +
-          '<span class="stone-when" style="color:var(--go)">attempt ' + (i + 1) + "</span></div>";
+          '<span class="stone-when" style="color:var(--go)">' +
+          ["Mon", "Thu", "Sun"][i] + " · attempt " + (i + 1) + "</span></div>";
       }).join("") + "</div>" +
       '<div class="note good" style="margin-bottom:12px"><b>How to run the week</b>' +
-      "<span style=\"color:var(--chalk);font-weight:600\">At least three days between the two attempts</span>, and nothing harder than an easy 20–30 minutes in between. " +
-      "Take the two days before each one completely off or very easy. Warm up properly — you cannot run a PB off a cold start — and go out at goal pace rather than faster. " +
+      '<span style="color:var(--chalk);font-weight:600">Monday the mile, Thursday the 5K, Sunday the 400m.</span> ' +
+      "Three days between each, nothing harder than an easy 20–30 minutes in between, and the day before each one off or very easy. " +
+      "Warm up properly — you cannot run a PB off a cold start — and go out at goal pace rather than faster. " +
       "Every mile PB you have ever missed was lost in the first lap, not the last.</div>" +
+      '<div class="note warn" style="margin-bottom:12px"><b>The 400m is the one that pays for this order</b>' +
+      "Three days after an all-out 5K is the worst state to run a fast 400 from — it is a pure speed event and the 5K leaves your legs flat. " +
+      '<span style="color:var(--chalk);font-weight:600">You have said it is the least important of the three, so this is the right trade</span> — just do not read a slow 400 as a loss of speed. ' +
+      "If you decide you want that time properly, run it on the Monday and push the mile back; you cannot have all three fresh.</div>" +
       '<div class="note stop"><b>Nothing else this week</b>' +
       "No rep sets, no threshold, no sprints, no gym in the 48 hours before an attempt. There is no session you can add now that makes you faster on the day, and several that make you slower.</div>";
     return;
