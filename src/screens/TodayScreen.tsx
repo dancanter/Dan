@@ -6,6 +6,7 @@ import { useProgress } from '../hooks/useProgress';
 import { useJournal } from '../hooks/useJournal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
+import { useLastSeenWeek } from '../hooks/useLastSeenWeek';
 import {
   babyWeekByNumber,
   focusForWeek,
@@ -18,6 +19,8 @@ import {
 import { dayOfYear } from '../lib/dates';
 import { WeekBar } from '../components/week/WeekBar';
 import { FocusList } from '../components/today/FocusList';
+import { LeadRead } from '../components/today/LeadRead';
+import { WhatChanged } from '../components/today/WhatChanged';
 import { MythCard } from '../components/today/MythCard';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
 import { ReadingCard } from '../components/today/ReadingCard';
@@ -55,6 +58,7 @@ export function TodayScreen() {
   const { add: addJournal } = useJournal();
   const { reduceMotion } = useAccessibilitySettings();
   const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
+  const previousWeek = useLastSeenWeek(currentWeek);
   const [viewWeek, setViewWeek] = useState<number | null>(null);
 
   useEffect(() => {
@@ -111,7 +115,9 @@ export function TodayScreen() {
   const focus = focusForWeek(week);
   const note = noteForWeek(week);
   const myth = myths[dayOfYear() % myths.length];
-  const reads = readsForWeek(week);
+  // The most-relevant read is promoted to the top of the screen; the rest stay
+  // as a quiet list further down. One thing to read beats five to choose from.
+  const [lead, ...rest] = readsForWeek(week);
 
   // Only ever celebrate the *most recent* milestone reached. Someone who
   // installs the app at week 30 has already passed four of them — they
@@ -180,29 +186,36 @@ export function TodayScreen() {
         </button>
       )}
 
+      {/* Only on the reader's actual week. Browsing ahead to week 34 should
+          not claim anything has changed. */}
+      {viewWeek === null && (
+        <WhatChanged
+          previousWeek={previousWeek}
+          currentWeek={currentWeek}
+          excludeGuideId={lead?.guide.id}
+        />
+      )}
+
+      {/* ── Tier one: the single thing worth knowing this week ───────────
+          Everything below this is deliberately quieter. */}
+      {lead && <LeadRead read={lead} alreadyRead={readGuideIds.includes(lead.guide.id)} />}
+
+      {/* ── Tier two: this week's focus, and the rest of the reading ───── */}
       <SectionHeading>This week’s focus</SectionHeading>
       <FocusList items={focus} week={week} isTicked={isTicked} onToggle={toggleTick} />
 
-      {/* The library runs to birth, recovery and feeding. This is what pulls
-          the right part of it onto the daily screen at the right week. */}
-      <SectionHeading>Worth reading now</SectionHeading>
-      <ReadingCard reads={reads} readGuideIds={readGuideIds} />
-
-      <SectionHeading>Myth check</SectionHeading>
-      <MythCard myth={myth} reduceMotionOverride={reduceMotion} onReveal={markMythRevealed} />
-
-      <SectionHeading>Ask your midwife</SectionHeading>
-      <MidwifeQuestionCard
-        onSave={(q) => {
-          addJournal('question', q, currentWeek);
-        }}
-      />
+      {rest.length > 0 && (
+        <>
+          <SectionHeading>Also relevant now</SectionHeading>
+          <ReadingCard reads={rest} readGuideIds={readGuideIds} />
+        </>
+      )}
 
       <Note tone={note.tone} title={note.title}>
         {note.body}
       </Note>
 
-      {/* Four fixed quick actions, always in the same place at the bottom. */}
+      {/* ── Tier three: things to do, rather than things to read ────────── */}
       <SectionHeading>Quick actions</SectionHeading>
       <div className="grid grid-cols-2 gap-2">
         {[
@@ -220,6 +233,19 @@ export function TodayScreen() {
           </Link>
         ))}
       </div>
+
+      {/* Moved below the quick actions: a myth card and a question prompt are
+          the least urgent things here, and they were competing with the week's
+          guidance for attention purely by being the same size. */}
+      <SectionHeading>Myth check</SectionHeading>
+      <MythCard myth={myth} reduceMotionOverride={reduceMotion} onReveal={markMythRevealed} />
+
+      <SectionHeading>Ask your midwife</SectionHeading>
+      <MidwifeQuestionCard
+        onSave={(q) => {
+          addJournal('question', q, currentWeek);
+        }}
+      />
 
       {currentWeek >= 34 && <BabyArrivedCard />}
     </main>

@@ -83,7 +83,10 @@ describe('the daily screen through the phases', () => {
         <TodayScreen />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Worth reading now')).toBeDefined();
+    // The most relevant read is promoted out of the list into its own card at
+    // the top of the screen, so assert on what it says rather than on the
+    // heading above the list it used to live in.
+    expect(screen.getByText(/worth knowing this week/i)).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Week 38');
     expect(screen.getByRole('button', { name: /Baby arrived/i })).toBeDefined();
   });
