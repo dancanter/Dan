@@ -2,7 +2,8 @@ import { Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal } from '../hooks/useJournal';
 import { appointments, helpTopics } from '../content';
-import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
+import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
 import { SourceList } from '../components/ui/SourceList';
@@ -19,12 +20,7 @@ export function AppointmentsScreen() {
   const whereToGo = helpTopics.find((t) => t.id === 'where-to-go');
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle
-        title="Appointments"
-        strap="What’s coming up, and how to get the most from it."
-      />
-
+    <Screen title="Appointments" lede="What’s coming up, and how to get the most from it.">
       <Note tone="calm" title="Starting your care">
         You don’t need a GP referral — self-refer for NHS pregnancy care as soon as you know you’re
         pregnant. Search “self-refer maternity” plus your area, or ask your GP surgery.
@@ -151,6 +147,6 @@ export function AppointmentsScreen() {
           </div>
         </details>
       )}
-    </main>
+    </Screen>
   );
 }

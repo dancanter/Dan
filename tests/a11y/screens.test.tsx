@@ -101,18 +101,27 @@ describe('focus on arrival', () => {
 
   // Eight screens used to call useAutoFocusHeading and drop the returned ref,
   // so the effect ran and focused nothing — a keyboard user landed on the new
-  // screen still focused wherever they had been on the old one. ScreenTitle
-  // owns this now, so the failure mode of "forgot to attach the ref" cannot
-  // come back. These are the screens that used to be broken.
-  const TITLED: [string, () => React.ReactElement][] = SCREENS.filter(([name]) =>
-    ['Explore', 'Healthy Pregnancy', 'Appointments', 'Journal', 'Sources', 'Settings'].includes(
-      name,
-    ),
-  );
+  // screen still focused wherever they had been on the old one. The Screen
+  // shell owns this now, so "forgot to attach the ref" is no longer a mistake
+  // a screen can make. Every screen is checked, not just the ones that broke:
+  // the point of the shell is that this holds by construction.
+  const EXCLUDED = [
+    // Renders a <Navigate> in the test environment rather than a heading.
+    'Bump gallery',
+  ];
+  const FOCUSABLE = SCREENS.filter(([name]) => !EXCLUDED.includes(name));
 
-  it.each(TITLED)('%s moves focus to its heading', (_name, Screen) => {
+  it.each(FOCUSABLE)('%s moves focus to its heading', (_name, Screen) => {
     render(<MemoryRouter>{Screen()}</MemoryRouter>);
     const heading = screen.getByRole('heading', { level: 1 });
+
+    // A milestone celebration is a modal, and a modal is *supposed* to hold
+    // focus — sending it to the heading behind the overlay would be the bug.
+    const dialog = screen.queryByRole('dialog');
+    if (dialog) {
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      return;
+    }
     expect(document.activeElement).toBe(heading);
   });
 });

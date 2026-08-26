@@ -1,23 +1,21 @@
 import { Link } from 'react-router-dom';
 import { methodologySections } from '../content/methodology';
 import { sources, SOURCE_TIER_LABEL, type Source } from '../content';
-import { ScreenTitle } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 import { RichText } from '../components/ui/RichText';
 import { Note } from '../components/ui/Note';
 
 const TIER_ORDER: Source['tier'][] = ['gov', 'nhs', 'college', 'charity', 'research'];
 
 export function MethodologyScreen() {
-
   const withCaveats = sources.filter((s) => s.caveat).length;
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle
-        title="How this is built"
-        strap="The process behind every entry, not just the sources list."
-      />
-
+    <Screen
+      title="How this is built"
+      lede="The process behind every entry, not just the sources list."
+      width="reading"
+    >
       <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {TIER_ORDER.map((tier) => (
           <div key={tier} className="rounded-xl border border-line bg-card px-3 py-3 text-center">
@@ -63,6 +61,6 @@ export function MethodologyScreen() {
           Browse the guidance →
         </Link>
       </div>
-    </main>
+    </Screen>
   );
 }

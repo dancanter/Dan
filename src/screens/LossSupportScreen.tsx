@@ -1,5 +1,5 @@
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { lossSections, lossIntro } from '../content';
+import { Screen } from '../components/ui/Screen';
 import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
 
@@ -9,17 +9,8 @@ import { RichText } from '../components/ui/RichText';
  * someone goes looking, via Get Help or the footer.
  */
 export function LossSupportScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
-
   return (
-    <main id="main" className="mx-auto max-w-[720px] px-4 pt-8 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[26px] outline-none">
-        Pregnancy and baby loss
-      </h1>
-      <p className="mb-7 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[15.5px] leading-relaxed">
-        {lossIntro}
-      </p>
-
+    <Screen title="Pregnancy and baby loss" lede={lossIntro} ledeTone="quiet" width="reading">
       {lossSections.map((section) => (
         <section key={section.id} className="mb-8">
           <h2
@@ -43,6 +34,6 @@ export function LossSupportScreen() {
       <p className="mt-10 border-t border-line pt-5 text-center text-[14.5px] italic text-soft">
         However early, however long ago — what you’re feeling is real, and there is support for it.
       </p>
-    </main>
+    </Screen>
   );
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useProgress } from '../hooks/useProgress';
 import { useJournal } from '../hooks/useJournal';
+import { Screen } from '../components/ui/Screen';
 
 /**
  * "My pregnancy has changed."
@@ -18,7 +18,6 @@ import { useJournal } from '../hooks/useJournal';
  * needs review by Sands or the Miscarriage Association before launch.
  */
 export function PregnancyChangedScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const navigate = useNavigate();
   const { setStatus } = usePregnancyStatus();
   const { resetProfile } = usePregnancyProfile();
@@ -49,15 +48,11 @@ export function PregnancyChangedScreen() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-[620px] px-4 pt-8 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[25px] outline-none">
-        My pregnancy has changed
-      </h1>
-      <p className="mb-7 text-[15.5px] leading-relaxed text-soft">
-        You don’t have to tell us anything about what happened. Choose whichever of these is
-        closest, and you can change your mind later.
-      </p>
-
+    <Screen
+      title="My pregnancy has changed"
+      lede="You don’t have to tell us anything about what happened. Choose whichever of these is closest, and you can change your mind later."
+      width="focus"
+    >
       <div className="space-y-3">
         <button
           type="button"
@@ -149,6 +144,6 @@ export function PregnancyChangedScreen() {
         Whatever you choose, your due date and any anniversaries will pass without a notification
         unless you ask for one.
       </p>
-    </main>
+    </Screen>
   );
 }

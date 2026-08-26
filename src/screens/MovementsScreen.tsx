@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import {
   useMovements,
   activeHours,
@@ -11,6 +10,7 @@ import {
 } from '../hooks/useMovements';
 import { useMaternityUnit } from '../hooks/useMaternityUnit';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 
 /**
  * The Movement Journal — explicitly not a kick counter.
@@ -22,7 +22,6 @@ import { SectionHeading } from '../components/ui/SectionHeading';
  *  3. It never suggests waiting, cold drinks, lying down, or a home doppler.
  */
 export function MovementsScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const { entries, log, remove } = useMovements();
   const { dialable, unitName, hasNumber } = useMaternityUnit();
   const [kind, setKind] = useState<MovementKind>('kick');
@@ -34,10 +33,7 @@ export function MovementsScreen() {
   const recent = entries.slice(0, 20);
 
   return (
-    <main id="main" className="mx-auto max-w-[680px] px-4 pt-5 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-2 text-[25px] outline-none">
-        Movement journal
-      </h1>
+    <Screen title="Movement journal" width="reading">
       <p className="mb-4 text-[15px] leading-relaxed text-soft">
         This journal helps you remember your baby’s usual pattern. It cannot check whether your baby
         is well.
@@ -209,6 +205,6 @@ export function MovementsScreen() {
           What to do if the pattern changes
         </Link>
       </p>
-    </main>
+    </Screen>
   );
 }

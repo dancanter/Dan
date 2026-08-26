@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal, JOURNAL_LABEL, MOODS, type JournalKind } from '../hooks/useJournal';
-import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
+import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { formatDate } from '../lib/dates';
 
@@ -29,12 +30,7 @@ export function JournalScreen() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle
-        title="Journal"
-        strap="Private to you. Nothing here is shared or sent anywhere."
-      />
-
+    <Screen title="Journal" lede="Private to you. Nothing here is shared or sent anywhere.">
       <div role="tablist" aria-label="Journal sections" className="my-3 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <button
@@ -186,6 +182,6 @@ export function JournalScreen() {
           ))}
         </ul>
       )}
-    </main>
+    </Screen>
   );
 }

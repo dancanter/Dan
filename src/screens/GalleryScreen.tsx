@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
@@ -13,6 +12,7 @@ import {
   type BumpPhoto,
 } from '../lib/photoStore';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 
 /**
  * The bump gallery.
@@ -26,7 +26,6 @@ import { SectionHeading } from '../components/ui/SectionHeading';
  * and there is a text alternative either way.
  */
 export function GalleryScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const { currentWeek } = usePregnancyProfile();
   const { isAfterLoss } = usePregnancyStatus();
   const { reduceMotion } = useAccessibilitySettings();
@@ -97,15 +96,11 @@ export function GalleryScreen() {
   if (isAfterLoss) return <Navigate to="/today" replace />;
 
   return (
-    <main id="main" className="mx-auto max-w-[680px] px-4 pt-5 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-2 text-[25px] outline-none">
-        Bump gallery
-      </h1>
-      <p className="mb-5 text-[15px] leading-relaxed text-soft">
-        Entirely optional, and there’s no schedule to keep. Photos stay on this device — they are
-        never uploaded anywhere.
-      </p>
-
+    <Screen
+      title="Bump gallery"
+      lede="Entirely optional, and there’s no schedule to keep. Photos stay on this device — they are never uploaded anywhere."
+      width="reading"
+    >
       {unavailable && (
         <p className="mb-5 rounded-xl border border-clay bg-clayp px-4 py-3 text-[14.5px] leading-relaxed">
           This browser won’t let the app store photos on your device — usually a private window, or
@@ -206,6 +201,6 @@ export function GalleryScreen() {
           </ul>
         </>
       )}
-    </main>
+    </Screen>
   );
 }

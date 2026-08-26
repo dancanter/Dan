@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useProgress } from '../hooks/useProgress';
 import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
-import { ScreenTitle } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
 
@@ -41,9 +41,7 @@ function GuideCard({
         <RichText paragraphs={guide.body} />
         {guide.lists?.map((list) => (
           <div key={list.title ?? 'list'} className="mt-3">
-            {list.title && (
-              <p className="label-mono mb-1.5 text-mossd">{list.title}</p>
-            )}
+            {list.title && <p className="label-mono mb-1.5 text-mossd">{list.title}</p>}
             <ul className="m-0 list-none p-0">
               {list.items.map((item) => (
                 <li key={item} className="mb-1 flex gap-2 text-[15px]">
@@ -133,12 +131,10 @@ export function HealthyScreen() {
   const totalMatches = sections.reduce((n, s) => n + s.items.length, 0);
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle
-        title="Guidance"
-        strap="Everything that helps, and nothing that doesn’t — pregnancy through to feeding."
-      />
-
+    <Screen
+      title="Guidance"
+      lede="Everything that helps, and nothing that doesn’t — pregnancy through to feeding."
+    >
       <div className="mb-5">
         <label htmlFor="guide-search" className="mb-1.5 block text-sm font-semibold">
           Search the guidance
@@ -195,6 +191,6 @@ export function HealthyScreen() {
           ))}
         </section>
       ))}
-    </main>
+    </Screen>
   );
 }

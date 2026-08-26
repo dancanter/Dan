@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
+import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { MAX_WEEK, MIN_WEEK } from '../content/schema';
 import { toISODate } from '../lib/dates';
 
@@ -8,6 +9,11 @@ type Mode = 'due-date' | 'current-week';
 
 export function OnboardingScreen() {
   const { setDueDate, setCurrentWeek } = usePregnancyProfile();
+  // Onboarding keeps its own centred layout rather than the Screen shell —
+  // it is the one screen that isn't a page of content. It still has to put
+  // focus somewhere, though, and it wasn't: a screen-reader user arriving at
+  // the very first screen was left on <body> with nothing announced.
+  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('due-date');
   const [dueDateInput, setDueDateInput] = useState('');
@@ -43,7 +49,13 @@ export function OnboardingScreen() {
   return (
     <main id="main" className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-5 py-10">
       <div className="mb-7 text-center">
-        <h1 className="font-display text-[30px] font-bold">Field Notes</h1>
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="font-display text-[30px] font-bold outline-none"
+        >
+          Field Notes
+        </h1>
         <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
         <p className="mt-4 text-[15px] text-soft">
           Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No

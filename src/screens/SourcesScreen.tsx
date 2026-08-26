@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { sources, sourceUrl, SOURCE_TIER_LABEL, type Source } from '../content';
-import { ScreenTitle } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 import { Note } from '../components/ui/Note';
 
 const TIER_ORDER: Source['tier'][] = ['gov', 'nhs', 'college', 'charity', 'research'];
@@ -9,9 +9,7 @@ export function SourcesScreen() {
   const openable = sources.filter((s) => sourceUrl(s)).length;
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle title="Sources" strap="Everything here comes from somewhere. Here’s where." />
-
+    <Screen title="Sources" lede="Everything here comes from somewhere. Here’s where.">
       <Note tone="calm" title="How this is built">
         Every recommendation is checked against a named source before it goes in. Where evidence is
         uncertain, that’s stated rather than smoothed over. Where a study has a funding conflict,
@@ -81,6 +79,6 @@ export function SourcesScreen() {
           </section>
         );
       })}
-    </main>
+    </Screen>
   );
 }

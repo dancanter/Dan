@@ -5,7 +5,8 @@ import { useProgress } from '../hooks/useProgress';
 import { useJournal } from '../hooks/useJournal';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { formatDate } from '../lib/dates';
-import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
+import { SectionHeading } from '../components/ui/SectionHeading';
 
 const TEXT_SIZES: { value: TextSize; label: string }[] = [
   { value: 'default', label: 'Default' },
@@ -34,9 +35,7 @@ export function SettingsScreen() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle title="Settings" strap="Make this comfortable to read and use." />
-
+    <Screen title="Settings" lede="Make this comfortable to read and use." width="reading">
       <SectionHeading>Text size</SectionHeading>
       <div role="group" aria-label="Text size" className="flex gap-2">
         {TEXT_SIZES.map((o) => (
@@ -130,6 +129,6 @@ export function SettingsScreen() {
       >
         Reset my data
       </button>
-    </main>
+    </Screen>
   );
 }

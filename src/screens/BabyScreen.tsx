@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { babyWeekByNumber, milestones, trimesterLabel } from '../content';
 import { WeekBar } from '../components/week/WeekBar';
+import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 
 export function BabyScreen() {
   const { currentWeek, isOnboarded, babyName, setBabyName } = usePregnancyProfile();
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const [viewWeek, setViewWeek] = useState<number | null>(null);
   const [nameDraft, setNameDraft] = useState(babyName ?? '');
 
@@ -20,18 +19,11 @@ export function BabyScreen() {
   const who = babyName ? babyName : 'your baby';
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <h1
-        ref={headingRef}
-        tabIndex={-1}
-        className="mb-2 border-b-2 border-ink pb-2 text-[25px] outline-none"
-      >
-        {babyName ? babyName : 'Your Baby'}
-      </h1>
-      <p className="mb-5 text-[15px] italic text-mossd">What’s developing, week by week.</p>
-
-      <WeekBar week={week} onChange={setViewWeek} daysToGo={null} />
-
+    <Screen
+      title={babyName ? babyName : 'Your Baby'}
+      lede="What’s developing, week by week."
+      aside={<WeekBar week={week} onChange={setViewWeek} daysToGo={null} />}
+    >
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex h-[92px] w-[92px] flex-none -rotate-4 flex-col items-center justify-center rounded-full border-[1.5px] border-clay bg-clayp">
           <span
@@ -111,6 +103,6 @@ export function BabyScreen() {
         being bigger or smaller than “a mango” this week means nothing on its own. Your midwife
         measuring your bump is the measurement that matters.
       </Note>
-    </main>
+    </Screen>
   );
 }

@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import { guides, sources } from '../content';
-import { ScreenTitle, SectionHeading } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
+import { SectionHeading } from '../components/ui/SectionHeading';
 
 interface Entry {
   to: string;
@@ -110,9 +111,7 @@ export function ExploreScreen() {
   const hide = hasBaby || isAfterLoss;
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle title="Explore" strap="Everything in the app, in one place." />
-
+    <Screen title="Explore" lede="Everything in the app, in one place.">
       {GROUPS.map((group) => {
         const entries = group.entries.filter((e) => !(hide && e.pregnancyOnly));
         if (entries.length === 0) return null;
@@ -142,6 +141,6 @@ export function ExploreScreen() {
           </section>
         );
       })}
-    </main>
+    </Screen>
   );
 }

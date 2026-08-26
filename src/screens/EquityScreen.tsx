@@ -1,5 +1,5 @@
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { equitySections, equityIntro } from '../content';
+import { Screen } from '../components/ui/Screen';
 import { SourceList } from '../components/ui/SourceList';
 import { RichText } from '../components/ui/RichText';
 
@@ -12,17 +12,13 @@ import { RichText } from '../components/ui/RichText';
  * ratio has no business appearing next to a checklist.
  */
 export function EquityScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
-
   return (
-    <main id="main" className="mx-auto max-w-[720px] px-4 pt-8 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[26px] outline-none">
-        Inequalities in maternity care
-      </h1>
-      <p className="mb-7 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[15.5px] leading-relaxed">
-        {equityIntro}
-      </p>
-
+    <Screen
+      title="Inequalities in maternity care"
+      lede={equityIntro}
+      ledeTone="quiet"
+      width="reading"
+    >
       {equitySections.map((section) => (
         <section key={section.id} className="mb-8">
           <h2
@@ -47,6 +43,6 @@ export function EquityScreen() {
         Knowing the pattern exists is not the same as being at its mercy. Asking again is always
         allowed.
       </p>
-    </main>
+    </Screen>
   );
 }

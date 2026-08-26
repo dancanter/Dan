@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { symptoms, symptomById } from '../content';
-import { ScreenTitle } from '../components/ui/SectionHeading';
+import { Screen } from '../components/ui/Screen';
 import { Note } from '../components/ui/Note';
 import { SourceList } from '../components/ui/SourceList';
 
@@ -18,9 +18,7 @@ export function BodyScreen() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-[780px] px-4 pt-5 pb-24">
-      <ScreenTitle title="My Body" strap="Tap a symptom for what’s happening and what helps." />
-
+    <Screen title="My Body" lede="Tap a symptom for what’s happening and what helps.">
       <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-0">
         {symptoms.map((s) => (
           <li key={s.id}>
@@ -72,6 +70,6 @@ export function BodyScreen() {
         </Link>
         . Trust your instinct over any list.
       </Note>
-    </main>
+    </Screen>
   );
 }
