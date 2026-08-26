@@ -143,6 +143,14 @@ intake. A salt-and-water note appears when the daily readings swing.
 **The reverse is locked** until the 7-day average has held at or below 123.5 lb
 for a fortnight, or 1 November — whichever comes first.
 
+**Steps go in beside each day** on the week grid as well as on Nutrition. Both
+write the same record, keyed by the day's real date, so the number only ever
+exists once. The 7-day average carries a verdict that reads the weight rate and
+the fatigue markers together: under target with a flat scale says add steps
+before cutting calories, and gives the gap in calories; 15,000+ with energy down
+or HR up says dial back, because walking is cheap recovery-wise but not free;
+under target while tired says get the recovery first rather than adding load.
+
 That feeds two things on Progress. **What Is Actually Happening** explains the
 mechanism rather than only the verdict: how big the daily water swing is, whether
 a flat scale is drift or cortisol holding water, whether a fast drop is fat or

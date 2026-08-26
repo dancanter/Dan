@@ -1643,6 +1643,31 @@ function derivedLine(d) {
   return '<div class="splits">' + bits.join("") + "</div>";
 }
 
+/* Keyed by the day's real date, which is the same record the Nutrition tab
+   writes — one number, two places to type it. */
+function stepsForSlot(i) {
+  var dt = slotDate(viewWeek, i);
+  if (!dt) return null;
+  var st = DB.get("daily-" + dayStr(dt), null);
+  return st && isFinite(parseFloat(st.stepsN)) ? parseFloat(st.stepsN) : null;
+}
+function stepsField(i) {
+  if (!slotDate(viewWeek, i)) return "";
+  var v = stepsForSlot(i);
+  return '<input type="text" inputmode="numeric" placeholder="Steps" value="' +
+    (v == null ? "" : v) + '" data-steps="' + i + '" style="max-width:96px">';
+}
+function saveSlotSteps(i, v) {
+  var dt = slotDate(viewWeek, i);
+  if (!dt) return;
+  var key = "daily-" + dayStr(dt), st = DB.get(key, {}) || {};
+  if (v === "" || !isFinite(parseFloat(v))) delete st.stepsN;
+  else { st.stepsN = Math.round(parseFloat(v)); if (st.stepsN >= 10000) st.steps = true; }
+  DB.set(key, st);
+  if (dayStr(dt) === today()) todayState = DB.get(key, {});
+  renderRolling(); renderReview(); renderKcal(); renderChecklist();
+}
+
 function dayCard(d, i, isToday) {
   var s = sessionOf(d), flex = currentPlan && currentPlan.flexible;
   return '<div class="day-card' + (d.done ? " done" : "") + (isToday ? " today" : "") + '">' +
@@ -1671,6 +1696,7 @@ function dayCard(d, i, isToday) {
     '<div data-derived="' + i + '">' + derivedLine(d) + "</div>" +
     '<div class="row-inputs">' +
       '<input type="text" placeholder="Notes" value="' + esc(d.notes) + '" data-field="notes" data-i="' + i + '">' +
+      stepsField(i) +
     "</div></div>";
 }
 
@@ -1867,6 +1893,50 @@ function toggleDetail() {
   applyDetail();
 }
 
+/* Steps are the cheap lever — they cost almost nothing in recovery next to
+   cutting calories. But they are not free at the top end, and 15k a day on
+   top of two quality sessions in a deficit is a training load of its own. */
+function stepsVerdict(days) {
+  var out = [], now = parseDay(today());
+  for (var k = 0; k < days; k++) {
+    var d = new Date(now.getTime() - k * 86400000);
+    var st = DB.get("daily-" + dayStr(d), null);
+    if (st && isFinite(parseFloat(st.stepsN))) out.push(parseFloat(st.stepsN));
+  }
+  if (out.length < 3) return { n: out.length, avg: null };
+  var a = avg(out);
+  var wr = weeklyRate(), flat = wr && wr.ready && wr.perWeek > -0.15;
+  var eSer = energySeries(10), lowE = eSer.filter(function (x) { return x.v <= 2; }).length;
+  var base = hrBaseline(), hs = hrSorted();
+  var hrUp = base ? hs.slice(0, 5).filter(function (h) { return h.hr >= base + 5; }).length : 0;
+  var tired = lowE >= 2 || hrUp >= 2;
+
+  var head, body, tone;
+  if (a >= 15000 && tired) {
+    tone = "warn"; head = "Dial the steps back";
+    body = Math.round(a).toLocaleString() + " a day is a training load of its own, and your energy and morning HR are saying so. " +
+      "Walking is cheap recovery-wise, not free. Drop to around 12,000 until the markers clear.";
+  } else if (a >= 15000) {
+    tone = "good"; head = Math.round(a).toLocaleString() + " a day — plenty";
+    body = "Well above target and nothing complaining. No reason to add more; the returns past about 15,000 are small and the recovery cost stops being zero.";
+  } else if (a < STEP_TARGET - 1500 && flat && !tired) {
+    tone = "warn"; head = "Add steps before you cut calories";
+    body = Math.round(a).toLocaleString() + " a day against a " + STEP_TARGET.toLocaleString() + " target, and the scale is flat. " +
+      "That gap is roughly " + Math.round((STEP_TARGET - a) / 25) + " kcal a day. " +
+      "Adding it back costs you nothing in recovery, where another 150 off the plate raises cortisol and holds water.";
+  } else if (a < STEP_TARGET - 1500 && tired) {
+    tone = "flat"; head = "Steps are low, and so are you";
+    body = Math.round(a).toLocaleString() + " a day. Normally the answer would be to add some, but with your energy or HR where they are, this week is not the week. Get the recovery first.";
+  } else if (a < STEP_TARGET - 1500) {
+    tone = "flat"; head = Math.round(a).toLocaleString() + " a day — under target";
+    body = "Below " + STEP_TARGET.toLocaleString() + ", but the weight is moving, so there is nothing to fix. Worth knowing for when it stalls.";
+  } else {
+    tone = "good"; head = Math.round(a).toLocaleString() + " a day — on target";
+    body = "Right where it should be. This is the number to hold before anything else changes.";
+  }
+  return { n: out.length, avg: a, tone: tone, head: head, body: body };
+}
+
 function renderRolling() {
   var el = $("rollBox"); if (!el) return;
   var w = rollingLoad(7), m = rollingLoad(28), wks = 4;
@@ -1906,7 +1976,12 @@ function renderRolling() {
       "It sat on the Sunday the block used to start on, which is now the day before week 1. Here is what was in it, so you can put it back on a day that exists: <b style=\"color:var(--chalk)\">" +
       esc(settings.orphanNote) + '</b><br><br><button class="linkish" id="orphanOk">Got it, clear this</button></div>'
     : "";
-  el.innerHTML = undated + orphan + bars + runs + avg +
+  var sv = stepsVerdict(7);
+  var stepsBox = sv.avg == null
+    ? '<div class="note flat" data-steps-note style="margin-top:12px"><b>Steps not logged</b>' +
+      "Put them in beside each day above, or on the Nutrition tab. " + sv.n + "/3 days so far — three is the minimum before an average means anything.</div>"
+    : '<div class="note ' + sv.tone + '" data-steps-note style="margin-top:12px"><b>' + esc(sv.head) + "</b>" + sv.body + "</div>";
+  el.innerHTML = undated + orphan + bars + runs + stepsBox + avg +
     '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
     "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
@@ -4869,6 +4944,7 @@ function renderStartInfo() {
   /* delegated field edits */
   document.addEventListener("change", function (e) {
     var el = e.target;
+    if (el.dataset && el.dataset.steps != null) { saveSlotSteps(+el.dataset.steps, el.value); return; }
     if (el.dataset && el.dataset.field != null && el.dataset.i != null) {
       weekData[+el.dataset.i][el.dataset.field] = el.value;
       saveWeek();
