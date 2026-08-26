@@ -1903,7 +1903,8 @@ function stepsVerdict(days) {
     var st = DB.get("daily-" + dayStr(d), null);
     if (st && isFinite(parseFloat(st.stepsN))) out.push(parseFloat(st.stepsN));
   }
-  if (out.length < 3) return { n: out.length, avg: null };
+  var total = out.reduce(function (x, y) { return x + y; }, 0);
+  if (out.length < 3) return { n: out.length, avg: null, total: total };
   var a = avg(out);
   var wr = weeklyRate(), flat = wr && wr.ready && wr.perWeek > -0.15;
   var eSer = energySeries(10), lowE = eSer.filter(function (x) { return x.v <= 2; }).length;
@@ -1919,22 +1920,22 @@ function stepsVerdict(days) {
   } else if (a >= 15000) {
     tone = "good"; head = Math.round(a).toLocaleString() + " a day — plenty";
     body = "Well above target and nothing complaining. No reason to add more; the returns past about 15,000 are small and the recovery cost stops being zero.";
-  } else if (a < STEP_TARGET - 1500 && flat && !tired) {
+  } else if (a < STEP_TARGET - STEP_BAND && flat && !tired) {
     tone = "warn"; head = "Add steps before you cut calories";
     body = Math.round(a).toLocaleString() + " a day against a " + STEP_TARGET.toLocaleString() + " target, and the scale is flat. " +
       "That gap is roughly " + Math.round((STEP_TARGET - a) / 25) + " kcal a day. " +
       "Adding it back costs you nothing in recovery, where another 150 off the plate raises cortisol and holds water.";
-  } else if (a < STEP_TARGET - 1500 && tired) {
+  } else if (a < STEP_TARGET - STEP_BAND && tired) {
     tone = "flat"; head = "Steps are low, and so are you";
     body = Math.round(a).toLocaleString() + " a day. Normally the answer would be to add some, but with your energy or HR where they are, this week is not the week. Get the recovery first.";
-  } else if (a < STEP_TARGET - 1500) {
+  } else if (a < STEP_TARGET - STEP_BAND) {
     tone = "flat"; head = Math.round(a).toLocaleString() + " a day — under target";
     body = "Below " + STEP_TARGET.toLocaleString() + ", but the weight is moving, so there is nothing to fix. Worth knowing for when it stalls.";
   } else {
     tone = "good"; head = Math.round(a).toLocaleString() + " a day — on target";
     body = "Right where it should be. This is the number to hold before anything else changes.";
   }
-  return { n: out.length, avg: a, tone: tone, head: head, body: body };
+  return { n: out.length, avg: a, total: total, tone: tone, head: head, body: body };
 }
 
 function renderRolling() {
@@ -1980,7 +1981,10 @@ function renderRolling() {
   var stepsBox = sv.avg == null
     ? '<div class="note flat" data-steps-note style="margin-top:12px"><b>Steps not logged</b>' +
       "Put them in beside each day above, or on the Nutrition tab. " + sv.n + "/3 days so far — three is the minimum before an average means anything.</div>"
-    : '<div class="note ' + sv.tone + '" data-steps-note style="margin-top:12px"><b>' + esc(sv.head) + "</b>" + sv.body + "</div>";
+    : '<div class="note ' + sv.tone + '" data-steps-note style="margin-top:12px"><b>' + esc(sv.head) + "</b>" + sv.body +
+      '<br><br><span style="color:var(--muted-2)">' + Math.round(sv.total).toLocaleString() + " steps over " + sv.n +
+      " day" + (sv.n === 1 ? "" : "s") + " · " + Math.round(sv.avg).toLocaleString() + " a day · about " +
+      Math.round(sv.avg * 7 / 1000) + "k a week at this rate</span></div>";
   el.innerHTML = undated + orphan + bars + runs + stepsBox + avg +
     '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
@@ -2350,6 +2354,19 @@ function reviewData(w) {
   return out;
 }
 
+/* Steps for one named week, summed off the daily records by real date. */
+function weekSteps(w) {
+  var vals = [];
+  for (var i = 0; i < 7; i++) {
+    var dt = slotDate(w, i);
+    if (!dt || dt > parseDay(today())) continue;
+    var st = DB.get("daily-" + dayStr(dt), null);
+    if (st && isFinite(parseFloat(st.stepsN))) vals.push(parseFloat(st.stepsN));
+  }
+  if (!vals.length) return null;
+  return { n: vals.length, total: vals.reduce(function (a, b) { return a + b; }, 0), avg: avg(vals) };
+}
+
 function reviewVerdict(v) {
   var flags = [], easeOff = 0;
   if (v.hrUp >= 2) { easeOff++; flags.push("morning HR was 5+ over your " + v.hrBase + " baseline on " + v.hrUp + " days"); }
@@ -2485,6 +2502,19 @@ function renderReview() {
       v.effort + " effort · " + v.easy + " easy · " + v.bonus + " sprint" + (v.bonus === 1 ? "" : "s") + "</div>" +
     runs +
     '<div class="note flat" style="margin-bottom:12px"><b>Gym</b>' + esc(gymLine) + "</div>" +
+    (function () {
+      var ws = weekSteps(w);
+      if (!ws) return '<div class="note flat" style="margin-bottom:12px"><b>Steps</b>None logged this week.</div>';
+      var short = STEP_TARGET - ws.avg;
+      var onTarget = ws.avg >= STEP_TARGET - STEP_BAND;
+      return '<div class="note ' + (onTarget ? "good" : "flat") + '" style="margin-bottom:12px"><b>Steps</b>' +
+        '<span style="color:var(--chalk);font-weight:600">' + Math.round(ws.total).toLocaleString() + " total</span> over " +
+        ws.n + " day" + (ws.n === 1 ? "" : "s") + ", averaging " + Math.round(ws.avg).toLocaleString() + " a day. " +
+        (onTarget
+          ? (ws.avg >= STEP_TARGET ? "At or above the " : "Within range of the ") + STEP_TARGET.toLocaleString() + " target."
+          : Math.round(short).toLocaleString() + " a day under target — roughly " +
+            Math.round(short * ws.n / 25).toLocaleString() + " kcal across the week.") + "</div>";
+    })() +
     '<div class="note flat" style="margin-bottom:12px"><b>Weight</b>' + wt + "</div>" +
     '<div class="note ' + verdict.tone + '" style="margin-bottom:12px"><b>' + verdict.head + "</b>" + verdict.body + "</div>" +
     '<div class="block-title" style="font-size:17px">Suggested for next week</div>' +
@@ -3635,7 +3665,7 @@ function logSteps(v) {
   DB.set(dailyKey(new Date()), todayState);
   renderKcal(); renderChecklist(); renderTrack();
 }
-var STEP_TARGET = 12500;
+var STEP_TARGET = 12500, STEP_BAND = 1500;   /* one band, so the two readouts cannot disagree */
 
 /* Protein first and fixed, fat at the floor that keeps hormones working, carbs
    take whatever is left — because carbs are what fuel the sessions and they are

@@ -150,6 +150,9 @@ the fatigue markers together: under target with a flat scale says add steps
 before cutting calories, and gives the gap in calories; 15,000+ with energy down
 or HR up says dial back, because walking is cheap recovery-wise but not free;
 under target while tired says get the recovery first rather than adding load.
+It shows the running total, the daily average and the weekly rate, and the Week
+Review carries that week's own total and average. Both readouts share one band
+around the target so they cannot disagree with each other.
 
 That feeds two things on Progress. **What Is Actually Happening** explains the
 mechanism rather than only the verdict: how big the daily water swing is, whether
