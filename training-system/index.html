@@ -294,16 +294,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
-      <h2 class="block-title">Calories Today <span class="tag" id="kcalTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <div class="add-row" style="margin-top:0;align-items:center">
-        <input type="text" id="kcalToday" inputmode="numeric" placeholder="What you actually ate" style="width:150px">
-        <button class="btn primary" id="kcalTodayBtn">Log</button>
-        <button class="btn" id="kcalOnTargetBtn">On target</button>
-      </div>
-      <div id="kcalOut" style="margin-top:10px"></div>
-    </section>
-
-    <section class="block">
       <h2 class="block-title">Energy Today</h2>
       <p class="block-sub" data-detail>One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
       <div id="energyPick"></div>
@@ -637,6 +627,20 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   <!-- ============ NUTRITION ============ -->
   <div class="panel" id="panel-nutrition" role="tabpanel">
     <section class="block">
+      <h2 class="block-title">Today's Fuel <span class="tag" id="kcalTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div class="add-row" style="margin-top:0;align-items:center">
+        <input type="text" id="kcalToday" inputmode="numeric" placeholder="Calories eaten" style="width:130px">
+        <button class="btn primary" id="kcalTodayBtn">Log</button>
+        <button class="btn" id="kcalOnTargetBtn">On target</button>
+      </div>
+      <div class="add-row" style="align-items:center">
+        <input type="text" id="stepsToday" inputmode="numeric" placeholder="Steps today" style="width:130px">
+        <button class="btn primary" id="stepsTodayBtn">Log</button>
+      </div>
+      <div id="kcalOut" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Where You Are</h2>
       <div id="calStep"></div>
     </section>
@@ -666,7 +670,9 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
-      <h2 class="block-title">Reversing</h2>
+      <h2 class="block-title">Reversing <span class="tag" id="revTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div id="revLock"></div>
+      <div id="revBody">
       <p class="block-sub">Protein and fat do not move. Every calorie you add back is a carb. <b>Add one unit, hold 4–5 days, check the average, add the next.</b></p>
       <div id="stageList" style="margin-bottom:14px"></div>
 
@@ -694,7 +700,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
       <div class="note stop" style="margin-top:10px"><b>Around step 2 or 3 the scale jumps ~2 lb. Ignore it.</b>More carbs means more glycogen, and glycogen holds three times its weight in water. It lands within a week then settles. A pound of fat takes 3,500 surplus calories; you are adding 75 a day.</div>
 
-      <div class="note good" data-detail style="margin-top:8px"><b>Fats come after, not during</b>Butter, aged cheese, fattier cuts — all fine, once maintenance is confirmed and held 2–3 weeks. Carbs restore metabolic rate; fat barely does. Add fat during the climb and you spend your calorie ceiling before the rate recovers. <b style="color:var(--chalk)">Watch protein when the cuts get fattier</b> — 200g chicken breast is 62g protein, 200g ribeye about 46g for nearly double the calories.</div>
+      </div>
+      <div class="note good" data-detail style="margin-top:8px" data-revbody><b>Fats come after, not during</b>Butter, aged cheese, fattier cuts — all fine, once maintenance is confirmed and held 2–3 weeks. Carbs restore metabolic rate; fat barely does. Add fat during the climb and you spend your calorie ceiling before the rate recovers. <b style="color:var(--chalk)">Watch protein when the cuts get fattier</b> — 200g chicken breast is 62g protein, 200g ribeye about 46g for nearly double the calories.</div>
     </section>
 
     <section class="block" data-detail>
@@ -1047,7 +1054,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "26 Aug 14:57";
+var BUILD = "26 Aug 15:07";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -2894,36 +2901,37 @@ function renderTrend() {
     hero.textContent = "";
     return;
   }
-  var recent = desc.slice(0, 7).map(function (w) { return w.weight; }), rAvg = avg(recent);
-  var prior = desc.slice(7, 14).map(function (w) { return w.weight; });
-  var title, body, cls;
+  var wr = weeklyRate();
+  var rAvg = wr ? wr.cur : avg(desc.slice(0, 7).map(function (w) { return w.weight; }));
 
-  if (prior.length < 4) {
-    title = "7-day average " + rAvg.toFixed(1) + " lb";
-    body = "Need a second week of data before the trend means anything. Keep logging daily.";
-    cls = "flat";
-    hero.textContent = "";
+  if (!wr || !wr.ready) {
+    hero.innerHTML = "7-day avg <span style='color:var(--chalk)'>" + rAvg.toFixed(1) + "</span>";
+    el.innerHTML = '<div class="note flat" style="margin-bottom:10px"><b>7-day average ' + rAvg.toFixed(1) + ' lb</b>' +
+      "A rate needs two complete seven-day averages a few days apart. Comparing a full week against a part-formed one is how you get a trend that disagrees with itself. Keep logging daily.</div>";
+    return;
+  }
+
+  var change = wr.perWeek, atGoal = rAvg <= 124.0;
+  var title, body, cls;
+  hero.innerHTML = "7-day avg <span style='color:var(--chalk)'>" + rAvg.toFixed(1) + "</span> (" +
+    (change >= 0 ? "+" : "") + change.toFixed(1) + " lb/wk)";
+
+  if (change <= -0.3) {
+    title = "Trending down — " + rAvg.toFixed(1) + " lb, " + Math.abs(change).toFixed(1) + " lb/week";
+    body = atGoal
+      ? "At or below goal and still dropping. Time to start the reverse — step up to the next calorie level. Do not cut further."
+      : "Losing at a healthy rate. Hold your current intake — no need to cut lower.";
+    cls = atGoal ? "warn" : "good";
+  } else if (change >= 0.3) {
+    title = "Trending up — " + rAvg.toFixed(1) + " lb, +" + change.toFixed(1) + " lb/week";
+    body = "If you stepped calories up or refed in the last week or two this is glycogen water — hold and give it another week. If it climbs again, drop back 75 kcal.";
+    cls = "warn";
   } else {
-    var pAvg = avg(prior), change = rAvg - pAvg, atGoal = rAvg <= 124.0;
-    hero.innerHTML = "7-day avg <span style='color:var(--chalk)'>" + rAvg.toFixed(1) + "</span> (" +
-      (change >= 0 ? "+" : "") + change.toFixed(1) + " vs last week)";
-    if (change <= -0.3) {
-      title = "Trending down — " + rAvg.toFixed(1) + " lb (" + change.toFixed(1) + " vs last week)";
-      body = atGoal
-        ? "You're at or below goal weight and still dropping. Time to start the reverse — step up to the next calorie level below. Do not cut further."
-        : "Losing at a healthy rate. Hold 1,850 kcal — no need to cut lower.";
-      cls = atGoal ? "warn" : "good";
-    } else if (change >= 0.5) {
-      title = "Trending up — " + rAvg.toFixed(1) + " lb (+" + change.toFixed(1) + " vs last week)";
-      body = "If you increased calories in the last week or two this is likely glycogen refill — hold this step and give it another week before judging. If it climbs again next week, drop back 75 kcal to your previous step.";
-      cls = "warn";
-    } else {
-      title = "Flat — " + rAvg.toFixed(1) + " lb (" + (change >= 0 ? "+" : "") + change.toFixed(1) + " vs last week)";
-      body = atGoal
-        ? "This is what maintenance looks like. Mid-reverse, add 75 kcal and keep stepping up. Flat here 3+ weeks at a steady intake means that's your maintenance number — hold it."
-        : "Flat for a week is normal noise, not a stall. Hold 1,850 kcal and give it another week before changing anything.";
-      cls = "good";
-    }
+    title = "Flat — " + rAvg.toFixed(1) + " lb, " + Math.abs(change).toFixed(1) + " lb/week";
+    body = atGoal
+      ? "This is what maintenance looks like. Mid-reverse, add 75 kcal and keep stepping. Flat for 3+ weeks at a steady intake means this is your maintenance number."
+      : "No meaningful movement. One week flat is noise; a fortnight is a stall. The full read is on Are You On Track above.";
+    cls = atGoal ? "good" : "warn";
   }
   el.innerHTML = '<div class="note ' + cls + '" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + esc(body) + "</div>";
 }
@@ -3540,6 +3548,35 @@ function kcalSeries(days) {
   return out;
 }
 function targetKcal() { return settings.intake || settings.kcal || 1800; }
+function stepsSeries(days) {
+  var out = [], now = new Date();
+  for (var k = days - 1; k >= 0; k--) {
+    var d = new Date(now.getTime() - k * 86400000);
+    var st = DB.get(dailyKey(d), null);
+    if (st && isFinite(parseFloat(st.stepsN))) out.push({ date: dayStr(d), v: parseFloat(st.stepsN) });
+  }
+  return out;
+}
+function logSteps(v) {
+  todayState.stepsN = v;
+  if (v >= 10000) todayState.steps = true;
+  DB.set(dailyKey(new Date()), todayState);
+  renderKcal(); renderChecklist(); renderTrack();
+}
+var STEP_TARGET = 12500;
+
+/* Protein first and fixed, fat at the floor that keeps hormones working, carbs
+   take whatever is left — because carbs are what fuel the sessions and they are
+   the only one of the three you can afford to move. */
+function macroTargets() {
+  var wr = weeklyRate(), asc = sortedWeights();
+  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  var kcal = targetKcal();
+  var protein = Math.round(lb * 1.0);
+  var fat = Math.round(lb * 0.35);
+  var carbs = Math.round((kcal - protein * 4 - fat * 9) / 4);
+  return { lb: lb, kcal: kcal, protein: protein, fat: fat, carbs: carbs };
+}
 
 function logKcal(v) {
   todayState.kcal = v;
@@ -3548,17 +3585,21 @@ function logKcal(v) {
 }
 function renderKcal() {
   var el = $("kcalOut"); if (!el) return;
-  var t = targetKcal(), inp = $("kcalToday");
+  var t = targetKcal(), inp = $("kcalToday"), sInp = $("stepsToday");
   inp.placeholder = "e.g. " + t;
   if (todayState.kcal && document.activeElement !== inp) inp.value = todayState.kcal;
+  if (todayState.stepsN && document.activeElement !== sInp) sInp.value = todayState.stepsN;
   $("kcalTag").textContent = "target " + t.toLocaleString();
 
-  var ser = kcalSeries(14);
-  var week = ser.filter(function (x) {
-    return daysBetween(parseDay(x.date), parseDay(today())) < 7;
-  });
-  var today_ = todayState.kcal ? parseFloat(todayState.kcal) : null;
+  var m = macroTargets();
+  var macros = '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref">' +
+    "<thead><tr><th>Today</th><th>Target</th><th>Why</th></tr></thead><tbody>" +
+    "<tr><td><b>Protein</b></td><td class=\"hl\">" + m.protein + "g</td><td>1g per lb. Fixed — this is what stops the deficit costing you muscle, and muscle is what your 400m is made of.</td></tr>" +
+    "<tr><td><b>Fat</b></td><td class=\"hl\">" + m.fat + "g</td><td>The floor, not a target. Below about this and testosterone and sleep both go.</td></tr>" +
+    "<tr><td><b>Carbs</b></td><td class=\"hl\">" + m.carbs + "g</td><td>Everything left. Put most of it around the session — carbs are what the hard days run on.</td></tr>" +
+    "</tbody></table></div>";
 
+  var today_ = todayState.kcal ? parseFloat(todayState.kcal) : null;
   var head = today_ != null
     ? (function () {
         var d = today_ - t;
@@ -3571,25 +3612,66 @@ function renderKcal() {
       })()
     : '<div class="note flat"><b>Nothing logged today</b>Put the real number in, not the planned one. This is what turns a stall into an explanation.</div>';
 
-  if (!week.length) return void (el.innerHTML = head);
-  var avgW = avg(week.map(function (x) { return x.v; }));
-  var drift = avgW - t;
+  /* steps */
+  var sTodayV = todayState.stepsN ? parseFloat(todayState.stepsN) : null;
+  var sSer = stepsSeries(8).filter(function (x) { return daysBetween(parseDay(x.date), parseDay(today())) < 7; });
+  var sAvg = sSer.length ? avg(sSer.map(function (x) { return x.v; })) : null;
+  var stepsNote = '<div class="note ' + (sTodayV == null ? "flat" : sTodayV >= STEP_TARGET ? "good" : "warn") + '" style="margin-top:10px"><b>' +
+    (sTodayV == null ? "Steps not logged" : sTodayV.toLocaleString() + " steps today") + "</b>" +
+    (sTodayV == null
+      ? "Target is " + STEP_TARGET.toLocaleString() + ". This is the lever to pull before cutting calories — it costs nothing in recovery."
+      : (sTodayV >= STEP_TARGET
+          ? "At or above " + STEP_TARGET.toLocaleString() + "."
+          : Math.round(STEP_TARGET - sTodayV).toLocaleString() + " short of " + STEP_TARGET.toLocaleString() +
+            ". Roughly " + Math.round((STEP_TARGET - sTodayV) / 25) + " kcal of the deficit, and a 20 minute walk covers most of it.")) +
+    (sAvg != null ? " <em style=\"color:var(--muted-2)\">(7-day average " + Math.round(sAvg).toLocaleString() + ")</em>" : "") + "</div>";
+
+  var ser = kcalSeries(14);
+  var week = ser.filter(function (x) { return daysBetween(parseDay(x.date), parseDay(today())) < 7; });
+  var avgBox = "";
+  if (week.length) {
+    var normal = week.filter(function (x) { return x.v < t + 400; });
+    var avgW = avg(week.map(function (x) { return x.v; }));
+    var drift = (normal.length ? avg(normal.map(function (x) { return x.v; })) : avgW) - t;
+    avgBox = '<div class="note ' + (Math.abs(drift) <= 60 ? "good" : "warn") + '" style="margin-top:10px"><b>' +
+      week.length + "-day average " + Math.round(avgW).toLocaleString() + " kcal</b>" +
+      (Math.abs(drift) <= 60
+        ? "Tracking clean against your " + t.toLocaleString() + ". Whatever the scale is doing, it is not intake drift."
+        : (drift > 0
+            ? "Ordinary days average " + Math.round(drift) + " over your " + t.toLocaleString() + " — about " +
+              (drift * 7 / 3500).toFixed(1) + " lb a week of the deficit gone. Fix this before touching anything else."
+            : "Ordinary days average " + Math.round(-drift) + " under target. Eating below the number you set is not extra progress, it is extra fatigue.")) +
+      (week.length > normal.length ? " Refeed days are left out of that." : "") + "</div>";
+  }
+
   var rows = ser.slice().reverse().slice(0, 7).map(function (x) {
     var d = x.v - t;
+    var st = DB.get("daily-" + x.date, null);
+    var sv = st && isFinite(parseFloat(st.stepsN)) ? parseFloat(st.stepsN) : null;
     return '<div class="log-item"><span class="l-main">' + x.date + "</span><span>" + x.v.toLocaleString() +
       ' <span style="color:' + (Math.abs(d) <= 75 ? "var(--go)" : "var(--warn)") + '">' +
-      (d >= 0 ? "+" : "") + Math.round(d) + "</span></span></div>";
+      (d >= 0 ? "+" : "") + Math.round(d) + "</span>" +
+      (sv != null ? ' <span style="color:var(--muted-2)">· ' + Math.round(sv / 1000) + "k steps</span>" : "") + "</span></div>";
   }).join("");
-  el.innerHTML = head +
-    '<div class="note ' + (Math.abs(drift) <= 60 ? "good" : "warn") + '" style="margin-top:10px"><b>' +
-    week.length + "-day average " + Math.round(avgW).toLocaleString() + " kcal</b>" +
-    (Math.abs(drift) <= 60
-      ? "Tracking clean against your " + t.toLocaleString() + ". Whatever the scale is doing, it is not intake drift."
-      : (drift > 0
-          ? "That is " + Math.round(drift) + " a day over your " + t.toLocaleString() + " — about " +
-            (drift * 7 / 3500).toFixed(1) + " lb a week of the deficit gone. Fix this before touching anything else."
-          : "That is " + Math.round(-drift) + " a day under target. Eating below the number you set is not extra progress, it is extra fatigue.")) +
-    "</div>" + '<div style="margin-top:10px">' + rows + "</div>";
+
+  el.innerHTML = head + macros + stepsNote + avgBox + sodiumNote() +
+    (rows ? '<div style="margin-top:10px">' + rows + "</div>" : "");
+}
+
+/* ================= salt and water ================= */
+/* He does not sweat heavily, so the usual "athletes need more sodium" line does
+   not apply — and cutting salt hard is a trap he has already fallen into once. */
+function sodiumNote() {
+  var vals = sortedWeights().slice(-7).map(function (w) { return w.weight; });
+  var swing = vals.length >= 4 ? Math.max.apply(null, vals) - Math.min.apply(null, vals) : null;
+  if (swing == null || swing < 1.8) return "";
+  return '<div class="note flat" data-detail style="margin-top:10px"><b>Feeling watery? Read this before touching the salt</b>' +
+    "Your readings are swinging " + swing.toFixed(1) + " lb. " +
+    '<span style="color:var(--chalk);font-weight:600">Cutting salt drops 3–5 lb in a few days and none of it is fat.</span> ' +
+    "It comes back the day you eat normally, and in the meantime low sodium in a deficit means worse sessions, more cramp and a higher resting heart rate.<br><br>" +
+    "You are not a heavy sweater, so you do not need to chase sodium either — just keep it steady rather than swinging. " +
+    "Most of the watery feeling in a deficit is cortisol holding water, not salt, and the fix for that is a refeed and a rest day, not less salt.<br><br>" +
+    "If you want the flat look for a specific day, that is a one-off trick for the day before — not a way to run a diet.</div>";
 }
 
 /* ================= why the weight is doing that ================= */
@@ -3870,6 +3952,46 @@ function saveReflection() {
 }
 
 /* ================= reverse diet stepper ================= */
+/* The reverse stays shut until the cut is genuinely finished — 123 held, not
+   touched once — or 1 November, whichever comes first. Reading step ladders
+   while still cutting is how a cut turns into a slow, permanent reverse. */
+var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-01";
+function reverseUnlocked() {
+  if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 1 November" };
+  var asc = sortedWeights();
+  if (asc.length >= 8) {
+    var roll = rollingAvg(asc.map(function (w) { return w.weight; }), 7);
+    var held = 0;
+    for (var i = roll.length - 1; i >= 6; i--) {
+      if (roll[i] <= REVERSE_HOLD_LB) held++; else break;
+    }
+    if (held >= REVERSE_HOLD_DAYS) return { open: true, why: "weight", label: "open — held at goal" };
+    var cur = roll[roll.length - 1];
+    return { open: false, cur: cur, held: held, toGo: cur - REVERSE_HOLD_LB };
+  }
+  return { open: false, cur: null, held: 0, toGo: null };
+}
+function renderReverseGate() {
+  var el = $("revLock"); if (!el) return;
+  var st = reverseUnlocked(), body = $("revBody"), tag = $("revTag");
+  document.querySelectorAll("[data-revbody]").forEach(function (n) { n.style.display = st.open ? "" : "none"; });
+  if (body) body.style.display = st.open ? "" : "none";
+  if (tag) tag.textContent = st.open ? st.label : "locked";
+  if (st.open) { el.innerHTML = ""; return; }
+
+  var days = daysBetween(parseDay(today()), parseDay(REVERSE_DEADLINE));
+  var where = st.cur == null
+    ? "Log a fortnight of weights and this starts counting. "
+    : '<span style="color:var(--chalk);font-weight:600">You are at ' + st.cur.toFixed(1) + " — " +
+      (st.toGo > 0 ? st.toGo.toFixed(1) + " lb off it." : "under it, " + st.held + " day" + (st.held === 1 ? "" : "s") + " held so far.") +
+      "</span> ";
+  el.innerHTML = '<div class="note stop"><b>Not yet — you are still cutting</b>' +
+    "This opens when your 7-day average has been at or below " + REVERSE_HOLD_LB + " lb for " +
+    REVERSE_HOLD_DAYS + " days running, or on 1 November, whichever comes first. " + where +
+    (days > 0 ? days + " days until the date opens it anyway.<br><br>" : "<br><br>") +
+    "Reading a step ladder in the middle of a cut is how a cut quietly becomes the reverse. Finish one thing first.</div>";
+}
+
 var REVERSE = [1850, 1925, 2000, 2075, 2150, 2225, 2300];
 /* Steps written against the meals actually eaten, and naturally gluten free —
    no oats, since coeliac makes those a deliberate test rather than a default. */
@@ -3937,6 +4059,25 @@ function stepKcal(delta) {
 /* Reads the actual 7-day trend against the target and date already committed
    to, and says plainly whether it lands. Everything here is derived — nothing
    is a rule of thumb dressed up as a measurement. */
+/* One rate, used everywhere it is quoted. Two weight calculations that
+   disagreed was worse than either being wrong on its own: the on-track section
+   read flat at 0.1 lb/week while the trend readout said down 0.5, because one
+   compared two complete seven-day windows and the other compared a full week
+   against a four-day stub at the start of the log. */
+function weeklyRate() {
+  var asc = sortedWeights();
+  if (asc.length < 8) return null;
+  var roll = rollingAvg(asc.map(function (w) { return w.weight; }), 7);
+  var FIRST_FULL = 6, lastIdx = roll.length - 1;
+  var backIdx = Math.max(FIRST_FULL, roll.length - 15);
+  if (lastIdx <= FIRST_FULL || (lastIdx - backIdx) < 4) {
+    return { ready: false, cur: roll[lastIdx], span: Math.max(0, lastIdx - FIRST_FULL + 1) };
+  }
+  var days = daysBetween(parseDay(asc[backIdx].date), parseDay(asc[lastIdx].date)) || 1;
+  return { ready: true, perWeek: (roll[lastIdx] - roll[backIdx]) / days * 7,
+    cur: roll[lastIdx], from: roll[backIdx], days: days };
+}
+
 function projection() {
   var asc = sortedWeights();
   var target = settings.exitWeight, date = settings.exitDate;
@@ -3953,15 +4094,10 @@ function projection() {
      is one morning's reading carrying the full 2–4 lb of daily water swing, and
      measuring from one reported 1.2 lb/week across a fortnight that was
      actually flat. Rate from the last fortnight of complete windows. */
-  var FIRST_FULL = 6;
-  var lastIdx = roll.length - 1;
-  var backIdx = Math.max(FIRST_FULL, roll.length - 15);
-  var provisional = lastIdx <= FIRST_FULL || (lastIdx - backIdx) < 4;
-  var perWeek = 0, backDays = 0;
-  if (!provisional) {
-    backDays = daysBetween(parseDay(asc[backIdx].date), parseDay(asc[lastIdx].date)) || 1;
-    perWeek = (cur - roll[backIdx]) / backDays * 7;
-  }
+  var wr = weeklyRate();
+  var provisional = !wr || !wr.ready;
+  var perWeek = provisional ? 0 : wr.perWeek;
+  var backDays = provisional ? 0 : wr.days;
 
   var toGo = cur - target;
   var daysLeft = date ? daysBetween(parseDay(today()), parseDay(date)) : null;
@@ -4623,7 +4759,7 @@ function renderAll() {
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
-  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
@@ -4774,6 +4910,11 @@ function renderStartInfo() {
   });
   $("kcalOnTargetBtn").addEventListener("click", function () {
     $("kcalToday").value = targetKcal(); logKcal(targetKcal());
+  });
+  $("stepsTodayBtn").addEventListener("click", function () {
+    var v = parseFloat($("stepsToday").value);
+    if (!isFinite(v) || v < 0) { $("stepsToday").focus(); return; }
+    logSteps(Math.round(v));
   });
   $("detailBtn").addEventListener("click", toggleDetail);
 

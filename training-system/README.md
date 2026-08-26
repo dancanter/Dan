@@ -131,9 +131,17 @@ that and says to make the rest of the week easy running only.
 The heavier sessions (5 mile threshold, 10km threshold, 10K/5K/mile all-out) are
 flagged `occasional`: benchmarks to rotate, not part of the weekly menu.
 
-**Calories Today** (on the Today tab) — log what you actually ate, or tap **On
-target**. It shows the day against your number and a 7-day average, and says
-plainly whether a stall is intake drift or something else.
+**Today's Fuel** (top of the Nutrition tab) — log what you actually ate and how
+many steps you did. It shows the day against your number and a 7-day average,
+says plainly whether a stall is intake drift or something else, and carries the
+day's macro targets: protein fixed at 1g/lb, fat at the floor that keeps
+hormones working, carbs taking whatever is left, since carbs are the only one
+of the three you can afford to move. Steps show against 12,500 with the
+shortfall converted to calories, because activity is the lever to pull before
+intake. A salt-and-water note appears when the daily readings swing.
+
+**The reverse is locked** until the 7-day average has held at or below 123.5 lb
+for a fortnight, or 1 November — whichever comes first.
 
 That feeds two things on Progress. **What Is Actually Happening** explains the
 mechanism rather than only the verdict: how big the daily water swing is, whether
