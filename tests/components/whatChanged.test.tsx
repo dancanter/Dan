@@ -85,10 +85,10 @@ describe('what changed since last time', () => {
     const shown = all.getAllByRole('link').map((a) => a.textContent);
     cleanup();
 
-    show(10, 26, readsForWeek(26)[0].guide.id);
+    show(10, 26, readsForWeek(26)[0].id);
     const trimmed = screen.getAllByRole('link').map((a) => a.textContent);
 
-    expect(trimmed).not.toContain(readsForWeek(26)[0].guide.title);
+    expect(trimmed).not.toContain(readsForWeek(26)[0].title);
     expect(trimmed.length).toBe(shown.length - 1);
   });
 });

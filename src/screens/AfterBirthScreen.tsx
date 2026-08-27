@@ -4,7 +4,12 @@ import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useProgress } from '../hooks/useProgress';
 import { useJournal, MOODS } from '../hooks/useJournal';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
-import { postnatalFocus, postnatalNote, postnatalReads, postnatalStageLabel } from '../content';
+import {
+  postnatalFocus,
+  postnatalNote,
+  postnatalReads,
+  postnatalStageLabel,
+} from '../content/afterBirth';
 import { FocusList } from '../components/today/FocusList';
 import { ReadingCard } from '../components/today/ReadingCard';
 import { SectionHeading } from '../components/ui/SectionHeading';

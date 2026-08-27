@@ -1,5 +1,5 @@
-import { sources as coreSources, SOURCE_TIER_LABEL } from './sources';
-import { extendedSources } from './sourcesExtended';
+import { SOURCE_TIER_LABEL } from './sources';
+import { sources, sourceById } from './sourceRegistry';
 import {
   guides,
   guideById,
@@ -26,19 +26,24 @@ import { redFlags, helpTopics } from './redFlags';
 import { urgentSymptoms, urgentById, URGENT_DISCLAIMER } from './urgent';
 import { midwifeQuestions } from './midwifeQuestions';
 import { focusForWeek, noteForWeek, trimesterForWeek, trimesterLabel } from './weeklyFocus';
-import { readsForWeek, newReadsBetween, weekReadGuideIds, type WeekRead } from './weeklyReads';
+import {
+  readsForWeek,
+  newReadsBetween,
+  weekReadGuideIds,
+  weekReadTitles,
+  type WeekRead,
+} from './weeklyReads';
 import {
   postnatalFocus,
   postnatalReads,
   postnatalNote,
   postnatalStageLabel,
   postnatalReadGuideIds,
+  postnatalReadTitles,
   POSTNATAL_MAX_WEEK,
 } from './afterBirth';
 
-/** One registry, assembled from the two source files. */
-export const sources = [...coreSources, ...extendedSources];
-export const sourceById = new Map(sources.map((s) => [s.id, s]));
+export { sources, sourceById };
 
 export * from './schema';
 export {
@@ -103,7 +108,7 @@ export type { Evidence, EvidenceStrength } from './evidence';
 export type { UrgentSymptom, UrgentAction } from './urgent';
 
 export interface ContentIssue {
-  kind: 'missing-source' | 'duplicate-id' | 'coverage-gap' | 'bad-url';
+  kind: 'missing-source' | 'duplicate-id' | 'coverage-gap' | 'bad-url' | 'stale-title';
   detail: string;
 }
 
@@ -283,6 +288,20 @@ export function validateContent(): ContentIssue[] {
   for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
     if (focusForWeek(w).length === 0) {
       issues.push({ kind: 'coverage-gap', detail: `No focus items for week ${w}` });
+    }
+  }
+
+  // The reading rules carry their own copy of each guide's title, so that the
+  // home screen never has to load 111 guide bodies to show three titles. That
+  // duplication is only safe because it is checked: rename a guide and this
+  // fails the build rather than shipping a stale title on the daily screen.
+  for (const [id, title] of [...weekReadTitles, ...postnatalReadTitles]) {
+    const guide = guideById.get(id);
+    if (guide && guide.title !== title) {
+      issues.push({
+        kind: 'stale-title',
+        detail: `Reading rule for "${id}" says "${title}" but the guide is now called "${guide.title}"`,
+      });
     }
   }
 

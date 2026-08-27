@@ -1,4 +1,3 @@
-import { guideById } from './guides';
 import type { FocusItem } from './schema';
 import type { WeekRead } from './weeklyReads';
 import type { WeekNote } from './weeklyFocus';
@@ -123,6 +122,8 @@ export function postnatalFocus(weeks: number): FocusItem[] {
 
 interface PostnatalReadRule {
   guideId: string;
+  /** Must match the guide's own title. Checked by validateContent(). */
+  title: string;
   why: string;
   from: number;
   to: number;
@@ -131,102 +132,119 @@ interface PostnatalReadRule {
 const READ_RULES: PostnatalReadRule[] = [
   {
     guideId: 'first-days',
+    title: 'The first days',
     why: 'What is happening in these first few days, and who sees you when.',
     from: 0,
     to: 2,
   },
   {
     guideId: 'postnatal-bleeding',
+    title: 'Postnatal bleeding — and when it’s not normal',
     why: 'What is normal, and the point at which it is a 999 call.',
     from: 0,
     to: 6,
   },
   {
     guideId: 'feeding-well',
+    title: 'How to tell your baby is feeding well',
     why: 'Rounded cheeks, audible swallowing, six wet nappies from day five.',
     from: 0,
     to: 6,
   },
   {
     guideId: 'newborn-weeks',
+    title: 'The early weeks with a newborn',
     why: 'Sleep in short stretches, feeding on demand, and safer sleep.',
     from: 0,
     to: 8,
   },
   {
     guideId: 'tongue-tie',
+    title: 'Tongue-tie — common and fixable',
     why: 'Around 1 in 6 babies. Worth asking about specifically if feeding hurts.',
     from: 1,
     to: 8,
   },
   {
     guideId: 'breastfeeding-problems',
+    title: 'Common problems and what actually helps',
     why: 'Sore nipples, mastitis, thrush — most are fixable without stopping.',
     from: 1,
     to: 12,
   },
   {
     guideId: 'feeding-nobody-figured-out',
+    title: 'Nobody has it figured out from day one',
     why: '73% of mothers who breastfed hit a difficulty. You are in the majority.',
     from: 1,
     to: 10,
   },
   {
     guideId: 'body-after-birth',
+    title: 'Your body after birth',
     why: 'Separated stomach muscles, pelvic floor and back pain — all common.',
     from: 2,
     to: 16,
   },
   {
     guideId: 'sex-contraception-after',
+    title: 'Sex, contraception and fertility after birth',
     why: 'Fertility can return from 21 days, before periods do.',
     from: 3,
     to: 12,
   },
   {
     guideId: 'postnatal-check',
+    title: 'Your 6-week postnatal check',
     why: 'Your appointment is due around now. This is what to raise.',
     from: 4,
     to: 9,
   },
   {
     guideId: 'postnatal-depression',
+    title: 'Postnatal depression',
     why: 'More than 1 in 10, usually within the first year, and treatable.',
     from: 2,
     to: 52,
   },
   {
     guideId: 'getting-active-again',
+    title: 'Getting active again',
     why: 'Past your check, higher-impact exercise is back on the table.',
     from: 7,
     to: 20,
   },
   {
     guideId: 'combining-feeding',
+    title: 'Combining breast and bottle',
     why: 'If you are thinking about mixing or moving over, both directions work.',
     from: 4,
     to: 20,
   },
   {
     guideId: 'expressing',
+    title: 'Expressing milk',
     why: 'Useful before going back to work, or for anyone else to do a feed.',
     from: 6,
     to: 24,
   },
   {
     guideId: 'lasting-problems',
+    title: 'Problems that last — the honest one',
     why: 'The honest picture on problems that last longer than people are told.',
     from: 8,
     to: 52,
   },
   {
     guideId: 'feeding-vitamins-solids',
+    title: 'Vitamin D, solids and allergenic foods',
     why: 'Solids from around 6 months — worth reading a few weeks ahead.',
     from: 18,
     to: 30,
   },
   {
     guideId: 'getting-support',
+    title: 'Getting support',
     why: 'Health visitors, Family Hubs and helplines that actually pick up.',
     from: 0,
     to: 52,
@@ -239,8 +257,7 @@ export function postnatalReads(weeks: number): WeekRead[] {
   return READ_RULES.filter((r) => weeks >= r.from && weeks <= r.to)
     .sort((a, b) => b.from - a.from)
     .slice(0, MAX_READS)
-    .map((r) => ({ guide: guideById.get(r.guideId)!, why: r.why }))
-    .filter((r) => r.guide);
+    .map((r) => ({ id: r.guideId, title: r.title, why: r.why }));
 }
 
 export function postnatalNote(weeks: number): WeekNote {
@@ -274,3 +291,6 @@ export function postnatalNote(weeks: number): WeekNote {
 
 /** Every guide id referenced above, for the content integrity check. */
 export const postnatalReadGuideIds = READ_RULES.map((r) => r.guideId);
+
+/** id -> claimed title, checked against the real guide by validateContent(). */
+export const postnatalReadTitles = READ_RULES.map((r) => [r.guideId, r.title] as const);

@@ -6,7 +6,7 @@
 export const midwifeQuestions: string[] = [
   'Is there anything in my notes so far I should know about?',
   "What should I do if I'm worried outside of appointment hours?",
-  "Am I on the right dose of folic acid for my situation?",
+  'Am I on the right dose of folic acid for my situation?',
   'Should I be taking vitamin D all year round in my case?',
   'What symptoms would you want me to call you about straight away?',
   'When is my next scan, and what will it check?',

@@ -1,4 +1,5 @@
-import { sourceById, sourceUrl } from '../../content';
+import { sourceUrl } from '../../content/sourceLinks';
+import { sourceById } from '../../content/sourceRegistry';
 
 /**
  * Citations are rendered from the shared registry rather than inline text,

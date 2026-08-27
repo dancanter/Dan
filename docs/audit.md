@@ -120,12 +120,15 @@ lazily loaded behind `Suspense`. The dev-only `import './content'` in `main.tsx`
 dynamic dev-only import. The entry chunk went 109 → 67 kB gzipped and first-paint JS went
 197 → 150 kB.
 
-*Still open:* the content chunk (54 kB) remains in the first-paint graph, because Today and
-Get Help import through the `src/content/index.ts` barrel, which re-exports all 111 guides
-with their full bodies. Today needs about four titles. Fixing it properly means separating a
-lightweight guide index (id, title, summary, section) from the bodies, which touches every
-content file — the "giant rewrite" the brief warns against doing early. It is the right next
-performance job, and it should happen before Phase 6 adds more content.
+*Then done, in Phase 7:* the content chunk is out of the first-paint graph entirely. The fix
+turned out not to need the guide-index rewrite. Two things did it: the eager screens now
+import the specific content modules they use rather than the barrel, and the weekly reading
+rules carry their guide's *title* instead of looking up the whole guide — Today needed three
+titles and was downloading 111 full bodies to get them. Duplicating a title is only safe
+because it is checked: `validateContent()` fails the build when one drifts from the guide it
+names, and that check was verified by deliberately breaking a title.
+
+**First paint: 197 kB → 112 kB gzipped, across 8 modules rather than 20.**
 
 **5. IndexedDB failure is unhandled.** ✅ *fixed* — `photoStore` now throws a typed
 `PhotoStoreUnavailable` for a browser that refuses to open a database (private windows,

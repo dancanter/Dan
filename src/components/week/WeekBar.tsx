@@ -1,5 +1,5 @@
 import { MAX_WEEK, MIN_WEEK, DUE_WEEK } from '../../content/schema';
-import { trimesterLabel } from '../../content';
+import { trimesterLabel } from '../../content/weeklyFocus';
 
 interface WeekBarProps {
   week: number;

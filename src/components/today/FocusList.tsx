@@ -1,5 +1,5 @@
-import type { FocusItem } from '../../content';
-import { sourceById } from '../../content';
+import type { FocusItem } from '../../content/schema';
+import { sourceById } from '../../content/sourceRegistry';
 
 interface Props {
   items: FocusItem[];

@@ -19,6 +19,7 @@ import {
   POSTNATAL_MAX_WEEK,
   MIN_WEEK,
   MAX_WEEK,
+  guideById,
 } from '../src/content';
 
 describe('content integrity', () => {
@@ -69,11 +70,14 @@ describe('content integrity', () => {
   });
 
   it('surfaces birth and feeding guidance before the due date, not after it', () => {
-    const lateReads = readsForWeek(38).map((r) => r.guide.section);
+    // The reads are deliberately lightweight now — id, title, why — so the
+    // full guide is resolved here rather than carried onto the home screen.
+    const sectionOf = (week: number) => readsForWeek(week).map((r) => guideById.get(r.id)!.section);
+    const lateReads = sectionOf(38);
     expect(lateReads.some((s) => ['labour', 'birth-prep', 'first-days'].includes(s))).toBe(true);
 
     // …and does not lead with birth prep in the first trimester.
-    const earlyPhases = readsForWeek(8).map((r) => r.guide.section);
+    const earlyPhases = sectionOf(8);
     expect(earlyPhases.some((s) => ['labour', 'pain-relief', 'birth-prep'].includes(s))).toBe(
       false,
     );

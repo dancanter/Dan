@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import type { WeekRead } from '../../content';
+import type { WeekRead } from '../../content/weeklyReads';
 
 interface Props {
   reads: WeekRead[];
@@ -17,12 +17,12 @@ export function ReadingCard({ reads, readGuideIds }: Props) {
 
   return (
     <ul className="m-0 list-none p-0">
-      {reads.map(({ guide, why }) => {
-        const alreadyRead = readGuideIds.includes(guide.id);
+      {reads.map(({ id, title, why }) => {
+        const alreadyRead = readGuideIds.includes(id);
         return (
-          <li key={guide.id} className="mb-3">
+          <li key={id} className="mb-3">
             <Link
-              to={`/healthy?open=${guide.id}`}
+              to={`/healthy?open=${id}`}
               className="block rounded-xl border border-line bg-card px-4 py-3.5 no-underline transition-colors hover:border-moss"
             >
               <span className="label-mono mb-1 block text-clay">
@@ -30,7 +30,7 @@ export function ReadingCard({ reads, readGuideIds }: Props) {
               </span>
               <span className="mb-1.5 block text-[14.5px] italic text-mossd">{why}</span>
               <span className="flex items-center justify-between gap-2 font-display text-[16px] font-semibold text-ink">
-                {guide.title}
+                {title}
                 <span className="font-mono text-moss" aria-hidden="true">
                   →
                 </span>

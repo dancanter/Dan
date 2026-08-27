@@ -21,13 +21,12 @@ export const appointments: Appointment[] = [
   {
     week: 16,
     title: 'Whooping cough vaccine',
-    detail: "Offered from 16 weeks — protects your baby in their first weeks of life.",
+    detail: 'Offered from 16 weeks — protects your baby in their first weeks of life.',
   },
   {
     week: 20,
     title: 'Anomaly scan',
-    detail:
-      "A detailed check of your baby's development. You can find out the sex if you want to.",
+    detail: "A detailed check of your baby's development. You can find out the sex if you want to.",
   },
   {
     week: 25,

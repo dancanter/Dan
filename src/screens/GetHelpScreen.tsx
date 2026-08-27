@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useMaternityUnit } from '../hooks/useMaternityUnit';
-import { urgentSymptoms, urgentById, URGENT_DISCLAIMER, helpTopics } from '../content';
+import { helpTopics } from '../content/redFlags';
+import { URGENT_DISCLAIMER, urgentById, urgentSymptoms } from '../content/urgent';
 import { CallButton } from '../components/help/CallButton';
 import { ReadAloud } from '../components/help/ReadAloud';
 import { SourceList } from '../components/ui/SourceList';

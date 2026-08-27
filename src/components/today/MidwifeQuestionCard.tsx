@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { midwifeQuestions } from '../../content';
+import { midwifeQuestions } from '../../content/midwifeQuestions';
 import { dayOfYear } from '../../lib/dates';
 
 interface Props {

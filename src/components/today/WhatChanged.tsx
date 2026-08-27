@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { newReadsBetween, trimesterForWeek } from '../../content';
+import { trimesterForWeek } from '../../content/weeklyFocus';
+import { newReadsBetween } from '../../content/weeklyReads';
 
 interface Props {
   previousWeek: number | null;
@@ -30,9 +31,7 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
   if (previousWeek === null || previousWeek >= currentWeek) return null;
 
   // Shared with the reading list below, which drops whatever appears here.
-  const fresh = newReadsBetween(previousWeek, currentWeek).filter(
-    (r) => r.guide.id !== excludeGuideId,
-  );
+  const fresh = newReadsBetween(previousWeek, currentWeek).filter((r) => r.id !== excludeGuideId);
   const weeksOn = currentWeek - previousWeek;
   const newTrimester = trimesterForWeek(previousWeek) !== trimesterForWeek(currentWeek);
 
@@ -59,13 +58,13 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
               : `${fresh.length} things became relevant while you were away:`}
           </p>
           <ul className="m-0 list-none p-0">
-            {fresh.map(({ guide, why }) => (
-              <li key={guide.id} className="mb-1">
+            {fresh.map(({ id, title, why }) => (
+              <li key={id} className="mb-1">
                 <Link
-                  to={`/healthy?open=${guide.id}`}
+                  to={`/healthy?open=${id}`}
                   className="text-[15px] font-semibold text-mossd underline"
                 >
-                  {guide.title}
+                  {title}
                 </Link>
                 <span className="block text-[13.5px] italic text-soft">{why}</span>
               </li>

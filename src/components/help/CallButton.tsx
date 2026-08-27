@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMaternityUnit } from '../../hooks/useMaternityUnit';
-import type { UrgentAction } from '../../content';
+import type { UrgentAction } from '../../content/urgent';
 
 /**
  * The single most important control in the app. Deliberately large, plain,

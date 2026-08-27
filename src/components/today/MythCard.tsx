@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Myth } from '../../content';
+import type { Myth } from '../../content/schema';
 import { EvidenceNote } from '../ui/EvidenceNote';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
 

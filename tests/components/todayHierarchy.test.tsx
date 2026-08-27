@@ -50,7 +50,7 @@ describe('the daily screen has a hierarchy', () => {
     renderToday();
     const lead = readsForWeek(26)[0];
     expect(screen.getByText(/worth knowing this week/i)).toBeTruthy();
-    expect(screen.getByText(lead.guide.title)).toBeTruthy();
+    expect(screen.getByText(lead.title)).toBeTruthy();
     expect(screen.getByText(lead.why)).toBeTruthy();
   });
 
@@ -66,7 +66,7 @@ describe('the daily screen has a hierarchy', () => {
       .map((a) => a.textContent ?? '')
       .filter(Boolean);
 
-    const guideTitles = readsForWeek(26).map((r) => r.guide.title);
+    const guideTitles = readsForWeek(26).map((r) => r.title);
     for (const title of guideTitles) {
       const appearances = titles.filter((t) => t.includes(title)).length;
       expect(appearances, `"${title}" appears ${appearances} times`).toBeLessThanOrEqual(1);
@@ -80,7 +80,7 @@ describe('the daily screen has a hierarchy', () => {
     expect(fresh.length).toBeGreaterThan(0);
     // They appear under "Since you were last here"…
     const banner = screen.getByRole('region', { name: /since you were last here/i });
-    const inBanner = fresh.filter((r) => banner.textContent?.includes(r.guide.title));
+    const inBanner = fresh.filter((r) => banner.textContent?.includes(r.title));
     expect(inBanner.length + 1).toBeGreaterThanOrEqual(fresh.length);
   });
 

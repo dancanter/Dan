@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
-import { afterLossSections, afterLossIntro } from '../content';
+import { afterLossIntro, afterLossSections } from '../content/afterLoss';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 

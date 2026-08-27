@@ -1,4 +1,6 @@
-import { sourceById, evidenceFor, sourceYear, sourceUrl } from '../../content';
+import { evidenceFor, sourceYear } from '../../content/evidence';
+import { sourceUrl } from '../../content/sourceLinks';
+import { sourceById } from '../../content/sourceRegistry';
 
 const TONE: Record<string, string> = {
   'uk-guidance': 'border-moss bg-mossp text-mossd',

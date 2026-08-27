@@ -7,16 +7,10 @@ import { useJournal } from '../hooks/useJournal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { useLastSeenWeek } from '../hooks/useLastSeenWeek';
-import {
-  babyWeekByNumber,
-  focusForWeek,
-  milestones,
-  myths,
-  newReadsBetween,
-  noteForWeek,
-  readsForWeek,
-  trimesterLabel,
-} from '../content';
+import { babyWeekByNumber, milestones } from '../content/babyWeeks';
+import { myths } from '../content/myths';
+import { focusForWeek, noteForWeek, trimesterLabel } from '../content/weeklyFocus';
+import { newReadsBetween, readsForWeek } from '../content/weeklyReads';
 import { dayOfYear } from '../lib/dates';
 import { WeekBar } from '../components/week/WeekBar';
 import { FocusList } from '../components/today/FocusList';
@@ -126,9 +120,9 @@ export function TodayScreen() {
   // that list — otherwise the same two guides appear twice within a screen's
   // height, and both of them start to read as padding.
   const surfacedAbove = new Set(
-    viewWeek === null ? newReadsBetween(previousWeek, currentWeek).map((r) => r.guide.id) : [],
+    viewWeek === null ? newReadsBetween(previousWeek, currentWeek).map((r) => r.id) : [],
   );
-  const rest = others.filter((r) => !surfacedAbove.has(r.guide.id));
+  const rest = others.filter((r) => !surfacedAbove.has(r.id));
 
   // Only ever celebrate the *most recent* milestone reached. Someone who
   // installs the app at week 30 has already passed four of them — they
@@ -205,13 +199,13 @@ export function TodayScreen() {
         <WhatChanged
           previousWeek={previousWeek}
           currentWeek={currentWeek}
-          excludeGuideId={lead?.guide.id}
+          excludeGuideId={lead?.id}
         />
       )}
 
       {/* ── Tier one: the single thing worth knowing this week ───────────
           Everything below this is deliberately quieter. */}
-      {lead && <LeadRead read={lead} alreadyRead={readGuideIds.includes(lead.guide.id)} />}
+      {lead && <LeadRead read={lead} alreadyRead={readGuideIds.includes(lead.id)} />}
 
       {/* ── Tier two: this week's focus, and the rest of the reading ───── */}
       <SectionHeading>This week’s focus</SectionHeading>
