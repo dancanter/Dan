@@ -140,21 +140,20 @@ of the three you can afford to move. Steps show against 12,500 with the
 shortfall converted to calories, because activity is the lever to pull before
 intake. A salt-and-water note appears when the daily readings swing.
 
-**Food Log** — type a food name and pick from the matches. 123 items covering
-the meats, fish, dairy, grains, roots, vegetables, fruit, nuts and fats actually
-eaten, or enter macros for anything not in the list. It totals the day: calorie, protein, carb and fat bars
-against the day's targets, then thirteen micronutrients against their RDAs.
-Under that sits the day's steer, argued from the numbers — how much protein or
-carbohydrate is still owed and which food covers it, when fat has dropped below
-its floor, which micronutrients the day is thin on and what fixes each, iron
-logged without the vitamin C that makes it absorbable, and vitamin A stacking up
-from liver. Each food carries a line on what it is actually for, behind the
-reasoning switch.
+**Food Log** — macros per meal, typed straight in. An optional name, then
+calories, protein, carbs and fat; leave calories blank and they are worked out
+from the macros. The day totals into bars against its targets, with a steer
+underneath: what protein or carbohydrate is still owed and roughly what covers
+it, fat below its floor, calories over.
 
-Values are per 100g or per unit, approximate — enough to steer a day, not a lab
-report. Each food carries its own note where there is something specific worth
-saying; otherwise it inherits one from its category, which keeps 123 entries
-readable.
+There was a 123-food table with micronutrients attached here. It went because
+looking a food up is more friction than reading the number off the packet, and
+a micronutrient total is only as good as the lookup behind it.
+
+Nutrition in simple mode is now four sections — fuel, food log, where you are,
+and the locked reverse — about 270 words against the 1,980 it started at. The
+meal plan, weekly food checklist, eight pathways, health notes, honest verdict
+and targets are all behind the reasoning switch rather than deleted.
 
 **The reverse is locked** until the 7-day average has held at or below 123.5 lb
 for a fortnight, or 1 November — whichever comes first.
