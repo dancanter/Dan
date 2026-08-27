@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { sources, sourceUrl, SOURCE_TIER_LABEL, type Source } from '../content';
+import { sources, sourceUrl, sourceYear, SOURCE_TIER_LABEL, type Source } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { Note } from '../components/ui/Note';
 
@@ -7,6 +7,7 @@ const TIER_ORDER: Source['tier'][] = ['gov', 'nhs', 'college', 'charity', 'resea
 
 export function SourcesScreen() {
   const openable = sources.filter((s) => sourceUrl(s)).length;
+  const dated = sources.filter((s) => sourceYear(s) !== undefined).length;
 
   return (
     <Screen title="Sources" lede="Everything here comes from somewhere. Here’s where.">
@@ -25,6 +26,12 @@ export function SourcesScreen() {
         reference number. The rest are named in full but not yet linked — a link that goes to the
         wrong page is worse than no link, so each one gets checked by hand before it goes in.
       </p>
+      <p className="mt-2 text-[14px] leading-relaxed text-soft">
+        {dated} state a date. The others are standing NHS and charity pages that don’t publish one
+        in the citation, and a date is never guessed to fill the gap. Note that an old date isn’t
+        the same as out of date — the oldest thing here is a 1999 set of workplace regulations,
+        which is exactly as current as the day it was written.
+      </p>
 
       {TIER_ORDER.map((tier) => {
         const items = sources.filter((s) => s.tier === tier);
@@ -40,12 +47,18 @@ export function SourcesScreen() {
                     key={s.id}
                     className="border-b border-line py-3 text-[14.5px] last:border-b-0"
                   >
-                    <span
-                      className={`label-mono inline-block rounded px-2 py-0.5 font-normal ${
-                        tier === 'research' ? 'bg-mossp text-mossd' : 'bg-clayp text-clay'
-                      }`}
-                    >
-                      {SOURCE_TIER_LABEL[tier]}
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`label-mono inline-block rounded px-2 py-0.5 font-normal ${
+                          tier === 'research' ? 'bg-mossp text-mossd' : 'bg-clayp text-clay'
+                        }`}
+                      >
+                        {SOURCE_TIER_LABEL[tier]}
+                      </span>
+                      {/* The year the citation itself states, never a guess. */}
+                      {!s.reviewed && sourceYear(s) && (
+                        <span className="font-mono text-[11px] text-soft">{sourceYear(s)}</span>
+                      )}
                     </span>
                     <div className="mt-1.5">
                       {url ? (

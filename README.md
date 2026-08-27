@@ -74,6 +74,8 @@ Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appoin
 
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
 
+**"The NHS recommends this" and "one study found this" are not the same claim.** The app showed *which* sources an entry cites; it never showed what kind of thing they are, and both were rendered in identical grey type at the foot of a card. Every entry now carries an evidence label — *UK guidance*, *guidance + research*, *research not guidance*, *charity guidance* — **derived from its sources rather than written per entry**, because 111 hand-written labels would be 111 things to keep in sync and the first to drift would be the one that mattered. The spread across the library: 84 UK guidance, 17 research-only, 5 both, 5 charity. Behind the label, *Why we say this* explains what it means, and funding conflicts are lifted **above** the citation list rather than buried in it. Collapsed by default — someone reading about heartburn at 2am doesn't need a paragraph on evidence tiers, but should be one tap from it. The urgent flow deliberately keeps the plain list; a collapsible evidence-tier control is the last thing a frightened reader needs.
+
 **A citation you can't open is only half a citation.** "Every entry sourced" used to stop at a name — you could see a claim came from somewhere, but not go and check it. Links are now *derived* rather than typed in: every research citation already carries a permanent identifier, so `sourceUrl()` turns a DOI, PMC or PubMed id into a resolver URL, preferring free full text over the paywalled version of record. Nothing is hand-typed, so nothing drifts, and a new paper added with a PMC id becomes checkable with no extra work. The NHS, NICE and charity pages have no such identifier and are deliberately **not** linked yet — a guessed URL looks exactly like a real one right up until someone taps it, and a dead link on a sources page costs more trust than a missing one. The Sources screen says plainly how many of the 122 open and why the rest don't.
 
 **Content is data, not JSX.** Everything lives in typed files under `src/content/`. Adding research means editing data — no component changes.
@@ -130,7 +132,10 @@ npm test           # content integrity, component and accessibility tests (110)
 npm run typecheck
 npm run lint
 npm run readability   # Flesch–Kincaid audit, worst entries first
+npm run sources       # citation registry health — links, dates, evidence spread
 ```
+
+`npm run sources` is the counterpart to the readability audit: it doesn't check whether the content is right, it checks whether the evidence behind it is still in good order. What can be opened, what carries a date, what's oldest, and which entries rest on a single source. It deliberately prints **no stale/fresh verdict** — a year is not the same as freshness, and the oldest source in the registry is a 1999 set of workplace regulations that is exactly as current as the day it was written. Sorting by age and letting a human judge is honest; automating "old = out of date" would be confidently wrong about the first entry it flagged.
 
 ## Next
 
