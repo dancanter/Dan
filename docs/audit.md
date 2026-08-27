@@ -1,9 +1,12 @@
 # Phase 1 audit — August 2026
 
-> **Status:** all P0 findings and P1 findings 4–7 are fixed as of the commit
-> following this one. Each is marked ✅ below with what was done. Findings 8–13
-> remain open and belong to Phases 3 and 4. The one thing that could not be
-> completed in full is finding 1 — see the note under it.
+> **Status, after Phases 1–3.** Twelve of fourteen findings are fixed, each marked ✅
+> below with what was done. Finding 14 was not in the original audit — it turned up
+> while measuring Phase 3, and was the most serious thing found all session.
+>
+> Two remain open: the ~60 unverified source URLs (finding 1, blocked on network
+> access) and the content barrel (finding 4, a refactor best done before more
+> content lands). Finding 8, natural-language search, belongs to Phase 4.
 
 Written against commit `1b32e29`, by inspection rather than from the README. Where the
 README and the code disagreed, the code won and the README is listed as a finding.
@@ -16,14 +19,14 @@ that counts the content registry directly.
 | | |
 | --- | --- |
 | Routes | 21, of which 6 render without onboarding |
-| Screens | 21 components, 21 covered by axe |
+| Screens | 21 components, 21 covered by axe (now 22) |
 | Guides | 111 |
 | Sources | 122 |
 | Urgent symptoms | 13 |
 | Symptoms · myths · glossary terms | 16 · 16 · 28 |
-| Tests | 65 passing, 8 files |
+| Tests | 65 passing, 8 files (now 122 across 13) |
 | Readability | mean grade 7.0, worst 10.1, 59 of 183 entries above grade 8 |
-| First paint | ~197 kB gzipped |
+| First paint | ~197 kB gzipped (now 150 kB) |
 
 ## What works, and should be reused rather than rebuilt
 
@@ -58,7 +61,7 @@ CLI report separated from the test so importing it prints nothing.
 already appears in body copy, with no content-file edits. That is the right shape for
 Phase 3's glossary work.
 
-## Findings, ranked
+## The fourteen findings
 
 ### P0 — fix before anything else
 
@@ -145,11 +148,22 @@ have thrown.
 entry; "can I eat brie" finds nothing. The brief's Phase 4 natural-language search can
 reuse the existing filter shape.
 
-**9. Source review dates cover 10 of 122.** Honestly left blank rather than guessed, which
-is right — but 8% coverage cannot support the freshness signal Phase 3 wants.
+**9. Source review dates cover 10 of 122.** ✅ *mostly fixed — now 46*
+Honestly left blank rather than guessed, which is right — but 8% coverage could not support
+the freshness signal Phase 3 wants. Deriving the year from what each citation already states
+("NICE, August 2021", "Nutrients 2024;16(19):3231") took it to 46 without inventing anything.
+The remaining 76 are standing NHS and charity pages that publish no date in-line; they still
+show nothing rather than a guess. `npm run sources` reports the registry's health, and
+deliberately prints **no stale/fresh verdict** — the oldest source is the 1999 Management of
+Health and Safety at Work Regulations, which is legislation and exactly as current as the day
+it was written, so "old = out of date" would have been confidently wrong about the first
+entry it flagged.
 
-**10. Nothing explains *why* a given source.** `SourceList` names it and shows its tier
-colour; `methodology.ts` explains the process globally; no individual entry links the two.
+**10. Nothing explains *why* a given source.** ✅ *fixed*
+Every entry now carries an evidence label derived from its sources — *UK guidance*,
+*guidance + research*, *research not guidance*, *charity guidance* — with a "Why we say this"
+disclosure explaining what that means, and funding conflicts lifted above the citation list
+rather than buried in it. The urgent flow keeps the plain list on purpose.
 
 **11. Screen furniture is duplicated.** Twelve screens hand-roll their own `<main>` + `<h1>`
 instead of using `ScreenTitle`, and there are three separate hand-written quick-link footer
@@ -164,6 +178,26 @@ above grade 8, worst 10.1.
 **13. The README overstates three things** — bundle size, focus management, and an
 `aria-live` announcement for streaks that no longer exist. It is the CV-facing artefact, so
 a claim a reviewer can disprove in thirty seconds costs more than a smaller true one.
+
+### Found later, during Phase 3
+
+**14. The font stylesheet was holding the entire app hostage.** ✅ *fixed*
+Measuring the render cost of the evidence layer turned up something much worse than the thing
+being measured. The Google Fonts stylesheet was a render-blocking `<link>`, so a slow or
+unreachable font host delayed **first paint of the whole app**. Measured on Get help:
+**12,737ms when the request hung, against 280ms when it failed fast.**
+
+That breaks the app's central promise — that Get help is one tap away and never waits on
+anything — and it fails in exactly the conditions where someone is most likely to need it: a
+bad signal, a captive portal, a restricted network. All the eager-chunk work in finding 4 was
+being undermined by a third-party stylesheet in `index.html`.
+
+Loading it asynchronously (`media="print"` + `onload`, with a `<noscript>` copy) brings Get
+help to **122ms with the host unreachable**. Text renders immediately in the fallback stacks
+and swaps when the font arrives.
+
+Worth noting how this was found: not by a test, and not by reading the code. It only appeared
+when the page was loaded in a real browser on a network where that host does not resolve.
 
 ## Architectural risks
 
