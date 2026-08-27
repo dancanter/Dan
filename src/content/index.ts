@@ -16,6 +16,7 @@ import { privacySections } from './privacy';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { sourceUrl, sourceLinkKind } from './sourceLinks';
 import { evidenceFor, sourceYear } from './evidence';
+import { searchGuides, searchSymptoms, urgentMatchFor, type SearchResult } from './search';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -61,6 +62,9 @@ export {
   sourceLinkKind,
   evidenceFor,
   sourceYear,
+  searchGuides,
+  searchSymptoms,
+  urgentMatchFor,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -88,6 +92,7 @@ export {
   POSTNATAL_MAX_WEEK,
 };
 export type { WeekRead };
+export type { SearchResult };
 export type { Evidence, EvidenceStrength } from './evidence';
 export type { UrgentSymptom, UrgentAction } from './urgent';
 

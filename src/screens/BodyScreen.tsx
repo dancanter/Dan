@@ -1,14 +1,22 @@
-import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { symptoms, symptomById } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { Note } from '../components/ui/Note';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 
 export function BodyScreen() {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [params] = useSearchParams();
+  // `?symptom=<id>` so a search result can open the entry directly, rather
+  // than dropping someone on a grid of sixteen tiles to find it again.
+  const linkedId = params.get('symptom');
+  const [openId, setOpenId] = useState<string | null>(linkedId);
   const detailRef = useRef<HTMLDivElement>(null);
   const selected = openId ? symptomById.get(openId) : undefined;
+
+  useEffect(() => {
+    if (linkedId && symptomById.has(linkedId)) setOpenId(linkedId);
+  }, [linkedId]);
 
   function choose(id: string) {
     setOpenId(id);
