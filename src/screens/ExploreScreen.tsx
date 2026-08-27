@@ -35,6 +35,11 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
         pregnancyOnly: true,
       },
       {
+        to: '/myths',
+        label: 'Myth or fact',
+        blurb: 'Sixteen things people say about pregnancy. Some are true.',
+      },
+      {
         to: '/body',
         label: 'My body',
         blurb: 'Symptoms — why they happen, and when to check.',

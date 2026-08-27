@@ -25,6 +25,7 @@ import { PrivacyScreen } from '../../src/screens/PrivacyScreen';
 import { GalleryScreen } from '../../src/screens/GalleryScreen';
 import { ExploreScreen } from '../../src/screens/ExploreScreen';
 import { CalmScreen } from '../../src/screens/CalmScreen';
+import { MythsScreen } from '../../src/screens/MythsScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -47,6 +48,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Today', () => <TodayScreen />],
   ['Explore', () => <ExploreScreen />],
   ['Need a minute', () => <CalmScreen />],
+  ['Myth or fact', () => <MythsScreen />],
   ['After birth', () => <AfterBirthScreen />],
   ['Baby', () => <BabyScreen />],
   ['My Body', () => <BodyScreen />],
