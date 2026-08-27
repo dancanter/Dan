@@ -114,7 +114,10 @@ describe('the terms deck', () => {
     // …and the options are all real terms.
     const labels = screen.getAllByRole('button').map((b) => b.textContent!.trim());
     for (const label of labels) {
-      expect(glossary.some((g) => g.term === label), `"${label}" is not a glossary term`).toBe(true);
+      expect(
+        glossary.some((g) => g.term === label),
+        `"${label}" is not a glossary term`,
+      ).toBe(true);
     }
   });
 

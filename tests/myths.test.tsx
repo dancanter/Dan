@@ -59,9 +59,7 @@ describe('myth or fact', () => {
     // Whichever way this lands, one of the two responses is on screen.
     await user.click(screen.getByRole('button', { name: /that’s a myth/i }));
     const text = container.textContent!;
-    expect(
-      text.includes('That’s right.') || text.includes('catches a lot of people'),
-    ).toBe(true);
+    expect(text.includes('That’s right.') || text.includes('catches a lot of people')).toBe(true);
   });
 
   it('keeps no score and no completion count', async () => {

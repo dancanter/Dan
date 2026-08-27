@@ -34,7 +34,13 @@ describe('the calm page', () => {
   it('never claims to treat anything', () => {
     const { container } = show();
     const text = container.textContent!.toLowerCase();
-    for (const claim of ['will help you', 'cure', 'treat your', 'therapy', 'reduces your anxiety']) {
+    for (const claim of [
+      'will help you',
+      'cure',
+      'treat your',
+      'therapy',
+      'reduces your anxiety',
+    ]) {
       expect(text.includes(claim), `claims "${claim}"`).toBe(false);
     }
     expect(text).toContain('nothing here is a treatment');
