@@ -15,7 +15,8 @@
     "sources": "vite-node scripts/sources-report.ts",
     "content-audit": "vite-node scripts/content-audit.ts",
     "clinical-review": "vite-node scripts/clinical-review.ts",
-    "clinical-review:urgent": "vite-node scripts/clinical-review.ts --urgent"
+    "clinical-review:urgent": "vite-node scripts/clinical-review.ts --urgent",
+    "content-diff": "vite-node scripts/content-diff.ts"
   },
   "dependencies": {
     "framer-motion": "^12.43.0",
