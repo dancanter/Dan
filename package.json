@@ -13,7 +13,9 @@
     "typecheck": "tsc -b --noEmit",
     "readability": "vite-node scripts/readability-report.ts",
     "sources": "vite-node scripts/sources-report.ts",
-    "content-audit": "vite-node scripts/content-audit.ts"
+    "content-audit": "vite-node scripts/content-audit.ts",
+    "clinical-review": "vite-node scripts/clinical-review.ts",
+    "clinical-review:urgent": "vite-node scripts/clinical-review.ts --urgent"
   },
   "dependencies": {
     "framer-motion": "^12.43.0",
