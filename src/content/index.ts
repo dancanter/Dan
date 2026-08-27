@@ -14,6 +14,7 @@ import { equitySections, equityIntro } from './equity';
 import { afterLossSections, afterLossIntro } from './afterLoss';
 import { privacySections } from './privacy';
 import { calmExercises, calmFacts, CALM_INTRO, CALM_ESCALATION } from './calm';
+import { foodRules, FOOD_VERDICT_LABEL } from './foodRules';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { sourceUrl, sourceLinkKind } from './sourceLinks';
 import { evidenceFor, sourceYear } from './evidence';
@@ -63,6 +64,8 @@ export {
   privacySections,
   calmExercises,
   calmFacts,
+  foodRules,
+  FOOD_VERDICT_LABEL,
   CALM_INTRO,
   CALM_ESCALATION,
   glossary,
@@ -104,6 +107,7 @@ export {
 export type { WeekRead };
 export type { SearchResult };
 export type { CalmExercise, CalmFact } from './calm';
+export type { FoodRule, FoodVerdict } from './foodRules';
 export type { Evidence, EvidenceStrength } from './evidence';
 export type { UrgentSymptom, UrgentAction } from './urgent';
 
@@ -288,6 +292,31 @@ export function validateContent(): ContentIssue[] {
   for (let w = MIN_WEEK; w <= MAX_WEEK; w++) {
     if (focusForWeek(w).length === 0) {
       issues.push({ kind: 'coverage-gap', detail: `No focus items for week ${w}` });
+    }
+  }
+
+  // The sorting game restructures the food-safety prose into items. That is a
+  // restatement of guidance, so it is checked rather than trusted: every item
+  // must actually appear in the guide it points at. Reword the guidance and
+  // this fails the build instead of leaving the game teaching something the
+  // app no longer says.
+  for (const f of foodRules) {
+    unique('foodRule', f.id);
+    const guide = guideById.get(f.guideId);
+    if (!guide) {
+      issues.push({
+        kind: 'missing-source',
+        detail: `Food rule "${f.id}" points at unknown guide "${f.guideId}"`,
+      });
+      continue;
+    }
+    const needle = (f.mentions ?? f.name).toLowerCase();
+    const haystack = [guide.title, guide.summary, ...guide.body].join(' ').toLowerCase();
+    if (!haystack.includes(needle)) {
+      issues.push({
+        kind: 'stale-title',
+        detail: `Food rule "${f.id}" says "${needle}" but guide "${f.guideId}" no longer mentions it`,
+      });
     }
   }
 

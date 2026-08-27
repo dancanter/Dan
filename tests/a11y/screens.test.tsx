@@ -26,6 +26,8 @@ import { GalleryScreen } from '../../src/screens/GalleryScreen';
 import { ExploreScreen } from '../../src/screens/ExploreScreen';
 import { CalmScreen } from '../../src/screens/CalmScreen';
 import { MythsScreen } from '../../src/screens/MythsScreen';
+import { FoodSortScreen } from '../../src/screens/FoodSortScreen';
+import { TermsScreen } from '../../src/screens/TermsScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -49,6 +51,8 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Explore', () => <ExploreScreen />],
   ['Need a minute', () => <CalmScreen />],
   ['Myth or fact', () => <MythsScreen />],
+  ['Can I eat it', () => <FoodSortScreen />],
+  ['What’s the word', () => <TermsScreen />],
   ['After birth', () => <AfterBirthScreen />],
   ['Baby', () => <BabyScreen />],
   ['My Body', () => <BodyScreen />],

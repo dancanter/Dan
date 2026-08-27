@@ -40,6 +40,16 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
         blurb: 'Sixteen things people say about pregnancy. Some are true.',
       },
       {
+        to: '/food-sort',
+        label: 'Can I eat it?',
+        blurb: 'The food rules people get most tangled up in.',
+      },
+      {
+        to: '/terms',
+        label: 'What’s the word?',
+        blurb: 'The terms used around you without anyone explaining them.',
+      },
+      {
         to: '/body',
         label: 'My body',
         blurb: 'Symptoms — why they happen, and when to check.',

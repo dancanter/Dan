@@ -57,6 +57,12 @@ const MovementsScreen = lazy(() =>
 const MythsScreen = lazy(() =>
   import('./screens/MythsScreen').then((m) => ({ default: m.MythsScreen })),
 );
+const FoodSortScreen = lazy(() =>
+  import('./screens/FoodSortScreen').then((m) => ({ default: m.FoodSortScreen })),
+);
+const TermsScreen = lazy(() =>
+  import('./screens/TermsScreen').then((m) => ({ default: m.TermsScreen })),
+);
 const CalmScreen = lazy(() =>
   import('./screens/CalmScreen').then((m) => ({ default: m.CalmScreen })),
 );
@@ -124,6 +130,8 @@ function App() {
               date, and the page routes a crisis away from itself first. */}
             <Route path="/minute" element={<CalmScreen />} />
             <Route path="/myths" element={<MythsScreen />} />
+            <Route path="/food-sort" element={<FoodSortScreen />} />
+            <Route path="/terms" element={<TermsScreen />} />
             <Route path="/movements" element={<MovementsScreen />} />
             <Route path="/gallery" element={<GalleryScreen />} />
             <Route path="/privacy" element={<PrivacyScreen />} />
