@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
-import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useProgress } from '../hooks/useProgress';
 import { useJournal } from '../hooks/useJournal';
+import { useMovements } from '../hooks/useMovements';
 import { Screen } from '../components/ui/Screen';
+import { wipeAllLocalData, summariseStoredData, type StoredSummary } from '../lib/wipe';
 
 /**
  * "My pregnancy has changed."
@@ -20,17 +20,31 @@ import { Screen } from '../components/ui/Screen';
 export function PregnancyChangedScreen() {
   const navigate = useNavigate();
   const { setStatus } = usePregnancyStatus();
-  const { resetProfile } = usePregnancyProfile();
-  const { resetProgress } = useProgress();
-  const { entries, resetJournal } = useJournal();
+  const { entries } = useJournal();
+  const { entries: movements } = useMovements();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [stored, setStored] = useState<StoredSummary | null>(null);
+
+  // Counted when the confirmation opens, so it can say what will actually go
+  // rather than promising "everything" and hoping.
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    void summariseStoredData().then(setStored);
+  }, [confirmingDelete]);
 
   function exportData() {
     // Offered before deletion, never instead of it. Some people want these
     // later even when they don't want them now.
-    const blob = new Blob([JSON.stringify({ journal: entries }, null, 2)], {
-      type: 'application/json',
-    });
+    const blob = new Blob(
+      [
+        JSON.stringify(
+          { journal: entries, movements, exported: new Date().toISOString() },
+          null,
+          2,
+        ),
+      ],
+      { type: 'application/json' },
+    );
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -39,18 +53,19 @@ export function PregnancyChangedScreen() {
     URL.revokeObjectURL(url);
   }
 
-  function deleteEverything() {
-    resetProfile();
-    resetProgress();
-    resetJournal();
-    setStatus('active');
+  async function deleteEverything() {
+    // One call, which enumerates rather than listing — see lib/wipe.ts. The
+    // previous version reset three stores and left the bump photos, the
+    // movement journal and the maternity unit's phone number behind, under a
+    // button that said "permanently".
+    await wipeAllLocalData();
     navigate('/', { replace: true });
   }
 
   return (
     <Screen
       title="My pregnancy has changed"
-      lede="You don’t have to tell us anything about what happened. Choose whichever of these is closest, and you can change your mind later."
+      lede="You don’t have to record anything about what happened — there is nowhere in this app to put it. Choose whichever of these is closest, and you can change your mind later."
       width="focus"
     >
       <div className="space-y-3">
@@ -97,7 +112,7 @@ export function PregnancyChangedScreen() {
             Delete my pregnancy data
           </span>
           <span className="mt-1 block text-[14.5px] text-soft">
-            Removes everything from this device permanently.
+            Everything this app has saved on this device, including photos. This cannot be undone.
           </span>
         </button>
 
@@ -116,16 +131,38 @@ export function PregnancyChangedScreen() {
             Some people want these later, even if they don’t want them now. You can save a copy to
             your device first — nothing is sent anywhere.
           </p>
+
+          {/* Says what will go, rather than "everything" and hoping. */}
+          <p className="mb-3 text-[14.5px] leading-relaxed">
+            This will delete your notes, questions, mood entries, movement journal, saved maternity
+            unit and pregnancy details
+            {stored && stored.photos > 0
+              ? `, and ${stored.photos} bump ${stored.photos === 1 ? 'photo' : 'photos'}.`
+              : '.'}
+          </p>
+
           <button
             type="button"
             onClick={exportData}
-            className="mb-3 min-h-11 w-full rounded-lg border border-ink px-3 text-[15px] font-semibold"
+            className="mb-2 min-h-11 w-full rounded-lg border border-ink px-3 text-[15px] font-semibold"
           >
-            Save a copy first
+            Save my notes and movements first
           </button>
+
+          {/* Photos are blobs and cannot go in the JSON file, so saying "save a
+              copy" without this would be a promise the export does not keep. */}
+          {stored && stored.photos > 0 && (
+            <p className="mb-3 text-[13.5px] leading-relaxed text-soft">
+              That file holds your written entries. Photos aren’t in it —{' '}
+              <Link to="/gallery" className="underline">
+                save them from the gallery
+              </Link>{' '}
+              first if you want to keep them.
+            </p>
+          )}
           <button
             type="button"
-            onClick={deleteEverything}
+            onClick={() => void deleteEverything()}
             className="min-h-11 w-full rounded-lg bg-alert px-3 text-[15px] font-semibold text-white"
           >
             Delete everything permanently
@@ -141,8 +178,22 @@ export function PregnancyChangedScreen() {
       )}
 
       <p className="mt-10 border-t border-line pt-5 text-[14px] leading-relaxed text-soft">
-        Whatever you choose, your due date and any anniversaries will pass without a notification
-        unless you ask for one.
+        This app sends no notifications and has no way to. Your due date and any anniversaries will
+        pass without it saying anything.
+      </p>
+
+      {/* Someone arriving here after a loss had three state changes and no
+          route to the support itself. */}
+      <p className="mt-4 text-[14.5px] leading-relaxed text-soft">
+        If you’ve lost a pregnancy or a baby,{' '}
+        <Link to="/loss" className="font-semibold underline">
+          support after loss
+        </Link>{' '}
+        is here whether or not you change anything on this screen. If you feel unwell or unsafe,{' '}
+        <Link to="/help" className="font-semibold underline">
+          get help
+        </Link>
+        .
       </p>
     </Screen>
   );
