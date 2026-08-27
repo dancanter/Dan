@@ -48,7 +48,80 @@
     <title>Field Notes — A Pregnancy Guide</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!--
+      Inside #root, so React clears it the moment it mounts.
+
+      This is what someone sees when the app cannot start at all: the entry
+      script failed to download on a bad connection, or JavaScript is off. The
+      error boundary cannot help there, because React never runs — so before
+      this existed, a first visit on hospital wifi could be a blank white page
+      with no route to anything.
+
+      It stays hidden for four seconds via a pure-CSS delay rather than a
+      timer, because a timer is JavaScript and JavaScript is precisely what has
+      failed. Normal loads replace it long before it appears.
+
+      No classes, no external font, no script. It has to work when nothing else
+      does.
+    -->
+    <div id="root">
+      <div
+        style="
+          opacity: 0;
+          animation: fn-late 0s linear 4s forwards;
+          max-width: 30rem;
+          margin: 0 auto;
+          padding: 3rem 1.25rem;
+          font-family: Georgia, 'Times New Roman', serif;
+          color: #1f2a1f;
+        "
+      >
+        <style>
+          @keyframes fn-late {
+            to {
+              opacity: 1;
+            }
+          }
+        </style>
+        <h1 style="font-size: 1.4rem; margin: 0 0 0.75rem">Field Notes isn’t loading</h1>
+        <p style="font-family: system-ui, sans-serif; line-height: 1.6; margin: 0 0 1rem">
+          Usually a poor connection. It’s worth trying again in a moment.
+        </p>
+        <p style="font-family: system-ui, sans-serif; line-height: 1.6; margin: 0 0 1.25rem">
+          <strong>If you’re worried about yourself or your baby, don’t wait for this.</strong>
+          Call your maternity unit — they would always rather hear from you.
+        </p>
+        <a
+          href="tel:111"
+          style="
+            display: block;
+            padding: 0.9rem;
+            margin-bottom: 0.5rem;
+            border: 2px solid #8b3a3a;
+            border-radius: 0.6rem;
+            color: #8b3a3a;
+            font: 600 1.05rem system-ui, sans-serif;
+            text-align: center;
+            text-decoration: none;
+          "
+          >Call 111</a
+        >
+        <a
+          href="tel:999"
+          style="
+            display: block;
+            padding: 0.9rem;
+            border: 2px solid #8b3a3a;
+            border-radius: 0.6rem;
+            color: #8b3a3a;
+            font: 600 1.05rem system-ui, sans-serif;
+            text-align: center;
+            text-decoration: none;
+          "
+          >Call 999 — emergency</a
+        >
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
