@@ -102,7 +102,7 @@ export function GalleryScreen() {
       width="reading"
     >
       {unavailable && (
-        <p className="mb-5 rounded-xl border border-clay bg-clayp px-4 py-3 text-[14.5px] leading-relaxed">
+        <p className="mb-5 rounded-xl border border-clay bg-clayp px-4 py-3 text-[0.90625rem] leading-relaxed">
           This browser won’t let the app store photos on your device — usually a private window, or
           storage turned off in your settings. Nothing has been lost. Everything else in the app
           works as normal.
@@ -119,7 +119,7 @@ export function GalleryScreen() {
       />
       <label
         htmlFor="bump-photo"
-        className="flex min-h-[52px] w-full cursor-pointer items-center justify-center rounded-xl border border-moss bg-mossp px-4 text-[16px] font-semibold text-mossd"
+        className="flex min-h-[52px] w-full cursor-pointer items-center justify-center rounded-xl border border-moss bg-mossp px-4 text-[1rem] font-semibold text-mossd"
       >
         {busy
           ? 'Saving…'
@@ -127,14 +127,14 @@ export function GalleryScreen() {
             ? 'Add a photo'
             : `Add a photo for week ${currentWeek}`}
       </label>
-      <p aria-live="polite" className="mt-2 text-[14px] text-mossd">
+      <p aria-live="polite" className="mt-2 text-[0.875rem] text-mossd">
         {photos.length === 0
           ? ''
           : `${photos.length} photo${photos.length === 1 ? '' : 's'} saved.`}
       </p>
 
       {photos.length === 0 ? (
-        <p className="mt-6 text-[15px] italic text-soft">
+        <p className="mt-6 text-[0.9375rem] italic text-soft">
           Nothing here yet. If you’d rather not do this at all, that’s a perfectly normal choice —
           nothing else in the app depends on it.
         </p>
@@ -156,17 +156,17 @@ export function GalleryScreen() {
                     <button
                       type="button"
                       onClick={() => setPlaying((p) => !p)}
-                      className="min-h-11 rounded-lg border border-line px-4 text-[14px] font-semibold"
+                      className="min-h-11 rounded-lg border border-line px-4 text-[0.875rem] font-semibold"
                     >
                       {playing ? 'Pause' : 'Play'}
                     </button>
-                    <span className="font-mono text-[12px] text-soft">
+                    <span className="font-mono text-[0.75rem] text-soft">
                       Week {photos[frame]?.week}
                     </span>
                   </div>
                 </>
               ) : (
-                <p className="text-[14.5px] italic text-soft">
+                <p className="text-[0.90625rem] italic text-soft">
                   Time-lapse is paused because you’ve turned on reduced motion. All the photos are
                   below in order.
                 </p>
@@ -184,14 +184,14 @@ export function GalleryScreen() {
                   className="block aspect-square w-full rounded-lg object-cover"
                 />
                 <div className="mt-1.5 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-clay">Week {p.week}</span>
+                  <span className="font-mono text-[0.6875rem] text-clay">Week {p.week}</span>
                   <button
                     type="button"
                     onClick={async () => {
                       await deletePhoto(p.week);
                       await refresh();
                     }}
-                    className="min-h-11 px-1 font-mono text-[11px] text-soft underline"
+                    className="min-h-11 px-1 font-mono text-[0.6875rem] text-soft underline"
                   >
                     Remove
                   </button>

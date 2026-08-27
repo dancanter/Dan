@@ -65,7 +65,7 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-1.5 flex justify-between font-mono text-[10.5px] text-soft">
+      <div className="mt-1.5 flex justify-between font-mono text-[0.65625rem] text-soft">
         <span>
           Week {week} of {DUE_WEEK}
         </span>

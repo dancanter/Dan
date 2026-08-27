@@ -34,31 +34,36 @@ export function EvidenceNote({ sourceIds }: { sourceIds: string[] }) {
 
   return (
     <details className="mt-3 border-t border-line pt-2.5">
-      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 [&::-webkit-details-marker]:hidden">
+      {/* min-h-11: the row was 26px tall, so the evidence label on every entry
+          in the library was a target you had to aim at. */}
+      <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-2 [&::-webkit-details-marker]:hidden">
         <span
           className={`label-mono rounded-full border px-2.5 py-1 font-normal ${TONE[evidence.strength]}`}
         >
           {evidence.label}
         </span>
         {evidence.newestYear && (
-          <span className="font-mono text-[10.5px] text-soft">{evidence.newestYear}</span>
+          <span className="font-mono text-[0.65625rem] text-soft">{evidence.newestYear}</span>
         )}
         {evidence.caveats.length > 0 && (
-          <span className="font-mono text-[10.5px] text-clay">
+          <span className="font-mono text-[0.65625rem] text-clay">
             {evidence.caveats.length === 1 ? 'has a caveat' : `${evidence.caveats.length} caveats`}
           </span>
         )}
-        <span className="ml-auto font-mono text-[10.5px] text-moss underline">Why we say this</span>
+        {/* mossd, not moss: at 10.5px this needs 4.5:1 and moss gives 4.19. */}
+        <span className="ml-auto font-mono text-[0.65625rem] text-mossd underline">
+          Why we say this
+        </span>
       </summary>
 
-      <p className="mb-0 mt-2.5 text-[14px] leading-relaxed text-soft">{evidence.meaning}</p>
+      <p className="mb-0 mt-2.5 text-[0.875rem] leading-relaxed text-soft">{evidence.meaning}</p>
 
       {evidence.caveats.length > 0 && (
         <ul className="mt-2.5 list-none p-0">
           {evidence.caveats.map((c) => (
             <li
               key={c}
-              className="mb-1.5 border-l-[3px] border-l-clay bg-clayp px-3 py-2 text-[13.5px] leading-relaxed"
+              className="mb-1.5 border-l-[3px] border-l-clay bg-clayp px-3 py-2 text-[0.84375rem] leading-relaxed"
             >
               {c}
             </li>
@@ -71,7 +76,7 @@ export function EvidenceNote({ sourceIds }: { sourceIds: string[] }) {
           const url = sourceUrl(s);
           const year = sourceYear(s);
           return (
-            <li key={s.id} className="font-mono text-[10.5px] leading-relaxed text-soft">
+            <li key={s.id} className="font-mono text-[0.65625rem] leading-relaxed text-soft">
               {url ? (
                 <a href={url} target="_blank" rel="noreferrer noopener" className="underline">
                   {s.label}

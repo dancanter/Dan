@@ -22,7 +22,7 @@ export function BabyArrivedCard() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-6 min-h-11 w-full rounded-lg border border-line px-3 font-mono text-[11px] text-soft"
+        className="mt-6 min-h-11 w-full rounded-lg border border-line px-3 font-mono text-[0.6875rem] text-soft"
       >
         Baby arrived? Switch to after-birth mode →
       </button>
@@ -42,7 +42,7 @@ export function BabyArrivedCard() {
         onChange={(e) => setValue(e.target.value)}
         className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
       />
-      <p className="mt-2 mb-3 text-[13.5px] text-mossd">
+      <p className="mt-2 mb-3 text-[0.84375rem] text-mossd">
         Your daily screen will switch to recovery, feeding and the first weeks. Everything else
         stays exactly where it is, and you can switch back in Settings.
       </p>

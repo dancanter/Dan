@@ -22,7 +22,7 @@ export function EquityScreen() {
       {equitySections.map((section) => (
         <section key={section.id} className="mb-8">
           <h2
-            className={`mb-2 text-[19px] ${section.tone === 'action' ? 'text-clay' : 'text-mossd'}`}
+            className={`mb-2 text-[1.1875rem] ${section.tone === 'action' ? 'text-clay' : 'text-mossd'}`}
           >
             {section.title}
           </h2>
@@ -39,7 +39,7 @@ export function EquityScreen() {
         </section>
       ))}
 
-      <p className="mt-10 border-t border-line pt-5 text-center text-[14.5px] italic text-soft">
+      <p className="mt-10 border-t border-line pt-5 text-center text-[0.90625rem] italic text-soft">
         Knowing the pattern exists is not the same as being at its mercy. Asking again is always
         allowed.
       </p>

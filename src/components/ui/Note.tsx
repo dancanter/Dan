@@ -15,7 +15,9 @@ const TONE = {
 } as const;
 
 const TITLE_TONE = {
-  plain: 'text-clay',
+  // Ink rather than clay: the plain note sits on sand, where clay measured
+  // 2.98:1. The tone still reads from the clay left border.
+  plain: 'text-ink',
   calm: 'text-mossd',
   warn: 'text-alert',
 } as const;
@@ -24,7 +26,7 @@ export function Note({ tone = 'plain', title, children, urgent }: NoteProps) {
   return (
     <div
       role={urgent ? 'note' : undefined}
-      className={`my-4 rounded-r-lg border-l-[3px] px-4 py-3 text-[14.5px] leading-relaxed ${TONE[tone]}`}
+      className={`my-4 rounded-r-lg border-l-[3px] px-4 py-3 text-[0.90625rem] leading-relaxed ${TONE[tone]}`}
     >
       {title && <strong className={`block ${TITLE_TONE[tone]}`}>{title}</strong>}
       <div className="prose-note mt-0.5">{children}</div>

@@ -21,12 +21,12 @@ export function SourcesScreen() {
         .
       </Note>
 
-      <p className="mt-4 text-[14px] leading-relaxed text-soft">
+      <p className="mt-4 text-[0.875rem] leading-relaxed text-soft">
         {openable} of these {sources.length} open directly, because the citation carries a permanent
         reference number. The rest are named in full but not yet linked — a link that goes to the
         wrong page is worse than no link, so each one gets checked by hand before it goes in.
       </p>
-      <p className="mt-2 text-[14px] leading-relaxed text-soft">
+      <p className="mt-2 text-[0.875rem] leading-relaxed text-soft">
         {dated} state a date. The others are standing NHS and charity pages that don’t publish one
         in the citation, and a date is never guessed to fill the gap. Note that an old date isn’t
         the same as out of date — the oldest thing here is a 1999 set of workplace regulations,
@@ -38,14 +38,14 @@ export function SourcesScreen() {
         if (items.length === 0) return null;
         return (
           <section key={tier} className="mt-6">
-            <h2 className="mb-2 text-[19px] text-mossd">{SOURCE_TIER_LABEL[tier]}</h2>
+            <h2 className="mb-2 text-[1.1875rem] text-mossd">{SOURCE_TIER_LABEL[tier]}</h2>
             <ul className="m-0 list-none p-0">
               {items.map((s) => {
                 const url = sourceUrl(s);
                 return (
                   <li
                     key={s.id}
-                    className="border-b border-line py-3 text-[14.5px] last:border-b-0"
+                    className="border-b border-line py-3 text-[0.90625rem] last:border-b-0"
                   >
                     <span className="flex flex-wrap items-center gap-2">
                       <span
@@ -57,7 +57,9 @@ export function SourcesScreen() {
                       </span>
                       {/* The year the citation itself states, never a guess. */}
                       {!s.reviewed && sourceYear(s) && (
-                        <span className="font-mono text-[11px] text-soft">{sourceYear(s)}</span>
+                        <span className="font-mono text-[0.6875rem] text-soft">
+                          {sourceYear(s)}
+                        </span>
                       )}
                     </span>
                     <div className="mt-1.5">
@@ -77,12 +79,12 @@ export function SourcesScreen() {
                       )}
                       <div className="text-soft">{s.organisation}</div>
                       {s.reviewed && (
-                        <div className="font-mono text-[11px] text-mossd">
+                        <div className="font-mono text-[0.6875rem] text-mossd">
                           reviewed {s.reviewed}
                         </div>
                       )}
                       {s.caveat && (
-                        <em className="mt-1 block text-[13.5px] text-soft">{s.caveat}</em>
+                        <em className="mt-1 block text-[0.84375rem] text-soft">{s.caveat}</em>
                       )}
                     </div>
                   </li>

@@ -56,19 +56,19 @@ export function AfterBirthScreen() {
             className="absolute inset-[7px] rounded-full border border-clay opacity-40"
             aria-hidden="true"
           />
-          <b className="font-display text-[30px] leading-none text-clay">
+          <b className="font-display text-[1.875rem] leading-none text-clay">
             {days < 14 ? days : weeks}
           </b>
           <span className="label-mono font-normal text-clay">
             {days < 14 ? (days === 1 ? 'day' : 'days') : weeks === 1 ? 'week' : 'weeks'}
           </span>
         </div>
-        <div className="min-w-[200px] flex-1">
+        <div className="min-w-[min(12.5rem,100%)] flex-1">
           <p className="label-mono mb-1 text-mossd">{postnatalStageLabel(weeks)}</p>
-          <h1 ref={headingRef} tabIndex={-1} className="mb-1 text-[25px] outline-none">
+          <h1 ref={headingRef} tabIndex={-1} className="mb-1 text-[1.5625rem] outline-none">
             {babyName ? `${babyName} is ${age}` : `Your baby is ${age}`}
           </h1>
-          <p className="m-0 text-[14.5px] text-soft">
+          <p className="m-0 text-[0.90625rem] text-soft">
             {weeks < 1
               ? 'Nobody expects you to have this figured out.'
               : weeks < 6
@@ -108,7 +108,7 @@ export function AfterBirthScreen() {
                 setMood(m.value);
               }}
               aria-pressed={mood === m.value}
-              className={`min-h-11 rounded-lg border px-3.5 text-[13.5px] font-semibold ${
+              className={`min-h-11 rounded-lg border px-3.5 text-[0.84375rem] font-semibold ${
                 mood === m.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
               }`}
             >
@@ -116,7 +116,7 @@ export function AfterBirthScreen() {
             </button>
           ))}
         </div>
-        <p aria-live="polite" className="mt-3 mb-0 text-[14px] text-mossd">
+        <p aria-live="polite" className="mt-3 mb-0 text-[0.875rem] text-mossd">
           {lowMood
             ? 'Worth knowing: more than 1 in 10 women get postnatal depression, and it responds well to treatment. If this has been most days for two weeks, tell your health visitor or GP.'
             : mood
@@ -126,7 +126,7 @@ export function AfterBirthScreen() {
         {lowMood && (
           <Link
             to="/healthy?open=postnatal-depression"
-            className="mt-2 inline-block font-mono text-[11px] text-clay underline"
+            className="mt-2 inline-block font-mono text-[0.6875rem] text-clay underline"
           >
             Read about postnatal depression →
           </Link>

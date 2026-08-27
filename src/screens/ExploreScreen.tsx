@@ -146,10 +146,10 @@ export function ExploreScreen() {
                     className="flex min-h-[60px] items-center justify-between gap-3 rounded-xl border border-line bg-card px-4 py-3 no-underline"
                   >
                     <span>
-                      <span className="block font-display text-[16px] font-semibold text-ink">
+                      <span className="block font-display text-[1rem] font-semibold text-ink">
                         {e.label}
                       </span>
-                      <span className="mt-0.5 block text-[13.5px] text-soft">{e.blurb}</span>
+                      <span className="mt-0.5 block text-[0.84375rem] text-soft">{e.blurb}</span>
                     </span>
                     <span className="font-mono text-moss" aria-hidden="true">
                       ›

@@ -14,7 +14,7 @@ export function LossSupportScreen() {
       {lossSections.map((section) => (
         <section key={section.id} className="mb-8">
           <h2
-            className={`mb-2 text-[19px] ${section.tone === 'urgent' ? 'text-alert' : 'text-mossd'}`}
+            className={`mb-2 text-[1.1875rem] ${section.tone === 'urgent' ? 'text-alert' : 'text-mossd'}`}
           >
             {section.title}
           </h2>
@@ -31,7 +31,7 @@ export function LossSupportScreen() {
         </section>
       ))}
 
-      <p className="mt-10 border-t border-line pt-5 text-center text-[14.5px] italic text-soft">
+      <p className="mt-10 border-t border-line pt-5 text-center text-[0.90625rem] italic text-soft">
         However early, however long ago — what you’re feeling is real, and there is support for it.
       </p>
     </Screen>

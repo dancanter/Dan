@@ -38,7 +38,7 @@ export function BodyScreen() {
                 openId === s.id ? 'border-moss bg-mossp' : 'border-line bg-card'
               }`}
             >
-              <span className="mb-1.5 block text-[22px]" aria-hidden="true">
+              <span className="mb-1.5 block text-[1.375rem]" aria-hidden="true">
                 {s.icon}
               </span>
               {s.name}
@@ -53,14 +53,14 @@ export function BodyScreen() {
           tabIndex={-1}
           className="mt-4 rounded-xl border border-line bg-card p-4 outline-none"
         >
-          <h2 className="text-[19px]">
+          <h2 className="text-[1.1875rem]">
             <span aria-hidden="true">{selected.icon} </span>
             {selected.name}
           </h2>
-          <div className="my-3 rounded-lg bg-mossp px-3.5 py-3 text-[15px]">
+          <div className="my-3 rounded-lg bg-mossp px-3.5 py-3 text-[0.9375rem]">
             <b className="text-mossd">Why it happens:</b> {selected.why}
           </div>
-          <p className="text-[15px]">
+          <p className="text-[0.9375rem]">
             <b>What helps:</b> {selected.help}
           </p>
           <Note tone="warn" title="Worth knowing">

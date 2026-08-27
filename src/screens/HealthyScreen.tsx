@@ -35,25 +35,29 @@ function GuideCard({
     <details
       id={`guide-${guide.id}`}
       open={defaultOpen}
-      className={`mb-3 rounded-xl border px-4 py-3.5 ${border}`}
+      className={`mb-3 rounded-xl border ${border}`}
       onToggle={(e) => {
         if ((e.currentTarget as HTMLDetailsElement).open) onOpen(guide.id);
       }}
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2.5 font-display text-[16px] font-semibold [&::-webkit-details-marker]:hidden">
+      {/* The padding lives on the summary rather than the card, so the whole
+          row is tappable. It was on the card, which made the actual target a
+          25px strip in the middle of a 52px box — the rest looked pressable
+          and did nothing. This is the library's main browsing surface. */}
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
         {guide.title}
         <span className="font-mono text-moss" aria-hidden="true">
           ›
         </span>
       </summary>
-      <div className="mt-3">
+      <div className="px-4 pb-3.5">
         <RichText paragraphs={guide.body} />
         {guide.lists?.map((list) => (
           <div key={list.title ?? 'list'} className="mt-3">
             {list.title && <p className="label-mono mb-1.5 text-mossd">{list.title}</p>}
             <ul className="m-0 list-none p-0">
               {list.items.map((item) => (
-                <li key={item} className="mb-1 flex gap-2 text-[15px]">
+                <li key={item} className="mb-1 flex gap-2 text-[0.9375rem]">
                   <span aria-hidden="true" className="text-moss">
                     ·
                   </span>
@@ -161,7 +165,7 @@ export function HealthyScreen() {
             Without this, someone using a screen reader typed "bleeding" and
             heard "2 entries match" — the one part of the screen that matters
             was silent, because it sits outside the live region. */}
-        <p aria-live="polite" className="mt-1.5 font-mono text-[10.5px] text-soft">
+        <p aria-live="polite" className="mt-1.5 font-mono text-[0.65625rem] text-soft">
           {q
             ? `${urgent ? 'If this is happening now, there’s help below. ' : ''}${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${query}”`
             : `${guides.length} entries · ${readGuideIds.length} read so far`}
@@ -179,16 +183,16 @@ export function HealthyScreen() {
           ungrammatical and slightly absurd at the moment it is read. */}
       {urgent && (
         <div className="mb-5 rounded-xl border-2 border-alert bg-alertp px-4 py-3.5">
-          <p className="m-0 text-[15px] font-semibold">Is this happening now?</p>
-          <p className="mb-1 mt-1.5 text-[15px] font-semibold italic leading-snug">
+          <p className="m-0 text-[0.9375rem] font-semibold">Is this happening now?</p>
+          <p className="mb-1 mt-1.5 text-[0.9375rem] font-semibold italic leading-snug">
             “{urgent.title}”
           </p>
-          <p className="mb-2.5 mt-1.5 text-[14.5px] leading-relaxed">
+          <p className="mb-2.5 mt-1.5 text-[0.90625rem] leading-relaxed">
             If that’s you right now, this is one to get checked rather than read about.
           </p>
           <Link
             to={`/help/${urgent.id}`}
-            className="inline-flex min-h-11 items-center rounded-lg border-2 border-alert px-4 text-[15px] font-semibold text-alert no-underline"
+            className="inline-flex min-h-11 items-center rounded-lg border-2 border-alert px-4 text-[0.9375rem] font-semibold text-alert no-underline"
           >
             What to do now →
           </Link>
@@ -205,7 +209,7 @@ export function HealthyScreen() {
               <li key={s.id}>
                 <Link
                   to={`/body?symptom=${s.id}`}
-                  className="flex min-h-11 items-center gap-2 rounded-xl border border-moss bg-mossp px-3.5 text-[14.5px] font-semibold text-mossd no-underline"
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-moss bg-mossp px-3.5 text-[0.90625rem] font-semibold text-mossd no-underline"
                 >
                   <span aria-hidden="true">{s.icon}</span>
                   {s.name}
@@ -217,7 +221,7 @@ export function HealthyScreen() {
       )}
 
       {q && results.length === 0 && symptomHits.length === 0 && (
-        <p className="text-[15px] italic text-soft">
+        <p className="text-[0.9375rem] italic text-soft">
           Nothing matches that yet. Try fewer words — or check{' '}
           <Link to="/body" className="underline">
             My Body
@@ -237,7 +241,7 @@ export function HealthyScreen() {
         ))}
 
       {!q && (
-        <p className="mb-6 rounded-xl border border-line bg-sand px-4 py-3 text-[14.5px]">
+        <p className="mb-6 rounded-xl border border-line bg-sand px-4 py-3 text-[0.90625rem]">
           Not everyone gets the same standard of maternity care in the UK.{' '}
           <Link to="/inequalities" className="font-semibold underline">
             Inequalities in maternity care →
@@ -249,13 +253,13 @@ export function HealthyScreen() {
         phases.map((phase) => (
           <section key={phase.id} className="mb-9">
             <div className="mb-4 border-b-2 border-ink pb-1.5">
-              <h2 className="mb-0.5 text-[22px]">{phase.label}</h2>
-              <p className="m-0 text-[14px] italic text-mossd">{phase.blurb}</p>
+              <h2 className="mb-0.5 text-[1.375rem]">{phase.label}</h2>
+              <p className="m-0 text-[0.875rem] italic text-mossd">{phase.blurb}</p>
             </div>
             {phase.sections.map((section) => (
               <section key={section.id} className="mb-7">
-                <h3 className="mb-1 text-[18px] text-mossd">{section.label}</h3>
-                <p className="mb-3 text-[14px] text-soft">{section.blurb}</p>
+                <h3 className="mb-1 text-[1.125rem] text-mossd">{section.label}</h3>
+                <p className="mb-3 text-[0.875rem] text-soft">{section.blurb}</p>
                 {section.items.map((g) => (
                   <GuideCard
                     key={g.id}

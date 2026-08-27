@@ -64,7 +64,7 @@ export function MythsScreen() {
     >
       <div className="rounded-xl border-[1.5px] border-line bg-card px-4 py-5">
         <p className="label-mono mb-2 text-clay">Someone will tell you…</p>
-        <p className="m-0 mb-5 font-display text-[21px] font-semibold leading-snug">
+        <p className="m-0 mb-5 font-display text-[1.3125rem] font-semibold leading-snug">
           “{myth.claim}”
         </p>
 
@@ -73,14 +73,14 @@ export function MythsScreen() {
             <button
               type="button"
               onClick={() => answer('myth')}
-              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-4 text-[16px] font-semibold hover:border-moss"
+              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-4 text-[1rem] font-semibold hover:border-moss"
             >
               That’s a myth
             </button>
             <button
               type="button"
               onClick={() => answer('true')}
-              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-4 text-[16px] font-semibold hover:border-moss"
+              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-4 text-[1rem] font-semibold hover:border-moss"
             >
               That’s true
             </button>
@@ -98,16 +98,16 @@ export function MythsScreen() {
             {/* Never "wrong". Half of these are things a relative said with
                 total confidence, and being marked incorrect for believing
                 them helps nobody. */}
-            <p className="mb-2 mt-2.5 text-[15px] font-semibold">
+            <p className="mb-2 mt-2.5 text-[0.9375rem] font-semibold">
               {agreed ? 'That’s right.' : 'This one catches a lot of people.'}
             </p>
-            <p className="m-0 text-[15px] leading-relaxed">{myth.explanation}</p>
+            <p className="m-0 text-[0.9375rem] leading-relaxed">{myth.explanation}</p>
             <EvidenceNote sourceIds={myth.sourceIds} />
 
             <button
               type="button"
               onClick={next}
-              className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[15px] font-semibold text-white"
+              className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
             >
               Next one →
             </button>
@@ -121,7 +121,7 @@ export function MythsScreen() {
 
       {/* No score, no streak, no "4 of 16". Stopping after one is a complete
           use of this, and a progress fraction would quietly say otherwise. */}
-      <p className="mt-6 text-[14.5px] leading-relaxed text-soft">
+      <p className="mt-6 text-[0.90625rem] leading-relaxed text-soft">
         Stop whenever you like — there’s nothing to finish. Everything here is explained in full
         under{' '}
         <Link to="/healthy" className="underline">

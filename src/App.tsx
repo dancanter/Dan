@@ -7,6 +7,7 @@ import { OnboardingScreen } from './screens/OnboardingScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { GetHelpScreen, UrgentDetailScreen, MaternityNumberScreen } from './screens/GetHelpScreen';
 import { usePregnancyProfile } from './hooks/usePregnancyProfile';
+import { useAccessibilitySettings } from './hooks/useAccessibilitySettings';
 
 // Onboarding, Today and Get Help load eagerly — the daily entry point and
 // the screen someone might need urgently should never wait on a chunk.
@@ -82,7 +83,7 @@ const SettingsScreen = lazy(() =>
 
 function ScreenLoading() {
   return (
-    <p role="status" className="mx-auto max-w-[780px] px-4 py-10 text-[15px] italic text-soft">
+    <p role="status" className="mx-auto max-w-[780px] px-4 py-10 text-[0.9375rem] italic text-soft">
       Loading…
     </p>
   );
@@ -92,6 +93,12 @@ function App() {
   const { isOnboarded } = usePregnancyProfile();
   const location = useLocation();
   const onOnboarding = location.pathname === '/';
+
+  // Called here so the text size and contrast settings apply everywhere.
+  // Before this, the hook that writes them ran only on the four screens that
+  // happened to need one of its other values — so someone who turned the text
+  // up got larger text on Settings and Today, and default text on Get help.
+  useAccessibilitySettings();
 
   return (
     <div className="min-h-svh bg-paper">
@@ -146,26 +153,26 @@ function App() {
 
       {!onOnboarding && (
         <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">
-          <div className="mx-auto max-w-[920px] font-mono text-[11px] leading-relaxed text-soft">
-            <Link to="/explore" className="underline">
-              Everything in the app
-            </Link>
-            {' · '}
-            <Link to="/methodology" className="underline">
-              How this is built
-            </Link>
-            {' · '}
-            <Link to="/inequalities" className="underline">
-              Inequalities in maternity care
-            </Link>
-            {' · '}
-            <Link to="/settings" className="underline">
-              Settings &amp; accessibility
-            </Link>
-            {' · '}
-            <Link to="/privacy" className="underline">
-              Privacy
-            </Link>
+          <div className="mx-auto max-w-[920px] font-mono text-[0.6875rem] leading-relaxed text-soft">
+            {/* Laid out as a list of 44px rows rather than a run of inline
+                links separated by dots. Measured at 13px tall before this —
+                a target you have to aim at, on the screen someone reaches for
+                one-handed and tired. */}
+            <ul className="m-0 flex list-none flex-wrap gap-x-4 p-0">
+              {[
+                ['/explore', 'Everything in the app'],
+                ['/methodology', 'How this is built'],
+                ['/inequalities', 'Inequalities in maternity care'],
+                ['/settings', 'Settings & accessibility'],
+                ['/privacy', 'Privacy'],
+              ].map(([to, label]) => (
+                <li key={to} className="min-w-0">
+                  <Link to={to} className="flex min-h-11 items-center underline">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <p className="mt-3">
               © 2026 Dan Canter. Field Notes is an independent, evidence-based pregnancy guide — not
               a substitute for medical advice, and not clinically reviewed.{' '}

@@ -40,7 +40,7 @@ export function QuestionList() {
       <SectionHeading>Questions for your midwife</SectionHeading>
 
       <form onSubmit={submit} className="mb-4">
-        <label htmlFor="new-question" className="mb-1.5 block text-[14.5px] text-soft">
+        <label htmlFor="new-question" className="mb-1.5 block text-[0.90625rem] text-soft">
           Anything you want to remember to ask. It stays on this device.
         </label>
         <div className="flex flex-wrap gap-2">
@@ -54,7 +54,7 @@ export function QuestionList() {
           />
           <button
             type="submit"
-            className="min-h-11 rounded-lg bg-moss px-4 text-[15px] font-semibold text-white"
+            className="min-h-11 rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
           >
             Add
           </button>
@@ -62,7 +62,7 @@ export function QuestionList() {
       </form>
 
       {questions.length === 0 ? (
-        <p className="text-[15px] italic text-soft">
+        <p className="text-[0.9375rem] italic text-soft">
           Nothing saved yet. Things worth asking tend to occur to you at 2am and vanish by the
           appointment — this is somewhere to put them.
         </p>
@@ -80,10 +80,10 @@ export function QuestionList() {
                 onChange={() => toggleAsked(q.id)}
                 className="mt-0.5 h-5 w-5 flex-none accent-moss"
               />
-              <label htmlFor={`q-${q.id}`} className="flex-1 text-[15px] leading-relaxed">
+              <label htmlFor={`q-${q.id}`} className="flex-1 text-[0.9375rem] leading-relaxed">
                 {q.text}
                 {q.week !== null && (
-                  <span className="mt-0.5 block font-mono text-[10.5px] text-soft">
+                  <span className="mt-0.5 block font-mono text-[0.65625rem] text-soft">
                     saved in week {q.week}
                   </span>
                 )}
@@ -91,7 +91,7 @@ export function QuestionList() {
               <button
                 type="button"
                 onClick={() => remove(q.id)}
-                className="min-h-11 px-1 font-mono text-[11px] text-soft underline"
+                className="min-h-11 px-1 font-mono text-[0.6875rem] text-soft underline"
               >
                 Remove
                 <span className="sr-only"> question: {q.text}</span>
@@ -114,7 +114,7 @@ export function QuestionList() {
                     />
                     <label
                       htmlFor={`q-${q.id}`}
-                      className="flex-1 text-[14.5px] leading-relaxed text-soft line-through"
+                      className="flex-1 text-[0.90625rem] leading-relaxed text-soft line-through"
                     >
                       {q.text}
                     </label>

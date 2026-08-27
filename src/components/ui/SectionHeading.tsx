@@ -33,11 +33,11 @@ export function ScreenTitle({ title, strap }: { title: string; strap?: string })
         ref={ref}
         tabIndex={-1}
         id="screen-title"
-        className="mb-2 border-b-2 border-ink pb-2 text-[25px] outline-none"
+        className="mb-2 border-b-2 border-ink pb-2 text-[1.5625rem] outline-none"
       >
         {title}
       </h1>
-      {strap && <p className="m-0 text-[15px] italic text-mossd">{strap}</p>}
+      {strap && <p className="m-0 text-[0.9375rem] italic text-mossd">{strap}</p>}
     </header>
   );
 }

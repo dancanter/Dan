@@ -36,7 +36,7 @@ export function AppointmentsScreen() {
         place it changes what anyone sees. */}
       <fieldset className="mb-5 rounded-xl border border-line bg-card px-4 py-3.5">
         <legend className="px-1 text-sm font-semibold">Is this your first pregnancy?</legend>
-        <p className="mb-2.5 text-[13.5px] text-soft">
+        <p className="mb-2.5 text-[0.84375rem] text-soft">
           First pregnancies are offered a couple of extra appointments. This only tailors the
           timeline below.
         </p>
@@ -67,8 +67,8 @@ export function AppointmentsScreen() {
       {next && (
         <div className="my-4 rounded-xl border border-clay/40 bg-clayp p-4">
           <span className="label-mono text-clay">Next up</span>
-          <h2 className="mt-1 text-[19px]">{next.title}</h2>
-          <p className="m-0 text-[14.5px] text-soft">
+          <h2 className="mt-1 text-[1.1875rem]">{next.title}</h2>
+          <p className="m-0 text-[0.90625rem] text-soft">
             Around week {next.week}
             {next.week > currentWeek
               ? ` — about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
@@ -96,7 +96,7 @@ export function AppointmentsScreen() {
                 }`}
               />
               <span className="label-mono block font-normal text-mossd">Week {a.week}</span>
-              <span className="font-display text-[16px] font-semibold">{a.title}</span>
+              <span className="font-display text-[1rem] font-semibold">{a.title}</span>
               <p className="m-0 text-sm text-soft">{a.detail}</p>
             </li>
           );
@@ -120,14 +120,14 @@ export function AppointmentsScreen() {
         }}
       />
 
-      <details className="mt-4 mb-3 rounded-xl border border-line bg-card px-4 py-3.5">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2.5 font-display text-[16px] font-semibold [&::-webkit-details-marker]:hidden">
+      <details className="mt-4 mb-3 rounded-xl border border-line bg-card">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
           What the booking appointment actually involves
           <span className="font-mono text-moss" aria-hidden="true">
             ›
           </span>
         </summary>
-        <div className="mt-3">
+        <div className="px-4 pb-3.5">
           <RichText
             paragraphs={[
               'It’s the longest one — around an hour. Your midwife takes a full history: your health, mental health, home situation, work, and lifestyle. Blood pressure, urine test, and a blood test for your blood group and iron.',
@@ -140,14 +140,14 @@ export function AppointmentsScreen() {
       </details>
 
       {whereToGo && (
-        <details className="mb-3 rounded-xl border border-line bg-card px-4 py-3.5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2.5 font-display text-[16px] font-semibold [&::-webkit-details-marker]:hidden">
+        <details className="mb-3 rounded-xl border border-line bg-card">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
             {whereToGo.title}
             <span className="font-mono text-moss" aria-hidden="true">
               ›
             </span>
           </summary>
-          <div className="mt-3">
+          <div className="px-4 pb-3.5">
             <RichText paragraphs={whereToGo.body} />
             <EvidenceNote sourceIds={whereToGo.sourceIds} />
           </div>

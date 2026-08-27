@@ -82,7 +82,7 @@ function renderInline(text: string, keyPrefix = 'i'): ReactNode[] {
 
 export function RichText({ paragraphs }: { paragraphs: string[] }) {
   return (
-    <div className="prose-note text-[15px] leading-relaxed">
+    <div className="prose-note text-[0.9375rem] leading-relaxed">
       {paragraphs.map((p, i) => (
         <p key={i}>{renderInline(p, `p${i}`)}</p>
       ))}

@@ -53,7 +53,7 @@ export function FoodSortScreen() {
       <PromptCard
         eyebrow="Is this…"
         prompt={
-          <p className="m-0 font-display text-[24px] font-semibold leading-snug">{item.name}</p>
+          <p className="m-0 font-display text-[1.5rem] font-semibold leading-snug">{item.name}</p>
         }
         options={OPTIONS}
         answer={item.verdict}
@@ -70,11 +70,11 @@ export function FoodSortScreen() {
             >
               {FOOD_VERDICT_LABEL[item.verdict]}
             </span>
-            <p className="m-0 text-[15px] leading-relaxed">{item.note}</p>
+            <p className="m-0 text-[0.9375rem] leading-relaxed">{item.note}</p>
             <p className="mt-2.5">
               <Link
                 to={`/healthy?open=${item.guideId}`}
-                className="font-mono text-[11px] text-clay underline"
+                className="font-mono text-[0.6875rem] text-clay underline"
               >
                 Read the full guidance →
               </Link>

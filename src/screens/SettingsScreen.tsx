@@ -1,10 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useProgress } from '../hooks/useProgress';
-import { useJournal } from '../hooks/useJournal';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { formatDate } from '../lib/dates';
+import { wipeAllLocalData } from '../lib/wipe';
 import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 
@@ -17,19 +16,23 @@ const TEXT_SIZES: { value: TextSize; label: string }[] = [
 export function SettingsScreen() {
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
-  const { dueDate, birthDate, setBirthDate, resetProfile } = usePregnancyProfile();
-  const { resetProgress } = useProgress();
-  const { resetJournal } = useJournal();
+  const { dueDate, birthDate, setBirthDate } = usePregnancyProfile();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
   const navigate = useNavigate();
 
-  function handleReset() {
+  // The second half of the deletion bug, found by auditing every screen that
+  // offers to remove data rather than only the one that says "everything".
+  // This reset called three hooks by hand — the same hard-coded list that left
+  // bump photos, the movement journal and the maternity unit's phone number in
+  // place. It now goes through the one function that enumerates, and the
+  // wording says what actually goes.
+  async function handleReset() {
     if (
-      window.confirm('This clears your due date, journal and saved notes on this device. Continue?')
+      window.confirm(
+        'This clears everything Field Notes has saved on this device — your due date, journal, notes, movements, saved maternity number and any bump photos. Continue?',
+      )
     ) {
-      resetProfile();
-      resetProgress();
-      resetJournal();
+      await wipeAllLocalData();
       navigate('/', { replace: true });
     }
   }
@@ -37,7 +40,7 @@ export function SettingsScreen() {
   return (
     <Screen title="Settings" lede="Make this comfortable to read and use." width="reading">
       <SectionHeading>Text size</SectionHeading>
-      <div role="group" aria-label="Text size" className="flex gap-2">
+      <div role="group" aria-label="Text size" className="flex flex-wrap gap-2">
         {TEXT_SIZES.map((o) => (
           <button
             key={o.value}
@@ -61,7 +64,7 @@ export function SettingsScreen() {
             type="checkbox"
             checked={reduceMotion}
             onChange={(e) => setReduceMotion(e.target.checked)}
-            className="h-5 w-5"
+            className="h-6 w-6"
           />
         </label>
         <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
@@ -70,7 +73,7 @@ export function SettingsScreen() {
             type="checkbox"
             checked={highContrast}
             onChange={(e) => setHighContrast(e.target.checked)}
-            className="h-5 w-5"
+            className="h-6 w-6"
           />
         </label>
       </div>

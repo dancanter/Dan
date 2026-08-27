@@ -13,15 +13,15 @@ export function PrivacyScreen() {
     >
       {privacySections.map((section) => (
         <section key={section.id} className="mb-8">
-          <h2 className="mb-2 text-[19px] text-mossd">{section.title}</h2>
+          <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
           <RichText paragraphs={section.body} />
         </section>
       ))}
 
-      <p className="mt-8 border-t border-line pt-4 text-[13.5px] leading-relaxed text-soft">
+      <p className="mt-8 border-t border-line pt-4 text-[0.84375rem] leading-relaxed text-soft">
         {URGENT_DISCLAIMER}
       </p>
-      <p className="mt-3 text-[14px]">
+      <p className="mt-3 text-[0.875rem]">
         <Link to="/methodology" className="underline">
           How the content is sourced and checked →
         </Link>

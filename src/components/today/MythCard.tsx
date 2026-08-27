@@ -22,13 +22,13 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
   return (
     <div className="rounded-xl border border-line bg-card p-4.5 px-4 py-4 text-center">
       <span className="label-mono block text-clay">True or myth?</span>
-      <p className="mt-2 mb-3 font-display text-[18px] font-semibold">“{myth.claim}”</p>
+      <p className="mt-2 mb-3 font-display text-[1.125rem] font-semibold">“{myth.claim}”</p>
 
       {!revealed ? (
         <button
           type="button"
           onClick={reveal}
-          className="min-h-11 w-full rounded-lg border-2 border-dashed border-line px-4 py-3 font-mono text-[11px] text-soft hover:border-moss hover:text-mossd"
+          className="min-h-11 w-full rounded-lg border-2 border-dashed border-line px-4 py-3 font-mono text-[0.6875rem] text-soft hover:border-moss hover:text-mossd"
         >
           Tap to reveal →
         </button>
@@ -44,7 +44,7 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
           >
             {myth.verdict === 'myth' ? 'Myth' : 'True'}
           </span>
-          <p className="mt-2 text-[15px]">{myth.explanation}</p>
+          <p className="mt-2 text-[0.9375rem]">{myth.explanation}</p>
           <EvidenceNote sourceIds={myth.sourceIds} />
         </div>
       )}

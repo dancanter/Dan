@@ -17,7 +17,7 @@ export function CallButton({ action }: { action: UrgentAction }) {
     return (
       <a
         href="tel:999"
-        className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-alert px-4 text-[19px] font-semibold text-white no-underline"
+        className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-alert px-4 text-[1.1875rem] font-semibold text-white no-underline"
       >
         Call 999
       </a>
@@ -29,13 +29,13 @@ export function CallButton({ action }: { action: UrgentAction }) {
       <div className="space-y-2">
         <a
           href="tel:111"
-          className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-ink px-4 text-[19px] font-semibold text-paper no-underline"
+          className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-ink px-4 text-[1.1875rem] font-semibold text-paper no-underline"
         >
           Call 111 — mental health option
         </a>
         <a
           href="tel:116123"
-          className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-4 text-[15px] font-semibold text-ink no-underline"
+          className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-4 text-[0.9375rem] font-semibold text-ink no-underline"
         >
           Samaritans — 116 123, free, 24/7
         </a>
@@ -50,20 +50,20 @@ export function CallButton({ action }: { action: UrgentAction }) {
           href={`tel:${dialable}`}
           className="flex min-h-[60px] w-full flex-col items-center justify-center rounded-xl bg-ink px-4 text-paper no-underline"
         >
-          <span className="text-[19px] font-semibold">
+          <span className="text-[1.1875rem] font-semibold">
             Call {unitName ?? 'your maternity unit'}
           </span>
-          <span className="font-mono text-[13px] opacity-80">{unitPhone}</span>
+          <span className="font-mono text-[0.8125rem] opacity-80">{unitPhone}</span>
         </a>
       ) : (
         <>
           <a
             href="tel:111"
-            className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-ink px-4 text-[19px] font-semibold text-paper no-underline"
+            className="flex min-h-[60px] w-full items-center justify-center rounded-xl bg-ink px-4 text-[1.1875rem] font-semibold text-paper no-underline"
           >
             Call 111
           </a>
-          <p className="m-0 text-center text-[13.5px] text-soft">
+          <p className="m-0 text-center text-[0.84375rem] text-soft">
             Your maternity unit is the better number to call.{' '}
             <Link to="/help/number" className="underline">
               Save it for next time

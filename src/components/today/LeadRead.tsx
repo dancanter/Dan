@@ -25,11 +25,11 @@ export function LeadRead({ read, alreadyRead }: { read: WeekRead; alreadyRead: b
       <span className="label-mono mb-1.5 block text-clay">
         {alreadyRead ? 'Worth another look' : 'Worth knowing this week'}
       </span>
-      <span className="mb-2 block font-display text-[20px] font-semibold leading-snug text-ink">
+      <span className="mb-2 block font-display text-[1.25rem] font-semibold leading-snug text-ink">
         {read.title}
       </span>
-      <span className="block text-[15px] leading-relaxed text-soft">{read.why}</span>
-      <span className="mt-2.5 block font-mono text-[11px] text-clay">Read this →</span>
+      <span className="block text-[0.9375rem] leading-relaxed text-soft">{read.why}</span>
+      <span className="mt-2.5 block font-mono text-[0.6875rem] text-clay">Read this →</span>
     </Link>
   );
 }

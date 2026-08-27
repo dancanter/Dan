@@ -72,7 +72,7 @@ export function GlossaryTerm({ entry, children }: { entry: GlossaryEntry; childr
           id={id}
           role="note"
           style={{ transform: `translateX(${shift}px)` }}
-          className="absolute left-0 top-full z-40 mt-1 block w-[min(300px,78vw)] rounded-lg border border-moss bg-mossp px-3 py-2.5 text-[14px] font-normal not-italic leading-relaxed text-ink shadow-lg"
+          className="absolute left-0 top-full z-40 mt-1 block w-[min(300px,78vw)] rounded-lg border border-moss bg-mossp px-3 py-2.5 text-[0.875rem] font-normal not-italic leading-relaxed text-ink shadow-lg"
         >
           {/* Terms are stored lowercase; capitalize would give "Cholestasis
               Of Pregnancy", so only the first letter is lifted. */}

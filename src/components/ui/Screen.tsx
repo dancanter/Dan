@@ -59,17 +59,17 @@ export function Screen({
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="mb-2 border-b-2 border-ink pb-2 text-[25px] outline-none"
+          className="mb-2 border-b-2 border-ink pb-2 text-[1.5625rem] outline-none"
         >
           {title}
         </h1>
         {lede &&
           (ledeTone === 'quiet' ? (
-            <p className="m-0 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[15.5px] leading-relaxed">
+            <p className="m-0 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[0.96875rem] leading-relaxed">
               {lede}
             </p>
           ) : (
-            <p className="m-0 text-[15px] leading-relaxed text-soft">{lede}</p>
+            <p className="m-0 text-[0.9375rem] leading-relaxed text-soft">{lede}</p>
           ))}
       </header>
       {aside}

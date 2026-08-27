@@ -49,7 +49,7 @@ export function TermsScreen() {
     >
       <PromptCard
         eyebrow="Which one is this?"
-        prompt={<p className="m-0 text-[17px] leading-relaxed">{entry.definition}</p>}
+        prompt={<p className="m-0 text-[1.0625rem] leading-relaxed">{entry.definition}</p>}
         options={options}
         answer={entry.term}
         chosen={chosen}
@@ -60,12 +60,12 @@ export function TermsScreen() {
         }}
         reveal={
           <>
-            <p className="m-0 font-display text-[19px] font-semibold first-letter:uppercase">
+            <p className="m-0 font-display text-[1.1875rem] font-semibold first-letter:uppercase">
               {entry.term}
             </p>
-            <p className="mt-1.5 text-[15px] leading-relaxed">{entry.definition}</p>
+            <p className="mt-1.5 text-[0.9375rem] leading-relaxed">{entry.definition}</p>
             {entry.aliases && entry.aliases.length > 0 && (
-              <p className="mt-2 font-mono text-[11px] text-soft">
+              <p className="mt-2 font-mono text-[0.6875rem] text-soft">
                 Also written: {entry.aliases.join(', ')}
               </p>
             )}

@@ -16,7 +16,7 @@ export function MidwifeQuestionCard({ onSave }: Props) {
 
   return (
     <div className="rounded-xl border border-dashed border-moss bg-card p-4">
-      <p className="m-0 mb-3 text-[16px] italic">“{question}”</p>
+      <p className="m-0 mb-3 text-[1rem] italic">“{question}”</p>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -24,7 +24,7 @@ export function MidwifeQuestionCard({ onSave }: Props) {
             setIndex((i) => i + 1);
             setSaved(false);
           }}
-          className="min-h-11 rounded-lg border border-line bg-mossp px-3.5 text-[13.5px] font-semibold text-mossd"
+          className="min-h-11 rounded-lg border border-line bg-mossp px-3.5 text-[0.84375rem] font-semibold text-mossd"
         >
           Another →
         </button>
@@ -34,12 +34,12 @@ export function MidwifeQuestionCard({ onSave }: Props) {
             onSave(question);
             setSaved(true);
           }}
-          className="min-h-11 rounded-lg border border-line bg-clayp px-3.5 text-[13.5px] font-semibold text-clay"
+          className="min-h-11 rounded-lg border border-line bg-clayp px-3.5 text-[0.84375rem] font-semibold text-clay"
         >
           {saved ? 'Saved ✓' : 'Save this question'}
         </button>
       </div>
-      <p aria-live="polite" className="mt-2 text-[13px] text-soft">
+      <p aria-live="polite" className="mt-2 text-[0.8125rem] text-soft">
         {saved ? (
           <>
             Saved. It’s on{' '}

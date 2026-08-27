@@ -34,7 +34,7 @@ export function AppHeader() {
       <div className="mx-auto max-w-[920px] px-4 pt-3">
         <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
           <div>
-            <span className="font-display text-[20px] font-bold">Field Notes</span>
+            <span className="font-display text-[1.25rem] font-bold">Field Notes</span>
             <small className="label-mono mt-0.5 block font-normal text-mossd">
               A pregnancy guide — by Dan Canter
             </small>
@@ -43,6 +43,12 @@ export function AppHeader() {
             Every entry sourced
           </span>
         </div>
+        {/* Two fixes measured rather than guessed, both on every screen.
+            The inactive tabs were dimmed with opacity, which computed to
+            #74796f on paper — 3.92:1, under the 4.5:1 AA floor for text this
+            small. They now use the palette's own muted ink, which is 6.4:1.
+            And at py-2.5 they were 41px tall: under the 44px target size, on
+            the navigation someone uses one-handed. */}
         <nav aria-label="Sections" className="-mx-1 flex gap-0.5 overflow-x-auto">
           {tabs.map((t) => (
             <NavLink
@@ -50,11 +56,10 @@ export function AppHeader() {
               to={t.to}
               className={({ isActive }) =>
                 [
-                  'whitespace-nowrap border-b-[3px] px-2.5 py-2.5 font-mono text-[11.5px] transition-opacity',
-                  t.urgent ? 'text-alert' : 'text-ink',
+                  'flex min-h-11 items-center whitespace-nowrap border-b-[3px] px-2.5 font-mono text-[0.71875rem]',
                   isActive
-                    ? `border-b-current font-semibold opacity-100 ${t.urgent ? 'text-alert' : 'text-clay'}`
-                    : 'border-transparent opacity-60 hover:opacity-100',
+                    ? `border-b-current font-semibold ${t.urgent ? 'text-alert' : 'text-clay'}`
+                    : `border-transparent ${t.urgent ? 'text-alert' : 'text-soft'} hover:text-ink`,
                 ].join(' ')
               }
             >

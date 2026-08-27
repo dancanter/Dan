@@ -45,7 +45,7 @@ export function JournalScreen() {
               setTab(t.id);
               setDraft('');
             }}
-            className={`min-h-11 rounded-full border px-3.5 text-[13.5px] ${
+            className={`min-h-11 rounded-full border px-3.5 text-[0.84375rem] ${
               tab === t.id ? 'border-moss bg-moss text-white' : 'border-line bg-card text-soft'
             }`}
           >
@@ -57,7 +57,9 @@ export function JournalScreen() {
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'mood' && (
           <>
-            <p className="text-[15px]">How are you today? No scores, no streaks — just noticing.</p>
+            <p className="text-[0.9375rem]">
+              How are you today? No scores, no streaks — just noticing.
+            </p>
             <div className="my-4 flex flex-wrap justify-center gap-2">
               {MOODS.map((m) => (
                 <button
@@ -71,12 +73,14 @@ export function JournalScreen() {
                   className="min-h-11 min-w-[60px] flex-1 rounded-xl border-[1.5px] border-line bg-card px-2 py-3 text-2xl transition-transform hover:-translate-y-0.5 hover:border-moss"
                 >
                   <span aria-hidden="true">{m.emoji}</span>
-                  <small className="mt-1 block font-mono text-[10px] text-soft">{m.value}</small>
+                  <small className="mt-1 block font-mono text-[0.625rem] text-soft">
+                    {m.value}
+                  </small>
                   <span className="sr-only">Record mood: {m.value}</span>
                 </button>
               ))}
             </div>
-            <p aria-live="polite" className="min-h-11 text-center text-[15px] text-mossd">
+            <p aria-live="polite" className="min-h-11 text-center text-[0.9375rem] text-mossd">
               {moodMessage}
             </p>
 
@@ -88,7 +92,7 @@ export function JournalScreen() {
               <p className="text-center">
                 <Link
                   to="/minute"
-                  className="inline-flex min-h-11 items-center rounded-lg border border-moss bg-mossp px-4 text-[15px] font-semibold text-mossd no-underline"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-moss bg-mossp px-4 text-[0.9375rem] font-semibold text-mossd no-underline"
                 >
                   Need a minute? →
                 </Link>
@@ -112,7 +116,7 @@ export function JournalScreen() {
                     </li>
                   ))}
                 </ol>
-                <p className="mt-2 font-mono text-[10.5px] text-soft">
+                <p className="mt-2 font-mono text-[0.65625rem] text-soft">
                   A picture of how the last couple of weeks have felt — useful to show your midwife.
                 </p>
               </>
@@ -126,7 +130,7 @@ export function JournalScreen() {
 
         {tab !== 'mood' && (
           <>
-            <p className="text-[15px]">
+            <p className="text-[0.9375rem]">
               {tab === 'note'
                 ? 'Anything you want to remember — how you felt, what happened, what you’re looking forward to.'
                 : tab === 'question'
@@ -172,7 +176,7 @@ export function JournalScreen() {
 
       <SectionHeading>Your entries</SectionHeading>
       {entries.length === 0 ? (
-        <p className="text-[14.5px] italic text-soft">
+        <p className="text-[0.90625rem] italic text-soft">
           Nothing saved yet. Anything you add appears here — and stays on this device.
         </p>
       ) : (
@@ -181,16 +185,16 @@ export function JournalScreen() {
             <li key={e.id} className="mb-2.5 rounded-xl border border-line bg-card px-4 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10.5px] text-soft">
+                  <div className="font-mono text-[0.65625rem] text-soft">
                     {JOURNAL_LABEL[e.kind]}
                     {e.week !== null && ` · Week ${e.week}`} · {formatDate(e.date)}
                   </div>
-                  <p className="m-0 mt-1 text-[14.5px]">{e.text}</p>
+                  <p className="m-0 mt-1 text-[0.90625rem]">{e.text}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => remove(e.id)}
-                  className="min-h-11 flex-none px-2 font-mono text-[11px] text-soft underline"
+                  className="min-h-11 flex-none px-2 font-mono text-[0.6875rem] text-soft underline"
                 >
                   Delete
                   <span className="sr-only"> entry: {e.text}</span>

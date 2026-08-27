@@ -30,21 +30,21 @@ export function BabyScreen() {
             className="absolute inset-[7px] rounded-full border border-clay opacity-40"
             aria-hidden="true"
           />
-          <b className="font-display text-[30px] leading-none text-clay">{week}</b>
+          <b className="font-display text-[1.875rem] leading-none text-clay">{week}</b>
           <span className="label-mono font-normal text-clay">weeks</span>
         </div>
-        <div className="min-w-[200px] flex-1">
+        <div className="min-w-[min(12.5rem,100%)] flex-1">
           <p className="label-mono mb-1 text-mossd">{trimesterLabel(week)}</p>
-          <h2 className="mb-1 text-[20px]">
+          <h2 className="mb-1 text-[1.25rem]">
             {baby?.sizeLabel ?? `Roughly the size of ${baby?.size}`}
           </h2>
-          <p className="m-0 text-[14.5px] text-soft">Week {week} of 40</p>
+          <p className="m-0 text-[0.90625rem] text-soft">Week {week} of 40</p>
         </div>
       </div>
 
       <div className="rounded-xl border border-line bg-gradient-to-br from-card to-mossp p-4.5 px-4 py-4">
-        <h3 className="mb-2 text-[17px]">What’s developing this week</h3>
-        <p className="m-0 text-[15px]">{baby?.development}</p>
+        <h3 className="mb-2 text-[1.0625rem]">What’s developing this week</h3>
+        <p className="m-0 text-[0.9375rem]">{baby?.development}</p>
       </div>
 
       <SectionHeading>Milestones ahead</SectionHeading>
@@ -66,7 +66,7 @@ export function BabyScreen() {
                 }`}
               />
               <span className="label-mono block font-normal text-mossd">Week {m.week}</span>
-              <span className="font-display text-[16px] font-semibold">{m.title}</span>
+              <span className="font-display text-[1rem] font-semibold">{m.title}</span>
               {now && <span className="sr-only"> — around now</span>}
             </li>
           );
@@ -75,7 +75,7 @@ export function BabyScreen() {
 
       <SectionHeading>Give them a name</SectionHeading>
       <div className="rounded-xl border border-line bg-card p-4">
-        <label htmlFor="baby-name" className="mb-2 block text-[15px]">
+        <label htmlFor="baby-name" className="mb-2 block text-[0.9375rem]">
           Lots of people use a nickname before the real one is decided. Entirely optional — it just
           makes this page a little warmer.
         </label>

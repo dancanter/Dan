@@ -166,4 +166,38 @@ describe('the delete confirmation', () => {
     const { container } = show();
     expect(container.textContent).toMatch(/sends no notifications/i);
   });
+
+  it('announces the confirmation, which appears below rather than over', async () => {
+    const user = userEvent.setup();
+    show();
+    const trigger = screen.getByRole('button', { name: /delete my pregnancy data/i });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    // Focus moves to the terms, or a screen reader user hears nothing change.
+    await waitFor(() => expect(document.activeElement?.textContent).toMatch(/before you delete/i));
+  });
+});
+
+/**
+ * The second half of the same bug. Settings has its own "Reset my data", and it
+ * called three hooks by hand — the identical hard-coded list that left photos,
+ * movements and a phone number behind. Every screen that offers to remove data
+ * has to go through the one function that enumerates.
+ */
+describe('the reset in Settings', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+  });
+
+  it('is not a second, weaker implementation of deletion', async () => {
+    const source = await import('node:fs').then((fs) =>
+      fs.readFileSync('src/screens/SettingsScreen.tsx', 'utf8'),
+    );
+    expect(source).toContain('wipeAllLocalData');
+    // The exact shape of the original bug: naming the stores to clear.
+    expect(source).not.toMatch(/resetProfile\(\)|resetProgress\(\)|resetJournal\(\)/);
+  });
 });

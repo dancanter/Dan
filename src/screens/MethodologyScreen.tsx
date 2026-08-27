@@ -19,10 +19,10 @@ export function MethodologyScreen() {
       <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {TIER_ORDER.map((tier) => (
           <div key={tier} className="rounded-xl border border-line bg-card px-3 py-3 text-center">
-            <div className="font-display text-[22px] font-bold text-mossd">
+            <div className="font-display text-[1.375rem] font-bold text-mossd">
               {sources.filter((s) => s.tier === tier).length}
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-wide text-soft">
+            <div className="font-mono text-[0.625rem] uppercase tracking-wide text-soft">
               {SOURCE_TIER_LABEL[tier]}
             </div>
           </div>
@@ -42,7 +42,7 @@ export function MethodologyScreen() {
 
       {methodologySections.map((section) => (
         <section key={section.id} className="mt-7">
-          <h2 className="mb-2 text-[19px] text-mossd">{section.title}</h2>
+          <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
           <RichText paragraphs={section.body} />
         </section>
       ))}

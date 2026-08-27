@@ -17,7 +17,7 @@ export function ReadAloud({ now, why }: { now: string; why: string }) {
     <button
       type="button"
       onClick={() => (speaking ? stop() : speak(`${now} ${why}`))}
-      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 text-[14.5px] font-semibold text-ink"
+      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 text-[0.90625rem] font-semibold text-ink"
     >
       <span aria-hidden="true">{speaking ? '■' : '▶'}</span>
       {speaking ? 'Stop reading' : 'Read this to me'}

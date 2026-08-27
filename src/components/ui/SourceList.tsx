@@ -23,9 +23,16 @@ export function SourceList({ sourceIds }: { sourceIds: string[] }) {
         {resolved.map((s) => {
           const url = sourceUrl(s);
           return (
-            <li key={s.id} className="font-mono text-[10.5px] leading-relaxed text-soft">
+            <li key={s.id} className="font-mono text-[0.65625rem] leading-relaxed text-soft">
+              {/* Padding on an inline link grows the hit area without changing
+                  the line box — the citation rows measured 12px tall. */}
               {url ? (
-                <a href={url} target="_blank" rel="noreferrer noopener" className="underline">
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="py-1.5 underline"
+                >
                   {s.label}
                   <span aria-hidden="true"> ↗</span>
                   <span className="sr-only"> (opens the source in a new tab)</span>

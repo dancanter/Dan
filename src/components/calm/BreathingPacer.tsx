@@ -65,13 +65,13 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
         // over — the number is the pacing device here, and repeating the
         // words inside the circle only made the two harder to read at a
         // glance.
-        <div className="mx-auto flex h-[150px] w-[150px] items-center justify-center rounded-full border-[3px] border-moss bg-mossp">
-          <span className="font-display text-[52px] leading-none text-mossd">
+        <div className="mx-auto flex aspect-square w-[min(9.375rem,70vw)] items-center justify-center rounded-full border-[3px] border-moss bg-mossp">
+          <span className="font-display text-[3.25rem] leading-none text-mossd">
             {running ? left : '—'}
           </span>
         </div>
       ) : (
-        <div className="mx-auto flex h-[190px] w-[190px] items-center justify-center">
+        <div className="mx-auto flex aspect-square w-[min(11.875rem,72vw)] items-center justify-center">
           <span
             aria-hidden="true"
             style={
@@ -84,16 +84,16 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
                   }
                 : undefined
             }
-            className="flex h-[110px] w-[110px] items-center justify-center rounded-full border-[3px] border-moss bg-mossp"
+            className="flex aspect-square w-[58%] items-center justify-center rounded-full border-[3px] border-moss bg-mossp"
           >
-            <span className="font-display text-[36px] leading-none text-mossd">
+            <span className="font-display text-[2.25rem] leading-none text-mossd">
               {running ? left : '—'}
             </span>
           </span>
         </div>
       )}
 
-      <p className="mb-4 mt-3 text-[17px] font-semibold">
+      <p className="mb-4 mt-3 text-[1.0625rem] font-semibold">
         {running ? label : 'Ready when you are'}
       </p>
 
@@ -107,7 +107,7 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
         <button
           type="button"
           onClick={() => (running ? stop() : setRunning(true))}
-          className="min-h-11 rounded-lg bg-moss px-5 text-[15px] font-semibold text-white"
+          className="min-h-11 rounded-lg bg-moss px-5 text-[0.9375rem] font-semibold text-white"
         >
           {running ? 'Stop' : 'Start'}
         </button>
@@ -116,7 +116,7 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
       {/* No target, no goal, and nothing kept once the page closes. Stopping
           after one breath is a complete use of this. */}
       {cycles > 0 && (
-        <p className="mt-3 font-mono text-[11px] text-soft">
+        <p className="mt-3 font-mono text-[0.6875rem] text-soft">
           {cycles} {cycles === 1 ? 'breath' : 'breaths'} so far. Stop whenever you like — there is
           no target, and this isn’t saved.
         </p>

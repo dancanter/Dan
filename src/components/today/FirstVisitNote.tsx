@@ -26,15 +26,15 @@ export function FirstVisitNote() {
       aria-labelledby="first-visit"
       className="mb-6 rounded-xl border border-line bg-card px-4 py-4"
     >
-      <h2 id="first-visit" className="mb-1.5 font-display text-[17px] font-semibold">
+      <h2 id="first-visit" className="mb-1.5 font-display text-[1.0625rem] font-semibold">
         Before you start
       </h2>
-      <p className="m-0 text-[15px] leading-relaxed text-soft">
+      <p className="m-0 text-[0.9375rem] leading-relaxed text-soft">
         Everything here is checked against a named source, and the research papers link straight
         through so you can read them yourself. Where the evidence is genuinely uncertain, it says so
         instead of picking a side.
       </p>
-      <p className="mb-0 mt-2.5 text-[15px] leading-relaxed text-soft">
+      <p className="mb-0 mt-2.5 text-[0.9375rem] leading-relaxed text-soft">
         <strong className="text-ink">
           This app cannot tell you whether you or your baby are well.
         </strong>{' '}
@@ -47,7 +47,7 @@ export function FirstVisitNote() {
       <button
         type="button"
         onClick={() => setSeen(true)}
-        className="mt-3.5 min-h-11 w-full rounded-lg border border-line px-3 text-[15px] font-semibold"
+        className="mt-3.5 min-h-11 w-full rounded-lg border border-line px-3 text-[0.9375rem] font-semibold"
       >
         Got it
       </button>

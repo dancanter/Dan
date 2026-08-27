@@ -43,7 +43,7 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
       <h2 id="what-changed" className="label-mono mb-1.5 text-mossd">
         Since you were last here
       </h2>
-      <p className="m-0 text-[15.5px] leading-relaxed">
+      <p className="m-0 text-[0.96875rem] leading-relaxed">
         {weeksOn === 1
           ? `You’ve moved into week ${currentWeek}.`
           : `You’re in week ${currentWeek} now — ${weeksOn} weeks on from last time.`}
@@ -52,7 +52,7 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
 
       {fresh.length > 0 && (
         <>
-          <p className="mb-1.5 mt-2.5 text-[14.5px] text-mossd">
+          <p className="mb-1.5 mt-2.5 text-[0.90625rem] text-mossd">
             {fresh.length === 1
               ? 'One thing became relevant while you were away:'
               : `${fresh.length} things became relevant while you were away:`}
@@ -62,11 +62,11 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
               <li key={id} className="mb-1">
                 <Link
                   to={`/healthy?open=${id}`}
-                  className="text-[15px] font-semibold text-mossd underline"
+                  className="text-[0.9375rem] font-semibold text-mossd underline"
                 >
                   {title}
                 </Link>
-                <span className="block text-[13.5px] italic text-soft">{why}</span>
+                <span className="block text-[0.84375rem] italic text-soft">{why}</span>
               </li>
             ))}
           </ul>

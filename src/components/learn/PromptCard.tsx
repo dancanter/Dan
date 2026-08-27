@@ -58,7 +58,7 @@ export function PromptCard({
               key={o.value}
               type="button"
               onClick={() => onChoose(o.value)}
-              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-3 text-[15.5px] font-semibold hover:border-moss"
+              className="min-h-[52px] flex-1 rounded-xl border-[1.5px] border-line bg-paper px-3 text-[0.96875rem] font-semibold hover:border-moss"
             >
               {o.label}
             </button>
@@ -67,14 +67,14 @@ export function PromptCard({
       ) : (
         <div className="reveal-in">
           {/* Never "wrong", "incorrect" or a cross. */}
-          <p className="mb-2 text-[15px] font-semibold">
+          <p className="mb-2 text-[0.9375rem] font-semibold">
             {agreed ? 'That’s right.' : 'This one catches a lot of people.'}
           </p>
           {reveal}
           <button
             type="button"
             onClick={onNext}
-            className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[15px] font-semibold text-white"
+            className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
           >
             Next one →
           </button>
@@ -91,7 +91,7 @@ export function PromptCard({
  */
 export function NothingToFinish({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-6 text-[14.5px] leading-relaxed text-soft">
+    <p className="mt-6 text-[0.90625rem] leading-relaxed text-soft">
       Stop whenever you like — there’s nothing to finish. {children}
     </p>
   );

@@ -52,16 +52,16 @@ export function OnboardingScreen() {
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="font-display text-[30px] font-bold outline-none"
+          className="font-display text-[1.875rem] font-bold outline-none"
         >
           Field Notes
         </h1>
         <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
-        <p className="mt-4 text-[15px] text-soft">
+        <p className="mt-4 text-[0.9375rem] text-soft">
           Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
           account, no tracking — everything stays on your device.
         </p>
-        <p className="mt-2 text-[14px] text-soft">
+        <p className="mt-2 text-[0.875rem] text-soft">
           Your due date is the only thing needed to start. Anything else is asked later, and only
           where it changes something.
         </p>
@@ -135,7 +135,7 @@ export function OnboardingScreen() {
           Start
         </button>
 
-        <p className="text-center text-[14px] text-soft">
+        <p className="text-center text-[0.875rem] text-soft">
           Worried about something right now?{' '}
           <Link to="/help" className="font-semibold underline">
             Get help
@@ -143,7 +143,7 @@ export function OnboardingScreen() {
           — no setup needed.
         </p>
 
-        <p className="text-center font-mono text-[10.5px] leading-relaxed text-soft">
+        <p className="text-center font-mono text-[0.65625rem] leading-relaxed text-soft">
           Not a substitute for medical advice, and not clinically reviewed. It cannot check whether
           you or your baby are well. Always speak to your midwife or GP about your own care.
         </p>
