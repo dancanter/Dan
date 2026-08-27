@@ -140,6 +140,20 @@ of the three you can afford to move. Steps show against 12,500 with the
 shortfall converted to calories, because activity is the lever to pull before
 intake. A salt-and-water note appears when the daily readings swing.
 
+**Food Log** — pick from the ~37 foods actually eaten (or enter macros for
+anything else) and it totals the day: calorie, protein, carb and fat bars
+against the day's targets, then thirteen micronutrients against their RDAs.
+Under that sits the day's steer, argued from the numbers — how much protein or
+carbohydrate is still owed and which food covers it, when fat has dropped below
+its floor, which micronutrients the day is thin on and what fixes each, iron
+logged without the vitamin C that makes it absorbable, and vitamin A stacking up
+from liver. Each food carries a line on what it is actually for, behind the
+reasoning switch.
+
+Values are per 100g or per unit, approximate — enough to steer a day, not a lab
+report. The list is deliberately short: a database of ten thousand items is one
+nobody logs into.
+
 **The reverse is locked** until the 7-day average has held at or below 123.5 lb
 for a fortnight, or 1 November — whichever comes first.
 

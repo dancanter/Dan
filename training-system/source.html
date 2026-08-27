@@ -638,11 +638,29 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
+      <h2 class="block-title">Food Log</h2>
+      <p class="block-sub">What you actually ate. It works out the macros and micronutrients and says what the day is short of.</p>
+      <div class="add-row" style="margin-top:0">
+        <select id="foodPick" style="flex:2"></select>
+        <input type="text" id="foodQty" inputmode="decimal" placeholder="g / units" style="max-width:96px">
+        <button class="btn primary" id="foodAddBtn">Add</button>
+      </div>
+      <div class="add-row" id="customRow" style="display:none">
+        <input type="text" id="foodCustom" placeholder="What was it" style="flex:2">
+        <input type="text" id="cKcal" inputmode="numeric" placeholder="kcal" style="max-width:72px">
+        <input type="text" id="cP" inputmode="numeric" placeholder="P" style="max-width:52px">
+        <input type="text" id="cC" inputmode="numeric" placeholder="C" style="max-width:52px">
+        <input type="text" id="cF" inputmode="numeric" placeholder="F" style="max-width:52px">
+      </div>
+      <div id="foodOut" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block">
       <h2 class="block-title">Where You Are</h2>
       <div id="calStep"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-detail>
       <h2 class="block-title">Your Day</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
         <table class="ref">
@@ -3760,6 +3778,257 @@ function renderKcal() {
     (rows ? '<div style="margin-top:10px">' + rows + "</div>" : "");
 }
 
+/* ================= food log ================= */
+/* Values are per 100g (or per unit where marked) and are approximations good
+   enough to steer a day, not laboratory figures. The list is deliberately only
+   the foods actually eaten — a database of ten thousand items is a database
+   nobody logs into. */
+/* Macros are not in here. Listing protein alongside the micronutrients made
+   the totals loop add it a second time on top of the macro loop, and the bar
+   read 173g on a day that contained 87. */
+var MICROS = [
+  { k: "fe",  label: "Iron",      unit: "mg", rda: 8 },
+  { k: "zn",  label: "Zinc",      unit: "mg", rda: 11 },
+  { k: "mg",  label: "Magnesium", unit: "mg", rda: 400 },
+  { k: "k",   label: "Potassium", unit: "mg", rda: 3500 },
+  { k: "ca",  label: "Calcium",   unit: "mg", rda: 1000 },
+  { k: "se",  label: "Selenium",  unit: "µg", rda: 55 },
+  { k: "va",  label: "Vitamin A", unit: "µg", rda: 900 },
+  { k: "vc",  label: "Vitamin C", unit: "mg", rda: 90 },
+  { k: "vd",  label: "Vitamin D", unit: "µg", rda: 15 },
+  { k: "fol", label: "Folate",    unit: "µg", rda: 400 },
+  { k: "b12", label: "B12",       unit: "µg", rda: 2.4 },
+  { k: "ch",  label: "Choline",   unit: "mg", rda: 550 },
+  { k: "o3",  label: "Omega-3",   unit: "mg", rda: 500 }
+];
+/* kcal p c f then micros, per 100g unless "each" is set */
+var FOODS = [
+  { id:"oats",   n:"GF oats (dry)",      kcal:379,p:13,c:68,f:7,  mg:177,zn:4,fe:4.7,
+    why:"Slow carbohydrate and beta-glucan. Certified gluten free only — and avenin is close enough to gluten that it is a test, not a default." },
+  { id:"fage",   n:"Fage 0%",            kcal:59, p:10,c:4, f:0,  ca:110,b12:0.8,
+    why:"Protein with almost no calories attached. The cheapest way to hit the protein number in a deficit." },
+  { id:"egg",    n:"Whole egg", each:50, kcal:78, p:6, c:0.6,f:5, ch:147,se:15,va:80,vd:1,b12:0.6,
+    why:"The best choline source you will eat, and choline is the one most athletes are short of. Yolk included or it is pointless." },
+  { id:"honey",  n:"Honey",              kcal:304,p:0.3,c:82,f:0,
+    why:"Fast carbohydrate. Useful around a session, not much use anywhere else." },
+  { id:"milk",   n:"Semi-skimmed milk",  kcal:50, p:3.4,c:5,f:1.8, ca:120,b12:0.5,
+    why:"Calcium, protein and fluid in one. Fine unless dairy bothers you, and it does not bother you." },
+  { id:"salmon", n:"Sockeye salmon",     kcal:216,p:27,c:0,f:11, o3:1300,vd:14,se:35,b12:4.5,
+    why:"The single best food on this list. Omega-3 for the membranes and inflammation, vitamin D, selenium — 450g a week covers all three." },
+  { id:"sard",   n:"Sardines",           kcal:208,p:25,c:0,f:11, o3:1400,ca:380,vd:4,se:52,b12:8.9,
+    why:"Salmon's cheaper twin, and the bones make it the best non-dairy calcium there is." },
+  { id:"liver",  n:"Beef liver",         kcal:135,p:20,c:4,f:4,  va:9400,b12:70,fe:5,zn:4,fol:290,ch:330,se:33,
+    why:"Nothing else comes close for vitamin A, B12 and folate. 100–135g a week is plenty — more and the vitamin A stacks up." },
+  { id:"kidney", n:"Beef kidney",        kcal:99, p:17,c:0.3,f:3, se:141,b12:27,fe:4.6,
+    why:"Selenium in a class of its own, which feeds the thyroid and the antioxidant system." },
+  { id:"beef",   n:"Lean beef mince 5%", kcal:137,p:21,c:0,f:5,  fe:2.6,zn:4.8,b12:2.5,
+    why:"Iron and zinc in the form your body actually absorbs. Zinc is the one that goes first in a deficit." },
+  { id:"chick",  n:"Chicken breast",     kcal:165,p:31,c:0,f:3.6, se:22,
+    why:"Most protein per calorie of anything here. 200g is 62g of protein for 330 kcal." },
+  { id:"rice",   n:"White rice (dry)",   kcal:360,p:7, c:79,f:0.6,
+    why:"Clean carbohydrate, easy on the gut. The default when you need to add carbs without adding bulk." },
+  { id:"potato", n:"Potato (cooked)",    kcal:87, p:2, c:20,f:0.1, k:420,vc:13,
+    why:"More potassium than a banana and more filling per calorie than almost anything." },
+  { id:"sweetp", n:"Sweet potato",       kcal:90, p:2, c:21,f:0.1, va:960,k:475,vc:20,
+    why:"Vitamin A from beta-carotene, which unlike liver's you cannot overdo." },
+  { id:"rcake",  n:"GF rice cakes", each:8, kcal:35,p:0.7,c:7.3,f:0.3,
+    why:"Carbohydrate with a shape. Useful for making a meal feel like a meal." },
+  { id:"banana", n:"Banana", each:118,  kcal:105,p:1.3,c:27,f:0.4, k:420,
+    why:"Potassium and fast carbs. Best used before or after, not with." },
+  { id:"grapes", n:"Grapes",             kcal:69, p:0.7,c:18,f:0.2, k:190,
+    why:"Sugar with polyphenols attached. Fine in the evening slot." },
+  { id:"blue",   n:"Blueberries",        kcal:57, p:0.7,c:14,f:0.3, vc:10,
+    why:"Anthocyanins — the pigment is the point. Frozen are as good as fresh and cheaper." },
+  { id:"sprout", n:"Broccoli sprouts",   kcal:35, p:3, c:6, f:0.4, vc:35,fol:60,
+    why:"Sulforaphane, the strongest Nrf2 activator in food. Raw only — heat destroys the enzyme that makes it." },
+  { id:"spin",   n:"Spinach",            kcal:23, p:2.9,c:3.6,f:0.4, fol:194,k:558,mg:79,va:469,vc:28,
+    why:"Folate, magnesium and nitrate. The nitrate is what feeds the blood-vessel side of endurance." },
+  { id:"rocket", n:"Rocket",             kcal:25, p:2.6,c:3.7,f:0.7, fol:97,ca:160,k:369,
+    why:"Nitrate again, and it does not need cooking. Do not use antibacterial mouthwash if you want the benefit." },
+  { id:"avo",    n:"Avocado",            kcal:160,p:2, c:9, f:15,  k:485,mg:29,fol:81,
+    why:"Potassium, magnesium and monounsaturated fat. The fat that makes the fat-soluble vitamins in the same meal usable." },
+  { id:"butter", n:"Grass-fed butter",   kcal:717,p:0.9,c:0.1,f:81, va:684,
+    why:"K2 and vitamin A. Grass-fed genuinely matters here — the K2 comes from the grass." },
+  { id:"tallow", n:"Beef tallow",        kcal:902,p:0,c:0,f:100,
+    why:"Stable at heat, no seed oils. Pure fat — count it properly, it adds up fast." },
+  { id:"cheese", n:"Raw cheddar",        kcal:403,p:25,c:1.3,f:33, ca:721,zn:3.1,k2:20,
+    why:"Calcium, K2 and protein. Raw carries a small listeria risk — worth knowing, your call." },
+  { id:"cott",   n:"Cottage cheese",     kcal:98, p:11,c:3.4,f:4.3, ca:83,se:9,
+    why:"Slow casein protein. The one to eat last thing if you eat last thing." },
+  { id:"kefir",  n:"Kefir",              kcal:60, p:3.3,c:4.5,f:3.3, ca:120,b12:0.3,
+    why:"Live cultures — more strains than yoghurt. The gut side of the ageing picture." },
+  { id:"walnut", n:"Walnuts",            kcal:654,p:15,c:14,f:65, mg:158,o3:2570,
+    why:"Plant omega-3, which is not the same as the fish kind but still counts. Calorie-dense — weigh them." },
+  { id:"pump",   n:"Pumpkin seeds",      kcal:559,p:30,c:11,f:49, mg:592,zn:7.8,fe:8.8,
+    why:"The best magnesium in food, plus zinc and iron. A small handful does a lot." },
+  { id:"almond", n:"Almonds",            kcal:579,p:21,c:22,f:50, mg:270,ca:269,
+    why:"Magnesium and vitamin E. Easy to eat 200 kcal of without noticing." },
+  { id:"choc",   n:"Dark chocolate 85%", kcal:598,p:8, c:46,f:43, mg:228,fe:11,
+    why:"Magnesium and flavanols. The 85% is doing the work, not the 70%." },
+  { id:"kiwi",   n:"Kiwi", each:75,      kcal:42, p:0.8,c:10,f:0.4, vc:64,k:215,
+    why:"More vitamin C than an orange, and vitamin C is what makes collagen synthesis actually happen." },
+  { id:"orange", n:"Orange", each:130,   kcal:62, p:1.2,c:15,f:0.2, vc:70,fol:39,k:237,
+    why:"Vitamin C and folate. Eat it with the iron-containing meal and you absorb more iron." },
+  { id:"tomato", n:"Tomato",             kcal:18, p:0.9,c:3.9,f:0.2, k:237,vc:14,va:42,
+    why:"Lycopene, and cooking it makes more of it available rather than less." },
+  { id:"carrot", n:"Carrot",             kcal:41, p:0.9,c:10,f:0.2, va:835,k:320,
+    why:"Beta-carotene, which needs fat in the same meal to be absorbed at all." },
+  { id:"whey",   n:"Whey protein", each:30, kcal:120,p:24,c:2,f:1.5, ca:120,
+    why:"Protein without the cooking. Useful, not magic — real food first." },
+  { id:"salt",   n:"Salt", each:1,       kcal:0,p:0,c:0,f:0,
+    why:"Steady, not swinging. Cutting it drops water weight that is not fat and comes straight back." }
+];
+function foodById(id) { for (var i = 0; i < FOODS.length; i++) if (FOODS[i].id === id) return FOODS[i]; return null; }
+function foodAmount(f, qty) {
+  /* per-unit foods count the unit; everything else is per 100g */
+  return f.each ? qty : qty / 100;
+}
+function todayFoods() { return (todayState.foods || []).slice(); }
+function saveFoods(list) {
+  todayState.foods = list;
+  DB.set(dailyKey(new Date()), todayState);
+  renderFoodLog(); renderKcal();
+}
+function foodTotals(list) {
+  var t = { kcal: 0, p: 0, c: 0, f: 0 };
+  MICROS.forEach(function (m) { t[m.k] = t[m.k] || 0; });
+  list.forEach(function (row) {
+    if (row.custom) {
+      t.kcal += row.kcal || 0; t.p += row.p || 0; t.c += row.c || 0; t.f += row.f || 0;
+      return;
+    }
+    var f = foodById(row.id); if (!f) return;
+    var mult = foodAmount(f, row.qty);
+    ["kcal", "p", "c", "f"].forEach(function (k) { t[k] += (f[k] || 0) * mult; });
+    MICROS.forEach(function (m) { if (f[m.k]) t[m.k] += f[m.k] * mult; });
+  });
+  return t;
+}
+
+function renderFoodPicker() {
+  var sel = $("foodPick"); if (!sel || sel.options.length) return;
+  sel.innerHTML = '<option value="">Pick a food…</option>' +
+    FOODS.slice().sort(function (a, b) { return a.n < b.n ? -1 : 1; }).map(function (f) {
+      return '<option value="' + f.id + '">' + esc(f.n) + (f.each ? " (each)" : " (100g)") + "</option>";
+    }).join("") + '<option value="__custom">Something else — enter macros</option>';
+}
+function addFoodRow() {
+  var id = $("foodPick").value, qty = parseFloat($("foodQty").value);
+  if (!id) { $("foodPick").focus(); return; }
+  var list = todayFoods();
+  if (id === "__custom") {
+    var name = ($("foodCustom").value || "").trim();
+    var k = parseFloat($("cKcal").value), pr = parseFloat($("cP").value),
+        cb = parseFloat($("cC").value), ft = parseFloat($("cF").value);
+    if (!name || !isFinite(k)) { $("foodCustom").focus(); return; }
+    list.push({ custom: 1, n: name, kcal: k, p: isFinite(pr) ? pr : 0,
+      c: isFinite(cb) ? cb : 0, f: isFinite(ft) ? ft : 0 });
+    ["foodCustom", "cKcal", "cP", "cC", "cF"].forEach(function (x) { $(x).value = ""; });
+  } else {
+    if (!isFinite(qty) || qty <= 0) { $("foodQty").focus(); return; }
+    list.push({ id: id, qty: qty });
+    $("foodQty").value = "";
+  }
+  saveFoods(list);
+}
+function delFoodRow(i) { var l = todayFoods(); l.splice(i, 1); saveFoods(l); }
+
+/* what the day is short of, and the food that fixes it */
+var FIXES = {
+  fe: "beef liver, lean mince or pumpkin seeds", zn: "beef, pumpkin seeds or cheese",
+  mg: "pumpkin seeds, dark chocolate or spinach", k: "potato, spinach or avocado",
+  ca: "sardines with the bones, cheese or milk", se: "beef kidney, salmon or two eggs",
+  va: "liver, sweet potato or carrot with some fat", vc: "kiwi, orange or raw sprouts",
+  vd: "salmon or sardines", fol: "spinach, liver or rocket",
+  b12: "any red meat, liver or salmon", ch: "eggs — yolks included — or liver",
+  o3: "sockeye salmon or sardines"
+};
+function renderFoodLog() {
+  var el = $("foodOut"); if (!el) return;
+  renderFoodPicker();
+  var list = todayFoods();
+  if (!list.length) {
+    el.innerHTML = '<div class="note flat"><b>Nothing logged today</b>' +
+      "Add what you ate above. Once there is a day in here it works out your macros, your micronutrients and what is missing.</div>";
+    return;
+  }
+  var t = foodTotals(list), m = macroTargets();
+  var rows = list.map(function (row, i) {
+    var f = row.custom ? null : foodById(row.id);
+    var name = row.custom ? row.n : f.n + " · " + row.qty + (f.each ? "" : "g");
+    var one = row.custom ? row : (function () {
+      var mult = foodAmount(f, row.qty);
+      return { kcal: f.kcal * mult, p: f.p * mult, c: f.c * mult, f: f.f * mult };
+    })();
+    return '<div class="log-item"><span class="l-main">' + esc(name) + "</span><span>" +
+      Math.round(one.kcal) + " kcal · " + Math.round(one.p) + "P " + Math.round(one.c) + "C " + Math.round(one.f) + "F" +
+      ' <button class="del" data-delfood="' + i + '" aria-label="Remove">×</button></span></div>';
+  }).join("");
+
+  function bar(label, got, target, unit) {
+    var pct = target ? Math.max(0, Math.min(1, got / target)) : 0;
+    var hit = target && got >= target * 0.9;
+    return '<div class="bench"><div class="bench-top">' +
+      '<span class="bench-name">' + label + "</span>" +
+      '<span class="bench-now" style="font-size:15px">' + Math.round(got) + (unit || "") +
+      '<span class="to-go"> of ' + Math.round(target) + (unit || "") + "</span></span></div>" +
+      '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(0) + '%"></div></div></div>';
+  }
+  var macroBars = bar("Calories", t.kcal, m.kcal, "") + bar("Protein", t.p, m.protein, "g") +
+    bar("Carbs", t.c, m.carbs, "g") + bar("Fat", t.f, m.fat, "g");
+
+  /* the day's steer */
+  var advice = [];
+  var pGap = m.protein - t.p, cGap = m.carbs - t.c, kGap = m.kcal - t.kcal;
+  if (pGap > 20) advice.push("<b>" + Math.round(pGap) + "g short on protein.</b> That is " +
+    Math.round(pGap / 31 * 100) + "g of chicken breast, or " + Math.round(pGap / 10 * 100) + "g of Fage. Protein is the one number not to miss in a deficit.");
+  if (cGap > 40 && kGap > 100) advice.push("<b>" + Math.round(cGap) + "g short on carbs with " + Math.round(kGap) +
+    " kcal still to eat.</b> " + Math.round(cGap / 79 * 100) + "g of dry rice or " + Math.round(cGap / 20 * 100) +
+    "g of potato covers it. If you have a session tomorrow, this is the gap that shows up in it.");
+  else if (cGap < -30) advice.push("<b>Carbs are " + Math.round(-cGap) + "g over.</b> Not a problem on a session day. On a rest day it is where the calories quietly went.");
+  if (t.f < m.fat * 0.6 && kGap < 300) advice.push("<b>Fat is low at " + Math.round(t.f) + "g.</b> " +
+    "Below about " + m.fat + "g and sleep and hormones both notice. Half an avocado or 20g of butter fixes it.");
+  if (kGap < -200) advice.push("<b>" + Math.round(-kGap) + " kcal over target.</b> One day is nothing. Check the fats first — they are usually where it comes from.");
+
+  var short = MICROS.filter(function (x) { return x.rda && t[x.k] < x.rda * 0.5 && FIXES[x.k]; });
+  if (short.length) {
+    advice.push("<b>Thin on " + short.slice(0, 3).map(function (x) { return x.label.toLowerCase(); }).join(", ") + ".</b> " +
+      short.slice(0, 2).map(function (x) { return x.label.toLowerCase() + " → " + FIXES[x.k]; }).join("; ") + ".");
+  }
+  if (t.vc < 30 && t.fe > 4) advice.push("<b>Iron without vitamin C.</b> A kiwi or an orange with the same meal roughly doubles how much of that iron you actually absorb.");
+  if (t.va > 3000) advice.push("<b>Vitamin A is high — " + Math.round(t.va) + "µg.</b> That is the liver. Fine once or twice a week, not daily; it is fat-soluble and it accumulates.");
+
+  var microRows = MICROS.filter(function (x) { return x.rda; }).map(function (x) {
+    var got = t[x.k] || 0, pct = Math.min(999, Math.round(got / x.rda * 100));
+    var col = pct >= 90 ? "var(--go)" : pct >= 50 ? "var(--muted)" : "var(--warn)";
+    return "<tr><td>" + x.label + "</td>" +
+      '<td class="hl">' + (got >= 100 ? Math.round(got) : got.toFixed(1)) + x.unit + "</td>" +
+      '<td style="color:' + col + '">' + pct + "%</td></tr>";
+  }).join("");
+
+  var whys = list.filter(function (r) { return !r.custom; }).map(function (r) { return foodById(r.id); })
+    .filter(function (f, i, a) { return f && a.indexOf(f) === i; })
+    .map(function (f) {
+      return '<p style="margin:10px 0 0;font-size:13.5px;line-height:1.6;color:var(--muted)">' +
+        '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:2px">' + esc(f.n) + "</b>" + f.why + "</p>";
+    }).join("");
+
+  el.innerHTML = '<div style="margin-bottom:12px">' + rows + "</div>" + macroBars +
+    (advice.length
+      ? '<div class="card" style="padding:2px 14px 12px;margin-top:12px">' +
+        '<div class="block-title" style="font-size:17px;margin-top:12px">Today\'s steer</div>' +
+        advice.map(function (a) {
+          return '<p style="margin:10px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' + a + "</p>";
+        }).join("") + "</div>"
+      : '<div class="note good" style="margin-top:12px"><b>Nothing to fix</b>Macros and micronutrients both land where they should.</div>') +
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Micronutrients</div>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Nutrient</th><th>Today</th><th>of RDA</th></tr></thead><tbody>" + microRows + "</tbody></table>" +
+    '<p class="block-sub" style="margin:8px 0 10px" data-detail>Approximate values, and only from what you logged — enough to steer a day, not a lab report.</p></div>' +
+    (whys ? '<div class="card" data-detail style="padding:2px 14px 14px;margin-top:12px">' +
+      '<div class="block-title" style="font-size:17px;margin-top:12px">What you ate is doing</div>' + whys + "</div>" : "");
+}
+
 /* ================= salt and water ================= */
 /* He does not sweat heavily, so the usual "athletes need more sodium" line does
    not apply — and cutting salt hard is a trap he has already fallen into once. */
@@ -4861,7 +5130,7 @@ function renderAll() {
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
-  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate();
+  renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
@@ -4915,7 +5184,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delfood],[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.id === "orphanOk") { delete settings.orphanNote; DB.set("settings", settings); renderRolling(); return; }
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
@@ -4945,6 +5214,7 @@ function renderStartInfo() {
       hrLog = hrLog.filter(function (h) { return h.date !== el.dataset.delhr; });
       DB.set("hr-log", hrLog); renderHR(); renderReadiness();
     }
+    else if (el.dataset.delfood != null) delFoodRow(+el.dataset.delfood);
     else if (el.dataset.delpb) {
       pbLog = pbLog.filter(function (p) { return p.id !== el.dataset.delpb; });
       DB.set("pb-log", pbLog); renderPBHistory(); renderBench();
@@ -5013,6 +5283,12 @@ function renderStartInfo() {
   });
   $("kcalOnTargetBtn").addEventListener("click", function () {
     $("kcalToday").value = targetKcal(); logKcal(targetKcal());
+  });
+  $("foodAddBtn").addEventListener("click", addFoodRow);
+  $("foodPick").addEventListener("change", function () {
+    var custom = this.value === "__custom";
+    $("customRow").style.display = custom ? "" : "none";
+    $("foodQty").style.display = custom ? "none" : "";
   });
   $("stepsTodayBtn").addEventListener("click", function () {
     var v = parseFloat($("stepsToday").value);
