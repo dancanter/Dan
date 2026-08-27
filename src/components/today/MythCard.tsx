@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Myth } from '../../content';
-import { SourceList } from '../ui/SourceList';
+import { EvidenceNote } from '../ui/EvidenceNote';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
 
 interface Props {
@@ -45,7 +45,7 @@ export function MythCard({ myth, reduceMotionOverride, onReveal }: Props) {
             {myth.verdict === 'myth' ? 'Myth' : 'True'}
           </span>
           <p className="mt-2 text-[15px]">{myth.explanation}</p>
-          <SourceList sourceIds={myth.sourceIds} />
+          <EvidenceNote sourceIds={myth.sourceIds} />
         </div>
       )}
 

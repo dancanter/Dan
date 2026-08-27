@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useProgress } from '../hooks/useProgress';
 import { GUIDE_SECTIONS, GUIDE_PHASES, guides, guidesInSection, type Guide } from '../content';
 import { Screen } from '../components/ui/Screen';
-import { SourceList } from '../components/ui/SourceList';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 
 function GuideCard({
@@ -84,7 +84,7 @@ function GuideCard({
             </table>
           </div>
         )}
-        <SourceList sourceIds={guide.sourceIds} />
+        <EvidenceNote sourceIds={guide.sourceIds} />
       </div>
     </details>
   );

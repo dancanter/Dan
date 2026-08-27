@@ -15,6 +15,7 @@ import { afterLossSections, afterLossIntro } from './afterLoss';
 import { privacySections } from './privacy';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { sourceUrl, sourceLinkKind } from './sourceLinks';
+import { evidenceFor, sourceYear } from './evidence';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
 import { myths, mythById } from './myths';
 import { symptoms, symptomById } from './symptoms';
@@ -58,6 +59,8 @@ export {
   findGlossaryEntry,
   sourceUrl,
   sourceLinkKind,
+  evidenceFor,
+  sourceYear,
   babyWeeks,
   babyWeekByNumber,
   milestones,
@@ -85,6 +88,7 @@ export {
   POSTNATAL_MAX_WEEK,
 };
 export type { WeekRead };
+export type { Evidence, EvidenceStrength } from './evidence';
 export type { UrgentSymptom, UrgentAction } from './urgent';
 
 export interface ContentIssue {
@@ -200,6 +204,20 @@ export function validateContent(): ContentIssue[] {
           detail: `Source "${s.id}" has a url that is not a valid https address`,
         });
       }
+    }
+  }
+
+  // Every cited entry has to resolve to an evidence label, since that label is
+  // now the first thing a reader sees about where a claim comes from. It is
+  // derived from the sources, so this fails only if an entry cites nothing —
+  // but that is exactly the case where a badge would be missing in silence.
+  for (const g of guides) {
+    const resolved = g.sourceIds.map((id) => sourceById.get(id)).filter((s) => s !== undefined);
+    if (!evidenceFor(resolved)) {
+      issues.push({
+        kind: 'coverage-gap',
+        detail: `Guide "${g.id}" has no resolvable evidence label`,
+      });
     }
   }
 

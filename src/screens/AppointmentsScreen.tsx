@@ -6,7 +6,7 @@ import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
-import { SourceList } from '../components/ui/SourceList';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 
 export function AppointmentsScreen() {
@@ -129,7 +129,7 @@ export function AppointmentsScreen() {
               'You’ll be given your maternity notes (app, book, or folder). Keep them with you at all times — if you need urgent care anywhere, staff can read your full pregnancy history.',
             ]}
           />
-          <SourceList sourceIds={['nhs-antenatal-care']} />
+          <EvidenceNote sourceIds={['nhs-antenatal-care']} />
         </div>
       </details>
 
@@ -143,7 +143,7 @@ export function AppointmentsScreen() {
           </summary>
           <div className="mt-3">
             <RichText paragraphs={whereToGo.body} />
-            <SourceList sourceIds={whereToGo.sourceIds} />
+            <EvidenceNote sourceIds={whereToGo.sourceIds} />
           </div>
         </details>
       )}

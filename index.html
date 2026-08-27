@@ -12,10 +12,39 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Loaded asynchronously, not render-blocking, and that is a safety decision
+      rather than a performance one.
+
+      As a plain stylesheet link this held the entire first paint hostage to a
+      third-party host: measured at 280ms when the font request failed fast and
+      12.7 SECONDS when it hung instead. A blank screen for twelve seconds is
+      bad for any app. For this one it breaks the central promise — that Get
+      help is one tap away and never waits on anything — and it fails exactly
+      when someone is most likely to need it, on a bad signal or a restricted
+      network.
+
+      media="print" makes the browser fetch it at low priority without blocking
+      paint; onload promotes it once it arrives. Text renders immediately in
+      the fallback stacks declared in index.css, then swaps. The <noscript>
+      copy keeps the fonts for anyone without JavaScript, where there is no
+      onload to fire.
+    -->
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="
+        this.media = 'all';
+        this.onload = null;
+      "
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <title>Field Notes — A Pregnancy Guide</title>
   </head>
   <body>

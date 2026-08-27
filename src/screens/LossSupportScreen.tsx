@@ -1,6 +1,6 @@
 import { lossSections, lossIntro } from '../content';
 import { Screen } from '../components/ui/Screen';
-import { SourceList } from '../components/ui/SourceList';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 
 /**
@@ -27,7 +27,7 @@ export function LossSupportScreen() {
           >
             <RichText paragraphs={section.body} />
           </div>
-          <SourceList sourceIds={section.sourceIds} />
+          <EvidenceNote sourceIds={section.sourceIds} />
         </section>
       ))}
 

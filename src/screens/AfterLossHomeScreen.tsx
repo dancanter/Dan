@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { afterLossSections, afterLossIntro } from '../content';
-import { SourceList } from '../components/ui/SourceList';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 
 /**
@@ -33,7 +33,7 @@ export function AfterLossHomeScreen() {
         <section key={section.id} className="mb-8">
           <h2 className="mb-2 text-[19px] text-mossd">{section.title}</h2>
           <RichText paragraphs={section.body} />
-          <SourceList sourceIds={section.sourceIds} />
+          <EvidenceNote sourceIds={section.sourceIds} />
         </section>
       ))}
 
@@ -42,7 +42,7 @@ export function AfterLossHomeScreen() {
           <section key={section.id} className="mb-8">
             <h2 className="mb-2 text-[19px] text-mossd">{section.title}</h2>
             <RichText paragraphs={section.body} />
-            <SourceList sourceIds={section.sourceIds} />
+            <EvidenceNote sourceIds={section.sourceIds} />
           </section>
         ) : (
           <button

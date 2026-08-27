@@ -71,11 +71,18 @@ describe('accessibility', () => {
     setOnboarded();
   });
 
-  it.each(SCREENS)('%s has no axe violations', async (_name, Screen) => {
-    const { container } = render(<MemoryRouter>{Screen()}</MemoryRouter>);
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
-  });
+  // Guidance renders all 111 entries at once, so an axe scan of it in jsdom
+  // takes several seconds. That is a scan-speed cost in the test environment,
+  // not a rendering cost in a browser — the real page is checked separately.
+  it.each(SCREENS)(
+    '%s has no axe violations',
+    async (_name, Screen) => {
+      const { container } = render(<MemoryRouter>{Screen()}</MemoryRouter>);
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    },
+    20_000,
+  );
 
   // The screen someone reaches while frightened was the one screen missing
   // from the list above — and it is the only one carrying the glossary

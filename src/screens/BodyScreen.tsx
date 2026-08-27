@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { symptoms, symptomById } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { Note } from '../components/ui/Note';
-import { SourceList } from '../components/ui/SourceList';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
 
 export function BodyScreen() {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export function BodyScreen() {
           <Note tone="warn" title="Worth knowing">
             {selected.flag}
           </Note>
-          <SourceList sourceIds={selected.sourceIds} />
+          <EvidenceNote sourceIds={selected.sourceIds} />
         </div>
       )}
 
