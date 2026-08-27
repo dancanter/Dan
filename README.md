@@ -33,6 +33,7 @@ Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appoin
 | **My pregnancy has changed** | Pause · support after loss · delete (export offered first) · go back. Never asks what happened |
 | **Loss support** | Pregnancy and baby loss — its own quiet route, never surfaced on a daily screen |
 | **Inequalities** | UK maternal health disparities, paired with what a reader can actually do about them |
+| **Need a minute?** | Slow breathing and a noticing exercise. Names the crisis case first and routes it off the page |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
 | **Sources** | All 122 references, grouped by evidence tier, with funding conflicts flagged. The research papers link straight through |
 
@@ -73,6 +74,10 @@ Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appoin
 **Read-aloud, on the urgent screens only.** Someone frightened at 3am, hands shaking, possibly without their glasses, should be able to be *told* what to do. It reads the action line before the explanation — the same order the screen uses — and is deliberately absent from the browsing screens, where it would be a gimmick rather than an accessibility feature. Where the browser can't speak, the control is hidden rather than shown dead.
 
 **Citations are a registry, not inline strings.** Sources live in `src/content/sources.ts` and are referenced by id. A source can be corrected in one place; funding caveats (the dairy/iodine paper is National Dairy Council-funded) travel with the source and always render.
+
+**"Need a minute?" routes a crisis away from itself before offering anything.** An app that cannot check whether you're well has no business running a wellbeing programme, so this is the narrowest possible version: two exercises, no mood tracking, no course, no streak. The order of the page *is* the design — a breathing exercise is the wrong answer to a crisis, and offering one first would be worse than offering nothing, because it implies the app has understood the problem and thinks this will fix it. So the harder case is named at the top and sent to `/help/mental-health` before anything else appears. A test asserts that ordering. What's deliberately **absent** matters too: there's no 5-4-3-2-1 grounding exercise, useful as it is elsewhere, because the review this page rests on covered breathing, music, muscle relaxation, yoga and mindfulness — and grounding isn't among them. Including it would have meant either an uncited technique on a page whose whole claim is that everything is cited, or attributing it to an NHS page nobody here has read.
+
+**The reduced-motion breathing pacer is a real alternative, not a degraded one.** An expanding circle is the obvious way to pace breathing, and is also exactly the movement that worsens nausea or a migraine for some people — which in this audience is not a rare edge case. That version counts in plain numerals and paces just as well. It's offered from the mood check-in only after someone says they're anxious or low, and only as an offer: putting it on a screen unprompted would be the app deciding how you feel.
 
 **Search survives being asked a question.** It used to be `includes(query)`: "brie" worked, "can I eat brie" returned nothing — and the second is how people type when they're worried. Now stop words are dropped, terms match word stems, and lay words are translated into the words the content uses (*booze* → alcohol, *cat litter* → toxoplasmosis). Terms are then weighted by how rare they are across the library, which is what stops "baby" — a word in almost every entry — from deciding the ranking. Three bugs in this only appeared when real queries were typed into a browser: `less` matching inside *unless*, "can I eat brie" returning 51 entries, and the stemmer reducing *bleed* to *bl* while *bleeding* became *bleed*, so the two forms stopped matching each other. **If a search sounds like a symptom happening now, the urgent route is offered above the results** — a reading list is a bad answer to "bleeding" — and the symptom explorer is searched too, since it sits outside the library and "heartburn" used to return nothing at all.
 
@@ -121,7 +126,7 @@ src/content/
 
 ## Accessibility
 
-WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` on reveals, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty-two screens in `npm test`**, including the urgent detail screen. Readability is checked in the same run.
+WCAG 2.1 AA target: semantic landmarks, ≥44px touch targets, `prefers-reduced-motion` honoured throughout (celebrations skip confetti entirely), in-app text-size and high-contrast controls on top of OS scaling, `aria-live` on reveals, and focus moved into the symptom detail panel on selection. **axe-core runs against all twenty-three screens in `npm test`**, including the urgent detail screen. Readability is checked in the same run.
 
 **Focus management belongs to the heading, not to each screen.** It used to be every screen's own job — call the hook, attach the returned ref — and eight of them called it and dropped the ref, so the effect ran and focused nothing. Every one of those files looked correct. `ScreenTitle` now owns it, so there is no ref to forget, and a test asserts focus actually lands on the `<h1>` for the screens that used to be broken.
 
@@ -132,7 +137,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build + PWA manifest and service worker
 npm run preview
-npm test           # content integrity, component and accessibility tests (110)
+npm test           # content integrity, component and accessibility tests (152)
 npm run typecheck
 npm run lint
 npm run readability   # Flesch–Kincaid audit, worst entries first

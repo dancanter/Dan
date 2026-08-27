@@ -19,6 +19,8 @@ import {
   equitySections,
   afterLossSections,
   privacySections,
+  calmExercises,
+  calmFacts,
 } from '../src/content';
 
 /** Strips markdown emphasis so `**word**` doesn't skew the word count. */
@@ -161,5 +163,10 @@ export function allScores(): Score[] {
   for (const e of equitySections) out.push(score(e.id, 'equity', e.body.join(' ')));
   for (const a of afterLossSections) out.push(score(a.id, 'afterLoss', a.body.join(' ')));
   for (const p of privacySections) out.push(score(p.id, 'privacy', p.body.join(' ')));
+  // Reader-facing prose, so it is held to the same ceilings as everything
+  // else. Someone reaching this page is not in a state to parse a clause.
+  for (const c of calmExercises)
+    out.push(score(c.id, 'calm', [c.blurb, ...(c.steps ?? [])].join(' ')));
+  calmFacts.forEach((f, i) => out.push(score(`calm-fact-${i + 1}`, 'calm', f.text)));
   return out;
 }
