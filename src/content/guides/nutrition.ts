@@ -94,18 +94,10 @@ export const nutritionGuides: Guide[] = [
     summary:
       'UK guidance says lower-fat. Newer evidence is less certain — and calcium and iodine are identical either way.',
     body: [
-      'UK guidance — NHS and the British Heart Foundation — has traditionally favoured lower-fat dairy, to help control calories and saturated fat.',
-      'That position is less settled than it used to be. The best evidence is a randomised trial from the University of Toronto, published in 2026. Women ate three servings of full-fat dairy a day for 12 weeks. There was no bad effect on weight, body shape or cholesterol. Blood pressure improved. Calcium, protein and vitamin D intake all went up.',
-      'Because people were put into groups at random, it avoids the problem that limits the older studies. People who drink five glasses of milk a day differ from people who do not, in a dozen ways a diet questionnaire cannot capture.',
-      'Two things it doesn’t settle. It ran for 12 weeks and measured risk markers rather than actual disease, so it says nothing about long-term outcomes. And it wasn’t done in pregnancy. The proposed explanation for results like these is the **dairy matrix** — that dairy fat behaves differently inside cheese or yoghurt than the same saturated fat eaten on its own — which is still an open question rather than a settled one.',
-      'What is not in question: **calcium, iodine and protein are the same regardless of fat level.** Nothing your baby needs from dairy is lost by choosing one over the other — so this is a reasonable choice to make on your own preference and goals.',
+      'UK guidance — NHS and the British Heart Foundation — favours lower-fat dairy, to help control calories and saturated fat. That is the line your midwife will be working from.',
+      'Whether it is the whole story is discussed in the research. The idea put forward is the **dairy matrix** — that dairy fat may behave differently inside cheese or yoghurt than the same saturated fat eaten on its own. It is an open question rather than a finding, it has not been tested in pregnancy, and dairy research is frequently industry-funded. It is not a reason to go against UK guidance.',
+      'What is not in question: **calcium, iodine and protein are the same regardless of fat level.** Nothing your baby needs from dairy is lost by choosing one over the other — so within the guidance, this is a reasonable choice to make on your own preference and goals.',
     ],
-    sourceIds: [
-      'nhs-dairy',
-      'bhf-dairy',
-      'anderson-2026-dairy',
-      'thorning-2017-matrix',
-      'razmpoosh-2025',
-    ],
+    sourceIds: ['nhs-dairy', 'bhf-dairy', 'thorning-2017-matrix', 'razmpoosh-2025'],
   },
 ];

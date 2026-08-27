@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "readability": "vite-node scripts/readability-report.ts",
-    "sources": "vite-node scripts/sources-report.ts"
+    "sources": "vite-node scripts/sources-report.ts",
+    "content-audit": "vite-node scripts/content-audit.ts"
   },
   "dependencies": {
     "framer-motion": "^12.43.0",

@@ -24,7 +24,7 @@ export const symptoms: Symptom[] = [
     why: 'Progesterone relaxes smooth muscle everywhere — including the valve between your stomach and food pipe. Your growing baby pressing upward adds to it.',
     help: 'Smaller, more frequent meals. Nothing within 3 hours of bed. Sit upright after eating. Cut back on caffeine, spicy and fatty food. Sleeping propped up on your left side helps.',
     flag: "Antacids are generally fine — but not within 2 hours of iron or folic acid, as they block absorption. Heartburn that antacids won't touch, alongside headache or swelling, needs checking.",
-    sourceIds: ['nhs-common-problems', 'nct-hormones'],
+    sourceIds: ['nhs-heartburn', 'nhs-common-problems', 'nct-hormones'],
   },
   {
     id: 'nausea',
@@ -51,7 +51,7 @@ export const symptoms: Symptom[] = [
     why: 'Ligaments soften and stretch to prepare for labour, which puts strain on your lower back and pelvis. Your shifting centre of gravity adds to it.',
     help: 'Bend your knees when lifting. Avoid heavy lifting. Flat shoes. Balance shopping between two bags. Well-supported sitting. A warm bath or massage. Paracetamol is fine unless told otherwise.',
     flag: 'With fever, bleeding, or pain when peeing — contact your GP urgently. Losing feeling in your legs, bottom or genitals — call 999.',
-    sourceIds: ['nhs-common-problems'],
+    sourceIds: ['nhs-back-pain', 'nhs-common-problems', 'kesikburun-2018'],
   },
   {
     id: 'pelvic',
@@ -60,7 +60,7 @@ export const symptoms: Symptom[] = [
     why: 'Pelvic joints stiffening or moving unevenly. Affects up to 1 in 5 pregnancies. Not harmful to your baby, but genuinely painful.',
     help: 'Ask about a physio referral — earlier is better. Keep active but avoid what hurts. Sit down to dress. Pillow between your legs in bed. Keep knees together getting in and out of the car. A support belt may help.',
     flag: 'Most women with PGP still have a vaginal birth. Put it in your birth plan so staff know.',
-    sourceIds: ['nhs-common-problems'],
+    sourceIds: ['nhs-pelvic-pain', 'nhs-common-problems', 'kesikburun-2018'],
   },
   {
     id: 'swelling',
@@ -150,7 +150,7 @@ export const symptoms: Symptom[] = [
     why: 'More discharge is normal and protective — it helps stop infection travelling up to your womb. It increases further toward the end.',
     help: 'Healthy discharge is thin, clear or milky, without a strong smell. Loose cotton underwear, avoid perfumed products. A pink jelly-like "show" near the end can mean labour is starting.',
     flag: 'Unpleasant smell, green or yellow colour, itching, soreness, or pain when peeing — call your midwife. Any bleeding — contact them immediately.',
-    sourceIds: ['nhs-common-problems', 'nhs-get-help'],
+    sourceIds: ['nhs-discharge-thrush', 'nhs-common-problems', 'nhs-get-help'],
   },
 ];
 
