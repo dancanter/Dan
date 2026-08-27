@@ -54,6 +54,9 @@ const PrivacyScreen = lazy(() =>
 const MovementsScreen = lazy(() =>
   import('./screens/MovementsScreen').then((m) => ({ default: m.MovementsScreen })),
 );
+const CalmScreen = lazy(() =>
+  import('./screens/CalmScreen').then((m) => ({ default: m.CalmScreen })),
+);
 const EquityScreen = lazy(() =>
   import('./screens/EquityScreen').then((m) => ({ default: m.EquityScreen })),
 );
@@ -114,6 +117,9 @@ function App() {
             <Route path="/inequalities" element={<EquityScreen />} />
             {/* Ungated: someone may reach this before ever completing setup. */}
             <Route path="/changed" element={<PregnancyChangedScreen />} />
+            {/* Ungated too. Someone can arrive here having never set a due
+              date, and the page routes a crisis away from itself first. */}
+            <Route path="/minute" element={<CalmScreen />} />
             <Route path="/movements" element={<MovementsScreen />} />
             <Route path="/gallery" element={<GalleryScreen />} />
             <Route path="/privacy" element={<PrivacyScreen />} />

@@ -70,6 +70,11 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
     heading: 'Support',
     entries: [
       {
+        to: '/minute',
+        label: 'Need a minute?',
+        blurb: 'Slow breathing and somewhere quiet to put a minute.',
+      },
+      {
         to: '/inequalities',
         label: 'Inequalities in maternity care',
         blurb: 'The pattern, and what you can do about it.',

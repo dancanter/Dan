@@ -24,6 +24,7 @@ import { MaternityNumberScreen } from '../../src/screens/GetHelpScreen';
 import { PrivacyScreen } from '../../src/screens/PrivacyScreen';
 import { GalleryScreen } from '../../src/screens/GalleryScreen';
 import { ExploreScreen } from '../../src/screens/ExploreScreen';
+import { CalmScreen } from '../../src/screens/CalmScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -45,6 +46,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Onboarding', () => <OnboardingScreen />],
   ['Today', () => <TodayScreen />],
   ['Explore', () => <ExploreScreen />],
+  ['Need a minute', () => <CalmScreen />],
   ['After birth', () => <AfterBirthScreen />],
   ['Baby', () => <BabyScreen />],
   ['My Body', () => <BodyScreen />],

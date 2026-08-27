@@ -13,6 +13,7 @@ import { lossSections, lossIntro } from './loss';
 import { equitySections, equityIntro } from './equity';
 import { afterLossSections, afterLossIntro } from './afterLoss';
 import { privacySections } from './privacy';
+import { calmExercises, calmFacts, CALM_INTRO, CALM_ESCALATION } from './calm';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { sourceUrl, sourceLinkKind } from './sourceLinks';
 import { evidenceFor, sourceYear } from './evidence';
@@ -55,6 +56,10 @@ export {
   afterLossSections,
   afterLossIntro,
   privacySections,
+  calmExercises,
+  calmFacts,
+  CALM_INTRO,
+  CALM_ESCALATION,
   glossary,
   glossaryLookup,
   findGlossaryEntry,
@@ -93,6 +98,7 @@ export {
 };
 export type { WeekRead };
 export type { SearchResult };
+export type { CalmExercise, CalmFact } from './calm';
 export type { Evidence, EvidenceStrength } from './evidence';
 export type { UrgentSymptom, UrgentAction } from './urgent';
 
@@ -210,6 +216,23 @@ export function validateContent(): ContentIssue[] {
         });
       }
     }
+  }
+
+  // The calm page rests on the same citation rule as everything else — and
+  // the escalation notice above the exercises is load-bearing, because a
+  // breathing exercise is the wrong answer to a crisis.
+  for (const e of calmExercises) {
+    unique('calmExercise', e.id);
+    check('Calm exercise', e.id, e.sourceIds);
+  }
+  for (const f of calmFacts) {
+    check('Calm fact', f.text.slice(0, 30), f.sourceIds);
+  }
+  if (!CALM_ESCALATION.trim()) {
+    issues.push({
+      kind: 'coverage-gap',
+      detail: 'Calm page has no escalation notice',
+    });
   }
 
   // Every cited entry has to resolve to an evidence label, since that label is

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal, JOURNAL_LABEL, MOODS, type JournalKind } from '../hooks/useJournal';
 import { Screen } from '../components/ui/Screen';
@@ -22,6 +23,7 @@ export function JournalScreen() {
   const [tab, setTab] = useState<JournalKind>('mood');
   const [draft, setDraft] = useState('');
   const [moodMessage, setMoodMessage] = useState('');
+  const [offerCalm, setOfferCalm] = useState(false);
 
   function save(kind: JournalKind, text: string) {
     if (!text.trim()) return;
@@ -64,6 +66,7 @@ export function JournalScreen() {
                   onClick={() => {
                     add('mood', m.value, currentWeek);
                     setMoodMessage(m.message);
+                    setOfferCalm(m.value === 'Anxious' || m.value === 'Low');
                   }}
                   className="min-h-11 min-w-[60px] flex-1 rounded-xl border-[1.5px] border-line bg-card px-2 py-3 text-2xl transition-transform hover:-translate-y-0.5 hover:border-moss"
                 >
@@ -76,6 +79,21 @@ export function JournalScreen() {
             <p aria-live="polite" className="min-h-11 text-center text-[15px] text-mossd">
               {moodMessage}
             </p>
+
+            {/* Offered only after someone has said they're struggling, and
+                only as an offer. Putting this on the screen unprompted would
+                be the app deciding how you feel, which is the one thing it
+                has no business doing. */}
+            {offerCalm && (
+              <p className="text-center">
+                <Link
+                  to="/minute"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-moss bg-mossp px-4 text-[15px] font-semibold text-mossd no-underline"
+                >
+                  Need a minute? →
+                </Link>
+              </p>
+            )}
 
             {moodHistory.length > 1 && (
               <>

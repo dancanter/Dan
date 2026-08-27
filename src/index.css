@@ -130,6 +130,28 @@ h4 {
   animation: reveal-in 0.3s ease-out both;
 }
 
+/* The breathing pacer. Scale only — no opacity change, because a circle
+   fading in and out is harder to follow than one that simply grows. The
+   reduced-motion block above flattens these to nothing, which is why the
+   pacer ships a counting alternative rather than relying on the animation. */
+@keyframes breathe-in {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.55);
+  }
+}
+
+@keyframes breathe-out {
+  from {
+    transform: scale(1.55);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 .prose-note p {
   margin: 0 0 0.6em;
 }
