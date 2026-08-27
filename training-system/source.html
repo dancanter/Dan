@@ -76,6 +76,11 @@ section.block{margin-bottom:26px}
 body:not(.detail) [data-detail]{display:none}
 .mode-row{display:flex;justify-content:flex-end;margin:-4px 0 14px}
 .mode-row .btn{font-size:11.5px;padding:5px 11px}
+.hits{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-top:-4px;max-height:230px;overflow-y:auto}
+.hit{display:flex;justify-content:space-between;gap:10px;padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:var(--chalk)}
+.hit:last-child{border-bottom:0}
+.hit:hover,.hit.on{background:var(--surface-2)}
+.hit small{color:var(--muted-2);font-family:var(--f-mono);font-size:11px}
 
 /* ---------- day cards ---------- */
 .day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;position:relative}
@@ -641,10 +646,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">Food Log</h2>
       <p class="block-sub">What you actually ate. It works out the macros and micronutrients and says what the day is short of.</p>
       <div class="add-row" style="margin-top:0">
-        <select id="foodPick" style="flex:2"></select>
+        <input type="text" id="foodSearch" placeholder="Type a food — salmon, oats, kiwi…" style="flex:2" autocomplete="off">
         <input type="text" id="foodQty" inputmode="decimal" placeholder="g / units" style="max-width:96px">
         <button class="btn primary" id="foodAddBtn">Add</button>
       </div>
+      <div id="foodHits"></div>
       <div class="add-row" id="customRow" style="display:none">
         <input type="text" id="foodCustom" placeholder="What was it" style="flex:2">
         <input type="text" id="cKcal" inputmode="numeric" placeholder="kcal" style="max-width:72px">
@@ -3801,83 +3807,214 @@ var MICROS = [
   { k: "ch",  label: "Choline",   unit: "mg", rda: 550 },
   { k: "o3",  label: "Omega-3",   unit: "mg", rda: 500 }
 ];
-/* kcal p c f then micros, per 100g unless "each" is set */
-var FOODS = [
-  { id:"oats",   n:"GF oats (dry)",      kcal:379,p:13,c:68,f:7,  mg:177,zn:4,fe:4.7,
-    why:"Slow carbohydrate and beta-glucan. Certified gluten free only — and avenin is close enough to gluten that it is a test, not a default." },
-  { id:"fage",   n:"Fage 0%",            kcal:59, p:10,c:4, f:0,  ca:110,b12:0.8,
-    why:"Protein with almost no calories attached. The cheapest way to hit the protein number in a deficit." },
-  { id:"egg",    n:"Whole egg", each:50, kcal:78, p:6, c:0.6,f:5, ch:147,se:15,va:80,vd:1,b12:0.6,
-    why:"The best choline source you will eat, and choline is the one most athletes are short of. Yolk included or it is pointless." },
-  { id:"honey",  n:"Honey",              kcal:304,p:0.3,c:82,f:0,
-    why:"Fast carbohydrate. Useful around a session, not much use anywhere else." },
-  { id:"milk",   n:"Semi-skimmed milk",  kcal:50, p:3.4,c:5,f:1.8, ca:120,b12:0.5,
-    why:"Calcium, protein and fluid in one. Fine unless dairy bothers you, and it does not bother you." },
-  { id:"salmon", n:"Sockeye salmon",     kcal:216,p:27,c:0,f:11, o3:1300,vd:14,se:35,b12:4.5,
-    why:"The single best food on this list. Omega-3 for the membranes and inflammation, vitamin D, selenium — 450g a week covers all three." },
-  { id:"sard",   n:"Sardines",           kcal:208,p:25,c:0,f:11, o3:1400,ca:380,vd:4,se:52,b12:8.9,
-    why:"Salmon's cheaper twin, and the bones make it the best non-dairy calcium there is." },
-  { id:"liver",  n:"Beef liver",         kcal:135,p:20,c:4,f:4,  va:9400,b12:70,fe:5,zn:4,fol:290,ch:330,se:33,
-    why:"Nothing else comes close for vitamin A, B12 and folate. 100–135g a week is plenty — more and the vitamin A stacks up." },
-  { id:"kidney", n:"Beef kidney",        kcal:99, p:17,c:0.3,f:3, se:141,b12:27,fe:4.6,
-    why:"Selenium in a class of its own, which feeds the thyroid and the antioxidant system." },
-  { id:"beef",   n:"Lean beef mince 5%", kcal:137,p:21,c:0,f:5,  fe:2.6,zn:4.8,b12:2.5,
-    why:"Iron and zinc in the form your body actually absorbs. Zinc is the one that goes first in a deficit." },
-  { id:"chick",  n:"Chicken breast",     kcal:165,p:31,c:0,f:3.6, se:22,
-    why:"Most protein per calorie of anything here. 200g is 62g of protein for 330 kcal." },
-  { id:"rice",   n:"White rice (dry)",   kcal:360,p:7, c:79,f:0.6,
-    why:"Clean carbohydrate, easy on the gut. The default when you need to add carbs without adding bulk." },
-  { id:"potato", n:"Potato (cooked)",    kcal:87, p:2, c:20,f:0.1, k:420,vc:13,
-    why:"More potassium than a banana and more filling per calorie than almost anything." },
-  { id:"sweetp", n:"Sweet potato",       kcal:90, p:2, c:21,f:0.1, va:960,k:475,vc:20,
-    why:"Vitamin A from beta-carotene, which unlike liver's you cannot overdo." },
-  { id:"rcake",  n:"GF rice cakes", each:8, kcal:35,p:0.7,c:7.3,f:0.3,
-    why:"Carbohydrate with a shape. Useful for making a meal feel like a meal." },
-  { id:"banana", n:"Banana", each:118,  kcal:105,p:1.3,c:27,f:0.4, k:420,
-    why:"Potassium and fast carbs. Best used before or after, not with." },
-  { id:"grapes", n:"Grapes",             kcal:69, p:0.7,c:18,f:0.2, k:190,
-    why:"Sugar with polyphenols attached. Fine in the evening slot." },
-  { id:"blue",   n:"Blueberries",        kcal:57, p:0.7,c:14,f:0.3, vc:10,
-    why:"Anthocyanins — the pigment is the point. Frozen are as good as fresh and cheaper." },
-  { id:"sprout", n:"Broccoli sprouts",   kcal:35, p:3, c:6, f:0.4, vc:35,fol:60,
-    why:"Sulforaphane, the strongest Nrf2 activator in food. Raw only — heat destroys the enzyme that makes it." },
-  { id:"spin",   n:"Spinach",            kcal:23, p:2.9,c:3.6,f:0.4, fol:194,k:558,mg:79,va:469,vc:28,
-    why:"Folate, magnesium and nitrate. The nitrate is what feeds the blood-vessel side of endurance." },
-  { id:"rocket", n:"Rocket",             kcal:25, p:2.6,c:3.7,f:0.7, fol:97,ca:160,k:369,
-    why:"Nitrate again, and it does not need cooking. Do not use antibacterial mouthwash if you want the benefit." },
-  { id:"avo",    n:"Avocado",            kcal:160,p:2, c:9, f:15,  k:485,mg:29,fol:81,
-    why:"Potassium, magnesium and monounsaturated fat. The fat that makes the fat-soluble vitamins in the same meal usable." },
-  { id:"butter", n:"Grass-fed butter",   kcal:717,p:0.9,c:0.1,f:81, va:684,
-    why:"K2 and vitamin A. Grass-fed genuinely matters here — the K2 comes from the grass." },
-  { id:"tallow", n:"Beef tallow",        kcal:902,p:0,c:0,f:100,
-    why:"Stable at heat, no seed oils. Pure fat — count it properly, it adds up fast." },
-  { id:"cheese", n:"Raw cheddar",        kcal:403,p:25,c:1.3,f:33, ca:721,zn:3.1,k2:20,
-    why:"Calcium, K2 and protein. Raw carries a small listeria risk — worth knowing, your call." },
-  { id:"cott",   n:"Cottage cheese",     kcal:98, p:11,c:3.4,f:4.3, ca:83,se:9,
-    why:"Slow casein protein. The one to eat last thing if you eat last thing." },
-  { id:"kefir",  n:"Kefir",              kcal:60, p:3.3,c:4.5,f:3.3, ca:120,b12:0.3,
-    why:"Live cultures — more strains than yoghurt. The gut side of the ageing picture." },
-  { id:"walnut", n:"Walnuts",            kcal:654,p:15,c:14,f:65, mg:158,o3:2570,
-    why:"Plant omega-3, which is not the same as the fish kind but still counts. Calorie-dense — weigh them." },
-  { id:"pump",   n:"Pumpkin seeds",      kcal:559,p:30,c:11,f:49, mg:592,zn:7.8,fe:8.8,
-    why:"The best magnesium in food, plus zinc and iron. A small handful does a lot." },
-  { id:"almond", n:"Almonds",            kcal:579,p:21,c:22,f:50, mg:270,ca:269,
-    why:"Magnesium and vitamin E. Easy to eat 200 kcal of without noticing." },
-  { id:"choc",   n:"Dark chocolate 85%", kcal:598,p:8, c:46,f:43, mg:228,fe:11,
-    why:"Magnesium and flavanols. The 85% is doing the work, not the 70%." },
-  { id:"kiwi",   n:"Kiwi", each:75,      kcal:42, p:0.8,c:10,f:0.4, vc:64,k:215,
-    why:"More vitamin C than an orange, and vitamin C is what makes collagen synthesis actually happen." },
-  { id:"orange", n:"Orange", each:130,   kcal:62, p:1.2,c:15,f:0.2, vc:70,fol:39,k:237,
-    why:"Vitamin C and folate. Eat it with the iron-containing meal and you absorb more iron." },
-  { id:"tomato", n:"Tomato",             kcal:18, p:0.9,c:3.9,f:0.2, k:237,vc:14,va:42,
-    why:"Lycopene, and cooking it makes more of it available rather than less." },
-  { id:"carrot", n:"Carrot",             kcal:41, p:0.9,c:10,f:0.2, va:835,k:320,
-    why:"Beta-carotene, which needs fat in the same meal to be absorbed at all." },
-  { id:"whey",   n:"Whey protein", each:30, kcal:120,p:24,c:2,f:1.5, ca:120,
-    why:"Protein without the cooking. Useful, not magic — real food first." },
-  { id:"salt",   n:"Salt", each:1,       kcal:0,p:0,c:0,f:0,
-    why:"Steady, not swinging. Cutting it drops water weight that is not fat and comes straight back." }
+/* [id, name, kcal, protein, carbs, fat, each (0 = per 100g), micros, category]
+   Values are per 100g unless "each" is set, and are approximations good enough
+   to steer a day rather than laboratory figures. Compact on purpose — this list
+   is long, and object literals for every row would be unreadable. */
+var FOOD_ROWS = [
+/* --- meat --- */
+["chick","Chicken breast",165,31,0,3.6,0,{se:22,b12:0.3},"meat"],
+["turkey","Turkey breast",157,29,0,3.6,0,{se:27,zn:1.7},"meat"],
+["minute","Minute steak",150,26,0,5,0,{fe:2.4,zn:5,b12:2.4},"meat"],
+["sirloin","Sirloin steak",206,26,0,11,0,{fe:2.2,zn:4.9,b12:2.2},"meat"],
+["beef","Lean beef mince 5%",137,21,0,5,0,{fe:2.6,zn:4.8,b12:2.5},"meat"],
+["venison","Venison",158,30,0,3.2,0,{fe:4.5,zn:2.4,b12:2.7},"meat"],
+["lamb","Lamb leg",204,25,0,11,0,{fe:1.9,zn:4.2,b12:2.6},"meat"],
+["pork","Pork loin",143,26,0,4,0,{zn:2,b12:0.7},"meat"],
+["duck","Duck breast, skinless",123,20,0,4,0,{fe:2.4,se:14},"meat"],
+["liver","Beef liver",135,20,4,4,0,{va:9400,b12:70,fe:5,zn:4,fol:290,ch:330,se:33},"organ",
+ "Nothing else comes close for vitamin A, B12 and folate. 100-135g a week is plenty — more and the vitamin A stacks up."],
+["kidney","Beef kidney",99,17,0.3,3,0,{se:141,b12:27,fe:4.6},"organ",
+ "Selenium in a class of its own, which feeds the thyroid and the antioxidant system."],
+["heart","Beef heart",112,17,0.1,4,0,{b12:8,fe:4.3,zn:1.7},"organ",
+ "CoQ10 — more than any other food. Mitochondrial, and it tastes like steak."],
+/* --- fish --- */
+["salmon","Sockeye salmon",216,27,0,11,0,{o3:1300,vd:14,se:35,b12:4.5},"fish",
+ "The single best food on this list. Omega-3, vitamin D and selenium in one — 450g a week covers all three."],
+["salmona","Atlantic salmon",208,20,0,13,0,{o3:2200,vd:11,se:24,b12:3.2},"fish"],
+["trout","Trout",148,21,0,7,0,{o3:1000,vd:16,b12:4.4},"fish"],
+["cod","Wild cod",82,18,0,0.7,0,{se:33,b12:1.1,vd:1},"fish",
+ "Nearly pure protein. When the calorie budget is tight this is the one that stretches furthest."],
+["prawn","Wild prawns",99,24,0.2,0.3,0,{se:38,b12:1.1,ca:70},"fish"],
+["sard","Sardines",208,25,0,11,0,{o3:1400,ca:380,vd:4,se:52,b12:8.9},"fish",
+ "Salmon's cheaper twin, and the bones make it the best non-dairy calcium there is."],
+["mack","Mackerel",205,19,0,14,0,{o3:2600,vd:16,b12:8.7,se:44},"fish"],
+["tuna","Tuna, tinned in water",116,26,0,1,0,{se:80,b12:2.5},"fish"],
+["seabass","Sea bass",97,18,0,2,0,{se:36,b12:0.3},"fish"],
+/* --- dairy and eggs --- */
+["egg","Egg, medium",72,6.3,0.4,5,58,{ch:147,se:15,va:80,vd:1,b12:0.6},"egg",
+ "The best choline source you will eat, and choline is the one most athletes are short of. Yolk included or it is pointless."],
+["fage0","Fage 0%",59,10,4,0,0,{ca:110,b12:0.8},"dairy",
+ "Protein with almost no calories attached. The cheapest way to hit the protein number in a deficit."],
+["fage2","Fage 2%",73,9.9,3.8,1.9,0,{ca:110,b12:0.8},"dairy"],
+["fage5","Fage 5%",97,9,3.8,5,0,{ca:105,b12:0.7},"dairy"],
+["kefir","Protein bio kefir",65,5.5,4.5,3,0,{ca:120,b12:0.4},"dairy",
+ "Live cultures — more strains than yoghurt. The gut side of the ageing picture."],
+["milk","Semi-skimmed milk",50,3.4,5,1.8,0,{ca:120,b12:0.5},"dairy"],
+["milkun","Unhomogenised semi-skimmed",52,3.5,4.8,2,0,{ca:120,b12:0.5},"dairy",
+ "Same numbers as ordinary semi-skimmed. The difference is the fat globule size, which is a texture and digestion thing, not a nutrition one."],
+["almondm","Unsweetened almond milk",13,0.5,0.3,1.1,0,{ca:120,va:0},"dairy",
+ "Almost no calories and almost no protein. Useful as a vehicle, not as a food."],
+["cott","Cottage cheese, low fat",98,11,3.4,4.3,0,{ca:83,se:9},"dairy",
+ "Slow casein protein. The one to eat last thing if you eat last thing."],
+["cheese","Raw cheddar",403,25,1.3,33,0,{ca:721,zn:3.1,k2:20},"dairy",
+ "Calcium, K2 and protein. Raw carries a small listeria risk — worth knowing, your call."],
+["feta","Feta",264,14,4,21,0,{ca:493,b12:1.7},"dairy"],
+["mozz","Mozzarella",280,22,2.2,20,0,{ca:505,se:17},"dairy"],
+["parm","Parmesan",392,36,4.1,25,0,{ca:1180,zn:2.8},"dairy"],
+/* --- grains and starches --- */
+["oats","GF oats (dry)",379,13,68,7,0,{mg:177,zn:4,fe:4.7},"grain",
+ "Slow carbohydrate and beta-glucan. Certified gluten free only — and avenin is close enough to gluten that it is a test, not a default."],
+["rice","Basmati rice (dry)",360,7,79,0.6,0,{},"grain",
+ "Clean carbohydrate, easy on the gut. The default when you need carbs without bulk."],
+["wrice","Wild rice (dry)",357,15,75,1.1,0,{mg:177,zn:6},"grain"],
+["quinoa","Quinoa (dry)",368,14,64,6,0,{mg:197,fe:4.6,fol:184},"grain"],
+["buck","Buckwheat (dry)",343,13,72,3.4,0,{mg:231,fe:2.2},"grain"],
+["rcake","Kallo rice cake",28,0.6,6,0.2,1,{},"grain"],
+["rcakep","Kallo lentil rice cake",32,1.4,5.4,0.4,1,{},"grain",
+ "A bit more protein and fibre than the plain ones for the same calories. No reason not to."],
+["gfpasta","GF pasta (dry)",357,7,76,1.5,0,{},"grain"],
+["gfbread","GF bread",250,4,45,5,0,{},"grain"],
+["lentil","Lentils (cooked)",116,9,20,0.4,0,{fe:3.3,fol:181,k:369,mg:36},"grain"],
+["chick2","Chickpeas (cooked)",164,9,27,2.6,0,{fe:2.9,fol:172,mg:48},"grain"],
+["bbean","Black beans (cooked)",132,9,24,0.5,0,{fe:2.1,fol:149,mg:70},"grain"],
+/* --- roots --- */
+["potato","White potato (cooked)",87,2,20,0.1,0,{k:420,vc:13},"root",
+ "More potassium than a banana and more filling per calorie than almost anything."],
+["sweetp","Sweet potato",90,2,21,0.1,0,{va:960,k:475,vc:20},"root",
+ "Vitamin A from beta-carotene, which unlike liver's you cannot overdo."],
+["carrot","Carrot",41,0.9,10,0.2,0,{va:835,k:320},"root",
+ "Beta-carotene, which needs fat in the same meal to be absorbed at all."],
+["beet","Beetroot",43,1.6,10,0.2,0,{fol:109,k:325},"root",
+ "Nitrate — the blood-flow one. Same reason as the rocket, and it survives cooking."],
+["parsnip","Parsnip",75,1.2,18,0.3,0,{k:375,fol:67,vc:17},"root"],
+["swede","Swede",38,1.1,9,0.2,0,{vc:25,k:305},"root"],
+["turnip","Turnip",28,0.9,6.4,0.1,0,{vc:21,k:191},"root"],
+["celeriac","Celeriac",42,1.5,9.2,0.3,0,{k:300,vc:8},"root"],
+/* --- vegetables --- */
+["sprout","Broccoli sprouts",35,3,6,0.4,0,{vc:35,fol:60},"veg",
+ "Sulforaphane, the strongest Nrf2 activator in food. Raw only — heat destroys the enzyme that makes it."],
+["broc","Broccoli",34,2.8,7,0.4,0,{vc:89,fol:63,k:316},"veg"],
+["cauli","Cauliflower",25,1.9,5,0.3,0,{vc:48,fol:57},"veg"],
+["brussel","Brussels sprouts",43,3.4,9,0.3,0,{vc:85,fol:61,k:389},"veg"],
+["kale","Kale",49,4.3,9,0.9,0,{vc:120,va:500,k:491,ca:150},"veg"],
+["cabbage","Cabbage",25,1.3,6,0.1,0,{vc:37,fol:43},"veg"],
+["spin","Spinach",23,2.9,3.6,0.4,0,{fol:194,k:558,mg:79,va:469,vc:28,fe:2.7},"veg",
+ "Folate, magnesium and nitrate. The nitrate is what feeds the blood-vessel side of endurance."],
+["rocket","Rocket",25,2.6,3.7,0.7,0,{fol:97,ca:160,k:369},"veg",
+ "Nitrate again, and no cooking needed. Skip the antibacterial mouthwash if you want the benefit."],
+["lettuce","Lettuce",15,1.4,2.9,0.2,0,{fol:38,k:194},"veg"],
+["cuke","Cucumber",15,0.7,3.6,0.1,0,{k:147},"veg"],
+["celery","Celery",16,0.7,3,0.2,0,{k:260},"veg"],
+["tomato","Tomato",18,0.9,3.9,0.2,0,{k:237,vc:14,va:42},"veg",
+ "Lycopene, and cooking it makes more of it available rather than less."],
+["pepper","Red pepper",31,1,6,0.3,0,{vc:128,va:157},"veg",
+ "More vitamin C than any citrus, by some distance."],
+["mush","Mushrooms",22,3.1,3.3,0.3,0,{se:9,vd:0.2},"veg"],
+["asp","Asparagus",20,2.2,3.9,0.1,0,{fol:52,k:202},"veg"],
+["gbean","Green beans",31,1.8,7,0.1,0,{vc:12,fol:33},"veg"],
+["peas","Peas",81,5.4,14,0.4,0,{vc:40,fol:65,fe:1.5},"veg"],
+["courg","Courgette",17,1.2,3.1,0.3,0,{k:261,vc:18},"veg"],
+["aub","Aubergine",25,1,6,0.2,0,{k:229},"veg"],
+["leek","Leek",61,1.5,14,0.3,0,{fol:64,fe:2.1},"veg"],
+["onion","Onion",40,1.1,9,0.1,0,{vc:7},"veg"],
+["garlic","Garlic",149,6.4,33,0.5,0,{se:14},"veg",
+ "Allicin needs the clove crushed and left ten minutes before heat, or it never forms."],
+["avo","Avocado",160,2,9,15,0,{k:485,mg:29,fol:81},"veg",
+ "Potassium, magnesium and the fat that makes the fat-soluble vitamins in the same meal usable."],
+/* --- fruit --- */
+["blue","Blueberries",57,0.7,14,0.3,0,{vc:10,k:77},"fruit",
+ "Anthocyanins — the pigment is the point. Frozen are as good as fresh and cheaper."],
+["straw","Strawberries",32,0.7,7.7,0.3,0,{vc:59,fol:24},"fruit"],
+["rasp","Raspberries",52,1.2,12,0.7,0,{vc:26,mg:22},"fruit"],
+["black","Blackberries",43,1.4,10,0.5,0,{vc:21,k:162},"fruit"],
+["cherry","Cherries",63,1.1,16,0.2,0,{vc:7,k:222},"fruit",
+ "Tart cherry is the one with actual sleep and soreness evidence behind it."],
+["acai","Acai, unsweetened",70,1,4,5,0,{va:50},"fruit",
+ "Very high polyphenol, very low sugar once it is unsweetened. Most of the calories are fat."],
+["grapes","Grapes",69,0.7,18,0.2,0,{k:190},"fruit"],
+["banana","Banana",89,1.1,23,0.3,118,{k:420},"fruit",
+ "Potassium and fast carbs. Best used before or after, not with."],
+["apple","Apple",52,0.3,14,0.2,182,{vc:5,k:107},"fruit"],
+["pear","Pear",57,0.4,15,0.1,178,{vc:4,k:116},"fruit"],
+["orange","Orange",47,0.9,12,0.1,130,{vc:53,fol:30,k:181},"fruit",
+ "Vitamin C and folate. Eat it with the iron meal and you absorb more iron."],
+["kiwi","Kiwi",61,1.1,15,0.5,75,{vc:93,k:312},"fruit",
+ "More vitamin C than an orange, and vitamin C is what makes collagen synthesis actually happen."],
+["pine","Pineapple",50,0.5,13,0.1,0,{vc:48,mg:12},"fruit"],
+["mango","Mango",60,0.8,15,0.4,0,{vc:36,va:54},"fruit"],
+["melon","Melon",34,0.8,8,0.2,0,{vc:37,k:267,va:169},"fruit"],
+["peach","Peach",39,0.9,10,0.3,0,{vc:7,k:190},"fruit"],
+["plum","Plum",46,0.7,11,0.3,0,{vc:9,k:157},"fruit"],
+["raisin","Raisins",299,3.1,79,0.5,0,{k:749,fe:1.9},"fruit",
+ "Concentrated sugar and potassium. Easy to eat 300 kcal of by accident."],
+["date","Dates",282,2.5,75,0.4,0,{k:656,mg:54},"fruit"],
+["fig","Figs, dried",249,3.3,64,0.9,0,{ca:162,k:680,mg:68},"fruit"],
+/* --- nuts and seeds --- */
+["walnut","Walnuts",654,15,14,65,0,{mg:158,o3:2570},"nut",
+ "Plant omega-3 — not the same as the fish kind, but it counts. Weigh them."],
+["hazel","Hazelnuts",628,15,17,61,0,{mg:163,fe:4.7},"nut"],
+["almond","Almonds",579,21,22,50,0,{mg:270,ca:269},"nut"],
+["cashew","Cashews",553,18,30,44,0,{mg:292,zn:5.8,fe:6.7},"nut"],
+["pist","Pistachios",560,20,28,45,0,{mg:121,k:1025},"nut"],
+["brazil","Brazil nuts",659,14,12,67,0,{se:1917,mg:376},"nut",
+ "One nut is a day's selenium. Two is plenty; a handful is genuinely too much."],
+["mac","Macadamias",718,8,14,76,0,{mg:130},"nut"],
+["pecan","Pecans",691,9,14,72,0,{mg:121,zn:4.5},"nut"],
+["peanut","Peanuts",567,26,16,49,0,{mg:168,fol:240},"nut"],
+["pump","Pumpkin seeds",559,30,11,49,0,{mg:592,zn:7.8,fe:8.8},"nut",
+ "The best magnesium in food, plus zinc and iron. A small handful does a lot."],
+["sunf","Sunflower seeds",584,21,20,51,0,{mg:325,se:53},"nut"],
+["chia","Chia seeds",486,17,42,31,0,{ca:631,mg:335,o3:17800},"nut"],
+["flax","Ground flaxseed",534,18,29,42,0,{mg:392,o3:22800},"nut"],
+["tahini","Tahini",595,17,21,54,0,{ca:426,fe:8.9},"nut"],
+/* --- fats --- */
+["butter","Grass-fed butter",717,0.9,0.1,81,0,{va:684,k2:15},"fat",
+ "K2 and vitamin A. Grass-fed genuinely matters — the K2 comes from the grass."],
+["tallow","Beef tallow",902,0,0,100,0,{},"fat",
+ "Stable at heat, no seed oils. Pure fat — count it properly, it adds up fast."],
+["olive","Olive oil",884,0,0,100,0,{},"fat"],
+["coco","Coconut oil",862,0,0,100,0,{},"fat"],
+/* --- other --- */
+["honey","Raw honey",304,0.3,82,0,0,{},"other",
+ "Fast carbohydrate. Raw keeps the enzymes and polyphenols that heating destroys, though it is still sugar."],
+["maple","Maple syrup",260,0,67,0.1,0,{mg:21},"other"],
+["choc","Dark chocolate 80-85%",598,8,46,43,0,{mg:228,fe:11},"other",
+ "Magnesium and flavanols. The 80%+ is doing the work, not the 70%."],
+["cacao","Cacao powder",228,20,58,14,0,{mg:499,fe:14},"other",
+ "More magnesium and flavanol per gram than the chocolate, with none of the sugar."],
+["collagen","Collagen chocolate powder",90,20,2,0.5,0,{},"supp",
+ "Glycine and proline for connective tissue. Inert without vitamin C in the same meal — a kiwi does it."],
+["whey","Whey protein",120,24,2,1.5,30,{ca:120},"supp",
+ "Protein without the cooking. Useful, not magic — real food first."],
+["hummus","Hummus",166,8,14,10,0,{fe:2.4,fol:83},"other"],
+["salt","Salt",0,0,0,0,1,{},"other",
+ "Steady, not swinging. Cutting it drops water that is not fat and comes straight back."]
 ];
+/* One line per category, so a food only needs its own when there is something
+   specific worth saying about it. */
+var CAT_WHY = {
+  meat:"Complete protein with heme iron and zinc — the forms your body actually absorbs.",
+  organ:"Nutrient density nothing else matches. Small amounts, not often.",
+  fish:"Protein plus the marine omega-3 that no plant source replaces.",
+  egg:"Protein, choline and fat-soluble vitamins in one.",
+  dairy:"Protein and calcium. Fine for you — dairy has never been the problem.",
+  grain:"Carbohydrate, which is what the hard sessions actually run on.",
+  root:"Slow carbohydrate with potassium, and more filling per calorie than grain.",
+  veg:"Fibre, potassium and polyphenols for almost no calories.",
+  fruit:"Carbohydrate with polyphenols attached, which is the version worth eating.",
+  nut:"Magnesium, minerals and fat. Calorie-dense — weigh them rather than guessing.",
+  fat:"Fat for hormones and for absorbing the fat-soluble vitamins in the same meal.",
+  supp:"A convenience, not a food. Fills a gap the plate did not.",
+  other:"Mostly carbohydrate or flavour. Fits where the budget allows."
+};
+var FOODS = FOOD_ROWS.map(function (r) {
+  var o = { id: r[0], n: r[1], kcal: r[2], p: r[3], c: r[4], f: r[5], cat: r[8],
+    why: r[9] || CAT_WHY[r[8]] || "" };
+  if (r[6]) o.each = r[6];
+  for (var k in r[7]) o[k] = r[7][k];
+  return o;
+});
 function foodById(id) { for (var i = 0; i < FOODS.length; i++) if (FOODS[i].id === id) return FOODS[i]; return null; }
 function foodAmount(f, qty) {
   /* per-unit foods count the unit; everything else is per 100g */
@@ -3905,16 +4042,65 @@ function foodTotals(list) {
   return t;
 }
 
-function renderFoodPicker() {
-  var sel = $("foodPick"); if (!sel || sel.options.length) return;
-  sel.innerHTML = '<option value="">Pick a food…</option>' +
-    FOODS.slice().sort(function (a, b) { return a.n < b.n ? -1 : 1; }).map(function (f) {
-      return '<option value="' + f.id + '">' + esc(f.n) + (f.each ? " (each)" : " (100g)") + "</option>";
-    }).join("") + '<option value="__custom">Something else — enter macros</option>';
+/* Typed search rather than a dropdown — 123 items is past the point where
+   scrolling a select is faster than typing three letters. */
+var foodChosen = null;
+function searchFoods(q) {
+  q = String(q || "").trim().toLowerCase();
+  if (!q) return [];
+  var starts = [], has = [];
+  FOODS.forEach(function (f) {
+    var n = f.n.toLowerCase();
+    if (n.indexOf(q) === 0) starts.push(f);
+    else if (n.indexOf(q) !== -1) has.push(f);
+  });
+  return starts.concat(has).slice(0, 8);
 }
+function renderFoodHits() {
+  var box = $("foodHits"), q = $("foodSearch").value;
+  if (!box) return;
+  if (foodChosen && q === foodChosen.n) { box.innerHTML = ""; return; }
+  var hits = searchFoods(q);
+  if (!hits.length) {
+    box.innerHTML = q.trim().length >= 2
+      ? '<div class="hits"><div class="hit" data-pickfood="__custom">' +
+        '<span>Not in the list — enter the macros yourself</span><small>custom</small></div></div>'
+      : "";
+    return;
+  }
+  box.innerHTML = '<div class="hits">' + hits.map(function (f) {
+    return '<div class="hit" data-pickfood="' + f.id + '"><span>' + esc(f.n) + "</span><small>" +
+      f.kcal + " kcal · " + (f.each ? "each" : "100g") + "</small></div>";
+  }).join("") + "</div>";
+}
+function pickFood(id) {
+  var box = $("foodHits");
+  if (id === "__custom") {
+    foodChosen = null;
+    $("customRow").style.display = "";
+    $("foodQty").style.display = "none";
+    $("foodCustom").value = $("foodSearch").value;
+    box.innerHTML = "";
+    $("cKcal").focus();
+    return;
+  }
+  foodChosen = foodById(id);
+  $("foodSearch").value = foodChosen ? foodChosen.n : "";
+  $("customRow").style.display = "none";
+  $("foodQty").style.display = "";
+  box.innerHTML = "";
+  $("foodQty").focus();
+}
+function renderFoodPicker() { renderFoodHits(); }
 function addFoodRow() {
-  var id = $("foodPick").value, qty = parseFloat($("foodQty").value);
-  if (!id) { $("foodPick").focus(); return; }
+  var qty = parseFloat($("foodQty").value);
+  var custom = $("customRow").style.display !== "none";
+  /* typing a name and pressing Add without picking should still work */
+  if (!custom && !foodChosen) {
+    var hits = searchFoods($("foodSearch").value);
+    if (hits.length) foodChosen = hits[0]; else { $("foodSearch").focus(); return; }
+  }
+  var id = custom ? "__custom" : foodChosen.id;
   var list = todayFoods();
   if (id === "__custom") {
     var name = ($("foodCustom").value || "").trim();
@@ -3923,11 +4109,13 @@ function addFoodRow() {
     if (!name || !isFinite(k)) { $("foodCustom").focus(); return; }
     list.push({ custom: 1, n: name, kcal: k, p: isFinite(pr) ? pr : 0,
       c: isFinite(cb) ? cb : 0, f: isFinite(ft) ? ft : 0 });
-    ["foodCustom", "cKcal", "cP", "cC", "cF"].forEach(function (x) { $(x).value = ""; });
+    ["foodCustom", "cKcal", "cP", "cC", "cF", "foodSearch"].forEach(function (x) { $(x).value = ""; });
+    $("customRow").style.display = "none";
+    $("foodQty").style.display = "";
   } else {
     if (!isFinite(qty) || qty <= 0) { $("foodQty").focus(); return; }
     list.push({ id: id, qty: qty });
-    $("foodQty").value = "";
+    $("foodQty").value = ""; $("foodSearch").value = ""; foodChosen = null;
   }
   saveFoods(list);
 }
@@ -5184,8 +5372,9 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delfood],[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-pickfood],[data-delfood],[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
+    if (el.dataset.pickfood != null) { pickFood(el.dataset.pickfood); return; }
     if (el.id === "orphanOk") { delete settings.orphanNote; DB.set("settings", settings); renderRolling(); return; }
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
     else if (el.dataset.gym != null) {
@@ -5285,10 +5474,15 @@ function renderStartInfo() {
     $("kcalToday").value = targetKcal(); logKcal(targetKcal());
   });
   $("foodAddBtn").addEventListener("click", addFoodRow);
-  $("foodPick").addEventListener("change", function () {
-    var custom = this.value === "__custom";
-    $("customRow").style.display = custom ? "" : "none";
-    $("foodQty").style.display = custom ? "none" : "";
+  $("foodSearch").addEventListener("input", function () { foodChosen = null; renderFoodHits(); });
+  $("foodSearch").addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    var hits = searchFoods(this.value);
+    if (hits.length) pickFood(hits[0].id);
+  });
+  $("foodQty").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
   });
   $("stepsTodayBtn").addEventListener("click", function () {
     var v = parseFloat($("stepsToday").value);
