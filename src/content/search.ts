@@ -1,4 +1,4 @@
-import { guides } from './guides';
+import { guides, GUIDE_SECTIONS } from './guides';
 import { symptoms } from './symptoms';
 import { urgentSymptoms, type UrgentSymptom } from './urgent';
 import type { Guide, Symptom } from './schema';
@@ -133,6 +133,14 @@ const SYNONYMS: Record<string, string[]> = {
   pee: ['urine', 'bladder'],
   pills: ['medicine', 'medication'],
   pill: ['medicine', 'medication'],
+  tablet: ['medicine', 'medication'],
+  tablets: ['medicine', 'medication'],
+  // The library uses both words and stemming will not join them, so someone
+  // typing one of them was searching half the content.
+  medicine: ['medication'],
+  medicines: ['medication'],
+  medication: ['medicine'],
+  medications: ['medicine'],
   painkiller: ['paracetamol', 'medicine'],
   painkillers: ['paracetamol', 'medicine'],
   jab: ['vaccine', 'vaccination'],
@@ -220,7 +228,19 @@ function tokenise(query: string): string[] {
 
 const TITLE_WEIGHT = 6;
 const SUMMARY_WEIGHT = 3;
+/**
+ * The section an entry sits in says what it is about, which its title often
+ * does not. "Can I take this medicine" was led by an entry on breastfeeding
+ * and contraception, while the entry that actually answers it — "The two
+ * golden rules" — tied for third, because the titles here are written to be
+ * read rather than to be searched. Its section is called Medications, and that
+ * was already sitting in the data unused. Weighted below the summary: being
+ * filed under a subject is weaker evidence than saying so.
+ */
+const SECTION_WEIGHT = 2;
 const BODY_WEIGHT = 1;
+
+const SECTION_LABELS = new Map(GUIDE_SECTIONS.map((s) => [s.id, s.label]));
 
 /**
  * Each entry flattened once at load, rather than re-joining 111 arrays of
@@ -230,6 +250,7 @@ const INDEX = guides.map((guide) => ({
   guide,
   title: guide.title.toLowerCase(),
   summary: guide.summary.toLowerCase(),
+  section: (SECTION_LABELS.get(guide.section) ?? '').toLowerCase(),
   body: (
     guide.body.join(' ') +
     ' ' +
@@ -276,7 +297,7 @@ function idf(term: string): number {
   if (value === undefined) {
     const re = matcher(term);
     const seenIn = INDEX.filter(
-      (e) => re.test(e.title) || re.test(e.summary) || re.test(e.body),
+      (e) => re.test(e.title) || re.test(e.summary) || re.test(e.section) || re.test(e.body),
     ).length;
     // Floored rather than zeroed, so a search for a common word still returns
     // something rather than looking broken.
@@ -295,6 +316,7 @@ function scoreEntry(entry: (typeof INDEX)[number], terms: string[]): number {
     let hit = 0;
     if (re.test(entry.title)) hit += TITLE_WEIGHT;
     if (re.test(entry.summary)) hit += SUMMARY_WEIGHT;
+    if (re.test(entry.section)) hit += SECTION_WEIGHT;
     if (re.test(entry.body)) hit += BODY_WEIGHT;
     if (hit > 0) matched += 1;
     score += hit * idf(term);
@@ -345,6 +367,19 @@ export function searchGuides(query: string): SearchResult[] {
  * because if there is a symptom entry for what you typed, it is almost always
  * the thing you wanted.
  */
+/** How many symptom names contain this term — cached, since the list is fixed. */
+const nameMatchCache = new Map<string, number>();
+
+function namesMatching(term: string): number {
+  let count = nameMatchCache.get(term);
+  if (count === undefined) {
+    const re = matcher(term);
+    count = symptoms.filter((s) => re.test(s.name)).length;
+    nameMatchCache.set(term, count);
+  }
+  return count;
+}
+
 export function searchSymptoms(query: string): Symptom[] {
   const terms = tokenise(query);
   if (terms.length === 0) return [];
@@ -357,14 +392,22 @@ export function searchSymptoms(query: string): Symptom[] {
         // Weight a hit in the name far above one in the explanation: "swelling"
         // should lead with the swelling entry, not one that mentions it once.
         const named = terms.filter((t) => matcher(t).test(symptom.name)).length;
-        return { symptom, hits, named, score: hits + named * 4 };
+        // ...but only if the word actually distinguishes one symptom from
+        // another. "chest pain" was offering Back pain and Pelvic pain, because
+        // "pain" is in both names. Suggesting back pain to someone typing chest
+        // pain is worse than suggesting nothing: it reads as the app having an
+        // opinion about what is wrong with them.
+        const discriminating = terms.filter(
+          (t) => matcher(t).test(symptom.name) && namesMatching(t) === 1,
+        ).length;
+        return { symptom, hits, named, discriminating, score: hits + named * 4 };
       })
       // A single passing mention is not a match. "Can I eat brie" was pulling up
       // a symptom chip because one entry's advice happens to contain "eat" —
       // technically a hit, and obviously noise next to the cheese entry that
-      // actually answered the question. Either the name matches, or the whole
-      // query does.
-      .filter((r) => r.named > 0 || r.hits === terms.length)
+      // actually answered the question. Either the name matches on a word that
+      // tells the entries apart, or the whole query hits.
+      .filter((r) => r.discriminating > 0 || r.hits === terms.length)
       .sort((a, b) => b.score - a.score)
       .slice(0, 4)
       .map((r) => r.symptom)
@@ -411,6 +454,38 @@ const URGENT_HINTS: Record<string, string> = {
 const URGENT_LOOKUP = new Map(Object.entries(URGENT_HINTS).map(([word, id]) => [stem(word), id]));
 
 /**
+ * Phrases that are unambiguous where a single word would not be.
+ *
+ * "difficulty breathing" was matching nothing at all — the hint list had
+ * "breathless" but not "breathing", so one of the most serious things a person
+ * can type got a reading list. Adding "breath" as a bare word would fix that
+ * and break something else: this app has a breathing exercise in it, and a red
+ * panel is the wrong answer to someone looking for it. The distress is in the
+ * phrase, not in the word.
+ */
+const URGENT_PHRASES: [RegExp, string][] = [
+  [/\b(difficulty|trouble|struggling|hard|can.?t|cannot|unable)\b[^.?!]{0,14}\bbreath/i, 'chest'],
+  [/\b(short(ness)?|out) of breath\b/i, 'chest'],
+  [/\bstruggling to breathe\b/i, 'chest'],
+];
+
+/**
+ * Words that mean "something is wrong" without saying what.
+ *
+ * These only apply when nothing more specific matched, because they are the
+ * broadest thing a person can say and the most easily outranked. "Feeling very
+ * unwell" is a real reason to call a maternity unit and had no route at all;
+ * "I feel my baby moving less" should still go to movements, not here.
+ */
+const WEAK_HINTS: Record<string, string> = {
+  unwell: 'instinct',
+  ill: 'instinct',
+  wrong: 'instinct',
+};
+
+const WEAK_LOOKUP = new Map(Object.entries(WEAK_HINTS).map(([word, id]) => [stem(word), id]));
+
+/**
  * If someone searches the guidance for something that might be happening to
  * them now, the library is the wrong answer.
  *
@@ -420,10 +495,23 @@ const URGENT_LOOKUP = new Map(Object.entries(URGENT_HINTS).map(([word, id]) => [
  * be reading ahead out of interest.
  */
 export function urgentMatchFor(query: string): UrgentSymptom | undefined {
+  const find = (id: string) => urgentSymptoms.find((s) => s.id === id);
+
+  // Most specific first: a whole phrase, then a distinctive word, then the
+  // vague ones. Anything else and "I feel unwell when my baby moves" lands on
+  // the catch-all instead of on movements.
+  for (const [pattern, id] of URGENT_PHRASES) {
+    if (pattern.test(query)) return find(id);
+  }
+
   const terms = tokenise(query);
   for (const term of terms) {
     const id = URGENT_LOOKUP.get(term);
-    if (id) return urgentSymptoms.find((s) => s.id === id);
+    if (id) return find(id);
+  }
+  for (const term of terms) {
+    const id = WEAK_LOOKUP.get(term);
+    if (id) return find(id);
   }
   return undefined;
 }

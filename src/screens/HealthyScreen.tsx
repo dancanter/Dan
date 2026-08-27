@@ -157,9 +157,13 @@ export function HealthyScreen() {
           onChange={(e) => setQuery(e.target.value)}
           className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
         />
+        {/* The urgent offer is announced here as well as shown below it.
+            Without this, someone using a screen reader typed "bleeding" and
+            heard "2 entries match" — the one part of the screen that matters
+            was silent, because it sits outside the live region. */}
         <p aria-live="polite" className="mt-1.5 font-mono text-[10.5px] text-soft">
           {q
-            ? `${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${query}”`
+            ? `${urgent ? 'If this is happening now, there’s help below. ' : ''}${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${query}”`
             : `${guides.length} entries · ${readGuideIds.length} read so far`}
         </p>
       </div>
@@ -167,12 +171,20 @@ export function HealthyScreen() {
       {/* A reading list is a bad answer to "bleeding". If the search looks like
           someone describing what is happening to them, the urgent route goes
           above the results — offered, not forced, since they may equally be
-          reading ahead. */}
+          reading ahead.
+
+          The entry's title is quoted rather than folded into a sentence:
+          lowercasing a first-person title mid-clause produced "don't read up
+          on it — i'm bleeding is something to get checked", which is both
+          ungrammatical and slightly absurd at the moment it is read. */}
       {urgent && (
         <div className="mb-5 rounded-xl border-2 border-alert bg-alertp px-4 py-3.5">
           <p className="m-0 text-[15px] font-semibold">Is this happening now?</p>
-          <p className="mb-2.5 mt-1 text-[14.5px] leading-relaxed">
-            If so, don’t read up on it — {urgent.title.toLowerCase()} is something to get checked.
+          <p className="mb-1 mt-1.5 text-[15px] font-semibold italic leading-snug">
+            “{urgent.title}”
+          </p>
+          <p className="mb-2.5 mt-1.5 text-[14.5px] leading-relaxed">
+            If that’s you right now, this is one to get checked rather than read about.
           </p>
           <Link
             to={`/help/${urgent.id}`}
