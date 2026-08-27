@@ -11,6 +11,14 @@ export interface JournalEntry {
   /** ISO date string — stored rather than a Date so it survives JSON. */
   date: string;
   week: number | null;
+  /**
+   * Questions only: whether it has been asked yet.
+   *
+   * Optional, so every entry saved before this existed reads as unasked
+   * rather than breaking — the same `undefined` that once forced everyone
+   * into after-birth mode, handled properly this time.
+   */
+  asked?: boolean;
 }
 
 const STORAGE_KEY = 'fieldnotes:journal';
@@ -66,10 +74,31 @@ export function useJournal() {
     [setEntries],
   );
 
+  const toggleAsked = useCallback(
+    (id: string) =>
+      setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, asked: !e.asked } : e))),
+    [setEntries],
+  );
+
   const moodHistory = entries
     .filter((e) => e.kind === 'mood')
     .slice(0, 14)
     .reverse();
 
-  return { entries, add, remove, moodHistory, resetJournal: reset };
+  // Oldest first: a question saved three weeks ago has been waiting longest,
+  // and is the one most likely to be forgotten in the room.
+  const questions = entries
+    .filter((e) => e.kind === 'question')
+    .slice()
+    .reverse();
+
+  return {
+    entries,
+    add,
+    remove,
+    toggleAsked,
+    moodHistory,
+    questions,
+    resetJournal: reset,
+  };
 }

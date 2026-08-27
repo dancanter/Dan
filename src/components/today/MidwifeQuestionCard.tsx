@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { midwifeQuestions } from '../../content';
 import { dayOfYear } from '../../lib/dates';
 
@@ -35,11 +36,21 @@ export function MidwifeQuestionCard({ onSave }: Props) {
           }}
           className="min-h-11 rounded-lg border border-line bg-clayp px-3.5 text-[13.5px] font-semibold text-clay"
         >
-          {saved ? 'Saved ✓' : 'Save to Journal'}
+          {saved ? 'Saved ✓' : 'Save this question'}
         </button>
       </div>
-      <p aria-live="polite" className="sr-only">
-        {saved ? 'Question saved to your journal, under For my midwife.' : ''}
+      <p aria-live="polite" className="mt-2 text-[13px] text-soft">
+        {saved ? (
+          <>
+            Saved. It’s on{' '}
+            <Link to="/appointments" className="underline">
+              Appointments
+            </Link>{' '}
+            with your other questions.
+          </>
+        ) : (
+          ''
+        )}
       </p>
     </div>
   );

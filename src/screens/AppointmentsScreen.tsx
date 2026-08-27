@@ -6,6 +6,7 @@ import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
+import { QuestionList } from '../components/appointments/QuestionList';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 
@@ -107,7 +108,12 @@ export function AppointmentsScreen() {
         next scheduled appointment, and you’re never bothering them.
       </Note>
 
-      <SectionHeading>Getting the most from an appointment</SectionHeading>
+      {/* The list first, then the prompt that feeds it. Someone opening this
+          screen the morning of an appointment wants what they already saved,
+          not a suggestion for something else to ask. */}
+      <QuestionList />
+
+      <SectionHeading>Not sure what to ask?</SectionHeading>
       <MidwifeQuestionCard
         onSave={(q) => {
           addJournal('question', q, currentWeek);
