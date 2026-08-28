@@ -350,6 +350,23 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <div id="weekList"></div>
 
     <section class="block" style="margin-top:26px">
+      <h2 class="block-title">Calisthenics <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">the optional 5th</span></h2>
+      <p class="block-sub">Records to beat, not a workout. Pick the format, log the reps.</p>
+      <div class="add-row" style="margin-top:0">
+        <select id="caliFormat" style="flex:2"></select>
+      </div>
+      <div class="add-row">
+        <input type="text" id="caliPush" inputmode="numeric" placeholder="Push-ups" style="max-width:110px">
+        <input type="text" id="caliPull" inputmode="numeric" placeholder="Pull-ups" style="max-width:110px">
+        <button class="btn primary" id="caliAddBtn">Log</button>
+      </div>
+      <div class="add-row">
+        <input type="text" id="caliNote" placeholder="Notes, optional">
+      </div>
+      <div id="caliOut" style="margin-top:12px"></div>
+    </section>
+
+    <section class="block" style="margin-top:26px">
       <h2 class="block-title">Week Review <span class="tag" id="reviewTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">What the week you are looking at actually contained, and what it says about the next one.</p>
       <div id="reviewBox"></div>
@@ -1075,7 +1092,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "27 Aug 14:47";
+var BUILD = "28 Aug 01:17";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1442,6 +1459,7 @@ function parseSession(desc) {
 }
 
 /* ================= state ================= */
+var caliLog = [];
 var settings = {}, weekData = [], weightLog = [], hrLog = [], sessionHistory = [],
     reflections = [], pbLog = [], retinolLog = [], niggleLog = [], todayState = {}, viewWeek = 1;
 
@@ -1813,7 +1831,7 @@ function renderWeek() {
   $("weekList").innerHTML = energyNote(false) + intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
-  renderSuggest(); renderReview(); renderPlan(); renderBlockPlan();
+  renderSuggest(); renderReview(); renderPlan(); renderBlockPlan(); renderCali();
 }
 
 /* ================= rolling load ================= */
@@ -2547,6 +2565,128 @@ function renderReview() {
         '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(x.what) + "</span>" +
         '<span class="stone-when" style="color:var(--muted-2)">' + esc(x.why) + "</span></div>";
     }).join("") + "</div>";
+}
+
+/* ================= calisthenics ================= */
+/* The optional fifth session. Every format is a record to beat, so the whole
+   thing is a log with a personal best attached rather than a workout plan. */
+var CALI_FORMATS = [
+  { id: "test40", n: "40 min max — push-ups + pull-ups", both: 1,
+    desc: "As many as possible in 40 minutes, alternating as you like. The hardest of the three and the one that leaves a mark — put it on a day with no effort run either side." },
+  { id: "maxpush", n: "Max push-ups — one set", push: 1,
+    desc: "One set to failure. Strict, chest to the deck, no resting at the top." },
+  { id: "maxpull", n: "Max pull-ups — one set", pull: 1,
+    desc: "One set to failure. Dead hang to chin over the bar, no kipping." }
+];
+function caliFormat(id) {
+  for (var i = 0; i < CALI_FORMATS.length; i++) if (CALI_FORMATS[i].id === id) return CALI_FORMATS[i];
+  return CALI_FORMATS[0];
+}
+/* The 40-minute record set before this block started. It stands until beaten,
+   then the log takes over entirely. */
+var CALI_SEED = { test40: { push: 392, pull: 138, date: "before this block" } };
+
+function caliBest(id) {
+  var f = caliFormat(id), rows = caliLog.filter(function (r) { return r.format === id; });
+  var best = null;
+  rows.forEach(function (r) {
+    var score = f.both ? (+r.push || 0) + (+r.pull || 0) : f.push ? (+r.push || 0) : (+r.pull || 0);
+    if (!best || score > best.score) best = { score: score, row: r };
+  });
+  var seed = CALI_SEED[id];
+  if (seed) {
+    var sScore = f.both ? seed.push + seed.pull : f.push ? seed.push : seed.pull;
+    if (!best || sScore > best.score) {
+      return { score: sScore, seed: true, push: seed.push, pull: seed.pull, date: seed.date };
+    }
+  }
+  if (!best) return null;
+  return { score: best.score, push: +best.row.push || 0, pull: +best.row.pull || 0, date: best.row.date };
+}
+function addCali() {
+  var id = $("caliFormat").value, f = caliFormat(id);
+  var push = parseFloat($("caliPush").value), pull = parseFloat($("caliPull").value);
+  if (f.push && !isFinite(push)) { $("caliPush").focus(); return; }
+  if (f.pull && !isFinite(pull)) { $("caliPull").focus(); return; }
+  if (f.both && !isFinite(push) && !isFinite(pull)) { $("caliPush").focus(); return; }
+  caliLog.unshift({ id: String(Date.now()), date: today(), format: id,
+    push: isFinite(push) ? push : 0, pull: isFinite(pull) ? pull : 0,
+    notes: ($("caliNote").value || "").trim() });
+  DB.set("cali-log", caliLog);
+  ["caliPush", "caliPull", "caliNote"].forEach(function (x) { $(x).value = ""; });
+  renderCali();
+}
+function delCali(id) {
+  caliLog = caliLog.filter(function (r) { return r.id !== id; });
+  DB.set("cali-log", caliLog);
+  renderCali();
+}
+function renderCali() {
+  var el = $("caliOut"); if (!el) return;
+  var sel = $("caliFormat");
+  if (sel && !sel.options.length) {
+    sel.innerHTML = CALI_FORMATS.map(function (f) {
+      return '<option value="' + f.id + '">' + esc(f.n) + "</option>";
+    }).join("");
+  }
+  var f = caliFormat(sel ? sel.value : "test40");
+  $("caliPush").style.display = (f.both || f.push) ? "" : "none";
+  $("caliPull").style.display = (f.both || f.pull) ? "" : "none";
+
+  var cards = CALI_FORMATS.map(function (fm) {
+    var b = caliBest(fm.id);
+    var val = !b ? "—"
+      : fm.both ? b.push + " push · " + b.pull + " pull"
+      : fm.push ? b.push + " push-ups" : b.pull + " pull-ups";
+    return '<div class="bench"><div class="bench-top">' +
+      '<span class="bench-name">' + esc(fm.n.split(" — ")[0]) + " <em>" + esc(fm.n.split(" — ")[1] || "") + "</em></span>" +
+      '<span class="bench-now">' + val +
+      (b ? '<span class="to-go"> ' + esc(String(b.date)) + (b.seed ? " · your standing PB" : "") + "</span>" : '<span class="to-go"> nothing logged</span>') +
+      "</span></div>" +
+      (b && fm.both ? '<div class="bar-scale"><span>total ' + b.score + " reps</span><span></span><span></span></div>" : "") +
+      "</div>";
+  }).join("");
+
+  /* did the last one beat anything */
+  var last = caliLog[0], verdict = "";
+  if (last) {
+    var lf = caliFormat(last.format);
+    var lScore = lf.both ? (+last.push || 0) + (+last.pull || 0) : lf.push ? +last.push : +last.pull;
+    var others = caliLog.filter(function (r) { return r.format === last.format && r.id !== last.id; });
+    var prev = null;
+    others.forEach(function (r) {
+      var sc = lf.both ? (+r.push || 0) + (+r.pull || 0) : lf.push ? +r.push : +r.pull;
+      if (prev === null || sc > prev) prev = sc;
+    });
+    var seed = CALI_SEED[last.format];
+    if (seed) {
+      var ss = lf.both ? seed.push + seed.pull : lf.push ? seed.push : seed.pull;
+      if (prev === null || ss > prev) prev = ss;
+    }
+    if (prev !== null && lScore > prev) {
+      verdict = '<div class="note good" style="margin-bottom:12px"><b>New best — ' + lScore + " against " + prev + "</b>" +
+        "Up " + (lScore - prev) + " rep" + (lScore - prev === 1 ? "" : "s") + " on your previous best. Logged " + esc(last.date) + ".</div>";
+    } else if (prev !== null) {
+      verdict = '<div class="note flat" style="margin-bottom:12px"><b>' + lScore + " — record still stands at " + prev + "</b>" +
+        (prev - lScore <= 15
+          ? "Within " + (prev - lScore) + " of it. That is a day, not a decline — try it again fresh."
+          : "A fair way off. Worth checking what the week around it looked like before reading anything into it.") + "</div>";
+    }
+  }
+
+  var rows = caliLog.slice(0, 12).map(function (r) {
+    var fm = caliFormat(r.format);
+    var what = fm.both ? r.push + " push · " + r.pull + " pull · " + ((+r.push || 0) + (+r.pull || 0)) + " total"
+      : fm.push ? r.push + " push-ups" : r.pull + " pull-ups";
+    return '<div class="log-item"><span class="l-main">' + r.date + '<br><span style="color:var(--muted-2)">' +
+      esc(fm.n.split(" — ")[0]) + "</span></span><span>" + what + (r.notes ? " · " + esc(r.notes) : "") +
+      ' <button class="del" data-delcali="' + esc(r.id) + '" aria-label="Delete">×</button></span></div>';
+  }).join("");
+
+  el.innerHTML = verdict + cards +
+    '<p class="block-sub" style="margin-top:10px" data-detail>' + esc(f.desc) + "</p>" +
+    (rows ? '<div style="margin-top:12px">' + rows + "</div>"
+          : '<div class="empty" style="margin-top:12px">Nothing logged yet.</div>');
 }
 
 /* ================= today ================= */
@@ -4960,6 +5100,7 @@ function initState() {
   pbLog = DB.get("pb-log", []);
   retinolLog = DB.get("retinol-log", []);
   niggleLog = DB.get("niggle-log", []);
+  caliLog = DB.get("cali-log", []);
   checkins = DB.get("checkins", []);
   /* Nothing in a one-time migration is worth a dead app. If it cannot run,
      leave the data exactly as it was and carry on. */
@@ -5027,7 +5168,7 @@ function renderStartInfo() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "bannerExport") { doExport(); return; }
     if (e.target.id === "bannerImport") { showTab("progress"); $("importFile").click(); return; }
-    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delfood],[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
+    var el = e.target.closest ? e.target.closest("#orphanOk,#exitClear,[data-delcali],[data-delfood],[data-delchk],[data-done],[data-gym],[data-check],[data-food],[data-energy],[data-timer],[data-kcal],[data-goto],[data-preset],[data-delw],[data-delhr],[data-delpb],[data-delret],[data-clearnig],[data-delnig]") : null;
     if (!el) return;
     if (el.id === "orphanOk") { delete settings.orphanNote; DB.set("settings", settings); renderRolling(); return; }
     if (el.dataset.done != null) toggleDone(+el.dataset.done);
@@ -5057,6 +5198,7 @@ function renderStartInfo() {
       hrLog = hrLog.filter(function (h) { return h.date !== el.dataset.delhr; });
       DB.set("hr-log", hrLog); renderHR(); renderReadiness();
     }
+    else if (el.dataset.delcali) delCali(el.dataset.delcali);
     else if (el.dataset.delfood != null) delFoodRow(+el.dataset.delfood);
     else if (el.dataset.delpb) {
       pbLog = pbLog.filter(function (p) { return p.id !== el.dataset.delpb; });
@@ -5127,6 +5269,8 @@ function renderStartInfo() {
   $("kcalOnTargetBtn").addEventListener("click", function () {
     $("kcalToday").value = targetKcal(); logKcal(targetKcal());
   });
+  $("caliAddBtn").addEventListener("click", addCali);
+  $("caliFormat").addEventListener("change", renderCali);
   $("foodAddBtn").addEventListener("click", addFoodRow);
   ["foodName", "cKcal", "cP", "cC", "cF"].forEach(function (id) {
     $(id).addEventListener("keydown", function (e) {

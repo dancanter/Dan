@@ -185,6 +185,13 @@ refeed inside four days explains the scale before anything else is diagnosed.
 two easy 5ks, optional strides and rest. If the week has already had quality in
 it, the effort is struck through and marked spent.
 
+**Calisthenics** — the optional fifth session, treated as records rather than a
+workout. Three formats: 40 minutes of max push-ups and pull-ups, max push-ups in
+one set, max pull-ups in one set. Each carries its best, and logging one says
+whether it beat the record and by how much, or how far off it was. The
+40-minute PB of 392 push-ups and 138 pull-ups is seeded as a standing record and
+stands until a logged session beats it, after which the log takes over entirely.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,
