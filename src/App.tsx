@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, Link } from 'react-router-dom';
 import { SkipLink } from './components/a11y/SkipLink';
 import { ErrorBoundary } from './components/a11y/ErrorBoundary';
@@ -7,78 +7,69 @@ import { OnboardingScreen } from './screens/OnboardingScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { GetHelpScreen, UrgentDetailScreen, MaternityNumberScreen } from './screens/GetHelpScreen';
 import { usePregnancyProfile } from './hooks/usePregnancyProfile';
+import { lazyRoute } from './lib/lazyRoute';
 import { useAccessibilitySettings } from './hooks/useAccessibilitySettings';
 
 // Onboarding, Today and Get Help load eagerly — the daily entry point and
 // the screen someone might need urgently should never wait on a chunk.
 // The reference-heavy screens are split out so the initial download stays
 // small on a phone with a poor connection.
-const BabyScreen = lazy(() =>
+const BabyScreen = lazyRoute('BabyScreen', () =>
   import('./screens/BabyScreen').then((m) => ({ default: m.BabyScreen })),
 );
-const BodyScreen = lazy(() =>
+const BodyScreen = lazyRoute('BodyScreen', () =>
   import('./screens/BodyScreen').then((m) => ({ default: m.BodyScreen })),
 );
-const HealthyScreen = lazy(() =>
+const HealthyScreen = lazyRoute('HealthyScreen', () =>
   import('./screens/HealthyScreen').then((m) => ({ default: m.HealthyScreen })),
 );
-const AppointmentsScreen = lazy(() =>
-  import('./screens/AppointmentsScreen').then((m) => ({
-    default: m.AppointmentsScreen,
-  })),
+const AppointmentsScreen = lazyRoute('AppointmentsScreen', () =>
+  import('./screens/AppointmentsScreen').then((m) => ({ default: m.AppointmentsScreen })),
 );
-const JournalScreen = lazy(() =>
+const JournalScreen = lazyRoute('JournalScreen', () =>
   import('./screens/JournalScreen').then((m) => ({ default: m.JournalScreen })),
 );
-const SourcesScreen = lazy(() =>
+const SourcesScreen = lazyRoute('SourcesScreen', () =>
   import('./screens/SourcesScreen').then((m) => ({ default: m.SourcesScreen })),
 );
-const LossSupportScreen = lazy(() =>
-  import('./screens/LossSupportScreen').then((m) => ({
-    default: m.LossSupportScreen,
-  })),
+const LossSupportScreen = lazyRoute('LossSupportScreen', () =>
+  import('./screens/LossSupportScreen').then((m) => ({ default: m.LossSupportScreen })),
 );
-const PregnancyChangedScreen = lazy(() =>
-  import('./screens/PregnancyChangedScreen').then((m) => ({
-    default: m.PregnancyChangedScreen,
-  })),
+const PregnancyChangedScreen = lazyRoute('PregnancyChangedScreen', () =>
+  import('./screens/PregnancyChangedScreen').then((m) => ({ default: m.PregnancyChangedScreen })),
 );
-const ExploreScreen = lazy(() =>
+const ExploreScreen = lazyRoute('ExploreScreen', () =>
   import('./screens/ExploreScreen').then((m) => ({ default: m.ExploreScreen })),
 );
-const GalleryScreen = lazy(() =>
+const GalleryScreen = lazyRoute('GalleryScreen', () =>
   import('./screens/GalleryScreen').then((m) => ({ default: m.GalleryScreen })),
 );
-const PrivacyScreen = lazy(() =>
+const PrivacyScreen = lazyRoute('PrivacyScreen', () =>
   import('./screens/PrivacyScreen').then((m) => ({ default: m.PrivacyScreen })),
 );
-const MovementsScreen = lazy(() =>
+const MovementsScreen = lazyRoute('MovementsScreen', () =>
   import('./screens/MovementsScreen').then((m) => ({ default: m.MovementsScreen })),
 );
-const MythsScreen = lazy(() =>
+const MythsScreen = lazyRoute('MythsScreen', () =>
   import('./screens/MythsScreen').then((m) => ({ default: m.MythsScreen })),
 );
-const FoodSortScreen = lazy(() =>
+const FoodSortScreen = lazyRoute('FoodSortScreen', () =>
   import('./screens/FoodSortScreen').then((m) => ({ default: m.FoodSortScreen })),
 );
-const TermsScreen = lazy(() =>
+const TermsScreen = lazyRoute('TermsScreen', () =>
   import('./screens/TermsScreen').then((m) => ({ default: m.TermsScreen })),
 );
-const CalmScreen = lazy(() =>
+const CalmScreen = lazyRoute('CalmScreen', () =>
   import('./screens/CalmScreen').then((m) => ({ default: m.CalmScreen })),
 );
-const EquityScreen = lazy(() =>
+const EquityScreen = lazyRoute('EquityScreen', () =>
   import('./screens/EquityScreen').then((m) => ({ default: m.EquityScreen })),
 );
-const MethodologyScreen = lazy(() =>
-  import('./screens/MethodologyScreen').then((m) => ({
-    default: m.MethodologyScreen,
-  })),
+const MethodologyScreen = lazyRoute('MethodologyScreen', () =>
+  import('./screens/MethodologyScreen').then((m) => ({ default: m.MethodologyScreen })),
 );
-const SettingsScreen = lazy(() =>
-  import('./screens/SettingsScreen').then((m) => ({
-    default: m.SettingsScreen,
-  })),
+const SettingsScreen = lazyRoute('SettingsScreen', () =>
+  import('./screens/SettingsScreen').then((m) => ({ default: m.SettingsScreen })),
 );
 
 function ScreenLoading() {
