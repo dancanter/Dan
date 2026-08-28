@@ -10,9 +10,23 @@ interface Props {
 }
 
 /**
- * Shown once when someone reaches a milestone week. Celebratory, never
- * blocking: it's dismissible, focus moves to it for screen readers, and
- * the confetti is skipped entirely under reduced-motion.
+ * Shown once when someone reaches a milestone week.
+ *
+ * **Deliberately not a modal**, and that is a safety decision rather than a
+ * stylistic one. It used to be: a full-screen backdrop at z-80 with
+ * `aria-modal` and a focus trap. Walking the usability tasks in a browser
+ * found that this made **Get Help unclickable** — Playwright reported the
+ * overlay intercepting pointer events on the navigation — for someone opening
+ * the app at a milestone week. The first task in the test plan is "you've
+ * noticed something that worries you"; a celebration standing in front of the
+ * urgent route is the exact opposite of the app's own rule that safety is
+ * never gated.
+ *
+ * So the backdrop no longer takes pointer events, the card sits below the
+ * header in the stacking order, and there is no focus trap — a trap is
+ * correct for a modal and this must not be one. It keeps what a dialog should
+ * have either way: a role, a label, focus moved to it on open and restored on
+ * close, Escape to dismiss, and no confetti under reduced-motion.
  */
 export function MilestoneCelebration({ title, message, reduceMotionOverride, onDismiss }: Props) {
   const reduce = useReducedMotionSafe(reduceMotionOverride);
@@ -23,34 +37,7 @@ export function MilestoneCelebration({ title, message, reduceMotionOverride, onD
     dialogRef.current?.focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onDismiss();
-        return;
-      }
-      // aria-modal hides the page behind this from a screen reader, but it
-      // does nothing about Tab — without a trap, the next Tab lands on a link
-      // underneath the overlay that cannot be seen or clicked.
-      if (e.key !== 'Tab') return;
-      const root = dialogRef.current;
-      if (!root) return;
-      const focusable = [
-        ...root.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea'),
-      ].filter((el) => !el.hasAttribute('disabled'));
-      if (focusable.length === 0) {
-        e.preventDefault();
-        root.focus();
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-      if (e.shiftKey && (active === first || active === root)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (e.key === 'Escape') onDismiss();
     };
 
     window.addEventListener('keydown', onKey);
@@ -66,23 +53,20 @@ export function MilestoneCelebration({ title, message, reduceMotionOverride, onD
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/40 p-5"
+        className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center p-5 [background:color-mix(in_srgb,var(--color-ink)_28%,transparent)]"
         initial={reduce ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onDismiss}
       >
         <motion.div
           ref={dialogRef}
           role="dialog"
-          aria-modal="true"
           aria-labelledby="celebrate-title"
           tabIndex={-1}
-          onClick={(e) => e.stopPropagation()}
           initial={reduce ? false : { scale: 0.9, y: 16, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           transition={{ duration: reduce ? 0 : 0.35, ease: 'easeOut' }}
-          className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-line bg-card p-6 text-center shadow-xl outline-none"
+          className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border border-line bg-card p-6 text-center shadow-xl outline-none"
         >
           {!reduce && (
             <div aria-hidden="true" className="pointer-events-none absolute inset-0">
