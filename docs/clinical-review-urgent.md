@@ -1,6 +1,6 @@
 # Field Notes — clinical review pack
 
-Generated 2026-08-27 from the shipped content.
+Generated 2026-08-28 from the shipped content.
 
 > **Nothing in this document has been clinically reviewed.** This pack exists so that a
 > qualified UK clinician or registered midwife *can* review it. Until someone has, the app
@@ -330,7 +330,7 @@ first; it is what someone frightened will read and act on.
 ## What the reviewer should know about the evidence itself
 
 - **3** of the 13 entries above rest on a single source.
-- **110** of 121 sources have no link a reader can open, and have not been machine-verified. Every one needs a human to confirm it says what the app claims.
+- **111** of 122 sources have no link a reader can open, and have not been machine-verified. Every one needs a human to confirm it says what the app claims.
 - Sources marked ⚠ carry a declared funding conflict or a "background only" note.
 - One claim has already been **held** rather than shipped unverified — see `docs/held-claims.md`.
 

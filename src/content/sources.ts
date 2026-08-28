@@ -140,6 +140,19 @@ export const sources: Source[] = [
       'A narrative review rather than a trial, and dairy-industry research funding is common across this field. The "matrix" idea is widely discussed but not settled — treat it as an open question, not a reversal of UK guidance.',
   },
   {
+    id: 'anderson-2026-dairy',
+    label: 'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
+    organisation: 'Anderson GH, et al. University of Toronto, 2026',
+    tier: 'research',
+    // No url, no DOI, no PMID — deliberately. The formal reference has not been
+    // supplied and could not be looked up from here, and inventing a plausible
+    // one would be fabrication. The caveat is the honest alternative to either
+    // pretending it is verified or deleting the claim: the reader is told
+    // exactly what state the citation is in and can weigh it themselves.
+    caveat:
+      'We have not been able to verify this reference. No DOI, journal or PubMed record has been supplied for it, so unlike every other source here you cannot open it and check. Treat the findings below as unconfirmed until it can be traced. It was also not a study in pregnancy.',
+  },
+  {
     id: 'nhs-vitamins',
     label: 'Vitamins and supplements in pregnancy',
     organisation: 'NHS',

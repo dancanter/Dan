@@ -53,19 +53,53 @@ try {
   const before = await loadClaims(worktree);
   const after = await loadClaims(process.cwd());
 
-  const byId = (cs: Claim[]) => new Map(cs.map((c) => [c.id, c]));
-  const oldMap = byId(before);
-  const newMap = byId(after);
+  const oldMap = new Map(before.map((c) => [c.id, c]));
+
+  /**
+   * Block ids carry a position, so inserting a paragraph renumbers every
+   * paragraph below it and each one looks edited. Text that is present
+   * verbatim on both sides of the same entry has not changed, wherever it now
+   * sits — a tool that cries wolf on a reordered entry stops being read.
+   */
+  const entryOf = (c: Claim) => c.id.slice(0, c.id.indexOf('#'));
+  const textsByEntry = (cs: Claim[]) => {
+    const m = new Map<string, Set<string>>();
+    for (const c of cs) {
+      const key = entryOf(c);
+      if (!m.has(key)) m.set(key, new Set());
+      m.get(key)!.add(c.text);
+    }
+    return m;
+  };
+  const oldTexts = textsByEntry(before);
+  const newTexts = textsByEntry(after);
+  const movedNotEdited = (c: Claim) => oldTexts.get(entryOf(c))?.has(c.text) === true;
+  const stillPresent = (c: Claim) => newTexts.get(entryOf(c))?.has(c.text) === true;
 
   console.log(`\nCONTENT CHANGE AUDIT — working tree vs ${ref} (${sha})\n`);
   line();
   console.log(`  ${before.length} claims at ${sha} · ${after.length} claims now`);
 
-  const added = after.filter((c) => !oldMap.has(c.id));
-  const removed = before.filter((c) => !newMap.has(c.id));
+  /**
+   * Three cases once positional noise is stripped out, and only the third is
+   * an edit:
+   *   · the new text was already in this entry → it moved down, nothing to see
+   *   · the old text is still in this entry → new text was inserted above it
+   *   · neither → the text at this slot genuinely changed
+   */
+  const added = after.filter(
+    (c) => !movedNotEdited(c) && (!oldMap.has(c.id) || stillPresent(oldMap.get(c.id)!)),
+  );
+  const removed = before.filter((c) => !stillPresent(c));
   const changed = after
     .map((c) => ({ now: c, was: oldMap.get(c.id) }))
-    .filter((p) => p.was !== undefined && p.was.text !== p.now.text)
+    .filter(
+      (p) =>
+        p.was !== undefined &&
+        p.was.text !== p.now.text &&
+        !movedNotEdited(p.now) &&
+        !stillPresent(p.was),
+    )
     .map((p) => ({
       ...p,
       was: p.was!,

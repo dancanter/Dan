@@ -193,9 +193,7 @@ describe('the reset in Settings', () => {
   });
 
   it('is not a second, weaker implementation of deletion', async () => {
-    const source = await import('node:fs').then((fs) =>
-      fs.readFileSync('src/screens/SettingsScreen.tsx', 'utf8'),
-    );
+    const source = (await import('../src/screens/SettingsScreen.tsx?raw')).default;
     expect(source).toContain('wipeAllLocalData');
     // The exact shape of the original bug: naming the stores to clear.
     expect(source).not.toMatch(/resetProfile\(\)|resetProgress\(\)|resetJournal\(\)/);

@@ -96,8 +96,16 @@ export const nutritionGuides: Guide[] = [
     body: [
       'UK guidance — NHS and the British Heart Foundation — favours lower-fat dairy, to help control calories and saturated fat. That is the line your midwife will be working from.',
       'Whether it is the whole story is discussed in the research. The idea put forward is the **dairy matrix** — that dairy fat may behave differently inside cheese or yoghurt than the same saturated fat eaten on its own. It is an open question rather than a finding, it has not been tested in pregnancy, and dairy research is frequently industry-funded. It is not a reason to go against UK guidance.',
+      'A randomised trial from the University of Toronto is reported to have put this to the test: women ate three servings of full-fat dairy a day for twelve weeks. It is reported to have found no adverse effect on weight, body shape or cholesterol, some improvement in blood pressure, and higher intakes of calcium, protein and vitamin D. Because participants were randomised, a trial of that design would avoid the confounding that limits most of the observational dairy research.',
+      '**We have not been able to verify that trial.** No DOI, journal or PubMed record has been supplied for it, so unlike everything else in this app you cannot open it and check it for yourself — and it was not a study in pregnancy. It is included because it may well be real, and left flagged because until it can be traced it is not something to act on. If you are weighing this up, weigh the UK guidance, which is checkable.',
       'What is not in question: **calcium, iodine and protein are the same regardless of fat level.** Nothing your baby needs from dairy is lost by choosing one over the other — so within the guidance, this is a reasonable choice to make on your own preference and goals.',
     ],
-    sourceIds: ['nhs-dairy', 'bhf-dairy', 'thorning-2017-matrix', 'razmpoosh-2025'],
+    sourceIds: [
+      'nhs-dairy',
+      'bhf-dairy',
+      'thorning-2017-matrix',
+      'razmpoosh-2025',
+      'anderson-2026-dairy',
+    ],
   },
 ];
