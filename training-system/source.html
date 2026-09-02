@@ -572,6 +572,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Where your logged running says you are, and what to train next.</p>
       <div id="goalOut"></div>
     </section>
+    <section class="block">
+      <h2 class="block-title">The Long Game <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">all-time PBs</span></h2>
+      <p class="block-sub">sub-51 400m, sub-4:30 mile, sub-15:00 5K — and roughly how far away they are.</p>
+      <div id="longOut"></div>
+    </section>
+
     <section class="block" data-detail>
       <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
       <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
@@ -1785,6 +1791,33 @@ function renderSuggest() {
 
 /* Counts effort actually completed, not planned. Stays silent at two, because
    two is the plan and a warning that fires every week gets ignored. */
+/* His trigger, not a generic one: 8-10 bpm over the rolling baseline for two
+   days running, or feeling flat, means the week becomes easy running only. */
+var HR_DELOAD_OVER = 8;
+function autoDeloadFlag() {
+  var base = hrBaseline(), hs = hrSorted();
+  var hrRun = 0;
+  if (base) for (var i = 0; i < hs.length; i++) { if (hs[i].hr >= base + HR_DELOAD_OVER) hrRun++; else break; }
+  var eSer = energySeries(4), lowRun = 0;
+  for (var j = eSer.length - 1; j >= 0; j--) { if (eSer[j].v <= 2) lowRun++; else break; }
+  var sleepBad = 0;
+  for (var k = 0; k < 3; k++) {
+    var d = new Date(); d.setDate(d.getDate() - k);
+    var st = DB.get(dailyKey(d), null);
+    if (st && st.sleep === false) sleepBad++;
+  }
+  var reasons = [];
+  if (hrRun >= 2) reasons.push("morning HR has been " + HR_DELOAD_OVER + "+ over your " + base + " baseline for " + hrRun + " days running");
+  if (lowRun >= 2) reasons.push("you have rated your energy 2 or below " + lowRun + " days running");
+  if (sleepBad >= 2) reasons.push("sleep has been poor " + sleepBad + " of the last three nights");
+  if (!reasons.length) return "";
+  var list = reasons.length > 1 ? reasons.slice(0, -1).join(", ") + " and " + reasons[reasons.length - 1] : reasons[0];
+  return '<div class="note stop" style="margin-bottom:12px"><b>Make this week easy running only</b>' +
+    list.charAt(0).toUpperCase() + list.slice(1) + ". " +
+    '<span style="color:var(--chalk);font-weight:600">No effort sessions until it clears — easy runs, lighter gym, and rest.</span> ' +
+    "This is the trigger you set yourself, and the whole point of setting it in advance was that in the moment you will not want to.</div>";
+}
+
 function intensityNote() {
   var plan = currentPlan;
   if (!plan || !plan.flexible) return "";
@@ -1825,7 +1858,7 @@ function renderWeek() {
   $("weekDone").textContent = weekData.filter(function (d) { return d.done; }).length + " logged this week";
   renderRolling();
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = energyNote(false) + intensityNote() + weekData.map(function (d, i) {
+  $("weekList").innerHTML = autoDeloadFlag() + energyNote(false) + intensityNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
   renderSuggest(); renderReview(); renderPlan(); renderBlockPlan(); renderCali();
@@ -1935,6 +1968,46 @@ function toggleDetail() {
 /* Steps are the cheap lever — they cost almost nothing in recovery next to
    cutting calories. But they are not free at the top end, and 15k a day on
    top of two quality sessions in a deficit is a training load of its own. */
+/* Ten quality sessions a month is the rate a full successful block ran at.
+   Gym and the 40-minute calisthenics test are real load, not free volume. */
+var HARD_PER_MONTH = 10;
+function monthlyLoad() {
+  var now = parseDay(today()), efforts = 0, gyms = 0, cali = 0;
+  for (var w = 1; w <= 13; w++) {
+    var rows = weekRows(w);
+    if (!rows) continue;
+    for (var i = 0; i < 7; i++) {
+      var dt = slotDate(w, i);
+      if (!dt) continue;
+      var ago = daysBetween(dt, now);
+      if (ago < 0 || ago >= 30) continue;
+      if (rows[i].gym) gyms++;
+      if (rows[i].done && groupOfSid(rows[i].sid) === "effort") efforts++;
+    }
+  }
+  caliLog.forEach(function (r) {
+    var ago = daysBetween(parseDay(r.date), now);
+    if (ago >= 0 && ago < 30 && r.format === "test40") cali++;
+  });
+  return { efforts: efforts, gyms: gyms, cali: cali, hard: efforts + cali };
+}
+function monthlyNote() {
+  var m = monthlyLoad();
+  if (m.hard === 0) return "";
+  var over = m.hard - HARD_PER_MONTH;
+  var caliBit = m.cali ? " (" + m.efforts + " running, " + m.cali + " calisthenics test" + (m.cali === 1 ? "" : "s") + ")" : "";
+  if (over > 2) return '<div class="note stop" style="margin-bottom:12px"><b>' + m.hard +
+    " hard sessions in the last 30 days" + caliBit + "</b>" +
+    "Your own sustainable rate is about " + HARD_PER_MONTH + ", checked against a full block that worked. " +
+    '<span style="color:var(--chalk);font-weight:600">This month is ' + over + " over it.</span> " +
+    "Nothing goes wrong immediately at this rate — it goes wrong in three weeks, which is why it is worth seeing now.</div>";
+  if (over > 0) return '<div class="note warn" data-detail style="margin-bottom:12px"><b>' + m.hard +
+    " hard sessions in 30 days" + caliBit + "</b>Just over the " + HARD_PER_MONTH +
+    " that has worked before. Worth watching rather than acting on.</div>";
+  return '<div class="note flat" data-detail style="margin-bottom:12px"><b>' + m.hard + " of ~" +
+    HARD_PER_MONTH + " hard sessions this month" + caliBit + "</b>" + m.gyms + " gym sessions alongside them.</div>";
+}
+
 function stepsVerdict(days) {
   var out = [], now = parseDay(today());
   for (var k = 0; k < days; k++) {
@@ -2024,7 +2097,7 @@ function renderRolling() {
       '<br><br><span style="color:var(--muted-2)">' + Math.round(sv.total).toLocaleString() + " steps over " + sv.n +
       " day" + (sv.n === 1 ? "" : "s") + " · " + Math.round(sv.avg).toLocaleString() + " a day · about " +
       Math.round(sv.avg * 7 / 1000) + "k a week at this rate</span></div>";
-  el.innerHTML = undated + orphan + bars + runs + stepsBox + avg +
+  el.innerHTML = undated + orphan + monthlyNote() + bars + runs + stepsBox + avg +
     '<div class="note flat" data-detail style="margin-top:10px"><b>Gym counts off the + Gym button</b>' +
     "Tap it on the day you trained — it is the record, not a plan, so nothing is ticked for you in advance. " +
     "You do not need to mark the day done as well; a gym-only day counts on its own.</div>" +
@@ -3792,7 +3865,7 @@ function renderGoal() {
         '<td class="hl">' + e.v.toFixed(1) + "</td><td>" + e.how + "</td></tr>";
     }).join("") + "</tbody></table></div></div>";
 
-  el.innerHTML = head + cards + advHtml + evTbl;
+  el.innerHTML = testPrompt() + head + cards + advHtml + evTbl;
   /* The confidence note and the evidence table are the workings, not the
      answer. The predicted times and what to train stay on screen. */
   ["[data-goalhead]", "[data-goalev]"].forEach(function (sel) {
@@ -3831,14 +3904,41 @@ var STEP_TARGET = 12500, STEP_BAND = 1500;   /* one band, so the two readouts ca
 /* Protein first and fixed, fat at the floor that keeps hormones working, carbs
    take whatever is left — because carbs are what fuel the sessions and they are
    the only one of the three you can afford to move. */
-function macroTargets() {
+/* What kind of day this is decides the carbs, and nothing else moves. Protein
+   and fat are floors you hit every day; carbs are the dial. */
+function dayType(d) {
+  var dt = d || new Date();
+  var w = blockWeekNow();
+  if (w) {
+    var rows = weekRows(w);
+    if (rows) {
+      for (var i = 0; i < rows.length; i++) {
+        var sd = slotDate(w, i);
+        if (!sd || dayStr(sd) !== dayStr(dt) || !rows[i].done) continue;
+        var g = groupOfSid(rows[i].sid);
+        if (g === "effort") return "hard";
+        if (g === "easy" || g === "bonus") return "gym";
+        if (rows[i].gym) return "gym";
+        return "rest";
+      }
+    }
+  }
+  var st = DB.get(dailyKey(dt), null);
+  /* a 40-minute calisthenics test is a hard day whatever the running says */
+  var big = caliLog.some(function (r) { return r.date === dayStr(dt) && r.format === "test40"; });
+  if (big) return "hard";
+  return st && st.stepsN ? "gym" : "rest";
+}
+var CARB_BANDS = { hard: [200, 210], gym: [150, 170], rest: [120, 150] };
+var PROTEIN_TARGET = 158, FAT_FLOOR = 58;
+function macroTargets(d) {
   var wr = weeklyRate(), asc = sortedWeights();
   var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
-  var kcal = targetKcal();
-  var protein = Math.round(lb * 1.0);
-  var fat = Math.round(lb * 0.35);
-  var carbs = Math.round((kcal - protein * 4 - fat * 9) / 4);
-  return { lb: lb, kcal: kcal, protein: protein, fat: fat, carbs: carbs };
+  var type = dayType(d);
+  var band = CARB_BANDS[type];
+  var carbs = type === "hard" ? band[0] : Math.round((band[0] + band[1]) / 2);
+  return { lb: lb, type: type, band: band, kcal: targetKcal(),
+    protein: PROTEIN_TARGET, fat: FAT_FLOOR, carbs: carbs };
 }
 
 function logKcal(v) {
@@ -4133,6 +4233,82 @@ function refeedAdvice(pr) {
       "Worth noting that " + reasons[0] + ", but one signal on its own is not a refeed. If a second one appears this week, take the day.</div>";
   }
   return "";
+}
+
+/* ================= the long game ================= */
+/* Block targets are this year. These are the ones that take years, and saying
+   so plainly is more use than a bar that never moves. */
+var ALLTIME = [
+  { id: "400",  label: "400m", dist: 400,  target: 51,  show: "sub-51" },
+  { id: "mile", label: "Mile", dist: 1609, target: 270, show: "sub-4:30" },
+  { id: "5k",   label: "5K",   dist: 5000, target: 900, show: "sub-15:00" }
+];
+/* A well-run year adds 2-3 VDOT points for someone already trained; less as you
+   get closer to your ceiling. Deliberately the pessimistic end. */
+var VDOT_PER_YEAR = 2.5;
+function renderLongGame() {
+  var el = $("longOut"); if (!el) return;
+  var fit = currentFitness();
+  if (!fit) { el.innerHTML = '<div class="note flat"><b>Nothing to project from yet</b>Log an aerobic effort and this fills in.</div>'; return; }
+  var cur = fit.v;
+
+  var rows = ALLTIME.map(function (g) {
+    var aerobic = g.id !== "400";
+    var need = aerobic ? vdotFor(g.dist, g.target) : null;
+    var gap = need == null ? null : need - cur;
+    var years = gap == null ? null : gap / VDOT_PER_YEAR;
+    var when = years == null ? "—"
+      : years <= 0 ? "on paper, now"
+      : years < 1.2 ? "about a year"
+      : years < 6 ? Math.round(years * 10) / 10 + " years"
+      : "a long way off";
+    return "<tr><td><b>" + g.label + "</b><span class=\"sub\">" + g.show + "</span></td>" +
+      "<td class=\"hl\">" + (need == null ? "—" : need.toFixed(1)) + "</td>" +
+      "<td class=\"hl\">" + (gap == null ? "—" : (gap <= 0 ? "there" : "+" + gap.toFixed(1))) + "</td>" +
+      "<td>" + when + "</td></tr>";
+  }).join("");
+
+  var need5k = vdotFor(5000, 900), needMile = vdotFor(1609, 270);
+  var hardest = Math.max(need5k, needMile);
+  var yrs = (hardest - cur) / VDOT_PER_YEAR;
+
+  el.innerHTML =
+    '<div class="note flat" style="margin-bottom:12px"><b>You are at VDOT ' + cur.toFixed(1) +
+    ". The hardest of the three needs " + hardest.toFixed(1) + "</b>" +
+    "That is " + (hardest - cur).toFixed(1) + " points. A well-run year adds two to three for someone already trained, and less the closer you get to your own ceiling, so " +
+    '<span style="color:var(--chalk);font-weight:600">' +
+    (yrs <= 0 ? "you are there on paper" : "roughly " + Math.round(yrs * 10) / 10 + " years of uninterrupted, properly fed training") + ".</span> " +
+    "Not this block, and not next.</div>" +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Goal</th><th>Needs</th><th>Gap</th><th>At 2.5/yr</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+    '<div class="note warn" style="margin-top:12px" data-detail><b>Why the 400m has no number</b>' +
+    "A 400m is mostly anaerobic, so VDOT cannot price it and any year figure here would be invented. " +
+    "It moves on speed, strength and lactate tolerance instead — the sprint work, the gym, and the 200s and 300s.</div>" +
+    '<div class="note good" style="margin-top:10px"><b>The honest version</b>' +
+    "sub-15:00 is a different athlete from the one running 18:46 — about six minutes of 5K, which nobody finds in a season. " +
+    '<span style="color:var(--chalk);font-weight:600">The block target of 16:50 is the one that matters this year</span>, and it is the road to the other one anyway. ' +
+    "Nothing about the long numbers changes what you do next Tuesday.</div>";
+}
+
+/* ================= benchmark prompt ================= */
+/* Rotating, every three to four weeks. Progress you have not measured is
+   progress you are guessing at. */
+var TEST_ROTATION = ["400", "mile", "5k"];
+function testPrompt() {
+  var last = pbLog[0] ? pbLog[0] : null;
+  var since = last ? daysBetween(parseDay(last.date), parseDay(today())) : null;
+  if (since !== null && since < 21) return "";
+  var done = pbLog.map(function (t) { return t.dist; });
+  var next = TEST_ROTATION.filter(function (d) { return d !== (last && last.dist); })[0] || "mile";
+  for (var i = 0; i < TEST_ROTATION.length; i++) {
+    if (done.indexOf(TEST_ROTATION[i]) === -1) { next = TEST_ROTATION[i]; break; }
+  }
+  var b = benchById(next);
+  return '<div class="note warn" style="margin-bottom:12px"><b>Time for a benchmark — ' + b.label + '</b>' +
+    (since === null ? "You have not logged a test yet. " : "It has been " + since + " days since your last one. ") +
+    '<span style="color:var(--chalk);font-weight:600">Run an all-out ' + b.label +
+    " on a fresh day and log it under Benchmarks.</span> Every three to four weeks, rotating 400m, mile, 5K. " +
+    "Rep sets tell you how training is going; only a test tells you where you actually are.</div>";
 }
 
 /* ================= when to rest ================= */
@@ -4535,6 +4711,17 @@ function renderTrack() {
       " kcal, extra from carbs, protein unchanged — then resume. You will gain a pound of glycogen water and lose it again within days of restarting.";
   } else if (pr.perWeek > -0.15) {
     cls = "warn"; title = "Flat — " + pr.cur.toFixed(1) + " lb, " + Math.abs(pr.perWeek).toFixed(1) + " lb/week";
+    /* His own history: genuine four-week plateaus in the 126-128 range before
+       it breaks. Suggesting a cut inside two weeks would be advice his own data
+       says is wrong. */
+    if (pr.spanDays < 14) {
+      body = "Two weeks is the minimum before a plateau is a plateau, and you are " + pr.spanDays +
+        " days in. <b>Change nothing yet.</b> Your own history has four-week stalls in the 126–128 range that broke on their own — " +
+        "cutting into one of those is how the week after gets worse instead of better.";
+      el.innerHTML = '<div class="note warn" style="margin-bottom:10px"><b>' + esc(title) + "</b>" + body + "</div>" +
+        weightMechanism(pr) + refeedAdvice(pr);
+      return;
+    }
     body = "No meaningful movement. In order: check intake is actually at target and steps are actually at 12,500–13,000, because drift explains most stalls. If both are clean, <b>add activity before you cut calories</b> — 2,000 more steps or a 20 minute walk costs you nothing in recovery, where another 150 kcal off raises cortisol and holds water. Only if that does nothing after a week should the intake come down, and not below about 1,700." +
       (pr.date ? "" : " <b>And put a date in the stopping rule below</b> — without one this cannot tell you whether you are going to make it.");
   } else if (onTrack) {
@@ -5017,7 +5204,7 @@ function showTab(name) {
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); renderTrack(); }
-  if (name === "fitness") { renderVdot(); renderGoal(); renderEnergyChart(); renderRestCheck(); renderBests(); }
+  if (name === "fitness") { renderVdot(); renderGoal(); renderLongGame(); renderEnergyChart(); renderRestCheck(); renderBests(); }
 }
 
 /* ================= init ================= */
@@ -5110,7 +5297,7 @@ function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
-  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderHistory();
+  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

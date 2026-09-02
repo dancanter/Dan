@@ -192,6 +192,34 @@ whether it beat the record and by how much, or how far off it was. The
 40-minute PB of 392 push-ups and 138 pull-ups is seeded as a standing record and
 stands until a logged session beats it, after which the log takes over entirely.
 
+**Hard sessions are capped at ~10 a month**, counted over a trailing 30 days —
+his own sustainable rate, checked against a full block that worked. Gym counts
+as load alongside them, and a 40-minute calisthenics test counts as a hard day
+in its own right rather than free volume.
+
+**The deload trigger is his, set in advance**: morning HR 8+ over the rolling
+baseline for two days running, energy rated 2 or below two days running, or poor
+sleep on two of the last three nights. Any of those and the week becomes easy
+running only, said outright at the top of the week.
+
+**Macros follow the day type.** Protein 158g and fat 58g are floors hit every
+day; carbs are the dial — 200g+ on a hard day, 150–170 on a gym day, 120–150 on
+rest. The day type comes from what is actually logged, and a 40-minute
+calisthenics test makes it a hard day whatever the running says.
+
+**A plateau under two weeks never triggers a cut.** His history has genuine
+four-week stalls in the 126–128 range that broke on their own, so inside two
+weeks the app says change nothing rather than reaching for the calories.
+
+**The Long Game** — the all-time targets (sub-51 400m, sub-4:30 mile, sub-15:00
+5K) priced honestly in VDOT and years at a pessimistic 2.5 points a year, with
+the 400m explicitly left unpriced because VDOT cannot model an anaerobic event.
+It says plainly that sub-15:00 is a different athlete and that none of it
+changes what happens next Tuesday.
+
+**Benchmark prompt** — after 21 days with no logged test, it asks for one,
+rotating 400m, mile, 5K.
+
 **Rest is deliberately not tracked.** There is no spacing check, no back-to-back
 warning, and nothing that asks why you did not run yesterday. The 2025 log has
 eight breaks of two or more days off and two pairs of back-to-back effort days,
