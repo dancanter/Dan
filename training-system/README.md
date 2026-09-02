@@ -25,6 +25,18 @@ Artifact, where a strict CSP blocks requests to external hosts, so a
 
 ## Simple by default
 
+**Every tab leads with one thing.** Twenty-four secondary sections are folded:
+the heading is the control, so a tab reads as a short list you tap open rather
+than a wall you scroll past. Open state is remembered per section. Nothing is
+folded that you have to type into on the way in — the lead section on each tab
+is always the one you came for.
+
+**The three block targets sit in the header**, each showing the best you have
+actually run against it, ticking green when it is met.
+
+Visible text in simple mode is about 1,660 words across seven tabs, down from
+3,530 before the fold.
+
 The app opens with everything explanatory hidden. What stays on screen is the
 recording surface — the week grid, weight, HR, tests, niggles, check-ins — plus
 the handful of numbers that change what you do: the rolling targets, readiness,

@@ -76,6 +76,19 @@ section.block{margin-bottom:26px}
 body:not(.detail) [data-detail]{display:none}
 .mode-row{display:flex;justify-content:flex-end;margin:-4px 0 14px}
 .mode-row .btn{font-size:11.5px;padding:5px 11px}
+.goal-chip small{display:block;font-family:var(--f-mono);font-size:10px;color:var(--muted-2);margin-top:2px;letter-spacing:.03em}
+.goal-chip.hit b{color:var(--go)}
+/* Folded sections: the heading is the control, so a tab reads as a short list
+   of things rather than a wall you have to scroll past. */
+section.block[data-fold] > .block-title{cursor:pointer;user-select:none;display:flex;align-items:center;gap:9px}
+section.block[data-fold] > .block-title::before{content:"";flex:0 0 auto;width:0;height:0;
+  border-left:6px solid var(--muted-2);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;
+  transition:transform .15s ease}
+section.block[data-fold].open > .block-title::before{transform:rotate(90deg)}
+section.block[data-fold]:not(.open) > .fold-body{display:none}
+section.block[data-fold]{border-top:1px solid var(--line-soft);padding-top:14px;margin-top:0}
+section.block[data-fold] > .block-title{margin-bottom:0}
+section.block[data-fold].open > .block-title{margin-bottom:12px}
 .hits{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-top:-4px;max-height:230px;overflow-y:auto}
 .hit{display:flex;justify-content:space-between;gap:10px;padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:var(--chalk)}
 .hit:last-child{border-bottom:0}
@@ -257,11 +270,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   <header class="hero">
     <p class="eyebrow">13-week block · 400m / mile / 5K</p>
     <h1>TRAINING · RECOVERY · NUTRITION</h1>
-    <div class="goal-row">
-      <div class="goal-chip">400m <b>sub-55</b></div>
-      <div class="goal-chip">Mile <b>sub-4:45</b></div>
-      <div class="goal-chip">5K <b>sub-16:50</b></div>
-    </div>
+    <div class="goal-row" id="goalRow"></div>
     <div class="hero-meta">
       <span>Weight <span class="val" id="heroWeight">—</span> lb <span style="color:var(--muted)">→ goal 122–124</span></span>
       <span id="heroTrend"></span>
@@ -295,13 +304,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="readinessBox"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="energy">
       <h2 class="block-title">Energy Today</h2>
       <p class="block-sub" data-detail>One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
       <div id="energyPick"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="recovery">
       <h2 class="block-title">Recovery &amp; Wellbeing <span class="tag" id="todayCount">0/11</span> <span class="tag" id="streakTag"></span></h2>
       <div id="checklist"></div>
       <div class="chart-wrap" style="margin-top:12px">
@@ -311,7 +320,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="reflect">
       <h2 class="block-title">Weekly Reflection <span class="tag" id="reflWeekTag"></span></h2>
       <p class="block-sub">One note per training week — energy, sleep, how the sessions actually felt.</p>
       <textarea id="reflectionInput" rows="3" placeholder="How's this week actually going?"></textarea>
@@ -346,7 +355,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <p class="block-sub">Record what you did, on whatever day you did it.</p>
     <div id="weekList"></div>
 
-    <section class="block" style="margin-top:26px">
+    <section class="block" data-fold="cali" style="margin-top:26px">
       <h2 class="block-title">Calisthenics <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">the optional 5th</span></h2>
       <p class="block-sub">Records to beat, not a workout. Pick the format, log the reps.</p>
       <div class="add-row" style="margin-top:0">
@@ -363,19 +372,19 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="caliOut" style="margin-top:12px"></div>
     </section>
 
-    <section class="block" style="margin-top:26px">
+    <section class="block" data-fold="review" style="margin-top:26px">
       <h2 class="block-title">Week Review <span class="tag" id="reviewTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">What the week you are looking at actually contained, and what it says about the next one.</p>
       <div id="reviewBox"></div>
     </section>
 
-    <section class="block" style="margin-top:26px">
+    <section class="block" data-fold="untrained" style="margin-top:26px">
       <h2 class="block-title">What You Haven't Trained</h2>
       <p class="block-sub" data-detail>Sorted by how long since you last did it. Choosing freely every week is fine until you quietly stop picking the ones you dislike — this is what catches that.</p>
       <div id="suggestBox"></div>
     </section>
 
-    <section class="block" style="margin-top:26px">
+    <section class="block" data-fold="block" style="margin-top:26px">
       <h2 class="block-title">The Whole Block</h2>
       <p class="block-sub">All 13 weeks, and why they are in that order.</p>
       <div id="blockPlanBox"></div>
@@ -413,12 +422,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="reps">
       <h2 class="block-title">Reps <span class="tag" id="lapSummary"></span></h2>
       <div id="lapList"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="pace">
       <h2 class="block-title">Pace Converter</h2>
       <p class="block-sub">Put in a distance and a time — get the pace and every split that matters at it.</p>
       <div class="card">
@@ -458,7 +467,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <p class="block-sub" style="margin-top:8px">Clears the weight history so a new run reads cleanly from day one. The old entries are archived rather than deleted, and stay in your backup file.</p>
     </section>
-    <section class="block">
+    <section class="block" data-fold="hr">
       <h2 class="block-title">Morning Heart Rate</h2>
       <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
       <div id="hrChart"></div>
@@ -468,7 +477,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <button class="btn primary" id="hrBtn">Log</button>
       </div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="tdee">
       <h2 class="block-title">Your Actual Maintenance</h2>
       <p class="block-sub">Worked out from what you've eaten and what the scale has done — not from a formula. This is the only number that is genuinely yours. It needs 14 days of weights to mean anything.</p>
       <div id="tdeeOut"></div>
@@ -481,7 +490,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <p class="block-sub" style="margin:9px 0 0">Use what you actually averaged, weighed — not what you planned to eat.</p>
       </div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="setup">
       <h2 class="block-title">Setup</h2>
       <p class="block-sub">Set the Sunday you start Week 1 and the app tracks which week and day you're on by itself.</p>
       <div class="card">
@@ -510,7 +519,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div style="display:none">
       </div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="exit">
       <h2 class="block-title">Where The Cut Ends</h2>
       <p class="block-sub">Written now, while you are thinking clearly. "When I feel comfortable" is not a stopping rule — it is a feeling, and it moves. Six weeks into a deficit it will have moved further.</p>
       <div id="exitBox"></div>
@@ -529,7 +538,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="checkin">
       <h2 class="block-title">Fortnightly Check-In <span class="tag" id="checkinTag"></span></h2>
       <p class="block-sub">Photos and a tape measure track what you actually care about better than the scale does — the scale cannot tell fat from water, and a photo can. Same light, same time of day, same spot.</p>
       <div id="checkinDue"></div>
@@ -547,7 +556,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="checkinLog" style="margin-top:10px"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="backup">
       <h2 class="block-title">Backup</h2>
       <p class="block-sub">Everything is saved in this browser as you type. Export a file now and then — it's the only copy that survives clearing your browser data or moving to a new phone.</p>
       <div class="card">
@@ -572,7 +581,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Where your logged running says you are, and what to train next.</p>
       <div id="goalOut"></div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="long">
       <h2 class="block-title">The Long Game <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">all-time PBs</span></h2>
       <p class="block-sub">sub-51 400m, sub-4:30 mile, sub-15:00 5K — and roughly how far away they are.</p>
       <div id="longOut"></div>
@@ -583,13 +592,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
       <div id="vdotOut"></div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="bests">
       <h2 class="block-title">Block Bests</h2>
       <p class="block-sub">Derived from what you log, so deleting a session corrects them. Beat one and it updates itself.</p>
       <div id="bestsBox"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="bench">
       <h2 class="block-title">Benchmarks</h2>
       <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
       <div id="benchList"></div>
@@ -604,7 +613,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <div id="pbError"></div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="tests">
       <h2 class="block-title">Test History</h2>
       <div id="pbHistory"></div>
     </section>
@@ -616,13 +625,13 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <div id="adaptOut"></div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="rest">
       <h2 class="block-title">When To Rest</h2>
       <p class="block-sub">Any <b>two</b> of these together means back off — not push harder. A week of backing off costs you almost nothing; pushing through costs you the block. These read from what you've actually logged.</p>
       <div id="restCheck"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="niggles">
       <h2 class="block-title">Niggles <span class="tag" id="niggleTag"></span></h2>
       <p class="block-sub">A niggle announces itself for a week or two before it becomes an injury. Log it on the days you feel it — readiness reads this, and it will stop you sprinting on a bad hamstring.</p>
       <div id="niggleActive"></div>
@@ -643,7 +652,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
       <div id="energyChart"></div>
     </section>
-    <section class="block">
+    <section class="block" data-fold="history">
       <h2 class="block-title">Session History</h2>
       <div id="sessionHistory"></div>
     </section>
@@ -681,7 +690,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="foodOut" style="margin-top:10px"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="stage">
       <h2 class="block-title">Where You Are</h2>
       <div id="calStep"></div>
     </section>
@@ -710,7 +719,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="foodChecklist"></div>
     </section>
 
-    <section class="block">
+    <section class="block" data-fold="reverse">
       <h2 class="block-title">Reversing <span class="tag" id="revTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <div id="revLock"></div>
       <div id="revBody">
@@ -1944,6 +1953,55 @@ function windowLabel(days) {
 /* Off by default: the app is for recording, and for the handful of numbers that
    change what you do. Everything explanatory is tagged data-detail and sits
    behind this. Nothing is removed — the switch brings all of it back. */
+/* Everything after the heading goes into one wrapper the heading toggles.
+   Runs once; re-renders write into the wrapper, so nothing needs to know. */
+function buildFolds() {
+  document.querySelectorAll("section.block[data-fold]").forEach(function (sec) {
+    if (sec.querySelector(":scope > .fold-body")) return;
+    var h = sec.querySelector(":scope > .block-title");
+    if (!h) return;
+    var body = document.createElement("div");
+    body.className = "fold-body";
+    while (h.nextSibling) body.appendChild(h.nextSibling);
+    sec.appendChild(body);
+    h.setAttribute("role", "button");
+    h.setAttribute("tabindex", "0");
+    h.addEventListener("click", function () { toggleFold(sec); });
+    h.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFold(sec); }
+    });
+  });
+  applyFolds();
+}
+function foldKey(sec) { return sec.getAttribute("data-fold") || ""; }
+function applyFolds() {
+  var open = settings.folds || {};
+  document.querySelectorAll("section.block[data-fold]").forEach(function (sec) {
+    sec.classList.toggle("open", !!open[foldKey(sec)]);
+  });
+}
+function toggleFold(sec) {
+  settings.folds = settings.folds || {};
+  var k = foldKey(sec);
+  settings.folds[k] = !settings.folds[k];
+  DB.set("settings", settings);
+  sec.classList.toggle("open", !!settings.folds[k]);
+}
+
+/* The three block targets with whatever has actually been run against them.
+   Always on screen — they are the reason for everything below. */
+function renderGoalRow() {
+  var el = $("goalRow"); if (!el) return;
+  el.innerHTML = BENCH.filter(function (b) { return ["400", "mile", "5k"].indexOf(b.id) !== -1; })
+    .map(function (b) {
+      var best = bestFor(b.id);
+      var hit = best && best.sec <= b.target;
+      return '<div class="goal-chip' + (hit ? " hit" : "") + '">' + b.label + " <b>" +
+        esc(b.targetLabel.replace("sub-", "")) + "</b><small>" +
+        (best ? (hit ? "✓ " : "") + fmtResult(best.sec) : "not tested") + "</small></div>";
+    }).join("");
+}
+
 function applyDetail() {
   var on = !!settings.detail, btn = $("detailBtn");
   document.body.classList.toggle("detail", on);
@@ -2283,7 +2341,7 @@ function deloadAdvice() {
     "You do not get faster during the hard weeks. You get faster while you recover from them, and that only happens if you actually drop the load. " +
     '<span style="color:var(--chalk);font-weight:600">Cut the volume roughly in half and keep the speed.</span> Short and sharp beats long and easy here — drop reps, not pace.</div>' +
 
-    '<div class="card" style="padding:2px 14px 12px;margin-bottom:12px">' +
+    '<div class="card" data-detail style="padding:2px 14px 12px;margin-bottom:12px">' +
     '<div class="block-title" style="font-size:17px;margin-top:12px">Do</div>' +
     '<p style="margin:8px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
     '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">One effort session, half the usual reps</b>' +
@@ -3436,7 +3494,7 @@ function logPB() {
   pbLog.unshift({ id: String(Date.now()), date: today(), dist: id, raw: raw, sec: sec });
   DB.set("pb-log", pbLog);
   $("pbTimeInput").value = "";
-  renderPBHistory(); renderBench(); renderVdot(); renderGoal();
+  renderPBHistory(); renderBench(); renderVdot(); renderGoal(); renderGoalRow();
 }
 
 /* ================= adaptation ================= */
@@ -3852,8 +3910,9 @@ function renderGoal() {
 
   var advHtml = '<div class="card" style="padding:2px 14px 12px;margin-top:12px">' +
     '<div class="block-title" style="font-size:17px;margin-top:12px">Work on these</div>' +
-    adv.map(function (a) {
-      return '<p style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+    adv.map(function (a, i) {
+      /* one steer on screen; the rest is reasoning behind the switch */
+      return '<p' + (i ? " data-detail" : "") + ' style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
         '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">' + a[0] + "</b>" + a[1] + "</p>";
     }).join("") + "</div>";
 
@@ -5297,7 +5356,7 @@ function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
-  renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderHistory();
+  renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -5336,6 +5395,7 @@ function renderStartInfo() {
   probePersistence();
   initState();
   applyDetail();
+  buildFolds();
 
   /* Every listener goes on before the first render. renderAll used to run
      here, and a render that threw took every click handler below it with it —
