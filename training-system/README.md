@@ -242,7 +242,20 @@ rather than claimed: what it averaged per week (which is where the ~2 and ~2
 targets come from), which effort formats kept recurring despite free choice
 every session, and how the rest actually fell.
 
-**Week Review** — the week you are looking at, read back off its own grid
+**Week Review** opens itself on a Sunday, with a line saying why: it is the end
+of the week and the review is the point of the page. It covers the whole week,
+not only the running — every run with pace and best rep, gym by split, steps
+total and average, weight against the week before, then food and protein
+averages, energy, morning HR against baseline, sleep nights ticked, and any
+calisthenics test.
+
+Under that, **Next week** is argued against every goal rather than just the
+training: the weight rate and how many weeks remain at it, whether protein held
+the 158g floor that protects the muscle, steps as the lever before calories,
+what shape the running should take and which sessions to pick from, whether a
+benchmark is due, and what the recovery markers are asking for.
+
+It reads the week you are looking at off its own grid
 rather than a rolling window, since a review is about a week that finished.
 Every run with its average pace and best rep; the gym count broken down by split
 (shoulders & forearms, chest & triceps, back & biceps, legs — logged from a

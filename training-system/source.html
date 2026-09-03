@@ -1976,6 +1976,8 @@ function buildFolds() {
 function foldKey(sec) { return sec.getAttribute("data-fold") || ""; }
 function applyFolds() {
   var open = settings.folds || {};
+  /* on Sunday the review is the point of the page, so it starts open */
+  if (isReviewDay() && open.review === undefined) open = Object.assign({}, open, { review: true });
   document.querySelectorAll("section.block[data-fold]").forEach(function (sec) {
     sec.classList.toggle("open", !!open[foldKey(sec)]);
   });
@@ -2537,6 +2539,37 @@ function weekSteps(w) {
   return { n: vals.length, total: vals.reduce(function (a, b) { return a + b; }, 0), avg: avg(vals) };
 }
 
+/* The rest of the week: what was eaten, how much walking, the calisthenics,
+   and how the body reported back. A review that only covers running misses
+   most of what the week actually was. */
+function weekExtras(w) {
+  var dates = [];
+  for (var i = 0; i < 7; i++) {
+    var dt = slotDate(w, i);
+    if (dt && dt <= parseDay(today())) dates.push(dayStr(dt));
+  }
+  var kc = [], en = [], sleepOk = 0, sleepLogged = 0, prot = [];
+  dates.forEach(function (d) {
+    var st = DB.get("daily-" + d, null);
+    if (!st) return;
+    if (isFinite(parseFloat(st.kcal))) kc.push(parseFloat(st.kcal));
+    if (st.energy) en.push(st.energy);
+    if (st.sleep === true) { sleepOk++; sleepLogged++; }
+    else if (st.sleep === false) sleepLogged++;
+    if (st.foods && st.foods.length) prot.push(foodTotals(st.foods).p);
+  });
+  var base = hrBaseline();
+  var hrs = hrLog.filter(function (h) { return dates.indexOf(h.date) !== -1; }).map(function (h) { return h.hr; });
+  var cali = caliLog.filter(function (r) { return dates.indexOf(r.date) !== -1; });
+  return { days: dates.length,
+    kcal: kc.length ? { n: kc.length, avg: avg(kc) } : null,
+    protein: prot.length ? { n: prot.length, avg: avg(prot) } : null,
+    energy: en.length ? avg(en) : null,
+    sleepOk: sleepOk, sleepLogged: sleepLogged,
+    hr: hrs.length ? { avg: avg(hrs), base: base, over: base ? hrs.filter(function (x) { return x >= base + HR_DELOAD_OVER; }).length : 0 } : null,
+    cali: cali };
+}
+
 function reviewVerdict(v) {
   var flags = [], easeOff = 0;
   if (v.hrUp >= 2) { easeOff++; flags.push("morning HR was 5+ over your " + v.hrBase + " baseline on " + v.hrUp + " days"); }
@@ -2572,7 +2605,8 @@ function reviewVerdict(v) {
 /* Next week's shortlist: ranked by what has gone longest unrun, but the count
    and the kind both follow the verdict. Suggesting two all-out time trials in
    the week you have just been told to back off would make the verdict noise. */
-var ALL_OUT = { eff_mile: 1, eff_5k: 1, eff_10k: 1, eff_3k: 1 };
+var ALL_OUT = { eff_mile: 1, eff_5k: 1, eff_10k: 1, eff_3k: 1, eff_400tt: 1,
+  eff_thresh_8k: 1, eff_thresh_10k: 1 };
 /* Days since a session id was last completed, read off the week grids so it
    agrees with the review above it. Session history dates a row from when it was
    ticked, which is not always the day it was run. */
@@ -2596,6 +2630,69 @@ function daysSinceSid(sid) {
   }
   return 9999;
 }
+/* Next week measured against all of it — the weight target, the block PBs, the
+   protein that protects the muscle, and the recovery that pays for the lot. */
+function nextWeekPlan(w, v, verdict, ex) {
+  var out = [], ease = !!verdict.ease;
+
+  /* weight */
+  var wr = weeklyRate();
+  if (wr && wr.ready) {
+    var toGo = wr.cur - (settings.exitWeight || 123);
+    if (toGo <= 0) out.push(["Weight — you are at goal", "Hold here for two weeks before the reverse starts. Nothing to cut."]);
+    else if (wr.perWeek > -0.15) out.push(["Weight — flat at " + wr.cur.toFixed(1) + ", " + toGo.toFixed(1) + " lb to go",
+      "Under two weeks flat is noise, not a stall. <b>Do not cut.</b> Steps first, then wait it out — your own history has four-week plateaus at 126–128 that broke on their own."]);
+    else out.push(["Weight — " + Math.abs(wr.perWeek).toFixed(1) + " lb/week, " + toGo.toFixed(1) + " to go",
+      "That is about " + Math.ceil(toGo / Math.abs(wr.perWeek)) + " more weeks at this rate. Change nothing."]);
+  }
+
+  /* protein, which is what keeps the muscle through the cut */
+  if (ex.protein) {
+    var pAvg = ex.protein.avg;
+    out.push(pAvg >= PROTEIN_TARGET - 10
+      ? ["Protein — " + Math.round(pAvg) + "g average", "On the " + PROTEIN_TARGET + "g floor. This is the number doing the muscle-sparing."]
+      : ["Protein — " + Math.round(pAvg) + "g average, under the " + PROTEIN_TARGET + "g floor",
+         "<b>The one to fix first.</b> Everything else on this list matters less than not losing muscle in a deficit."]);
+  } else {
+    out.push(["Protein — nothing logged", "Log the macros for a few days. Under-eating protein in a deficit is the one mistake that costs you the 400m."]);
+  }
+
+  /* steps */
+  var ws = weekSteps(w);
+  if (ws) out.push(ws.avg >= STEP_TARGET - STEP_BAND
+    ? ["Steps — " + Math.round(ws.avg).toLocaleString() + " a day", "Hold it. This is the lever before calories, and it is already pulled."]
+    : ["Steps — " + Math.round(ws.avg).toLocaleString() + " a day, under " + STEP_TARGET.toLocaleString(),
+       "Worth " + Math.round((STEP_TARGET - ws.avg) / 25) + " kcal a day. Cheaper than cutting food and it costs nothing in recovery."]);
+
+  /* the running itself */
+  var runLine = ease
+    ? "One effort at most, two easy runs, and rest. The markers are asking for it."
+    : v.effort >= 2 ? "Two efforts again, two easy, one sprint session. Same shape."
+    : "Take it to two efforts and four runs — that is the rate that has worked.";
+  var picks = reviewSuggest(v, verdict).filter(function (x) { return x.what !== "Rest"; })
+    .slice(0, 3).map(function (x) { return x.what; }).join(", ");
+  out.push(["Running — " + (ease ? "back off" : v.effort >= 2 ? "repeat it" : "add one"), runLine + " Pick from: " + picks + "."]);
+
+  /* a test, if one is due */
+  var lastTest = pbLog[0] ? daysBetween(parseDay(pbLog[0].date), parseDay(today())) : null;
+  if (lastTest === null || lastTest >= 21) {
+    var nextT = benchById(TEST_ROTATION.filter(function (d) { return !pbLog[0] || d !== pbLog[0].dist; })[0] || "mile");
+    out.push(["Benchmark — " + nextT.label + " is due",
+      (lastTest === null ? "No test logged yet." : lastTest + " days since the last one.") +
+      " Rep sets tell you how training is going; only a test tells you where you are."]);
+  }
+
+  /* recovery, and the gym */
+  if (ex.hr && ex.hr.over >= 2) out.push(["Recovery — HR was up on " + ex.hr.over + " mornings",
+    "Take the extra rest day before you need it. The week after a flagged one is where the damage shows."]);
+  else if (ex.energy != null && ex.energy <= 2.5) out.push(["Recovery — energy averaged " + ex.energy.toFixed(1) + "/5",
+    "Sleep and food before training. Nothing in the plan is worth doing tired."]);
+
+  if (v.gym.length < 4) out.push(["Gym — " + v.gym.length + " sessions",
+    "Four is the target, five with the calisthenics. It is the muscle you are protecting."]);
+  return out;
+}
+
 function reviewSuggest(v, verdict) {
   var out = [], ease = !!verdict.ease;
   var ranked = poolFor(viewWeek)
@@ -2623,6 +2720,15 @@ function reviewSuggest(v, verdict) {
   return out;
 }
 
+/* Sunday is the last day of the week now, so that is when the review is worth
+   reading. It opens itself and says why rather than waiting to be found. */
+function isReviewDay() { return dayIndexToday() === 6; }
+function reviewBanner() {
+  if (!isReviewDay()) return "";
+  return '<div class="note good" style="margin-bottom:12px"><b>End of the week — here is all of it</b>' +
+    "Running, gym, food, steps, weight and how your body reported back, then what to do next week against every goal you have set. " +
+    "Five minutes on a Sunday is worth more than any single session in it.</div>";
+}
 function renderReview() {
   var el = $("reviewBox"); if (!el) return;
   var w = viewWeek, v = reviewData(w);
@@ -2665,9 +2771,10 @@ function renderReview() {
     : "Nothing weighed this week.";
 
   var verdict = reviewVerdict(v);
-  var sugg = reviewSuggest(v, verdict);
+  var ex = weekExtras(w);
+  var plan = nextWeekPlan(w, v, verdict, ex);
 
-  el.innerHTML =
+  el.innerHTML = reviewBanner() +
     '<div class="note flat" style="margin-bottom:12px"><b>Running — ' + total + " run" + (total === 1 ? "" : "s") + "</b>" +
       v.effort + " effort · " + v.easy + " easy · " + v.bonus + " sprint" + (v.bonus === 1 ? "" : "s") + "</div>" +
     runs +
@@ -2687,11 +2794,28 @@ function renderReview() {
     })() +
     '<div class="note flat" style="margin-bottom:12px"><b>Weight</b>' + wt + "</div>" +
     '<div class="note ' + verdict.tone + '" style="margin-bottom:12px"><b>' + verdict.head + "</b>" + verdict.body + "</div>" +
-    '<div class="block-title" style="font-size:17px">Suggested for next week</div>' +
-    '<div class="card" style="padding:6px 14px">' + sugg.map(function (x) {
-      return '<div class="stone" style="grid-template-columns:1fr auto">' +
-        '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--chalk)">' + esc(x.what) + "</span>" +
-        '<span class="stone-when" style="color:var(--muted-2)">' + esc(x.why) + "</span></div>";
+    (function () {
+      var bits = [];
+      if (ex.kcal) bits.push("<span style=\"color:var(--chalk);font-weight:600\">Food</span> " + Math.round(ex.kcal.avg).toLocaleString() + " kcal average over " +
+        ex.kcal.n + " logged day" + (ex.kcal.n === 1 ? "" : "s") +
+        (ex.protein ? ", protein " + Math.round(ex.protein.avg) + "g" : ""));
+      if (ex.energy != null) bits.push("<span style=\"color:var(--chalk);font-weight:600\">Energy</span> " + ex.energy.toFixed(1) + "/5 average");
+      if (ex.hr) bits.push("<span style=\"color:var(--chalk);font-weight:600\">Morning HR</span> " + Math.round(ex.hr.avg) + " average" +
+        (ex.hr.base ? " against a " + ex.hr.base + " baseline" : "") +
+        (ex.hr.over ? ", " + ex.hr.over + " morning" + (ex.hr.over === 1 ? "" : "s") + " flagged" : ""));
+      if (ex.sleepLogged) bits.push("<span style=\"color:var(--chalk);font-weight:600\">Sleep</span> ticked " + ex.sleepOk + " of " + ex.sleepLogged + " nights");
+      if (ex.cali.length) bits.push("<span style=\"color:var(--chalk);font-weight:600\">Calisthenics</span> " + ex.cali.map(function (r) {
+        var fm = caliFormat(r.format);
+        return fm.both ? r.push + " push · " + r.pull + " pull" : fm.push ? r.push + " push-ups" : r.pull + " pull-ups";
+      }).join("; "));
+      return bits.length
+        ? '<div class="note flat" style="margin-bottom:12px"><b>The rest of the week</b>' + bits.join("<br>") + "</div>"
+        : "";
+    })() +
+    '<div class="block-title" style="font-size:17px">Next week</div>' +
+    '<div class="card" style="padding:2px 14px 12px">' + plan.map(function (x) {
+      return '<p style="margin:12px 0 0;font-size:13.5px;line-height:1.62;color:var(--muted)">' +
+        '<b style="display:block;color:var(--chalk);font-size:14px;margin-bottom:3px">' + esc(x[0]) + "</b>" + x[1] + "</p>";
     }).join("") + "</div>";
 }
 
