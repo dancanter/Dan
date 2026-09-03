@@ -14,6 +14,7 @@ import {
 import { Screen } from '../components/ui/Screen';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
+import { SaveForMidwife } from '../components/ui/SaveForMidwife';
 
 function GuideCard({
   guide,
@@ -98,6 +99,7 @@ function GuideCard({
           </div>
         )}
         <EvidenceNote sourceIds={guide.sourceIds} />
+        <SaveForMidwife topic={guide.title} />
       </div>
     </details>
   );
@@ -105,8 +107,10 @@ function GuideCard({
 
 export function HealthyScreen() {
   const { markGuideRead, readGuideIds } = useProgress();
-  const [query, setQuery] = useState('');
   const [params] = useSearchParams();
+  // `?q=` lets another screen hand its query over — the food lookup sends
+  // anything not in its short list here rather than to a dead end.
+  const [query, setQuery] = useState(params.get('q') ?? '');
   // `?open=<id>` lets the home screen link straight to an entry rather than
   // dropping someone at the top of a 108-item library to go hunting.
   const openId = params.get('open');

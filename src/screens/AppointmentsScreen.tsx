@@ -1,7 +1,7 @@
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useJournal } from '../hooks/useJournal';
-import { appointments, helpTopics } from '../content';
+import { appointments, helpTopics, readsForWeek } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
@@ -12,13 +12,17 @@ import { RichText } from '../components/ui/RichText';
 
 export function AppointmentsScreen() {
   const { currentWeek, isOnboarded, firstPregnancy, setFirstPregnancy } = usePregnancyProfile();
-  const { add: addJournal } = useJournal();
+  const { add: addJournal, questions } = useJournal();
 
   if (!isOnboarded || currentWeek === null) return <Navigate to="/" replace />;
 
   const visible = appointments.filter((a) => firstPregnancy || !a.firstPregnancyOnly);
   const next = visible.find((a) => a.week >= currentWeek);
   const whereToGo = helpTopics.find((t) => t.id === 'where-to-go');
+  const toAsk = questions.filter((q) => !q.asked);
+  // Reads relevant to the week the appointment falls in, not to today — the
+  // point is to arrive prepared for that conversation.
+  const prepReads = next ? readsForWeek(next.week).slice(0, 2) : [];
 
   return (
     <Screen title="Appointments" lede="What’s coming up, and how to get the most from it.">
@@ -65,16 +69,74 @@ export function AppointmentsScreen() {
       </fieldset>
 
       {next && (
-        <div className="my-4 rounded-xl border border-clay/40 bg-clayp p-4">
-          <span className="label-mono text-clay">Next up</span>
-          <h2 className="mt-1 text-[1.1875rem]">{next.title}</h2>
-          <p className="m-0 text-[0.90625rem] text-soft">
-            Around week {next.week}
-            {next.week > currentWeek
-              ? ` — about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
-              : ' — around now'}
-          </p>
-        </div>
+        <>
+          {/* Not a calendar entry — a preparation panel. The valuable question
+              this screen answers is "what should I remember before I walk in",
+              so what you saved and what is worth reading sit here, together,
+              above the timeline rather than scattered below it. */}
+          <section
+            aria-labelledby="prep-heading"
+            className="my-4 rounded-xl border border-clay/40 bg-clayp p-4"
+          >
+            <span className="label-mono text-clay">Before your appointment</span>
+            <h2 id="prep-heading" className="mt-1 text-[1.1875rem]">
+              {next.title}
+            </h2>
+            <p className="m-0 text-[0.90625rem] text-soft">
+              Around week {next.week}
+              {next.week > currentWeek
+                ? ` — about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
+                : ' — around now'}
+            </p>
+
+            {toAsk.length > 0 && (
+              <div className="mt-3.5 border-t border-clay/25 pt-3">
+                <p className="label-mono mb-1.5 text-clay">Things you saved to ask</p>
+                <ul className="m-0 list-none p-0">
+                  {toAsk.slice(0, 4).map((q) => (
+                    <li key={q.id} className="mb-1 flex gap-2 text-[0.90625rem] leading-relaxed">
+                      <span aria-hidden="true" className="text-clay">
+                        ·
+                      </span>
+                      <span>{q.text}</span>
+                    </li>
+                  ))}
+                </ul>
+                {toAsk.length > 4 && (
+                  <p className="mt-1.5 text-[0.84375rem] italic text-soft">
+                    and more, further down this screen.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {prepReads.length > 0 && (
+              <div className="mt-3.5 border-t border-clay/25 pt-3">
+                <p className="label-mono mb-1.5 text-clay">Worth reading first</p>
+                <ul className="m-0 list-none p-0">
+                  {prepReads.map((r) => (
+                    <li key={r.id} className="mb-1.5">
+                      {/* The underline sits on the title, not the link.
+                          text-decoration propagates to descendants and cannot
+                          be removed by them, so underlining the whole link
+                          underlined the explanation too — which made a plain
+                          sentence look tappable. */}
+                      <Link
+                        to={`/healthy?open=${r.id}`}
+                        className="flex min-h-11 flex-col justify-center gap-0.5 py-1 no-underline"
+                      >
+                        <span className="text-[0.90625rem] font-semibold leading-snug text-mossd underline">
+                          {r.title}
+                        </span>
+                        <span className="text-[0.84375rem] leading-snug text-soft">{r.why}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
       <SectionHeading>Your timeline</SectionHeading>

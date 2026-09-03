@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { foodRules, FOOD_VERDICT_LABEL, type FoodVerdict } from '../content/foodRules';
 import { Screen } from '../components/ui/Screen';
 import { PromptCard, NothingToFinish, type Option } from '../components/learn/PromptCard';
+import { FoodLookup } from '../components/learn/FoodLookup';
 
 const OPTIONS: Option[] = (['fine', 'cook-first', 'limit', 'avoid'] as FoodVerdict[]).map((v) => ({
   value: v,
@@ -47,9 +48,15 @@ export function FoodSortScreen() {
   return (
     <Screen
       title="Can I eat it?"
-      lede="The food rules people get most tangled up in. Four answers, not two."
+      lede="Look one up, or work through them. Four answers, not two."
       width="reading"
     >
+      {/* Lookup first, game second. Someone in an aisle holding a packet needs
+          one word now; the sorting deck is for a quiet ten minutes. Putting the
+          game first made the fast answer the thing you had to scroll past. */}
+      <FoodLookup />
+
+      <h2 className="label-mono mb-2 text-mossd">Or work through them</h2>
       <PromptCard
         eyebrow="Is this…"
         prompt={
