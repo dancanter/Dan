@@ -1107,7 +1107,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "03 Sep 19:31";
+var BUILD = "04 Sep 09:38";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1690,6 +1690,65 @@ function sessionOptions(pool, sel) {
   }).join("");
 }
 
+/* What the session looks like on paper the moment the number goes in: against
+   your own best for it, against the fitness it implies, and against the goal
+   that fitness is aimed at. */
+/* A four second gap should read as "4s", not "0:04". */
+function fmtGap(sec) {
+  var a = Math.abs(sec);
+  return a < 60 ? Math.round(a) + "s" : fmtSec(a);
+}
+var HI = 'style="color:var(--chalk);font-weight:600"';
+function sessionFeedback(d) {
+  if (groupOfSid(d.sid) !== "effort") return "";
+  var v = deriveSession(d);
+  if (!v.avgPace && !v.bestRep) return "";
+  var label = (d.detail || sessionOf(d).type || "").trim();
+  var bits = [], tone = "flat";
+
+  /* against your own best for the same session, this block */
+  if (v.avgPace && label) {
+    var key = label.toLowerCase(), prev = null;
+    sessionHistory.forEach(function (h) {
+      if (!h.avgPace) return;
+      var hk = (h.detail || h.type || "").trim().toLowerCase();
+      if (hk !== key) return;
+      if (h.key === viewWeek + "|" + d.day) return;   /* not against itself */
+      if (prev === null || h.avgPace < prev.avgPace) prev = h;
+    });
+    if (prev) {
+      var diff = prev.avgPace - v.avgPace;
+      if (diff >= 1) { tone = "good"; bits.push("<span " + HI + ">" + fmtGap(diff) + "/km faster than your best " + esc(label) + "</span> (" + fmtSec(prev.avgPace) + "/km, " + esc(prev.date) + ")."); }
+      else if (diff <= -3) bits.push(fmtGap(diff) + "/km down on your best " + esc(label) + " (" + fmtSec(prev.avgPace) + "/km). One session is a day, not a trend.");
+      else bits.push("Level with your best " + esc(label) + " at " + fmtSec(prev.avgPace) + "/km.");
+    } else bits.push("First " + esc(label) + " logged — this is the mark to beat.");
+  }
+
+  /* what a single all-out rep is worth, read as a short time trial */
+  if (v.bestRep && v.dist >= 800) {
+    var vd = vdotFor(v.dist, v.bestRep);
+    var mile = timeAt(vd, 1609), fivek = timeAt(vd, 5000);
+    var need5 = vdotFor(5000, benchById("5k").target);
+    var gap = need5 - vd;
+    bits.push("That " + distLabel(v.dist) + " in " + fmtResult(v.bestRep) + " is worth about <span " + HI + ">" +
+      fmtResult(Math.round(mile)) + " for the mile and " + fmtResult(Math.round(fivek)) + " for 5K</span> " +
+      "if you held the shape — off one rep, so read it as a direction, not a prediction." +
+      (gap <= 0 ? " That is already 5K-goal fitness."
+                : " The 16:50 needs " + gap.toFixed(1) + " VDOT points more than that rep implies."));
+    if (gap <= 0) tone = "good";
+  }
+
+  /* was it actually hard */
+  var tv = trainingFitness();
+  if (tv && v.avgPace) {
+    var rep = paceAtPct(tv, 1.06), thr = paceAtPct(tv, 0.88);
+    if (v.avgPace <= rep) bits.push("Pace-wise that was a genuine max — faster than your repetition pace of " + fmtSec(rep) + "/km.");
+    else if (v.avgPace > thr + 10) bits.push("<span " + HI + ">That sat outside effort pace.</span> Slower than your threshold of " + fmtSec(thr) + "/km, so it reads as a steady run rather than a quality session.");
+  }
+  if (!bits.length) return "";
+  return '<div class="note ' + tone + '" style="margin:8px 0 0">' + bits.join(" ") + "</div>";
+}
+
 function derivedLine(d) {
   var v = deriveSession(d);
   if (!v.avgPace && !v.bestRep) return "";
@@ -1697,7 +1756,7 @@ function derivedLine(d) {
   if (v.avgPace) bits.push("<span>Avg <b>" + fmtSec(v.avgPace) + "/km</b></span>");
   if (v.bestRep) bits.push("<span>Best rep <b>" + fmtResult(v.bestRep) + "</b></span>");
   if (v.dist) bits.push("<span>Rep <b>" + (v.dist >= 1000 ? (v.dist / 1000) + "km" : v.dist + "m") + "</b></span>");
-  return '<div class="splits">' + bits.join("") + "</div>";
+  return '<div class="splits">' + bits.join("") + "</div>" + sessionFeedback(d);
 }
 
 /* Keyed by the day's real date, which is the same record the Nutrition tab

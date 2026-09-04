@@ -127,6 +127,15 @@ and full pace, two shorter easy runs, sprints optional; no time trials, no long
 rep sets or threshold, no making up missed sessions, and no third effort because
 you feel good — feeling good in a deload is the deload working.
 
+**Every effort session gets read back the moment you type the number in.** It
+sits under the pace fields on the card and says three things where it can: how
+the pace compares to your own best for that same session and when you set it;
+what a single all-out rep of 800m or more is worth as a mile and 5K if you held
+the shape, with the VDOT gap to the 16:50; and whether the pace was a genuine
+max or sat outside effort pace entirely — slower than threshold reads as a
+steady run, not a quality session. It is deliberately hedged: one rep is a
+direction, not a prediction, and one slow session is a day, not a trend.
+
 **Easy runs are checked against your own easy pace.** Log an average pace on an
 easy run and it is compared to the easy and threshold paces derived from your
 logged times. Inside threshold and it says so outright — that run counted as one
