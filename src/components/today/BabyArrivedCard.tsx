@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { usePregnancyProfile } from '../../hooks/usePregnancyProfile';
 import { toISODate } from '../../lib/dates';
+import { Button } from '../ui/Button';
 
 /**
  * The switch into after-birth mode.
@@ -47,16 +48,16 @@ export function BabyArrivedCard() {
         stays exactly where it is, and you can switch back in Settings.
       </p>
       <div className="flex gap-2">
-        <button
-          type="button"
+        <Button
+          intent="primary"
           onClick={() => {
             setBirthDate(value);
           }}
           disabled={!value}
-          className="min-h-11 flex-1 rounded-lg bg-moss px-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="flex-1"
         >
           Save
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => setOpen(false)}

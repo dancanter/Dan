@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useJournal } from '../../hooks/useJournal';
 import { usePregnancyProfile } from '../../hooks/usePregnancyProfile';
 import { SectionHeading } from '../ui/SectionHeading';
+import { Button } from '../ui/Button';
 
 /**
  * The questions you meant to ask, in the place you would look for them.
@@ -52,12 +53,9 @@ export function QuestionList() {
             placeholder="e.g. Is this headache normal?"
             className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-card px-3 text-base"
           />
-          <button
-            type="submit"
-            className="min-h-11 rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
-          >
+          <Button intent="primary" type="submit">
             Add
-          </button>
+          </Button>
         </div>
       </form>
 

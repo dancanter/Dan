@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
+import { Button } from '../ui/Button';
 
 interface Props {
   inhale: number;
@@ -104,13 +105,9 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
       </p>
 
       <div className="flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          onClick={() => (running ? stop() : setRunning(true))}
-          className="min-h-11 rounded-lg bg-moss px-5 text-[0.9375rem] font-semibold text-white"
-        >
+        <Button intent="primary" onClick={() => (running ? stop() : setRunning(true))}>
           {running ? 'Stop' : 'Start'}
-        </button>
+        </Button>
       </div>
 
       {/* No target, no goal, and nothing kept once the page closes. Stopping

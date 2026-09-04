@@ -6,6 +6,7 @@ import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
 import { formatDate } from '../lib/dates';
+import { Button } from '../components/ui/Button';
 
 const TABS: { id: JournalKind; label: string }[] = [
   { id: 'mood', label: 'Mood' },
@@ -163,13 +164,9 @@ export function JournalScreen() {
                 className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
               />
             )}
-            <button
-              type="button"
-              onClick={() => save(tab, draft)}
-              className="mt-3 min-h-11 rounded-lg bg-moss px-4 font-semibold text-white hover:bg-mossd"
-            >
+            <Button intent="primary" onClick={() => save(tab, draft)} className="mt-3">
               Save {JOURNAL_LABEL[tab].toLowerCase()}
-            </button>
+            </Button>
           </>
         )}
       </div>

@@ -4,6 +4,7 @@ import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { MAX_WEEK, MIN_WEEK } from '../content/schema';
 import { toISODate } from '../lib/dates';
+import { Button } from '../components/ui/Button';
 
 type Mode = 'due-date' | 'current-week';
 
@@ -128,12 +129,9 @@ export function OnboardingScreen() {
           </p>
         )}
 
-        <button
-          type="submit"
-          className="min-h-11 w-full rounded-lg bg-moss px-4 py-3 text-base font-semibold text-white hover:bg-mossd"
-        >
+        <Button intent="primary" full type="submit">
           Start
-        </button>
+        </Button>
 
         <p className="text-center text-[0.875rem] text-soft">
           Worried about something right now?{' '}

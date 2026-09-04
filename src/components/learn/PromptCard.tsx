@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button } from '../ui/Button';
 
 export interface Option {
   value: string;
@@ -71,13 +72,9 @@ export function PromptCard({
             {agreed ? 'That’s right.' : 'This one catches a lot of people.'}
           </p>
           {reveal}
-          <button
-            type="button"
-            onClick={onNext}
-            className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
-          >
+          <Button intent="primary" onClick={onNext} className="mt-4" full>
             Next one →
-          </button>
+          </Button>
         </div>
       )}
     </div>

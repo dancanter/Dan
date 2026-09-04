@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
+import { Button } from '../ui/Button';
 
 interface Props {
   title: string;
@@ -98,13 +99,9 @@ export function MilestoneCelebration({ title, message, reduceMotionOverride, onD
             {title}
           </h2>
           <p className="mt-1 text-[0.9375rem] text-soft">{message}</p>
-          <button
-            type="button"
-            onClick={onDismiss}
-            className="mt-5 min-h-11 w-full rounded-lg bg-moss px-4 font-semibold text-white hover:bg-mossd"
-          >
+          <Button intent="primary" onClick={onDismiss} className="mt-5" full>
             Lovely
-          </button>
+          </Button>
         </motion.div>
       </motion.div>
     </AnimatePresence>

@@ -4,6 +4,7 @@ import { myths } from '../content/myths';
 import { useProgress } from '../hooks/useProgress';
 import { Screen } from '../components/ui/Screen';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
+import { Button } from '../components/ui/Button';
 
 /**
  * Myth or fact, over the deck the app already ships.
@@ -104,13 +105,9 @@ export function MythsScreen() {
             <p className="m-0 text-[0.9375rem] leading-relaxed">{myth.explanation}</p>
             <EvidenceNote sourceIds={myth.sourceIds} />
 
-            <button
-              type="button"
-              onClick={next}
-              className="mt-4 min-h-11 w-full rounded-lg bg-moss px-4 text-[0.9375rem] font-semibold text-white"
-            >
+            <Button intent="primary" onClick={next} className="mt-4" full>
               Next one →
-            </button>
+            </Button>
           </div>
         )}
 

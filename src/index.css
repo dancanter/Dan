@@ -61,6 +61,55 @@ h4 {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+  Press feedback, once, for everything.
+
+  The tap highlight is turned off above, which is right — the default blue
+  flash is ugly and off-palette — but nothing replaced it, so pressing any
+  button in the app produced no response at all until the screen changed. On a
+  slow phone that gap reads as "it didn't register", and people press again.
+
+  A 2% squash is enough to feel and too small to notice as an effect. It is
+  motion that communicates state rather than decorating it, so it goes under
+  prefers-reduced-motion with the rest.
+
+  Applied here rather than in 49 class strings: the same fix written 49 times
+  is 49 chances to write it differently.
+*/
+button:not(:disabled),
+summary,
+[role='button'] {
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+button:not(:disabled):active,
+summary:active,
+[role='button']:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled),
+  summary,
+  [role='button'] {
+    transition-property: background-color, color, border-color;
+  }
+  /* The selector has to match the rule above it exactly. Written as a plain
+     `button:active` this lost to `button:not(:disabled):active` on
+     specificity — media queries add none — so the squash still ran for people
+     who had asked for no motion. Measured, not assumed: the transform was
+     still matrix(0.98) under emulated reduced motion. */
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:active {
+    transform: none;
+  }
+}
+
 :focus-visible {
   outline: 3px solid #1d4ed8;
   outline-offset: 2px;

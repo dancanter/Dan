@@ -6,6 +6,7 @@ import { WeekBar } from '../components/week/WeekBar';
 import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Note } from '../components/ui/Note';
+import { Button } from '../components/ui/Button';
 
 export function BabyScreen() {
   const { currentWeek, isOnboarded, babyName, setBabyName } = usePregnancyProfile();
@@ -88,13 +89,9 @@ export function BabyScreen() {
             onChange={(e) => setNameDraft(e.target.value)}
             className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-paper px-3 text-base"
           />
-          <button
-            type="button"
-            onClick={() => setBabyName(nameDraft)}
-            className="min-h-11 rounded-lg bg-moss px-4 font-semibold text-white hover:bg-mossd"
-          >
+          <Button intent="primary" onClick={() => setBabyName(nameDraft)}>
             Save
-          </button>
+          </Button>
         </div>
       </div>
 
