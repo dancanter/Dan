@@ -17,6 +17,7 @@ import { calmExercises, calmFacts, CALM_INTRO, CALM_ESCALATION } from './calm';
 import { foodRules, FOOD_VERDICT_LABEL } from './foodRules';
 import { glossary, glossaryLookup, findGlossaryEntry } from './glossary';
 import { sourceUrl, sourceLinkKind } from './sourceLinks';
+import { usesOf, type SourceUse } from './sourceUsage';
 import { evidenceFor, sourceYear } from './evidence';
 import { searchGuides, searchSymptoms, urgentMatchFor, type SearchResult } from './search';
 import { babyWeeks, babyWeekByNumber, milestones } from './babyWeeks';
@@ -73,6 +74,7 @@ export {
   findGlossaryEntry,
   sourceUrl,
   sourceLinkKind,
+  usesOf,
   evidenceFor,
   sourceYear,
   searchGuides,
@@ -382,3 +384,5 @@ if (import.meta.env.DEV) {
     );
   }
 }
+
+export type { SourceUse };

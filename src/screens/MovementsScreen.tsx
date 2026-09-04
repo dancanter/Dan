@@ -164,7 +164,10 @@ export function MovementsScreen() {
 
       <SectionHeading>Recent entries</SectionHeading>
       {recent.length === 0 ? (
-        <p className="text-[0.9375rem] italic text-soft">Nothing yet.</p>
+        <p className="text-[0.9375rem] leading-relaxed text-soft">
+          Nothing noted yet. Add one whenever you happen to notice — there’s no schedule to keep to,
+          and gaps here don’t mean anything.
+        </p>
       ) : (
         <ul className="m-0 list-none p-0">
           {recent.map((e) => (

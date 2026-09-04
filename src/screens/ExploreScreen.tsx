@@ -115,6 +115,11 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
         blurb: `All ${sources.length} references, by evidence tier, with funding conflicts flagged.`,
       },
       {
+        to: '/why',
+        label: 'Why this exists',
+        blurb: 'What this app is for, and the things it deliberately doesn’t do.',
+      },
+      {
         to: '/methodology',
         label: 'How this is built',
         blurb: 'What it can’t do, how sources are chosen, and the honest limits.',

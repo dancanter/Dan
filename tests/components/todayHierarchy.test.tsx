@@ -84,11 +84,17 @@ describe('the daily screen has a hierarchy', () => {
     expect(inBanner.length + 1).toBeGreaterThanOrEqual(fresh.length);
   });
 
-  it('puts the myth card below the quick actions, not above the guidance', () => {
+  // The property is the order, not the wording: what matters this week comes
+  // first, the shortcuts next, and the optional card last. The headings were
+  // reworded — "This week's focus" read as a checklist you might be behind on
+  // — so this now anchors on position rather than on the exact labels.
+  it('puts the optional myth card last, below what matters this week', () => {
     setUp(26, null);
     const { container } = renderToday();
     const headings = [...container.querySelectorAll('main h2')].map((h) => h.textContent ?? '');
-    expect(headings.indexOf('Myth check')).toBeGreaterThan(headings.indexOf('Quick actions'));
-    expect(headings.indexOf('This week’s focus')).toBeLessThan(headings.indexOf('Quick actions'));
+    const jumpTo = headings.indexOf('Jump to');
+    expect(jumpTo).toBeGreaterThan(-1);
+    expect(headings.indexOf('Myth check')).toBeGreaterThan(jumpTo);
+    expect(headings.indexOf('Worth thinking about this week')).toBeLessThan(jumpTo);
   });
 });

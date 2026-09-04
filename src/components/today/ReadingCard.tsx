@@ -40,7 +40,10 @@ export function ReadingCard({ reads, readGuideIds }: Props) {
         );
       })}
       <li>
-        <Link to="/healthy" className="font-mono text-[0.6875rem] text-clay underline">
+        <Link
+          to="/healthy"
+          className="inline-flex min-h-11 items-center font-mono text-[0.6875rem] text-clay underline"
+        >
           Browse all guidance →
         </Link>
       </li>

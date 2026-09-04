@@ -208,7 +208,7 @@ export function TodayScreen() {
       {lead && <LeadRead read={lead} alreadyRead={readGuideIds.includes(lead.id)} />}
 
       {/* ── Tier two: this week's focus, and the rest of the reading ───── */}
-      <SectionHeading>This week’s focus</SectionHeading>
+      <SectionHeading>Worth thinking about this week</SectionHeading>
       <FocusList items={focus} week={week} isTicked={isTicked} onToggle={toggleTick} />
 
       {rest.length > 0 && (
@@ -223,7 +223,7 @@ export function TodayScreen() {
       </Note>
 
       {/* ── Tier three: things to do, rather than things to read ────────── */}
-      <SectionHeading>Quick actions</SectionHeading>
+      <SectionHeading>Jump to</SectionHeading>
       <div className="grid grid-cols-2 gap-2">
         {[
           { to: '/journal', label: 'How I’m feeling' },

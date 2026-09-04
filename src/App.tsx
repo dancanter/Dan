@@ -65,6 +65,9 @@ const CalmScreen = lazyRoute('CalmScreen', () =>
 const EquityScreen = lazyRoute('EquityScreen', () =>
   import('./screens/EquityScreen').then((m) => ({ default: m.EquityScreen })),
 );
+const WhyScreen = lazyRoute('WhyScreen', () =>
+  import('./screens/WhyScreen').then((m) => ({ default: m.WhyScreen })),
+);
 const MethodologyScreen = lazyRoute('MethodologyScreen', () =>
   import('./screens/MethodologyScreen').then((m) => ({ default: m.MethodologyScreen })),
 );
@@ -135,6 +138,7 @@ function App() {
             <Route path="/privacy" element={<PrivacyScreen />} />
             <Route path="/journal" element={<JournalScreen />} />
             <Route path="/sources" element={<SourcesScreen />} />
+            <Route path="/why" element={<WhyScreen />} />
             <Route path="/methodology" element={<MethodologyScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -152,6 +156,7 @@ function App() {
             <ul className="m-0 flex list-none flex-wrap gap-x-4 p-0">
               {[
                 ['/explore', 'Everything in the app'],
+                ['/why', 'Why this exists'],
                 ['/methodology', 'How this is built'],
                 ['/inequalities', 'Inequalities in maternity care'],
                 ['/settings', 'Settings & accessibility'],
