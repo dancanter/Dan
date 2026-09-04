@@ -127,6 +127,14 @@ and full pace, two shorter easy runs, sprints optional; no time trials, no long
 rep sets or threshold, no making up missed sessions, and no third effort because
 you feel good — feeling good in a deload is the deload working.
 
+**A day can hold more than one session.** A 5km then sprints afterwards, or
+400m reps with a couple of 200s tacked on the end — **+ Another session this
+day** adds a block with its own session, pace fields, feel and done tick. The
+first session stays exactly where it always was, so nothing already logged
+moves; the rest live alongside it and count in their own right: rolling targets,
+the monthly hard-session cap, the week review, day type, and session history all
+walk every session in a day rather than just the first.
+
 **Every effort session gets read back the moment you type the number in.** It
 sits under the pace fields on the card and says three things where it can: how
 the pace compares to your own best for that same session and when you set it;
