@@ -595,7 +595,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block" data-detail>
       <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
-      <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 200m and 400m are anaerobic and say nothing about VO<sub>2</sub>max, which is why they sit out of this.</p>
+      <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 800m and up. Anything shorter is mostly anaerobic and says nothing about VO<sub>2</sub>max, which is why it sits out of this.</p>
       <div id="vdotOut"></div>
     </section>
     <section class="block" data-fold="bests">
@@ -604,18 +604,25 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="bestsBox"></div>
     </section>
 
+    <section class="block" data-fold="pbs">
+      <h2 class="block-title">Personal Bests</h2>
+      <p class="block-sub">Every distance you run, best ever, whenever you ran it.</p>
+      <div id="pbBoard"></div>
+    </section>
+
     <section class="block" data-fold="bench">
       <h2 class="block-title">Benchmarks</h2>
       <p class="block-sub">Each bar is the gap between where you started the block and the target. Log a test and watch it close.</p>
       <div id="benchList"></div>
       <div class="add-row">
-        <select id="pbDistance">
-          <option value="200">200m</option><option value="400">400m</option>
-          <option value="800">800m</option><option value="1000">1000m</option>
-          <option value="mile">Mile</option><option value="5k">5K</option>
-        </select>
+        <select id="pbDistance"></select>
         <input type="text" id="pbTimeInput" placeholder="e.g. 4:51, 57.2, or 3:15/km">
-        <button class="btn primary" id="pbBtn">Log test</button>
+        <button class="btn primary" id="pbBtn">Log</button>
+      </div>
+      <div class="add-row">
+        <label class="chart-title" for="pbDate" style="min-width:78px">When</label>
+        <input type="date" id="pbDate">
+        <span class="block-sub" style="margin:0">Leave blank for today. Backdate an old PB here.</span>
       </div>
       <div id="pbError"></div>
     </section>
@@ -1110,7 +1117,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "04 Sep 10:26";
+var BUILD = "05 Sep 09:06";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -3692,13 +3699,21 @@ function addHR() {
 /* ================= benchmarks ================= */
 /* No seeded block-start times. A bar measured from a number you never ran
    measures nothing — the first test you log at a distance is its start line. */
+/* Every distance actually run. A target only exists where one has been set —
+   the rest just track the best ever, which is the point of a PB board. */
 var BENCH = [
-  { id: "200", label: "200m", dist: 200, target: 27.0, targetLabel: "27.0" },
-  { id: "400", label: "400m", dist: 400, target: 54.9, targetLabel: "sub-55" },
-  { id: "800", label: "800m", dist: 800, target: 144, targetLabel: "2:24" },
-  { id: "1000", label: "1000m", dist: 1000, target: 202, targetLabel: "3:22" },
-  { id: "mile", label: "Mile", dist: 1609, target: 284.9, targetLabel: "sub-4:45" },
-  { id: "5k", label: "5K", dist: 5000, target: 1009.9, targetLabel: "sub-16:50" }
+  { id: "100",  label: "100m",  dist: 100,  target: null },
+  { id: "200",  label: "200m",  dist: 200,  target: 27.0,   targetLabel: "27.0" },
+  { id: "300",  label: "300m",  dist: 300,  target: null },
+  { id: "400",  label: "400m",  dist: 400,  target: 54.9,   targetLabel: "sub-55" },
+  { id: "500",  label: "500m",  dist: 500,  target: null },
+  { id: "600",  label: "600m",  dist: 600,  target: null },
+  { id: "800",  label: "800m",  dist: 800,  target: 144,    targetLabel: "2:24" },
+  { id: "1000", label: "1000m", dist: 1000, target: 202,    targetLabel: "3:22" },
+  { id: "mile", label: "Mile",  dist: 1609, target: 284.9,  targetLabel: "sub-4:45" },
+  { id: "3k",   label: "3K",    dist: 3000, target: null },
+  { id: "5k",   label: "5K",    dist: 5000, target: 1009.9, targetLabel: "sub-16:50" },
+  { id: "10k",  label: "10K",   dist: 10000, target: null }
 ];
 function benchById(id) { for (var i = 0; i < BENCH.length; i++) if (BENCH[i].id === id) return BENCH[i]; return null; }
 
@@ -3733,13 +3748,25 @@ function bestFor(id) {
 function renderBench() {
   $("benchList").innerHTML = BENCH.map(function (b) {
     var start = firstFor(b.id), best = bestFor(b.id);
+    var hasT = b.target != null;
     if (!best) {
+      if (!hasT) return "";      /* no target and nothing run — nothing to show */
       return '<div class="bench">' +
         '<div class="bench-top"><span class="bench-name">' + b.label + ' <em>target ' + esc(b.targetLabel) + "</em></span>" +
         '<span class="bench-now" style="color:var(--muted-2);font-size:15px">not tested</span></div>' +
         '<div class="bar"><div class="bar-fill" style="width:0%"></div></div>' +
         '<div class="bar-scale"><span>the first test you log becomes the start line</span><span></span><span>' +
         fmtResult(b.target) + "</span></div></div>";
+    }
+    if (!hasT) {
+      /* a PB with no target: show the best and what it improved on */
+      var only0 = pbLog.filter(function (x) { return x.dist === b.id; }).length === 1;
+      return '<div class="bench">' +
+        '<div class="bench-top"><span class="bench-name">' + b.label + " <em>personal best</em></span>" +
+        '<span class="bench-now">' + fmtResult(best.sec) + '<span class="to-go"> ' + esc(best.date) + "</span></span></div>" +
+        '<div class="bar-scale" style="margin-top:6px"><span>' +
+        (only0 ? "first one logged" : "improved from " + fmtResult(start.sec) + " · " + esc(start.date)) +
+        "</span><span></span><span></span></div></div>";
     }
     var cur = best.sec, hit = cur <= b.target, toGo = cur - b.target;
     var only = start.id === best.id && pbLog.filter(function (p) { return p.dist === b.id; }).length === 1;
@@ -3756,7 +3783,15 @@ function renderBench() {
       "</div>";
   }).join("");
 }
+function renderPBOptions() {
+  var sel = $("pbDistance"); if (!sel || sel.options.length) return;
+  sel.innerHTML = BENCH.map(function (b) {
+    return '<option value="' + b.id + '">' + esc(b.label) + "</option>";
+  }).join("");
+  sel.value = "400";
+}
 function renderPBHistory() {
+  renderPBOptions();
   var el = $("pbHistory");
   if (!pbLog.length) { el.innerHTML = '<div class="empty">No tests logged yet.</div>'; return; }
   el.innerHTML = pbLog.slice(0, 20).map(function (p) {
@@ -3774,10 +3809,12 @@ function logPB() {
     return;
   }
   err.innerHTML = "";
-  pbLog.unshift({ id: String(Date.now()), date: today(), dist: id, raw: raw, sec: sec });
+  var when = ($("pbDate").value || "").trim() || today();
+  pbLog.unshift({ id: String(Date.now()), date: when, dist: id, raw: raw, sec: sec });
+  pbLog.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
   DB.set("pb-log", pbLog);
-  $("pbTimeInput").value = "";
-  renderPBHistory(); renderBench(); renderVdot(); renderGoal(); renderGoalRow();
+  $("pbTimeInput").value = ""; $("pbDate").value = "";
+  renderPBHistory(); renderBench(); renderPBBoard(); renderVdot(); renderGoal(); renderGoalRow();
 }
 
 /* ================= adaptation ================= */
@@ -3852,7 +3889,7 @@ function renderAdapt() {
 /* Daniels' VDOT: estimate oxygen cost at race velocity, divide by the fraction
    of VO2max sustainable for that duration. Valid from about 1500m upward — a
    400m is anaerobic and running it through this produces a fantasy number. */
-var AEROBIC = { "800": 800, "1000": 1000, "mile": 1609, "5k": 5000 };
+var AEROBIC = { "800": 800, "1000": 1000, "mile": 1609, "3k": 3000, "5k": 5000, "10k": 10000 };
 
 function vdotFor(distM, sec) {
   var t = sec / 60, v = distM / t;
@@ -3994,7 +4031,7 @@ function renderVdot() {
   el.innerHTML = lean + progress + explain + head + byDist +
     '<div class="block-title" style="font-size:17px;margin-top:16px">Your training paces at this fitness</div>' + paceTbl +
     '<div class="block-title" style="font-size:17px;margin-top:16px">Equivalent performances</div>' + equiv +
-    '<div class="note flat" style="margin-top:10px"><b>Why your 400m is not in here</b>VDOT models aerobic power, and a 400m is roughly 60–70% anaerobic. Running one through this formula produces a number, but a meaningless one. Your 400m and 200m progress lives in the benchmark bars above, where it belongs.</div>';
+    '<div class="note flat" style="margin-top:10px"><b>Why your 400m is not in here</b>VDOT models aerobic power, and a 400m is roughly 60–70% anaerobic. Running one through this formula produces a number, but a meaningless one. Anything under 800m sits out for the same reason — your 100m through 600m progress lives on the PB board above, where it belongs.</div>';
 
   if (tests.length >= 2) {
     lineChart($("vdotInner"), {
@@ -4576,6 +4613,29 @@ function refeedAdvice(pr) {
       "Worth noting that " + reasons[0] + ", but one signal on its own is not a refeed. If a second one appears this week, take the day.</div>";
   }
   return "";
+}
+
+/* ================= personal bests ================= */
+/* Every distance, best ever, whenever it was run. Targets are shown where one
+   exists; the rest are simply records to beat. */
+function renderPBBoard() {
+  var el = $("pbBoard"); if (!el) return;
+  var any = false;
+  var rows = BENCH.map(function (b) {
+    var best = bestFor(b.id);
+    if (best) any = true;
+    var hit = best && b.target != null && best.sec <= b.target;
+    return "<tr><td><b>" + b.label + "</b></td>" +
+      '<td class="hl"' + (hit ? ' style="color:var(--go)"' : "") + ">" +
+      (best ? (hit ? "✓ " : "") + fmtResult(best.sec) : "—") + "</td>" +
+      '<td><span class="sub" style="margin:0">' + (best ? esc(best.date) : "not run") + "</span></td>" +
+      "<td>" + (b.target != null ? esc(b.targetLabel) : "—") + "</td></tr>";
+  }).join("");
+  el.innerHTML = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Distance</th><th>Best</th><th>When</th><th>Block target</th></tr></thead><tbody>" +
+    rows + "</tbody></table></div>" +
+    (any ? "" : '<div class="note flat" style="margin-top:10px"><b>Nothing logged yet</b>' +
+      "Add your all-time bests under Benchmarks — there is a date field, so old ones go in with the date you actually ran them.</div>");
 }
 
 /* ================= the long game ================= */
@@ -5640,7 +5700,7 @@ function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
-  renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderHistory();
+  renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

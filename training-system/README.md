@@ -322,14 +322,25 @@ which is a different thing — 4 × 800 at 2:24 off long rests reads as VDOT 67
 through that formula, and as a 5K that cannot be run. Set averages stay in Block
 Bests, where they are a training number rather than a fitness estimate.
 
-Benchmark bars sit under it. There are **no seeded block-start times**: a bar
+**Personal Bests** sits under it: one row per distance — 100, 200, 300, 400,
+500, 600, 800, 1000, mile, 3K, 5K, 10K — showing the best ever run at each, the
+date it was run, and the block target where one exists. It is best-ever, not
+latest, so a slower run never displaces a PB, and a distance beaten past its
+block target is marked. Nothing is seeded: the board is empty until times are
+entered, and the log field carries a date so an old PB goes in with the date it
+was actually run rather than today's.
+
+Benchmark bars sit under that. There are **no seeded block-start times**: a bar
 measured from a number that was never run measures nothing, so the first test
 logged at a distance becomes that distance's start line, and the bar stays empty
-and says so until then.
+and says so until then. The six distances with no block target (100, 300, 500,
+600, 3K, 10K) show a PB line instead of a bar, and stay out of the section
+entirely until something is logged at them.
 
 Below that, an estimated VDOT and VO2max charted across the block. Only aerobic tests
-(800m upward) feed it; a 400m is largely anaerobic and would produce a
-meaningless number, so it is excluded and the section says why. It also derives
+(800m, 1000m, mile, 3K, 5K, 10K) feed it; anything shorter is largely anaerobic
+and would produce a meaningless number, so it is excluded and the section says
+why. It also derives
 the training paces that fitness implies — easy, threshold, interval, repetition
 — and equivalent times at every distance. Comparisons are strictly
 like-for-like: a new 5K is measured against the 5K baseline, never against a
