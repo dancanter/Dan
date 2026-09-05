@@ -1454,6 +1454,16 @@ var SID_DIST = {
    "best rep" and must never be read as one. */
 var SID_SOLO = { eff_400tt: 1, eff_mile: 1, eff_3k: 1, eff_5k: 1, eff_10k: 1 };
 
+/* Rows logged before the session carried its distance still have the session's
+   name on them, so the name is the second way home. Kept as an explicit list
+   rather than a pattern: "5 mile threshold" is 8km, and a regex that reads a
+   mile out of it would put a fictional mile PB on the board. */
+var TYPE_DIST = {
+  "200m reps": 200, "300m reps": 300, "400m reps": 400, "500m reps": 500,
+  "600m reps": 600, "800m reps": 800, "1km reps": 1000, "3 \u00d7 1 mile": 1609,
+  "400m \u2014 all out": 400, "1 mile \u2014 all out": 1609,
+  "3K time trial": 3000, "5K \u2014 all out": 5000, "10K \u2014 all out": 10000
+};
 /* everything derivable from what was typed, so it only gets typed once */
 function deriveSession(d) {
   var rp = parseReps(d.detail), sp = parseSplits(d.splits);
@@ -4658,6 +4668,25 @@ function allBests() {
 function renderPBBoard() {
   var el = $("pbBoard"); if (!el) return;
   var all = allBests(), any = false, fromReps = 0;
+  /* Nothing says a session has to be one of the twelve. Run 2300m and the time
+     is just as real — it only has no target to sit beside, so it gets its own
+     table rather than being dropped for not fitting the list. */
+  var odd = Object.keys(all).filter(function (k) {
+    for (var i = 0; i < BENCH.length; i++) if (String(BENCH[i].dist) === k) return false;
+    return true;
+  }).sort(function (a, b) { return +a - +b; });
+  var other = odd.length
+    ? '<div class="block-title" style="font-size:17px;margin-top:16px">Other distances</div>' +
+      '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+      "<thead><tr><th>Distance</th><th>Best</th><th>When</th></tr></thead><tbody>" +
+      odd.map(function (k) {
+        var x = all[k];
+        return "<tr><td><b>" + distLabel(x.dist) + "</b></td>" +
+          '<td class="hl">' + fmtResult(x.sec) + "</td>" +
+          '<td><span class="sub" style="margin:0">' + esc(x.date) +
+          (x.src === "rep" ? "<br>fastest rep \u2014 " + esc(x.from) : "") + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>"
+    : "";
   var rows = BENCH.map(function (b) {
     var best = all[String(b.dist)];
     if (best) { any = true; if (best.src === "rep") fromReps++; }
@@ -4673,9 +4702,10 @@ function renderPBBoard() {
   el.innerHTML = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Distance</th><th>Best</th><th>When</th><th>Block target</th></tr></thead><tbody>" +
     rows + "</tbody></table></div>" +
-    (any ? "" : '<div class="note flat" style="margin-top:10px"><b>Nothing logged yet</b>' +
+    (any || odd.length ? "" : '<div class="note flat" style="margin-top:10px"><b>Nothing logged yet</b>' +
       "This fills itself in from the sessions you tick off on This Week. For a time you ran before the " +
       "block, log it under Benchmarks — there is a date field, so it goes in with the date you actually ran it.</div>") +
+    other +
     (fromReps ? '<div class="note flat" style="margin-top:10px"><b>Some of these came out of a set</b>' +
       "Marked <em>fastest rep</em>. Run all out off full recovery they are close to the real thing, but a " +
       "standalone attempt on a fresh day will normally beat them.</div>" : "");
@@ -5721,6 +5751,36 @@ function migrateToMonday() {
   DB.set("settings", settings);
 }
 
+/* A logged session only had a rep distance if the distance had been retyped
+   into the detail box, so sets recorded under "300m reps" with that box empty
+   went in with repDist null and stayed invisible everywhere downstream. The
+   times are still on the row; only the distance was missing, and the session
+   name and id both still say what it was. Gaps only — a best rep or average
+   pace already on the row was typed by hand and is not recoverable from what
+   the row stores, so it is never overwritten. */
+function backfillDistances() {
+  var changed = 0;
+  sessionHistory.forEach(function (h) {
+    if (!h || typeof h !== "object") return;
+    var rp = parseReps(h.detail || "");
+    var named = SID_DIST[h.sid] || TYPE_DIST[String(h.type || "").replace(/ \+ gym$/, "")] || null;
+    var dist = rp ? rp.dist : named;
+    /* whether it was a set is what the detail box says, not what a distance
+       lookup returns — a mile session has a distance and is still one effort */
+    var solo = !rp && !!SID_SOLO[h.sid];
+    if (h.solo == null) h.solo = solo;
+    if (h.repDist == null && dist) { h.repDist = dist; changed++; }
+    /* splits are reps only when the session was a set; on a single all-out
+       effort they are laps, and the quickest lap is not a result */
+    if (solo || !dist) return;
+    var sp = parseSplits(h.splits);
+    if (!sp.length) return;
+    if (h.bestRep == null) { h.bestRep = Math.min.apply(null, sp); changed++; }
+    if (h.avgPace == null) { h.avgPace = avg(sp) / (dist / 1000); changed++; }
+  });
+  if (changed) DB.set("session-history", sessionHistory);
+}
+
 function initState() {
   settings = DB.get("settings", {});
   weightLog = usable(DB.get("weight-log", []), "weight");
@@ -5735,6 +5795,7 @@ function initState() {
   /* Nothing in a one-time migration is worth a dead app. If it cannot run,
      leave the data exactly as it was and carry on. */
   try { migrateToMonday(); } catch (e) { try { console.error(e); } catch (e2) {} }
+  try { backfillDistances(); } catch (e) { try { console.error(e); } catch (e2) {} }
   todayState = DB.get(dailyKey(new Date()), {});
   viewWeek = blockWeekNow() || DB.get("active-week", 1);
   $("startDate").value = settings.startDate || "";

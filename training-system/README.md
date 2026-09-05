@@ -348,6 +348,22 @@ inside a 300m session records 200s. The single all-out sessions (400m, mile,
 finishing time is the result, and the numbers in the splits box are laps, so
 the fastest of them is never read as a best rep.
 
+Sessions already logged under the old rule kept their null `repDist` in stored
+history, so fixing the rule alone left every past session still invisible.
+`backfillDistances` runs once at boot and recovers them from what the row
+already holds — the detail box first, then the session id, then the session's
+name for rows old enough to predate the id — and writes the result back. It
+fills gaps only: a best rep or average pace typed by hand is not recoverable
+from what the row stores, so it is never overwritten. Distance is taken by name
+from an explicit list rather than a pattern, because "5 mile threshold" is 8km
+and a regex that read a mile out of it would put a fictional mile PB on the
+board. Whether a row was a set is decided by its detail box, not by whether a
+distance was found, so a mile session stays one effort and its laps stay laps.
+
+Distances outside the twelve get an **Other distances** table under the main
+one. A 2300m rep is as real as any other time; it just has no target to sit
+beside, which is not a reason to drop it.
+
 Benchmark bars sit under that. There are **no seeded block-start times**: a bar
 measured from a number that was never run measures nothing, so the first test
 logged at a distance becomes that distance's start line, and the bar stays empty
