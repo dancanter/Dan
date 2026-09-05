@@ -330,6 +330,24 @@ block target is marked. Nothing is seeded: the board is empty until times are
 entered, and the log field carries a date so an old PB goes in with the date it
 was actually run rather than today's.
 
+It reads **both** sources — benchmark tests and the sessions ticked off on This
+Week — because a time is a time wherever it was run. The effort sessions are
+all out off full recovery, so the fastest rep of a set is real evidence; it is
+labelled *fastest rep* with the session it came from, since a 300m out of six
+is not the same thing as a 300m the day was built around. A benchmark test
+displaces a slower rep and stops carrying the label.
+
+For that to work the app has to know what distance a session was run at, and it
+now takes that **from the session itself** — `eff_300` is run at 300m — rather
+than requiring the distance to be retyped into the detail box first. That
+requirement was silently dropping logged sessions: reps entered under "300m
+reps" with the detail box left empty produced no rep distance and reached
+nothing downstream. The detail box still wins when filled in, so "4 × 200m"
+inside a 300m session records 200s. The single all-out sessions (400m, mile,
+3K, 5K, 10K) carry their distance the same way and are marked `solo`: their
+finishing time is the result, and the numbers in the splits box are laps, so
+the fastest of them is never read as a best rep.
+
 Benchmark bars sit under that. There are **no seeded block-start times**: a bar
 measured from a number that was never run measures nothing, so the first test
 logged at a distance becomes that distance's start line, and the bar stays empty

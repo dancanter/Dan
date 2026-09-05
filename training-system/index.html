@@ -1117,7 +1117,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "05 Sep 09:06";
+var BUILD = "05 Sep 13:42";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1443,16 +1443,34 @@ function parseSplits(txt) {
   return String(txt).split(/[,;/]+|\s{2,}|\s(?=\d)/).map(function (x) { return toSec(x.trim()); })
     .filter(function (n) { return isFinite(n) && n > 0; });
 }
+/* Most sessions state their own distance — "300m reps" is run at 300m, and
+   making that get retyped into the detail box before anything counts is how a
+   logged 300m ends up nowhere. The detail box still wins when it is filled in,
+   since "6 x 200m" inside a 300m session means the 200s were what happened. */
+var SID_DIST = {
+  eff_200: 200, eff_300: 300, eff_400: 400, eff_500: 500, eff_600: 600,
+  eff_800: 800, eff_1k: 1000, eff_mile_reps: 1609,
+  eff_400tt: 400, eff_mile: 1609, eff_3k: 3000, eff_5k: 5000, eff_10k: 10000
+};
+/* One effort, not a set: the finishing time is the result, and the numbers in
+   the splits box are laps rather than reps — so the fastest of them is not a
+   "best rep" and must never be read as one. */
+var SID_SOLO = { eff_400tt: 1, eff_mile: 1, eff_3k: 1, eff_5k: 1, eff_10k: 1 };
+
 /* everything derivable from what was typed, so it only gets typed once */
 function deriveSession(d) {
   var rp = parseReps(d.detail), sp = parseSplits(d.splits);
-  var out = { dist: rp ? rp.dist : null, avgPace: null, bestRep: null };
+  var known = SID_DIST[d.sid] || null, solo = !rp && !!SID_SOLO[d.sid];
+  var out = { dist: rp ? rp.dist : known, avgPace: null, bestRep: null, solo: solo };
   /* What you typed wins. Splits only fill the gaps, and only when every rep is
      the same distance — on a ladder the reps differ, so averaging their times
      would be meaningless and the pace has to be entered directly. */
   var m = toSec(d.avgpace); if (isFinite(m) && m > 0) out.avgPace = m;
   var b = toSec(d.bestrep); if (isFinite(b) && b > 0) out.bestRep = b;
-  if (sp.length && out.dist) {
+  if (solo) {
+    if (!out.bestRep) { var t = toSec(d.actual); if (isFinite(t) && t > 0) out.bestRep = t; }
+    if (out.bestRep && !out.avgPace) out.avgPace = out.bestRep / (out.dist / 1000);
+  } else if (sp.length && out.dist) {
     if (!out.bestRep) out.bestRep = Math.min.apply(null, sp);
     if (!out.avgPace) out.avgPace = avg(sp) / (out.dist / 1000);
   }
@@ -1588,7 +1606,7 @@ function delExtra(i, j) {
   if (!d.extra) return;
   d.extra.splice(j, 1);
   if (!d.extra.length) delete d.extra;
-  saveWeek(); renderWeek(); renderToday(); renderHistory(); renderBests();
+  saveWeek(); renderWeek(); renderToday(); renderHistory(); renderBests(); renderPBBoard();
 }
 
 /* the session a day is currently showing, whichever plan style the week uses */
@@ -2310,7 +2328,7 @@ function syncExtraHistory(i, j) {
   if (x.done) {
     sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day, sid: x.sid || null,
       type: sessionOf(x).type, detail: x.detail || "", splits: x.splits || "",
-      avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist,
+      avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist, solo: !!dv.solo,
       actual: x.splits || (dv.avgPace ? fmtSec(dv.avgPace) + "/km" : "") || "—",
       feel: x.feel || "" });
   }
@@ -2321,7 +2339,7 @@ function toggleExtraDone(i, j) {
   if (!x) return;
   x.done = !x.done;
   saveWeek(); syncExtraHistory(i, j);
-  renderWeek(); renderHistory(); renderBests(); renderGoal(); renderReadiness(); renderToday();
+  renderWeek(); renderHistory(); renderBests(); renderPBBoard(); renderGoal(); renderReadiness(); renderToday();
 }
 
 function toggleDone(i) {
@@ -2332,12 +2350,12 @@ function toggleDone(i) {
   if (d.done) {
     sessionHistory.unshift({ key: key, date: today(), week: viewWeek, day: d.day, sid: d.sid || null,
       type: sessionOf(d).type + (d.gym ? " + gym" : ""), detail: d.detail || "",
-      splits: d.splits || "", avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist,
+      splits: d.splits || "", avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist, solo: !!dv.solo,
       actual: d.splits || (dv.avgPace ? fmtSec(dv.avgPace) + "/km" : "") || d.actual || "—",
       feel: d.feel || "" });
   }
   DB.set("session-history", sessionHistory);
-  saveWeek(); renderWeek(); renderHistory(); renderBests(); renderGoal(); renderReadiness(); renderToday();
+  saveWeek(); renderWeek(); renderHistory(); renderBests(); renderPBBoard(); renderGoal(); renderReadiness(); renderToday();
 }
 
 /* ================= the 2025 block ================= */
@@ -4618,24 +4636,52 @@ function refeedAdvice(pr) {
 /* ================= personal bests ================= */
 /* Every distance, best ever, whenever it was run. Targets are shown where one
    exists; the rest are simply records to beat. */
+/* A time is a time wherever it was run. A benchmark test is the cleanest
+   evidence, but the effort sessions are all-out off full recovery, so the
+   fastest rep of a set is a real time too — it just has to say so, because a
+   300m out of six is not the same thing as a 300m you built a day around. */
+function allBests() {
+  var by = {};
+  function take(dist, sec, date, src, from) {
+    if (!dist || !isFinite(sec) || sec <= 0) return;
+    var k = String(dist);
+    if (!by[k] || sec < by[k].sec) by[k] = { dist: dist, sec: sec, date: date, src: src, from: from };
+  }
+  pbLog.forEach(function (p) {
+    var b = benchById(p.dist);
+    if (b) take(b.dist, p.sec, p.date, "test", "Benchmark test");
+  });
+  sessionHistory.forEach(function (h) {
+    if (h.bestRep && h.repDist) {
+      take(h.repDist, h.bestRep, h.date, h.solo ? "test" : "rep", h.detail || h.type || "a session");
+    }
+  });
+  return by;
+}
 function renderPBBoard() {
   var el = $("pbBoard"); if (!el) return;
-  var any = false;
+  var all = allBests(), any = false, fromReps = 0;
   var rows = BENCH.map(function (b) {
-    var best = bestFor(b.id);
-    if (best) any = true;
+    var best = all[String(b.dist)];
+    if (best) { any = true; if (best.src === "rep") fromReps++; }
     var hit = best && b.target != null && best.sec <= b.target;
     return "<tr><td><b>" + b.label + "</b></td>" +
       '<td class="hl"' + (hit ? ' style="color:var(--go)"' : "") + ">" +
       (best ? (hit ? "✓ " : "") + fmtResult(best.sec) : "—") + "</td>" +
-      '<td><span class="sub" style="margin:0">' + (best ? esc(best.date) : "not run") + "</span></td>" +
+      '<td><span class="sub" style="margin:0">' +
+      (best ? esc(best.date) + (best.src === "rep"
+        ? "<br>fastest rep — " + esc(best.from) : "") : "not run") + "</span></td>" +
       "<td>" + (b.target != null ? esc(b.targetLabel) : "—") + "</td></tr>";
   }).join("");
   el.innerHTML = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Distance</th><th>Best</th><th>When</th><th>Block target</th></tr></thead><tbody>" +
     rows + "</tbody></table></div>" +
     (any ? "" : '<div class="note flat" style="margin-top:10px"><b>Nothing logged yet</b>' +
-      "Add your all-time bests under Benchmarks — there is a date field, so old ones go in with the date you actually ran them.</div>");
+      "This fills itself in from the sessions you tick off on This Week. For a time you ran before the " +
+      "block, log it under Benchmarks — there is a date field, so it goes in with the date you actually ran it.</div>") +
+    (fromReps ? '<div class="note flat" style="margin-top:10px"><b>Some of these came out of a set</b>' +
+      "Marked <em>fastest rep</em>. Run all out off full recovery they are close to the real thing, but a " +
+      "standalone attempt on a fresh day will normally beat them.</div>" : "");
 }
 
 /* ================= the long game ================= */
@@ -5607,7 +5653,7 @@ function showTab(name) {
   $("panel-" + name).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (name === "progress") { renderWeight(); renderHR(); renderTdee(); renderExit(); renderCheckins(); renderTrack(); }
-  if (name === "fitness") { renderVdot(); renderGoal(); renderLongGame(); renderEnergyChart(); renderRestCheck(); renderBests(); }
+  if (name === "fitness") { renderVdot(); renderGoal(); renderLongGame(); renderEnergyChart(); renderRestCheck(); renderBests(); renderPBBoard(); }
 }
 
 /* ================= init ================= */
@@ -5831,7 +5877,7 @@ function renderStartInfo() {
       /* patch the derived line in place so focus and half-typed siblings survive */
       var line = derivedLine(xd);
       document.querySelectorAll('[data-xderived="' + el.dataset.x + '"]').forEach(function (n) { n.innerHTML = line; });
-      if (xd.done) { syncExtraHistory(xi, xj); renderBests(); renderHistory(); }
+      if (xd.done) { syncExtraHistory(xi, xj); renderBests(); renderPBBoard(); renderHistory(); }
       renderRolling(); renderReview();
       return;
     }
@@ -5847,7 +5893,7 @@ function renderStartInfo() {
           if (h.key === k2) {
             h.detail = wd.detail || ""; h.splits = wd.splits || "";
             h.actual = wd.splits || (dv2.avgPace ? fmtSec(dv2.avgPace) + "/km" : "") || "—";
-            h.avgPace = dv2.avgPace; h.bestRep = dv2.bestRep; h.repDist = dv2.dist;
+            h.avgPace = dv2.avgPace; h.bestRep = dv2.bestRep; h.repDist = dv2.dist; h.solo = !!dv2.solo;
           }
         });
         DB.set("session-history", sessionHistory);
@@ -5855,7 +5901,7 @@ function renderStartInfo() {
            focus and discard anything half-typed in the sibling fields */
         var line = derivedLine(wd);
         document.querySelectorAll('[data-derived="' + ix + '"]').forEach(function (n) { n.innerHTML = line; });
-        renderBests(); renderHistory(); return;
+        renderBests(); renderPBBoard(); renderHistory(); return;
       }
       var key = viewWeek + "|" + weekData[+el.dataset.i].day;
       sessionHistory.forEach(function (h) {
