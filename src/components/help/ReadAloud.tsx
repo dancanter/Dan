@@ -1,12 +1,27 @@
 import { useSpeech } from '../../hooks/useSpeech';
+import { speakable } from '../../lib/speakable';
 
 /**
- * "Read this to me", on urgent screens only.
+ * "Read this to me."
  *
- * Reads the action line first and the explanation second — the same order the
- * screen itself uses, so someone who taps it hears what to do before why.
+ * Started on the urgent screens, where the case is someone frightened at 3am
+ * with shaking hands and possibly no glasses. It is now also on the loss
+ * screens, where the case is different but just as real: people cry, and you
+ * cannot read through it.
+ *
+ * Still deliberately absent from the browsing screens, where it would be a
+ * gimmick rather than a way in.
  */
-export function ReadAloud({ now, why }: { now: string; why: string }) {
+
+
+interface Props {
+  /** What to say, in the order it should be said. */
+  text: string;
+  /** Overrides the button wording where "this" is ambiguous. */
+  label?: string;
+}
+
+export function ReadAloud({ text, label = 'Read this to me' }: Props) {
   const { supported, speaking, speak, stop } = useSpeech();
 
   // Hidden rather than disabled where the browser can't do it — a dead
@@ -16,11 +31,11 @@ export function ReadAloud({ now, why }: { now: string; why: string }) {
   return (
     <button
       type="button"
-      onClick={() => (speaking ? stop() : speak(`${now} ${why}`))}
+      onClick={() => (speaking ? stop() : speak(speakable(text)))}
       className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 text-[0.90625rem] font-semibold text-ink"
     >
       <span aria-hidden="true">{speaking ? '■' : '▶'}</span>
-      {speaking ? 'Stop reading' : 'Read this to me'}
+      {speaking ? 'Stop reading' : label}
     </button>
   );
 }

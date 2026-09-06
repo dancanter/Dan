@@ -5,6 +5,7 @@ import { afterLossIntro, afterLossSections } from '../content/afterLoss';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 import { CrisisNote } from '../components/loss/CrisisNote';
+import { ReadAloud } from '../components/help/ReadAloud';
 
 /**
  * Home, in support-after-loss mode.
@@ -36,6 +37,10 @@ export function AfterLossHomeScreen() {
         <section key={section.id} className="mb-8">
           <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
           <RichText paragraphs={section.body} />
+          <ReadAloud
+            text={`${section.title}. ${section.body.join(' ')}`}
+            label={`Read “${section.title}” to me`}
+          />
           <EvidenceNote sourceIds={section.sourceIds} />
         </section>
       ))}
@@ -45,6 +50,10 @@ export function AfterLossHomeScreen() {
           <section key={section.id} className="mb-8">
             <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
             <RichText paragraphs={section.body} />
+            <ReadAloud
+              text={`${section.title}. ${section.body.join(' ')}`}
+              label={`Read “${section.title}” to me`}
+            />
             <EvidenceNote sourceIds={section.sourceIds} />
           </section>
         ) : (

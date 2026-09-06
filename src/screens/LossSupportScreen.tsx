@@ -3,6 +3,7 @@ import { Screen } from '../components/ui/Screen';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
 import { CrisisNote } from '../components/loss/CrisisNote';
+import { ReadAloud } from '../components/help/ReadAloud';
 
 /**
  * Deliberately quiet and self-contained: no streaks, no checklists, no
@@ -29,6 +30,13 @@ export function LossSupportScreen() {
           >
             <RichText paragraphs={section.body} />
           </div>
+          {/* Per section rather than per page. The whole screen read aloud is
+              several minutes, and someone who wants to hear one part of it
+              should not have to sit through the rest. */}
+          <ReadAloud
+            text={`${section.title}. ${section.body.join(' ')}`}
+            label={`Read “${section.title}” to me`}
+          />
           <EvidenceNote sourceIds={section.sourceIds} />
         </section>
       ))}

@@ -152,7 +152,9 @@ export function UrgentDetailScreen() {
       <h2 className="label-mono mb-2 text-mossd">What to do now</h2>
       <p className="mb-3 text-[1.09375rem] font-medium leading-snug">{symptom.now}</p>
       <CallButton action={symptom.action} />
-      <ReadAloud now={symptom.now} why={symptom.why} />
+      {/* Action first, explanation second — the order the screen itself uses,
+          so someone who taps it hears what to do before why. */}
+      <ReadAloud text={`${symptom.now} ${symptom.why}`} />
 
       {symptom.dont && (
         <ul className="mt-4 mb-0 list-none p-0">
