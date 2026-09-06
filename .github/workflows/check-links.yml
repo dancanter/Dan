@@ -24,6 +24,10 @@ on:
 jobs:
   links:
     runs-on: ubuntu-latest
+    # A hard ceiling, because the failure mode here is not a crash — it is a
+    # throttled IP making every request sit until it times out. Left
+    # unbounded, that is half an hour of a runner doing nothing.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

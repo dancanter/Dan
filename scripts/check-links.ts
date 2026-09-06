@@ -27,6 +27,20 @@ interface Result {
   finalUrl?: string;
 }
 
+const REQUEST_TIMEOUT_MS = 15_000;
+/**
+ * A pause between requests, and the reason is not only manners.
+ *
+ * The first version of this had no pause and swept 40-odd nhs.uk pages in
+ * nineteen seconds. The next run hung: the same public IP had been throttled,
+ * and every request sat there until it timed out. Spacing the requests is
+ * what stops that happening — being polite to the server is also the only
+ * thing that keeps this check fast.
+ */
+const PAUSE_MS = 400;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /** Two attempts, because one timeout is not evidence that a page is gone. */
 async function probe(url: string): Promise<{ status: number | string; finalUrl?: string }> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -37,12 +51,12 @@ async function probe(url: string): Promise<{ status: number | string; finalUrl?:
         method: 'GET',
         redirect: 'follow',
         headers: { 'user-agent': 'field-notes-link-check' },
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
       return { status: res.status, finalUrl: res.url === url ? undefined : res.url };
     } catch (error) {
       if (attempt === 1) return { status: error instanceof Error ? error.message : 'failed' };
-      await new Promise((r) => setTimeout(r, 2000));
+      await sleep(2000);
     }
   }
   return { status: 'failed' };
@@ -56,9 +70,13 @@ async function main() {
   console.log(`Checking ${linked.length} links of ${sources.length} sources\n`);
 
   const results: Result[] = [];
-  // Sequential rather than parallel: this is someone else's server, and a
-  // burst of 60 requests to nhs.uk is rude at best.
+  // Sequential and spaced, rather than parallel: this is someone else's
+  // server, and a burst of sixty requests at nhs.uk is both rude and the
+  // thing that gets the checker throttled into uselessness.
+  let first = true;
   for (const { source, url } of linked) {
+    if (!first) await sleep(PAUSE_MS);
+    first = false;
     const { status, finalUrl } = await probe(url);
     results.push({ id: source.id, url, kind: sourceLinkKind(source), status, finalUrl });
     process.stdout.write(typeof status === 'number' && status < 400 ? '.' : 'X');
