@@ -2,7 +2,12 @@
 
 An independent, installable pregnancy guide that turns carefully-sourced maternal health research (NHS, NICE, RCOG, SACN, NCT and named peer-reviewed studies) into something genuinely pleasant to open every day — instead of another wall of text to scroll through.
 
-**Live:** https://dancanter.github.io/Dan/ — auto-deployed on every push via GitHub Actions.
+**Live:** https://dancanter.github.io/Dan/ — auto-deployed on every push via GitHub Actions. You don't need to be pregnant to look: the setup screen offers **"Not pregnant? Look around with example data"**, which loads a made-up week 28 so every screen is holding something, says so on every screen, and clears in one tap.
+
+| | | |
+|:--:|:--:|:--:|
+| ![Home at week 28](docs/screenshots/today.png) | ![An urgent screen](docs/screenshots/help.png) | ![Money, forms and deadlines](docs/screenshots/entitlements.png) |
+| **Home** — one thing promoted, the rest quiet, and a deadline only when one is live | **Get Help** — what to do, before why it matters. Ungated, and eager-loaded so it paints without a network | **Money and deadlines** — the half of a UK pregnancy that costs money to get wrong |
 
 ## The problem
 
@@ -38,7 +43,8 @@ Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appoin
 | **What's the word?** | A glossary definition, and which of four terms it belongs to |
 | **Need a minute?** | Slow breathing and a noticing exercise. Names the crisis case first and routes it off the page |
 | **Journal** | Mood, notes, questions and symptoms, with a mood history strip. Persists locally |
-| **Sources** | All 122 references, grouped by evidence tier, with funding conflicts flagged. The research papers link straight through |
+| **Sources** | All 132 references, grouped by evidence tier, with funding conflicts flagged, and searchable. Every source names the entries that rest on it |
+| **Money, forms and deadlines** | The administrative half of a UK pregnancy — maternity pay and the qualifying week, MatB1, free prescriptions, Healthy Start, the grants, birth registration — ordered by the week you're in |
 
 ## Design decisions worth explaining
 
@@ -92,7 +98,9 @@ Navigation is a single tab bar — Home · Baby · My Body · Guidance · Appoin
 
 **"The NHS recommends this" and "one study found this" are not the same claim.** The app showed *which* sources an entry cites; it never showed what kind of thing they are, and both were rendered in identical grey type at the foot of a card. Every entry now carries an evidence label — *UK guidance*, *guidance + research*, *research not guidance*, *charity guidance* — **derived from its sources rather than written per entry**, because 111 hand-written labels would be 111 things to keep in sync and the first to drift would be the one that mattered. The spread across the library: 84 UK guidance, 17 research-only, 5 both, 5 charity. Behind the label, *Why we say this* explains what it means, and funding conflicts are lifted **above** the citation list rather than buried in it. Collapsed by default — someone reading about heartburn at 2am doesn't need a paragraph on evidence tiers, but should be one tap from it. The urgent flow deliberately keeps the plain list; a collapsible evidence-tier control is the last thing a frightened reader needs.
 
-**A citation you can't open is only half a citation.** "Every entry sourced" used to stop at a name — you could see a claim came from somewhere, but not go and check it. Links are now *derived* rather than typed in: every research citation already carries a permanent identifier, so `sourceUrl()` turns a DOI, PMC or PubMed id into a resolver URL, preferring free full text over the paywalled version of record. Nothing is hand-typed, so nothing drifts, and a new paper added with a PMC id becomes checkable with no extra work. The NHS, NICE and charity pages have no such identifier and are deliberately **not** linked yet — a guessed URL looks exactly like a real one right up until someone taps it, and a dead link on a sources page costs more trust than a missing one. The Sources screen says plainly how many of the 122 open and why the rest don't.
+**A citation you can't open is only half a citation.** "Every entry sourced" used to stop at a name — you could see a claim came from somewhere, but not go and check it. Links are now *derived* rather than typed in: every research citation already carries a permanent identifier, so `sourceUrl()` turns a DOI, PMC or PubMed id into a resolver URL, preferring free full text over the paywalled version of record. Nothing is hand-typed, so nothing drifts, and a new paper added with a PMC id becomes checkable with no extra work. The NHS, NICE and charity pages carry no such identifier, so those are matched to the publisher's own page by title and domain — and then **opened by a machine every Monday**. `npm run check-links` fetches every link and fails on anything that stops resolving; a guessed URL looks exactly like a real one right up until someone taps it, and a dead link on a sources page costs more trust than a missing one. On its first run it found three that had rotted, one of which was sending readers from a citation about DVT *in pregnancy* to the general page written for everyone else. 55 of 132 open; the Sources screen says plainly why the rest don't.
+
+**The half of a UK pregnancy that costs money to get wrong.** The app was strong on what's happening to your body and nearly silent on maternity pay, the 15th-week notice deadline, the MatB1, free prescriptions, and grants with claim windows that close. These get missed constantly, because the information is spread across GOV.UK and NHS pages with no timing attached to any of it. `entitlements.ts` anchors eleven of them to the week you're in and surfaces one or two on Home only when something is genuinely live — weeks 20 to 30 in practice, silent either side, because a permanent tile is furniture you stop seeing. It states deadlines and stops: no ticks, no progress, no count, and a closed window shows the route that's still open rather than a reprimand. No amounts are printed anywhere — rates change every April — and every card names which nations it applies to, because Sure Start Maternity Grant is England, Wales and NI while Scotland runs Best Start Grant.
 
 **Content is data, not JSX.** Everything lives in typed files under `src/content/`. Adding research means editing data — no component changes.
 
