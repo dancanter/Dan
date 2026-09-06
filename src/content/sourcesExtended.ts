@@ -145,6 +145,7 @@ export const extendedSources: Source[] = [
     label: 'How to use a birthing ball',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/how-to-use-a-birthing-ball/',
   },
   {
     id: 'nhs-antenatal-classes',
@@ -164,6 +165,7 @@ export const extendedSources: Source[] = [
     label: 'Hospital bag checklist',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/hospital-bag-checklist/',
   },
   {
     id: 'nhs-birth-plan',
@@ -177,12 +179,14 @@ export const extendedSources: Source[] = [
     label: 'Overdue — have you gone past your due date?',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/overdue-have-you-gone-past-your-due-date/',
   },
   {
     id: 'nhs-birth-partner',
     label: 'Tips for your birthing partner or partners',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/tips-for-your-birthing-partner-or-partners/',
   },
 
   // ── After birth ────────────────────────────────────────────────────
@@ -191,14 +195,28 @@ export const extendedSources: Source[] = [
     label: 'Your 6-week postnatal check',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/your-6-week-postnatal-check/',
   },
-  { id: 'nhs-new-parents', label: 'Tips for new parents', organisation: 'NHS', tier: 'nhs' },
-  { id: 'nhs-early-days', label: 'Early days', organisation: 'NHS', tier: 'nhs' },
+  {
+    id: 'nhs-new-parents',
+    label: 'Tips for new parents',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/conditions/baby/support-and-services/tips-for-new-parents/',
+  },
+  {
+    id: 'nhs-early-days',
+    label: 'Early days',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/labour-and-birth/early-days/',
+  },
   {
     id: 'nhs-post-pregnancy-body',
     label: 'Your post-pregnancy body',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/your-post-pregnancy-body/',
   },
   {
     id: 'nhs-postnatal-depression',
@@ -218,24 +236,28 @@ export const extendedSources: Source[] = [
     label: 'Sex and contraception after birth',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/sex-and-contraception-after-birth/',
   },
   {
     id: 'nhs-parent-support',
     label: 'Services and support for parents',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/services-and-support-for-parents/',
   },
   {
     id: 'nhs-single-parents',
     label: 'Advice for single parents',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/advice-for-single-parents/',
   },
   {
     id: 'nhs-fit-with-baby',
     label: 'Keeping fit and healthy with a baby',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/support-and-services/keeping-fit-and-healthy-with-a-baby/',
   },
   {
     id: 'who-lancet-perinatal-2023',
@@ -264,31 +286,42 @@ export const extendedSources: Source[] = [
     label: 'Breastfeeding help and support (expressing, storage, problems, medication, work)',
     organisation: 'NHS breastfeeding series',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding/help-and-support/',
   },
   {
     id: 'nhs-bottle-feeding',
     label: 'Bottle feeding advice',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/bottle-feeding/advice/',
   },
   {
     id: 'nhs-sterilising',
     label: 'Sterilising baby bottles',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/bottle-feeding/sterilising-baby-bottles/',
   },
   {
     id: 'nhs-making-formula',
     label: 'How to make up baby formula',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/bottle-feeding/making-up-baby-formula/',
   },
-  { id: 'nhs-formula-types', label: 'Types of formula', organisation: 'NHS', tier: 'nhs' },
+  {
+    id: 'nhs-formula-types',
+    label: 'Types of formula',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/bottle-feeding/types-of-formula/',
+  },
   {
     id: 'nhs-combine-feeding',
     label: 'How to combine breast and bottle feeding',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/bottle-feeding/combine-breast-and-bottle/',
   },
 
   // ── Existing health conditions ─────────────────────────────────────
@@ -315,6 +348,7 @@ export const extendedSources: Source[] = [
     label: 'Diabetes and pregnancy',
     organisation: 'NHS (reviewed May 2024)',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/related-conditions/existing-health-conditions/diabetes/',
   },
   {
     id: 'nhs-epilepsy-pregnancy',
