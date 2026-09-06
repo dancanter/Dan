@@ -13,7 +13,6 @@ import { speakable } from '../../lib/speakable';
  * gimmick rather than a way in.
  */
 
-
 interface Props {
   /** What to say, in the order it should be said. */
   text: string;
