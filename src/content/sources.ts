@@ -260,7 +260,7 @@ export const sources: Source[] = [
     label: 'Deep vein thrombosis in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
-    url: 'https://www.nhs.uk/pregnancy/related-conditions/complications/deep-vein-thrombosis/',
+    url: 'https://www.nhs.uk/pregnancy/complications/deep-vein-thrombosis/',
   },
   {
     id: 'nhs-urgent-mental-health',

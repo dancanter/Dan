@@ -61,13 +61,23 @@ async function main() {
   for (const { source, url } of linked) {
     const { status, finalUrl } = await probe(url);
     results.push({ id: source.id, url, kind: sourceLinkKind(source), status, finalUrl });
-    const ok = status === 200;
-    process.stdout.write(`${ok ? '.' : 'X'}`);
+    process.stdout.write(typeof status === 'number' && status < 400 ? '.' : 'X');
   }
   console.log('\n');
 
-  const broken = results.filter((r) => r.status !== 200);
-  const redirected = results.filter((r) => r.status === 200 && r.finalUrl);
+  const ok = (s: number | string) => typeof s === 'number' && s >= 200 && s < 300;
+  // Publishers bot-block datacentre IPs. BMJ answers doi.org resolution with
+  // 403 and NCBI sometimes answers 203 — neither means the page is gone, and
+  // failing a build over them would train everyone to ignore this check.
+  const blocked = results.filter((r) => r.status === 403 || r.status === 429);
+  const broken = results.filter((r) => !ok(r.status) && !blocked.includes(r));
+  const redirected = results.filter((r) => ok(r.status) && r.finalUrl);
+
+  if (blocked.length > 0) {
+    console.log(`BLOCKED — the publisher refused a robot, not a dead link (${blocked.length})`);
+    for (const r of blocked) console.log(`  ${r.status}  ${r.id}\n    ${r.url}`);
+    console.log('');
+  }
 
   if (redirected.length > 0) {
     console.log(`REDIRECTED — still reachable, but worth updating (${redirected.length})`);

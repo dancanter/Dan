@@ -151,7 +151,7 @@ export const extendedSources: Source[] = [
     label: 'Antenatal and hypnobirthing classes',
     organisation: 'NHS',
     tier: 'nhs',
-    url: 'https://www.nhs.uk/pregnancy/labour-and-birth/preparing-for-the-birth/antenatal-classes/',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/antenatal-and-hypnobirthing-classes/',
   },
   {
     id: 'nct-hypnobirthing',
@@ -443,7 +443,7 @@ export const extendedSources: Source[] = [
     label: 'Pelvic pain in pregnancy',
     organisation: 'NHS, citing RCOG',
     tier: 'nhs',
-    url: 'https://www.nhs.uk/pregnancy/related-conditions/common-symptoms/pelvic-pain/',
+    url: 'https://www.nhs.uk/pregnancy/common-symptoms/pelvic-pain/',
   },
   {
     id: 'nhs-heartburn',
