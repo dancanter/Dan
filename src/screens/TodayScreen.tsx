@@ -148,7 +148,7 @@ export function TodayScreen() {
         </Suspense>
       )}
 
-      <WeekBar week={week} onChange={setViewWeek} daysToGo={viewWeek === null ? daysToGo : null} />
+      <WeekBar week={week} onChange={setViewWeek} currentWeek={currentWeek} daysToGo={daysToGo} />
 
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex h-[92px] w-[92px] flex-none -rotate-4 flex-col items-center justify-center rounded-full border-[1.5px] border-clay bg-clayp">
@@ -181,16 +181,6 @@ export function TodayScreen() {
           )}
         </div>
       </div>
-
-      {viewWeek !== null && viewWeek !== currentWeek && (
-        <button
-          type="button"
-          onClick={() => setViewWeek(null)}
-          className="mb-2 font-mono text-meta text-clay underline"
-        >
-          ← Back to my week ({currentWeek})
-        </button>
-      )}
 
       {/* Only on the reader's actual week. Browsing ahead to week 34 should
           not claim anything has changed. */}

@@ -9,7 +9,7 @@ import { Note } from '../components/ui/Note';
 import { Button } from '../components/ui/Button';
 
 export function BabyScreen() {
-  const { currentWeek, isOnboarded, babyName, setBabyName } = usePregnancyProfile();
+  const { currentWeek, daysToGo, isOnboarded, babyName, setBabyName } = usePregnancyProfile();
   const [viewWeek, setViewWeek] = useState<number | null>(null);
   const [nameDraft, setNameDraft] = useState(babyName ?? '');
 
@@ -23,7 +23,9 @@ export function BabyScreen() {
     <Screen
       title={babyName ? babyName : 'Your Baby'}
       lede="What’s developing, week by week."
-      aside={<WeekBar week={week} onChange={setViewWeek} daysToGo={null} />}
+      aside={
+        <WeekBar week={week} onChange={setViewWeek} currentWeek={currentWeek} daysToGo={daysToGo} />
+      }
     >
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex h-[92px] w-[92px] flex-none -rotate-4 flex-col items-center justify-center rounded-full border-[1.5px] border-clay bg-clayp">

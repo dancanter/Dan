@@ -11,6 +11,7 @@ import {
 import { useMaternityUnit } from '../hooks/useMaternityUnit';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Screen } from '../components/ui/Screen';
+import { UsualPattern } from '../components/movements/UsualPattern';
 
 /**
  * The Movement Journal — explicitly not a kick counter.
@@ -46,7 +47,7 @@ export function MovementsScreen() {
         </p>
         <a
           href={hasNumber ? `tel:${dialable}` : 'tel:111'}
-          className="flex min-h-[52px] w-full items-center justify-center rounded-lg bg-alert px-4 text-lead font-semibold text-white no-underline"
+          className="flex min-h-[52px] w-full items-center justify-center rounded-lg border-2 border-alert bg-alert px-4 text-lead font-semibold text-white no-underline"
         >
           {hasNumber ? `Call ${unitName ?? 'your maternity unit'}` : 'Call 111'}
         </a>
@@ -54,6 +55,8 @@ export function MovementsScreen() {
           Any hour, day or night. Don’t wait to see if it changes, and don’t use a home doppler.
         </p>
       </div>
+
+      <UsualPattern />
 
       <SectionHeading>Log a movement</SectionHeading>
       <fieldset className="mb-3 border-0 p-0">

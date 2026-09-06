@@ -3,13 +3,34 @@ import { trimesterLabel } from '../../content/weeklyFocus';
 
 interface WeekBarProps {
   week: number;
-  onChange: (week: number) => void;
+  onChange: (week: number | null) => void;
+  /** The reader's actual week, so this can offer a way back to it. */
+  currentWeek: number | null;
+  /** Days until the due date, or null where there is no due date. */
   daysToGo: number | null;
 }
 
-export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
+/**
+ * The week selector, and the two things it owns rather than each screen
+ * deciding for itself.
+ *
+ * **What the countdown says.** Home used to pass a real days-to-go while the
+ * Baby screen hardcoded null, so on the very same week Home said "213 days to
+ * go" and Baby said "30 weeks to go". Both were reasonable; together they
+ * were the app disagreeing with itself. The rule now lives here: days while
+ * you are on your own week and a due date exists, weeks otherwise.
+ *
+ * **Getting back.** Home had a "back to my week" link and Baby had none, so
+ * browsing ahead to week 35 on Baby left you arrowing back seven times. It is
+ * part of the selector now, which is the only way the two screens cannot
+ * drift apart again.
+ */
+export function WeekBar({ week, onChange, currentWeek, daysToGo }: WeekBarProps) {
   const remaining = DUE_WEEK - week;
   const pct = Math.min(100, Math.max(0, (week / DUE_WEEK) * 100));
+  const browsing = currentWeek !== null && week !== currentWeek;
+  // A countdown only means anything from where the reader actually is.
+  const showDays = !browsing && daysToGo !== null && daysToGo > 0;
 
   return (
     <section
@@ -70,13 +91,23 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           Week {week} of {DUE_WEEK}
         </span>
         <span>
-          {daysToGo !== null && daysToGo > 0
+          {showDays
             ? `${daysToGo} day${daysToGo === 1 ? '' : 's'} to go`
             : remaining > 0
               ? `${remaining} week${remaining === 1 ? '' : 's'} to go`
               : 'Any day now'}
         </span>
       </div>
+
+      {browsing && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="mt-2.5 flex min-h-11 items-center font-mono text-meta text-clay underline"
+        >
+          ← Back to my week ({currentWeek})
+        </button>
+      )}
     </section>
   );
 }
