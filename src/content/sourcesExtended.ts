@@ -204,7 +204,7 @@ export const extendedSources: Source[] = [
     label: 'Tips for new parents',
     organisation: 'NHS',
     tier: 'nhs',
-    url: 'https://www.nhs.uk/conditions/baby/support-and-services/tips-for-new-parents/',
+    url: 'https://www.nhs.uk/baby/support-and-services/tips-for-new-parents/',
   },
   {
     id: 'nhs-early-days',
@@ -350,7 +350,7 @@ export const extendedSources: Source[] = [
     label: 'Diabetes and pregnancy',
     organisation: 'NHS (reviewed May 2024)',
     tier: 'nhs',
-    url: 'https://www.nhs.uk/pregnancy/related-conditions/existing-health-conditions/diabetes/',
+    url: 'https://www.nhs.uk/pregnancy/existing-health-conditions/diabetes/',
   },
   {
     id: 'nhs-epilepsy-pregnancy',
