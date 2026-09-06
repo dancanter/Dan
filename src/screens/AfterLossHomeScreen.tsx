@@ -4,6 +4,7 @@ import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { afterLossIntro, afterLossSections } from '../content/afterLoss';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
+import { CrisisNote } from '../components/loss/CrisisNote';
 
 /**
  * Home, in support-after-loss mode.
@@ -28,6 +29,8 @@ export function AfterLossHomeScreen() {
       <p className="mb-8 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[0.96875rem] leading-relaxed">
         {afterLossIntro}
       </p>
+
+      <CrisisNote />
 
       {visible.map((section) => (
         <section key={section.id} className="mb-8">

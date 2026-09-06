@@ -2,6 +2,7 @@ import { lossSections, lossIntro } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
 import { RichText } from '../components/ui/RichText';
+import { CrisisNote } from '../components/loss/CrisisNote';
 
 /**
  * Deliberately quiet and self-contained: no streaks, no checklists, no
@@ -11,6 +12,7 @@ import { RichText } from '../components/ui/RichText';
 export function LossSupportScreen() {
   return (
     <Screen title="Pregnancy and baby loss" lede={lossIntro} ledeTone="quiet" width="reading">
+      <CrisisNote />
       {lossSections.map((section) => (
         <section key={section.id} className="mb-8">
           <h2

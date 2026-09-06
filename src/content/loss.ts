@@ -15,6 +15,25 @@ export interface LossSection {
 export const lossIntro =
   'Around 1 in 4 pregnancies ends in loss, and about 1 in 5 in miscarriage specifically. If this is happening to you, you are not alone, and it is very unlikely to be anything you did.';
 
+/**
+ * Named at the top of both loss screens, before anything else is offered.
+ *
+ * The same reasoning as the calm page: reading about grief is the wrong
+ * answer to a crisis, and putting it first would imply the app has
+ * understood the problem and thinks this will help. Neither loss screen had
+ * any route out of that case at all until now, which was the gap that
+ * mattered most on these two pages.
+ *
+ * Samaritans is named here rather than only linked, because it is free,
+ * 24/7, and the one number that is always answered — and someone reading a
+ * page about baby loss at 3am should not have to tap twice to find it.
+ */
+export const LOSS_CRISIS_NOTE = {
+  heading: 'If you cannot keep yourself safe right now',
+  body: 'Reading is not what you need. Asking for help is not an overreaction, and grief this heavy is a reason to call rather than a reason not to.',
+  samaritans: 'Samaritans — 116 123, free, day or night',
+} as const;
+
 export const lossSections: LossSection[] = [
   {
     id: 'types',
@@ -90,10 +109,10 @@ export const lossSections: LossSection[] = [
     title: 'Where to get support',
     sourceIds: ['miscarriage-association', 'cruse-baby-loss', 'tommys-movements'],
     body: [
-      '**Miscarriage Association** and **Miscarriage UK** — specialist support and information.',
+      '**Miscarriage Association** — 0303 003 6464. Mon, Tue and Thu 9am–4pm; Wed and Fri 9am–8pm.',
       '**Tommy’s midwives:** 0800 0147 800 (free, Mon–Fri 9am–5pm) or midwife@tommys.org.',
-      '**Sands** — supports anyone affected by the death of a baby.',
-      '**Cruse Bereavement Support** — general bereavement counselling.',
+      '**Sands** — 0808 164 3332, free. Mon–Fri 10am–3pm, and Tue, Wed and Thu 6pm–9pm.',
+      '**Cruse Bereavement Support** — 0808 808 1677, free. General bereavement counselling.',
       'Your GP, midwife or Early Pregnancy Unit can also make direct referrals to bereavement services.',
     ],
   },
