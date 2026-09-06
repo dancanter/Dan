@@ -4,6 +4,7 @@ import { useJournal } from '../hooks/useJournal';
 import { appointments, helpTopics, readsForWeek } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { PaperworkLink } from '../components/appointments/PaperworkLink';
 import { Note } from '../components/ui/Note';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
 import { QuestionList } from '../components/appointments/QuestionList';
@@ -138,6 +139,8 @@ export function AppointmentsScreen() {
           </section>
         </>
       )}
+
+      <PaperworkLink week={currentWeek} />
 
       <SectionHeading>Your timeline</SectionHeading>
       <ol className="relative m-0 list-none p-0">
