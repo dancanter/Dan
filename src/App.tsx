@@ -69,6 +69,9 @@ const EquityScreen = lazyRoute('EquityScreen', () =>
 const EntitlementsScreen = lazyRoute('EntitlementsScreen', () =>
   import('./screens/EntitlementsScreen').then((m) => ({ default: m.EntitlementsScreen })),
 );
+const AccessibilityScreen = lazyRoute('AccessibilityScreen', () =>
+  import('./screens/AccessibilityScreen').then((m) => ({ default: m.AccessibilityScreen })),
+);
 const WhyScreen = lazyRoute('WhyScreen', () =>
   import('./screens/WhyScreen').then((m) => ({ default: m.WhyScreen })),
 );
@@ -149,6 +152,7 @@ function App() {
             {/* Ungated. Someone checking whether she can afford to take the
                 leave should not have to set up a pregnancy tracker first. */}
             <Route path="/entitlements" element={<EntitlementsScreen />} />
+            <Route path="/accessibility" element={<AccessibilityScreen />} />
             <Route path="/why" element={<WhyScreen />} />
             <Route path="/methodology" element={<MethodologyScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
@@ -172,6 +176,7 @@ function App() {
                 ['/methodology', 'How this is built'],
                 ['/inequalities', 'Inequalities in maternity care'],
                 ['/settings', 'Settings & accessibility'],
+                ['/accessibility', 'Accessibility statement'],
                 ['/privacy', 'Privacy'],
               ].map(([to, label]) => (
                 <li key={to} className="min-w-0">

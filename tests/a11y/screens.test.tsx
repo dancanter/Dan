@@ -29,6 +29,7 @@ import { MythsScreen } from '../../src/screens/MythsScreen';
 import { FoodSortScreen } from '../../src/screens/FoodSortScreen';
 import { TermsScreen } from '../../src/screens/TermsScreen';
 import { EntitlementsScreen } from '../../src/screens/EntitlementsScreen';
+import { AccessibilityScreen } from '../../src/screens/AccessibilityScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -73,6 +74,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['Sources', () => <SourcesScreen />],
   ['Methodology', () => <MethodologyScreen />],
   ['Settings', () => <SettingsScreen />],
+  ['Accessibility statement', () => <AccessibilityScreen />],
 ];
 
 describe('accessibility', () => {

@@ -23,6 +23,7 @@ import {
   calmFacts,
   entitlements,
 } from '../src/content';
+import { accessibilitySections } from '../src/content/accessibility';
 
 /** Strips markdown emphasis so `**word**` doesn't skew the word count. */
 function plain(text: string): string {
@@ -168,6 +169,10 @@ export function allScores(): Score[] {
   // content. Someone reading about a notice period is often doing it tired,
   // and legal wording is exactly where prose drifts upward without anyone
   // noticing.
+  // The accessibility statement is held to the ceiling too. A statement
+  // about being readable that is itself hard to read would be quite the
+  // thing to ship.
+  for (const a of accessibilitySections) out.push(score(a.id, 'accessibility', a.body.join(' ')));
   for (const e of entitlements)
     out.push(score(e.id, 'entitlement', [e.what, e.why, e.action, e.ifLate ?? ''].join(' ')));
   // Reader-facing prose, so it is held to the same ceilings as everything
