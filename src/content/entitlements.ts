@@ -92,7 +92,7 @@ export const entitlements: Entitlement[] = [
     id: 'free-prescriptions',
     title: 'Free prescriptions and NHS dental care',
     what: 'A maternity exemption certificate (MatEx), free for the whole pregnancy and for 12 months after the birth.',
-    why: 'Without the certificate you pay for prescriptions and dental treatment you are entitled to have free. It is not applied automatically.',
+    why: 'Nobody applies it for you. Without it you pay for care you are entitled to have free. In Scotland, Wales and Northern Ireland prescriptions are free for everyone anyway, so there it is your dental care it covers.',
     action:
       'Ask your midwife or GP — they complete form FW8, or apply for you online. Only someone with access to your medical records can do it.',
     opensWeek: null,

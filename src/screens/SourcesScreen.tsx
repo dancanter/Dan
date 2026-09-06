@@ -196,9 +196,10 @@ export function SourcesScreen() {
             <strong>
               {openable} of these {sources.length} open directly
             </strong>
-            , because the citation carries a permanent reference number. The rest are named in full
-            but not yet linked — a link that goes to the wrong page is worse than no link, so each
-            one gets checked by hand before it goes in.
+            . Research papers resolve from the reference number in the citation; the guidance pages
+            are matched to the publisher’s own page and then opened automatically every week, so a
+            link that stops working is found rather than left sitting there. The rest are named in
+            full but not yet linked — a link that goes to the wrong page is worse than no link.
           </p>
           <p className="mt-2 text-[0.875rem] leading-relaxed text-soft">
             {dated} state a date. The others are standing NHS and charity pages that don’t publish

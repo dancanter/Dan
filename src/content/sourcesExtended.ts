@@ -95,6 +95,7 @@ export const extendedSources: Source[] = [
     label: 'Pregnant employees’ rights',
     organisation: 'GOV.UK',
     tier: 'gov',
+    url: 'https://www.gov.uk/working-when-pregnant-your-rights',
   },
   {
     id: 'acas-discrimination',
@@ -122,18 +123,21 @@ export const extendedSources: Source[] = [
     label: 'Choosing where to give birth',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/choosing-where-to-give-birth/',
   },
   {
     id: 'nhs-labour-signs',
     label: 'Signs that labour has begun',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/labour-and-birth/signs-that-labour-has-begun/',
   },
   {
     id: 'nhs-pain-relief',
     label: 'Pain relief and medication during labour',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/labour-and-birth/pain-relief-in-labour/',
   },
   { id: 'nhs-giving-birth', label: 'Giving birth', organisation: 'NHS', tier: 'nhs' },
   {
@@ -166,6 +170,7 @@ export const extendedSources: Source[] = [
     label: 'What to include in your birth plan',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/what-to-include-in-your-birth-plan/',
   },
   {
     id: 'nhs-overdue',
@@ -200,6 +205,7 @@ export const extendedSources: Source[] = [
     label: 'Postnatal depression',
     organisation: 'NHS (reviewed March 2026)',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/mental-health/conditions/postnatal-depression/',
   },
   {
     id: 'tommys-pnd',
@@ -337,13 +343,21 @@ export const extendedSources: Source[] = [
     label: 'Vaccinations in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/keeping-well/vaccinations/',
   },
-  { id: 'nhs-flu-jab', label: 'The flu jab in pregnancy', organisation: 'NHS', tier: 'nhs' },
+  {
+    id: 'nhs-flu-jab',
+    label: 'The flu jab in pregnancy',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/keeping-well/flu-jab/',
+  },
   {
     id: 'nhs-whooping-cough',
     label: 'Whooping cough vaccination in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/keeping-well/whooping-cough-vaccination/',
   },
 
   // ── Everyday life and safety ───────────────────────────────────────
@@ -422,18 +436,21 @@ export const extendedSources: Source[] = [
     label: 'Back pain in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/common-symptoms/back-pain/',
   },
   {
     id: 'nhs-pelvic-pain',
     label: 'Pelvic pain in pregnancy',
     organisation: 'NHS, citing RCOG',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/related-conditions/common-symptoms/pelvic-pain/',
   },
   {
     id: 'nhs-heartburn',
     label: 'Indigestion and heartburn in pregnancy',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/common-symptoms/indigestion-and-heartburn/',
   },
   {
     id: 'nhs-discharge-thrush',
