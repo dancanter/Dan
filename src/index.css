@@ -215,6 +215,62 @@ summary:active,
 }
 
 /* Shared "field note" typographic bits used across screens. */
+/*
+ * Printing, for the appointment sheet.
+ *
+ * There is no PDF library in this app and there does not need to be: every
+ * browser already has a PDF engine behind window.print(), and reaching it
+ * costs nothing to download. On a phone this comes out as Share → Print →
+ * Save to Files, or as a real sheet of paper — which for a room where you
+ * have twelve minutes is arguably the better artefact.
+ *
+ * The app's own furniture must not follow the content onto the page. Header,
+ * tab bar, footer and the demo strip are all removed, the paper background
+ * goes white so it does not eat a print cartridge, and blocks are kept from
+ * splitting across a page break mid-question.
+ */
+@media print {
+  html {
+    /* The in-app text-size control must not scale the printed sheet. */
+    font-size: 100%;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Everything that is app rather than content. */
+  header[class*='border-b'],
+  nav,
+  footer[class*='border-t-2'],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  section,
+  li {
+    break-inside: avoid;
+  }
+
+  /* A question or symptom stranded alone at the top of page two reads as an
+     afterthought rather than part of the list. */
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+}
+
 .label-mono {
   font-family: var(--font-mono);
   /* Was a hardcoded 0.65625rem — 10.5px, the last of the px-to-rem artefacts,

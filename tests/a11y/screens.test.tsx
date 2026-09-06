@@ -30,6 +30,7 @@ import { FoodSortScreen } from '../../src/screens/FoodSortScreen';
 import { TermsScreen } from '../../src/screens/TermsScreen';
 import { EntitlementsScreen } from '../../src/screens/EntitlementsScreen';
 import { AccessibilityScreen } from '../../src/screens/AccessibilityScreen';
+import { AppointmentSummaryScreen } from '../../src/screens/AppointmentSummaryScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -60,6 +61,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['My Body', () => <BodyScreen />],
   ['Healthy Pregnancy', () => <HealthyScreen />],
   ['Appointments', () => <AppointmentsScreen />],
+  ['Appointment sheet', () => <AppointmentSummaryScreen />],
   ['Money, forms and deadlines', () => <EntitlementsScreen />],
   ['Get Help', () => <GetHelpScreen />],
   ['Maternity number', () => <MaternityNumberScreen />],
@@ -105,6 +107,41 @@ describe('accessibility', () => {
         <Routes>
           <Route path="/help/:symptomId" element={<UrgentDetailScreen />} />
         </Routes>
+      </MemoryRouter>,
+    );
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
+  });
+
+  // The sheet renders as an empty page in the list above, and the empty page
+  // is not the one anyone prints. The tick boxes, the dated lines and the
+  // print button only exist once something has been saved.
+  it('the appointment sheet has no axe violations with content on it', async () => {
+    window.localStorage.setItem(
+      'fieldnotes:journal',
+      JSON.stringify([
+        {
+          id: 'q1',
+          kind: 'question',
+          text: 'Is the breathlessness normal?',
+          date: '2026-09-01',
+          week: 24,
+        },
+        {
+          id: 's1',
+          kind: 'symptom',
+          text: 'Headache most afternoons',
+          date: '2026-09-02',
+          week: 24,
+        },
+        { id: 'm1', kind: 'mood', text: 'Anxious', date: '2026-09-03', week: 24 },
+        { id: 'n1', kind: 'note', text: 'Ask about the letter', date: '2026-09-03', week: 24 },
+      ]),
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    const { container } = render(
+      <MemoryRouter>
+        <AppointmentSummaryScreen />
       </MemoryRouter>,
     );
     const results = await axe(container);

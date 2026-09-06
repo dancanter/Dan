@@ -136,6 +136,12 @@ export function AppointmentsScreen() {
                 </ul>
               </div>
             )}
+            <Link
+              to="/appointments/summary"
+              className="mt-3.5 flex min-h-11 items-center border-t border-clay/25 pt-3 text-body font-semibold text-clay underline"
+            >
+              Put this on one page to take with you
+            </Link>
           </section>
         </>
       )}

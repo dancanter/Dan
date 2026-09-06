@@ -69,6 +69,11 @@ const EquityScreen = lazyRoute('EquityScreen', () =>
 const EntitlementsScreen = lazyRoute('EntitlementsScreen', () =>
   import('./screens/EntitlementsScreen').then((m) => ({ default: m.EntitlementsScreen })),
 );
+const AppointmentSummaryScreen = lazyRoute('AppointmentSummaryScreen', () =>
+  import('./screens/AppointmentSummaryScreen').then((m) => ({
+    default: m.AppointmentSummaryScreen,
+  })),
+);
 const AccessibilityScreen = lazyRoute('AccessibilityScreen', () =>
   import('./screens/AccessibilityScreen').then((m) => ({ default: m.AccessibilityScreen })),
 );
@@ -125,6 +130,7 @@ function App() {
             <Route path="/body" element={<BodyScreen />} />
             <Route path="/healthy" element={<HealthyScreen />} />
             <Route path="/appointments" element={<AppointmentsScreen />} />
+            <Route path="/appointments/summary" element={<AppointmentSummaryScreen />} />
             {/* Reachable with or without onboarding — someone worried should
             never hit a setup wall before the red-flag guidance. */}
             <Route path="/help" element={<GetHelpScreen />} />

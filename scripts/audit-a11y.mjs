@@ -1,14 +1,18 @@
 // Playwright is not a dependency of this project — it is a big install for
 // something run by hand a few times a year. Point PLAYWRIGHT_MODULE at a
 // global install if it is not resolvable locally.
-const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright').catch(() => {
+const pw = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright').catch((err) => {
   console.error(
-    'Could not load Playwright.\n' +
+    `Could not load Playwright (${err.message}).\n` +
       'Install it (npm i -D playwright && npx playwright install chromium),\n' +
-      'or point PLAYWRIGHT_MODULE at an existing install.',
+      'or point PLAYWRIGHT_MODULE at an existing install — for a global one that\n' +
+      'means the entry file, not the directory: /path/to/playwright/index.js.',
   );
   process.exit(1);
 });
+// Playwright is CommonJS, so a global install reached by absolute path arrives
+// as a default export rather than named ones. Both spellings, one line.
+const chromium = pw.chromium ?? pw.default?.chromium;
 import { readFileSync } from 'node:fs';
 
 /**
@@ -38,6 +42,7 @@ const ROUTES = [
   ['My body', '/body'],
   ['Guidance', '/healthy'],
   ['Appointments', '/appointments'],
+  ['Appointment sheet', '/appointments/summary'],
   ['Money and deadlines', '/entitlements'],
   ['Journal', '/journal'],
   ['Movements', '/movements'],
@@ -72,6 +77,41 @@ async function sweep(label, { width, height, textSize }) {
       }),
     );
     localStorage.setItem('fieldnotes:seenIntro', 'true');
+    // The journal and the appointment sheet are both mostly empty-state
+    // otherwise, and the empty state is not the one worth auditing — the
+    // sheet's print button, tick boxes and dated lines only exist once
+    // something is saved.
+    localStorage.setItem(
+      'fieldnotes:journal',
+      JSON.stringify([
+        {
+          id: 'a1',
+          kind: 'question',
+          text: 'Is the breathlessness when I climb stairs something to mention?',
+          date: '2026-09-01',
+          week: 24,
+        },
+        {
+          id: 'a2',
+          kind: 'symptom',
+          text: 'Headache most afternoons this week',
+          date: '2026-09-02',
+          week: 24,
+        },
+        { id: 'a3', kind: 'mood', text: 'Anxious', date: '2026-09-03', week: 24 },
+        {
+          id: 'a4',
+          kind: 'note',
+          text: 'Ask about the glucose test letter',
+          date: '2026-09-03',
+          week: 24,
+        },
+      ]),
+    );
+    localStorage.setItem(
+      'fieldnotes:usual-movements',
+      JSON.stringify('Busiest in the evening once I sit down, and again first thing.'),
+    );
     if (size)
       localStorage.setItem(
         'bump:accessibility',

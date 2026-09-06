@@ -73,8 +73,8 @@ export const accessibilitySections: AccessibilitySection[] = [
     body: [
       `Last measured on ${ACCESSIBILITY_MEASURED}, with a tool called axe-core.`,
       'It was run in a real browser, not a simulated one. That matters. A simulated browser cannot work out colour contrast, and this app’s worst accessibility bug hid there for weeks.',
-      '**22 screens** were checked in **four set-ups**: a small phone 320 pixels wide, an ordinary phone at 375, a phone at Extra large text, and a desktop screen. The standard also asks you to test 400% zoom, and 320 pixels is how that is done.',
-      'This page was one of the 22. It would be a poor accessibility statement that had not been checked itself.',
+      '**23 screens** were checked in **four set-ups**: a small phone 320 pixels wide, an ordinary phone at 375, a phone at Extra large text, and a desktop screen. The standard also asks you to test 400% zoom, and 320 pixels is how that is done.',
+      'This page was one of the 23. It would be a poor accessibility statement that had not been checked itself.',
       'No screen failed in any set-up. None of them scrolled sideways either.',
       'Windows high contrast and reduced motion were checked on their own, on the urgent screens. Those are the screens where getting it wrong costs most.',
       'These checks run again on every change, so a screen cannot slip back without someone noticing.',
