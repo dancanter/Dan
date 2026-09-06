@@ -30,7 +30,7 @@ export function AppHeader() {
   const tabs = TABS.filter((t) => !((hasBaby || isAfterLoss) && t.pregnancyOnly));
 
   return (
-    <header className="sticky top-0 z-50 border-b-2 border-ink bg-paper">
+    <header className="sticky top-0 z-50 border-b-2 border-ink bg-paper print:hidden">
       <div className="mx-auto max-w-[920px] px-4 pt-3">
         <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
           <div>

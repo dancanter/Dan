@@ -107,7 +107,10 @@ function App() {
   useAccessibilitySettings();
 
   return (
-    <div className="min-h-svh bg-paper">
+    // print:bg-white — the shell paints the paper colour, which would
+    // otherwise print as a full-bleed cream rectangle for anyone who has
+    // background graphics turned on in the print dialogue.
+    <div className="min-h-svh bg-paper print:bg-white">
       <SkipLink />
       {/* Above the header, so it is the first thing on every screen and not
           something you scroll past. Renders nothing unless the example data
@@ -168,7 +171,7 @@ function App() {
       </ErrorBoundary>
 
       {!onOnboarding && (
-        <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">
+        <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5 print:hidden">
           <div className="mx-auto max-w-[920px] font-mono text-meta leading-relaxed text-soft">
             {/* Laid out as a list of 44px rows rather than a run of inline
                 links separated by dots. Measured at 13px tall before this —

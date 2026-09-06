@@ -30,7 +30,7 @@ export function DemoBanner() {
   }
 
   return (
-    <div className="border-b-2 border-ink bg-ink px-4 py-2 text-paper">
+    <div className="border-b-2 border-ink bg-ink px-4 py-2 text-paper print:hidden">
       <div className="mx-auto flex max-w-[920px] flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <p className="m-0 font-mono text-meta leading-snug">
           <strong>Example data.</strong> This pregnancy is made up, so the app can be looked at

@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AppointmentSummaryScreen } from '../../src/screens/AppointmentSummaryScreen';
 import css from '../../src/index.css?raw';
+import app from '../../src/App.tsx?raw';
+import appHeader from '../../src/components/nav/AppHeader.tsx?raw';
+import demoBanner from '../../src/components/ui/DemoBanner.tsx?raw';
 
 /**
  * One sheet to take into the appointment.
@@ -109,10 +112,32 @@ describe('how it becomes a PDF', () => {
 });
 
 describe('the print stylesheet', () => {
+  const block = () => css.slice(css.indexOf('@media print'), css.indexOf('.label-mono'));
+
   it('strips the app furniture off the page', () => {
-    const print = css.slice(css.indexOf('@media print'));
-    for (const selector of ['nav', '.print\\:hidden', 'header', 'footer']) {
-      expect(print, selector).toContain(selector);
+    expect(block()).toContain('.print\\:hidden');
+    expect(block()).toMatch(/\bnav\b/);
+  });
+
+  it('hides only what is marked, never what merely looks like furniture', () => {
+    // This block once hid `header[class*='border-b']` to catch the app header.
+    // The sheet's own <header> — the title, the week, the due date — carries
+    // border-b-2 as well, so the printed page came out with no heading and no
+    // date on it, and only a real print rendered it visible.
+    const hides = block()
+      .split('}')
+      .filter((rule) => /display:\s*none/.test(rule))
+      .join(' ');
+    expect(hides).not.toMatch(/\[class\*=/);
+  });
+
+  it('marks the header, footer and demo strip at the element', () => {
+    for (const [file, source] of Object.entries({
+      'AppHeader.tsx': appHeader,
+      'App.tsx': app,
+      'DemoBanner.tsx': demoBanner,
+    })) {
+      expect(source, file).toContain('print:hidden');
     }
   });
 

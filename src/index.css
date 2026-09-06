@@ -228,6 +228,13 @@ summary:active,
  * tab bar, footer and the demo strip are all removed, the paper background
  * goes white so it does not eat a print cartridge, and blocks are kept from
  * splitting across a page break mid-question.
+ *
+ * What gets removed is marked `print:hidden` at the element, and nothing is
+ * matched by shape. An earlier version of this block hid
+ * `header[class*='border-b']` to catch the app header — and the appointment
+ * sheet's own <header> carries border-b-2 too, so the printed page came out
+ * with no title, no week and no date on it. Anything that hides content by
+ * pattern-matching Tailwind classes will eventually hide the wrong thing.
  */
 @media print {
   html {
@@ -240,10 +247,8 @@ summary:active,
     color: #000;
   }
 
-  /* Everything that is app rather than content. */
-  header[class*='border-b'],
+  /* Everything that is app rather than content — marked, not inferred. */
   nav,
-  footer[class*='border-t-2'],
   .print\:hidden {
     display: none !important;
   }
