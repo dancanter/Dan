@@ -28,6 +28,7 @@ import { CalmScreen } from '../../src/screens/CalmScreen';
 import { MythsScreen } from '../../src/screens/MythsScreen';
 import { FoodSortScreen } from '../../src/screens/FoodSortScreen';
 import { TermsScreen } from '../../src/screens/TermsScreen';
+import { EntitlementsScreen } from '../../src/screens/EntitlementsScreen';
 
 function setOnboarded() {
   window.localStorage.setItem(
@@ -58,6 +59,7 @@ const SCREENS: [string, () => React.ReactElement][] = [
   ['My Body', () => <BodyScreen />],
   ['Healthy Pregnancy', () => <HealthyScreen />],
   ['Appointments', () => <AppointmentsScreen />],
+  ['Money, forms and deadlines', () => <EntitlementsScreen />],
   ['Get Help', () => <GetHelpScreen />],
   ['Maternity number', () => <MaternityNumberScreen />],
   ['Movement journal', () => <MovementsScreen />],

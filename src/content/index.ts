@@ -47,6 +47,15 @@ import {
 
 export { sources, sourceById };
 
+export {
+  entitlements,
+  entitlementTimings,
+  entitlementsWorthRaising,
+  QUALIFYING_WEEK,
+  NATION_LABEL,
+  type Entitlement,
+  type EntitlementTiming,
+} from './entitlements';
 export * from './schema';
 export {
   SOURCE_TIER_LABEL,

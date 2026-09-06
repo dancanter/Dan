@@ -17,6 +17,7 @@ import { FocusList } from '../components/today/FocusList';
 import { FirstVisitNote } from '../components/today/FirstVisitNote';
 import { LeadRead } from '../components/today/LeadRead';
 import { WhatChanged } from '../components/today/WhatChanged';
+import { DeadlinesNote } from '../components/today/DeadlinesNote';
 import { MythCard } from '../components/today/MythCard';
 import { MidwifeQuestionCard } from '../components/today/MidwifeQuestionCard';
 import { ReadingCard } from '../components/today/ReadingCard';
@@ -206,6 +207,11 @@ export function TodayScreen() {
       {/* ── Tier one: the single thing worth knowing this week ───────────
           Everything below this is deliberately quieter. */}
       {lead && <LeadRead read={lead} alreadyRead={readGuideIds.includes(lead.id)} />}
+
+      {/* Above the week's reading, and only when something is genuinely live:
+          a notification deadline you can still meet outranks anything here
+          that is worth reading. Renders nothing most weeks. */}
+      <DeadlinesNote week={week} />
 
       {/* ── Tier two: this week's focus, and the rest of the reading ───── */}
       <SectionHeading>Worth thinking about this week</SectionHeading>

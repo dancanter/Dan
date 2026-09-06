@@ -20,6 +20,8 @@ const MAX_GRADE = 10.5;
 const MAX_MEAN_GRADE = 7.3;
 /** The urgent flow, held to the strictest bar in the app. */
 const MAX_URGENT_GRADE = 9.5;
+/** Money, forms and deadlines. Currently worst ~9.2. */
+const MAX_ENTITLEMENT_GRADE = 9.5;
 
 describe('readability', () => {
   const scores = allScores();
@@ -36,6 +38,18 @@ describe('readability', () => {
     expect(
       over.map((s) => `${s.kind}/${s.id} (${s.grade.toFixed(1)})`),
       `entries above grade ${MAX_GRADE}`,
+    ).toEqual([]);
+  });
+
+  it('holds the money and deadlines copy to a lower bar too', () => {
+    // Legal and benefits wording is where prose drifts upward without anyone
+    // noticing — "notification", "entitlement", "qualifying". Someone working
+    // out whether she can afford to take the leave is often reading it tired,
+    // and the content is useless if it reads like the form it is about.
+    const over = scores.filter((s) => s.kind === 'entitlement' && s.grade > MAX_ENTITLEMENT_GRADE);
+    expect(
+      over.map((s) => `${s.id} (${s.grade.toFixed(1)})`),
+      `entitlements above grade ${MAX_ENTITLEMENT_GRADE}`,
     ).toEqual([]);
   });
 

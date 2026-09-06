@@ -21,6 +21,7 @@ import {
   privacySections,
   calmExercises,
   calmFacts,
+  entitlements,
 } from '../src/content';
 
 /** Strips markdown emphasis so `**word**` doesn't skew the word count. */
@@ -163,6 +164,12 @@ export function allScores(): Score[] {
   for (const e of equitySections) out.push(score(e.id, 'equity', e.body.join(' ')));
   for (const a of afterLossSections) out.push(score(a.id, 'afterLoss', a.body.join(' ')));
   for (const p of privacySections) out.push(score(p.id, 'privacy', p.body.join(' ')));
+  // Money and deadlines copy is held to the same ceiling as the clinical
+  // content. Someone reading about a notice period is often doing it tired,
+  // and legal wording is exactly where prose drifts upward without anyone
+  // noticing.
+  for (const e of entitlements)
+    out.push(score(e.id, 'entitlement', [e.what, e.why, e.action, e.ifLate ?? ''].join(' ')));
   // Reader-facing prose, so it is held to the same ceilings as everything
   // else. Someone reaching this page is not in a state to parse a clause.
   for (const c of calmExercises)

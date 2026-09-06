@@ -4,6 +4,7 @@ import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
 import { MAX_WEEK, MIN_WEEK } from '../content/schema';
 import { toISODate } from '../lib/dates';
+import { seedDemo } from '../lib/demoData';
 import { Button } from '../components/ui/Button';
 
 type Mode = 'due-date' | 'current-week';
@@ -40,6 +41,13 @@ export function OnboardingScreen() {
       setCurrentWeek(week);
     }
     navigate('/today', { replace: true });
+  }
+
+  function handleLookAround() {
+    // seedDemo refuses if anything is already stored, so this cannot land on
+    // top of a real pregnancy. Reaching that branch from here would mean the
+    // profile exists, in which case App has already redirected away.
+    if (seedDemo()) navigate('/today', { replace: true });
   }
 
   const toggleClass = (active: boolean) =>
@@ -140,6 +148,22 @@ export function OnboardingScreen() {
           </Link>{' '}
           — no setup needed.
         </p>
+
+        {/* Below the fold of the real task, and quieter than it. Someone who
+            is pregnant came here to start; this is for everyone else, and it
+            should not compete with the thing they came to do. */}
+        <div className="border-t border-line pt-4">
+          <button
+            type="button"
+            onClick={handleLookAround}
+            className="min-h-11 w-full rounded-lg border border-line px-3 text-[0.875rem] font-medium text-soft"
+          >
+            Not pregnant? Look around with example data
+          </button>
+          <p className="mt-1 text-center text-[0.8125rem] text-soft">
+            Opens a made-up week 28. Clearly labelled, and one tap to clear.
+          </p>
+        </div>
 
         <p className="text-center font-mono text-[0.65625rem] leading-relaxed text-soft">
           Not a substitute for medical advice, and not clinically reviewed. It cannot check whether

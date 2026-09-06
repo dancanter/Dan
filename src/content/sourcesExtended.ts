@@ -7,6 +7,88 @@ import type { Source } from './schema';
  * behave identically.
  */
 export const extendedSources: Source[] = [
+  // ── Entitlements, money and deadlines ──────────────────────────────
+  // Timings only. Payment rates change each April, so no figure is quoted
+  // anywhere in the entitlements content — the reader is sent to the body
+  // that publishes the current rate instead of trusting a number in an app.
+  {
+    id: 'gov-maternity-leave',
+    label: 'Maternity pay and leave — notice periods and eligibility',
+    organisation: 'GOV.UK',
+    tier: 'gov',
+    url: 'https://www.gov.uk/maternity-pay-leave',
+  },
+  {
+    id: 'gov-maternity-pay',
+    label: 'Statutory Maternity Pay — qualifying week, MatB1 and evidence',
+    organisation: 'GOV.UK',
+    tier: 'gov',
+    // The employee-facing overview. The equivalent employer guidance at
+    // /employers-maternity-pay-leave is more precise about the qualifying
+    // week but is written for payroll, not for the person who is pregnant.
+    url: 'https://www.gov.uk/maternity-pay-leave',
+  },
+  {
+    id: 'gov-maternity-allowance',
+    label: 'Maternity Allowance — eligibility and form MA1',
+    organisation: 'GOV.UK / DWP',
+    tier: 'gov',
+    url: 'https://www.gov.uk/maternity-allowance',
+  },
+  {
+    id: 'gov-sure-start-grant',
+    label: 'Sure Start Maternity Grant — claim window and form SF100',
+    organisation: 'GOV.UK / DWP',
+    tier: 'gov',
+    url: 'https://www.gov.uk/sure-start-maternity-grant',
+    caveat: 'England, Wales and Northern Ireland only. Scotland runs Best Start Grant instead.',
+  },
+  {
+    id: 'gov-best-start-grant',
+    label: 'Best Start Grant — Pregnancy and Baby Payment',
+    organisation: 'Social Security Scotland / mygov.scot',
+    tier: 'gov',
+    url: 'https://www.mygov.scot/best-start-grant-best-start-foods',
+    caveat: 'Scotland only.',
+  },
+  {
+    id: 'gov-healthy-start',
+    label: 'Get help to buy food and milk (Healthy Start)',
+    organisation: 'NHS Healthy Start',
+    tier: 'gov',
+    url: 'https://www.healthystart.nhs.uk/',
+    caveat: 'England, Wales and Northern Ireland. Scotland runs Best Start Foods instead.',
+  },
+  {
+    id: 'gov-best-start-foods',
+    label: 'Best Start Foods',
+    organisation: 'Social Security Scotland / mygov.scot',
+    tier: 'gov',
+    url: 'https://www.mygov.scot/best-start-grant-best-start-foods',
+    caveat: 'Scotland only.',
+  },
+  {
+    id: 'gov-register-birth',
+    label: 'Register a birth — 42-day requirement',
+    organisation: 'GOV.UK',
+    tier: 'gov',
+    url: 'https://www.gov.uk/register-birth',
+  },
+  {
+    id: 'gov-child-benefit',
+    label: 'Child Benefit — claiming and backdating',
+    organisation: 'GOV.UK / HMRC',
+    tier: 'gov',
+    url: 'https://www.gov.uk/child-benefit',
+  },
+  {
+    id: 'nhs-maternity-exemption',
+    label: 'Free prescriptions and dental care in pregnancy (MatEx, form FW8)',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhsbsa.nhs.uk/help-nhs-prescription-costs/maternity-exemption-certificates',
+  },
+
   // ── Work, rights and legal ─────────────────────────────────────────
   {
     id: 'govuk-employee-rights',
@@ -65,6 +147,7 @@ export const extendedSources: Source[] = [
     label: 'Antenatal and hypnobirthing classes',
     organisation: 'NHS',
     tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/labour-and-birth/preparing-for-the-birth/antenatal-classes/',
   },
   {
     id: 'nct-hypnobirthing',

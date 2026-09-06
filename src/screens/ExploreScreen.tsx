@@ -61,6 +61,13 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
         blurb: 'Your antenatal timeline and what each one covers.',
         pregnancyOnly: true,
       },
+      {
+        // Not pregnancyOnly: two of these — registering the birth and Child
+        // Benefit — only start mattering once the baby has arrived.
+        to: '/entitlements',
+        label: 'Money, forms and deadlines',
+        blurb: 'Maternity pay, free prescriptions, grants and the dates they hinge on.',
+      },
     ],
   },
   {
