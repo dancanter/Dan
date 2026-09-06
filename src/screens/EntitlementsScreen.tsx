@@ -54,22 +54,22 @@ function EntitlementCard({ timing }: { timing: EntitlementTiming }) {
     >
       <div className="mb-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="label-mono text-mossd">{STATUS_LABEL[status]}</span>
-        {line && <span className="font-mono text-[0.65625rem] text-soft">{line}</span>}
+        {line && <span className="font-mono text-meta text-soft">{line}</span>}
         {/* Named on every card, not only the two that differ. An app that
             quietly assumes England is wrong for eight million people. */}
-        <span className="font-mono text-[0.65625rem] text-soft">{NATION_LABEL[e.nations]}</span>
+        <span className="font-mono text-meta text-soft">{NATION_LABEL[e.nations]}</span>
       </div>
 
-      <h3 className="font-display text-[1.0625rem] font-semibold">{e.title}</h3>
-      <p className="mt-1 text-[0.9375rem] leading-relaxed">{e.what}</p>
-      <p className="mt-2 text-[0.9375rem] leading-relaxed text-soft">{e.why}</p>
+      <h3 className="font-display text-lead font-semibold">{e.title}</h3>
+      <p className="mt-1 text-body leading-relaxed">{e.what}</p>
+      <p className="mt-2 text-body leading-relaxed text-soft">{e.why}</p>
 
-      <p className="mt-3 border-l-2 border-moss pl-3 text-[0.9375rem] font-semibold leading-relaxed">
+      <p className="mt-3 border-l-2 border-moss pl-3 text-body font-semibold leading-relaxed">
         {e.action}
       </p>
 
       {status === 'passed' && e.ifLate && (
-        <p className="mt-3 rounded-lg bg-mossp px-3 py-2 text-[0.9375rem] leading-relaxed text-mossd">
+        <p className="mt-3 rounded-lg bg-mossp px-3 py-2 text-body leading-relaxed text-mossd">
           <strong>Still open to you:</strong> {e.ifLate}
         </p>
       )}
@@ -113,7 +113,7 @@ export function EntitlementsScreen() {
       }
       width="default"
     >
-      <p className="mb-6 rounded-xl border border-line bg-card px-4 py-3 text-[0.9375rem] leading-relaxed">
+      <p className="mb-6 rounded-xl border border-line bg-card px-4 py-3 text-body leading-relaxed">
         No amounts are printed here. Payment rates change every April, and a figure sitting in an
         app is a figure going quietly out of date — so each of these links to the body that
         publishes the current one.
@@ -134,7 +134,7 @@ export function EntitlementsScreen() {
         );
       })}
 
-      <p className="mt-8 text-[0.9375rem] leading-relaxed text-soft">
+      <p className="mt-8 text-body leading-relaxed text-soft">
         This covers the schemes with a timing attached. Your rights at work — appointments, health
         and safety, and redundancy protection — are in{' '}
         <Link to="/healthy?q=work" className="font-semibold underline">

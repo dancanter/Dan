@@ -84,7 +84,7 @@ const SettingsScreen = lazyRoute('SettingsScreen', () =>
 
 function ScreenLoading() {
   return (
-    <p role="status" className="mx-auto max-w-[780px] px-4 py-10 text-[0.9375rem] italic text-soft">
+    <p role="status" className="mx-auto max-w-[780px] px-4 py-10 text-body italic text-soft">
       Loading…
     </p>
   );
@@ -163,7 +163,7 @@ function App() {
 
       {!onOnboarding && (
         <footer className="mt-11 border-t-2 border-ink px-4 pb-10 pt-5">
-          <div className="mx-auto max-w-[920px] font-mono text-[0.6875rem] leading-relaxed text-soft">
+          <div className="mx-auto max-w-[920px] font-mono text-meta leading-relaxed text-soft">
             {/* Laid out as a list of 44px rows rather than a run of inline
                 links separated by dots. Measured at 13px tall before this —
                 a target you have to aim at, on the screen someone reaches for

@@ -24,10 +24,10 @@ export function AfterLossHomeScreen() {
 
   return (
     <main id="main" className="mx-auto max-w-[680px] px-4 pt-8 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[1.5625rem] outline-none">
+      <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-h1 outline-none">
         Support after loss
       </h1>
-      <p className="mb-8 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-[0.96875rem] leading-relaxed">
+      <p className="mb-8 border-l-[3px] border-l-moss bg-mossp py-3 pl-4 pr-3 text-body leading-relaxed">
         {afterLossIntro}
       </p>
 
@@ -35,7 +35,7 @@ export function AfterLossHomeScreen() {
 
       {visible.map((section) => (
         <section key={section.id} className="mb-8">
-          <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
+          <h2 className="mb-2 text-title text-mossd">{section.title}</h2>
           <RichText paragraphs={section.body} />
           <ReadAloud
             text={`${section.title}. ${section.body.join(' ')}`}
@@ -48,7 +48,7 @@ export function AfterLossHomeScreen() {
       {guarded.map((section) =>
         openGuarded ? (
           <section key={section.id} className="mb-8">
-            <h2 className="mb-2 text-[1.1875rem] text-mossd">{section.title}</h2>
+            <h2 className="mb-2 text-title text-mossd">{section.title}</h2>
             <RichText paragraphs={section.body} />
             <ReadAloud
               text={`${section.title}. ${section.body.join(' ')}`}
@@ -61,14 +61,14 @@ export function AfterLossHomeScreen() {
             key={section.id}
             type="button"
             onClick={() => setOpenGuarded(true)}
-            className="mb-8 min-h-11 w-full rounded-lg border border-line px-4 py-3 text-[0.9375rem] text-soft"
+            className="mb-8 min-h-11 w-full rounded-lg border border-line px-4 py-3 text-body text-soft"
           >
             {section.title} — tap if you want to read this
           </button>
         ),
       )}
 
-      <div className="border-t border-line pt-6 text-[0.90625rem] text-soft">
+      <div className="border-t border-line pt-6 text-body text-soft">
         <Link to="/journal" className="underline">
           Your memories and journal
         </Link>

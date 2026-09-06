@@ -21,12 +21,12 @@ export function WhyScreen() {
       lede="What this app is for, and the things it deliberately doesn’t do."
       width="reading"
     >
-      <p className="text-[1rem] leading-relaxed">
+      <p className="text-read leading-relaxed">
         Pregnancy produces an enormous amount of advice. Not all of it is equally useful, and not
         all of it is equally well supported. A lot of it contradicts the rest, and almost none of it
         tells you where it came from.
       </p>
-      <p className="text-[1rem] leading-relaxed">
+      <p className="text-read leading-relaxed">
         This app brings together practical pregnancy guidance from trusted UK sources and
         peer-reviewed research, and shows it at the point it becomes useful. Every claim names the
         source it rests on, and you can open{' '}
@@ -55,26 +55,26 @@ export function WhyScreen() {
         ].map(([title, detail]) => (
           <li key={title} className="rounded-xl border border-line bg-card px-4 py-3">
             <p className="m-0 font-semibold">{title}</p>
-            <p className="m-0 mt-0.5 text-[0.90625rem] leading-relaxed text-soft">{detail}</p>
+            <p className="m-0 mt-0.5 text-body leading-relaxed text-soft">{detail}</p>
           </li>
         ))}
       </ul>
 
       <SectionHeading>What it’s for</SectionHeading>
-      <p className="text-[1rem] leading-relaxed">
+      <p className="text-read leading-relaxed">
         Helping you understand what matters, and know when to get help. If it saves you five minutes
         of searching, or helps you remember what to ask, or makes one urgent decision clearer, it
         has done its job — whether you open it every day or three times in nine months.
       </p>
 
       <SectionHeading>Who made it</SectionHeading>
-      <p className="text-[1rem] leading-relaxed">
+      <p className="text-read leading-relaxed">
         One person, not a hospital. It is an independent project, it is{' '}
         <strong>not clinically reviewed</strong>, and it cannot check whether you or your baby are
         well. If something feels wrong, contact your maternity unit — they would always rather hear
         from you.
       </p>
-      <p className="text-[0.90625rem] leading-relaxed text-soft">
+      <p className="text-body leading-relaxed text-soft">
         The longer, more technical version of all this — how entries are written, how sources are
         graded, what is still unverified — is on{' '}
         <Link to="/methodology" className="font-semibold underline">

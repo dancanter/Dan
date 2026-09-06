@@ -28,8 +28,8 @@ export function ReadingCard({ reads, readGuideIds }: Props) {
               <span className="label-mono mb-1 block text-clay">
                 {alreadyRead ? 'Read again' : 'Why now'}
               </span>
-              <span className="mb-1.5 block text-[0.90625rem] italic text-mossd">{why}</span>
-              <span className="flex items-center justify-between gap-2 font-display text-[1rem] font-semibold text-ink">
+              <span className="mb-1.5 block text-body italic text-mossd">{why}</span>
+              <span className="flex items-center justify-between gap-2 font-display text-read font-semibold text-ink">
                 {title}
                 <span className="font-mono text-moss" aria-hidden="true">
                   →
@@ -42,7 +42,7 @@ export function ReadingCard({ reads, readGuideIds }: Props) {
       <li>
         <Link
           to="/healthy"
-          className="inline-flex min-h-11 items-center font-mono text-[0.6875rem] text-clay underline"
+          className="inline-flex min-h-11 items-center font-mono text-meta text-clay underline"
         >
           Browse all guidance →
         </Link>

@@ -23,7 +23,7 @@ export function SourceList({ sourceIds }: { sourceIds: string[] }) {
         {resolved.map((s) => {
           const url = sourceUrl(s);
           return (
-            <li key={s.id} className="font-mono text-[0.65625rem] leading-relaxed text-soft">
+            <li key={s.id} className="font-mono text-meta leading-relaxed text-soft">
               {/* Padding on an inline link grows the hit area without changing
                   the line box — the citation rows measured 12px tall. */}
               {url ? (

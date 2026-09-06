@@ -64,11 +64,9 @@ export function FocusList({ items, week, isTicked, onToggle }: Props) {
                   {done ? 'Mark as not done' : 'Mark as done'}: {item.text}
                 </span>
               </button>
-              <span
-                className={`flex-1 text-[0.96875rem] ${done ? 'text-ink/45 line-through' : ''}`}
-              >
+              <span className={`flex-1 text-body ${done ? 'text-ink/45 line-through' : ''}`}>
                 {item.text}
-                <span className="mt-1 block font-mono text-[0.625rem] text-soft">
+                <span className="mt-1 block font-mono text-meta text-soft">
                   {shortSource(item.sourceIds)}
                 </span>
               </span>

@@ -47,7 +47,7 @@ export function SettingsScreen() {
             type="button"
             onClick={() => setTextSize(o.value)}
             aria-pressed={textSize === o.value}
-            className={`min-h-11 flex-1 rounded-lg border px-2 text-sm font-medium ${
+            className={`min-h-11 flex-1 rounded-lg border px-2 text-small font-medium ${
               textSize === o.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
             }`}
           >
@@ -59,7 +59,7 @@ export function SettingsScreen() {
       <SectionHeading>Display</SectionHeading>
       <div className="space-y-2.5">
         <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
-          <span className="text-sm font-medium">Reduce motion</span>
+          <span className="text-small font-medium">Reduce motion</span>
           <input
             type="checkbox"
             checked={reduceMotion}
@@ -68,7 +68,7 @@ export function SettingsScreen() {
           />
         </label>
         <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
-          <span className="text-sm font-medium">High contrast</span>
+          <span className="text-small font-medium">High contrast</span>
           <input
             type="checkbox"
             checked={highContrast}
@@ -80,46 +80,46 @@ export function SettingsScreen() {
 
       <SectionHeading>Install Field Notes</SectionHeading>
       {installed ? (
-        <p className="text-sm text-soft">Already installed on this device. ✅</p>
+        <p className="text-small text-soft">Already installed on this device. ✅</p>
       ) : canPromptInstall ? (
         <button
           type="button"
           onClick={promptInstall}
-          className="min-h-11 w-full rounded-lg border border-moss px-3 text-sm font-semibold text-mossd"
+          className="min-h-11 w-full rounded-lg border border-moss px-3 text-small font-semibold text-mossd"
         >
           Add to your home screen
         </button>
       ) : isIOSManualInstall ? (
-        <p className="text-sm text-soft">
+        <p className="text-small text-soft">
           On iPhone or iPad: tap the Share icon, then “Add to Home Screen”.
         </p>
       ) : (
-        <p className="text-sm text-soft">
+        <p className="text-small text-soft">
           Look for an install icon in your browser’s address bar to add Field Notes to your device.
         </p>
       )}
 
       <SectionHeading>If things have changed</SectionHeading>
-      <p className="mb-3 text-sm text-soft">
+      <p className="mb-3 text-small text-soft">
         Pause tracking, switch to support after loss, or delete your data. You won’t be asked what
         happened.
       </p>
       <Link
         to="/changed"
-        className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-3 text-sm font-semibold no-underline"
+        className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-3 text-small font-semibold no-underline"
       >
         My pregnancy has changed
       </Link>
 
       <SectionHeading>Your details</SectionHeading>
-      {dueDate && <p className="text-sm">Due date: {formatDate(dueDate)}</p>}
+      {dueDate && <p className="text-small">Due date: {formatDate(dueDate)}</p>}
       {birthDate && (
         <>
-          <p className="mt-1 text-sm">Baby’s birthday: {formatDate(birthDate)}</p>
+          <p className="mt-1 text-small">Baby’s birthday: {formatDate(birthDate)}</p>
           <button
             type="button"
             onClick={() => setBirthDate(null)}
-            className="mt-2 min-h-11 w-full rounded-lg border border-line px-3 text-sm text-soft"
+            className="mt-2 min-h-11 w-full rounded-lg border border-line px-3 text-small text-soft"
           >
             Switch back to pregnancy mode
           </button>
@@ -128,7 +128,7 @@ export function SettingsScreen() {
       <button
         type="button"
         onClick={handleReset}
-        className="mt-3 min-h-11 w-full rounded-lg border border-alert/50 px-3 text-sm font-semibold text-alert"
+        className="mt-3 min-h-11 w-full rounded-lg border border-alert/50 px-3 text-small font-semibold text-alert"
       >
         Reset my data
       </button>

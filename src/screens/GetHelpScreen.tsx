@@ -19,7 +19,7 @@ import { RichText, RichLine } from '../components/ui/RichText';
 
 function Disclaimer() {
   return (
-    <p className="mt-8 border-t border-line pt-4 text-[0.84375rem] leading-relaxed text-soft">
+    <p className="mt-8 border-t border-line pt-4 text-small leading-relaxed text-soft">
       {URGENT_DISCLAIMER}
     </p>
   );
@@ -31,16 +31,16 @@ export function GetHelpScreen() {
 
   return (
     <main id="main" className="mx-auto max-w-[640px] px-4 pt-6 pb-24">
-      <h1 ref={headingRef} tabIndex={-1} className="mb-1.5 text-[1.625rem] outline-none">
+      <h1 ref={headingRef} tabIndex={-1} className="mb-1.5 text-h1 outline-none">
         Get help
       </h1>
-      <p className="mb-5 text-[0.9375rem] text-soft">
+      <p className="mb-5 text-body text-soft">
         Tap whichever is closest to what’s happening. You will not be wasting anyone’s time.
       </p>
 
       <a
         href="tel:999"
-        className="mb-4 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-[1.0625rem] font-semibold text-alert no-underline"
+        className="mb-4 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-lead font-semibold text-alert no-underline"
       >
         Call 999 — emergency
       </a>
@@ -50,7 +50,7 @@ export function GetHelpScreen() {
           <li key={s.id} className="mb-2">
             <Link
               to={`/help/${s.id}`}
-              className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border border-line bg-card px-4 py-3 text-[1.03125rem] font-medium text-ink no-underline"
+              className="flex min-h-[56px] items-center justify-between gap-3 rounded-xl border border-line bg-card px-4 py-3 text-read font-medium text-ink no-underline"
             >
               {s.title}
               <span className="font-mono text-soft" aria-hidden="true">
@@ -63,14 +63,14 @@ export function GetHelpScreen() {
 
       <div className="mt-6 rounded-xl border border-line bg-sand px-4 py-3.5">
         {hasNumber ? (
-          <p className="m-0 text-[0.875rem]">
+          <p className="m-0 text-small">
             Your maternity unit: <strong>{unitName ?? 'saved'}</strong>.{' '}
             <Link to="/help/number" className="underline">
               Change it
             </Link>
           </p>
         ) : (
-          <p className="m-0 text-[0.875rem]">
+          <p className="m-0 text-small">
             <Link to="/help/number" className="font-semibold underline">
               Save your maternity unit’s number
             </Link>{' '}
@@ -79,10 +79,10 @@ export function GetHelpScreen() {
         )}
       </div>
 
-      <h2 className="mt-9 mb-3 text-[1.1875rem]">Also worth reading</h2>
+      <h2 className="mt-9 mb-3 text-title">Also worth reading</h2>
       {helpTopics.map((t) => (
         <details key={t.id} className="mb-2.5 rounded-xl border border-line bg-card">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 py-3 font-display text-[0.96875rem] font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 py-3 font-display text-body font-semibold [&::-webkit-details-marker]:hidden">
             {t.title}
           </summary>
           <div className="px-4 pb-3">
@@ -94,7 +94,7 @@ export function GetHelpScreen() {
 
       {/* Rows rather than a dotted run of links. These were 16px tall, on the
           screen someone reaches for when they are least able to aim. */}
-      <ul className="m-0 mt-8 list-none border-t border-line p-0 pt-2 text-[0.875rem] text-soft">
+      <ul className="m-0 mt-8 list-none border-t border-line p-0 pt-2 text-small text-soft">
         {[
           ['/loss', 'Pregnancy and baby loss'],
           ['/inequalities', 'If you don’t feel you’re being listened to'],
@@ -121,7 +121,7 @@ export function UrgentDetailScreen() {
   if (!symptom) {
     return (
       <main id="main" className="mx-auto max-w-[640px] px-4 pt-6 pb-24">
-        <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[1.5rem] outline-none">
+        <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-h1 outline-none">
           Not found
         </h1>
         <Link to="/help" className="underline">
@@ -135,22 +135,18 @@ export function UrgentDetailScreen() {
     <main id="main" className="mx-auto max-w-[640px] px-4 pt-6 pb-24">
       <Link
         to="/help"
-        className="mb-2 inline-flex min-h-11 items-center font-mono text-[0.75rem] text-soft underline"
+        className="mb-2 inline-flex min-h-11 items-center font-mono text-fine text-soft underline"
       >
         ← Get help
       </Link>
 
-      <h1
-        ref={headingRef}
-        tabIndex={-1}
-        className="mb-5 text-[1.4375rem] leading-snug outline-none"
-      >
+      <h1 ref={headingRef} tabIndex={-1} className="mb-5 text-h2 leading-snug outline-none">
         {symptom.title}
       </h1>
 
       {/* 1. What to do now — always first, always large. */}
       <h2 className="label-mono mb-2 text-mossd">What to do now</h2>
-      <p className="mb-3 text-[1.09375rem] font-medium leading-snug">{symptom.now}</p>
+      <p className="mb-3 text-lead font-medium leading-snug">{symptom.now}</p>
       <CallButton action={symptom.action} />
       {/* Action first, explanation second — the order the screen itself uses,
           so someone who taps it hears what to do before why. */}
@@ -159,7 +155,7 @@ export function UrgentDetailScreen() {
       {symptom.dont && (
         <ul className="mt-4 mb-0 list-none p-0">
           {symptom.dont.map((d) => (
-            <li key={d} className="mb-1.5 border-l-[3px] border-l-alert pl-3 text-[0.9375rem]">
+            <li key={d} className="mb-1.5 border-l-[3px] border-l-alert pl-3 text-body">
               {d}
             </li>
           ))}
@@ -168,7 +164,7 @@ export function UrgentDetailScreen() {
 
       {/* 2. Why this matters. */}
       <h2 className="label-mono mt-8 mb-2 text-mossd">Why this matters</h2>
-      <p className="m-0 text-[0.96875rem] leading-relaxed">
+      <p className="m-0 text-body leading-relaxed">
         <RichLine text={symptom.why} />
       </p>
 
@@ -176,7 +172,7 @@ export function UrgentDetailScreen() {
       {symptom.reassurance && (
         <>
           <h2 className="label-mono mt-8 mb-2 text-mossd">Worth knowing</h2>
-          <p className="m-0 rounded-r-lg border-l-[3px] border-l-moss bg-mossp px-4 py-3 text-[0.96875rem] leading-relaxed">
+          <p className="m-0 rounded-r-lg border-l-[3px] border-l-moss bg-mossp px-4 py-3 text-body leading-relaxed">
             {symptom.reassurance}
           </p>
         </>
@@ -196,14 +192,14 @@ export function MaternityNumberScreen() {
     <main id="main" className="mx-auto max-w-[640px] px-4 pt-6 pb-24">
       <Link
         to="/help"
-        className="mb-2 inline-flex min-h-11 items-center font-mono text-[0.75rem] text-soft underline"
+        className="mb-2 inline-flex min-h-11 items-center font-mono text-fine text-soft underline"
       >
         ← Get help
       </Link>
-      <h1 ref={headingRef} tabIndex={-1} className="mb-2 text-[1.5rem] outline-none">
+      <h1 ref={headingRef} tabIndex={-1} className="mb-2 text-h1 outline-none">
         Your maternity unit
       </h1>
-      <p className="mb-5 text-[0.9375rem] text-soft">
+      <p className="mb-5 text-body text-soft">
         Saved on this device only, and never sent anywhere. It works with no signal. The triage or
         labour ward number is usually on the front of your handheld notes.
       </p>
@@ -218,7 +214,7 @@ export function MaternityNumberScreen() {
           form.reset();
         }}
       >
-        <label htmlFor="unit-name" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="unit-name" className="mb-1.5 block text-small font-semibold">
           Hospital or unit name
         </label>
         <input
@@ -229,7 +225,7 @@ export function MaternityNumberScreen() {
           className="mb-4 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
         />
 
-        <label htmlFor="unit-phone" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="unit-phone" className="mb-1.5 block text-small font-semibold">
           Phone number
         </label>
         <input
@@ -244,14 +240,14 @@ export function MaternityNumberScreen() {
 
         <button
           type="submit"
-          className="min-h-[52px] w-full rounded-xl bg-ink px-4 text-[1rem] font-semibold text-paper"
+          className="min-h-[52px] w-full rounded-xl bg-ink px-4 text-read font-semibold text-paper"
         >
           Save
         </button>
       </form>
 
       {unitPhone && (
-        <p aria-live="polite" className="mt-4 text-[0.875rem] text-mossd">
+        <p aria-live="polite" className="mt-4 text-small text-mossd">
           Saved: {unitName ?? 'your unit'} — {unitPhone}
         </p>
       )}

@@ -34,30 +34,30 @@ export function MovementsScreen() {
 
   return (
     <Screen title="Movement journal" width="reading">
-      <p className="mb-4 text-[0.9375rem] leading-relaxed text-soft">
+      <p className="mb-4 text-body leading-relaxed text-soft">
         This journal helps you remember your baby’s usual pattern. It cannot check whether your baby
         is well.
       </p>
 
       {/* Permanent, unconditional, and above everything else on the screen. */}
       <div className="mb-6 rounded-xl border-2 border-alert bg-alertp px-4 py-3.5">
-        <p className="m-0 mb-2.5 text-[0.96875rem] font-semibold text-alert">
+        <p className="m-0 mb-2.5 text-body font-semibold text-alert">
           Movements feel different? Contact your maternity unit now.
         </p>
         <a
           href={hasNumber ? `tel:${dialable}` : 'tel:111'}
-          className="flex min-h-[52px] w-full items-center justify-center rounded-lg bg-alert px-4 text-[1.0625rem] font-semibold text-white no-underline"
+          className="flex min-h-[52px] w-full items-center justify-center rounded-lg bg-alert px-4 text-lead font-semibold text-white no-underline"
         >
           {hasNumber ? `Call ${unitName ?? 'your maternity unit'}` : 'Call 111'}
         </a>
-        <p className="m-0 mt-2 text-[0.8125rem] text-ink/70">
+        <p className="m-0 mt-2 text-fine text-ink/70">
           Any hour, day or night. Don’t wait to see if it changes, and don’t use a home doppler.
         </p>
       </div>
 
       <SectionHeading>Log a movement</SectionHeading>
       <fieldset className="mb-3 border-0 p-0">
-        <legend className="mb-1.5 text-sm font-semibold">What did it feel like?</legend>
+        <legend className="mb-1.5 text-small font-semibold">What did it feel like?</legend>
         <div className="flex flex-wrap gap-2">
           {MOVEMENT_KINDS.map((k) => (
             <button
@@ -65,7 +65,7 @@ export function MovementsScreen() {
               type="button"
               aria-pressed={kind === k.value}
               onClick={() => setKind(k.value)}
-              className={`min-h-11 rounded-lg border px-3.5 text-[0.875rem] font-medium ${
+              className={`min-h-11 rounded-lg border px-3.5 text-small font-medium ${
                 kind === k.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
               }`}
             >
@@ -76,7 +76,7 @@ export function MovementsScreen() {
       </fieldset>
 
       <fieldset className="mb-3 border-0 p-0">
-        <legend className="mb-1.5 text-sm font-semibold">How did it compare to usual?</legend>
+        <legend className="mb-1.5 text-small font-semibold">How did it compare to usual?</legend>
         <div className="flex flex-wrap gap-2">
           {MOVEMENT_STRENGTHS.map((s) => (
             <button
@@ -84,7 +84,7 @@ export function MovementsScreen() {
               type="button"
               aria-pressed={strength === s.value}
               onClick={() => setStrength(s.value)}
-              className={`min-h-11 rounded-lg border px-3.5 text-[0.875rem] font-medium ${
+              className={`min-h-11 rounded-lg border px-3.5 text-small font-medium ${
                 strength === s.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
               }`}
             >
@@ -94,7 +94,7 @@ export function MovementsScreen() {
         </div>
       </fieldset>
 
-      <label htmlFor="movement-note" className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor="movement-note" className="mb-1.5 block text-small font-semibold">
         Anything to remember (optional)
       </label>
       <input
@@ -112,18 +112,18 @@ export function MovementsScreen() {
           setNote('');
           setJustLogged(true);
         }}
-        className="min-h-[52px] w-full rounded-xl bg-ink px-4 text-[1rem] font-semibold text-paper"
+        className="min-h-[52px] w-full rounded-xl bg-ink px-4 text-read font-semibold text-paper"
       >
         Add to journal
       </button>
 
       {/* Confirms the record was saved. Says nothing about what it means. */}
-      <p aria-live="polite" className="mt-2 min-h-[20px] text-[0.875rem] text-mossd">
+      <p aria-live="polite" className="mt-2 min-h-[20px] text-small text-mossd">
         {justLogged ? 'Saved.' : ''}
       </p>
 
       {strength === 'faint' && (
-        <p className="mt-2 rounded-r-lg border-l-[3px] border-l-alert bg-alertp px-4 py-3 text-[0.9375rem]">
+        <p className="mt-2 rounded-r-lg border-l-[3px] border-l-alert bg-alertp px-4 py-3 text-body">
           You’ve noted this felt fainter than usual. That is worth a phone call, not a wait — use
           the button at the top of this screen.
         </p>
@@ -131,7 +131,7 @@ export function MovementsScreen() {
 
       <SectionHeading>When your baby tends to be active</SectionHeading>
       {hours.size === 0 ? (
-        <p className="text-[0.9375rem] italic text-soft">
+        <p className="text-body italic text-soft">
           Nothing logged in the last week yet. There’s no right amount to log — a few entries at
           different times of day is enough to start seeing a shape.
         </p>
@@ -144,7 +144,7 @@ export function MovementsScreen() {
             {Array.from({ length: 24 }, (_, h) => (
               <li
                 key={h}
-                className={`flex h-9 w-9 items-center justify-center rounded-md border font-mono text-[0.6875rem] ${
+                className={`flex h-9 w-9 items-center justify-center rounded-md border font-mono text-meta ${
                   hours.has(h) ? 'border-moss bg-moss text-white' : 'border-line text-soft'
                 }`}
               >
@@ -155,7 +155,7 @@ export function MovementsScreen() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[0.84375rem] italic text-soft">
+          <p className="mt-2 text-small italic text-soft">
             Hours you’ve logged something in the last 7 days. This is a memory aid, not an
             assessment — a quiet hour here means nothing on its own.
           </p>
@@ -164,7 +164,7 @@ export function MovementsScreen() {
 
       <SectionHeading>Recent entries</SectionHeading>
       {recent.length === 0 ? (
-        <p className="text-[0.9375rem] leading-relaxed text-soft">
+        <p className="text-body leading-relaxed text-soft">
           Nothing noted yet. Add one whenever you happen to notice — there’s no schedule to keep to,
           and gaps here don’t mean anything.
         </p>
@@ -175,8 +175,8 @@ export function MovementsScreen() {
               key={e.id}
               className="flex items-start justify-between gap-3 border-b border-line py-2.5"
             >
-              <span className="text-[0.9375rem]">
-                <strong className="font-mono text-[0.8125rem] text-clay">
+              <span className="text-body">
+                <strong className="font-mono text-fine text-clay">
                   {new Date(e.at).toLocaleString('en-GB', {
                     weekday: 'short',
                     hour: '2-digit',
@@ -187,12 +187,12 @@ export function MovementsScreen() {
                 {MOVEMENT_KINDS.find((k) => k.value === e.kind)?.label}
                 {', '}
                 {MOVEMENT_STRENGTHS.find((s) => s.value === e.strength)?.label?.toLowerCase()}
-                {e.note && <span className="block text-[0.875rem] text-soft">{e.note}</span>}
+                {e.note && <span className="block text-small text-soft">{e.note}</span>}
               </span>
               <button
                 type="button"
                 onClick={() => remove(e.id)}
-                className="min-h-11 shrink-0 px-2 font-mono text-[0.6875rem] text-soft underline"
+                className="min-h-11 shrink-0 px-2 font-mono text-meta text-soft underline"
               >
                 Remove
               </button>
@@ -201,7 +201,7 @@ export function MovementsScreen() {
         </ul>
       )}
 
-      <p className="mt-8 border-t border-line pt-4 text-[0.84375rem] leading-relaxed text-soft">
+      <p className="mt-8 border-t border-line pt-4 text-small leading-relaxed text-soft">
         There is no target number of movements and no need to count kicks — NHS and RCOG guidance
         are explicit about this.{' '}
         <Link to="/help/movements" className="underline">

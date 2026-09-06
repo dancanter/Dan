@@ -39,8 +39,8 @@ export function AppointmentsScreen() {
       {/* Asked here rather than in onboarding: this is the first and only
         place it changes what anyone sees. */}
       <fieldset className="mb-5 rounded-xl border border-line bg-card px-4 py-3.5">
-        <legend className="px-1 text-sm font-semibold">Is this your first pregnancy?</legend>
-        <p className="mb-2.5 text-[0.84375rem] text-soft">
+        <legend className="px-1 text-small font-semibold">Is this your first pregnancy?</legend>
+        <p className="mb-2.5 text-small text-soft">
           First pregnancies are offered a couple of extra appointments. This only tailors the
           timeline below.
         </p>
@@ -49,7 +49,7 @@ export function AppointmentsScreen() {
             type="button"
             onClick={() => setFirstPregnancy(true)}
             aria-pressed={firstPregnancy}
-            className={`min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+            className={`min-h-11 flex-1 rounded-lg border px-3 text-small font-medium ${
               firstPregnancy ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
             }`}
           >
@@ -59,7 +59,7 @@ export function AppointmentsScreen() {
             type="button"
             onClick={() => setFirstPregnancy(false)}
             aria-pressed={!firstPregnancy}
-            className={`min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+            className={`min-h-11 flex-1 rounded-lg border px-3 text-small font-medium ${
               !firstPregnancy ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
             }`}
           >
@@ -79,10 +79,10 @@ export function AppointmentsScreen() {
             className="my-4 rounded-xl border border-clay/40 bg-clayp p-4"
           >
             <span className="label-mono text-clay">Before your appointment</span>
-            <h2 id="prep-heading" className="mt-1 text-[1.1875rem]">
+            <h2 id="prep-heading" className="mt-1 text-title">
               {next.title}
             </h2>
-            <p className="m-0 text-[0.90625rem] text-soft">
+            <p className="m-0 text-body text-soft">
               Around week {next.week}
               {next.week > currentWeek
                 ? ` — about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
@@ -94,7 +94,7 @@ export function AppointmentsScreen() {
                 <p className="label-mono mb-1.5 text-clay">Things you saved to ask</p>
                 <ul className="m-0 list-none p-0">
                   {toAsk.slice(0, 4).map((q) => (
-                    <li key={q.id} className="mb-1 flex gap-2 text-[0.90625rem] leading-relaxed">
+                    <li key={q.id} className="mb-1 flex gap-2 text-body leading-relaxed">
                       <span aria-hidden="true" className="text-clay">
                         ·
                       </span>
@@ -103,7 +103,7 @@ export function AppointmentsScreen() {
                   ))}
                 </ul>
                 {toAsk.length > 4 && (
-                  <p className="mt-1.5 text-[0.84375rem] italic text-soft">
+                  <p className="mt-1.5 text-small italic text-soft">
                     and more, further down this screen.
                   </p>
                 )}
@@ -125,10 +125,10 @@ export function AppointmentsScreen() {
                         to={`/healthy?open=${r.id}`}
                         className="flex min-h-11 flex-col justify-center gap-0.5 py-1 no-underline"
                       >
-                        <span className="text-[0.90625rem] font-semibold leading-snug text-mossd underline">
+                        <span className="text-body font-semibold leading-snug text-mossd underline">
                           {r.title}
                         </span>
-                        <span className="text-[0.84375rem] leading-snug text-soft">{r.why}</span>
+                        <span className="text-small leading-snug text-soft">{r.why}</span>
                       </Link>
                     </li>
                   ))}
@@ -158,8 +158,8 @@ export function AppointmentsScreen() {
                 }`}
               />
               <span className="label-mono block font-normal text-mossd">Week {a.week}</span>
-              <span className="font-display text-[1rem] font-semibold">{a.title}</span>
-              <p className="m-0 text-sm text-soft">{a.detail}</p>
+              <span className="font-display text-read font-semibold">{a.title}</span>
+              <p className="m-0 text-small text-soft">{a.detail}</p>
             </li>
           );
         })}
@@ -183,7 +183,7 @@ export function AppointmentsScreen() {
       />
 
       <details className="mt-4 mb-3 rounded-xl border border-line bg-card">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-read font-semibold [&::-webkit-details-marker]:hidden">
           What the booking appointment actually involves
           <span className="font-mono text-moss" aria-hidden="true">
             ›
@@ -203,7 +203,7 @@ export function AppointmentsScreen() {
 
       {whereToGo && (
         <details className="mb-3 rounded-xl border border-line bg-card">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-read font-semibold [&::-webkit-details-marker]:hidden">
             {whereToGo.title}
             <span className="font-mono text-moss" aria-hidden="true">
               ›

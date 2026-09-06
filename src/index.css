@@ -22,6 +22,46 @@
   --color-alert: #8b3a3a;
   --color-alertp: #f9eaea;
   --color-line: rgba(31, 42, 31, 0.14);
+
+  /*
+   * The type scale.
+   *
+   * There were 27 distinct sizes across 297 call sites before this, and most
+   * of the surplus was not a design decision — it was arithmetic. Converting
+   * every px size to rem for the text-size control produced 0.90625rem,
+   * 0.84375rem, 1.03125rem and friends: 14.5px, 13.5px, 16.5px. Nobody chose
+   * those, and four of them sat within 1.5px of each other carrying 157 uses
+   * between them.
+   *
+   * Twelve steps now, each at least 1px from its neighbours, named for what
+   * they are rather than what they measure. Nothing moved by more than 1px
+   * except one heading used once.
+   *
+   * In rem throughout, because the in-app text size scales the root and a px
+   * size ignores it — which is how a text-size control once shipped that
+   * changed no text.
+   */
+  --text-meta: 0.6875rem; /* 11px — uppercase labels, citations */
+  --text-fine: 0.8125rem; /* 13px — footnotes, timestamps */
+  --text-small: 0.875rem; /* 14px — secondary text */
+  --text-body: 0.9375rem; /* 15px — the default */
+  --text-read: 1rem; /* 16px — long-form prose */
+  --text-lead: 1.0625rem; /* 17px — opening lines, card titles */
+  --text-title: 1.1875rem; /* 19px — section headings */
+  --text-h2: 1.375rem; /* 22px */
+  --text-h1: 1.5625rem; /* 25px — screen titles */
+  --text-hero: 1.875rem; /* 30px — onboarding */
+  --text-mega: 2.25rem; /* 36px */
+  --text-giant: 3.25rem; /* 52px — the week number */
+
+  /*
+   * Form inputs are the one deliberate exception, and they keep Tailwind's
+   * `text-base` rather than a name from this scale. iOS Safari zooms the whole
+   * page when you focus an input whose font-size is under 16px, and there is
+   * no way to decline that. So every input in the app is 1rem exactly, for a
+   * reason that has nothing to do with typography — which is why it is not
+   * pretending to be a step on this scale.
+   */
 }
 
 :root {
@@ -47,14 +87,29 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.15;
-  margin: 0 0 0.4em;
+/*
+ * In @layer base, and that is the whole point of this block.
+ *
+ * Written unlayered, this rule beat every Tailwind utility — unlayered CSS
+ * outranks anything inside a layer, and Tailwind v4 puts all utilities in
+ * one. So `margin: 0 0 0.4em` silently overrode the margin classes on 26
+ * headings across the app: `mt-8` on "Why this matters" on the urgent screen
+ * resolved to 0, and the heading sat flush against the paragraph above it.
+ * Every one of those was a deliberate spacing decision being thrown away.
+ *
+ * Nothing looked broken, which is why it survived so long. It just looked
+ * slightly, inexplicably tight, on every screen at once.
+ */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0 0 0.4em;
+  }
 }
 
 * {
@@ -162,7 +217,10 @@ summary:active,
 /* Shared "field note" typographic bits used across screens. */
 .label-mono {
   font-family: var(--font-mono);
-  font-size: 0.65625rem;
+  /* Was a hardcoded 0.65625rem — 10.5px, the last of the px-to-rem artefacts,
+     and the one place a size stayed outside the scale while being used on
+     every screen. */
+  font-size: var(--text-meta);
   letter-spacing: 0.11em;
   text-transform: uppercase;
   font-weight: 600;

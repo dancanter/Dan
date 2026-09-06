@@ -34,7 +34,7 @@ export function AppHeader() {
       <div className="mx-auto max-w-[920px] px-4 pt-3">
         <div className="flex flex-wrap items-end justify-between gap-3 pb-2">
           <div>
-            <span className="font-display text-[1.25rem] font-bold">Field Notes</span>
+            <span className="font-display text-title font-bold">Field Notes</span>
             <small className="label-mono mt-0.5 block font-normal text-mossd">
               A pregnancy guide — by Dan Canter
             </small>
@@ -56,7 +56,7 @@ export function AppHeader() {
               to={t.to}
               className={({ isActive }) =>
                 [
-                  'flex min-h-11 items-center whitespace-nowrap border-b-[3px] px-2.5 font-mono text-[0.71875rem]',
+                  'flex min-h-11 items-center whitespace-nowrap border-b-[3px] px-2.5 font-mono text-meta',
                   isActive
                     ? `border-b-current font-semibold ${t.urgent ? 'text-alert' : 'text-clay'}`
                     : `border-transparent ${t.urgent ? 'text-alert' : 'text-soft'} hover:text-ink`,

@@ -26,7 +26,7 @@ export function Note({ tone = 'plain', title, children, urgent }: NoteProps) {
   return (
     <div
       role={urgent ? 'note' : undefined}
-      className={`my-4 rounded-r-lg border-l-[3px] px-4 py-3 text-[0.90625rem] leading-relaxed ${TONE[tone]}`}
+      className={`my-4 rounded-r-lg border-l-[3px] px-4 py-3 text-body leading-relaxed ${TONE[tone]}`}
     >
       {title && <strong className={`block ${TITLE_TONE[tone]}`}>{title}</strong>}
       <div className="prose-note mt-0.5">{children}</div>

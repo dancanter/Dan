@@ -39,7 +39,7 @@ export function SaveForMidwife({
   if (already) {
     return (
       <p
-        className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-3 text-[0.84375rem] text-soft"
+        className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-3 text-small text-soft"
         // Only announce the ones saved just now — not every already-saved
         // entry on the screen, every time the list renders.
         aria-live={justSaved ? 'polite' : 'off'}
@@ -56,14 +56,14 @@ export function SaveForMidwife({
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line pt-3">
-      <span className="text-[0.84375rem] text-soft">{prompt}</span>
+      <span className="text-small text-soft">{prompt}</span>
       <button
         type="button"
         onClick={() => {
           add('question', topic, currentWeek);
           setJustSaved(true);
         }}
-        className="inline-flex min-h-11 items-center rounded-lg border border-moss bg-mossp px-3.5 text-[0.84375rem] font-semibold text-mossd transition-colors hover:bg-moss hover:text-white active:bg-moss active:text-white"
+        className="inline-flex min-h-11 items-center rounded-lg border border-moss bg-mossp px-3.5 text-small font-semibold text-mossd transition-colors hover:bg-moss hover:text-white active:bg-moss active:text-white"
       >
         Save for my midwife
       </button>

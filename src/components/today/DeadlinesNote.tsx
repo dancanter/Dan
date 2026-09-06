@@ -24,18 +24,18 @@ export function DeadlinesNote({ week }: { week: number }) {
       aria-labelledby="deadlines-note"
       className="mb-6 rounded-xl border-2 border-clay bg-card px-4 py-4"
     >
-      <h2 id="deadlines-note" className="font-display text-[1.0625rem] font-semibold">
+      <h2 id="deadlines-note" className="font-display text-lead font-semibold">
         {raising.length === 1 ? 'One thing with a deadline' : 'Two things with deadlines'}
       </h2>
-      <p className="mt-1 text-[0.875rem] text-soft">
+      <p className="mt-1 text-small text-soft">
         Paperwork rather than pregnancy — but these ones have money or legal rights attached.
       </p>
 
       <ul className="mt-3 flex list-none flex-col gap-3 p-0">
         {raising.map(({ entitlement, weeksToDeadline }) => (
           <li key={entitlement.id}>
-            <p className="m-0 text-[0.9375rem] font-semibold leading-snug">{entitlement.title}</p>
-            <p className="m-0 mt-0.5 text-[0.9375rem] leading-relaxed text-soft">
+            <p className="m-0 text-body font-semibold leading-snug">{entitlement.title}</p>
+            <p className="m-0 mt-0.5 text-body leading-relaxed text-soft">
               {weeksToDeadline === null
                 ? 'You can do this from now on.'
                 : weeksToDeadline <= 0
@@ -51,7 +51,7 @@ export function DeadlinesNote({ week }: { week: number }) {
 
       <Link
         to="/entitlements"
-        className="mt-3 inline-flex min-h-11 items-center text-[0.9375rem] font-semibold underline"
+        className="mt-3 inline-flex min-h-11 items-center text-body font-semibold underline"
       >
         All the dates, and what each one is for
       </Link>

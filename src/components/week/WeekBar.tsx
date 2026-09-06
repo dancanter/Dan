@@ -22,7 +22,7 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           onClick={() => onChange(week - 1)}
           disabled={week <= MIN_WEEK}
           aria-label="Previous week"
-          className="h-11 w-11 flex-none rounded-md border border-line bg-mossp text-lg text-mossd disabled:opacity-30 enabled:hover:bg-moss enabled:hover:text-white"
+          className="h-11 w-11 flex-none rounded-md border border-line bg-mossp text-title text-mossd disabled:opacity-30 enabled:hover:bg-moss enabled:hover:text-white"
         >
           ‹
         </button>
@@ -33,7 +33,7 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           id="week-select"
           value={week}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="h-11 min-w-0 flex-1 rounded-md border border-line bg-paper px-3 font-mono text-sm text-ink"
+          className="h-11 min-w-0 flex-1 rounded-md border border-line bg-paper px-3 font-mono text-small text-ink"
         >
           {Array.from({ length: MAX_WEEK - MIN_WEEK + 1 }, (_, i) => i + MIN_WEEK).map((w) => (
             <option key={w} value={w}>
@@ -46,7 +46,7 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           onClick={() => onChange(week + 1)}
           disabled={week >= MAX_WEEK}
           aria-label="Next week"
-          className="h-11 w-11 flex-none rounded-md border border-line bg-mossp text-lg text-mossd disabled:opacity-30 enabled:hover:bg-moss enabled:hover:text-white"
+          className="h-11 w-11 flex-none rounded-md border border-line bg-mossp text-title text-mossd disabled:opacity-30 enabled:hover:bg-moss enabled:hover:text-white"
         >
           ›
         </button>
@@ -65,7 +65,7 @@ export function WeekBar({ week, onChange, daysToGo }: WeekBarProps) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-1.5 flex justify-between font-mono text-[0.65625rem] text-soft">
+      <div className="mt-1.5 flex justify-between font-mono text-meta text-soft">
         <span>
           Week {week} of {DUE_WEEK}
         </span>

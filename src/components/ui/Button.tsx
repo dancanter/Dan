@@ -28,7 +28,7 @@ const INTENT: Record<Intent, string> = {
 };
 
 const BASE =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-[0.9375rem] font-semibold no-underline disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-body font-semibold no-underline disabled:cursor-not-allowed disabled:opacity-50';
 
 interface Common {
   intent?: Intent;

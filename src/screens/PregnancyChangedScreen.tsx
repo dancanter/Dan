@@ -79,10 +79,10 @@ export function PregnancyChangedScreen() {
           }}
           className="w-full rounded-xl border border-line bg-card px-4 py-4 text-left"
         >
-          <span className="block font-display text-[1.0625rem] font-semibold">
+          <span className="block font-display text-lead font-semibold">
             Pause everything for now
           </span>
-          <span className="mt-1 block text-[0.90625rem] text-soft">
+          <span className="mt-1 block text-body text-soft">
             Tracking and prompts stop. Nothing is deleted, and you can turn it back on whenever you
             want.
           </span>
@@ -96,10 +96,10 @@ export function PregnancyChangedScreen() {
           }}
           className="w-full rounded-xl border border-line bg-card px-4 py-4 text-left"
         >
-          <span className="block font-display text-[1.0625rem] font-semibold">
+          <span className="block font-display text-lead font-semibold">
             Change to support after loss
           </span>
-          <span className="mt-1 block text-[0.90625rem] text-soft">
+          <span className="mt-1 block text-body text-soft">
             Removes the week counter, due date, development updates and milestones. The app becomes
             a quiet place with what happens now, support, and your memories.
           </span>
@@ -119,17 +119,17 @@ export function PregnancyChangedScreen() {
           aria-controls="delete-confirm"
           className="w-full rounded-xl border border-line bg-card px-4 py-4 text-left"
         >
-          <span className="block font-display text-[1.0625rem] font-semibold">
+          <span className="block font-display text-lead font-semibold">
             Delete my pregnancy data
           </span>
-          <span className="mt-1 block text-[0.90625rem] text-soft">
+          <span className="mt-1 block text-body text-soft">
             Everything this app has saved on this device, including photos. This cannot be undone.
           </span>
         </button>
 
         <Link
           to="/today"
-          className="block w-full rounded-xl border border-line px-4 py-4 text-center text-[1rem] font-medium text-soft no-underline"
+          className="block w-full rounded-xl border border-line px-4 py-4 text-center text-read font-medium text-soft no-underline"
         >
           Nothing — go back
         </Link>
@@ -143,17 +143,17 @@ export function PregnancyChangedScreen() {
           <h2
             ref={confirmHeadingRef}
             tabIndex={-1}
-            className="mb-2 text-[1.0625rem] text-alert outline-none"
+            className="mb-2 text-lead text-alert outline-none"
           >
             Before you delete
           </h2>
-          <p className="mb-3 text-[0.9375rem] leading-relaxed">
+          <p className="mb-3 text-body leading-relaxed">
             Some people want these later, even if they don’t want them now. You can save a copy to
             your device first — nothing is sent anywhere.
           </p>
 
           {/* Says what will go, rather than "everything" and hoping. */}
-          <p className="mb-3 text-[0.90625rem] leading-relaxed">
+          <p className="mb-3 text-body leading-relaxed">
             This will delete your notes, questions, mood entries, movement journal, saved maternity
             unit and pregnancy details
             {stored && stored.photos > 0
@@ -164,7 +164,7 @@ export function PregnancyChangedScreen() {
           <button
             type="button"
             onClick={exportData}
-            className="mb-2 min-h-11 w-full rounded-lg border border-ink px-3 text-[0.9375rem] font-semibold"
+            className="mb-2 min-h-11 w-full rounded-lg border border-ink px-3 text-body font-semibold"
           >
             Save my notes and movements first
           </button>
@@ -172,7 +172,7 @@ export function PregnancyChangedScreen() {
           {/* Photos are blobs and cannot go in the JSON file, so saying "save a
               copy" without this would be a promise the export does not keep. */}
           {stored && stored.photos > 0 && (
-            <p className="mb-3 text-[0.84375rem] leading-relaxed text-soft">
+            <p className="mb-3 text-small leading-relaxed text-soft">
               That file holds your written entries. Photos aren’t in it —{' '}
               <Link to="/gallery" className="underline">
                 save them from the gallery
@@ -183,28 +183,28 @@ export function PregnancyChangedScreen() {
           <button
             type="button"
             onClick={() => void deleteEverything()}
-            className="min-h-11 w-full rounded-lg bg-alert px-3 text-[0.9375rem] font-semibold text-white"
+            className="min-h-11 w-full rounded-lg bg-alert px-3 text-body font-semibold text-white"
           >
             Delete everything permanently
           </button>
           <button
             type="button"
             onClick={() => setConfirmingDelete(false)}
-            className="mt-2 min-h-11 w-full rounded-lg px-3 text-[0.875rem] text-soft"
+            className="mt-2 min-h-11 w-full rounded-lg px-3 text-small text-soft"
           >
             Cancel
           </button>
         </div>
       )}
 
-      <p className="mt-10 border-t border-line pt-5 text-[0.875rem] leading-relaxed text-soft">
+      <p className="mt-10 border-t border-line pt-5 text-small leading-relaxed text-soft">
         This app sends no notifications and has no way to. Your due date and any anniversaries will
         pass without it saying anything.
       </p>
 
       {/* Someone arriving here after a loss had three state changes and no
           route to the support itself. */}
-      <p className="mt-4 text-[0.90625rem] leading-relaxed text-soft">
+      <p className="mt-4 text-body leading-relaxed text-soft">
         If you’ve lost a pregnancy or a baby,{' '}
         <Link to="/loss" className="font-semibold underline">
           support after loss

@@ -60,7 +60,7 @@ export function FoodLookup() {
   // same name twice.
   return (
     <section className="mb-6">
-      <label htmlFor="food-search" className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor="food-search" className="mb-1.5 block text-small font-semibold">
         Look something up
       </label>
       <input
@@ -84,11 +84,11 @@ export function FoodLookup() {
                 {/* The verdict first and largest. It is the whole answer; the
                     rest is why. */}
                 <p className="label-mono m-0">{FOOD_VERDICT_LABEL[rule.verdict]}</p>
-                <h3 className="mb-1 mt-0.5 text-[1.1875rem] text-ink">{rule.name}</h3>
-                <p className="m-0 text-[0.9375rem] leading-relaxed text-ink">{rule.note}</p>
+                <h3 className="mb-1 mt-0.5 text-title text-ink">{rule.name}</h3>
+                <p className="m-0 text-body leading-relaxed text-ink">{rule.note}</p>
                 <Link
                   to={`/healthy?open=${rule.guideId}`}
-                  className="mt-1 inline-flex min-h-11 items-center text-[0.84375rem] font-semibold text-ink underline"
+                  className="mt-1 inline-flex min-h-11 items-center text-small font-semibold text-ink underline"
                 >
                   Where this comes from
                 </Link>
@@ -100,7 +100,7 @@ export function FoodLookup() {
         {q && hits.length === 0 && (
           // Never a dead end. This list is short by design, and "not in my
           // list" must not read as "not allowed".
-          <p className="mt-3 text-[0.9375rem] leading-relaxed text-soft">
+          <p className="mt-3 text-body leading-relaxed text-soft">
             Not one of the ones people ask about most. That doesn’t mean it’s a problem — try{' '}
             <Link to={`/healthy?q=${encodeURIComponent(q)}`} className="font-semibold underline">
               searching the guidance

@@ -31,7 +31,7 @@ export function ReadAloud({ text, label = 'Read this to me' }: Props) {
     <button
       type="button"
       onClick={() => (speaking ? stop() : speak(speakable(text)))}
-      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 text-[0.90625rem] font-semibold text-ink"
+      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 text-body font-semibold text-ink"
     >
       <span aria-hidden="true">{speaking ? '■' : '▶'}</span>
       {speaking ? 'Stop reading' : label}

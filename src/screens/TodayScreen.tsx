@@ -77,21 +77,21 @@ export function TodayScreen() {
   if (isPaused) {
     return (
       <main id="main" className="mx-auto max-w-[620px] px-4 pt-10 pb-24">
-        <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-[1.5rem] outline-none">
+        <h1 ref={headingRef} tabIndex={-1} className="mb-3 text-h1 outline-none">
           Paused
         </h1>
-        <p className="mb-6 text-[0.96875rem] leading-relaxed text-soft">
+        <p className="mb-6 text-body leading-relaxed text-soft">
           Nothing is being tracked, and nothing has been deleted. Everything is exactly where you
           left it whenever you want it back.
         </p>
         <button
           type="button"
           onClick={() => setStatus('active')}
-          className="min-h-11 w-full rounded-lg border border-line px-3 text-[0.9375rem] font-semibold"
+          className="min-h-11 w-full rounded-lg border border-line px-3 text-body font-semibold"
         >
           Turn tracking back on
         </button>
-        <p className="mt-8 border-t border-line pt-5 text-[0.875rem] text-soft">
+        <p className="mt-8 border-t border-line pt-5 text-small text-soft">
           <Link to="/help" className="underline">
             Get help
           </Link>
@@ -156,15 +156,15 @@ export function TodayScreen() {
             className="absolute inset-[7px] rounded-full border border-clay opacity-40"
             aria-hidden="true"
           />
-          <b className="font-display text-[1.875rem] leading-none text-clay">{week}</b>
+          <b className="font-display text-hero leading-none text-clay">{week}</b>
           <span className="label-mono font-normal text-clay">weeks</span>
         </div>
         <div className="min-w-[min(12.5rem,100%)] flex-1">
           <p className="label-mono mb-1 text-mossd">{trimesterLabel(week)}</p>
-          <h1 ref={headingRef} tabIndex={-1} className="mb-1 text-[1.5625rem] outline-none">
+          <h1 ref={headingRef} tabIndex={-1} className="mb-1 text-h1 outline-none">
             Week {week}
           </h1>
-          <p className="m-0 text-[0.90625rem] text-soft">
+          <p className="m-0 text-body text-soft">
             {week <= 12
               ? 'Early, and a lot is happening quietly.'
               : week <= 27
@@ -174,7 +174,7 @@ export function TodayScreen() {
           {baby && (
             <Link
               to="/baby"
-              className="mt-2 inline-flex min-h-11 items-center rounded-full border border-line bg-mossp px-3.5 text-[0.84375rem] text-mossd"
+              className="mt-2 inline-flex min-h-11 items-center rounded-full border border-line bg-mossp px-3.5 text-small text-mossd"
             >
               Roughly the size of {baby.size} →
             </Link>
@@ -186,7 +186,7 @@ export function TodayScreen() {
         <button
           type="button"
           onClick={() => setViewWeek(null)}
-          className="mb-2 font-mono text-[0.6875rem] text-clay underline"
+          className="mb-2 font-mono text-meta text-clay underline"
         >
           ← Back to my week ({currentWeek})
         </button>
@@ -240,7 +240,7 @@ export function TodayScreen() {
           <Link
             key={a.label}
             to={a.to}
-            className="flex min-h-[56px] items-center justify-center rounded-xl border border-line bg-card px-3 text-center text-[0.90625rem] font-medium text-ink no-underline"
+            className="flex min-h-[56px] items-center justify-center rounded-xl border border-line bg-card px-3 text-center text-body font-medium text-ink no-underline"
           >
             {a.label}
           </Link>

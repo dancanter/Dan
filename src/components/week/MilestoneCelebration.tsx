@@ -95,10 +95,10 @@ export function MilestoneCelebration({ title, message, reduceMotionOverride, onD
           <span className="text-4xl" aria-hidden="true">
             🌱
           </span>
-          <h2 id="celebrate-title" className="mt-2 text-[1.375rem]">
+          <h2 id="celebrate-title" className="mt-2 text-h2">
             {title}
           </h2>
-          <p className="mt-1 text-[0.9375rem] text-soft">{message}</p>
+          <p className="mt-1 text-body text-soft">{message}</p>
           <Button intent="primary" onClick={onDismiss} className="mt-5" full>
             Lovely
           </Button>

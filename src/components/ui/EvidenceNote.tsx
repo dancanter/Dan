@@ -43,27 +43,25 @@ export function EvidenceNote({ sourceIds }: { sourceIds: string[] }) {
           {evidence.label}
         </span>
         {evidence.newestYear && (
-          <span className="font-mono text-[0.65625rem] text-soft">{evidence.newestYear}</span>
+          <span className="font-mono text-meta text-soft">{evidence.newestYear}</span>
         )}
         {evidence.caveats.length > 0 && (
-          <span className="font-mono text-[0.65625rem] text-clay">
+          <span className="font-mono text-meta text-clay">
             {evidence.caveats.length === 1 ? 'has a caveat' : `${evidence.caveats.length} caveats`}
           </span>
         )}
         {/* mossd, not moss: at 10.5px this needs 4.5:1 and moss gives 4.19. */}
-        <span className="ml-auto font-mono text-[0.65625rem] text-mossd underline">
-          Why we say this
-        </span>
+        <span className="ml-auto font-mono text-meta text-mossd underline">Why we say this</span>
       </summary>
 
-      <p className="mb-0 mt-2.5 text-[0.875rem] leading-relaxed text-soft">{evidence.meaning}</p>
+      <p className="mb-0 mt-2.5 text-small leading-relaxed text-soft">{evidence.meaning}</p>
 
       {evidence.caveats.length > 0 && (
         <ul className="mt-2.5 list-none p-0">
           {evidence.caveats.map((c) => (
             <li
               key={c}
-              className="mb-1.5 border-l-[3px] border-l-clay bg-clayp px-3 py-2 text-[0.84375rem] leading-relaxed"
+              className="mb-1.5 border-l-[3px] border-l-clay bg-clayp px-3 py-2 text-small leading-relaxed"
             >
               {c}
             </li>
@@ -76,7 +74,7 @@ export function EvidenceNote({ sourceIds }: { sourceIds: string[] }) {
           const url = sourceUrl(s);
           const year = sourceYear(s);
           return (
-            <li key={s.id} className="font-mono text-[0.65625rem] leading-relaxed text-soft">
+            <li key={s.id} className="font-mono text-meta leading-relaxed text-soft">
               {url ? (
                 <a href={url} target="_blank" rel="noreferrer noopener" className="underline">
                   {s.label}

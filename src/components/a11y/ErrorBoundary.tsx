@@ -38,28 +38,28 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return (
       <main id="main" className="mx-auto max-w-[620px] px-4 pt-10 pb-24">
-        <h1 className="mb-3 text-[1.5rem]">This screen didn’t load</h1>
-        <p className="mb-6 text-[0.96875rem] leading-relaxed text-soft">
+        <h1 className="mb-3 text-h1">This screen didn’t load</h1>
+        <p className="mb-6 text-body leading-relaxed text-soft">
           Something in the app broke, not anything to do with you or your pregnancy. Nothing you
           have saved has been lost.
         </p>
 
-        <p className="mb-3 text-[0.96875rem] font-medium">
+        <p className="mb-3 text-body font-medium">
           If you were looking for help with a symptom, don’t wait for this to be fixed:
         </p>
         <a
           href="tel:111"
-          className="mb-2 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-[1.0625rem] font-semibold text-alert no-underline"
+          className="mb-2 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-lead font-semibold text-alert no-underline"
         >
           Call 111
         </a>
         <a
           href="tel:999"
-          className="mb-6 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-[1.0625rem] font-semibold text-alert no-underline"
+          className="mb-6 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-lead font-semibold text-alert no-underline"
         >
           Call 999 — emergency
         </a>
-        <p className="mb-6 text-[0.90625rem] leading-relaxed text-soft">
+        <p className="mb-6 text-body leading-relaxed text-soft">
           If you have your maternity unit’s number saved on your phone, call that first — they would
           always rather hear from you.
         </p>
@@ -69,7 +69,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="min-h-11 w-full rounded-lg border border-line px-3 text-[0.9375rem] font-semibold"
+          className="min-h-11 w-full rounded-lg border border-line px-3 text-body font-semibold"
         >
           Reload the app
         </button>

@@ -38,7 +38,7 @@ export function BodyScreen() {
           has in their head ("acid", "swollen ankles") is often not the word on
           the tile. Filtering matches the description too, so it finds them. */}
       <div className="mb-4">
-        <label htmlFor="symptom-search" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="symptom-search" className="mb-1.5 block text-small font-semibold">
           What are you experiencing?
         </label>
         <input
@@ -53,7 +53,7 @@ export function BodyScreen() {
       </div>
 
       {shown.length === 0 && (
-        <p className="mb-4 text-[0.9375rem] leading-relaxed text-soft">
+        <p className="mb-4 text-body leading-relaxed text-soft">
           Nothing here matches that. This section covers the everyday symptoms — if what you’re
           feeling is sudden or severe,{' '}
           <Link to="/help" className="font-semibold text-alert underline">
@@ -70,11 +70,11 @@ export function BodyScreen() {
               type="button"
               onClick={() => choose(s.id)}
               aria-pressed={openId === s.id}
-              className={`min-h-11 w-full rounded-xl border px-2.5 py-3.5 text-center text-sm transition-transform hover:-translate-y-0.5 hover:border-moss hover:bg-mossp ${
+              className={`min-h-11 w-full rounded-xl border px-2.5 py-3.5 text-center text-small transition-transform hover:-translate-y-0.5 hover:border-moss hover:bg-mossp ${
                 openId === s.id ? 'border-moss bg-mossp' : 'border-line bg-card'
               }`}
             >
-              <span className="mb-1.5 block text-[1.375rem]" aria-hidden="true">
+              <span className="mb-1.5 block text-h2" aria-hidden="true">
                 {s.icon}
               </span>
               {s.name}
@@ -89,7 +89,7 @@ export function BodyScreen() {
           tabIndex={-1}
           className="mt-4 rounded-xl border border-line bg-card p-4 outline-none"
         >
-          <h2 className="text-[1.1875rem]">
+          <h2 className="text-title">
             <span aria-hidden="true">{selected.icon} </span>
             {selected.name}
           </h2>
@@ -101,23 +101,23 @@ export function BodyScreen() {
               and why it says what it is instead of hinting at it. */}
           <div className="my-3 rounded-lg bg-mossp px-3.5 py-3">
             <p className="label-mono mb-1 text-mossd">Why it happens</p>
-            <p className="m-0 text-[0.9375rem] leading-relaxed">{selected.why}</p>
+            <p className="m-0 text-body leading-relaxed">{selected.why}</p>
           </div>
 
           <div className="mb-3">
             <p className="label-mono mb-1 text-mossd">What may help</p>
-            <p className="m-0 text-[0.9375rem] leading-relaxed">{selected.help}</p>
+            <p className="m-0 text-body leading-relaxed">{selected.help}</p>
           </div>
 
           <div className="mb-3 rounded-lg border-l-[3px] border-l-alert bg-alertp px-3.5 py-3">
             <p className="label-mono mb-1 text-alert">When to get it checked</p>
-            <p className="m-0 text-[0.9375rem] leading-relaxed">{selected.flag}</p>
+            <p className="m-0 text-body leading-relaxed">{selected.flag}</p>
             {/* Offered on every symptom, not only the alarming ones. The
                 explorer describes the ordinary version of a thing; whether
                 this is the ordinary version is not something it can know. */}
             <Link
               to="/help"
-              className="mt-2 inline-flex min-h-11 items-center text-[0.90625rem] font-semibold text-alert underline"
+              className="mt-2 inline-flex min-h-11 items-center text-body font-semibold text-alert underline"
             >
               If this is happening right now, start here
             </Link>

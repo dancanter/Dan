@@ -51,7 +51,7 @@ export function OnboardingScreen() {
   }
 
   const toggleClass = (active: boolean) =>
-    `min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium ${
+    `min-h-11 flex-1 rounded-lg border px-3 text-small font-medium ${
       active ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
     }`;
 
@@ -61,16 +61,16 @@ export function OnboardingScreen() {
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="font-display text-[1.875rem] font-bold outline-none"
+          className="font-display text-hero font-bold outline-none"
         >
           Field Notes
         </h1>
         <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
-        <p className="mt-4 text-[0.9375rem] text-soft">
+        <p className="mt-4 text-body text-soft">
           Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
           account, no tracking — everything stays on your device.
         </p>
-        <p className="mt-2 text-[0.875rem] text-soft">
+        <p className="mt-2 text-small text-soft">
           Your due date is the only thing needed to start. Anything else is asked later, and only
           where it changes something.
         </p>
@@ -78,7 +78,7 @@ export function OnboardingScreen() {
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <fieldset className="border-0 p-0">
-          <legend className="mb-2 text-sm font-semibold">How would you like to start?</legend>
+          <legend className="mb-2 text-small font-semibold">How would you like to start?</legend>
           <div className="flex gap-2">
             <button
               type="button"
@@ -101,7 +101,7 @@ export function OnboardingScreen() {
 
         {mode === 'due-date' ? (
           <div>
-            <label htmlFor="due-date" className="mb-1 block text-sm font-semibold">
+            <label htmlFor="due-date" className="mb-1 block text-small font-semibold">
               Your due date
             </label>
             <input
@@ -115,7 +115,7 @@ export function OnboardingScreen() {
           </div>
         ) : (
           <div>
-            <label htmlFor="current-week" className="mb-1 block text-sm font-semibold">
+            <label htmlFor="current-week" className="mb-1 block text-small font-semibold">
               Current week of pregnancy
             </label>
             <input
@@ -132,7 +132,7 @@ export function OnboardingScreen() {
         )}
 
         {error && (
-          <p role="alert" className="text-sm font-semibold text-alert">
+          <p role="alert" className="text-small font-semibold text-alert">
             {error}
           </p>
         )}
@@ -141,7 +141,7 @@ export function OnboardingScreen() {
           Start
         </Button>
 
-        <p className="text-center text-[0.875rem] text-soft">
+        <p className="text-center text-small text-soft">
           Worried about something right now?{' '}
           <Link to="/help" className="font-semibold underline">
             Get help
@@ -156,16 +156,16 @@ export function OnboardingScreen() {
           <button
             type="button"
             onClick={handleLookAround}
-            className="min-h-11 w-full rounded-lg border border-line px-3 text-[0.875rem] font-medium text-soft"
+            className="min-h-11 w-full rounded-lg border border-line px-3 text-small font-medium text-soft"
           >
             Not pregnant? Look around with example data
           </button>
-          <p className="mt-1 text-center text-[0.8125rem] text-soft">
+          <p className="mt-1 text-center text-fine text-soft">
             Opens a made-up week 28. Clearly labelled, and one tap to clear.
           </p>
         </div>
 
-        <p className="text-center font-mono text-[0.65625rem] leading-relaxed text-soft">
+        <p className="text-center font-mono text-meta leading-relaxed text-soft">
           Not a substitute for medical advice, and not clinically reviewed. It cannot check whether
           you or your baby are well. Always speak to your midwife or GP about your own care.
         </p>

@@ -22,7 +22,7 @@ export function AccessibilityScreen() {
       aside={
         <Link
           to="/settings"
-          className="inline-flex min-h-11 items-center text-[0.9375rem] font-semibold underline"
+          className="inline-flex min-h-11 items-center text-body font-semibold underline"
         >
           Text size, contrast and motion settings
         </Link>

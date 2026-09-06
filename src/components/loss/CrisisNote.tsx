@@ -17,19 +17,17 @@ import { LOSS_CRISIS_NOTE } from '../../content/loss';
 export function CrisisNote() {
   return (
     <div className="mb-6 rounded-xl border-2 border-alert bg-alertp px-4 py-3.5">
-      <p className="m-0 text-[0.96875rem] font-semibold leading-relaxed">
-        {LOSS_CRISIS_NOTE.heading}
-      </p>
-      <p className="mb-3 mt-1.5 text-[0.90625rem] leading-relaxed">{LOSS_CRISIS_NOTE.body}</p>
+      <p className="m-0 text-body font-semibold leading-relaxed">{LOSS_CRISIS_NOTE.heading}</p>
+      <p className="mb-3 mt-1.5 text-body leading-relaxed">{LOSS_CRISIS_NOTE.body}</p>
       <a
         href="tel:116123"
-        className="flex min-h-11 w-full items-center justify-center rounded-lg border-2 border-alert bg-alert px-4 text-[0.96875rem] font-semibold text-white no-underline"
+        className="flex min-h-11 w-full items-center justify-center rounded-lg border-2 border-alert bg-alert px-4 text-body font-semibold text-white no-underline"
       >
         {LOSS_CRISIS_NOTE.samaritans}
       </a>
       <Link
         to="/help/mental-health"
-        className="mt-2 flex min-h-11 items-center text-[0.90625rem] font-semibold underline"
+        className="mt-2 flex min-h-11 items-center text-body font-semibold underline"
       >
         Other ways to get help now
       </Link>

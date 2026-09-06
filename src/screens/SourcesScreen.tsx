@@ -33,7 +33,7 @@ function SourceEntry({ source }: { source: Source }) {
   const uses = usesOf(source.id);
 
   return (
-    <li className="border-b border-line py-3.5 text-[0.90625rem] last:border-b-0">
+    <li className="border-b border-line py-3.5 text-body last:border-b-0">
       <span className="flex flex-wrap items-center gap-2">
         <span
           className={`label-mono inline-block rounded px-2 py-0.5 font-normal ${TIER_STYLE(source.tier)}`}
@@ -42,13 +42,13 @@ function SourceEntry({ source }: { source: Source }) {
         </span>
         {/* The year the citation itself states, never a guess. */}
         {!source.reviewed && sourceYear(source) && (
-          <span className="font-mono text-[0.6875rem] text-soft">{sourceYear(source)}</span>
+          <span className="font-mono text-meta text-soft">{sourceYear(source)}</span>
         )}
         {!url && (
           // Said plainly rather than left to be inferred from the absence of a
           // link. Someone checking a claim should know the difference between
           // "no link yet" and "nothing to check".
-          <span className="rounded bg-sand/60 px-1.5 py-0.5 font-mono text-[0.6875rem] text-soft">
+          <span className="rounded bg-sand/60 px-1.5 py-0.5 font-mono text-meta text-soft">
             not yet linked
           </span>
         )}
@@ -71,11 +71,9 @@ function SourceEntry({ source }: { source: Source }) {
         )}
         <div className="text-soft">{source.organisation}</div>
         {source.reviewed && (
-          <div className="font-mono text-[0.6875rem] text-mossd">reviewed {source.reviewed}</div>
+          <div className="font-mono text-meta text-mossd">reviewed {source.reviewed}</div>
         )}
-        {source.caveat && (
-          <em className="mt-1 block text-[0.84375rem] text-soft">{source.caveat}</em>
-        )}
+        {source.caveat && <em className="mt-1 block text-small text-soft">{source.caveat}</em>}
 
         {uses.length > 0 && (
           <div className="mt-2">
@@ -85,7 +83,7 @@ function SourceEntry({ source }: { source: Source }) {
                 <li key={u.to}>
                   <Link
                     to={u.to}
-                    className={`inline-flex min-h-11 items-center text-[0.84375rem] underline ${
+                    className={`inline-flex min-h-11 items-center text-small underline ${
                       u.urgent ? 'font-semibold text-alert' : 'text-mossd'
                     }`}
                   >
@@ -131,7 +129,7 @@ export function SourcesScreen() {
       </Note>
 
       <div className="mb-5 mt-4">
-        <label htmlFor="source-search" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="source-search" className="mb-1.5 block text-small font-semibold">
           Find a source
         </label>
         <input
@@ -153,7 +151,7 @@ export function SourcesScreen() {
               : `${matches.length} of ${sources.length}`}
           </p>
           {matches.length === 0 ? (
-            <p className="text-[0.9375rem] leading-relaxed text-soft">
+            <p className="text-body leading-relaxed text-soft">
               Try the organisation instead — most entries are listed under NHS, NICE, SACN, RCOG or
               the name of a study’s first author.
             </p>
@@ -172,10 +170,10 @@ export function SourcesScreen() {
             if (items.length === 0) return null;
             return (
               <details key={tier} className="mb-2.5 rounded-xl border border-line bg-card">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-[1rem] font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-read font-semibold [&::-webkit-details-marker]:hidden">
                   <span>
                     {SOURCE_TIER_LABEL[tier]}
-                    <span className="ml-2 font-sans text-[0.84375rem] font-normal text-soft">
+                    <span className="ml-2 font-sans text-small font-normal text-soft">
                       {items.length}
                     </span>
                   </span>
@@ -192,7 +190,7 @@ export function SourcesScreen() {
             );
           })}
 
-          <p className="mt-5 text-[0.875rem] leading-relaxed text-soft">
+          <p className="mt-5 text-small leading-relaxed text-soft">
             <strong>
               {openable} of these {sources.length} open directly
             </strong>
@@ -201,7 +199,7 @@ export function SourcesScreen() {
             link that stops working is found rather than left sitting there. The rest are named in
             full but not yet linked — a link that goes to the wrong page is worse than no link.
           </p>
-          <p className="mt-2 text-[0.875rem] leading-relaxed text-soft">
+          <p className="mt-2 text-small leading-relaxed text-soft">
             {dated} state a date. The others are standing NHS and charity pages that don’t publish
             one in the citation, and a date is never guessed to fill the gap. An old date isn’t the
             same as out of date — the oldest thing here is a 1999 set of workplace regulations,

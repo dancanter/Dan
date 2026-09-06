@@ -67,7 +67,7 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
         // words inside the circle only made the two harder to read at a
         // glance.
         <div className="mx-auto flex aspect-square w-[min(9.375rem,70vw)] items-center justify-center rounded-full border-[3px] border-moss bg-mossp">
-          <span className="font-display text-[3.25rem] leading-none text-mossd">
+          <span className="font-display text-giant leading-none text-mossd">
             {running ? left : '—'}
           </span>
         </div>
@@ -87,16 +87,14 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
             }
             className="flex aspect-square w-[58%] items-center justify-center rounded-full border-[3px] border-moss bg-mossp"
           >
-            <span className="font-display text-[2.25rem] leading-none text-mossd">
+            <span className="font-display text-mega leading-none text-mossd">
               {running ? left : '—'}
             </span>
           </span>
         </div>
       )}
 
-      <p className="mb-4 mt-3 text-[1.0625rem] font-semibold">
-        {running ? label : 'Ready when you are'}
-      </p>
+      <p className="mb-4 mt-3 text-lead font-semibold">{running ? label : 'Ready when you are'}</p>
 
       {/* Announced on each phase change, not each second — a per-second live
           region would be unusable, and the message is "breathe in now". */}
@@ -113,7 +111,7 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
       {/* No target, no goal, and nothing kept once the page closes. Stopping
           after one breath is a complete use of this. */}
       {cycles > 0 && (
-        <p className="mt-3 font-mono text-[0.6875rem] text-soft">
+        <p className="mt-3 font-mono text-meta text-soft">
           {cycles} {cycles === 1 ? 'breath' : 'breaths'} so far. Stop whenever you like — there is
           no target, and this isn’t saved.
         </p>
