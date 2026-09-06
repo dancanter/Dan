@@ -14,6 +14,7 @@ export const sources: Source[] = [
     label: 'NG201, evidence review W: Maternal sleep position during pregnancy',
     organisation: 'NICE, August 2021',
     tier: 'gov',
+    url: 'https://www.nice.org.uk/guidance/ng201',
     reviewed: 'August 2021',
   },
   {
@@ -81,9 +82,15 @@ export const sources: Source[] = [
   {
     id: 'mbrrace-2026',
     label: 'Saving Lives, Improving Mothers’ Care — UK confidential enquiry into maternal deaths',
-    organisation: 'MBRRACE-UK, 2021–2023 report (Jan 2025) and 2022–2024 report (Jan 2026)',
+    // Corrected against MBRRACE-UK's own report index. The citation used to
+    // read "2021–2023 report (Jan 2025) and 2022–2024 report (Jan 2026)":
+    // the 2021–23 report was published in September 2025, not January, and no
+    // 2022–24 report could be found. A publication date nobody checked is
+    // exactly the kind of detail that makes a real source look invented.
+    organisation: 'MBRRACE-UK, 2021–2023 report, published September 2025',
     tier: 'gov',
-    reviewed: 'January 2026',
+    url: 'https://www.npeu.ox.ac.uk/mbrrace-uk/reports/maternal-reports',
+    reviewed: 'September 2025',
     caveat:
       'The published ratios move between annual reports as the rolling three-year window shifts. Figures here are stated as ranges for that reason — check the latest report for the current numbers.',
   },
@@ -289,6 +296,7 @@ export const sources: Source[] = [
     label: 'Green-top Guideline No. 57: Reduced Fetal Movements',
     organisation: 'RCOG',
     tier: 'college',
+    url: 'https://www.rcog.org.uk/guidance/browse-all-guidance/green-top-guidelines/reduced-fetal-movements-green-top-guideline-no-57/',
   },
 
   // ── Charities ──────────────────────────────────────────────────────
@@ -311,6 +319,7 @@ export const sources: Source[] = [
     label: 'Sleep On Side',
     organisation: "Tommy's",
     tier: 'charity',
+    url: 'https://www.tommys.org/pregnancy-information/im-pregnant/sleep-side/sleep-side-pregnancy-campaign',
   },
   {
     id: 'tommys-movements',

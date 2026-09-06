@@ -102,6 +102,7 @@ export const extendedSources: Source[] = [
     label: 'Pregnancy and maternity discrimination',
     organisation: 'Acas (Equality Act 2010), updated June 2026',
     tier: 'gov',
+    url: 'https://www.acas.org.uk/pregnancy-and-maternity-discrimination',
   },
   {
     id: 'hse-pregnant-workers',
@@ -109,6 +110,7 @@ export const extendedSources: Source[] = [
     organisation:
       'HSE — Management of Health and Safety at Work Regulations 1999 (regs 16–18); Workplace Regulations 1992 (reg 25)',
     tier: 'gov',
+    url: 'https://www.hse.gov.uk/mothers/',
   },
   {
     id: 'govuk-rsv',
