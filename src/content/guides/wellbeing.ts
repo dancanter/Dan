@@ -57,6 +57,34 @@ export const wellbeingGuides: Guide[] = [
     ],
     sourceIds: ['nhs-mental-health', 'nct-emotions'],
   },
+  {
+    id: 'baby-brain',
+    section: 'wellbeing',
+    title: 'Forgetting things, and losing your thread',
+    summary: 'Measured, real, small — and it goes.',
+    body: [
+      'Losing words, walking into rooms, reading the same line four times. It is one of the most common things people say nobody warned them about, and it is usually met with a joke rather than an answer.',
+      'It has actually been measured. Researchers pooled 20 studies covering more than 1,200 pregnant women and around 1,000 who were not. On tests of general thinking, memory and planning, the pregnant groups scored slightly lower — mostly in the third trimester, and the difference between the first and second trimesters showed up too.',
+      '**Three things that measurement is not.** It is not large: the effects were small, and the researchers say they are not usually noticeable without a specific test. It is not permanent — it settles in the months after birth. And it is an average across a group, which says nothing about what you personally can do.',
+      'There is also a gap worth knowing about: in one study, mothers rated their own memory as clearly worse while the tests showed no difference at all. Feeling foggy is real whether or not a test can find it, and it does not mean anything is wrong with you.',
+      'Lists, alarms and writing things down are not a sign of losing your grip. They are what everyone does when they are carrying too much at once.',
+    ],
+    sourceIds: ['davies-2018'],
+    emphasis: 'calm',
+  },
+  {
+    id: 'waiting-for-the-scan',
+    section: 'wellbeing',
+    title: 'The wait before the first scan',
+    summary: 'Weeks of not knowing, and nothing to do with them.',
+    body: [
+      'Most people find out they are pregnant around 4 to 6 weeks. The booking appointment is usually around week 8, and the dating scan around week 12. That is often the better part of two months between knowing and seeing anything.',
+      'Nobody prepares you for that stretch. There is nothing to do in it, nothing to check, and no way to find out whether things are going well. That is exactly why it is hard, and why it is one of the most common things people say they wish they had been told.',
+      'It is not a sign of anything that it feels long. It does not mean you are anxious, ungrateful, or bonding badly. It means you have been handed enormous news and asked to wait eight weeks with it.',
+      'If the waiting is genuinely hard to carry, that is worth saying at your booking appointment rather than saving for later. It is a normal thing to raise, and the appointment is long enough to raise it in.',
+    ],
+    sourceIds: ['nhs-antenatal-care'],
+  },
 ];
 
 export const weightGuides: Guide[] = [
@@ -127,5 +155,18 @@ export const weightGuides: Guide[] = [
       'If you have a current or past experience of disordered eating, pregnancy can stir up a lot. Worth raising with your midwife early so support can be tailored to you.',
     ],
     sourceIds: ['carrard-2025'],
+  },
+  {
+    id: 'other-peoples-comments',
+    section: 'weight',
+    title: 'When people comment on your body',
+    summary: 'Strangers start doing it, and you are allowed to shut it down.',
+    body: [
+      'Something changes when you are visibly pregnant: people who would never remark on your body suddenly do. You are huge, you are tiny, are you sure it is not twins, you must be due any day. Some of it is meant warmly. It lands on you either way, several times a week, from people you cannot avoid.',
+      'The comments about size are the ones that stick, and they contradict each other — the same bump gets called enormous and worryingly small in the same afternoon. Neither is an assessment of anything. Your midwife measures growth for a reason, and a colleague’s eye is not that.',
+      'Touching without asking is the other one. You do not owe anyone access to your bump, and "I’d rather you didn’t" is a complete sentence. So is changing the subject.',
+      'If this is wearing you down more than it seems like it should, that is worth mentioning rather than filing under things to put up with. In a survey of 501 pregnant and postpartum women, those who reported more experiences of weight stigma also reported more symptoms of low mood and stress. The two travel together, which is reason enough to say it out loud rather than absorb it.',
+    ],
+    sourceIds: ['incollingo-rodriguez-2019'],
   },
 ];

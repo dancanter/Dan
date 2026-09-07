@@ -389,6 +389,24 @@ export const sources: Source[] = [
     tier: 'research',
   },
   {
+    id: 'incollingo-rodriguez-2019',
+    label: 'The psychological burden of baby weight: pregnancy, weight stigma and maternal health',
+    organisation: 'Incollingo Rodriguez AC, et al. Soc Sci Med 2019;235',
+    tier: 'research',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0277953619303879',
+    caveat:
+      'A US survey of 501 pregnant and postpartum women, measured at one point in time — it shows the experiences travel together, not that one causes the other. It is about weight stigma specifically rather than every remark a stranger makes.',
+  },
+  {
+    id: 'davies-2018',
+    label: 'Cognitive impairment during pregnancy: a meta-analysis',
+    organisation: 'Davies SJ, et al. Med J Aust 2018;208(1):35–40, PMID 29320671',
+    tier: 'research',
+    url: 'https://doi.org/10.5694/mja17.00131',
+    caveat:
+      'Measured effects are small and mostly third-trimester. The paper is about group averages on cognitive tests, not about anyone’s individual ability.',
+  },
+  {
     id: 'alves-2021',
     label: 'Resilience and Stress during Pregnancy',
     organisation: 'Alves AC, et al. ScientificWorldJournal 2021 (PMC8382548)',
