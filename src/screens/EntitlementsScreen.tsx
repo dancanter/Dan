@@ -79,13 +79,30 @@ function EntitlementCard({ timing }: { timing: EntitlementTiming }) {
   );
 }
 
+/**
+ * `passed` sits last, and it is folded.
+ *
+ * Measured at week 26: this screen ran 7.5 phone screens and 1,275 words,
+ * and "The window has moved on" was 1,293px of it — a screen and a half of
+ * deadlines already gone, fully expanded, sitting *above* the things she
+ * could still act on. On a screen about money, while pregnant.
+ *
+ * The wording of those cards was already careful. The layout was not: the
+ * least actionable thing on the page had the most of it. Nothing is removed
+ * — several of these keep a route open after the date passes, which is
+ * exactly why they must stay reachable — but they open on a tap now, and
+ * they come after what is still ahead.
+ */
 const ORDER: EntitlementTiming['status'][] = [
   'closing-soon',
   'open-now',
   'anytime',
-  'passed',
   'later',
+  'passed',
 ];
+
+/** Folded rather than dropped: gone deadlines are reference, not an agenda. */
+const FOLDED: EntitlementTiming['status'][] = ['passed'];
 
 const GROUP_HEADING: Record<EntitlementTiming['status'], string> = {
   'closing-soon': 'Worth doing soon',
@@ -122,15 +139,39 @@ export function EntitlementsScreen() {
       {ORDER.map((status) => {
         const group = timings.filter((t) => t.status === status);
         if (group.length === 0) return null;
+        const list = (
+          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+            {group.map((t) => (
+              <EntitlementCard key={t.entitlement.id} timing={t} />
+            ))}
+          </ul>
+        );
+
+        if (!FOLDED.includes(status)) {
+          return (
+            <section key={status} className="mb-8">
+              <SectionHeading>{GROUP_HEADING[status]}</SectionHeading>
+              {list}
+            </section>
+          );
+        }
+
         return (
-          <section key={status} className="mb-8">
-            <SectionHeading>{GROUP_HEADING[status]}</SectionHeading>
-            <ul className="m-0 flex list-none flex-col gap-3 p-0">
-              {group.map((t) => (
-                <EntitlementCard key={t.entitlement.id} timing={t} />
-              ))}
-            </ul>
-          </section>
+          <details key={status} className="mb-8">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 border-t border-line pt-3 [&::-webkit-details-marker]:hidden">
+              <span className="label-mono text-soft">{GROUP_HEADING[status]}</span>
+              {/* Says what is inside without making it a thing to feel behind
+                  on — a count of schemes, not a count of things not done. */}
+              <span className="font-mono text-meta text-soft underline">
+                {group.length} to look at
+              </span>
+            </summary>
+            <p className="mb-3 mt-3 text-small leading-relaxed text-soft">
+              A date passing does not always close a scheme. Where there is still a way through, it
+              is on the card.
+            </p>
+            {list}
+          </details>
         );
       })}
 

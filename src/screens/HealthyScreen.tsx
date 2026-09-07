@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useProgress } from '../hooks/useProgress';
+import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
 import {
   GUIDE_SECTIONS,
   GUIDE_PHASES,
@@ -10,6 +11,7 @@ import {
   searchSymptoms,
   urgentMatchFor,
   type Guide,
+  type GuidePhase,
 } from '../content';
 import { Screen } from '../components/ui/Screen';
 import { EvidenceNote } from '../components/ui/EvidenceNote';
@@ -105,8 +107,30 @@ function GuideCard({
   );
 }
 
+/**
+ * Which phase is open when you arrive.
+ *
+ * Measured before this existed: the four phases rendered open, one after
+ * another, and the pregnancy group alone was 5,941px — seven phone screens
+ * of collapsed card headers before the next heading. 111 entries is the
+ * right amount of guidance and the wrong amount of scrolling.
+ *
+ * Nothing is removed. One phase is open, the other three are a tap, and the
+ * app already knows enough to pick the right one rather than asking.
+ */
+function phaseForStage(week: number | null, hasBaby: boolean): GuidePhase {
+  if (hasBaby) return 'after';
+  // 36 weeks is when the birth plan conversation actually happens at an
+  // antenatal appointment, so it is when birth guidance stops being reading
+  // ahead and starts being the thing in front of you.
+  if (week !== null && week >= 36) return 'birth';
+  return 'pregnancy';
+}
+
 export function HealthyScreen() {
   const { markGuideRead, readGuideIds } = useProgress();
+  const { currentWeek, hasBaby } = usePregnancyProfile();
+  const openPhase = phaseForStage(currentWeek, hasBaby);
   const [params] = useSearchParams();
   // `?q=` lets another screen hand its query over — the food lookup sends
   // anything not in its short list here rather than to a dead end.
@@ -254,28 +278,51 @@ export function HealthyScreen() {
       )}
 
       {!q &&
-        phases.map((phase) => (
-          <section key={phase.id} className="mb-9">
-            <div className="mb-4 border-b-2 border-ink pb-1.5">
-              <h2 className="mb-0.5 text-h2">{phase.label}</h2>
-              <p className="m-0 text-small italic text-mossd">{phase.blurb}</p>
-            </div>
-            {phase.sections.map((section) => (
-              <section key={section.id} className="mb-7">
-                <h3 className="mb-1 text-title text-mossd">{section.label}</h3>
-                <p className="mb-3 text-small text-soft">{section.blurb}</p>
-                {section.items.map((g) => (
-                  <GuideCard
-                    key={g.id}
-                    guide={g}
-                    onOpen={markGuideRead}
-                    defaultOpen={g.id === openId}
-                  />
-                ))}
-              </section>
-            ))}
-          </section>
-        ))}
+        phases.map((phase) => {
+          const count = phase.sections.reduce((n, s) => n + s.items.length, 0);
+          return (
+            <details
+              key={phase.id}
+              open={
+                phase.id === openPhase ||
+                phase.sections.some((s) => s.items.some((g) => g.id === openId))
+              }
+              className="mb-9"
+            >
+              <summary className="mb-4 flex min-h-11 cursor-pointer list-none items-baseline justify-between gap-3 border-b-2 border-ink pb-1.5 [&::-webkit-details-marker]:hidden">
+                {/* A real <h2>, not a styled span. The section headings below
+                    are <h3>, so dropping the level here left them following
+                    the screen's <h1> with nothing in between — axe caught it
+                    as an invalid heading order, which is exactly what a
+                    screen reader user navigating by heading would hit.
+                    <summary> takes heading content by spec. */}
+                <span>
+                  <h2 className="mb-0.5 text-h2">{phase.label}</h2>
+                  <span className="block text-small italic text-mossd">{phase.blurb}</span>
+                </span>
+                {/* What is inside, so the fold is a decision rather than a
+                    guess. Not a progress count — nothing here is a task. */}
+                <span className="shrink-0 font-mono text-meta text-soft">
+                  {count} {count === 1 ? 'entry' : 'entries'}
+                </span>
+              </summary>
+              {phase.sections.map((section) => (
+                <section key={section.id} className="mb-7">
+                  <h3 className="mb-1 text-title text-mossd">{section.label}</h3>
+                  <p className="mb-3 text-small text-soft">{section.blurb}</p>
+                  {section.items.map((g) => (
+                    <GuideCard
+                      key={g.id}
+                      guide={g}
+                      onOpen={markGuideRead}
+                      defaultOpen={g.id === openId}
+                    />
+                  ))}
+                </section>
+              ))}
+            </details>
+          );
+        })}
     </Screen>
   );
 }
