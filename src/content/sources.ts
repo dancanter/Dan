@@ -49,6 +49,20 @@ export const sources: Source[] = [
     url: 'https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/',
   },
   {
+    id: 'nhs-signs-of-pregnancy',
+    label: 'Signs and symptoms of pregnancy',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/trying-for-a-baby/signs-and-symptoms-of-pregnancy/',
+  },
+  {
+    id: 'tommys-emotional-changes',
+    label: 'Emotional changes in pregnancy',
+    organisation: 'Tommy’s',
+    tier: 'charity',
+    url: 'https://www.tommys.org/pregnancy-information/im-pregnant/mental-wellbeing/emotional-changes-pregnancy',
+  },
+  {
     id: 'nhs-dairy',
     label: 'Milk and dairy foods — Eatwell Guide',
     organisation: 'NHS',
