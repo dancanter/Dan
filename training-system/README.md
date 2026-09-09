@@ -63,7 +63,9 @@ rebuilt to match the 2025 block that actually produced the PBs. Nothing is
 assigned to a day: every day starts empty and you record what you did, on
 whatever day you did it. The targets are counted over a **trailing seven days** —
 **two to three effort sessions**, one 5–8 × 100m sprint day, and four to five gym
-sessions — so four sessions one week and two the next is the same plan, not a
+sessions. The bars read as bands — `of 2–3`, `of 4–5` — and fill to the bottom of
+the band, because two is the number that means the week happened and the third
+is allowed rather than owed — so four sessions one week and two the next is the same plan, not a
 failure. The readout names the runs and the gym sessions together, and says how
 many of the runs were efforts.
 

@@ -1953,7 +1953,7 @@ function renderSuggest() {
    days running, or feeling flat, means the week becomes sprints or rest. */
 /* Two to three a week, counted across any trailing seven days. The bar reads
    against the top of that band so three never shows as an overshoot. */
-var EFFORT_TARGET = 3;
+var EFFORT_TARGET = 3, EFFORT_FLOOR = 2;
 var HR_DELOAD_OVER = 8;
 function autoDeloadFlag() {
   var base = hrBaseline(), hs = hrSorted();
@@ -2135,12 +2135,16 @@ function rollingLoad(days) {
   });
   return out;
 }
-function loadBar(label, n, target, note) {
-  var pct = Math.max(0, Math.min(1, n / target));
-  var hit = n >= target;
+/* A target can be a band. The bar fills to the bottom of it, because two is
+   the number that means the week happened — the third is allowed, not owed. */
+function loadBar(label, n, target, note, low) {
+  var floor = low || target;
+  var pct = Math.max(0, Math.min(1, n / floor));
+  var hit = n >= floor;
+  var show = low && low !== target ? low + "–" + target : "~" + target;
   return '<div class="bench">' +
     '<div class="bench-top"><span class="bench-name">' + label + " <em>" + note + "</em></span>" +
-    '<span class="bench-now">' + n + '<span class="to-go"> of ~' + target + "</span></span></div>" +
+    '<span class="bench-now">' + n + '<span class="to-go"> of ' + show + "</span></span></div>" +
     '<div class="bar"><div class="bar-fill' + (hit ? " hit" : "") + '" style="width:' + (pct * 100).toFixed(0) + '%"></div></div></div>';
 }
 /* The window slides a day at a time rather than resetting on a Sunday, so
@@ -2323,10 +2327,10 @@ function renderRolling() {
   /* A 200m session is a hard effort in its own right and it also does the job
      the 100s do, so it covers the low day rather than adding to it. */
   var lows = w.low + w.bonus, sprintCovered = w.s200 > 0 && !lows;
-  var bars = loadBar("Effort", w.effort, EFFORT_TARGET, "all out, your pick of format") +
+  var bars = loadBar("Effort", w.effort, EFFORT_TARGET, "all out, your pick of format", EFFORT_FLOOR) +
     loadBar("Sprints", sprintCovered ? 1 : lows, 1,
       sprintCovered ? "covered by your 200m session" : "5–8 × 100m, the low day") +
-    loadBar("Gym", w.gym, 4, "4 main, a 5th optional");
+    loadBar("Gym", w.gym, 5, "the running works around this", 4);
   var total = w.runs;
   var inBand = w.effort >= 2 && w.effort <= 3;
   var runs = '<div class="note ' + (inBand ? "good" : "flat") + '" style="margin-top:12px">' +
