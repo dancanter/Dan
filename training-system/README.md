@@ -253,6 +253,54 @@ refeed inside four days explains the scale before anything else is diagnosed.
 sprints if the legs feel fresh and brisk walking or rest otherwise. If the week has already had quality in
 it, the effort is struck through and marked spent.
 
+**The Cut** — a bounded window on the Progress tab, opening 15 September and
+closing on 1 November whatever happens. The start line is **whatever you first
+weigh on or after the opening date**, not a number set in advance, because the
+weight you come back from a trip at is not knowable beforehand. From there it
+reports the loss, the days left, and the rate against a **0.5–1% of bodyweight a
+week** band, with the reason attached: under the band is not a stall and is
+never answered with fewer calories; over it means part of what is leaving is
+muscle and glycogen, and the answer is to eat more. It projects the landing
+range on 1 November from the safe band rather than from wishful arithmetic.
+
+It also refuses to name a lowest safe weight, because that number does not exist
+without height and body fat, and the scale keeps moving long after the point
+where it stops being worth it. The floor is stated as a set of markers instead —
+morning HR drifting up, strength dropping rather than stalling, sprint times
+going backwards at unchanged effort, sleep breaking, libido gone, always cold —
+and two or three of those together is the bottom whatever the number says.
+
+**Potassium** — a daily target on the Nutrition tab: 3,500 mg floor, 4,700 mg
+ideal, against a typical intake of 2,000–2,500. It matters more on a cut than
+off one, since glycogen binds potassium and a cut drains both, and it is what
+balances sodium — which is the whole of the watery-feeling question for someone
+salting once a day and not sweating much. The section carries a food table
+(a large baked potato with the skin on is ~1,600 mg and closes most gaps alone)
+and one hard rule: **food only, no potassium tablets**, since supplements are
+capped at 99 mg a tablet because a large single dose can trigger an arrhythmia.
+
+**Reversing** now leads with guidance rather than the ladder. It states the
+target — 0.25 lb of muscle a month, which is near the ceiling for someone
+already trained, on a surplus of about 125 kcal a day — and then the three
+things that go wrong for someone who has never done it:
+
+- **The scale jumps 2–4 lb in the first fortnight and none of it is fat.**
+  Glycogen carries about three parts water per part stored. Neither muscle nor
+  fat moves that fast on 125 spare calories. This is where people panic and cut
+  again; the section says not to judge it before week three.
+- **The puffy face is aldosterone, not fat.** Weeks of restriction up-regulate
+  sodium retention and it does not switch off on day one. The protocol is: raise
+  carbs without raising salt, keep potassium up *through* the reverse, do not
+  cut water (that raises vasopressin and makes it worse), keep steps and sleep.
+- **The slow ramp does not repair your metabolism.** Eating more does, and that
+  happens on a fast ramp too. The ramp limits fat regain and keeps the water
+  swing manageable, which are good enough reasons — but the section says what
+  you are actually buying rather than repeating the claim.
+
+Two numbers decide whether the surplus is too big, after the water settles:
+more than 0.5 lb a week, or a moving waist. At 0.25 lb a month the scale should
+barely show it, and that is the point.
+
 **Calisthenics** — the optional fifth session, treated as records rather than a
 workout. Three formats: 40 minutes of max push-ups and pull-ups, max push-ups in
 one set, max pull-ups in one set. Each carries its best, and logging one says

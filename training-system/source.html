@@ -470,6 +470,18 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       </div>
       <p class="block-sub" style="margin-top:8px">Clears the weight history so a new run reads cleanly from day one. The old entries are archived rather than deleted, and stay in your backup file.</p>
     </section>
+    <section class="block" data-fold="cut">
+      <h2 class="block-title">The Cut <span class="tag" id="cutTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div id="cutBox"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="add-row" style="margin-top:0;align-items:center">
+          <label class="chart-title" for="cutStartInput" style="min-width:78px">Starts</label>
+          <input type="date" id="cutStartInput">
+          <button class="btn primary" id="cutStartBtn">Set</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Whatever you first weigh on or after this date becomes the start line. Nothing before it counts.</p>
+      </div>
+    </section>
     <section class="block" data-fold="hr">
       <h2 class="block-title">Morning Heart Rate</h2>
       <p class="block-sub">Taken on waking, before getting up. A jump of 5+ bpm above your normal is an early overtraining warning — usually days before you feel it.</p>
@@ -681,7 +693,16 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <input type="text" id="stepsToday" inputmode="numeric" placeholder="Steps today" style="width:130px">
         <button class="btn primary" id="stepsTodayBtn">Log</button>
       </div>
+      <div class="add-row" style="align-items:center">
+        <input type="text" id="kToday" inputmode="numeric" placeholder="Potassium, mg" style="width:130px">
+        <button class="btn primary" id="kTodayBtn">Log</button>
+      </div>
       <div id="kcalOut" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block" data-fold="potassium">
+      <h2 class="block-title">Potassium <span class="tag" id="kTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div id="kOut"></div>
     </section>
 
     <section class="block">
@@ -733,6 +754,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">Reversing <span class="tag" id="revTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <div id="revLock"></div>
       <div id="revBody">
+      <div id="revGuide"></div>
       <p class="block-sub">Protein and fat do not move. Every calorie you add back is a carb. <b>Add one unit, hold 4–5 days, check the average, add the next.</b></p>
       <div id="stageList" style="margin-bottom:14px"></div>
 
@@ -4319,6 +4341,87 @@ function kcalSeries(days) {
   return out;
 }
 function targetKcal() { return settings.intake || settings.kcal || 1800; }
+
+/* 3,500mg is the floor most guidelines set and 4,700mg the figure the evidence
+   actually points at. Typical intake is 2,000-2,500, so this is a real gap
+   rather than a rounding error. It matters more on a cut than off one: glycogen
+   binds potassium, so losing glycogen loses potassium with it, and potassium is
+   what balances sodium — which is the whole of the watery-feeling question. */
+var K_FLOOR = 3500, K_GOOD = 4700;
+function logK(v) {
+  todayState.k = v;
+  DB.set(dailyKey(new Date()), todayState);
+  $("kToday").value = "";
+  renderK();
+}
+function kSeries(days) {
+  var out = [], now = new Date();
+  for (var i = days - 1; i >= 0; i--) {
+    var d = new Date(now.getTime() - i * 86400000);
+    var st = DB.get(dailyKey(d), null);
+    if (st && isFinite(parseFloat(st.k))) out.push({ date: dayStr(d), v: parseFloat(st.k) });
+  }
+  return out;
+}
+var K_FOODS = [
+  ["Baked potato, large, skin on", 1600], ["White beans, 1 cup", 1000],
+  ["Sweet potato, large", 950], ["Spinach, cooked, 1 cup", 840],
+  ["Avocado", 700], ["Salmon fillet", 600], ["Passata or tomato, 1 cup", 500],
+  ["Natural yoghurt, 200g", 440], ["Banana", 420], ["Beetroot, 1 cup", 520]
+];
+function renderK() {
+  var el = $("kOut"); if (!el) return;
+  var tag = $("kTag");
+  var ser = kSeries(7), t = todayState && isFinite(parseFloat(todayState.k)) ? parseFloat(todayState.k) : null;
+  var av = ser.length ? avg(ser.map(function (x) { return x.v; })) : null;
+  if (tag) tag.textContent = t == null ? "not logged" : Math.round(t).toLocaleString() + " mg today";
+
+  var bar = '<div class="bench"><div class="bench-top"><span class="bench-name">Today <em>3,500 floor, 4,700 ideal</em></span>' +
+    '<span class="bench-now">' + (t == null ? "—" : Math.round(t).toLocaleString()) +
+    '<span class="to-go"> of 3,500</span></span></div>' +
+    '<div class="bar"><div class="bar-fill' + (t != null && t >= K_FLOOR ? " hit" : "") +
+    '" style="width:' + (t == null ? 0 : Math.min(100, t / K_FLOOR * 100).toFixed(0)) + '%"></div></div></div>';
+
+  var verdict;
+  if (av == null) {
+    verdict = '<div class="note flat" style="margin-top:10px"><b>Nothing logged yet</b>' +
+      "Put the day's total in above. You do not need it to the milligram — the table below gets you close enough, " +
+      "and the point is whether you are near 3,500 or nearer 2,000.</div>";
+  } else if (av >= K_GOOD) {
+    verdict = '<div class="note good" style="margin-top:10px"><b>' + Math.round(av).toLocaleString() +
+      " mg a day over " + ser.length + " day" + (ser.length === 1 ? "" : "s") + "</b>" +
+      "Above the 4,700 the evidence actually points at. Nothing to add.</div>";
+  } else if (av >= K_FLOOR) {
+    verdict = '<div class="note good" style="margin-top:10px"><b>' + Math.round(av).toLocaleString() +
+      " mg a day over " + ser.length + " day" + (ser.length === 1 ? "" : "s") + "</b>" +
+      "Past the 3,500 floor. " + Math.round(K_GOOD - av).toLocaleString() +
+      " mg more gets you to the figure the evidence points at — a potato with the skin on covers most of it.</div>";
+  } else {
+    verdict = '<div class="note warn" style="margin-top:10px"><b>' + Math.round(av).toLocaleString() +
+      " mg a day — " + Math.round(K_FLOOR - av).toLocaleString() + " mg short</b>" +
+      "One large baked potato with the skin on is about 1,600 mg and closes most gaps on its own. " +
+      "It is a carb source you are eating on hard days anyway, so it costs you nothing in the macro band.</div>";
+  }
+
+  var tbl = '<div class="card tbl-scroll" style="padding:4px 12px;margin-top:10px"><table class="ref">' +
+    "<thead><tr><th>Food</th><th>Potassium</th></tr></thead><tbody>" +
+    K_FOODS.map(function (f) {
+      return "<tr><td>" + f[0] + '</td><td class="hl">' + f[1].toLocaleString() + " mg</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  var safety = '<div class="note stop" style="margin-top:10px"><b>Food only — no potassium tablets</b>' +
+    "Potassium supplements are capped at 99 mg a tablet in most countries because a large dose taken at once can " +
+    "trigger a heart rhythm problem. Food releases it slowly and cannot do that. " +
+    "This is one target to hit entirely from the plate.</div>";
+
+  var why = '<div class="note flat" data-detail style="margin-top:10px"><b>Why it matters more on a cut</b>' +
+    "Glycogen binds potassium, so a cut drains it twice over — less food and less glycogen. It is also what " +
+    "balances sodium, which is the whole of the watery question: you are salting once a day and not sweating much, " +
+    "so the ratio is doing the work rather than the salt. And it carries straight into the reverse, where it is the " +
+    "direct counter to the fluid retention that puffs faces.</div>";
+
+  el.innerHTML = bar + verdict + tbl + safety + why;
+}
 function stepsSeries(days) {
   var out = [], now = new Date();
   for (var k = days - 1; k >= 0; k--) {
@@ -4990,6 +5093,121 @@ function saveReflection() {
    touched once — or 1 November, whichever comes first. Reading step ladders
    while still cutting is how a cut turns into a slow, permanent reverse. */
 var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-01";
+var CUT_START_DEFAULT = "2026-09-15";
+/* 0.5-1% of bodyweight a week. Below the floor is barely worth the hunger;
+   above the ceiling stops being fat and starts being muscle and glycogen, which
+   you hand straight back on the reverse. */
+var CUT_RATE_LOW = 0.005, CUT_RATE_HIGH = 0.01;
+function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
+function fmtDate(iso) {
+  var d = parseDay(iso);
+  return d ? d.toLocaleDateString([], { day: "numeric", month: "long" }) : iso;
+}
+/* The start line is whatever you first weigh on or after the day you begin,
+   because you do not know today what you will come back from Rome at. */
+function cutStatus() {
+  var start = cutStart(), asc = sortedWeights();
+  var todayD = parseDay(today()), startD = parseDay(start), endD = parseDay(REVERSE_DEADLINE);
+  var out = { start: start, startsIn: daysBetween(todayD, startD),
+    daysLeft: daysBetween(todayD, endD), weeksLeft: daysBetween(todayD, endD) / 7,
+    total: daysBetween(startD, endD) / 7 };
+  if (out.startsIn > 0) return out;
+  var inWindow = asc.filter(function (w) { return w.date >= start; });
+  if (!inWindow.length) return out;
+  out.first = inWindow[0];
+  out.days = daysBetween(parseDay(out.first.date), todayD);
+  var wr = weeklyRate();
+  out.cur = wr && wr.cur ? wr.cur : inWindow[inWindow.length - 1].weight;
+  out.lost = out.first.weight - out.cur;
+  out.rate = wr && wr.ready ? -wr.perWeek : null;
+  out.band = [out.cur * CUT_RATE_LOW, out.cur * CUT_RATE_HIGH];
+  out.range = [out.cur - out.band[1] * out.weeksLeft, out.cur - out.band[0] * out.weeksLeft];
+  return out;
+}
+function renderCut() {
+  var el = $("cutBox"); if (!el) return;
+  var c = cutStatus(), tag = $("cutTag");
+  var f1 = function (x) { return x.toFixed(1); };
+  if (tag) tag.textContent = c.startsIn > 0 ? "starts in " + c.startsIn + " days"
+    : c.daysLeft > 0 ? c.daysLeft + " days left" : "over";
+  var band = '<div class="note flat" style="margin-top:10px"><b>What a safe rate is</b>' +
+    "0.5–1% of bodyweight a week. Slower than that is barely worth the hunger. Faster stops being fat: " +
+    "past about 1% the extra comes out of muscle and glycogen, and you hand it straight back on the reverse, " +
+    "which is the opposite of what these seven weeks are for.</div>";
+
+  if (c.startsIn > 0) {
+    el.innerHTML = '<div class="note good"><b>Starts ' + fmtDate(c.start) + ", in " + c.startsIn + " days</b>" +
+      "Rome first. Nothing you weigh before then counts — whatever you log on or after that day becomes the start line, " +
+      "so you do not have to know now what you will come back at. " +
+      '<span style="color:var(--chalk);font-weight:600">' + c.total.toFixed(1) + " weeks from then to 1 November</span>, " +
+      "which at a safe rate is about 4–8 lb.</div>" + band;
+    return;
+  }
+  if (!c.first) {
+    el.innerHTML = '<div class="note warn"><b>Log a weight and this starts</b>' +
+      "The cut window opened on " + fmtDate(c.start) + ". The first weight you log becomes the start line and everything " +
+      "here is measured from it. " + c.daysLeft + " days to 1 November.</div>" + band;
+    return;
+  }
+
+  var head = '<div class="card" style="padding:10px 14px"><div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Started ' +
+    fmtDate(c.first.date) + '</span><span class="stone-when hl">' + f1(c.first.weight) + " lb</span></div>" +
+    '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Now, 7-day average</span>' +
+    '<span class="stone-when hl">' + f1(c.cur) + " lb</span></div>" +
+    '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Down</span>' +
+    '<span class="stone-when hl">' + f1(c.lost) + " lb in " + c.days + " days</span></div>" +
+    '<div class="stone" style="grid-template-columns:1fr auto">' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Left to 1 Nov</span>' +
+    '<span class="stone-when hl">' + c.daysLeft + " days</span></div></div>";
+
+  var verdict;
+  if (c.rate == null) {
+    verdict = '<div class="note flat" style="margin-top:10px"><b>Not enough weights yet to read a rate</b>' +
+      "It needs two complete 7-day averages to compare, so about a fortnight. Until then the number above is a " +
+      "difference between two days, which is mostly water.</div>";
+  } else {
+    var lo = c.band[0], hi = c.band[1];
+    var tone = c.rate > hi ? "stop" : c.rate < lo ? "warn" : "good";
+    var whats;
+    if (c.rate > hi) {
+      whats = "That is faster than 1% a week. At this rate the deficit is deep enough that some of what is coming off " +
+        "is muscle and glycogen rather than fat, and glycogen takes water with it — which is why fast weeks look " +
+        "dramatic on the scale and then stall. " +
+        '<span style="color:var(--chalk);font-weight:600">Eat more, not less.</span> ' +
+        "Add carbs back on hard days first.";
+    } else if (c.rate < lo) {
+      whats = "Slower than 0.5% a week. That is not a stall and it is not a reason to cut calories — " +
+        "a fortnight under two weeks long tells you nothing, and this is the point where most people " +
+        "wreck a cut by reacting to noise. If it holds past a fortnight, steps before food.";
+    } else {
+      whats = "Right in the band. This is what a cut that keeps your training and your hormones intact looks like: " +
+        "unremarkable week to week, obvious over seven of them.";
+    }
+    verdict = '<div class="note ' + tone + '" style="margin-top:10px"><b>' +
+      f1(c.rate) + " lb a week — " + (c.rate > hi ? "too fast" : c.rate < lo ? "gentle" : "reasonable") + "</b>" +
+      "Your safe band at " + f1(c.cur) + " lb is " + f1(lo) + "–" + f1(hi) + " lb a week. " + whats + "</div>";
+  }
+
+  var proj = c.weeksLeft > 0.5
+    ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 1 November</b>' +
+      '<span style="color:var(--chalk);font-weight:600">' + f1(c.range[0]) + "–" + f1(c.range[1]) + " lb</span> " +
+      "if you hold the safe band for the " + c.weeksLeft.toFixed(1) + " weeks left. That is the honest range. " +
+      "Going below it means going faster than is safe, not trying harder.</div>"
+    : "";
+
+  var floor = '<div class="note warn" style="margin-top:10px"><b>The floor is not a number</b>' +
+    "There is no weight I can name as your safe minimum without your height and body fat, and the scale will keep " +
+    "going down long after it stops being worth it. " +
+    '<span style="color:var(--chalk);font-weight:600">Your floor is wherever two or three of these go:</span> ' +
+    "morning HR drifting up and staying up · strength dropping in the gym rather than stalling · sprint times going " +
+    "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
+    "Those are all tracked here except the last two. When they start, that is the bottom, whatever the number says.</div>";
+
+  el.innerHTML = head + verdict + proj + band + floor;
+}
 function reverseUnlocked() {
   if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 1 November" };
   var asc = sortedWeights();
@@ -5050,6 +5268,69 @@ function renderReverseTable() {
       '<td class="hl">' + (r.kcal ? "~" + r.kcal.toLocaleString() : "2,400+") + "</td></tr>";
   }).join("");
   var t = $("targetKcal"); if (t) t.textContent = cur.toLocaleString() + " kcal";
+}
+
+/* 0.25 lb of muscle a month is 3 lb a year. For someone already trained that is
+   a realistic figure rather than a modest one — the beginner numbers people
+   quote do not apply after the first year or two. It also needs a much smaller
+   surplus than most people assume: roughly 100-150 kcal a day. Anything above
+   that is not extra muscle, it is fat, because the rate muscle can be built at
+   is the limit, not the calories available to build it from. */
+var MUSCLE_LB_MONTH = 0.25, SURPLUS_KCAL = 125;
+function renderRevGuide() {
+  var el = $("revGuide"); if (!el) return;
+  var wr = weeklyRate(), asc = sortedWeights();
+  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : null);
+
+  var aim = '<div class="note good"><b>What you are actually aiming at</b>' +
+    '<span style="color:var(--chalk);font-weight:600">0.25 lb of muscle a month is the right number and it is not a modest one.</span> ' +
+    "That is 3 lb a year, which for someone already trained is close to the ceiling — the figures people quote are " +
+    "beginner figures and they stopped applying to you years ago. It needs a surplus of about " + SURPLUS_KCAL +
+    " kcal a day, no more. Muscle is built at a rate your body sets, not at a rate your calories set, so anything " +
+    "above that surplus is not faster gain. It is fat.</div>";
+
+  var scale = '<div class="note stop" style="margin-top:10px"><b>The scale will jump in the first fortnight. It is not fat.</b>' +
+    "Expect <span style=\"color:var(--chalk);font-weight:600\">2–4 lb in the first two weeks</span>" +
+    (lb ? ", so roughly " + lb.toFixed(1) + " to " + (lb + 3).toFixed(1) + " lb" : "") + ". " +
+    "Every gram of glycogen holds about three grams of water with it, and you are refilling stores that seven weeks " +
+    "of cutting emptied. Muscle cannot be built at 2 lb a fortnight and neither can fat at that speed on 125 spare " +
+    "calories a day. " +
+    '<span style="color:var(--chalk);font-weight:600">This is the moment people panic and cut again, which restarts the whole problem.</span> ' +
+    "Do not weigh the decision until week three.</div>";
+
+  var puffy = '<div class="note warn" style="margin-top:10px"><b>Why the face puffs, and how to not have it</b>' +
+    "It is aldosterone, not fat. Seven weeks of restriction up-regulates the hormone that makes you hold onto sodium, " +
+    "and it does not switch off the day you start eating more. Put a jump in sodium on top of that and you retain " +
+    "disproportionately — face and ankles first. It settles by itself in one to three weeks. What makes it worse or " +
+    "better:<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Do not raise salt with the carbs.</span> ' +
+    "Keep the once-a-day exactly as it is. The carbs come up, the salt does not move. This is the single biggest lever.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Keep the potassium up.</span> ' +
+    "3,500 mg minimum, through the reverse and not just the cut. It is the direct counter to sodium retention, and it " +
+    "is the reason the potassium target does not stop on 1 November.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Do not cut water.</span> ' +
+    "Drinking less raises vasopressin and makes you hold more, not less. Steady intake, front-loaded in the day.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Keep the steps and sleep.</span> ' +
+    "Movement drives lymphatic return; sleep drops cortisol, which is the other fluid-retention hormone a long cut " +
+    "leaves elevated. Alcohol undoes all four of these at once.</div>";
+
+  var how = '<div class="note flat" style="margin-top:10px" data-detail><b>How the ramp actually works</b>' +
+    "Add roughly 75 kcal, hold it four or five days, look at the 7-day average, then add the next. " +
+    "Carbs first and fat last: carbs are what restore T3, leptin and training quality per calorie, and fat barely " +
+    "moves any of them. Protein stays at 155–160g and never changes.<br><br>" +
+    "One honest correction to what gets said about this: the slow ramp is not what repairs your metabolism. Eating " +
+    "more is what does that, and it would happen on a fast ramp too. The slow ramp is for limiting fat regain and " +
+    "keeping the water swing manageable — which are good enough reasons on their own, but it is worth knowing what " +
+    "you are buying.</div>";
+
+  var check = '<div class="note flat" style="margin-top:10px"><b>Two numbers tell you if the surplus is too big</b>' +
+    "After the first fortnight, when the water has settled: gaining more than " +
+    '<span style="color:var(--chalk);font-weight:600">0.5 lb a week</span>, or a waist measurement that is moving. ' +
+    "That is the whole test. If both are quiet, the surplus is right however slow it feels — at 0.25 lb a month you " +
+    "should barely be able to see it on the scale, and that is the point.<br><br>" +
+    "What should move instead: training numbers up, morning HR back to baseline, sleep solid, warm again.</div>";
+
+  el.innerHTML = aim + scale + puffy + how + check;
 }
 
 function renderCalStep() {
@@ -5837,6 +6118,8 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
+  renderCut(); renderK(); renderRevGuide();
+  if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   $("exitWeight").value = settings.exitWeight || "";
@@ -6016,6 +6299,21 @@ function renderStartInfo() {
     $(id).addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
+  });
+  $("kTodayBtn").addEventListener("click", function () {
+    var v = parseFloat($("kToday").value);
+    if (!isFinite(v) || v < 0) { $("kToday").focus(); return; }
+    logK(Math.round(v));
+  });
+  $("kToday").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") $("kTodayBtn").click();
+  });
+  $("cutStartBtn").addEventListener("click", function () {
+    var v = $("cutStartInput").value;
+    if (!v) return;
+    settings.cutStart = v;
+    DB.set("settings", settings);
+    renderCut();
   });
   $("stepsTodayBtn").addEventListener("click", function () {
     var v = parseFloat($("stepsToday").value);
