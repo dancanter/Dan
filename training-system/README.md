@@ -62,9 +62,21 @@ checklist with a 28-day completion grid and streak.
 rebuilt to match the 2025 block that actually produced the PBs. Nothing is
 assigned to a day: every day starts empty and you record what you did, on
 whatever day you did it. The targets are counted over a **trailing seven days** —
-roughly two effort runs, two easy runs, one 80–100m sprint session and four gym
-sessions, against a 4–5 runs a week readout — so five sessions one
-week and three the next is the same plan, not a failure. The window slides a day
+**two to three effort sessions**, one 5–8 × 100m sprint day, and four to five gym
+sessions — so four sessions one week and two the next is the same plan, not a
+failure. The readout names the runs and the gym sessions together, and says how
+many of the runs were efforts.
+
+**There are no easy runs and no required long run.** The menu is effort formats
+you pick from — 200m through 1km reps, mixed sets, uphill sprints, and single
+all-out efforts at 400m, the mile, 3K, 5K and 10K — plus sprints as the low-energy
+day and an optional long run. Slow jogging is never offered as recovery, on a
+normal week, a deload week or a flagged one; the recovery options are 5–8 × 100m
+if you want to run and brisk walking if you do not. The long run is never
+scheduled and **its absence is never flagged** — skip it for a month and nothing
+in the app mentions it.
+
+The window slides a day
 at a time and never resets on a Sunday: a session leaves the count exactly seven
 days after you ran it, and the window's dates sit beside the heading.
 
@@ -84,37 +96,40 @@ from the **+ Gym** button alone — a gym-only day never gets marked done, so
 counting gym from the log missed it entirely. Nothing is pre-ticked: the toggle
 is the record that you trained, not a plan to.
 
-The effort menu is every distance from 100m to 10K, all out, full recovery, no
-prescribed pace. The easy menu is the two runs actually used: 5km and 5 mile,
-conversational. Sprints (100m flat or uphill) sit in their own bucket and are
+Sprints (5–8 × 100m, flat or uphill) sit in their own bucket and are
 never counted as effort — alactic work off full recovery, stopped while the reps
-are still fast, so nothing is run to fatigue.
+are still fast, so nothing is run to fatigue. A 200m session is a hard effort
+*and* covers that slot, so the sprint bar reads "covered by your 200m session"
+rather than asking for both.
 
-A 200m session is a hard effort *and* covers the sprint slot, so the sprint bar
-reads "covered by your 200m session" rather than asking for both — which is what
-the 2025 log actually did. The 80–100m sprints are the only running that is not
-an effort session: relaxed rather than maximal, stopped the moment the pace
-drops.
+Two to three efforts is the band, not a ceiling. Four in a week with nothing
+wrong in the energy or morning-HR log is not flagged at all. Four *with* a
+fatigue marker, or five regardless, gets the pull-back note, and the pull-back
+is sprints or rest — never an easy run. That check counts the same trailing
+seven days the targets do, so four efforts spread across a Saturday and a Sunday
+still register.
 
-Two efforts is the aim, not a ceiling. Three in a week with nothing wrong in the
-energy or morning-HR log is not flagged at all — the 2025 block had weeks like
-that. Three *with* a fatigue marker, or four regardless, gets the pull-back
-note. That check counts the same trailing seven days the targets do, so four
-efforts spread across a Saturday and a Sunday still register.
+**The gym is protected.** Four to five sessions a week is a target the running
+works around, never something trimmed to make room for a run. No advice anywhere
+suggests dropping gym volume to fit the running in.
+
+Retired sessions — the easy runs, threshold, fartlek, progression runs, ladders
+and strides — keep the group they were counted under in `LEGACY_GROUP`, so weeks
+already logged do not change shape because the menu did.
 
 **A bad energy rating blocks hard running.** Rate your energy 2 or below on the
 Today tab and every effort session in the week gets a stop note, a banner sits
 above the grid, and readiness says so outright — it overrides the score rather
 than being one signal among several, because it is the one thing you reported
-directly. Easy running is never blocked. The rating stands until a better one
+directly. Sprints are never blocked. The rating stands until a better one
 replaces it, since feeling rough does not expire at midnight; it goes stale
 after three days with nothing new logged, and clears the moment you log a 3 or
 better.
 
 **What To Do This Week** — each of the 13 weeks has a shape: which two efforts
-it leans on and why, with the easy runs and the sprint slot under them. Which
+it leans on and why, with an optional third under them. Which
 day anything lands on is still free. Weeks 1–3 build the engine both goals sit
-on; 5–7 sharpen (threshold for the 5K, ladders and 600s for the mile, a 3K to
+on; 5–7 sharpen (kilometre reps for the 5K, 600s and mixed sets for the mile, a 3K to
 see where you are); 9–11 go race-specific, one week leaning mile, one 5K, one
 rehearsing the finish; 13 is the three attempts — mile Monday, 5K Thursday,
 400m Sunday, with the 400m last because it is the least important of the three
@@ -123,8 +138,8 @@ than 16:50 does, so the speed work sits late, once the base under it exists.
 
 **Deload weeks are 4, 8 and 12** — every fourth. The deload view replaces the
 week's shape with what to do and what not to: one effort at half the usual reps
-and full pace, two shorter easy runs, sprints optional; no time trials, no long
-rep sets or threshold, no making up missed sessions, and no third effort because
+and full pace, sprints if the legs feel fresh, brisk walking otherwise; no time
+trials, no long rep sets, no making up missed sessions, and no second effort because
 you feel good — feeling good in a deload is the deload working.
 
 **A day can hold more than one session.** A 5km then sprints afterwards, or
@@ -144,21 +159,33 @@ max or sat outside effort pace entirely — slower than threshold reads as a
 steady run, not a quality session. It is deliberately hedged: one rep is a
 direction, not a prediction, and one slow session is a day, not a trend.
 
-**Easy runs are checked against your own easy pace.** Log an average pace on an
-easy run and it is compared to the easy and threshold paces derived from your
-logged times. Inside threshold and it says so outright — that run counted as one
-of your two quality sessions, not as recovery. Training paces come from the
-*most conservative* aerobic estimate rather than the median, because a single
-800m rep always reads faster than the 5K that actually governs an easy pace, and
-prescribing off the inflated number is what makes easy runs too fast in the
-first place.
+**Carbs around a session, from bodyweight.** Before an effort session the day
+card says how much to eat and when — about 1g per kg one to two hours out, half
+that if eating closer, low fat and low fibre with it. It comes out of the day's
+carb band rather than on top, which is why the band is already set higher on a
+hard day. The note disappears once the session is ticked, because after the fact
+the number is no longer actionable.
 
-**A deload week knows what is already in it.** If the week has logged quality —
-including an easy run actually run at threshold — the deload view leads with
-that and says to make the rest of the week easy running only.
+**When a session is logged it says how to recover it** — carbs and protein
+within the hour, rehydration, salt if the day's one has not been had, and
+whether tomorrow should be nothing. A session rated 4 or 5, or any single
+all-out effort, gets the harder version of that advice.
 
-The heavier sessions (5 mile threshold, 10km threshold, 10K/5K/mile all-out) are
-flagged `occasional`: benchmarks to rotate, not part of the weekly menu.
+**The AGEs check** fires on a combination, never on volume alone. Training
+normally *lowers* glycation — faster glucose disposal, quicker protein turnover
+— so a warning that fired whenever you trained a lot would be both wrong and
+ignored. It needs heavy load (four efforts in seven days, or a 28-day average
+above 3.5 a week) **and** at least one recovery marker failing: energy at 2 or
+below twice, morning HR up on two of four mornings, or three bad nights. It says
+which, and says it reverses within a week.
+
+**A deload week knows what is already in it.** If the week has logged an effort
+session, the deload view leads with that and says to make the rest of the week
+sprints or nothing. Sprints never count against a deload — they are what a
+deload is made of.
+
+The single all-out efforts (10K, 5K, 3K, mile) are flagged `occasional`:
+benchmarks to rotate, not part of the weekly menu.
 
 **Today's Fuel** (top of the Nutrition tab) — log what you actually ate and how
 many steps you did. It shows the day against your number and a 7-day average,
@@ -211,7 +238,7 @@ refeed inside four days explains the scale before anything else is diagnosed.
 
 **Deload weeks name their sessions** like every other week — 4 × 200m in week 4,
 3 × 400m in week 8, 3 × 300m at goal mile pace in the week-12 taper, each with
-two easy 5ks, optional strides and rest. If the week has already had quality in
+sprints if the legs feel fresh and brisk walking or rest otherwise. If the week has already had quality in
 it, the effort is struck through and marked spent.
 
 **Calisthenics** — the optional fifth session, treated as records rather than a
@@ -283,7 +310,7 @@ The verdict counts recovery markers over that week — morning HR against
 baseline, energy ratings, live niggles, average session feel, effort count. Two
 or more agreeing says back off; one says hold; a quiet week with nothing
 flagged says push. The suggested sessions for next week follow the verdict
-rather than ignoring it: a back-off week gets one effort, two easy and rest,
+rather than ignoring it: a back-off week gets one effort, sprints and rest,
 and never an all-out time trial, and no week is ever offered two of them.
 Ranking is by what has gone longest unrun, measured off the week grids so it
 agrees with the review above it.
