@@ -1277,6 +1277,22 @@ function poolFor(w) {
       desc: "5K, flat out." + short },
     { sid: "eff_10k", hard: 2, group: "effort", occasional: 1, type: "10K — all out",
       desc: "One continuous 10K, run hard. A test, not a session — give it extra recovery and nothing hard the day after." + short },
+    { sid: "eff_mile_reps", hard: 2, group: "effort", offMenu: 1, type: "3 × 1 mile",
+      desc: "Three miles, hard but controlled, full recovery between. The most specific mile-goal session there is." + short },
+    { sid: "eff_ladder", hard: 2, group: "effort", offMenu: 1, type: "Ladder 200-400-600-400-200",
+      desc: "200-400-600-400-200m. Rest as long as you want between — the rungs are the session, not the recovery. Enter the average pace rather than splits, since the reps are different distances." + short },
+    { sid: "eff_ladder_desc", hard: 2, group: "effort", offMenu: 1, type: "Descending 1000-800-600-400-200",
+      desc: "1000-800-600-400-200m, each one faster than the last. The finish is the point — the 200 should be your quickest of the day." + short },
+    { sid: "eff_fartlek", hard: 2, group: "effort", offMenu: 1, type: "Fartlek",
+      desc: "20–30 min alternating hard and easy entirely by feel. No watch, no reps — surge to a lamppost, ease off, go again." + short },
+    { sid: "eff_prog", hard: 2, group: "effort", offMenu: 1, type: "Progression run",
+      desc: "6–8km starting easy and finishing hard. Last kilometre should be the fastest and it should hurt." + short },
+    { sid: "eff_thresh", hard: 2, group: "effort", offMenu: 1, type: "Threshold — continuous",
+      desc: "25–30 min continuous at comfortably hard — the pace where you could speak a sentence but would not want to. No reps, no stopping." + short },
+    { sid: "eff_thresh_8k", hard: 2, group: "effort", offMenu: 1, occasional: 1, type: "5 mile threshold",
+      desc: "8km continuous, strong and controlled. A big session — occasional, not part of the rotation." + short },
+    { sid: "eff_thresh_10k", hard: 2, group: "effort", offMenu: 1, occasional: 1, type: "10km threshold",
+      desc: "10km continuous at a controlled hard effort. Substantial — treat it like a test and give it its own week." + short },
 
     /* ---- the low day. Not an easy run: short, sharp, full recovery, stopped
        while the reps are still fast. This is the option when you do not fancy a
@@ -1285,8 +1301,17 @@ function poolFor(w) {
       desc: "5–8 × 100m, flat or uphill, full recovery between. Fast and relaxed rather than absolutely maximal. No heavy breathing, and you stop the moment the pace drops off. This is your low-energy day, not a jog." },
     { sid: "eff_hill", hard: 0, alactic: 1, group: "low", type: "Uphill 100m sprints",
       desc: "100m uphill, hard but relaxed, walk all the way back down. You choose how many. Stop when the pace goes rather than at a number. Not an effort session." },
+    { sid: "bonus_strides", hard: 0, alactic: 1, group: "low", type: "Strides — 6 × 20s",
+      desc: "6 × 20 seconds, building to fast and relaxed, full walk back. Costs you nothing and keeps your turnover alive." },
 
-    /* ---- optional, never owed ---- */
+    /* ---- Every one of these is available and none of them is ever asked for.
+       There is no target for them, nothing counts them against you, and no
+       advice anywhere suggests one. They are here because a menu you cannot log
+       what you actually did into is worse than useless. ---- */
+    { sid: "easy_long", hard: 0, group: "easy", type: "Easy 5 mile",
+      desc: "5 miles / 8km, smooth and conversational. Entirely your call — nothing in here asks for it." },
+    { sid: "easy_short", hard: 0, group: "easy", type: "Easy 5km",
+      desc: "5km, smooth and conversational. Entirely your call." },
     { sid: "long_run", hard: 0, group: "long", type: "Long run — optional",
       desc: "Only when you fancy it. Roughly once a fortnight, or not for a month — both are fine. Log the distance and the time if you want it on record. Nothing in here will ever ask where it went." },
     { sid: "walk", hard: 0, group: "other", type: "Brisk walk",
@@ -1655,7 +1680,8 @@ function sprintWarning(sid) {
 
 function sessionOptions(pool, sel) {
   var groups = [["effort", "Effort — all out"], ["low", "Low day — sprints"],
-    ["long", "Optional"], ["other", "Other"]];
+    ["easy", "Steady — optional, never asked for"], ["long", "Long run — optional"],
+    ["other", "Other"]];
   return groups.map(function (g) {
     var items = pool.filter(function (o) { return (o.group || "other") === g[0]; });
     if (!items.length) return "";
@@ -1884,7 +1910,10 @@ function dayCard(d, i, isToday) {
    formats being avoided, which is where the untapped adaptation usually is. */
 function renderSuggest() {
   var el = $("suggestBox"); if (!el) return;
-  var pool = poolFor(viewWeek).filter(function (o) { return o.group === "effort"; });
+  /* Loggable is not the same as suggested. The formats you named are what the
+     rotation ranks; the rest are on the menu so a session can be recorded, and
+     nothing here will ever put one in front of you. */
+  var pool = poolFor(viewWeek).filter(function (o) { return o.group === "effort" && !o.offMenu; });
   var rows = pool.map(function (o) {
     var last = null;
     for (var i = 0; i < sessionHistory.length; i++) {
@@ -1894,7 +1923,7 @@ function renderSuggest() {
     return { o: o, last: last, days: days, sort: days == null ? 9999 : days };
   }).sort(function (a, b) { return b.sort - a.sort; });
 
-  var never = rows.filter(function (r) { return r.days == null && r.o.group === "effort"; });
+  var never = rows.filter(function (r) { return r.days == null && r.o.group === "effort" && !r.o.occasional; });
   var stale = rows.filter(function (r) { return r.days != null && r.days >= 21 && r.o.group === "effort"; });
 
   var head = "";
@@ -2893,7 +2922,7 @@ function nextWeekPlan(w, v, verdict, ex) {
 function reviewSuggest(v, verdict) {
   var out = [], ease = !!verdict.ease;
   var ranked = poolFor(viewWeek)
-    .filter(function (o) { return o.group === "effort" && o.sid !== "none"; })
+    .filter(function (o) { return o.group === "effort" && !o.offMenu && o.sid !== "none"; })
     .map(function (o) { return { o: o, days: daysSinceSid(o.sid) }; })
     .sort(function (a, b) { return b.days - a.days; });
 

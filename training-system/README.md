@@ -67,14 +67,24 @@ sessions — so four sessions one week and two the next is the same plan, not a
 failure. The readout names the runs and the gym sessions together, and says how
 many of the runs were efforts.
 
-**There are no easy runs and no required long run.** The menu is effort formats
-you pick from — 200m through 1km reps, mixed sets, uphill sprints, and single
-all-out efforts at 400m, the mile, 3K, 5K and 10K — plus sprints as the low-energy
-day and an optional long run. Slow jogging is never offered as recovery, on a
-normal week, a deload week or a flagged one; the recovery options are 5–8 × 100m
-if you want to run and brisk walking if you do not. The long run is never
-scheduled and **its absence is never flagged** — skip it for a month and nothing
-in the app mentions it.
+**Nothing is required and nothing is removed.** The menu carries every format —
+200m through 1km reps, mixed sets, uphill sprints, single all-out efforts at
+400m, the mile, 3K, 5K and 10K, plus threshold, fartlek, progression runs,
+ladders, mile reps, strides, the two easy runs and an optional long run. You can
+log whatever you actually did.
+
+What changed is that **nothing asks for any of them**. There is no easy-run
+target and no long-run target, and the absence of either is never flagged — skip
+the long run for a month and nothing mentions it. Slow jogging is never offered
+as recovery, on a normal week, a deload week or a flagged one; the recovery
+options are 5–8 × 100m if you want to run and brisk walking if you do not.
+
+Loggable and suggested are separate. The formats carrying `offMenu` — threshold,
+fartlek, progression, both ladders, mile reps — are on the menu so a session can
+be recorded, and the rotation prompt and next-week shortlist skip them, ranking
+only the formats you named. A menu you cannot record what you did into is worse
+than useless; a suggestion engine that keeps offering what you have dropped is
+just noise.
 
 The window slides a day
 at a time and never resets on a Sunday: a session leaves the count exactly seven
@@ -113,9 +123,9 @@ still register.
 works around, never something trimmed to make room for a run. No advice anywhere
 suggests dropping gym volume to fit the running in.
 
-Retired sessions — the easy runs, threshold, fartlek, progression runs, ladders
-and strides — keep the group they were counted under in `LEGACY_GROUP`, so weeks
-already logged do not change shape because the menu did.
+`LEGACY_GROUP` maps any session id with no pool entry to the group it was
+counted under, so a week already logged never changes shape because the menu
+did.
 
 **A bad energy rating blocks hard running.** Rate your energy 2 or below on the
 Today tab and every effort session in the week gets a stop note, a banner sits
