@@ -1139,7 +1139,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "09 Sep 16:23";
+var BUILD = "09 Sep 16:38";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5101,6 +5101,16 @@ var CUT_START_DEFAULT = "2026-09-15";
    above the ceiling stops being fat and starts being muscle and glycogen, which
    you hand straight back on the reverse. */
 var CUT_RATE_LOW = 0.005, CUT_RATE_HIGH = 0.01;
+/* The band is a safety range; this is the number to actually aim at, and it
+   tapers. The leaner you get the more of each pound comes out of muscle rather
+   than fat, so the same percentage costs more at the end than at the start.
+   0.9% in week one down to 0.5% in the last, which over seven weeks is about
+   5-6 lb — the honest figure, not the flattering one. */
+var CUT_RATE_START = 0.009, CUT_RATE_END = 0.005;
+function cutTargetPct(frac) {
+  var f = Math.max(0, Math.min(1, frac));
+  return CUT_RATE_START + (CUT_RATE_END - CUT_RATE_START) * f;
+}
 function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
 function fmtDate(iso) {
   var d = parseDay(iso);
@@ -5124,6 +5134,20 @@ function cutStatus() {
   out.lost = out.first.weight - out.cur;
   out.rate = wr && wr.ready ? -wr.perWeek : null;
   out.band = [out.cur * CUT_RATE_LOW, out.cur * CUT_RATE_HIGH];
+  var elapsed = daysBetween(startD, todayD), span = daysBetween(startD, endD);
+  out.through = span > 0 ? elapsed / span : 1;
+  out.target = out.cur * cutTargetPct(out.through);
+  out.week = Math.floor(elapsed / 7) + 1;
+  /* Walk the taper forward a week at a time rather than multiplying one rate by
+     the weeks left, which would overstate the finish by assuming today's rate
+     holds to the end. */
+  var w = out.cur, t = out.through;
+  for (var i = 0; i < Math.floor(out.weeksLeft); i++) {
+    w -= w * cutTargetPct(t);
+    t += 7 / span;
+  }
+  w -= w * cutTargetPct(t) * (out.weeksLeft % 1);
+  out.landing = w;
   out.range = [out.cur - out.band[1] * out.weeksLeft, out.cur - out.band[0] * out.weeksLeft];
   return out;
 }
@@ -5194,11 +5218,20 @@ function renderCut() {
       "Your safe band at " + f1(c.cur) + " lb is " + f1(lo) + "–" + f1(hi) + " lb a week. " + whats + "</div>";
   }
 
+  var aim = '<div class="note good" style="margin-top:10px"><b>Aim for ' + c.target.toFixed(2) +
+    " lb this week</b>" +
+    "Week " + c.week + " of the cut. The target tapers on purpose — " +
+    '<span style="color:var(--chalk);font-weight:600">0.9% of bodyweight a week at the start, 0.5% by the end</span>. ' +
+    "The leaner you get, the more of each pound comes out of muscle instead of fat, so the same percentage " +
+    "costs you more in week seven than it did in week one. Hitting a smaller number later is the plan working, " +
+    "not it slowing down.</div>";
+
   var proj = c.weeksLeft > 0.5
     ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 1 November</b>' +
-      '<span style="color:var(--chalk);font-weight:600">' + f1(c.range[0]) + "–" + f1(c.range[1]) + " lb</span> " +
-      "if you hold the safe band for the " + c.weeksLeft.toFixed(1) + " weeks left. That is the honest range. " +
-      "Going below it means going faster than is safe, not trying harder.</div>"
+      '<span style="color:var(--chalk);font-weight:600">about ' + f1(c.landing) + " lb</span> if you hit the " +
+      "tapering target every week for the " + c.weeksLeft.toFixed(1) + " left. The wider safe band puts it at " +
+      f1(c.range[0]) + "–" + f1(c.range[1]) + " lb. " +
+      "That is the honest arithmetic. Going below it means going faster than is safe, not trying harder.</div>"
     : "";
 
   var floor = '<div class="note warn" style="margin-top:10px"><b>The floor is not a number</b>' +
@@ -5209,7 +5242,7 @@ function renderCut() {
     "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
     "Those are all tracked here except the last two. When they start, that is the bottom, whatever the number says.</div>";
 
-  el.innerHTML = head + verdict + proj + band + floor;
+  el.innerHTML = head + aim + verdict + proj + band + floor;
 }
 function reverseUnlocked() {
   if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 1 November" };
@@ -5342,16 +5375,38 @@ function renderCalStep() {
   var since = settings.kcalSince || null;
   var days = since ? daysBetween(parseDay(since), parseDay(today())) : null;
   var desc = sortedWeights().reverse();
-  var advice = "Log a week of weights and this will tell you when to step.";
+  var advice = "Log a week of weights and this will tell you what to do with it.";
   var cls = "flat";
+  /* Which way the calories should be moving depends entirely on which phase you
+     are in. Telling someone mid-cut to add 75 kcal because the scale went flat
+     is the exact opposite of the right answer, and this box used to do it. */
+  var cutting = !reverseUnlocked().open;
   if (desc.length >= 8) {
     var rAvg = avg(desc.slice(0, 7).map(function (w) { return w.weight; }));
     var pAvg = avg(desc.slice(7, 14).map(function (w) { return w.weight; }));
     var change = rAvg - pAvg;
-    if (rAvg > 124) { advice = "Still above the 122–124 band. Hold here — the reverse starts once you're in the band and flat for two weeks."; cls = "flat"; }
-    else if (days !== null && days < 4) { advice = "Only " + days + " day" + (days === 1 ? "" : "s") + " at this step. Give it 4–5 before judging anything."; cls = "flat"; }
-    else if (change >= 0.5) { advice = "Up " + change.toFixed(1) + " lb on the week. If you stepped up recently that's glycogen — hold. If this is the second week up, drop back one step."; cls = "warn"; }
-    else { advice = "Flat or down at this step" + (days !== null ? " for " + days + " days" : "") + " — that's your cue to add 75 kcal."; cls = "good"; }
+    if (cutting) {
+      var c2 = cutStatus(), aimW = c2.target || rAvg * 0.007, lost = -change;
+      if (lost > aimW * 1.6) {
+        advice = "Down " + lost.toFixed(1) + " lb on the week against a " + aimW.toFixed(2) +
+          " lb target. That is too fast — add 75 kcal of carbs and hold there.";
+        cls = "stop";
+      } else if (lost < aimW * 0.4) {
+        advice = "Down " + Math.max(0, lost).toFixed(1) + " lb against a " + aimW.toFixed(2) +
+          " lb target. Give it a fortnight before touching anything — one slow week is water, not a stall.";
+        cls = "flat";
+      } else {
+        advice = "Down " + lost.toFixed(1) + " lb against a " + aimW.toFixed(2) +
+          " lb target. That is the rate. Change nothing.";
+        cls = "good";
+      }
+    } else if (days !== null && days < 4) {
+      advice = "Only " + days + " day" + (days === 1 ? "" : "s") + " at this step. Give it 4–5 before judging anything."; cls = "flat";
+    } else if (change >= 0.5) {
+      advice = "Up " + change.toFixed(1) + " lb on the week. If you stepped up recently that's glycogen — hold. If this is the second week up, hold rather than adding."; cls = "warn";
+    } else {
+      advice = "Flat or down at this step" + (days !== null ? " for " + days + " days" : "") + " — that's your cue to add 75 kcal."; cls = "good";
+    }
   }
   $("calStep").innerHTML =
     '<div class="card"><div class="chart-head" style="margin-bottom:12px">' +
@@ -5363,7 +5418,8 @@ function renderCalStep() {
       '<button class="btn primary" data-kcal="75">+ 75 kcal</button>' +
       '<button class="btn ghost" data-kcal="reset">Reset to 1,850</button>' +
     "</div></div>" +
-    '<div class="note ' + cls + '" style="margin-top:10px"><b>What the trend says</b>' + esc(advice) + "</div>";
+    '<div class="note ' + cls + '" style="margin-top:10px"><b>' +
+    (cutting ? "Cutting — what the trend says" : "Reversing — what the trend says") + "</b>" + esc(advice) + "</div>";
 }
 function stepKcal(delta) {
   if (delta === "reset") { settings.kcal = 1850; }

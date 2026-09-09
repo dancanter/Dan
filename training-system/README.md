@@ -257,11 +257,22 @@ it, the effort is struck through and marked spent.
 closing on 1 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the
 weight you come back from a trip at is not knowable beforehand. From there it
-reports the loss, the days left, and the rate against a **0.5–1% of bodyweight a
-week** band, with the reason attached: under the band is not a stall and is
+reports the loss, the days left, **this week's target loss**, and the rate against
+a **0.5–1% of bodyweight a week** band, with the reason attached: under the band is not a stall and is
 never answered with fewer calories; over it means part of what is leaving is
-muscle and glycogen, and the answer is to eat more. It projects the landing
-range on 1 November from the safe band rather than from wishful arithmetic.
+muscle and glycogen, and the answer is to eat more. The target **tapers** — 0.9% of bodyweight a week at the start,
+0.5% by the end — because the leaner you get the more of each pound comes out of
+muscle rather than fat, so the same percentage costs more in the last week than
+the first. Hitting a smaller number later is the plan working. The 1 November
+landing is projected by walking that taper forward a week at a time rather than
+multiplying today's rate by the weeks left, which would overstate the finish.
+
+The **Where You Are** step box on the Nutrition tab is now phase-aware. It was
+written for the reverse and rendered during the cut, so a flat week mid-cut was
+answered with "add 75 kcal" — the exact opposite of the right call. While the
+reverse is locked it compares the week against the tapering target instead:
+too fast says add carbs, on-rate says change nothing, and a slow week says wait
+a fortnight rather than cut.
 
 It also refuses to name a lowest safe weight, because that number does not exist
 without height and body fat, and the scale keeps moving long after the point
