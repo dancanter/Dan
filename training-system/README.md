@@ -253,6 +253,27 @@ refeed inside four days explains the scale before anything else is diagnosed.
 sprints if the legs feel fresh and brisk walking or rest otherwise. If the week has already had quality in
 it, the effort is struck through and marked spent.
 
+**Study** — a daily hours box on Today, totalled over the trailing seven days
+against a 16–20 band for two 30-credit modules. It is in a training app for one
+reason: study load and training load draw on the same recovery, and an app that
+can only see the running will tell you to push in a week you are already buried.
+When effort sessions **and** study hours are both high at once, the week view
+says so and says which to drop — the session, not the hours, because the
+deadline does not move and the session does.
+
+**Days since your last hard session** sits at the top of the week with the
+answer attached rather than the number alone. Rest requirements come from the
+block that produced every PB: two days after a rep set, three after an all-out
+5K, 10K or mile. Under that it says how many more days to wait; over six days it
+flags the deep-rest window that preceded the 1km and 800m bests.
+
+**The deload case is made with his own results, not general advice.** A deload
+week leads with the five best performances in the log and what preceded each —
+a week with zero hard sessions, seven days since the last one, the day after a
+deload ended, two 3-run 15km weeks — and the point that skipping the week costs
+the test that follows it, since the tests only work off the back of one. A
+general argument for deloading is easy to ignore; your own PB table is not.
+
 **Strava Import** — paste a block of activities and they land on the days they
 were run, with the session type, rep count, average pace and best rep worked
 out. Re-pasting the same block is a no-op: imported activity ids are remembered.

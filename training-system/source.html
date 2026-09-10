@@ -307,6 +307,15 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="readinessBox"></div>
     </section>
 
+    <section class="block" data-fold="study">
+      <h2 class="block-title">Study <span class="tag" id="studyTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div class="add-row" style="margin-top:0;align-items:center">
+        <input type="text" id="studyToday" inputmode="decimal" placeholder="Hours today" style="width:120px">
+        <button class="btn primary" id="studyBtn">Log</button>
+      </div>
+      <div id="studyOut" style="margin-top:10px"></div>
+    </section>
+
     <section class="block" data-fold="energy">
       <h2 class="block-title">Energy Today</h2>
       <p class="block-sub" data-detail>One tap. Over a few weeks this is what tells you whether something you eat is flattening you — far better than trying to remember.</p>
@@ -2079,6 +2088,51 @@ function agesNote() {
     "Sleep and eating enough do more here than any food choice.</div>";
 }
 
+/* How long since the last hard session, and whether that is enough. The gaps
+   come from the block that produced every PB: a median of four days between
+   hard sessions, and the tests themselves run two days after a short 400 set
+   or a week after anything at all. */
+var HARD_REST = { eff_5k: 3, eff_10k: 3, eff_mile: 3, eff_3k: 2, eff_400tt: 2 };
+function lastHardDays() {
+  var best = null;
+  for (var w = 1; w <= 13; w++) {
+    var rows = DB.get("week-" + w, null);
+    if (!Array.isArray(rows) || rows.length !== 7) continue;
+    for (var i = 0; i < 7; i++) {
+      var d = rows[i]; if (!d) continue;
+      var dt = slotDate(w, i); if (!dt) continue;
+      var ago = daysBetween(dt, parseDay(today()));
+      if (ago < 0) continue;
+      daySessions(d).forEach(function (ses, k) {
+        if (!(k ? ses.done : d.done)) return;
+        if (groupOfSid(ses.sid) !== "effort") return;
+        if (best === null || ago < best.ago) best = { ago: ago, sid: ses.sid, type: sessionOf(ses).type };
+      });
+    }
+  }
+  return best;
+}
+function restNote() {
+  var h = lastHardDays();
+  if (!h) return "";
+  var need = HARD_REST[h.sid] || 2;
+  var clear = h.ago >= need;
+  if (h.ago === 0) {
+    return '<div class="note flat" style="margin-bottom:12px"><b>Hard session done today</b>' +
+      esc(h.type) + ". Next one no sooner than " + need + " day" + (need === 1 ? "" : "s") +
+      " from now. Walk tomorrow if you want to move.</div>";
+  }
+  return '<div class="note ' + (clear ? "good" : "warn") + '" style="margin-bottom:12px"><b>' +
+    h.ago + " day" + (h.ago === 1 ? "" : "s") + " since your last hard session</b>" +
+    esc(h.type) + ". " +
+    (clear
+      ? "You are clear for the next one." +
+        (h.ago >= 6 ? " Six days or more is the deep-rest setup that came before your 1km and 800m bests \u2014 if a test is due, this is the week." : "")
+      : "That wants " + need + " days. <span style=\"color:var(--chalk);font-weight:600\">Wait another " +
+        (need - h.ago) + " day" + (need - h.ago === 1 ? "" : "s") + "</span>, or make today sprints or a walk.") +
+    "</div>";
+}
+
 function renderWeek() {
   var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
@@ -2086,7 +2140,8 @@ function renderWeek() {
   $("weekDone").textContent = weekData.filter(function (d) { return d.done; }).length + " logged this week";
   renderRolling();
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
-  $("weekList").innerHTML = autoDeloadFlag() + energyNote(false) + intensityNote() + agesNote() + weekData.map(function (d, i) {
+  $("weekList").innerHTML = autoDeloadFlag() + energyNote(false) + restNote() + totalLoadNote() +
+    intensityNote() + agesNote() + weekData.map(function (d, i) {
     return dayCard(d, i, isCurrent && i === ti);
   }).join("");
   renderSuggest(); renderReview(); renderPlan(); renderBlockPlan(); renderCali();
@@ -2594,6 +2649,27 @@ function deloadSoFar(w) {
   });
   return out;
 }
+/* A general argument for deloading is easy to ignore. Your own results are
+   not. Every one of these is in your log, and not one of them came off a
+   heavy week. */
+var DELOAD_EVIDENCE = [
+  ["1km 2:48", "4 Jun 2025", "off a week with zero hard sessions"],
+  ["800m 2:14", "15 Jun 2025", "7 days since the last hard session"],
+  ["5K 18:06", "31 Aug 2026", "the day after week 4's deload ended"],
+  ["5K 17:17", "1 May 2025", "a 3-run, 15.5km week"],
+  ["Mile 4:53", "22 May 2025", "a 3-run, 15.1km week"]
+];
+function deloadCase() {
+  return '<div class="note stop" style="margin-bottom:12px"><b>Every personal best you have came out of a light week</b>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px;margin:10px 0"><table class="ref"><tbody>' +
+    DELOAD_EVIDENCE.map(function (r) {
+      return "<tr><td><b>" + r[0] + "</b><span class=\"sub\">" + r[1] + "</span></td><td>" + r[2] + "</td></tr>";
+    }).join("") + "</tbody></table></div>" +
+    "Not one of them came off a heavy week. " +
+    '<span style="color:var(--chalk);font-weight:600">Skipping this week does not just cost you the rest \u2014 ' +
+    "it costs you the test that comes after it</span>, because the tests only work off the back of one.</div>";
+}
+
 function deloadAdvice() {
   var done = deloadSoFar(viewWeek);
   var already = done.length
@@ -2602,7 +2678,7 @@ function deloadAdvice() {
       '<span style="color:var(--chalk);font-weight:600">Make the rest of the week sprints or nothing</span> — a few relaxed 100s ' +
       "if your legs genuinely feel fresh, brisk walking otherwise. Adding a rep session on top of this turns the deload into another quality week, which is the one thing it cannot be.</div>"
     : "";
-  return already + '<div class="note good" style="margin-bottom:12px"><b>Deload week — this is the week the work turns into fitness</b>' +
+  return already + deloadCase() + '<div class="note good" style="margin-bottom:12px"><b>Deload week — this is the week the work turns into fitness</b>' +
     "You do not get faster during the hard weeks. You get faster while you recover from them, and that only happens if you actually drop the load. " +
     '<span style="color:var(--chalk);font-weight:600">Cut the volume roughly in half and keep the speed.</span> Short and sharp is the whole idea — drop reps, never pace.</div>' +
 
@@ -6001,6 +6077,74 @@ function loadSessionIntoTimer(desc, label) {
   showTab("timer");
 }
 
+/* ================= study and total load =================
+   Two 30-credit modules at 8-10 hours each. The point of tracking it here is
+   not to manage the degree — it is that training load and study load draw on
+   the same recovery, and an app that only sees one of them will tell you to
+   push in a week you are already buried. */
+var STUDY_LOW = 16, STUDY_HIGH = 20;
+function logStudy(v) {
+  todayState.study = v;
+  DB.set(dailyKey(new Date()), todayState);
+  $("studyToday").value = "";
+  renderStudy(); renderRolling();
+}
+function studySeries(days) {
+  var out = [], now = new Date();
+  for (var i = days - 1; i >= 0; i--) {
+    var d = new Date(now.getTime() - i * 86400000);
+    var st = DB.get(dailyKey(d), null);
+    if (st && isFinite(parseFloat(st.study))) out.push({ date: dayStr(d), v: parseFloat(st.study) });
+  }
+  return out;
+}
+function studyWeek() {
+  return studySeries(7).reduce(function (a, x) { return a + x.v; }, 0);
+}
+function renderStudy() {
+  var el = $("studyOut"); if (!el) return;
+  var tag = $("studyTag"), ser = studySeries(7), tot = studyWeek();
+  var t = todayState && isFinite(parseFloat(todayState.study)) ? parseFloat(todayState.study) : null;
+  if (tag) tag.textContent = tot ? tot.toFixed(1) + "h this week" : "nothing logged";
+
+  var bar = loadBar("This week", Math.round(tot * 10) / 10, STUDY_HIGH,
+    "SK297 and SK298, 8\u201310h each", STUDY_LOW);
+  var body;
+  if (!ser.length) {
+    body = '<div class="note flat"><b>Nothing logged yet</b>' +
+      "Put the day's hours in above. It is here because study load and training load come out of the same " +
+      "recovery, and an app that can only see the running will tell you to push in a week you are already buried.</div>";
+  } else {
+    var left = STUDY_LOW - tot;
+    body = '<div class="note ' + (tot >= STUDY_LOW ? "good" : "flat") + '"><b>' +
+      tot.toFixed(1) + " hours over " + ser.length + " day" + (ser.length === 1 ? "" : "s") +
+      (t != null ? ", " + t + " today" : "") + "</b>" +
+      (tot >= STUDY_HIGH
+        ? "At the top of the 16\u201320 band. That is a full week \u2014 protect the Saturday."
+        : tot >= STUDY_LOW
+          ? "Inside the 16\u201320 band for two 30-credit modules."
+          : left.toFixed(1) + " hours short of 16. Deep blocks beat scattered hours, so two more sessions " +
+            "of three hours will close it faster than an hour a day.") + "</div>";
+  }
+  el.innerHTML = bar + body;
+}
+
+/* Training and study are not additive in any precise sense, but they are both
+   drawing down the same recovery, and the weeks that go wrong are the weeks
+   both are high at once. This says so rather than leaving you to notice. */
+function totalLoadNote() {
+  var w = rollingLoad(7), st = studyWeek();
+  if (!st) return "";
+  var hardTraining = w.effort >= 3 || (w.effort >= 2 && w.gym >= 5);
+  var hardStudy = st >= STUDY_HIGH;
+  if (!hardTraining || !hardStudy) return "";
+  return '<div class="note warn" style="margin-bottom:12px"><b>Both loads are high this week</b>' +
+    w.effort + " effort sessions, " + w.gym + " gym and " + st.toFixed(1) + " hours of study. " +
+    "Neither on its own is a problem. Together, in a deficit, they are the combination that turns into a " +
+    "flat fortnight. <span style=\"color:var(--chalk);font-weight:600\">Drop the third effort session, not the " +
+    "study hours</span> \u2014 the deadline does not move and the session does.</div>";
+}
+
 /* ================= strava =================
    The published app cannot call the Strava API itself and it is worth being
    plain about why rather than half-building it. Three separate walls:
@@ -6392,7 +6536,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
-  renderCut(); renderK(); renderRevGuide(); renderStrava();
+  renderCut(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -6573,6 +6717,14 @@ function renderStartInfo() {
     $(id).addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
+  });
+  $("studyBtn").addEventListener("click", function () {
+    var v = parseFloat($("studyToday").value);
+    if (!isFinite(v) || v < 0 || v > 18) { $("studyToday").focus(); return; }
+    logStudy(Math.round(v * 10) / 10);
+  });
+  $("studyToday").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") $("studyBtn").click();
   });
   $("stravaBtn").addEventListener("click", doStravaImport);
   $("stravaForget").addEventListener("click", function () {
