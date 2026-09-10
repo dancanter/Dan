@@ -253,6 +253,43 @@ refeed inside four days explains the scale before anything else is diagnosed.
 sprints if the legs feel fresh and brisk walking or rest otherwise. If the week has already had quality in
 it, the effort is struck through and marked spent.
 
+**Strava Import** — paste a block of activities and they land on the days they
+were run, with the session type, rep count, average pace and best rep worked
+out. Re-pasting the same block is a no-op: imported activity ids are remembered.
+
+**There is no in-app OAuth and there cannot be**, which is worth stating plainly
+rather than half-building. Three separate walls, any one of which is fatal:
+
+1. The artifact runs under a CSP that blocks every outbound request. A `fetch`
+   to strava.com fails silently — no prompt, no visible error, just nothing.
+2. OAuth needs a registered redirect URI that receives the callback and a server
+   to exchange the code for a token. A single HTML file has neither.
+3. The exchange requires the client secret. In a one-file page that secret sits
+   in plain text in something anyone with the link can read, which leaks it and
+   breaches Strava's API terms.
+
+So the transport is a paste and the mapping is the part that carries the value.
+Classification reads the activity **name** first, since a name like "4 × 600m"
+is more reliable than anything inferrable from distance and time: an explicit
+`N × D` sets both session and rep count; ladders are caught whether written
+`200-400-600-400-200` or with spaces; threshold, fartlek, progression, hills,
+strides, sprints and long runs match on keyword. Only when the name says nothing
+does distance decide, with pace separating a 5K test from a 5K jog.
+
+Strava's **best efforts** need filtering, not trusting: on a set of 400s the
+"fastest 1K" spans the recovery jog between reps and reads as nonsense. One is
+only used if its distance fits inside the distance actually covered and its pace
+is quick enough to have been run rather than jogged through.
+
+An import never overwrites a day that already has something on it — it becomes
+the second session on that day. Imported days are marked done without passing
+through `toggleDone`, so session history is rebuilt from the grids afterwards or
+Block Bests, the PB board and the rolling counts would all miss them.
+
+**Heart rate is not imported**, because it is not there: the activities carry
+`has_heartrate: false`. Nothing in the app invents a number that was never
+recorded.
+
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
 closing on 1 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the

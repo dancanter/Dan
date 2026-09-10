@@ -571,6 +571,16 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="checkinLog" style="margin-top:10px"></div>
     </section>
 
+    <section class="block" data-fold="strava">
+      <h2 class="block-title">Strava Import <span class="tag" id="stravaTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Paste a block of activities and they land on the days you ran them — session type, reps, average pace and best rep worked out for you. Already-imported activities are skipped, so pasting the same block twice is safe.</p>
+      <textarea id="stravaIn" rows="5" spellcheck="false" placeholder="Paste the Strava block here"></textarea>
+      <div class="add-row">
+        <button class="btn primary" id="stravaBtn">Import</button>
+        <button class="btn ghost" id="stravaForget">Forget what's been imported</button>
+      </div>
+      <div id="stravaOut"></div>
+    </section>
     <section class="block" data-fold="backup">
       <h2 class="block-title">Backup</h2>
       <p class="block-sub">Everything is saved in this browser as you type. Export a file now and then — it's the only copy that survives clearing your browser data or moving to a new phone.</p>
@@ -5991,6 +6001,214 @@ function loadSessionIntoTimer(desc, label) {
   showTab("timer");
 }
 
+/* ================= strava =================
+   The published app cannot call the Strava API itself and it is worth being
+   plain about why rather than half-building it. Three separate walls:
+
+   1. The artifact runs under a CSP that blocks every outbound request. A fetch
+      to strava.com fails silently — not a permissions prompt, no error the user
+      sees, just nothing.
+   2. OAuth needs a registered redirect URI that receives the callback and a
+      server to exchange the code. A single HTML file has neither.
+   3. The exchange needs the client secret. In a one-file page that secret would
+      sit in plain text in something anyone with the link can read, which leaks
+      it and breaches Strava's API terms.
+
+   So the transport is a paste instead, and everything below is the part that
+   actually matters: turning a Strava activity into a session in this app. */
+
+var STRAVA_IDS_KEY = "strava-ids";
+function stravaSeen() { return DB.get(STRAVA_IDS_KEY, []); }
+
+/* Which grid slot a date belongs to. The inverse of slotDate. */
+function slotForDate(iso) {
+  if (!settings.startDate) return null;
+  var d = daysBetween(parseDay(settings.startDate), parseDay(iso));
+  if (d < 0) return null;
+  var w = Math.floor(d / 7) + 1;
+  if (w < 1 || w > 13) return null;
+  return { week: w, day: d % 7 };
+}
+
+/* Reads the activity name first, because you name them well — "4 x 600m" is
+   more reliable than anything that can be inferred from distance and time. The
+   distance and pace only decide it when the name says nothing useful. */
+function stravaClassify(name, distM, movingS) {
+  var t = String(name || "").toLowerCase();
+  var pace = movingS && distM ? movingS / (distM / 1000) : null;
+  var reps = t.match(/(\d+)\s*[x\u00d7]\s*(\d+(?:\.\d+)?)\s*(km|m)\b/);
+  if (reps) {
+    var d = +reps[2] * (reps[3] === "km" ? 1000 : 1);
+    var byDist = { 200: "eff_200", 300: "eff_300", 400: "eff_400", 500: "eff_500",
+      600: "eff_600", 800: "eff_800", 1000: "eff_1k", 1609: "eff_mile_reps" };
+    return { sid: byDist[d] || "eff_mixed", detail: reps[1] + " x " + reps[2] + reps[3], dist: d };
+  }
+  /* "200-400-600-400-200" and "200 400 600 400 200" are the same session written
+     two ways, so four or more distances in a row counts however they are split. */
+  if (/ladder/.test(t) || /\b\d{3,4}\b[\s-]+\b\d{3,4}\b[\s-]+\b\d{3,4}\b[\s-]+\b\d{3,4}\b/.test(t)) {
+    return { sid: "eff_ladder", detail: "" };
+  }
+  if (/threshold|tempo/.test(t)) return { sid: "eff_thresh", detail: "" };
+  if (/fartlek/.test(t)) return { sid: "eff_fartlek", detail: "" };
+  if (/progression/.test(t)) return { sid: "eff_prog", detail: "" };
+  if (/hill/.test(t)) return { sid: "eff_hillreps", detail: "" };
+  if (/stride/.test(t)) return { sid: "bonus_strides", detail: "" };
+  if (/sprint/.test(t) && distM < 1500) return { sid: "bonus_sprint", detail: "" };
+  if (/long run/.test(t)) return { sid: "long_run", detail: "" };
+  if (/walk/.test(t)) return { sid: "walk", detail: "" };
+
+  var easy = /easy|recovery|shakeout|flow|economy|form/.test(t);
+  if (easy) {
+    if (distM >= 8500) return { sid: "long_run", detail: "" };
+    return { sid: distM >= 6500 ? "easy_long" : "easy_short", detail: "" };
+  }
+  /* nothing in the name — fall back to distance, with pace deciding whether a
+     5K was a test or a jog */
+  if (distM >= 9000) return { sid: "long_run", detail: "" };
+  if (distM >= 4200 && distM <= 6000) {
+    return { sid: pace && pace < 260 ? "eff_5k" : "easy_short", detail: "" };
+  }
+  if (distM >= 9500 && distM <= 11000) return { sid: "eff_10k", detail: "" };
+  if (distM >= 2700 && distM <= 3400) return { sid: "eff_3k", detail: "" };
+  if (distM >= 1500 && distM <= 1750) return { sid: "eff_mile", detail: "" };
+  if (distM < 2500) return { sid: "eff_mixed", detail: "" };
+  return { sid: pace && pace < 260 ? "eff_mixed" : "easy_short", detail: "" };
+}
+
+/* A Strava "best effort" over a rep session spans the recovery jog between
+   reps, so the 1K split on a set of 400s is nonsense. Only trust one that is at
+   most the distance actually covered and quick enough to have been run rather
+   than jogged through. */
+function stravaBestRep(effs, distM) {
+  if (!effs || !effs.length) return null;
+  var best = null;
+  effs.forEach(function (e) {
+    var d = +e.distance || 0, v = +e.value || 0;
+    if (!d || !v || d > distM) return;
+    if (v / (d / 1000) > 240) return;
+    if (!best || d > best.dist) best = { dist: d, sec: v };
+  });
+  return best;
+}
+
+function stravaParse(text) {
+  var raw = JSON.parse(text);
+  var list = Array.isArray(raw) ? raw : (raw.activities || []);
+  if (!Array.isArray(list)) throw new Error("no activities in that");
+  return list.map(function (a) {
+    var sum = a.summary || a;
+    return { id: String(a.id || ""), name: a.name || "",
+      sport: a.sport_type || a.type || "Run",
+      date: String(a.start_local || a.start_date_local || "").slice(0, 10),
+      dist: +sum.distance || 0,
+      moving: +sum.moving_time || 0,
+      efforts: a.best_efforts || null };
+  }).filter(function (a) { return a.id && a.date && a.dist > 0; });
+}
+
+function stravaImport(text) {
+  var acts;
+  try { acts = stravaParse(text); }
+  catch (e) { return { error: "Could not read that. It needs to be the JSON block, pasted whole." }; }
+  if (!acts.length) return { error: "No activities found in that block." };
+
+  var seen = stravaSeen(), added = [], skipped = 0, outside = 0, notRun = 0;
+  acts.forEach(function (a) {
+    if (seen.indexOf(a.id) !== -1) { skipped++; return; }
+    if (!/run/i.test(a.sport)) { notRun++; return; }
+    var slot = slotForDate(a.date);
+    if (!slot) { outside++; return; }
+    var rows = DB.get("week-" + slot.week, null);
+    if (!Array.isArray(rows) || rows.length !== 7) { outside++; return; }
+
+    var c = stravaClassify(a.name, a.dist, a.moving);
+    var pace = a.moving / (a.dist / 1000);
+    var br = stravaBestRep(a.efforts, a.dist);
+    var row = rows[slot.day];
+    var payload = { sid: c.sid, detail: c.detail || "", done: true,
+      avgpace: fmtSec(pace), bestrep: br ? fmtResult(br.sec) : "",
+      notes: a.name };
+    /* a day that already has something keeps it; the import becomes the second
+       session on that day rather than overwriting what is there */
+    if (rowHasContent(row)) {
+      row.extra = row.extra || [];
+      row.extra.push(Object.assign({ sid: "none", detail: "", splits: "", avgpace: "",
+        bestrep: "", actual: "", notes: "", feel: "", done: false }, payload));
+    } else {
+      Object.assign(row, payload);
+    }
+    DB.set("week-" + slot.week, rows);
+    seen.push(a.id);
+    added.push({ date: a.date, name: a.name, sid: c.sid, week: slot.week,
+      pace: fmtSec(pace), best: br ? fmtResult(br.sec) + " over " + distLabel(br.dist) : null });
+  });
+  DB.set(STRAVA_IDS_KEY, seen);
+  if (added.length) { loadWeek(viewWeek); rebuildHistoryFromWeeks(); }
+  return { added: added, skipped: skipped, outside: outside, notRun: notRun };
+}
+
+/* An imported day is marked done but never went through toggleDone, so the
+   session history has to be rebuilt from the grids or Block Bests, the PB board
+   and the rolling counts would all miss it. */
+function rebuildHistoryFromWeeks() {
+  for (var w = 1; w <= 13; w++) {
+    var rows = DB.get("week-" + w, null);
+    if (!Array.isArray(rows) || rows.length !== 7) continue;
+    rows.forEach(function (d, i) {
+      if (!d) return;
+      var date = slotDate(w, i);
+      var iso = date ? dayStr(date) : today();
+      daySessions(d).forEach(function (ses, k) {
+        var key = k ? extraKey(w, d.day, k - 1) : w + "|" + d.day;
+        sessionHistory = sessionHistory.filter(function (h) { return h.key !== key; });
+        if (!(k ? ses.done : d.done)) return;
+        var dv = deriveSession(ses);
+        sessionHistory.unshift({ key: key, date: iso, week: w, day: d.day, sid: ses.sid || null,
+          type: sessionOf(ses).type, detail: ses.detail || "", splits: ses.splits || "",
+          avgPace: dv.avgPace, bestRep: dv.bestRep, repDist: dv.dist, solo: !!dv.solo,
+          actual: ses.splits || (dv.avgPace ? fmtSec(dv.avgPace) + "/km" : "") || "\u2014",
+          feel: ses.feel || "" });
+      });
+    });
+  }
+  sessionHistory.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+  DB.set("session-history", sessionHistory);
+}
+
+function renderStrava() {
+  var tag = $("stravaTag"); if (!tag) return;
+  var seen = stravaSeen();
+  tag.textContent = seen.length ? seen.length + " imported" : "nothing imported";
+}
+
+function doStravaImport() {
+  var el = $("stravaOut"), text = $("stravaIn").value.trim();
+  if (!text) { $("stravaIn").focus(); return; }
+  var r = stravaImport(text);
+  if (r.error) {
+    el.innerHTML = '<div class="note stop" style="margin-top:10px"><b>Nothing imported</b>' + esc(r.error) + "</div>";
+    return;
+  }
+  var bits = [];
+  if (r.skipped) bits.push(r.skipped + " already in");
+  if (r.outside) bits.push(r.outside + " outside the block");
+  if (r.notRun) bits.push(r.notRun + " not runs");
+  var list = r.added.map(function (a) {
+    return '<div class="log-item"><span class="l-main">' + esc(a.date) + " · W" + a.week + "</span>" +
+      '<span class="l-body">' + esc(sessionOf({ sid: a.sid }).type) + " · " + esc(a.pace) + "/km" +
+      (a.best ? " · best " + esc(a.best) : "") + "<br>" +
+      '<span style="color:var(--muted-2)">' + esc(a.name) + "</span></span></div>";
+  }).join("");
+  el.innerHTML = '<div class="note ' + (r.added.length ? "good" : "flat") + '" style="margin-top:10px"><b>' +
+    (r.added.length ? r.added.length + " session" + (r.added.length === 1 ? "" : "s") + " imported"
+                    : "Nothing new to import") + "</b>" +
+    (bits.length ? bits.join(", ") + ". " : "") +
+    (r.added.length ? "Check the session type on each one — the name is a good guess, not a certainty, and the dropdown on This Week overrides it." : "") +
+    "</div>" + list;
+  $("stravaIn").value = "";
+  renderStrava(); renderAll();
+}
+
 /* ================= backup ================= */
 function backupObject() {
   return { app: "full-system", version: 2, exportedAt: new Date().toISOString(), data: DB.dump() };
@@ -6174,7 +6392,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
-  renderCut(); renderK(); renderRevGuide();
+  renderCut(); renderK(); renderRevGuide(); renderStrava();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -6355,6 +6573,13 @@ function renderStartInfo() {
     $(id).addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
+  });
+  $("stravaBtn").addEventListener("click", doStravaImport);
+  $("stravaForget").addEventListener("click", function () {
+    if (!confirm("Forget which activities have been imported?\n\nSessions already on the calendar stay. This only clears the do-not-repeat list, so pasting an old block would add them again.")) return;
+    DB.set(STRAVA_IDS_KEY, []);
+    renderStrava();
+    $("stravaOut").innerHTML = '<div class="note flat" style="margin-top:10px"><b>Cleared</b>Nothing on your calendar changed.</div>';
   });
   $("kTodayBtn").addEventListener("click", function () {
     var v = parseFloat($("kToday").value);
