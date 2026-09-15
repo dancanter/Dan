@@ -779,7 +779,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
             <tr><td><b>Breakfast</b><span class="sub">4 eggs · 4 GF rice cakes<br><em style="color:var(--track-bright);font-style:normal">5 + 5 on yoghurt-bowl days</em></span></td><td>Rice or potato instead of rice cakes whenever. Never below 4 yolks.</td></tr>
             <tr><td><b>Lunch</b><span class="sub">Collagen smoothie — Fage, berries, avocado, cacao, hazelnuts</span></td><td>An hour before you train on session days. <b>Blend a big handful of spinach in</b> — tasteless, and it is your potassium and magnesium fix.</td></tr>
             <tr><td><b>Lunch — swap</b><span class="sub">5% Fage, honey, blueberries, walnuts + 2 Brazils</span></td><td><b>Add 15g collagen</b> or it lands 15g of protein short. Pair with the 5-egg breakfast.</td></tr>
-            <tr><td><b>Dinner</b><span class="sub">Sockeye 450g/wk, chicken, lean beef or organ meat, baked · potato or rice · garlic · beetroot</span></td><td>Add <b>broccoli sprouts, raw, 10g building to 30g</b> — nothing else feeds pathway 4. One soft-cooked veg if it sits well.</td></tr>
+            <tr><td><b>Dinner</b><span class="sub">Sockeye 450g/wk, chicken, lean beef or organ meat, baked · potato or rice · garlic · beetroot</span></td><td><b>Crush the garlic and leave it 10 minutes</b> before it goes near heat — that rest is when allicin actually forms, and it is your pathway 4. One soft-cooked veg if it sits well.</td></tr>
             <tr><td><b>Evening</b><span class="sub">Fage, kefir, berries, honey, dark chocolate, pomegranate, grapes</span></td><td>Keep it — just eat it <b>2–3h before bed</b>, not right before. Red or black grapes over green.</td></tr>
             <tr><td><b>Anytime</b><span class="sub">Olives · Brazil nuts · aged hard cheese</span></td><td>Olives replace what you lose skipping olive oil. 2–3 Brazils covers selenium.</td></tr>
             <tr><td><b>Fat</b><span class="sub">Beef tallow · avocado oil</span></td><td>Tallow for heat. Check you are still hitting 55–60g since the nuts came out.</td></tr>
@@ -840,7 +840,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
             <tr><td><b>1 · Collagen</b><span class="sub">Skin firmness</span></td><td>Peptides, bone broth, berries, liver, oysters</td><td class="hl">Always with vitamin C — without it the enzyme does not work at all.</td></tr>
             <tr><td><b>2 · Anti-glycation</b><span class="sub">Stops skin stiffening</span></td><td>Beef, organ meat, cacao, berries, grapes, pomegranate</td><td class="hl">Bake, stew, poach. Never char.</td></tr>
             <tr><td><b>3 · Microcirculation</b><span class="sub">Lit-from-within look</span></td><td>Beetroot, rocket, spinach, cacao, garlic</td><td class="hl">No antibacterial mouthwash — it kills the mouth bacteria this depends on.</td></tr>
-            <tr><td><b>4 · Nrf2</b><span class="sub">Your own defences</span></td><td>Broccoli sprouts, garlic, green tea</td><td class="hl">Sprouts raw. Cooking destroys the enzyme that makes sulforaphane.</td></tr>
+            <tr><td><b>4 · Nrf2</b><span class="sub">Your own defences</span></td><td>Your own training, garlic, green tea, coffee</td><td class="hl">Hard running is a stronger Nrf2 signal than any food. Crush garlic, wait 10 min, then cook.</td></tr>
             <tr><td><b>5 · Barrier</b><span class="sub">Skin holds water</span></td><td>Egg yolks, sockeye, tallow, avocado</td><td class="hl">4 yolks daily, oily fish 2–3×. No seed oils.</td></tr>
             <tr><td><b>6 · Cell hydration</b><span class="sub">Full face, not puffy</span></td><td>Potato, avocado, beetroot, spinach, coconut water</td><td class="hl">Push potassium. Do not cut salt — it is the ratio.</td></tr>
             <tr><td><b>7 · Mitophagy</b><span class="sub">Clears dead mitochondria</span></td><td>Pomegranate, walnuts</td><td class="hl">Only ~40% of people convert it. Your running does this anyway.</td></tr>
@@ -877,7 +877,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <section class="block" data-detail>
       <h2 class="block-title">Honest Verdict</h2>
       <div class="note good" style="margin-bottom:10px"><b>Diet: about 8/10 — and it is near its ceiling</b>
-        Protein, fat quality, no processed food, polyphenols, organ meat, the sockeye and the consistency to weigh it all are genuinely strong. The gap is vegetables, fibre and plant variety — real, but constrained by your digestion, which is why the fix is blended spinach and sprouts rather than a plate of broccoli.</div>
+        Protein, fat quality, no processed food, polyphenols, organ meat, the sockeye and the consistency to weigh it all are genuinely strong. The gap is vegetables, fibre and plant variety — real, but constrained by your digestion, which is why the fix is blended spinach rather than a plate of cruciferous veg.</div>
       <div class="note stop" style="margin-bottom:10px"><b>And food is fifth on the list that actually matters</b>
         Above it: <b style="color:var(--chalk)">cardiorespiratory fitness, muscle mass, sleep, and not accumulating damage.</b> You already do all four. For how you <em>look</em> specifically, roughly 80% of facial ageing is UV — your daily SPF50 outranks every food on this page. Most of a face is bone, and bone is not food.</div>
       <div class="note warn"><b>Do not cut below 122–124 chasing a sharper face</b>
@@ -1179,7 +1179,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "15 Sep 11:48";
+var BUILD = "15 Sep 12:03";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5990,12 +5990,12 @@ function renderTdee() {
 /* Ranked by how much is lost by missing it, not by how exotic it is. Stage-gated
    items stay visible but greyed until the stage they belong to. */
 var WEEKLY_FOODS = [
-  { id: "sprouts", label: "Broccoli sprouts — 3–4×, raw", sub: "Pathway 4. The one clear hole in your diet, and the most potent Nrf2 activator there is.", stage: 1 },
+  { id: "garlic", label: "Garlic — daily, crushed then rested", sub: "Pathway 4. Crush it and leave it 10 minutes before heat — that pause is the whole point. Already in your dinner; this is just doing it properly.", stage: 1 },
   { id: "liver", label: "Organ meat — 100g, once", sub: "Pathways 1 and 2. Iron, B12, folate, copper — the exact things coeliacs run short on. Once weekly, never daily.", stage: 1 },
   { id: "oily", label: "Oily fish — 2–3×", sub: "Pathway 5. Salmon, mackerel or sardines. The active part of the lipid barrier.", stage: 1 },
   { id: "oysters", label: "Oysters — 1–2×", sub: "Pathways 1 and 5. Zinc and copper. Tinned smoked ones count.", stage: 1 },
   { id: "beetroot", label: "Beetroot — 3–4×", sub: "Pathway 3. Dietary nitrate. Skip the antibacterial mouthwash or it does nothing.", stage: 1 },
-  { id: "greens", label: "Greens or cruciferous — daily", sub: "Pathways 4 and 6. Potassium and magnesium — the actual lever on puffiness.", stage: 1 },
+  { id: "greens", label: "Greens — daily", sub: "Pathway 6. Spinach and rocket, blended into the smoothie. Potassium and magnesium — the actual lever on puffiness.", stage: 1 },
   { id: "broth", label: "Bone broth — 2–3×", sub: "Pathway 1. Glycine and proline, and it feeds glutathione too.", stage: 1 },
   { id: "brazil", label: "Brazil nuts — 3–4×", sub: "Two or three nuts is a full day of selenium. More is genuinely toxic — not a snack.", stage: 1 },
   { id: "pom", label: "Pomegranate — 3–4×", sub: "Pathway 7. The only thing on your page feeding mitophagy.", stage: 1 },
@@ -6048,7 +6048,6 @@ var STAGES = [
     add: ["Everything from stage 1 continues.",
           "<b>Beef heart 100g weekly</b> — the richest CoQ10 there is, and the standout item on the whole list.",
           "<b>Cooked tomatoes with EVOO 3–4× a week.</b> Needs the fat and the heat to be worth anything.",
-          "<b>Broccoli sprouts 20–30g, raw, 3–4× a week.</b>",
           "<b>Grass-fed beef 3–4× a week</b>, on days you are not eating liver."],
     hold: "<b>Hold back:</b> creatine, still. Wait until maintenance is confirmed — a 1–2kg water shift mid-reverse is exactly the thing that makes people abort the reverse thinking they are gaining fat." },
   { n: 3, name: "Perform", when: "Maintenance → PB week",

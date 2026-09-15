@@ -611,9 +611,13 @@ and it shows weeks before a benchmark test would.
 groups: collagen hydroxylation, anti-glycation, eNOS microcirculation, Nrf2,
 lipid barrier, intracellular hydration, mitophagy and pulsed mTOR. Each carries
 what it does, what feeds it, and the one lever that decides whether it works at
-all — sprouts raw or the sulforaphane never forms, nitrate needs the oral
-bacteria that antibacterial mouthwash destroys, collagen is inert without
-vitamin C. Alongside: what each meal of the actual diet is feeding, coeliac
+all — garlic crushed and rested ten minutes before heat or the allicin never
+forms, nitrate needs the oral bacteria that antibacterial mouthwash destroys,
+collagen is inert without vitamin C. Broccoli sprouts are deliberately absent
+from every one of these: they are the most potent dietary Nrf2 activator there
+is, and they sit badly with him, so pathway 4 is carried by training, garlic,
+green tea and coffee instead, and the tab says as much rather than pretending
+the substitution is equivalent. Alongside: what each meal of the actual diet is feeding, coeliac
 notes (certified GF oats, the absorption deficits coeliacs carry, and gut
 healing as an ageing lever in its own right), a weekly checklist of the items
 easy to miss, the staged reverse with a gluten-free step ladder written against
