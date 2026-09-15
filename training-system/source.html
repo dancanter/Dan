@@ -708,6 +708,16 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   <!-- ============ NUTRITION ============ -->
   <div class="panel" id="panel-model" role="tabpanel">
 
+    <section class="block" data-fold="ask">
+      <h2 class="block-title">Ask <span class="tag" id="askTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Everything we have worked out, searchable. Type a question in your own words.</p>
+      <div class="add-row" style="margin-top:0">
+        <input type="text" id="askIn" placeholder="e.g. why is my face puffy, how low can I go, how many carbs">
+        <button class="btn primary" id="askBtn">Ask</button>
+      </div>
+      <div id="askOut" style="margin-top:10px"></div>
+    </section>
+
     <section class="block">
       <h2 class="block-title">The Look <span class="tag" id="lookTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <div id="lookBox"></div>
@@ -761,12 +771,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <section class="block" data-fold="stage">
       <h2 class="block-title">Where You Are</h2>
       <div id="calStep"></div>
-    </section>
-
-    <section class="block" data-fold="jaw">
-      <h2 class="block-title">The Jaw and Cheek Thing</h2>
-      <p class="block-sub">Holding fluid round the jaw at a lower weight than three years ago, on the same calories.</p>
-      <div id="jawOut"></div>
     </section>
 
     <section class="block" data-fold="fit">
@@ -6013,66 +6017,6 @@ function intakeFit() {
   }) };
 }
 
-/* The candidates, in the order they fit what he actually described: appearing
-   at a LOWER weight, on unchanged calories, after years of on-and-off
-   restriction. That last detail is what rules the simple answers out. */
-var JAW_CAUSES = [
-  ["Sialadenosis", "best fit",
-   "Bilateral, painless swelling of the parotid glands, which sit exactly at the angle of the jaw and over the back of the cheek. It is strongly associated with <b>chronic low-carbohydrate intake and prolonged or repeated dieting</b> — there is a recognised entity called carbohydrate-deficiency sialadenosis. The gland cells hypertrophy through autonomic dysregulation, so it is neither fat nor water. It fits because it appears at <em>lower</em> bodyweight, not higher, and it tracks cumulative restriction rather than today's calories — which is exactly why the same intake three years ago did not do this."],
-  ["Cortisol fluid", "likely contributor",
-   "A deficit, hard training, broken sleep and term starting all push cortisol up, and cortisol has a mineralocorticoid effect that pools fluid centrally and in the face. This is what people mean by diet face."],
-  ["Aldosterone plus sodium", "amplifier, not cause",
-   "Prolonged energy restriction raises aldosterone. A year of higher salt is still not stored water on its own — but a sodium load on top of high aldosterone does not behave like a sodium load on its own."],
-  ["Low T3", "worth a blood test",
-   "Chronic dieting lowers T3, and low thyroid puffs the face. Cheap to check and worth knowing either way."],
-  ["Masseter hypertrophy", "reads the same in a mirror",
-   "Clenching and grinding thicken the jaw muscle and widen the lower face. Not fluid at all, but visually identical, and stress and poor sleep are exactly what drive it."]
-];
-
-var JAW_FLAGS = [
-  "One side only rather than both",
-  "Hard rather than soft",
-  "Painful",
-  "Dry mouth or dry eyes alongside it",
-  "Any change in the skin over it"
-];
-
-function renderJaw() {
-  var el = $("jawOut"); if (!el) return;
-  var c = carbFloor(), f = intakeFit();
-  var hard = f.rows[0];
-
-  el.innerHTML =
-    '<div class="note flat"><b>What the pattern actually points at</b>' +
-    "It showed up at a <em>lower</em> weight than three years ago, on the same calories. " +
-    '<span style="color:var(--chalk);font-weight:600">That rules out the simple answers.</span> ' +
-    "If it tracked bodyweight it would be better now, and if it tracked intake it would have happened then. " +
-    "What changed is the years of on-and-off restriction behind you, which is cumulative.</div>" +
-
-    JAW_CAUSES.map(function (r) {
-      return '<div class="note ' + (r[1] === "best fit" ? "warn" : "flat") + '" style="margin-top:10px">' +
-        "<b>" + esc(r[0]) + " — " + esc(r[1]) + "</b>" + r[2] + "</div>";
-    }).join("") +
-
-    '<div class="note stop" style="margin-top:12px"><b>Every one of them points the same way</b>' +
-    '<span style="color:var(--chalk);font-weight:600">This is downstream of the restriction, not something more restriction fixes.</span> ' +
-    "If it is glandular, the treatment is restoring carbohydrate and calories. If it is cortisol, the treatment is " +
-    "less stress and more food. There is no version where going lower or cutting salt helps, and both would make it worse.<br><br>" +
-    "Which means <b>7 November is not just a date you are waiting for — it is the intervention.</b> " +
-    "Be ready for it to be slow: if it is glandular it settles over months of eating properly, not weeks. " +
-    "That is a reason not to judge the reverse by week three, not a reason to lose heart.<br><br>" +
-    "Worth knowing where you sit right now: a hard day affords <b>" + hard.carbsAfforded + "g</b> of carbs, which is " +
-    (hard.carbsAfforded / c.kg).toFixed(1) + " g/kg — under the " + CARB_LOW_PER_KG + " g/kg line, and probably " +
-    "where you have been for a long time.</div>" +
-
-    '<div class="note good" style="margin-top:10px"><b>Get it looked at anyway</b>' +
-    "Not because the likely answer is sinister — the picture above is the benign one. But bilateral parotid " +
-    "swelling should be examined properly, and the same appointment can check thyroid function.<br><br>" +
-    '<span style="color:var(--chalk);font-weight:600">Go sooner if any of these apply:</span><br>' +
-    JAW_FLAGS.map(function (x) { return "· " + esc(x); }).join("<br>") +
-    "<br><br>Those point somewhere different and should not wait.</div>";
-}
-
 function renderFit() {
   var el = $("fitOut"); if (!el) return;
   var f = intakeFit(), tp = tdeePredicted(), c = carbFloor();
@@ -6734,6 +6678,181 @@ function renderPlans() {
     "but the half of the plan where the building actually happens.</div>";
 }
 
+
+/* ================= Ask =================
+   No model runs inside a published artifact on this account - the capabilities
+   available are downloads, mcp and self, and none of them is a completion. So
+   this is honest about what it is: the answers we actually arrived at, indexed
+   and searchable, plus somewhere to park a question it cannot answer. */
+var QA = [
+  { q: "Why is my jaw and cheek holding fluid at a lower weight?",
+    k: "jaw cheek face fluid puffy swollen swelling parotid gland lower mouth wide moon bloated",
+    a: "The detail that solves it: it appeared at a <b>lower</b> weight, on the <b>same</b> calories. If it tracked bodyweight it would be better now; if it tracked intake it would have happened three years ago. What changed is the cumulative restriction.<br><br>Best fit is <b>sialadenosis</b> - bilateral painless enlargement of the parotid glands, which sit exactly at the angle of the jaw. Strongly associated with chronic low-carb intake and repeated dieting; there is a recognised entity called carbohydrate-deficiency sialadenosis. It is neither fat nor water, and it appears at lower weight rather than higher.<br><br>Also in play: cortisol fluid from deficit plus poor sleep, aldosterone amplifying a sodium load, low T3, and masseter hypertrophy from clenching (not fluid, but identical in a mirror).<br><br><b>All of them point one way: this is downstream of restriction, not something more restriction fixes.</b> The reverse is the intervention, and it settles over months rather than weeks. Get it looked at - and sooner if it is one-sided, hard, painful, or comes with dry mouth or eyes." },
+
+  { q: "Does salt cause dark circles under my eyes?",
+    k: "salt sodium under eye eyes dark circles shadows bags hollow",
+    a: "Only indirectly, and it is not your cause. Sodium holds fluid, fluid pools around the eye overnight, and the swelling casts a shadow - but that is the <b>puffy</b> kind, and yours reads hollow. You also salt once a day, which is not high.<br><br><b>Yours is sleep.</b> Short sleep dilates the small vessels under skin that is already the thinnest on your body, so more blue shows through, and it pales the surrounding skin so the contrast reads worse. The cut adds to it, because the under-eye has almost no fat and gives up what it has early.<br><br>Three or four normal nights fixes most of it. Cutting salt fixes none of it." },
+
+  { q: "I have been on higher salt for a year - is that stored water?",
+    k: "salt sodium year water retention stored holding backlog high salt diet",
+    a: "No. The kidney adapts to a sodium intake within days to a couple of weeks - aldosterone comes down, excretion goes up, and total body water settles barely different from where it was. <b>There is no backlog sitting on you.</b><br><br>Cut it hard now and you would drop 1-3 lb inside four days, then stop. That is water, not fat, and it returns with the first normal meal. Worse, sodium restriction <i>raises</i> aldosterone and renin, so you hold more when you eat salt again - which is why people who cut salt before a date look puffier on it.<br><br>Keep it at once a day. The levers that move how watery you look are potassium up, cortisol down, and fat off." },
+
+  { q: "How many carbs should I eat, and how low is too low?",
+    k: "carbs carbohydrate how many grams low too low floor minimum fuel",
+    a: "Protein and fat are floors - 158g and 58g - so they take 1,154 kcal before a single gram of carbohydrate. Everything left is carbs.<br><br><b>Hard day 200-210g - gym day 150-170g - rest day 120-150g.</b><br><br>Under about 3 g/kg on a training day, quality starts going. Under 2 g/kg on any day is far too low, and under 100g while running your sessions is counterproductive rather than hard.<br><br>What breaks, in order: the sessions (glycogen-powered), T3 and the stall it causes, leptin and 200-400 kcal a day of lost NEAT, cortisol (which puffs the face you are sharpening), muscle spent mid-session, muscle gone flat, and sleep.<br><br><b>The deficit comes from total calories.</b> If something has to give it is fat to its floor, then steps - never carbs." },
+
+  { q: "How low can I safely go?",
+    k: "how low floor minimum lowest weight safe bottom underweight bmi limit stop",
+    a: "<b>121.6 lb.</b> At 5'8\" that is where BMI hits 18.5, the clinical underweight line. Your 122 target sits at BMI 18.6 - about a pound of headroom, and that is the whole margin you are working inside.<br><br>It is a hard stop, not a target. The real floor is whichever arrives first: that weight, or two or three of morning HR drifting up and staying up, strength dropping rather than stalling, sprints going backwards while sessions feel the same, sleep breaking up, libido gone, always cold.<br><br>If those start at 125, then 125 is your bottom and the arithmetic stops mattering. The markers can only ever raise the floor, never lower it." },
+
+  { q: "How much should I be eating, and what is my maintenance?",
+    k: "calories kcal eat maintenance tdee deficit how much intake 1799 bmr",
+    a: "BMR is about 1,543 - Mifflin-St Jeor on 5'8\", your age and current weight. With your training, maintenance predicts around <b>2,310-2,470</b>.<br><br>At 1,799 that is roughly a 590 kcal deficit, or about <b>1.2 lb a week</b>.<br><br>One catch: 1,799 does not fit a hard day. After protein and fat it leaves 161g of carbs against the 200g a session wants - 39g short, every hard day, at 2.7 g/kg. The fix is not more food, it is moving it: about 1,950 on hard days and 1,700 on rest days averages the same and puts the carbs where the work is.<br><br>Two weeks of daily weights and the app works out your real maintenance from what the scale did, which beats any formula." },
+
+  { q: "When should I have a refeed, and how big?",
+    k: "refeed cheat day carb up maintenance day stall tired flat hungry",
+    a: "Not on a schedule - a refeed taken while the rate is fine just slows the cut for nothing. The app calls one when the markers say the deficit has stopped buying anything: the 7-day average barely moving over a fortnight, energy rated 2 or below on three of seven days, or morning HR up on three of seven mornings. Never inside the first 14 days.<br><br>When it fires: carbs up by roughly the gap to maintenance, for one day. <b>Keep fat where it is</b> and protein unchanged - carbs are what restore leptin, T3 and training quality, and fat added on top of a high-carb day just goes to storage.<br><br>Put it on a hard training day or the day before a test. Expect the scale up 1-2 lb the morning after; that is glycogen and water and it is gone within three days." },
+
+  { q: "Should I take my deload?",
+    k: "deload rest week break skip recovery tired taper hold off",
+    a: "Your own data says yes. Three of your PBs came directly after a deload, and the deep-rest setup - six days or more - preceded both your 1km and 800m bests.<br><br>The pattern in your log is not subtle: you do not PB off accumulated fatigue, you PB off a break. Skipping a deload does not cost you the deload week, it costs you the test after it.<br><br>The Fitness tab has the five PBs with what preceded each one. Worth reading before you decide." },
+
+  { q: "Why do my shoulders matter more than more fat loss?",
+    k: "shoulders shoulder delts width taper silhouette v shape lats broad side raises",
+    a: "Because your waist is already handled by the running and the cut, so the ratio is bought at the top. Lateral delt width is what turns lean into a silhouette.<br><br>Three sets of side raises on every upper day - light, slow, high rep. Heavy turns them into a trap exercise and you cheat the range. Small muscle, responds fast, about four minutes a session.<br><br>Match your pressing with rowing too. You have been benching, and rounded shoulders make a lean person read as soft - you lose width you already own." },
+
+  { q: "Why should I train my neck?",
+    k: "neck jawline jaw definition masseter throat thin",
+    a: "A jaw only reads as strong against the neck under it. Yours is a good jaw on a fairly slender neck, and on a cut the neck thins before almost anything else - so the jawline gets <b>less</b> prominent as you lean out, not more. Same mechanism that hollows the under-eye.<br><br>Neck curls and extensions, 2-3x a week, slow and high rep, no load worth mentioning. Four minutes, and almost nobody does it." },
+
+  { q: "What should I do about my skin and the redness?",
+    k: "skin redness red rosacea spf sunscreen retinol acne pores nose cleanser routine glow",
+    a: "SPF50 every day, a quarter teaspoon, face and neck, rain or not. That single thing beats every other intervention combined - roughly 80% of facial ageing is UV. Cap and sunglasses on outdoor sessions, since hours a week outside is where your dose comes from.<br><br>Gentle cleanser morning and night, moisturiser onto damp skin. That is the whole routine and it is enough.<br><br>No pore strips - they take the top off and the pore refills in days, and on reactive skin they worsen redness. Nothing new inside a month of 7 November.<br><br>The persistent redness across your nose and cheeks is worth a GP or pharmacist looking at rather than guessing about. Azelaic acid is the ingredient to raise by name - not a retinoid, usually tolerated by skin that cannot handle actives - but that is their call, not a self-start. Nothing with retinol." },
+
+  { q: "What actually helps my sleep, and why does it matter so much?",
+    k: "sleep sleeping tired insomnia wake bed rest night hours",
+    a: "Same wake time every day, Saturday included - consistency beats duration. 7-9 hours <b>in bed</b>, not asleep; budget for the gap. On your back rather than face-down, because fluid pools where gravity puts it and it shows under the eyes by morning. Last food 2-3h before bed.<br><br>It matters because it is the one thing that shows in your face within 48 hours, and it is where the cortisol that puffs you comes down. A bad week shows in the mirror before it shows on the scale." },
+
+  { q: "How do I get veins and vascularity?",
+    k: "veins vascular vascularity vein arms striations",
+    a: "Three things: low body fat, full glycogen, and nitric oxide. You only control the third through food.<br><br>Dietary nitrate is how - beetroot daily. And skip antibacterial mouthwash, because the conversion depends on bacteria in your mouth and it kills them, which makes the beetroot pointless.<br><br>Note that full glycogen is on that list. Chronically low carbs flatten the muscle and take the veins with it - which is another reason the carb floor matters." },
+
+  { q: "When can I start creatine?",
+    k: "creatine supplement monohydrate loading",
+    a: "On the reverse, from 7 November - not before.<br><br>It is comfortably the best-evidenced performance compound there is and it is specifically 400m-shaped, so you do want it. But it pulls 1-2kg of water into muscle, and for the next seven weeks you need to read your weight trend cleanly. A 2kg water shift would blind you to what the cut is actually doing.<br><br>3-5g daily, no loading phase needed. Expect the scale up; it is not fat." },
+
+  { q: "Am I causing AGEs with all this training?",
+    k: "ages glycation aging anti-ageing cellular damage char cooking burnt",
+    a: "Training <b>lowers</b> glycation, it does not raise it. Fit people accumulate fewer AGEs, not more - you turn protein over faster.<br><br>The real source is your pan, not your body. <b>Bake, stew, poach. Never char.</b> That single cooking rule is the highest-leverage and cheapest anti-glycation change available to you, and it beats every supplement marketed for it.<br><br>What does raise them is hard training your body is not recovering from - which is a recovery problem, not a training-volume problem." },
+
+  { q: "Why was that 3x400 so hard?",
+    k: "400 400m hard session tough brutal why struggled ladder",
+    a: "Because you ran it about twelve seconds a rep faster than any 400 work in the block, on 24 hours of recovery from a lactate ladder.<br><br>Splits were roughly 62s, 58s and 61s, with Strava's best-400 window at 60s. Your earlier 400 sessions were 71-75s a rep - but those were labelled 70% and mile pace. That was the first time in the block you ran 400s flat out.<br><br>The 12-14 minutes standing between reps confirms it: that is the recovery profile of true maximal sprinting. Then the load on top - the ladder 24h before, gym legs in the window, and your own note that you were underfuelled.<br><br>The good news: a 58-second 400 on tired legs underfed means fresh and carbed it is quicker." },
+
+  { q: "Why does the plan change on 7 November?",
+    k: "reverse reversing november 7 after rebuild surplus gaining increase calories",
+    a: "Because mTOR and autophagy are opposing switches, and you cannot build and clear at the same time. The cut is the clearing half; the reverse is the building half, and it is the only phase where tissue can actually be added.<br><br>Carbs come back before fat - per calorie, carbohydrate restores T3, leptin and training quality, and fat restores almost none of it. +75 kcal at a time, held a fortnight. Target is 0.25 lb a month of real tissue, which is three pounds a year.<br><br>Slow is the whole point: fast reverses add water, fat and inflammation together, which is the puffy face you said you did not want. The most common way people ruin it is aborting in week three." },
+
+  { q: "Why does the oats have to be gluten-free?",
+    k: "oats gluten free celiac coeliac gf rice cakes breakfast contamination",
+    a: "Oats are naturally gluten-free but are almost always milled alongside wheat, so cross-contamination is the rule rather than the exception. As a daily breakfast that is a daily exposure, not an occasional one.<br><br>Certified gluten-free only - same for the lentil rice cakes when breakfast changes on the reverse." },
+
+  { q: "My weight has stalled - should I cut calories?",
+    k: "stall stalled plateau stuck not losing slow scale same weight",
+    a: "No - not for anything under a fortnight. Below two weeks the water noise is bigger than the fat signal, and any conclusion is fiction.<br><br>Read the 7-day average, never a single morning. If the average is genuinely under the floor of your band after a fortnight, the order is: check the markers for a refeed, then steps, then food. <b>Steps before food, always.</b><br><br>And if you have just raised training load or slept badly, that is cortisol holding water over real fat loss. It shows up as a sudden drop a few days later - the whoosh is real." },
+
+  { q: "How many sprints should I do?",
+    k: "sprints sprint hills uphill 100m how many reps recovery day low day",
+    a: "5-8 x 100m, flat or uphill. Uphill, sit at the lower end - six, maybe eight if the last one is still as fast as the second.<br><br>Walk all the way back down; that is the recovery. <b>Stop when the pace goes, not at a number</b> - if a rep is visibly slower than the one before, that was the last one.<br><br>Fast and relaxed rather than absolutely maximal. No heavy breathing. This is your low day and it does not count as an effort session." },
+
+  { q: "How do I balance uni work with training?",
+    k: "uni university study sk297 sk298 modules deep work balance term academic",
+    a: "Two 30-credit modules at 8-10 hours each is a 16-20 hour week, starting 28 September.<br><br>They are tracked in the same app because study load and training load draw on the same recovery, and an app that only sees the running would tell you to push in a week you are already buried. When both are high at once, the app says which to drop: <b>the session, not the hours</b> - the deadline does not move and the session does.<br><br>Deep blocks beat scattered hours. Two three-hour sessions close a gap faster than an hour a day." }
+];
+
+var ASK_STOP = { the: 1, a: 1, an: 1, is: 1, are: 1, do: 1, does: 1, i: 1, my: 1, me: 1, to: 1, of: 1,
+  and: 1, or: 1, in: 1, on: 1, for: 1, it: 1, that: 1, this: 1, what: 1, why: 1, how: 1, when: 1,
+  should: 1, can: 1, will: 1, be: 1, am: 1, was: 1, have: 1, has: 1, get: 1, got: 1, so: 1, if: 1,
+  about: 1, with: 1, at: 1, from: 1, but: 1, not: 1, you: 1, your: 1 };
+
+function askTokens(str) {
+  return String(str || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+    .filter(function (w) { return w.length > 1 && !ASK_STOP[w]; });
+}
+
+/* Score on whole-word hits in the keyword list and the question itself, with a
+   small bonus for a stem match so "carbs" finds "carbohydrate". */
+function askSearch(query) {
+  var toks = askTokens(query);
+  if (!toks.length) return [];
+  return QA.map(function (e) {
+    var hay = askTokens(e.k + " " + e.q), score = 0;
+    toks.forEach(function (t) {
+      hay.forEach(function (h) {
+        if (h === t) score += 3;
+        else if (h.length > 3 && t.length > 3 && (h.indexOf(t) === 0 || t.indexOf(h) === 0)) score += 2;
+      });
+    });
+    return { e: e, score: score };
+  /* One loose stem hit is score 2, and that is not an answer - "supplementation"
+     should not return the creatine entry. Require at least one whole-word match. */
+  }).filter(function (r) { return r.score >= 3; })
+    .sort(function (a, b) { return b.score - a.score; });
+}
+
+function askLog() { return DB.get("ask-log", []); }
+function askParked(q) {
+  var log = askLog();
+  log.unshift({ date: today(), q: q });
+  DB.set("ask-log", log.slice(0, 30));
+}
+
+function runAsk() {
+  var q = ($("askIn").value || "").trim();
+  if (!q) { $("askIn").focus(); return; }
+  var hits = askSearch(q), el = $("askOut");
+  if (!hits.length) {
+    askParked(q);
+    el.innerHTML = '<div class="note warn"><b>Nothing in here covers that yet</b>' +
+      "Saved it below, so ask Claude next time you are in the chat and it can be added.</div>" + askParkedList();
+    $("askIn").value = "";
+    renderAsk(true);
+    return;
+  }
+  var top = hits[0], rest = hits.slice(1, 4);
+  el.innerHTML = '<div class="note good"><b>' + esc(top.e.q) + "</b>" + top.e.a + "</div>" +
+    (rest.length
+      ? '<div class="block-title" style="font-size:15px;margin-top:12px">Also close</div>' +
+        rest.map(function (r) {
+          return '<div class="note flat" style="margin-top:8px"><b>' + esc(r.e.q) + "</b>" + r.e.a + "</div>";
+        }).join("")
+      : "");
+  $("askIn").value = "";
+}
+
+function askParkedList() {
+  var log = askLog();
+  if (!log.length) return "";
+  return '<div class="block-title" style="font-size:15px;margin-top:14px">Waiting on a real answer</div>' +
+    '<div class="note flat">' + log.map(function (r) {
+      return "· " + esc(r.q) + ' <span style="color:var(--muted-2)">' + esc(r.date) + "</span>";
+    }).join("<br>") +
+    '<br><br><span style="color:var(--muted)">Ask Claude these in the chat and they can be added here.</span></div>';
+}
+
+function renderAsk(keepOut) {
+  var el = $("askOut"); if (!el) return;
+  var tag = $("askTag");
+  if (tag) tag.textContent = QA.length + " answers";
+  if (keepOut) return;
+  el.innerHTML = '<div class="note flat"><b>What this is</b>' +
+    "Everything we have actually worked out, indexed. It is a search over real answers, " +
+    "<b>not a model thinking</b> — a published page cannot run one. " +
+    "Type a question in your own words and it finds the closest. Anything it does not know gets parked for a real answer.<br><br>" +
+    '<span style="color:var(--muted)">Try: puffy face · how low can I go · carbs · refeed · deload · creatine · veins · stalled</span></div>' +
+    askParkedList();
+}
+
 function protoList(rows) {
   return rows.map(function (r) {
     return '<div style="margin-bottom:9px"><b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
@@ -7308,7 +7427,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit(); renderJaw();
+  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit(); renderAsk();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -7490,6 +7609,8 @@ function renderStartInfo() {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
   });
+  $("askBtn").addEventListener("click", runAsk);
+  $("askIn").addEventListener("keydown", function (e) { if (e.key === "Enter") runAsk(); });
   $("studyBtn").addEventListener("click", function () {
     var v = parseFloat($("studyToday").value);
     if (!isFinite(v) || v < 0 || v > 18) { $("studyToday").focus(); return; }
