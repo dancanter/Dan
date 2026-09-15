@@ -425,6 +425,13 @@ the first. Hitting a smaller number later is the plan working. The 7 November
 landing is projected by walking that taper forward a week at a time rather than
 multiplying today's rate by the weeks left, which would overstate the finish.
 
+**The floor is a named weight.** At 5'8" BMI 18.5 — the clinical underweight
+line — is **121.6 lb**, and the 122 target sits at BMI 18.6: about a pound of
+headroom. Stating it turns a cautious-sounding limit into a real one. It is a
+hard stop rather than a target — the real floor is whichever arrives first, that
+weight or two or three of morning HR drifting up, strength dropping rather than
+stalling, sprints going backwards, sleep breaking up, libido gone, always cold.
+
 **Every weigh-in is read back.** Under the weight box: today's number against
 the 7-day average, what the average is doing, and whether to change anything.
 The point is to stop one morning being treated as a trend.

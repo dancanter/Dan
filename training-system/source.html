@@ -5268,6 +5268,18 @@ function cutStatus() {
 /* The target weight for every day of the window, walking the taper forward a
    week at a time from whatever the first weigh-in actually was. This is what
    the dashed line on the chart is, and what "on track" is measured against. */
+/* He is 5'8", which is enough to place the underweight line — and at his weight
+   that line lands close enough to the target to be worth naming rather than
+   gesturing at. BMI reads badly on a heavily muscled person and he is not one;
+   a lean distance runner is the build it describes most honestly. */
+function bmiWeights() {
+  var m = BIO.heightCm / 100, m2 = m * m;
+  var wr = weeklyRate(), asc = sortedWeights();
+  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  return { under: 18.5 * m2 * 2.2046, cur: lb,
+    curBmi: lb / 2.2046 / m2, atTarget: 122 / 2.2046 / m2 };
+}
+
 function cutTargetCurve() {
   var c = cutStatus();
   if (!c.first) return null;
@@ -5491,13 +5503,20 @@ function renderCut() {
       "That is the honest arithmetic. Going below it means going faster than is safe, not trying harder.</div>"
     : "";
 
-  var floor = '<div class="note warn" style="margin-top:10px"><b>The floor is not a number</b>' +
-    "There is no weight I can name as your safe minimum without your height and body fat, and the scale will keep " +
-    "going down long after it stops being worth it. " +
-    '<span style="color:var(--chalk);font-weight:600">Your floor is wherever two or three of these go:</span> ' +
+  var bw = bmiWeights();
+  var floor = '<div class="note warn" style="margin-top:10px"><b>Your floor is ' +
+    f1(bw.under) + ' lb, and it is not a cautious guess</b>' +
+    "At 5\u20328\u2033 that is the weight where BMI hits 18.5, which is the clinical underweight line. " +
+    "Your 122 target sits at BMI " + bw.atTarget.toFixed(1) + " — " +
+    '<span style="color:var(--chalk);font-weight:600">about a pound of headroom under it, and no more than that.</span> ' +
+    "You are at " + bw.curBmi.toFixed(1) + " today. That is the whole margin you are working inside, and it is why " +
+    "the rate matters more for you than it would for someone with a stone to lose.<br><br>" +
+    "That number is a hard stop rather than a target. " +
+    '<span style="color:var(--chalk);font-weight:600">The real floor is whichever arrives first — that weight, or two or three of these:</span> ' +
     "morning HR drifting up and staying up · strength dropping in the gym rather than stalling · sprint times going " +
     "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
-    "Those are all tracked here except the last two. When they start, that is the bottom, whatever the number says.</div>";
+    "Those are all tracked here except the last two. If they start at 125, then 125 is your bottom and the " +
+    "arithmetic above stops mattering.</div>";
 
   /* Coming off four days away, the first pound or two is food volume, sodium
      and glycogen rather than fat. Saying so up front stops a flattering first
