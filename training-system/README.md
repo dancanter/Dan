@@ -361,6 +361,28 @@ so the rebound is worse, and costing blood volume in the middle of a block built
 on hard running. Salt holds at once a day; the levers that move how watery he
 looks are potassium up, cortisol down, and fat off.
 
+**Three Plans** is the same rotation under three different jobs, because the
+foods barely move between them and the energy does. **Shred** (now to 7
+November) is a deficit: protein fixed, fat at its floor, carbs the only dial and
+spent where the sessions are, beetroot daily because vascularity is low body
+fat plus full glycogen plus nitric oxide and food only controls the third.
+**Model** (the final fortnight, or any held weight) is maintenance, where the
+face pathways live — collagen with vitamin C an hour pre-training, anti-glycation
+as a cooking rule rather than a shopping list, the lipid barrier that makes
+"glow" mean skin holding water, carbs up ~50g for fullness. **Rebuild** (7
+November on) is the slow surplus: carbs back before fat because carbohydrate
+restores T3 and leptin per calorie and fat restores almost none of it, creatine
+finally allowed in now the weight trend no longer has to be read cleanly, beef
+heart for CoQ10, pomegranate for urolithin A.
+
+Each card names what it does, what it holds back and why, and a comparison
+table puts the three side by side. The rule underneath is pathway 8: **you
+cannot build and clear at the same time.** mTOR and autophagy are opposing
+switches, which is why this is three plans rather than one — a cut cannot also
+be an anti-ageing protocol, and the reverse is not a reward but the half of the
+plan where building happens. The app knows which plan is live from the same
+phase logic that drives The Look.
+
 **Your Day** is the rotation as actually eaten, four numbered meals in order:
 oats with Estate Dairy milk and raw honey (or eggs), the collagen smoothie,
 meat and roots, the yoghurt bowl. Oats and rice cakes both **certified

@@ -766,6 +766,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="calStep"></div>
     </section>
 
+    <section class="block" data-fold="plans">
+      <h2 class="block-title">Three Plans <span class="tag" id="plansTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Same four meals throughout. What changes is the calorie level, where the carbs sit, and which pathways get fed hardest.</p>
+      <div id="plansBox"></div>
+    </section>
+
     <section class="block" data-detail>
       <h2 class="block-title">Your Day</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
@@ -1177,7 +1183,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "15 Sep 13:42";
+var BUILD = "15 Sep 14:39";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -6417,6 +6423,133 @@ function protoCarbs() {
     "cortisol down, and the fat coming off.</div>";
 }
 
+/* Three phases, one rotation. The foods barely move between them \u2014 what moves
+   is the energy available and therefore what the body can afford to do with it.
+   Pathway 8 is the master switch and it is the reason these are three plans
+   rather than one: you cannot build and clear at the same time. */
+var DIET_PLANS = [
+  {
+    id: "cut", name: "Shred", when: "Now \u2192 7 November",
+    aim: "Shredded, sessions intact, veins up",
+    kcal: "Deficit \u2014 about 1,850\u20132,000",
+    paths: "6 \u00b7 3 \u00b7 8 (clear)",
+    macros: "Protein " + 158 + "g fixed \u00b7 fat " + 58 + "g floor \u00b7 carbs are the only dial",
+    does: [
+      "<b>Protein does not move.</b> In a deficit this is the only thing standing between you and spending muscle, and muscle is the whole thing you are cutting to reveal.",
+      "<b>Carbs go where the work is</b> \u2014 200\u2013210g on a hard day, down to 120\u2013150g on a rest day. Not spread evenly. Glycogen in the muscle on the day you need it.",
+      "<b>Beetroot daily, for the veins.</b> Vascularity is three things: low body fat, full glycogen, and nitric oxide. You only control the third through food, and dietary nitrate is how. No antibacterial mouthwash or it does nothing.",
+      "<b>Potassium up, salt unchanged.</b> Pathway 6 is the difference between shredded and shredded-but-puffy.",
+      "<b>Fat sits at the floor, not below it.</b> 58g is where hormones stay working. Going under buys you a few calories and costs you testosterone."
+    ],
+    holds: [
+      "<b>Creatine.</b> It pulls water into muscle, which is good, but it would shift the scale 1\u20132kg and you need to read that trend cleanly for seven weeks.",
+      "<b>The polyphenol and fasting-mimetic stack.</b> A deficit already drives autophagy hard. Stacking more on top while trying to hold muscle works against you.",
+      "<b>Anything new.</b> Not the week you are chasing PBs."
+    ],
+    why: "A deficit is a clearing phase whether you want it to be or not \u2014 low energy availability drives autophagy and suppresses mTOR. So this plan does not fight that. It protects the two things a deficit threatens, muscle and session quality, and lets the clearing happen. Repair and building both wait, because neither is affordable on the energy you have."
+  },
+  {
+    id: "hold", name: "Model", when: "The final fortnight, and any time you hold this weight",
+    aim: "The face and the skin, shreds kept",
+    kcal: "Maintenance \u2014 about 2,100\u20132,200",
+    paths: "1 \u00b7 2 \u00b7 3 \u00b7 5",
+    macros: "Protein " + 158 + "g \u00b7 fat " + 58 + "\u201365g \u00b7 carbs up about 50g",
+    does: [
+      "<b>Collagen 10\u201315g with vitamin C, an hour before you train.</b> This is the one with a timing window that actually matters \u2014 the loading is what drives the peptides into tendon and skin, and without vitamin C the enzyme that builds collagen does not work at all.",
+      "<b>Anti-glycation is a cooking rule, not a shopping list.</b> Bake, stew, poach. Never char. Most of the AGEs you carry were made in your pan, not in your body \u2014 this is the highest-leverage and cheapest change on the entire page.",
+      "<b>Four yolks, oily fish, tallow, avocado.</b> The lipid barrier is what lets skin hold water, and skin holding water is what people are actually describing when they say glow.",
+      "<b>Beetroot and cacao daily.</b> Microcirculation is what puts colour in a lean face. Without it lean reads as gaunt.",
+      "<b>Carbs come up about 50g.</b> Glycogen carries three times its weight in water into muscle \u2014 that is fullness, and it is why the last three days raise carbs rather than dropping them."
+    ],
+    holds: [
+      "<b>Going lower.</b> A maximally lean face is not a model face. Past your floor the under-eye hollows and you read drawn.",
+      "<b>Anything new inside a month.</b> Nothing your gut has not handled a hundred times.",
+      "<b>Water and salt games.</b> Both do the opposite of what people expect."
+    ],
+    why: "This is the only phase where repair is actually affordable. Cellular maintenance \u2014 collagen synthesis, barrier lipids, antioxidant enzymes \u2014 costs energy, and in a deficit the body will not spend it. At maintenance it will. That is why the face pathways live here and not in the cut: you can chase the look, or you can chase the deficit, but the week you try both is the week you get a sharp, flat, grey face."
+  },
+  {
+    id: "reverse", name: "Rebuild", when: "7 November onwards",
+    aim: "Health, longevity, 0.25 lb of real tissue a month",
+    kcal: "+75 kcal steps \u2192 about 2,300",
+    paths: "7 \u00b7 8 (build)",
+    macros: "Protein " + 158 + "g \u00b7 carbs first, fat last",
+    does: [
+      "<b>Carbs come back before fat.</b> Per calorie, carbohydrate restores T3, leptin and training quality; fat restores almost none of it. So the first several steps are carbohydrate and the fat waits.",
+      "<b>+75 kcal at a time, held a fortnight.</b> Slow is the whole point. Fast reverses put on water, fat and inflammation at once, which is exactly the puffy face you said you did not want.",
+      "<b>Creatine enters here.</b> Best-evidenced performance compound there is, and specifically 400m-shaped. Expect 1\u20132kg of water that is not fat \u2014 fine now, impossible to read during the cut.",
+      "<b>Beef heart weekly.</b> The richest source of CoQ10 there is, and the standout item on the whole list for mitochondrial function.",
+      "<b>Pomegranate and walnuts.</b> Pathway 7 \u2014 urolithin A, which clears dead mitochondria. Only about 40% of people convert it, but your running drives mitophagy anyway.",
+      "<b>Cooked tomato with EVOO.</b> Lycopene needs heat and fat together or it is not absorbed."
+    ],
+    holds: [
+      "<b>Impatience.</b> 0.25 lb a month is three pounds a year of actual tissue. That is what real is.",
+      "<b>Reading the first fortnight as fat.</b> Glycogen and water land first and they land fast. That scale jump is not the reverse failing.",
+      "<b>Going back to the cut.</b> The most common way people ruin this is aborting in week three."
+    ],
+    why: "mTOR and autophagy are opposing switches \u2014 pathway 8, the master one. The cut was the clearing half and you cannot build during it. This is the building half, and it is the only phase where tissue can actually be added, where mitochondria are made rather than just cleaned, and where the energy exists to do the repair the deficit deferred. Doing this slowly is what makes the gain tissue instead of fat."
+  }
+];
+
+function activePlan() {
+  var ph = lookPhase();
+  if (ph === "after") return "reverse";
+  if (ph === "final") return "hold";
+  return "cut";
+}
+
+function planCard(pl, active) {
+  var li = function (rows) {
+    return rows.map(function (x) { return '<div style="margin-bottom:8px">\u00b7 ' + x + "</div>"; }).join("");
+  };
+  return '<div class="note ' + (active ? "good" : "flat") + '" style="margin-top:12px">' +
+    "<b>" + esc(pl.name) + (active ? " \u2014 you are here" : "") + "</b>" +
+    '<div style="color:var(--muted);margin-bottom:10px">' + esc(pl.when) + " \u00b7 " + esc(pl.aim) + "</div>" +
+    '<div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref"><tbody>' +
+    "<tr><td><b>Energy</b></td><td class=\"hl\">" + esc(pl.kcal) + "</td></tr>" +
+    "<tr><td><b>Macros</b></td><td class=\"hl\">" + esc(pl.macros) + "</td></tr>" +
+    "<tr><td><b>Pathways fed</b></td><td class=\"hl\">" + esc(pl.paths) + "</td></tr>" +
+    "</tbody></table></div>" +
+    '<div class="block-title" style="font-size:15px">What it does</div>' + li(pl.does) +
+    '<div class="block-title" style="font-size:15px;margin-top:10px">What it holds back</div>' + li(pl.holds) +
+    '<div class="block-title" style="font-size:15px;margin-top:10px">Why</div>' +
+    '<div style="color:var(--muted)">' + pl.why + "</div></div>";
+}
+
+function renderPlans() {
+  var el = $("plansBox"); if (!el) return;
+  var act = activePlan(), tag = $("plansTag");
+  var cur = DIET_PLANS.filter(function (p) { return p.id === act; })[0];
+  if (tag) tag.textContent = cur ? "on " + cur.name.toLowerCase() : "";
+
+  el.innerHTML =
+    DIET_PLANS.map(function (pl) { return planCard(pl, pl.id === act); }).join("") +
+
+    '<div class="block-title" style="font-size:17px;margin-top:18px">The difference, in one go</div>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>&nbsp;</th><th>Shred</th><th>Model</th><th>Rebuild</th></tr></thead><tbody>" +
+    [["Energy", "Deficit", "Maintenance", "Surplus, slowly"],
+     ["Pathway 8", "Clear", "Neither \u2014 repair", "Build"],
+     ["Carbs", "Around sessions", "Up ~50g", "First thing back"],
+     ["Fat", "At the floor", "Floor to 65g", "Last thing back"],
+     ["Creatine", "No", "No", "Yes"],
+     ["Job", "Keep muscle", "Keep the look", "Add tissue"]].map(function (r) {
+      return "<tr><td><b>" + esc(r[0]) + "</b></td>" +
+        r.slice(1).map(function (c) { return '<td class="hl">' + esc(c) + "</td>"; }).join("") + "</tr>";
+    }).join("") + "</tbody></table></div>" +
+
+    '<div class="note stop" style="margin-top:12px"><b>And the one rule underneath all three</b>' +
+    '<span style="color:var(--chalk);font-weight:600">You cannot build and clear at the same time.</span> ' +
+    "That is pathway 8, and it is the reason this is three plans instead of one good one. " +
+    "mTOR and autophagy are opposing switches \u2014 pushing both gets you neither, which is exactly what " +
+    "happens to people who eat in a deficit \u201cbut with a lot of protein and creatine\u201d for a year and " +
+    "wonder why nothing changes.<br><br>" +
+    "The foods barely move across the three. You eat the same four meals in the same order the whole way through. " +
+    "What moves is how much energy is available, and therefore what your body can afford to spend it on \u2014 " +
+    "which is the honest reason a cut cannot also be an anti-ageing protocol, and why the reverse is not a reward " +
+    "but the half of the plan where the building actually happens.</div>";
+}
+
 function protoList(rows) {
   return rows.map(function (r) {
     return '<div style="margin-bottom:9px"><b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
@@ -6991,7 +7124,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderProto();
+  weighFeedback(); renderLook(); renderProto(); renderPlans();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
