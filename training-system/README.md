@@ -327,10 +327,22 @@ countdown to 7 November and a phase that changes as it approaches.
   full and flat. Salt and water do not move.
 
 Under it, the levers in the order the evidence puts them: body fat, then
-shoulder-to-waist, then posture, then skin (one intervention — SPF daily —
-beats the rest combined), then sleep, then not dehydrating. Plus the five things
+shoulder-to-waist, then posture, then the neck (a jaw only reads as strong
+against the neck under it, and the neck thins early on a cut — the same
+mechanism that hollows the under-eye), then skin (one intervention — SPF daily —
+beats the rest combined), then sleep, then not dehydrating. Plus the things
 not to do, all of which are the classic ways people ruin a date they have
 worked seven weeks for.
+
+**The Protocol** is the same material as one list rather than eight sections —
+every day, every week, what each food is actually doing, sleep, and skin. It
+exists because the tab had all of it and none of it in one place, and a thing
+you have to remember across eight sections is a thing you stop doing. It also
+answers the under-eye question directly: salt can shadow the eye indirectly
+(sodium holds fluid, fluid pools overnight, the swelling casts a shadow), but
+that is the puffy kind and a once-a-day salt habit is not high — short sleep
+dilates the vessels under skin that is already thin, and a cut takes the little
+fat the area has. So the answer is sleep, and cutting salt fixes none of it.
 
 **Shape** tracks waist and shoulders weekly and derives the ratio, because the
 scale cannot see a taper. Waist falling while shoulders hold is the shape being

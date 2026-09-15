@@ -713,6 +713,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="lookBox"></div>
     </section>
 
+    <section class="block" data-fold="protocol">
+      <h2 class="block-title">The Protocol <span class="tag" id="protoTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Everything that decides how you look on 7 November, in one list. Nothing here is optional and nothing here is new \u2014 it is what you are already doing, written down so it stops being a thing you remember and starts being a thing you tick.</p>
+      <div id="protoBox"></div>
+    </section>
+
     <section class="block" data-fold="shape">
       <h2 class="block-title">Shape <span class="tag" id="shapeTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Weekly, same time, relaxed, not sucked in. The scale cannot see a taper and this can.</p>
@@ -6287,6 +6293,7 @@ var LOOK_ORDER = [
   ["Body fat", "Nothing else on this list competes with it. Every visible line you want is a line you already have, sitting under the last few pounds. This is the whole job until the last fortnight, and the weight chart on Progress is how you know it is working."],
   ["Shoulder-to-waist", "The only lever that changes your silhouette rather than your size. Waist is already handled by the running and the cut. Shoulders are lateral delts and upper back \u2014 side raises and your pull-ups. Two or three sets of side raises on each upper day is enough; it is a small muscle and it responds."],
   ["Posture", "Free, fast, and it undoes more than people expect. Rounded shoulders make a lean person read as soft. Band pull-aparts or face pulls daily, 2\u20133 sets, plus thoracic extension over a foam roller. Watch the ratio of pressing to pulling \u2014 you have been benching, so match it with rows."],
+  ["Neck", "A jaw only reads as strong against the neck under it, and yours is the slender end. On a cut the neck thins before almost anything else, so the jawline you already have gets less prominent, not more \u2014 the same mechanism that hollows the under-eye. Neck curls and extensions, 2\u20133\u00d7 a week, light and slow, no load worth mentioning. Four minutes, and almost nobody does it."],
   ["Skin", "One intervention beats everything else combined and you are already doing it: SPF50 every single day, rain or not. Use about a quarter teaspoon on the face, which is more than feels natural. Cap and sunglasses for outdoor sessions \u2014 hours a week outside is where your cumulative dose actually comes from."],
   ["Sleep", "The one that shows in your face within 48 hours. Consistent wake time beats a long lie-in. It is also where the cortisol that puffs you goes down."],
   ["Don't dehydrate", "Drinking less raises vasopressin and you hold more, not less. Steady water, front-loaded in the day, all the way through \u2014 including the last week."]
@@ -6297,8 +6304,100 @@ var LOOK_DONT = [
   "Cut or spike salt \u2014 keep the once-a-day exactly as it is",
   "Add cardio to speed it up \u2014 you are already at your session cap",
   "Crash the last week \u2014 flat muscle reads worse than a pound of fat",
-  "Start a new skincare active inside a month of the date \u2014 nothing new close in"
+  "Start a new skincare active inside a month of the date \u2014 nothing new close in",
+  "Use pore strips \u2014 they take the top off and the pore refills in days",
+  "Go under 122 lb \u2014 past that the face goes from sharp to drawn"
 ];
+
+/* Everything for the look, gathered. The tab already holds all of this spread
+   across eight sections; this is the version you can read in one go. */
+var PROTO_DAILY = [
+  ["SPF50, a quarter teaspoon", "Face, ears and neck, rain or not. Roughly 80% of how a face ages is UV. This outranks every food and every product on the page."],
+  ["One wake time", "Same time daily beats a long lie-in, and beats total hours. It is the single thing that shows in your face within 48 hours."],
+  ["Water, front-loaded", "Steady through the day, most of it before evening. Drinking less raises vasopressin and you hold more, not less."],
+  ["Salt, once, unchanged", "Do not cut it. Sodium is not your problem \u2014 the ratio is, and you fix a ratio by raising potassium."],
+  ["Potassium", "Blended spinach in the smoothie, potato, avocado, beetroot. This is the actual lever on a puffy face."],
+  ["Four egg yolks", "The lipid barrier is what lets skin hold water. Never below four."],
+  ["Band pull-aparts or face pulls", "2\u20133 sets. Rounded shoulders make a lean person read as soft, and you have been benching."],
+  ["Cleanse and moisturise", "Gentle cleanser morning and night, moisturiser onto damp skin. That is the whole routine and it is enough."]
+];
+
+var PROTO_WEEKLY = [
+  ["Gym 4\u20135\u00d7", "Protected. The muscle is the look \u2014 the cut only uncovers it."],
+  ["Side raises, every upper day", "3 sets, light, slow. Lateral delt width is what turns lean into a silhouette."],
+  ["Neck, 2\u20133\u00d7", "Curls and extensions. Protects the jawline through the cut."],
+  ["Rows matched to presses", "Match your pressing volume or the shoulders roll forward and you lose width you already own."],
+  ["2\u20133 effort runs", "Counted across any seven days. Hard running is also the strongest Nrf2 signal you have."],
+  ["Oily fish 2\u20133\u00d7, organ meat 1\u00d7", "Sockeye, and liver or heart once. The barrier and the iron a coeliac runs short on."],
+  ["Beetroot 3\u20134\u00d7, pomegranate 3\u20134\u00d7", "Nitrate for microcirculation, urolithin A for mitophagy. Skip antibacterial mouthwash or the beetroot does nothing."],
+  ["Brazil nuts 3\u20134\u00d7", "Two or three nuts is a full day of selenium. More is genuinely toxic."]
+];
+
+var PROTO_FOOD = [
+  ["Skin holds water", "Egg yolks, sockeye, tallow, avocado", "The lipid barrier. Dry skin reads dull however lean you are."],
+  ["Skin stays firm", "Collagen peptides, bone broth, berries, liver, oysters", "Always with vitamin C \u2014 without it the enzyme does not work at all."],
+  ["Lit from within", "Beetroot, spinach, cacao, garlic", "Dietary nitrate widens the small vessels. This is the glow people pay for."],
+  ["Skin stays soft", "Beef, organ meat, cacao, berries, grapes, pomegranate", "Anti-glycation. Bake, stew, poach \u2014 never char."],
+  ["Full face, not puffy", "Potato, avocado, beetroot, spinach, coconut water", "Potassium against sodium. Push the potassium, leave the salt alone."],
+  ["Your own defences", "Hard running, garlic, green tea, coffee", "Crush the garlic and leave it ten minutes before heat, or the allicin never forms."]
+];
+
+var PROTO_SLEEP = [
+  "Same wake time every day, Saturday included. Consistency beats duration.",
+  "7\u20139 hours in bed, not 7\u20139 hours asleep \u2014 budget for the gap.",
+  "On your back rather than face-down. Fluid pools where gravity puts it and it shows under the eyes by morning.",
+  "Last food 2\u20133 hours before bed, not right before.",
+  "It is also where the cortisol that puffs your face comes down, which is why a bad week shows in the mirror before it shows on the scale."
+];
+
+var PROTO_SKIN = [
+  "SPF50 every day, a quarter teaspoon, face and neck. Cap and sunglasses on outdoor sessions.",
+  "Gentle cleanser morning and night. Moisturiser onto damp skin.",
+  "No pore strips, no scrubs, no new actives inside a month of 7 November.",
+  "Persistent redness across the nose and cheeks is worth having a GP or pharmacist look at rather than guessing about \u2014 heat and UV are the two big aggravators and you get plenty of both.",
+  "Nothing with retinol. That is settled and it is not a gap \u2014 the SPF is doing the work retinol gets credit for."
+];
+
+function protoList(rows) {
+  return rows.map(function (r) {
+    return '<div style="margin-bottom:9px"><b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
+      '<span style="color:var(--muted)">' + r[1] + "</span></div>";
+  }).join("");
+}
+
+function renderProto() {
+  var el = $("protoBox"); if (!el) return;
+  var tag = $("protoTag"), d = daysToLook();
+  if (tag) tag.textContent = d != null && d > 0 ? d + " day" + (d === 1 ? "" : "s") + " left" : "";
+
+  el.innerHTML =
+    '<div class="block-title" style="font-size:17px">Every day</div>' +
+    '<div class="note flat">' + protoList(PROTO_DAILY) + "</div>" +
+
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Every week</div>' +
+    '<div class="note flat">' + protoList(PROTO_WEEKLY) + "</div>" +
+
+    '<div class="block-title" style="font-size:17px;margin-top:16px">What the food is actually doing</div>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>' +
+    PROTO_FOOD.map(function (r) {
+      return "<tr><td><b>" + esc(r[0]) + '</b><span class="sub">' + esc(r[1]) + "</span></td>" +
+        '<td class="hl">' + esc(r[2]) + "</td></tr>";
+    }).join("") + "</tbody></table></div>" +
+
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Sleep</div>' +
+    '<div class="note warn">' + PROTO_SLEEP.map(function (x) { return "\u00b7 " + x; }).join("<br>") + "</div>" +
+
+    '<div class="block-title" style="font-size:17px;margin-top:16px">Skin</div>' +
+    '<div class="note good">' + PROTO_SKIN.map(function (x) { return "\u00b7 " + x; }).join("<br>") + "</div>" +
+
+    '<div class="note stop" style="margin-top:16px"><b>And the shadows under your eyes are not salt</b>' +
+    "Salt can do it indirectly \u2014 sodium holds fluid, fluid pools around the eye overnight, and the swelling casts a shadow. " +
+    "But that is the puffy kind, and you salt once a day, which is not high. " +
+    '<span style="color:var(--chalk);font-weight:600">Yours is sleep.</span> ' +
+    "Short sleep dilates the small vessels under skin that is already thin, so more blue shows through, and it pales the skin around them so the contrast reads darker still. " +
+    "A cut makes it worse again, because the under-eye has almost no fat to lose and loses it early. " +
+    "Three or four normal nights fixes most of it. Cutting salt fixes none of it and costs you training.</div>";
+}
 
 function renderLook() {
   var el = $("lookBox"); if (!el) return;
@@ -6887,7 +6986,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderShape();
+  weighFeedback(); renderLook(); renderProto(); renderShape();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
