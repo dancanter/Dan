@@ -482,6 +482,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <section class="block" data-fold="cut">
       <h2 class="block-title">The Cut <span class="tag" id="cutTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <div id="cutBox"></div>
+      <div class="chart-wrap" style="margin-top:12px">
+        <div class="chart-head"><span class="chart-title">Against the target taper</span>
+          <span class="chart-title" id="cutChartTag"></span></div>
+        <div id="cutChart"></div>
+        <div class="chart-legend"><span>Solid is you. Dashed is the target. Green line is 7 November.</span></div>
+      </div>
       <div class="card" style="margin-top:10px">
         <div class="add-row" style="margin-top:0;align-items:center">
           <label class="chart-title" for="cutStartInput" style="min-width:78px">Starts</label>
@@ -5176,9 +5182,9 @@ function saveReflection() {
 
 /* ================= reverse diet stepper ================= */
 /* The reverse stays shut until the cut is genuinely finished — 123 held, not
-   touched once — or 1 November, whichever comes first. Reading step ladders
+   touched once — or 7 November, whichever comes first. Reading step ladders
    while still cutting is how a cut turns into a slow, permanent reverse. */
-var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-01";
+var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-07";
 var CUT_START_DEFAULT = "2026-09-15";
 /* 0.5-1% of bodyweight a week. Below the floor is barely worth the hunger;
    above the ceiling stops being fat and starts being muscle and glycogen, which
@@ -5234,8 +5240,58 @@ function cutStatus() {
   out.range = [out.cur - out.band[1] * out.weeksLeft, out.cur - out.band[0] * out.weeksLeft];
   return out;
 }
+/* The target weight for every day of the window, walking the taper forward a
+   week at a time from whatever the first weigh-in actually was. This is what
+   the dashed line on the chart is, and what "on track" is measured against. */
+function cutTargetCurve() {
+  var c = cutStatus();
+  if (!c.first) return null;
+  var startD = parseDay(c.first.date), endD = parseDay(REVERSE_DEADLINE);
+  var span = daysBetween(startD, endD);
+  if (span <= 0) return null;
+  var out = [], w = c.first.weight;
+  for (var d = 0; d <= span; d++) {
+    out.push(w);
+    w -= w * cutTargetPct(d / span) / 7;   /* the weekly rate, spent a day at a time */
+  }
+  return { start: startD, span: span, target: out, from: c.first };
+}
+function cutTargetToday() {
+  var cv = cutTargetCurve();
+  if (!cv) return null;
+  var d = daysBetween(cv.start, parseDay(today()));
+  if (d < 0) return null;
+  return cv.target[Math.min(d, cv.span)];
+}
+
+function renderCutChart() {
+  var host = $("cutChart"); if (!host) return;
+  var cv = cutTargetCurve(), asc = sortedWeights();
+  if (!cv) { host.innerHTML = ""; return; }
+  var pts = [], overlay = [];
+  var startIso = dayStr(cv.start);
+  asc.forEach(function (x) {
+    if (x.date < startIso) return;
+    var d = daysBetween(cv.start, parseDay(x.date));
+    if (d < 0 || d > cv.span) return;
+    pts.push({ y: x.weight, label: x.date + " \u00b7 " + x.weight.toFixed(1) + " lb" });
+    overlay.push(cv.target[d]);
+  });
+  if (pts.length < 2) {
+    host.innerHTML = '<div class="empty">Two weigh-ins and the chart starts. One point is not a line.</div>';
+    return;
+  }
+  lineChart(host, {
+    points: pts, overlay: overlay, overlayColor: "#8B9B99",
+    marker: cv.target[cv.span], markerColor: "#6FCF97",
+    dots: pts.length <= 30, uid: "cutc", height: 132,
+    aria: "Weight against the target taper, with the 7 November goal marked"
+  });
+}
+
 function renderCut() {
   var el = $("cutBox"); if (!el) return;
+  renderCutChart();
   var c = cutStatus(), tag = $("cutTag");
   var f1 = function (x) { return x.toFixed(1); };
   if (tag) tag.textContent = c.startsIn > 0 ? "starts in " + c.startsIn + " days"
@@ -5249,14 +5305,14 @@ function renderCut() {
     el.innerHTML = '<div class="note good"><b>Starts ' + fmtDate(c.start) + ", in " + c.startsIn + " days</b>" +
       "Rome first. Nothing you weigh before then counts — whatever you log on or after that day becomes the start line, " +
       "so you do not have to know now what you will come back at. " +
-      '<span style="color:var(--chalk);font-weight:600">' + c.total.toFixed(1) + " weeks from then to 1 November</span>, " +
+      '<span style="color:var(--chalk);font-weight:600">' + c.total.toFixed(1) + " weeks from then to 7 November</span>, " +
       "which at a safe rate is about 4–8 lb.</div>" + band;
     return;
   }
   if (!c.first) {
     el.innerHTML = '<div class="note warn"><b>Log a weight and this starts</b>' +
       "The cut window opened on " + fmtDate(c.start) + ". The first weight you log becomes the start line and everything " +
-      "here is measured from it. " + c.daysLeft + " days to 1 November.</div>" + band;
+      "here is measured from it. " + c.daysLeft + " days to 7 November.</div>" + band;
     return;
   }
 
@@ -5270,7 +5326,7 @@ function renderCut() {
     '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Down</span>' +
     '<span class="stone-when hl">' + f1(c.lost) + " lb in " + c.days + " days</span></div>" +
     '<div class="stone" style="grid-template-columns:1fr auto">' +
-    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Left to 1 Nov</span>' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Left to 7 Nov</span>' +
     '<span class="stone-when hl">' + c.daysLeft + " days</span></div></div>";
 
   var verdict;
@@ -5310,7 +5366,7 @@ function renderCut() {
     "not it slowing down.</div>";
 
   var proj = c.weeksLeft > 0.5
-    ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 1 November</b>' +
+    ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 7 November</b>' +
       '<span style="color:var(--chalk);font-weight:600">about ' + f1(c.landing) + " lb</span> if you hit the " +
       "tapering target every week for the " + c.weeksLeft.toFixed(1) + " left. The wider safe band puts it at " +
       f1(c.range[0]) + "–" + f1(c.range[1]) + " lb. " +
@@ -5325,10 +5381,35 @@ function renderCut() {
     "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
     "Those are all tracked here except the last two. When they start, that is the bottom, whatever the number says.</div>";
 
-  el.innerHTML = head + aim + verdict + proj + band + floor;
+  /* Coming off four days away, the first pound or two is food volume, sodium
+     and glycogen rather than fat. Saying so up front stops a flattering first
+     week being read as a rate, and stops the correction that usually follows. */
+  var early = c.days != null && c.days <= 12
+    ? '<div class="note flat" style="margin-top:10px"><b>Ignore the first ten days</b>' +
+      "You started this the day you got back. A pound or two of what comes off now is food volume, sodium and " +
+      "glycogen refilling to normal \u2014 not fat. The rate here only becomes real once two complete 7-day " +
+      "averages exist to compare, which is about a fortnight in.</div>"
+    : "";
+  var tgt = cutTargetToday();
+  var track = "";
+  if (tgt != null && c.cur != null && c.days >= 10) {
+    var gap = c.cur - tgt;
+    track = '<div class="note ' + (Math.abs(gap) <= 0.8 ? "good" : gap > 0 ? "warn" : "flat") + '" style="margin-top:10px"><b>' +
+      (Math.abs(gap) <= 0.8 ? "On the line"
+        : gap > 0 ? f1(gap) + " lb behind the line"
+        : f1(-gap) + " lb ahead of the line") + "</b>" +
+      "Target for today is " + f1(tgt) + " lb, you are at " + f1(c.cur) + ". " +
+      (Math.abs(gap) <= 0.8
+        ? "Change nothing."
+        : gap > 0
+          ? "Not a stall unless it holds a fortnight. Steps before food, and never both at once."
+          : "Ahead is not automatically better \u2014 check the weekly rate above is still inside the band.") +
+      "</div>";
+  }
+  el.innerHTML = head + early + aim + verdict + track + proj + band + floor;
 }
 function reverseUnlocked() {
-  if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 1 November" };
+  if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 7 November" };
   var asc = sortedWeights();
   if (asc.length >= 8) {
     var roll = rollingAvg(asc.map(function (w) { return w.weight; }), 7);
@@ -5358,7 +5439,7 @@ function renderReverseGate() {
       "</span> ";
   el.innerHTML = '<div class="note stop"><b>Not yet — you are still cutting</b>' +
     "This opens when your 7-day average has been at or below " + REVERSE_HOLD_LB + " lb for " +
-    REVERSE_HOLD_DAYS + " days running, or on 1 November, whichever comes first. " + where +
+    REVERSE_HOLD_DAYS + " days running, or on 7 November, whichever comes first. " + where +
     (days > 0 ? days + " days until the date opens it anyway.<br><br>" : "<br><br>") +
     "Reading a step ladder in the middle of a cut is how a cut quietly becomes the reverse. Finish one thing first.</div>";
 }
@@ -5426,7 +5507,7 @@ function renderRevGuide() {
     "Keep the once-a-day exactly as it is. The carbs come up, the salt does not move. This is the single biggest lever.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Keep the potassium up.</span> ' +
     "3,500 mg minimum, through the reverse and not just the cut. It is the direct counter to sodium retention, and it " +
-    "is the reason the potassium target does not stop on 1 November.<br><br>" +
+    "is the reason the potassium target does not stop on 7 November.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Do not cut water.</span> ' +
     "Drinking less raises vasopressin and makes you hold more, not less. Steady intake, front-loaded in the day.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Keep the steps and sleep.</span> ' +
@@ -6536,7 +6617,7 @@ function renderAll() {
   renderBlockBar(); renderToday(); renderChecklist(); renderReadiness();
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
-  renderCut(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
+  renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

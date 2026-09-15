@@ -224,7 +224,7 @@ meal plan, weekly food checklist, eight pathways, health notes, honest verdict
 and targets are all behind the reasoning switch rather than deleted.
 
 **The reverse is locked** until the 7-day average has held at or below 123.5 lb
-for a fortnight, or 1 November — whichever comes first.
+for a fortnight, or 7 November — whichever comes first.
 
 **Steps go in beside each day** on the week grid as well as on Nutrition. Both
 write the same record, keyed by the day's real date, so the number only ever
@@ -312,7 +312,7 @@ Block Bests, the PB board and the rolling counts would all miss them.
 recorded.
 
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
-closing on 1 November whatever happens. The start line is **whatever you first
+closing on 7 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the
 weight you come back from a trip at is not knowable beforehand. From there it
 reports the loss, the days left, **this week's target loss**, and the rate against
@@ -321,9 +321,21 @@ never answered with fewer calories; over it means part of what is leaving is
 muscle and glycogen, and the answer is to eat more. The target **tapers** — 0.9% of bodyweight a week at the start,
 0.5% by the end — because the leaner you get the more of each pound comes out of
 muscle rather than fat, so the same percentage costs more in the last week than
-the first. Hitting a smaller number later is the plan working. The 1 November
+the first. Hitting a smaller number later is the plan working. The 7 November
 landing is projected by walking that taper forward a week at a time rather than
 multiplying today's rate by the weeks left, which would overstate the finish.
+
+**A chart of you against the target.** `cutTargetCurve` walks the taper forward
+a day at a time from whatever the first weigh-in actually was, and the chart
+draws your logged weights as a solid line against that target as a dashed one,
+with the 7 November figure marked. Above the dashed line is behind, below is
+ahead, and the readout says which and by how much rather than leaving it to the
+eye.
+
+The verdict is **suppressed for the first ten days**, because a cut that starts
+the day you land from a trip spends its first week shedding food volume, sodium
+and glycogen. A flattering first week read as a rate is what produces the
+correction that wrecks the second one.
 
 The **Where You Are** step box on the Nutrition tab is now phase-aware. It was
 written for the reverse and rendered during the cut, so a flat week mid-cut was
