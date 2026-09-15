@@ -6358,6 +6358,72 @@ var PROTO_SKIN = [
   "Nothing with retinol. That is settled and it is not a gap \u2014 the SPF is doing the work retinol gets credit for."
 ];
 
+/* Carbs are the only macro that moves, so they are the only one it is possible
+   to get wrong. The floor is set by bodyweight rather than by a flat number,
+   because the number that matters is grams per kilo of him. */
+var CARB_LOW_PER_KG = 3, CARB_FLOOR_PER_KG = 2;
+function carbFloor() {
+  var wr = weeklyRate(), asc = sortedWeights();
+  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  var kg = lb / 2.2046;
+  return { lb: lb, kg: kg,
+    low: Math.round(kg * CARB_LOW_PER_KG / 5) * 5,
+    floor: Math.round(kg * CARB_FLOOR_PER_KG / 5) * 5 };
+}
+
+var CARB_COSTS = [
+  ["Your sessions go first, and worst", "400s, 600s and the ladders are almost purely glycogen-powered \u2014 there is no fat-burning route fast enough to run a 60-second 400. This is the first thing you will notice and you have already written it down once: \u201cnot enough carbs before\u201d on the 9 September ladder."],
+  ["T3 falls and the cut stalls", "Carbohydrate availability, not calories, is the main regulator of T3 conversion. Low carbs drop T3, T3 drops metabolic rate, and the scale stops. This is the actual mechanism behind \u201cI cut carbs and stopped losing\u201d."],
+  ["Leptin falls and you stop moving", "Leptin tracks carbohydrate more closely than it tracks calories. Low leptin means hunger up and NEAT down \u2014 you fidget less, walk less, take the stairs less, entirely without noticing. That swing is often 200\u2013400 kcal a day, and it quietly eats the deficit you are starving yourself for."],
+  ["Cortisol rises, and cortisol is what puffs you", "Training hard on empty glycogen raises cortisol substantially. Worse sleep, worse recovery, and central water retention \u2014 which is the exact soft, puffy look you are cutting to avoid. Going lower to look sharper achieves the opposite."],
+  ["You spend muscle", "Low glycogen means more amino acid oxidation during the session itself. You burn the thing the whole plan exists to show."],
+  ["The muscle goes flat", "Every gram of glycogen holds about three grams of water inside the muscle. Chronically depleted reads flat and stringy in photographs, and flat photographs worse than a pound of fat \u2014 which is exactly why the final week raises carbs rather than dropping them."],
+  ["Sleep gets worse", "Low evening carbohydrate reduces tryptophan uptake and with it the serotonin route into sleep. You already have a sleep problem this week; this would compound it."]
+];
+
+function protoCarbs() {
+  var c = carbFloor();
+  return '<div class="block-title" style="font-size:17px;margin-top:16px">Carbs \u2014 the numbers and the floor</div>' +
+    '<div class="note flat"><b>What you are aiming at</b>' +
+    "Protein and fat are floors you hit every day \u2014 " + PROTEIN_TARGET + "g and " + FAT_FLOOR +
+    "g. Carbs are the only dial, and they move with the day:<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Hard day ' + CARB_BANDS.hard[0] + "\u2013" + CARB_BANDS.hard[1] + "g" +
+    " \u00b7 gym day " + CARB_BANDS.gym[0] + "\u2013" + CARB_BANDS.gym[1] + "g" +
+    " \u00b7 rest day " + CARB_BANDS.rest[0] + "\u2013" + CARB_BANDS.rest[1] + "g</span>" +
+    "<br><br>At " + c.lb.toFixed(1) + " lb that is roughly " +
+    (CARB_BANDS.hard[0] / c.kg).toFixed(1) + " g/kg on a hard day, which is where a sprinter in a deficit should sit.</div>" +
+
+    '<div class="note warn" style="margin-top:10px"><b>Under ' + c.low + "g on a training day, quality starts going</b>" +
+    "That is 3 g/kg for you. You will feel it in the last rep before you see it anywhere else.</div>" +
+
+    '<div class="note stop" style="margin-top:10px"><b>Under ' + c.floor + "g on any day is far too low</b>" +
+    "That is 2 g/kg, and it is the line where this stops being a diet and starts being a problem. " +
+    "Anything under 100g while running the sessions you run is genuinely counterproductive \u2014 not harder, " +
+    "not faster, just worse.<br><br>" +
+    CARB_COSTS.map(function (r) {
+      return '<b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
+        '<span style="color:var(--muted)">' + r[1] + "</span>";
+    }).join("<br><br>") +
+    "<br><br>The deficit comes out of total calories, not out of carbohydrate. " +
+    "If something has to give, it is fat down to the " + FAT_FLOOR + "g floor first, and after that it is " +
+    "steps up rather than carbs down.</div>" +
+
+    '<div class="note good" style="margin-top:10px"><b>A year of higher salt is not a year of stored water</b>' +
+    "The kidney adapts to a sodium intake within days to a couple of weeks \u2014 aldosterone comes down, " +
+    "excretion goes up, and total body water settles at a new level barely different from the old one. " +
+    '<span style="color:var(--chalk);font-weight:600">There is no backlog sitting on you.</span><br><br>' +
+    "Cut sodium hard now and you would drop 1\u20133 lb inside about four days, then stop. That is water, " +
+    "it is not fat, and it comes back the first normal meal. Worse, sodium restriction <em>raises</em> " +
+    "aldosterone and renin, so you hold more when you eat salt again \u2014 the rebound is real and it is " +
+    "why people who cut salt before a date look puffier on the day.<br><br>" +
+    "And you are in a deficit, running hard and sweating. Low sodium there costs you blood volume, " +
+    "gives you cramp and light-headedness, and takes the top off exactly the sessions you are trying to PB.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Keep it at once a day, unchanged.</span> ' +
+    "If you looked better a year ago, the honest candidates are lower body fat, better sleep and a different " +
+    "training block \u2014 not the salt. The levers that actually move how watery you look are potassium up, " +
+    "cortisol down, and the fat coming off.</div>";
+}
+
 function protoList(rows) {
   return rows.map(function (r) {
     return '<div style="margin-bottom:9px"><b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
@@ -6383,6 +6449,8 @@ function renderProto() {
       return "<tr><td><b>" + esc(r[0]) + '</b><span class="sub">' + esc(r[1]) + "</span></td>" +
         '<td class="hl">' + esc(r[2]) + "</td></tr>";
     }).join("") + "</tbody></table></div>" +
+
+    protoCarbs() +
 
     '<div class="block-title" style="font-size:17px;margin-top:16px">Sleep</div>' +
     '<div class="note warn">' + PROTO_SLEEP.map(function (x) { return "\u00b7 " + x; }).join("<br>") + "</div>" +

@@ -344,6 +344,23 @@ that is the puffy kind and a once-a-day salt habit is not high — short sleep
 dilates the vessels under skin that is already thin, and a cut takes the little
 fat the area has. So the answer is sleep, and cutting salt fixes none of it.
 
+It also carries **the carb floor**, computed from current weight rather than
+fixed: the bands he is aiming at, 3 g/kg as the line where session quality
+starts going, and 2 g/kg as the line where it stops being a diet. Under it,
+seven things that break and why — glycolytic sessions first, then T3 and the
+stall it causes, leptin and the NEAT it silently costs, cortisol (which puffs
+the face he is cutting to sharpen), muscle spent in-session, muscle gone flat
+because glycogen carries three times its weight in water, and sleep. The rule
+that falls out: the deficit comes from total calories, and if something has to
+give it is fat to its floor and then steps, never carbs.
+
+And **a year of higher salt is not a year of stored water** — the kidney adapts
+within days to a couple of weeks, so there is no backlog. Cutting it would buy
+1–3 lb of water in four days and then stop, while raising aldosterone and renin
+so the rebound is worse, and costing blood volume in the middle of a block built
+on hard running. Salt holds at once a day; the levers that move how watery he
+looks are potassium up, cortisol down, and fat off.
+
 **Shape** tracks waist and shoulders weekly and derives the ratio, because the
 scale cannot see a taper. Waist falling while shoulders hold is the shape being
 asked for; shoulders shrinking alongside the waist gets flagged, since that is
