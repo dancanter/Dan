@@ -763,6 +763,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="calStep"></div>
     </section>
 
+    <section class="block" data-fold="fit">
+      <h2 class="block-title">Does It Fit</h2>
+      <p class="block-sub">Protein and fat are floors. Whatever is left is carbs \u2014 and on a hard day there may not be enough left.</p>
+      <div id="fitOut"></div>
+    </section>
+
     <section class="block" data-fold="plans">
       <h2 class="block-title">Three Plans <span class="tag" id="plansTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Same four meals throughout. What changes is the calorie level, where the carbs sit, and which pathways get fed hardest.</p>
@@ -4451,7 +4457,7 @@ function kcalSeries(days) {
   }
   return out;
 }
-function targetKcal() { return settings.intake || settings.kcal || 1800; }
+function targetKcal() { return settings.intake || settings.kcal || 1799; }
 
 /* 3,500mg is the floor most guidelines set and 4,700mg the figure the evidence
    actually points at. Typical intake is 2,000-2,500, so this is a real gap
@@ -5940,6 +5946,102 @@ function renderCheckins() {
    formula: a pound of fat is 3,500 kcal, so the gap between what you ate and
    what you lost is what you burned. Needs two clean 7-day windows to be worth
    anything at all. */
+/* 5'8", born 28 November 2000. Mifflin-St Jeor needs all four and now has them,
+   so there is a predicted number to work from before the fourteen days of
+   weights that make a measured one possible. The measured one always wins. */
+var BIO = { heightCm: 172.7, dob: "2000-11-28" };
+function ageNow(d) {
+  var t = d ? parseDay(d) : parseDay(today()), b = parseDay(BIO.dob);
+  if (!t || !b) return 25;
+  var a = t.getFullYear() - b.getFullYear();
+  var m = t.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+  return a;
+}
+function bmrEstimate() {
+  var wr = weeklyRate(), asc = sortedWeights();
+  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  var kg = lb / 2.2046;
+  return Math.round(10 * kg + 6.25 * BIO.heightCm - 5 * ageNow() + 5);
+}
+/* His running volume is genuinely low - short reps off long recovery - so the
+   multiplier belongs at the middle of the active range, not the top. */
+function tdeePredicted() {
+  var b = bmrEstimate();
+  return { bmr: b, lo: Math.round(b * 1.5 / 10) * 10, mid: Math.round(b * 1.55 / 10) * 10,
+    hi: Math.round(b * 1.6 / 10) * 10 };
+}
+
+/* Protein and fat are floors, so the calories they take are not negotiable.
+   Whatever is left has to cover the day's carbs - and on a hard day it may not,
+   which is a thing worth being told rather than discovering in the last rep. */
+function intakeFit() {
+  var kcal = targetKcal();
+  var floor = PROTEIN_TARGET * 4 + FAT_FLOOR * 9;
+  var rows = [["hard", "Hard day", CARB_BANDS.hard[0]],
+              ["gym", "Gym day", Math.round((CARB_BANDS.gym[0] + CARB_BANDS.gym[1]) / 2)],
+              ["rest", "Rest day", Math.round((CARB_BANDS.rest[0] + CARB_BANDS.rest[1]) / 2)]];
+  return { kcal: kcal, floor: floor, rows: rows.map(function (r) {
+    var need = floor + r[2] * 4;
+    return { id: r[0], name: r[1], carbs: r[2], need: need, gap: kcal - need,
+      fits: kcal >= need, carbsAfforded: Math.round((kcal - floor) / 4) };
+  }) };
+}
+
+function renderFit() {
+  var el = $("fitOut"); if (!el) return;
+  var f = intakeFit(), tp = tdeePredicted(), c = carbFloor();
+  var short = f.rows.filter(function (r) { return !r.fits; });
+
+  var tbl = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Day</th><th>Needs</th><th>You eat</th><th>Carbs you can fit</th></tr></thead><tbody>" +
+    f.rows.map(function (r) {
+      return "<tr><td><b>" + esc(r.name) + '</b><span class="sub">' + r.carbs + "g carbs</span></td>" +
+        '<td class="hl">' + r.need.toLocaleString() + "</td>" +
+        '<td class="hl">' + f.kcal.toLocaleString() + "</td>" +
+        '<td class="hl" style="color:' + (r.fits ? "var(--chalk)" : "var(--stop, #e06c6c)") + '">' +
+        r.carbsAfforded + "g" + (r.fits ? "" : " \u2014 " + (r.carbs - r.carbsAfforded) + "g short") + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  var head = '<div class="note flat"><b>' + f.kcal.toLocaleString() + " kcal against " +
+    PROTEIN_TARGET + "g protein and " + FAT_FLOOR + "g fat</b>" +
+    "Those two are floors, so they take " + f.floor.toLocaleString() +
+    " kcal before a single gram of carbohydrate. Everything left is carbs, and that is what decides whether a session has anything behind it.</div>";
+
+  var verdict;
+  if (!short.length) {
+    verdict = '<div class="note good" style="margin-top:10px"><b>Every day fits</b>' +
+      "The intake covers the carb band on your hardest day. Nothing to change.</div>";
+  } else {
+    var h = short[0];
+    verdict = '<div class="note stop" style="margin-top:10px"><b>' +
+      short.map(function (r) { return r.name.toLowerCase(); }).join(" and ") +
+      " does not fit</b>" +
+      "At " + f.kcal.toLocaleString() + " kcal a " + h.name.toLowerCase() + " leaves you " +
+      h.carbsAfforded + "g of carbs, against the " + h.carbs + "g the session wants \u2014 " +
+      '<span style="color:var(--chalk);font-weight:600">' + (h.carbs - h.carbsAfforded) +
+      "g short, every hard day.</span> That is " + (h.carbsAfforded / c.kg).toFixed(1) +
+      " g/kg, under the " + CARB_LOW_PER_KG + " g/kg line where session quality starts going.<br><br>" +
+      '<span style="color:var(--chalk);font-weight:600">The fix is not more calories \u2014 it is moving them.</span> ' +
+      "Eat about " + h.need.toLocaleString() + " on the two or three days you run hard, and about " +
+      (f.rows[2].need).toLocaleString() + " on rest days. Across a week that averages within a few kcal of what you " +
+      "eat now, so the deficit does not change at all \u2014 the carbs just land on the days the work is on " +
+      "rather than being spread thin across days that do not need them.<br><br>" +
+      "Protein and fat never move. Only the carbs do, and only between days.</div>";
+  }
+
+  var pred = '<div class="note warn" style="margin-top:10px"><b>Where that puts the deficit</b>' +
+    "At " + Math.round(bmrEstimate()).toLocaleString() + " kcal resting \u2014 Mifflin-St Jeor on 5\u20328\u2033, " +
+    ageNow() + ", and your current weight \u2014 and your training, maintenance predicts around <b>" +
+    tp.lo.toLocaleString() + "\u2013" + tp.hi.toLocaleString() + "</b>. " +
+    "Against " + f.kcal.toLocaleString() + " that is roughly <b>" +
+    Math.round((tp.mid - f.kcal) / 500 * 10) / 10 + " lb a week</b>.<br><br>" +
+    "This is a prediction, not a measurement. Two weeks of daily weights and the app works out your real " +
+    "maintenance from what the scale actually did, which beats any formula \u2014 including this one.</div>";
+
+  el.innerHTML = head + tbl + verdict + pred;
+}
+
 function tdeeEstimate() {
   var asc = sortedWeights();
   var intake = settings.intake || settings.kcal || 1850;
@@ -7121,7 +7223,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderProto(); renderPlans();
+  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

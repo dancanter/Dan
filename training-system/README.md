@@ -361,6 +361,22 @@ so the rebound is worse, and costing blood volume in the middle of a block built
 on hard running. Salt holds at once a day; the levers that move how watery he
 looks are potassium up, cortisol down, and fat off.
 
+**Does It Fit** checks the intake against the macros rather than against a
+target rate. Protein and fat are floors, so they take 1,154 kcal before a gram
+of carbohydrate; whatever is left is carbs, and on a hard day there may not be
+enough left. At 1,799 there isn't — it affords 161g against the 200g a hard
+session wants, which is 2.7 g/kg, under the 3 g/kg line where quality starts
+going. The fix it gives is redistribution, not more food: ~1,954 on hard days,
+~1,694 on rest days, which averages within a few kcal of the flat number and
+leaves the weekly deficit untouched. Protein and fat never move; only the carbs
+do, and only between days.
+
+It also predicts maintenance from real stats — Mifflin-St Jeor on 5'8", the DOB
+(28 November 2000, so age is derived rather than stored) and current weight,
+with a 1.5–1.6 multiplier because the running volume is genuinely low. It is
+labelled a prediction, and says plainly that the measured TDEE from fourteen
+days of weights beats it.
+
 **Three Plans** is the same rotation under three different jobs, because the
 foods barely move between them and the energy does. **Shred** (now to 7
 November) is a deficit: protein fixed, fat at its floor, carbs the only dial and
