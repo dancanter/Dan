@@ -311,6 +311,29 @@ Block Bests, the PB board and the rolling counts would all miss them.
 `has_heartrate: false`. Nothing in the app invents a number that was never
 recorded.
 
+**Model** — Nutrition and Skincare are one tab now, led by **The Look**: a
+countdown to 7 November and a phase that changes as it approaches.
+
+- **Working phase** (over three weeks out) — almost entirely one thing, get the
+  weight down at the rate on Progress, and it names the weight that lands you.
+- **Hold** (inside three weeks) — stop changing variables. No new supplements,
+  no new actives, no extra sessions, no deeper deficit.
+- **Final week** — nothing new, nothing harder, nothing lower. Carbs up about
+  50g for the last three days, out of the existing band rather than on top,
+  because glycogen pulls water into muscle and that is the difference between
+  full and flat. Salt and water do not move.
+
+Under it, the levers in the order the evidence puts them: body fat, then
+shoulder-to-waist, then posture, then skin (one intervention — SPF daily —
+beats the rest combined), then sleep, then not dehydrating. Plus the five things
+not to do, all of which are the classic ways people ruin a date they have
+worked seven weeks for.
+
+**Shape** tracks waist and shoulders weekly and derives the ratio, because the
+scale cannot see a taper. Waist falling while shoulders hold is the shape being
+asked for; shoulders shrinking alongside the waist gets flagged, since that is
+the cut taking the thing that makes the silhouette.
+
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
 closing on 7 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the
@@ -584,7 +607,7 @@ the 1–5 feel ratings. Feel dropping means the work is landing; feel climbing
 while the session has not got faster is the earliest pull-back signal available,
 and it shows weeks before a benchmark test would.
 
-**Nutrition** — rebuilt around eight biological pathways rather than food
+**Model** — the merged Nutrition and Skincare tab. rebuilt around eight biological pathways rather than food
 groups: collagen hydroxylation, anti-glycation, eNOS microcirculation, Nrf2,
 lipid barrier, intracellular hydration, mitophagy and pulsed mTOR. Each carries
 what it does, what feeds it, and the one lever that decides whether it works at

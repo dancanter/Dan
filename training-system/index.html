@@ -290,9 +290,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <button class="tab" role="tab" aria-selected="false" data-tab="timer">Timer</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="progress">Progress</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fitness">Fitness</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="nutrition">Nutrition</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="model">Model</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="protocols" data-detail>Protocols</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="skincare">Skincare</button>
   </nav>
 
   <div class="mode-row"><button class="btn" id="detailBtn" aria-pressed="false">Show the reasoning</button></div>
@@ -710,7 +709,24 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   </div>
 
   <!-- ============ NUTRITION ============ -->
-  <div class="panel" id="panel-nutrition" role="tabpanel">
+  <div class="panel" id="panel-model" role="tabpanel">
+
+    <section class="block">
+      <h2 class="block-title">The Look <span class="tag" id="lookTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div id="lookBox"></div>
+    </section>
+
+    <section class="block" data-fold="shape">
+      <h2 class="block-title">Shape <span class="tag" id="shapeTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Weekly, same time, relaxed, not sucked in. The scale cannot see a taper and this can.</p>
+      <div class="add-row" style="margin-top:0;align-items:center">
+        <input type="text" id="waistIn" inputmode="decimal" placeholder="Waist, in" style="width:104px">
+        <input type="text" id="shoulderIn" inputmode="decimal" placeholder="Shoulders, in" style="width:118px">
+        <button class="btn primary" id="shapeBtn">Log</button>
+      </div>
+      <div id="shapeOut" style="margin-top:10px"></div>
+    </section>
+
     <section class="block">
       <h2 class="block-title">Today's Fuel <span class="tag" id="kcalTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <div class="add-row" style="margin-top:0;align-items:center">
@@ -882,6 +898,47 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         </tbody></table>
       </div>
     </section>
+    <div class="toggle-row">
+      <button class="toggle-btn" id="btnAM" aria-pressed="true">AM</button>
+      <button class="toggle-btn" id="btnPM" aria-pressed="false">PM</button>
+    </div>
+    <div id="routineAM">
+      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
+      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Squalane</b><span>Barrier support and hydration</span></span></div>
+      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>SPF50</b><span>Every day, non-negotiable</span></span></div>
+    </div>
+    <div id="routinePM" style="display:none">
+      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
+      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Bakuchiol — nightly</b><span>The retinol replacement. Build from 2–3 nights a week.</span></span></div>
+      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>Squalane or beef tallow</b><span>Barrier support over the top</span></span></div>
+      <div class="routine-step"><span class="step-num">4</span><span class="step-text"><b>La Roche-Posay balm</b><span>Any night things feel tight</span></span></div>
+    </div>
+
+    <section class="block" style="margin-top:18px">
+      <h2 class="block-title">Retinol Nights <span class="tag" id="retinolTag"></span></h2>
+      <p class="block-sub">Two a week, spaced. Tap when you've used it tonight — this is the one thing here that's easy to lose track of.</p>
+      <div class="add-row" style="margin-top:0"><button class="btn primary" id="retinolBtn">Log tonight's retinol</button></div>
+      <div id="retinolLog" style="margin-top:10px"></div>
+    </section>
+
+    <section class="block" data-detail>
+      <h2 class="block-title">Notes</h2>
+      <div class="note stop" style="margin-bottom:10px"><b>Retinoids are out — so ignore what I said about tretinoin</b>
+        Puffiness plus irritation even going slowly means your skin is not tolerating it, and prescription tretinoin is <em>stronger</em>, not gentler. Pushing through would make it worse. Scratch that recommendation entirely.<br><br>
+        One thing worth checking first though: it may be the <b>vehicle rather than the retinol</b>. Many retinol products carry alcohol, fragrance or particular emulsifiers, and irritant reactions often track the formula rather than the active. If you ever want to retest, do it with an encapsulated retinol in a bland base, on a patch behind the ear for two weeks. If that also puffs up, it is genuinely the retinoid and you are done with the class.</div>
+
+      <div class="note good" style="margin-bottom:10px"><b>Bakuchiol is the real substitute, and the evidence is better than people assume</b>
+        A head-to-head trial put 0.5% bakuchiol against 0.5% retinol and found <b style="color:var(--chalk)">comparable improvement in wrinkles and pigmentation with significantly less irritation and scaling</b>. It is not a marketing dupe — it is the one alternative with an actual comparison study behind it. Nightly, build up from 2–3 nights a week.</div>
+
+      <div class="note good" style="margin-bottom:10px"><b>Dropping retinoids gives you two ingredients back</b>
+        You removed vitamin C and niacinamide to keep the total irritation load down <em>while on retinol</em>. That constraint is now gone.<br><br>
+        <b style="color:var(--chalk)">Vitamin C in the morning</b> — the collagen cofactor, works with your SPF rather than against it, and pairs with the collagen peptides you already take. <b style="color:var(--chalk)">Niacinamide at night</b> — barrier function and redness, and it is one of the best-tolerated actives there is, which matters for skin like yours. Add one at a time, a fortnight apart, so you know which is which if something flares.</div>
+
+      <div class="note warn" style="margin-bottom:10px"><b>Your real UV exposure is the running, not sunbathing</b>
+        Ultrasun 50 daily is genuinely the top of the list and you are already doing it. Two things it is worth being fussy about: <b style="color:var(--chalk)">use enough</b> — about a quarter teaspoon for the face, which is more than feels natural and is where most people quietly lose half the protection — and reapply before long sessions. Add a <b>cap and sunglasses</b> for training: hours a week outdoors is where your cumulative dose actually comes from, and the skin around the eyes is the thinnest on your face and the first to show it.</div>
+
+      <div class="note flat"><b>Deliberately short</b>Centella and a separate hydrating serum stay out. The routine works because it is small.</div>
+    </section>
   </div>
 
   <!-- ============ PROTOCOLS ============ -->
@@ -1045,49 +1102,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
   </div>
 
   <!-- ============ SKINCARE ============ -->
-  <div class="panel" id="panel-skincare" role="tabpanel">
-    <div class="toggle-row">
-      <button class="toggle-btn" id="btnAM" aria-pressed="true">AM</button>
-      <button class="toggle-btn" id="btnPM" aria-pressed="false">PM</button>
-    </div>
-    <div id="routineAM">
-      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
-      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Squalane</b><span>Barrier support and hydration</span></span></div>
-      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>SPF50</b><span>Every day, non-negotiable</span></span></div>
-    </div>
-    <div id="routinePM" style="display:none">
-      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>Cetaphil cleanser</b><span>+ gua sha</span></span></div>
-      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Bakuchiol — nightly</b><span>The retinol replacement. Build from 2–3 nights a week.</span></span></div>
-      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>Squalane or beef tallow</b><span>Barrier support over the top</span></span></div>
-      <div class="routine-step"><span class="step-num">4</span><span class="step-text"><b>La Roche-Posay balm</b><span>Any night things feel tight</span></span></div>
-    </div>
-
-    <section class="block" style="margin-top:18px">
-      <h2 class="block-title">Retinol Nights <span class="tag" id="retinolTag"></span></h2>
-      <p class="block-sub">Two a week, spaced. Tap when you've used it tonight — this is the one thing here that's easy to lose track of.</p>
-      <div class="add-row" style="margin-top:0"><button class="btn primary" id="retinolBtn">Log tonight's retinol</button></div>
-      <div id="retinolLog" style="margin-top:10px"></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Notes</h2>
-      <div class="note stop" style="margin-bottom:10px"><b>Retinoids are out — so ignore what I said about tretinoin</b>
-        Puffiness plus irritation even going slowly means your skin is not tolerating it, and prescription tretinoin is <em>stronger</em>, not gentler. Pushing through would make it worse. Scratch that recommendation entirely.<br><br>
-        One thing worth checking first though: it may be the <b>vehicle rather than the retinol</b>. Many retinol products carry alcohol, fragrance or particular emulsifiers, and irritant reactions often track the formula rather than the active. If you ever want to retest, do it with an encapsulated retinol in a bland base, on a patch behind the ear for two weeks. If that also puffs up, it is genuinely the retinoid and you are done with the class.</div>
-
-      <div class="note good" style="margin-bottom:10px"><b>Bakuchiol is the real substitute, and the evidence is better than people assume</b>
-        A head-to-head trial put 0.5% bakuchiol against 0.5% retinol and found <b style="color:var(--chalk)">comparable improvement in wrinkles and pigmentation with significantly less irritation and scaling</b>. It is not a marketing dupe — it is the one alternative with an actual comparison study behind it. Nightly, build up from 2–3 nights a week.</div>
-
-      <div class="note good" style="margin-bottom:10px"><b>Dropping retinoids gives you two ingredients back</b>
-        You removed vitamin C and niacinamide to keep the total irritation load down <em>while on retinol</em>. That constraint is now gone.<br><br>
-        <b style="color:var(--chalk)">Vitamin C in the morning</b> — the collagen cofactor, works with your SPF rather than against it, and pairs with the collagen peptides you already take. <b style="color:var(--chalk)">Niacinamide at night</b> — barrier function and redness, and it is one of the best-tolerated actives there is, which matters for skin like yours. Add one at a time, a fortnight apart, so you know which is which if something flares.</div>
-
-      <div class="note warn" style="margin-bottom:10px"><b>Your real UV exposure is the running, not sunbathing</b>
-        Ultrasun 50 daily is genuinely the top of the list and you are already doing it. Two things it is worth being fussy about: <b style="color:var(--chalk)">use enough</b> — about a quarter teaspoon for the face, which is more than feels natural and is where most people quietly lose half the protection — and reapply before long sessions. Add a <b>cap and sunglasses</b> for training: hours a week outdoors is where your cumulative dose actually comes from, and the skin around the eyes is the thinnest on your face and the first to show it.</div>
-
-      <div class="note flat"><b>Deliberately short</b>Centella and a separate hydrating serum stay out. The routine works because it is small.</div>
-    </section>
-  </div>
 </div>
 
 <div class="statusbar"><span class="dot" id="saveDot"></span><span id="saveText">Loading…</span><span style="color:var(--muted-2)">·</span><span id="buildStamp" style="color:var(--muted-2)"></span></div>
@@ -1165,7 +1179,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "15 Sep 09:04";
+var BUILD = "15 Sep 11:48";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -6255,6 +6269,149 @@ function loadSessionIntoTimer(desc, label) {
   showTab("timer");
 }
 
+/* ================= the look =================
+   What actually produces the thing he is asking for, in the order the evidence
+   puts it. Body fat first because nothing else competes; then the ratio, which
+   is the only shape lever that changes silhouette; then posture, which is free
+   and undoes more than people expect; then skin, where one intervention beats
+   the rest combined. The final week is handled separately because it is the
+   part everyone gets wrong. */
+var LOOK_DATE = REVERSE_DEADLINE;
+
+function daysToLook() { return daysBetween(parseDay(today()), parseDay(LOOK_DATE)); }
+function lookPhase() {
+  var d = daysToLook();
+  if (d < 0) return "after";
+  if (d <= 7) return "final";
+  if (d <= 21) return "hold";
+  return "work";
+}
+
+var LOOK_ORDER = [
+  ["Body fat", "Nothing else on this list competes with it. Every visible line you want is a line you already have, sitting under the last few pounds. This is the whole job until the last fortnight, and the weight chart on Progress is how you know it is working."],
+  ["Shoulder-to-waist", "The only lever that changes your silhouette rather than your size. Waist is already handled by the running and the cut. Shoulders are lateral delts and upper back \u2014 side raises and your pull-ups. Two or three sets of side raises on each upper day is enough; it is a small muscle and it responds."],
+  ["Posture", "Free, fast, and it undoes more than people expect. Rounded shoulders make a lean person read as soft. Band pull-aparts or face pulls daily, 2\u20133 sets, plus thoracic extension over a foam roller. Watch the ratio of pressing to pulling \u2014 you have been benching, so match it with rows."],
+  ["Skin", "One intervention beats everything else combined and you are already doing it: SPF50 every single day, rain or not. Use about a quarter teaspoon on the face, which is more than feels natural. Cap and sunglasses for outdoor sessions \u2014 hours a week outside is where your cumulative dose actually comes from."],
+  ["Sleep", "The one that shows in your face within 48 hours. Consistent wake time beats a long lie-in. It is also where the cortisol that puffs you goes down."],
+  ["Don't dehydrate", "Drinking less raises vasopressin and you hold more, not less. Steady water, front-loaded in the day, all the way through \u2014 including the last week."]
+];
+
+var LOOK_DONT = [
+  "Cut water before the date \u2014 it does the opposite of what you want",
+  "Cut or spike salt \u2014 keep the once-a-day exactly as it is",
+  "Add cardio to speed it up \u2014 you are already at your session cap",
+  "Crash the last week \u2014 flat muscle reads worse than a pound of fat",
+  "Start a new skincare active inside a month of the date \u2014 nothing new close in"
+];
+
+function renderLook() {
+  var el = $("lookBox"); if (!el) return;
+  var d = daysToLook(), ph = lookPhase(), tag = $("lookTag");
+  var c = cutStatus();
+  if (tag) tag.textContent = d < 0 ? "date passed" : d + " days to 7 Nov";
+
+  var head;
+  if (ph === "after") {
+    head = '<div class="note good"><b>7 November has been and gone</b>' +
+      "The reverse is the job now. Everything below still holds \u2014 the look is kept by the same things that built it.</div>";
+  } else if (ph === "final") {
+    head = '<div class="note stop"><b>Final week \u2014 ' + d + " day" + (d === 1 ? "" : "s") + " to go</b>" +
+      "<span style=\"color:var(--chalk);font-weight:600\">Nothing new, nothing harder, nothing lower.</span> " +
+      "The fat is already off or it is not. What is left to win or lose this week is water and fullness.<br><br>" +
+      "<span style=\"color:var(--chalk);font-weight:600\">Raise carbs by about 50g a day for the last three days.</span> " +
+      "Glycogen pulls water into muscle, which is what makes it look full rather than flat \u2014 and it comes out of the " +
+      "band you are already eating in, not on top. Salt stays exactly where it is. Water stays exactly where it is. " +
+      "Sleep is the highest-value thing you can do all week.</div>";
+  } else if (ph === "hold") {
+    head = '<div class="note warn"><b>' + d + " days out \u2014 hold everything steady</b>" +
+      "This is the fortnight to stop changing variables. No new supplements, no new skincare actives, no extra sessions, " +
+      "no deeper deficit. <span style=\"color:var(--chalk);font-weight:600\">Whatever you are doing now is what carries " +
+      "you to the date.</span> The only thing still moving should be the scale.</div>";
+  } else {
+    var lands = c.landing != null ? f1x(c.landing) : null;
+    head = '<div class="note good"><b>' + d + " days to 7 November</b>" +
+      "This is the working phase and it is almost entirely one thing: get the weight down at the rate on the Progress tab" +
+      (lands ? ", which lands you around " + lands + " lb" : "") + ". " +
+      "Everything below is what turns that weight into the look rather than just a smaller version of you.</div>";
+  }
+
+  var order = '<div class="card tbl-scroll" style="padding:4px 12px;margin-top:10px"><table class="ref"><tbody>' +
+    LOOK_ORDER.map(function (r, i) {
+      return "<tr><td style=\"white-space:nowrap\"><b>" + (i + 1) + " \u00b7 " + r[0] + "</b></td><td>" + r[1] + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  var dont = '<div class="note stop" style="margin-top:10px"><b>What not to do</b>' +
+    LOOK_DONT.map(function (x) { return "\u00b7 " + x; }).join("<br>") + "</div>";
+
+  var honest = '<div class="note flat" data-detail style="margin-top:10px"><b>The honest split</b>' +
+    "Roughly: body fat is most of it, the shoulder-to-waist ratio and posture are most of what is left, and skin and " +
+    "sleep are what stop a lean face looking tired rather than sharp. Nothing on this list is a secret and nothing " +
+    "on it is quick \u2014 which is why the date is seven weeks out rather than two.</div>";
+
+  el.innerHTML = head + order + dont + honest;
+}
+function f1x(x) { return x.toFixed(1); }
+
+/* ================= shape =================
+   Waist and shoulders, because the scale cannot see a taper. The ratio is the
+   number that actually tracks the silhouette: waist falling while shoulders
+   hold is the whole shape of what he is asking for. */
+function shapeLog() { return DB.get("shape-log", []); }
+function logShape(waist, shoulder) {
+  var log = shapeLog().filter(function (x) { return x.date !== today(); });
+  var row = { date: today() };
+  if (isFinite(waist) && waist > 0) row.waist = waist;
+  if (isFinite(shoulder) && shoulder > 0) row.shoulder = shoulder;
+  log.push(row);
+  log.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  DB.set("shape-log", log);
+  $("waistIn").value = ""; $("shoulderIn").value = "";
+  renderShape();
+}
+function renderShape() {
+  var el = $("shapeOut"); if (!el) return;
+  var log = shapeLog(), tag = $("shapeTag");
+  if (!log.length) {
+    if (tag) tag.textContent = "nothing logged";
+    el.innerHTML = '<div class="note flat"><b>Nothing logged yet</b>' +
+      "Waist at the navel, shoulders at the widest point, relaxed. Once a week is plenty \u2014 measure daily and you " +
+      "are reading the tape rather than your body. The ratio between them is the number that tracks the silhouette, " +
+      "and it moves even in a week the scale does not.</div>";
+    return;
+  }
+  var last = log[log.length - 1], first = log[0];
+  if (tag) tag.textContent = last.waist ? last.waist.toFixed(1) + '" waist' : "logged";
+
+  var rows = log.slice(-8).map(function (x) {
+    var ratio = x.waist && x.shoulder ? (x.shoulder / x.waist).toFixed(2) : "\u2014";
+    return "<tr><td>" + esc(x.date) + "</td><td class=\"hl\">" + (x.waist ? x.waist.toFixed(1) + '"' : "\u2014") +
+      "</td><td class=\"hl\">" + (x.shoulder ? x.shoulder.toFixed(1) + '"' : "\u2014") +
+      "</td><td class=\"hl\">" + ratio + "</td></tr>";
+  }).join("");
+  var tbl = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Date</th><th>Waist</th><th>Shoulders</th><th>Ratio</th></tr></thead><tbody>" +
+    rows + "</tbody></table></div>";
+
+  var note = "";
+  if (log.length >= 2 && first.waist && last.waist) {
+    var dw = first.waist - last.waist;
+    var dr = first.shoulder && last.shoulder
+      ? (last.shoulder / last.waist) - (first.shoulder / first.waist) : null;
+    note = '<div class="note ' + (dw > 0 ? "good" : "flat") + '" style="margin-top:10px"><b>' +
+      (Math.abs(dw) < 0.15 ? "Waist unchanged"
+        : dw > 0 ? "Waist down " + dw.toFixed(1) + '"'
+        : "Waist up " + (-dw).toFixed(1) + '"') +
+      " since " + esc(first.date) + "</b>" +
+      (dr != null
+        ? "Ratio " + (dr > 0.01 ? "up " + dr.toFixed(2) + " \u2014 that is the taper opening, which is the whole point"
+            : dr < -0.01 ? "down " + (-dr).toFixed(2) + " \u2014 shoulders are losing ground, so keep the side raises and rows in"
+            : "flat")
+        : "Log shoulders too and this gives you the ratio, which is what actually tracks the silhouette.") +
+      "</div>";
+  }
+  el.innerHTML = tbl + note;
+}
+
 /* ================= study and total load =================
    Two 30-credit modules at 8-10 hours each. The point of tracking it here is
    not to manage the degree — it is that training load and study load draw on
@@ -6715,7 +6872,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback();
+  weighFeedback(); renderLook(); renderShape();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -6896,6 +7053,11 @@ function renderStartInfo() {
     $(id).addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
+  });
+  $("shapeBtn").addEventListener("click", function () {
+    var w = parseFloat($("waistIn").value), sh = parseFloat($("shoulderIn").value);
+    if (!isFinite(w) && !isFinite(sh)) { $("waistIn").focus(); return; }
+    logShape(w, sh);
   });
   $("studyBtn").addEventListener("click", function () {
     var v = parseFloat($("studyToday").value);
