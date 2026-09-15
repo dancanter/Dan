@@ -361,10 +361,17 @@ so the rebound is worse, and costing blood volume in the middle of a block built
 on hard running. Salt holds at once a day; the levers that move how watery he
 looks are potassium up, cortisol down, and fat off.
 
-**Shape** tracks waist and shoulders weekly and derives the ratio, because the
-scale cannot see a taper. Waist falling while shoulders hold is the shape being
-asked for; shoulders shrinking alongside the waist gets flagged, since that is
-the cut taking the thing that makes the silhouette.
+**Your Day** is the rotation as actually eaten, four numbered meals in order:
+oats with Estate Dairy milk and raw honey (or eggs), the collagen smoothie,
+meat and roots, the yoghurt bowl. Oats and rice cakes both **certified
+gluten-free**, always. It is labelled as the *cut* version, because breakfast
+changes on 7 November — from the reverse onwards it is 5 eggs and 5 lentil rice
+cakes, which carries the calories and suits training better. Nothing else in
+the day moves.
+
+There was a Shape section tracking waist and shoulders weekly; it came out at
+his request. The ratio it derived was a good number, but a tracker nobody fills
+in is worse than no tracker, because it reads as an outstanding task forever.
 
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
 closing on 7 November whatever happens. The start line is **whatever you first
