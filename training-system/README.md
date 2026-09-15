@@ -51,6 +51,34 @@ deleted, the choice is saved, and it roughly halves what there is to read.
 Anything explanatory carries `data-detail`; one CSS rule hides it. Warnings that
 need acting on are never tagged, so they show in both modes.
 
+## Trimmed to six things
+
+The app grew to 55 sections across 7 tabs and he said, fairly, that it was too
+much. It is now **37 sections across 6 tabs**, cut against the six things he
+actually named: beat the times this block, the model look, the cut to 7
+November, the reverse, keep the data, and studying.
+
+**Gone:** the whole Protocols tab (ten sections, reference top to bottom), the
+recovery checklist and weekly reflection, calisthenics, week review, the pace
+converter, fortnightly check-ins, the long game, adaptation and energy charts,
+the eight-pathway table, the vital-bits and honest-verdict essays, the retinol
+counter (he does not use retinol and never will), and the standalone potassium
+and targets sections — the live guidance from those lives in The Protocol.
+
+**Nothing in `localStorage` was touched.** Only display surfaces were removed,
+so every weight, PB, session, test and niggle is exactly where it was. Two
+sections were pulled back after the first pass proved them load-bearing: the
+session suggestion engine, which is the thing that serves beating his times, and
+the PB entry form, which is how records get in at all. Your Day came back too —
+the four-meal rotation is his plan, not reference.
+
+Removing a section used to be dangerous because listeners attached straight to
+`$("id")`, which throws the moment the element is gone and takes every listener
+below it with it. They now go through `on(id, ev, fn)`, which no-ops on a
+missing element, and the render functions that drew removed sections carry an
+early return. A `tabs.mjs` suite opens every tab and every fold and fails on any
+console error, which is what caught the three real breakages in this change.
+
 ## What's in it
 
 **Today** — the session pulled from the plan for the actual date, a readiness

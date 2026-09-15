@@ -288,7 +288,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <button class="tab" role="tab" aria-selected="false" data-tab="progress">Progress</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fitness">Fitness</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="model">Model</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="protocols" data-detail>Protocols</button>
   </nav>
 
   <div class="mode-row"><button class="btn" id="detailBtn" aria-pressed="false">Show the reasoning</button></div>
@@ -321,23 +320,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="energyPick"></div>
     </section>
 
-    <section class="block" data-fold="recovery">
-      <h2 class="block-title">Recovery &amp; Wellbeing <span class="tag" id="todayCount">0/11</span> <span class="tag" id="streakTag"></span></h2>
-      <div id="checklist"></div>
-      <div class="chart-wrap" style="margin-top:12px">
-        <div class="chart-head"><span class="chart-title">Last 28 days</span><span class="chart-title" id="gridSummary"></span></div>
-        <div class="streak-grid" id="streakGrid"></div>
-        <div class="chart-legend"><span>Darker = more of the day's list ticked</span></div>
-      </div>
-    </section>
-
-    <section class="block" data-fold="reflect">
-      <h2 class="block-title">Weekly Reflection <span class="tag" id="reflWeekTag"></span></h2>
-      <p class="block-sub">One note per training week — energy, sleep, how the sessions actually felt.</p>
-      <textarea id="reflectionInput" rows="3" placeholder="How's this week actually going?"></textarea>
-      <div style="margin-top:8px"><button class="btn primary" id="saveReflectionBtn">Save this week's note</button></div>
-      <div id="reflectionLog" style="margin-top:12px"></div>
-    </section>
   </div>
 
   <!-- ============ THIS WEEK ============ -->
@@ -365,29 +347,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     <h2 class="block-title" style="margin-top:26px">The Week</h2>
     <p class="block-sub">Record what you did, on whatever day you did it.</p>
     <div id="weekList"></div>
-
-    <section class="block" data-fold="cali" style="margin-top:26px">
-      <h2 class="block-title">Calisthenics <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">the optional 5th</span></h2>
-      <p class="block-sub">Records to beat, not a workout. Pick the format, log the reps.</p>
-      <div class="add-row" style="margin-top:0">
-        <select id="caliFormat" style="flex:2"></select>
-      </div>
-      <div class="add-row">
-        <input type="text" id="caliPush" inputmode="numeric" placeholder="Push-ups" style="max-width:110px">
-        <input type="text" id="caliPull" inputmode="numeric" placeholder="Pull-ups" style="max-width:110px">
-        <button class="btn primary" id="caliAddBtn">Log</button>
-      </div>
-      <div class="add-row">
-        <input type="text" id="caliNote" placeholder="Notes, optional">
-      </div>
-      <div id="caliOut" style="margin-top:12px"></div>
-    </section>
-
-    <section class="block" data-fold="review" style="margin-top:26px">
-      <h2 class="block-title">Week Review <span class="tag" id="reviewTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">What the week you are looking at actually contained, and what it says about the next one.</p>
-      <div id="reviewBox"></div>
-    </section>
 
     <section class="block" data-fold="untrained" style="margin-top:26px">
       <h2 class="block-title">What You Haven't Trained</h2>
@@ -438,23 +397,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="lapList"></div>
     </section>
 
-    <section class="block" data-fold="pace">
-      <h2 class="block-title">Pace Converter</h2>
-      <p class="block-sub">Put in a distance and a time — get the pace and every split that matters at it.</p>
-      <div class="card">
-        <div class="add-row" style="margin-top:0">
-          <input type="text" id="paceDist" placeholder="Distance in m, e.g. 1609" value="1609">
-          <input type="text" id="paceTime" placeholder="Time, e.g. 4:50" value="4:50">
-          <button class="btn primary" id="paceBtn">Convert</button>
-        </div>
-        <div class="add-row">
-          <button class="btn ghost" data-preset="400:54.9">400 @ 54.9</button>
-          <button class="btn ghost" data-preset="1609:290">Mile @ 4:50</button>
-          <button class="btn ghost" data-preset="5000:1010">5K @ 16:50</button>
-        </div>
-        <div id="paceOut" style="margin-top:12px"></div>
-      </div>
-    </section>
   </div>
 
   <!-- ============ PROGRESS ============ -->
@@ -549,43 +491,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div style="display:none">
       </div>
     </section>
-    <section class="block" data-fold="exit">
-      <h2 class="block-title">Where The Cut Ends</h2>
-      <p class="block-sub">Written now, while you are thinking clearly. "When I feel comfortable" is not a stopping rule — it is a feeling, and it moves. Six weeks into a deficit it will have moved further.</p>
-      <div id="exitBox"></div>
-      <div class="card" style="margin-top:10px">
-        <div class="add-row" style="margin-top:0;align-items:center">
-          <label class="chart-title" for="exitWeight" style="min-width:96px">Stop at (lb)</label>
-          <input type="text" id="exitWeight" inputmode="decimal" placeholder="e.g. 123" style="width:90px">
-          <label class="chart-title" for="exitDate" style="min-width:70px">Or by</label>
-          <input type="date" id="exitDate">
-        </div>
-        <div class="add-row">
-          <input type="text" id="exitNote" placeholder="Anything else that means stop — e.g. sessions getting harder">
-          <button class="btn primary" id="exitBtn">Set</button>
-        </div>
-        <p class="block-sub" style="margin:9px 0 0">Whichever comes first. The date matters as much as the weight — it is the one a bad week cannot argue with.</p>
-      </div>
-    </section>
-
-    <section class="block" data-fold="checkin">
-      <h2 class="block-title">Fortnightly Check-In <span class="tag" id="checkinTag"></span></h2>
-      <p class="block-sub">Photos and a tape measure track what you actually care about better than the scale does — the scale cannot tell fat from water, and a photo can. Same light, same time of day, same spot.</p>
-      <div id="checkinDue"></div>
-      <div class="card" style="margin-top:10px">
-        <div class="add-row" style="margin-top:0">
-          <input type="text" id="waistInput" inputmode="decimal" placeholder="Waist (cm or in), optional">
-          <button class="btn" id="photoBtn">Photos taken</button>
-        </div>
-        <div class="add-row">
-          <input type="text" id="checkinNote" placeholder="How you think you look — your words">
-          <button class="btn primary" id="checkinBtn">Log check-in</button>
-        </div>
-        <p class="block-sub" style="margin:9px 0 0">Keep the photos in your phone album — this just records that you took them, so you know which dates to compare.</p>
-      </div>
-      <div id="checkinLog" style="margin-top:10px"></div>
-    </section>
-
     <section class="block" data-fold="strava">
       <h2 class="block-title">Strava Import <span class="tag" id="stravaTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Paste a block of activities and they land on the days you ran them — session type, reps, average pace and best rep worked out for you. Already-imported activities are skipped, so pasting the same block twice is safe.</p>
@@ -621,12 +526,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <p class="block-sub">Where your logged running says you are, and what to train next.</p>
       <div id="goalOut"></div>
     </section>
-    <section class="block" data-fold="long">
-      <h2 class="block-title">The Long Game <span class="tag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0">all-time PBs</span></h2>
-      <p class="block-sub">sub-51 400m, sub-4:30 mile, sub-15:00 5K — and roughly how far away they are.</p>
-      <div id="longOut"></div>
-    </section>
-
     <section class="block" data-detail>
       <h2 class="block-title">Fitness — VO<sub>2</sub>max Estimate</h2>
       <p class="block-sub">Worked out from the times you log, using Daniels' VDOT. Only your aerobic tests count toward it — 800m and up. Anything shorter is mostly anaerobic and says nothing about VO<sub>2</sub>max, which is why it sits out of this.</p>
@@ -664,14 +563,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">Test History</h2>
       <div id="pbHistory"></div>
     </section>
-    <section class="block" data-detail>
-      <h2 class="block-title">Adaptation</h2>
-      <p class="block-sub">The same session, at the same pace, over time. Feel dropping means the work is landing. Feel climbing at an unchanged pace is the earliest warning you get — weeks before a benchmark would show it.</p>
-      <div class="add-row" style="margin-top:0;margin-bottom:10px">
-        <select id="adaptPick" aria-label="Session type"></select>
-      </div>
-      <div id="adaptOut"></div>
-    </section>
     <section class="block" data-fold="rest">
       <h2 class="block-title">When To Rest</h2>
       <p class="block-sub">Any <b>two</b> of these together means back off — not push harder. A week of backing off costs you almost nothing; pushing through costs you the block. These read from what you've actually logged.</p>
@@ -693,11 +584,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         </div>
       </div>
       <div id="niggleLog" style="margin-top:10px"></div>
-    </section>
-    <section class="block" data-detail>
-      <h2 class="block-title">Energy Trend</h2>
-      <p class="block-sub">Daily energy over the last month. Run an elimination — drop a food for four weeks — and this is where you see whether it made a difference.</p>
-      <div id="energyChart"></div>
     </section>
     <section class="block" data-fold="history">
       <h2 class="block-title">Session History</h2>
@@ -747,11 +633,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="kcalOut" style="margin-top:10px"></div>
     </section>
 
-    <section class="block" data-fold="potassium">
-      <h2 class="block-title">Potassium <span class="tag" id="kTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <div id="kOut"></div>
-    </section>
-
     <section class="block">
       <h2 class="block-title">Food Log</h2>
       <p class="block-sub">Macros per meal. Leave calories blank and they are worked out from the macros.</p>
@@ -768,21 +649,10 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="foodOut" style="margin-top:10px"></div>
     </section>
 
-    <section class="block" data-fold="stage">
-      <h2 class="block-title">Where You Are</h2>
-      <div id="calStep"></div>
-    </section>
-
     <section class="block" data-fold="fit">
       <h2 class="block-title">Does It Fit</h2>
       <p class="block-sub">Protein and fat are floors. Whatever is left is carbs \u2014 and on a hard day there may not be enough left.</p>
       <div id="fitOut"></div>
-    </section>
-
-    <section class="block" data-fold="plans">
-      <h2 class="block-title">Three Plans <span class="tag" id="plansTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">Same four meals throughout. What changes is the calorie level, where the carbs sit, and which pathways get fed hardest.</p>
-      <div id="plansBox"></div>
     </section>
 
     <section class="block" data-detail>
@@ -807,9 +677,10 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div class="note flat" style="margin-top:8px"><b>Four small swaps that help your face</b>Evening bowl earlier · raisins out, berries in · one honey a day not two · front-load your water.</div>
     </section>
 
-    <section class="block" data-detail>
-      <h2 class="block-title">This Week <span class="tag" id="foodCount"></span></h2>
-      <div id="foodChecklist"></div>
+    <section class="block" data-fold="plans">
+      <h2 class="block-title">Three Plans <span class="tag" id="plansTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Same four meals throughout. What changes is the calorie level, where the carbs sit, and which pathways get fed hardest.</p>
+      <div id="plansBox"></div>
     </section>
 
     <section class="block" data-fold="reverse">
@@ -848,73 +719,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div class="note good" data-detail style="margin-top:8px" data-revbody><b>Fats come after, not during</b>Butter, aged cheese, fattier cuts — all fine, once maintenance is confirmed and held 2–3 weeks. Carbs restore metabolic rate; fat barely does. Add fat during the climb and you spend your calorie ceiling before the rate recovers. <b style="color:var(--chalk)">Watch protein when the cuts get fattier</b> — 200g chicken breast is 62g protein, 200g ribeye about 46g for nearly double the calories.</div>
     </section>
 
-    <section class="block" data-detail>
-      <h2 class="block-title">The Eight Pathways</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px">
-        <table class="ref">
-          <thead><tr><th>Pathway</th><th>Your foods</th><th>The one rule</th></tr></thead>
-          <tbody>
-            <tr><td><b>1 · Collagen</b><span class="sub">Skin firmness</span></td><td>Peptides, bone broth, berries, liver, oysters</td><td class="hl">Always with vitamin C — without it the enzyme does not work at all.</td></tr>
-            <tr><td><b>2 · Anti-glycation</b><span class="sub">Stops skin stiffening</span></td><td>Beef, organ meat, cacao, berries, grapes, pomegranate</td><td class="hl">Bake, stew, poach. Never char.</td></tr>
-            <tr><td><b>3 · Microcirculation</b><span class="sub">Lit-from-within look</span></td><td>Beetroot, rocket, spinach, cacao, garlic</td><td class="hl">No antibacterial mouthwash — it kills the mouth bacteria this depends on.</td></tr>
-            <tr><td><b>4 · Nrf2</b><span class="sub">Your own defences</span></td><td>Your own training, garlic, green tea, coffee</td><td class="hl">Hard running is a stronger Nrf2 signal than any food. Crush garlic, wait 10 min, then cook.</td></tr>
-            <tr><td><b>5 · Barrier</b><span class="sub">Skin holds water</span></td><td>Egg yolks, sockeye, tallow, avocado</td><td class="hl">4 yolks daily, oily fish 2–3×. No seed oils.</td></tr>
-            <tr><td><b>6 · Cell hydration</b><span class="sub">Full face, not puffy</span></td><td>Potato, avocado, beetroot, spinach, coconut water</td><td class="hl">Push potassium. Do not cut salt — it is the ratio.</td></tr>
-            <tr><td><b>7 · Mitophagy</b><span class="sub">Clears dead mitochondria</span></td><td>Pomegranate, walnuts</td><td class="hl">Only ~40% of people convert it. Your running does this anyway.</td></tr>
-            <tr><td><b>8 · Build / clear</b><span class="sub">Master switch</span></td><td>Everything, timed</td><td class="hl">12–14h overnight fast. Cut clears, reverse builds. Never both at once.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Your Health — The Vital Bits</h2>
-
-      <div class="note stop" style="margin-bottom:10px"><b>The standard coeliac test cannot work on you</b>
-        tTG-IgA is an IgA-based test and you cannot make enough IgA to trigger it, so it reads negative either way. <b style="color:var(--chalk)">Ask for tTG-IgG and DGP-IgG</b>, and say "I have selective IgA deficiency" when you ask. It is a known pitfall that still gets missed.</div>
-
-      <div class="note stop" style="margin-bottom:10px"><b>Get bloods done — three symptoms, one likely cause</b>
-        Mouth ulcers, flat taste and intermittent tiredness all point at the same short list: <b style="color:var(--chalk)">iron, B12, folate, zinc</b>. Flat taste is a textbook zinc sign. Ulcers are a textbook iron/B12/folate sign — though IgA deficiency causes them directly too.<br><br>
-        <b style="color:var(--chalk)">Ask for: ferritin, FBC, B12, folate, vitamin D, zinc, tTG-IgG, DGP-IgG, thyroid.</b> Zinc is not standard — ask by name and mention the ulcers and taste. Ask for the ferritin <em>number</em>: 20 gets called normal and will still flatten you.</div>
-
-      <div class="note warn" style="margin-bottom:10px"><b>Ask your immunologist about raw dairy while you are there</b>
-        IgA deficiency varies enormously — many people with it are entirely asymptomatic. Which you are depends on your infection history and other immunoglobulin levels, which they know and I do not. If you are the common type they will likely say it is fine.</div>
-
-      <div class="note flat" style="margin-bottom:10px"><b>Raw cheese, done properly</b>
-        <b style="color:var(--chalk)">Aged hard, 60 days plus</b> — Comté, Gruyère, aged cheddar, parmesan, Manchego. <b style="color:var(--chalk)">Skip raw soft and blue</b> — higher moisture and pH, and that is the category that actually causes problems. <b style="color:var(--chalk)">Buy a piece, cut it yourself</b> — contamination happens at handling, not inside the wheel. <b style="color:var(--chalk)">Below 4°C</b> — listeria grows at fridge temperature.</div>
-
-      <div class="note warn" style="margin-bottom:10px"><b>Oats and salt</b>
-        Drained only <em>sometimes</em> on GF oats points at contamination hot spots — most are machine-sorted, so stray grains come in clumps. Look for <b>purity protocol</b> oats, or leave them out; rice and potato do the same job.<br><br>
-        On salt: stopping over-salting was right. Do not go below 2,300–3,000mg — you run four times a week in heat and drink 3–3.5L, and restricting sodium there drops plasma volume. March's 5 lb was water, not fat.</div>
-
-      <div class="note warn"><b>Illness costs you more than it costs a training partner</b>
-        Hard exercise lowers mucosal IgA in everyone; you start lower and a 29% deficit lowers it further. Do not train through illness, take the deload weeks, protect sleep, reverse on schedule. Two weeks ill costs more than any session gains.</div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Honest Verdict</h2>
-      <div class="note good" style="margin-bottom:10px"><b>Diet: about 8/10 — and it is near its ceiling</b>
-        Protein, fat quality, no processed food, polyphenols, organ meat, the sockeye and the consistency to weigh it all are genuinely strong. The gap is vegetables, fibre and plant variety — real, but constrained by your digestion, which is why the fix is blended spinach rather than a plate of cruciferous veg.</div>
-      <div class="note stop" style="margin-bottom:10px"><b>And food is fifth on the list that actually matters</b>
-        Above it: <b style="color:var(--chalk)">cardiorespiratory fitness, muscle mass, sleep, and not accumulating damage.</b> You already do all four. For how you <em>look</em> specifically, roughly 80% of facial ageing is UV — your daily SPF50 outranks every food on this page. Most of a face is bone, and bone is not food.</div>
-      <div class="note warn"><b>Do not cut below 122–124 chasing a sharper face</b>
-        Below about 10% body fat a male face reads gaunt rather than sharp, and recovery, sleep and testosterone go with it. The leanest weight and the fastest weight are not the same weight.</div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Targets</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px">
-        <table class="ref"><tbody>
-          <tr><td>Calories</td><td class="hl" id="targetKcal">1,850 kcal</td></tr>
-          <tr><td>Protein</td><td class="hl">155–160g</td></tr>
-          <tr><td>Fat floor</td><td class="hl">55–60g</td></tr>
-          <tr><td>Water</td><td class="hl">3–3.5L</td></tr>
-          <tr><td>Sodium — steady, not low</td><td class="hl">2,300–3,000mg</td></tr>
-          <tr><td>Potassium — the one to push</td><td class="hl">3,500–4,700mg</td></tr>
-          <tr><td>Steps</td><td class="hl">12,500–13,000</td></tr>
-        </tbody></table>
-      </div>
-    </section>
     <div class="toggle-row">
       <button class="toggle-btn" id="btnAM" aria-pressed="true">AM</button>
       <button class="toggle-btn" id="btnPM" aria-pressed="false">PM</button>
@@ -931,194 +735,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div class="routine-step"><span class="step-num">4</span><span class="step-text"><b>La Roche-Posay balm</b><span>Any night things feel tight</span></span></div>
     </div>
 
-    <section class="block" style="margin-top:18px">
-      <h2 class="block-title">Retinol Nights <span class="tag" id="retinolTag"></span></h2>
-      <p class="block-sub">Two a week, spaced. Tap when you've used it tonight — this is the one thing here that's easy to lose track of.</p>
-      <div class="add-row" style="margin-top:0"><button class="btn primary" id="retinolBtn">Log tonight's retinol</button></div>
-      <div id="retinolLog" style="margin-top:10px"></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Notes</h2>
-      <div class="note stop" style="margin-bottom:10px"><b>Retinoids are out — so ignore what I said about tretinoin</b>
-        Puffiness plus irritation even going slowly means your skin is not tolerating it, and prescription tretinoin is <em>stronger</em>, not gentler. Pushing through would make it worse. Scratch that recommendation entirely.<br><br>
-        One thing worth checking first though: it may be the <b>vehicle rather than the retinol</b>. Many retinol products carry alcohol, fragrance or particular emulsifiers, and irritant reactions often track the formula rather than the active. If you ever want to retest, do it with an encapsulated retinol in a bland base, on a patch behind the ear for two weeks. If that also puffs up, it is genuinely the retinoid and you are done with the class.</div>
-
-      <div class="note good" style="margin-bottom:10px"><b>Bakuchiol is the real substitute, and the evidence is better than people assume</b>
-        A head-to-head trial put 0.5% bakuchiol against 0.5% retinol and found <b style="color:var(--chalk)">comparable improvement in wrinkles and pigmentation with significantly less irritation and scaling</b>. It is not a marketing dupe — it is the one alternative with an actual comparison study behind it. Nightly, build up from 2–3 nights a week.</div>
-
-      <div class="note good" style="margin-bottom:10px"><b>Dropping retinoids gives you two ingredients back</b>
-        You removed vitamin C and niacinamide to keep the total irritation load down <em>while on retinol</em>. That constraint is now gone.<br><br>
-        <b style="color:var(--chalk)">Vitamin C in the morning</b> — the collagen cofactor, works with your SPF rather than against it, and pairs with the collagen peptides you already take. <b style="color:var(--chalk)">Niacinamide at night</b> — barrier function and redness, and it is one of the best-tolerated actives there is, which matters for skin like yours. Add one at a time, a fortnight apart, so you know which is which if something flares.</div>
-
-      <div class="note warn" style="margin-bottom:10px"><b>Your real UV exposure is the running, not sunbathing</b>
-        Ultrasun 50 daily is genuinely the top of the list and you are already doing it. Two things it is worth being fussy about: <b style="color:var(--chalk)">use enough</b> — about a quarter teaspoon for the face, which is more than feels natural and is where most people quietly lose half the protection — and reapply before long sessions. Add a <b>cap and sunglasses</b> for training: hours a week outdoors is where your cumulative dose actually comes from, and the skin around the eyes is the thinnest on your face and the first to show it.</div>
-
-      <div class="note flat"><b>Deliberately short</b>Centella and a separate hydrating serum stay out. The routine works because it is small.</div>
-    </section>
   </div>
 
-  <!-- ============ PROTOCOLS ============ -->
-  <div class="panel" id="panel-protocols" role="tabpanel">
-    <section class="block">
-      <h2 class="block-title">Morning</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td><b>Daylight within 30–60 min of waking</b><span class="sub">10–20 min outside. Anchors circadian rhythm so the cortisol curve peaks in the morning instead of the evening. The single best non-drug lever for that night's sleep.</span></td></tr>
-        <tr><td><b>Morning HR reading</b><span class="sub">Before getting out of bed. Log it on the Progress tab — readiness uses it.</span></td></tr>
-        <tr><td><b>Delay caffeine 60–90 min after waking</b><span class="sub">Avoids the afternoon crash and blunts less of your natural cortisol peak. Cut caffeine entirely 8–10h before bed.</span></td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Warm-up — Speed &amp; Mile Days</h2>
-      <p class="block-sub">Non-negotiable before Tuesday and Thursday. This is what stops a hamstring ending the whole block.</p>
-      <div class="routine-step"><span class="step-num">1</span><span class="step-text"><b>10–15 min easy jog</b></span></div>
-      <div class="routine-step"><span class="step-num">2</span><span class="step-text"><b>Dynamic drills</b><span>Leg swings, high knees, A-skips, butt kicks</span></span></div>
-      <div class="routine-step"><span class="step-num">3</span><span class="step-text"><b>3–4 build-ups</b><span>Progressively faster, finishing at target pace</span></span></div>
-      <div class="routine-step"><span class="step-num">4</span><span class="step-text"><b>2 min rest, then rep 1</b></span></div>
-      <p class="block-sub" style="margin-top:8px">Cool-down: 5–10 min brisk walk after every hard session. Walking, not jogging — the jog adds fatigue without adding recovery.</p>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Nervous System &amp; Stress</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td><b>Meditation, 10 min</b><span class="sub">Already in your routine. Directly lowers cortisol — the mechanism behind the facial puffiness you track.</span></td></tr>
-        <tr><td><b>Full recovery between reps</b><span class="sub">Wait until you genuinely want to run again. Cutting the rest turns an all-out set into a tempo session, which is the one thing this plan is built to avoid.</span></td></tr>
-        <tr><td><b>Physiological sigh, 2–3 rounds</b><span class="sub">Double inhale through the nose, long slow exhale through the mouth. Fastest way to drop acute stress — useful between hard reps and before bed.</span></td></tr>
-        <tr><td><b>Post-session downregulation, 5 min</b><span class="sub">Slow breathing lying down after hard sessions. Shifts you out of sympathetic drive faster, so less cortisol lingers afterwards.</span></td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Sleep</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td><b>No phone before bed</b><span class="sub">The highest-value habit on this whole list for you specifically.</span></td></tr>
-        <tr><td><b>Cool the room</b><span class="sub">Core temperature has to drop to enter deep sleep. Fan, window, cooler bedding — matters most in hot weather.</span></td></tr>
-        <tr><td><b>Dim lights 1–2h before bed</b><span class="sub">Bright overhead light suppresses melatonin onset.</span></td></tr>
-        <tr><td><b>Consistent wake time</b><span class="sub">More important than a consistent bedtime for circadian stability.</span></td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Recovery &amp; Longevity</h2>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td><b>Mobility, 10 min daily</b><span class="sub">Hip flexors, hamstrings, calves, ankles — the four that limit sprint mechanics and tighten up from sitting to study.</span></td></tr>
-        <tr><td><b>Easy walking after hard sessions</b><span class="sub">Clears metabolites and adds to your steps without adding training stress.</span></td></tr>
-        <tr><td><b>Sauna if you can get one</b><span class="sub">Genuine cardiovascular and longevity evidence, and heat adaptation helps running in warm weather. Non-hard days only, and hydrate properly around it.</span></td></tr>
-        <tr><td><b>Deliberate deload weeks</b><span class="sub">Set on the Progress tab, defaulting to 8 and 12. Taking them is what lets the adaptation land — skipping them is the most common way a block like this falls apart. Real time off counts as one.</span></td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">PB Week — Week 13</h2>
-      <p class="block-sub">Three attempts in seven days. The training is already banked by then; this week is about arriving fresh and not throwing one away in the first 200m.</p>
-
-      <div class="note flat" style="margin-bottom:10px"><b>The week</b>Sunday 5K · Wednesday mile · Saturday 400m. Two clear rest days before each. Never move an attempt closer to the one before it — the 400m is last because it wants the freshest legs, and it is the one where fatigue costs you most.</div>
-
-      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:10px"><table class="ref"><tbody>
-        <tr><td><b>Eating, 2–3h before</b><span class="sub">Familiar carbs, low fat, low fibre — porridge, toast and honey, rice. Nothing you have not eaten before a session. Stop drinking large volumes 45 min out, sip after that.</span></td></tr>
-        <tr><td><b>Caffeine</b><span class="sub">If you use it, 45–60 min before, and only at a dose you have already trained on. PB day is not the day to try it for the first time.</span></td></tr>
-        <tr><td><b>Warm-up — start 45 min before the gun</b><span class="sub">15 min easy jog · drills · 3–4 build-ups finishing at target pace · 5–8 min rest, staying warm · go. Same warm-up you have done all block, no improvising.</span></td></tr>
-        <tr><td><b>Between attempts</b><span class="sub">Day after: a brisk walk to clear it. Day before: full rest. Keep the calories up all week — a deficit on PB week costs you the times you have trained for.</span></td></tr>
-      </tbody></table></div>
-
-      <div class="block-title" style="font-size:17px;margin-top:16px">How to run each one</div>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td><b>5K — 16:50 is 3:22/km</b><span class="sub">Even splits, and the first kilometre is the one that ruins it. Going through in 3:15 feels effortless and costs you 20 seconds over the last two kilometres. If anything, run the first km 2–3s slow.</span></td></tr>
-        <tr><td><b>Mile — 4:50 is 72s laps</b><span class="sub">First lap no faster than 70. Lap 3 is where the race is won: that is the one that drifts to 75 without you noticing, so it is the one to actively push.</span></td></tr>
-        <tr><td><b>400m — 55 is roughly 26.5 / 28.5</b><span class="sub">Committed from the gun, but relaxed — the last 100m is decided by how little you tie up, not by how hard you drive. Loose jaw, loose shoulders. Fighting the tightness makes it worse.</span></td></tr>
-      </tbody></table></div>
-      <p class="block-sub" style="margin-top:8px">Log each attempt on the Progress tab as you finish it — the benchmark bars close against your block-start times.</p>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Training in a Heat Wave</h2>
-      <p class="block-sub">Heat changes what the scale says, what your paces mean and what your sodium needs are — all at once, and all temporarily.</p>
-      <div class="card tbl-scroll" style="padding:4px 12px">
-        <table class="ref"><tbody>
-          <tr><td><b>Your weight will read high, and it isn't fat</b><span class="sub">Heat acclimation expands plasma volume by 10–20% within about 5–10 days — that is a genuine adaptation, and it is literally extra fluid. Add the aldosterone-driven sodium retention that comes with heavy sweating and you can carry 1–3 lb that has nothing to do with body composition. It masks fat loss; it does not stop it. Do not cut calories in response.</span></td></tr>
-          <tr><td><b>Your paces will be slower — that is correct, not a failure</b><span class="sub">Blood is diverted to the skin to shed heat, so less goes to working muscle. The same effort buys you a slower pace. Run the sessions on <b>effort</b>, not the target number, and expect 5–15s per km slower in real heat. Logging a 4/5 on an "easy" session in 30°C is the heat, not lost fitness.</span></td></tr>
-          <tr><td><b>Sodium goes up, not just water</b><span class="sub">Drinking a lot of water while under-replacing salt is how you end up flat, headachy and cramping. Aim at the top of the 2,300–3,000mg sodium range or above it on heavy sweat days, and keep potassium up with it. Weigh yourself before and after a long session if you want the real number — each pound lost is roughly 450ml to replace.</span></td></tr>
-          <tr><td><b>Sleep takes the hit, and everything follows</b><span class="sub">Core temperature has to fall to enter deep sleep, which a hot bedroom prevents. Poor sleep raises cortisol, cortisol holds fluid, and now the scale is lying to you for a second reason. Cool the room hard — this is the week that habit earns its place.</span></td></tr>
-          <tr><td><b>The upside</b><span class="sub">Heat training is a genuine stimulus. That plasma volume expansion improves cardiac output, and it carries over to cooler conditions for a few weeks afterwards. Ride it out and you come out of the heat wave fitter than you went in.</span></td></tr>
-        </tbody></table>
-      </div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">When to Pull Back</h2>
-      <p class="block-sub">Any two of these together means back off, not push harder. A week of backing off costs you almost nothing; pushing through costs you the block.</p>
-      <div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>
-        <tr><td>Target pace missed on <b>rep 1</b> of a session — not rep 5, that's normal</td></tr>
-        <tr><td>Session-feel ratings climbing week to week at the same pace</td></tr>
-        <tr><td>Morning HR 5+ bpm above baseline for 3+ days running</td></tr>
-        <tr><td>Facial puffiness returning despite good sleep and sodium/potassium balance</td></tr>
-        <tr><td>Sleep quality or motivation dropping off</td></tr>
-        <tr><td>Soreness that doesn't clear within 48h</td></tr>
-      </tbody></table></div>
-      <p class="block-sub" style="margin-top:8px"><b>The response:</b> drop max-speed work entirely for 2–3 weeks, space the Tuesday speed session to every 10 days, add a rest day. Keep calories where they are — never cut further as a response to fatigue. If it persists past two weeks, bring the deload week forward rather than waiting for the schedule.</p>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">The Honest Anti-Ageing Ranking</h2>
-
-      <div class="note stop" style="margin-bottom:12px"><b>Your diet is near the ceiling of what diet can do — and that ceiling is lower than you think</b>
-        You are at about 8 out of 10 and the remaining two points are worth very little in absolute terms. There is no version of a food list that is "the best anti-ageing thing going," because <b style="color:var(--chalk)">diet is roughly fifth on the list of things that actually change how fast you age</b>. Chasing the last 20% of a food plan while anything above it is unattended is the most common way people spend a decade optimising the wrong variable.</div>
-
-      <div class="block-title" style="font-size:17px">What actually moves biological ageing, in order</div>
-      <div class="card tbl-scroll" style="padding:4px 12px;margin-bottom:12px">
-        <table class="ref"><tbody>
-          <tr><td><b>1 · Cardiorespiratory fitness</b><span class="sub">The strongest modifiable predictor of all-cause mortality in large cohorts, and the effect size dwarfs any dietary intervention ever measured. You already do this. Your effort sessions are not separate from the ageing goal — they are the main event.</span></td></tr>
-          <tr><td><b>2 · Muscle mass and strength</b><span class="sub">Among the best predictors of healthy ageing, and the thing a long deficit costs you first. Four gym sessions and 155–160g of protein are doing more here than any food on the nutrition page.</span></td></tr>
-          <tr><td><b>3 · Sleep</b><span class="sub">7–9 hours. DNA repair, growth hormone, glymphatic clearance, cortisol, appetite, and how your face looks in the morning. Nothing substitutes for it and nothing compensates for missing it.</span></td></tr>
-          <tr><td><b>4 · Not accumulating damage</b><span class="sub">No smoking, minimal alcohol, sun protection, avoiding injury, and not sitting in a deep deficit for months. Mostly things you <em>don't</em> do.</span></td></tr>
-          <tr><td><b>5 · Diet</b><span class="sub">Real, worth doing, and this far down the list. You have already captured most of what is available here.</span></td></tr>
-        </tbody></table>
-      </div>
-
-      <div class="note stop" style="margin-bottom:12px"><b>For how you actually look, one thing beats the entire food page combined</b>
-        Somewhere around <b style="color:var(--chalk)">80% of visible facial ageing is photoageing</b> — UV damage, not intrinsic ageing. Wrinkles, laxity, uneven pigment, the texture change. In a controlled trial, people using sunscreen daily showed <b style="color:var(--chalk)">no detectable increase in skin ageing over four and a half years</b> while the control group did.<br><br>
-        No food produces an effect anywhere near that. Your SPF50 is already in the routine and it is quietly the single highest-value item in this entire app. Daily, all year, not just when it is sunny.</div>
-
-      <div class="note flat" style="margin-bottom:12px"><b>Tretinoin — withdrawn, your skin does not tolerate retinoids</b>
-        Leaving this here so the reasoning stays visible rather than quietly disappearing: tretinoin has the strongest topical evidence for reversing photoageing, but it is a <em>stronger</em> retinoid than the retinol already causing you puffiness and irritation. It is not an option. See the Skincare tab for bakuchiol, which is.</div>
-
-      <div class="note warn" style="margin-bottom:12px;display:none"><b>The biggest upgrade genuinely available to you: tretinoin over retinol</b>
-        Prescription tretinoin has the strongest evidence of any topical for reversing photoageing — measurable collagen synthesis on biopsy, not just self-reported improvement. Over-the-counter retinol is a weaker precursor your skin has to convert, at a fraction of the potency.<br><br>
-        If you are serious about the appearance side, ask a GP or dermatologist about tretinoin. It is cheap, it is decades old, and <b style="color:var(--chalk)">it will do more than every polyphenol on the nutrition page put together.</b> Same rules as your retinol: start twice weekly, buffer with the balm, and non-negotiable sunscreen.</div>
-
-      <div class="note stop" style="margin-bottom:12px"><b>Is your routine chronic stress? Partly, yes</b>
-        Not the training — that is acute stress with recovery built in, which is the useful kind. Three things here are genuinely chronic.<br><br>
-        <b style="color:var(--chalk)">1 · The deficit.</b> A 29% energy deficit held for weeks is a continuous physiological stressor. Cortisol up, testosterone down, recovery slower, water retained. This is the biggest one by a distance, and it has a fixed answer: get to the band and reverse on schedule. It ends when you end it.<br><br>
-        <b style="color:var(--chalk)">2 · Load stacking.</b> Three hard sessions, four gym sessions, a deficit, studying and a heat wave, all at once. Each is survivable; together they compound. The deload weeks exist for exactly this and they are the first thing people skip.<br><br>
-        <b style="color:var(--chalk)">3 · The tracking itself.</b> The awkward one, and you asked for no sugarcoating. You weigh every gram and log weight, HR, energy, sessions, feel ratings, niggles and a weekly food list — and I built the app that made that easier. <b style="color:var(--chalk)">Past a point, measuring the thing becomes its own stressor.</b> The line is not how much you track but whether it feels calm or anxious: whether a bad scale day ruins the morning, whether you would skip a meal out because you could not weigh it, whether it runs in the background of your head all day. If any of that is true, the tracking has stopped serving you.</div>
-
-      <div class="note good" style="margin-bottom:12px"><b>What actually helps — including one you are already doing</b>
-        <b style="color:var(--chalk)">You went out with a mate two weeks running.</b> That is not a distraction from the plan — it is one of the highest-value things on this whole page, and it matters more than your grape intake does. Keep doing it.<br><br>
-        <b style="color:var(--chalk)">Only track what changes a decision.</b> The test for every metric: has this number ever made you do something differently? Weight trend and morning HR pass. Session feel passes. If the weekly food checklist has never once altered a meal, drop it — a metric that changes nothing is pure cognitive load.<br><br>
-        <b style="color:var(--chalk)">One untracked day a week.</b> Eat without weighing, log nothing. If that idea feels genuinely uncomfortable, that discomfort is the answer to your question.<br><br>
-        <b style="color:var(--chalk)">The ratio that matters is hard days to genuine rest days.</b> Hard sessions add stress and recovery is what converts it; two or three efforts a week with real rest between them is a net regulator, five is a net stressor. Walking on the days between is recovery. Jogging on them is just a smaller hard day.<br><br>
-        <b style="color:var(--chalk)">Then the ordinary things:</b> sleep, morning daylight, magnesium, the ten minutes of meditation you already do, and taking the deload weeks when they arrive.</div>
-
-      <div class="note warn" style="margin-bottom:12px"><b>The one nobody wants to hear</b>
-        Social connection and chronic psychological stress carry effect sizes on mortality comparable to smoking — larger than obesity, and far larger than anything on your plate. It appears in almost no "anti-ageing protocol" because it cannot be bought or optimised. <b style="color:var(--chalk)">If you are studying hard, training hard, tracking everything and eating alone, that is a real ageing input</b> and it will not show up in any of the numbers this app tracks. On your own evidence you are not doing that, which is worth more than it sounds.</div>
-
-      <div class="note stop" style="margin-bottom:12px"><b>Don't waste money on these</b>
-        <b style="color:var(--chalk)">Resveratrol</b> — the foundational results failed to replicate and oral bioavailability is poor. <b style="color:var(--chalk)">NMN and NR</b> — they raise NAD+ markers, but human outcome data remains unimpressive. <b style="color:var(--chalk)">Metformin in a healthy young athlete</b> — no longevity evidence in non-diabetics, and reasonable evidence it blunts adaptation to endurance training, which for you is actively counterproductive. <b style="color:var(--chalk)">Rapamycin</b> — no human longevity data, real immunosuppression risk. <b style="color:var(--chalk)">Epigenetic age tests</b> — too noisy at the individual level to track anything you are doing.<br><br>
-        The only supplement here with genuinely strong evidence is <b style="color:var(--chalk)">creatine</b>, and it is already on your stage 3 list.</div>
-
-      <div class="note good"><b>And the reframe that matters most at your age</b>
-        You are in your twenties. There is not much ageing to slow yet — the returns available to you are almost entirely in <b style="color:var(--chalk)">not accumulating damage</b> (sun, alcohol, chronic stress, injury, prolonged under-eating) and <b style="color:var(--chalk)">building reserve</b> (muscle, VO2max, bone density) that you spend in forty years' time. The bone density you build now, and the cardiac and mitochondrial capacity from this block, are the actual anti-ageing intervention. The food supports it. It is not the thing itself.<br><br>
-        Which is genuinely good news: <b style="color:var(--chalk)">you are already doing the top three.</b> The diet is close to done. Wear sunscreen, sleep, ask about tretinoin, don't isolate yourself, and stop looking for a food that does what training and sleep already do.</div>
-    </section>
-
-    <section class="block" data-detail>
-      <h2 class="block-title">Worth Being Honest About</h2>
-      <div class="note flat"><b>The margin vs the foundation</b>Cold plunges post-training are popular but blunt the muscle adaptation signal from resistance work — if you use cold, keep it well away from lifting. And nothing on this list outranks sleep, adequate calories and taking rest days. Protocols are the margin; those three are the foundation.</div>
-    </section>
-  </div>
-
-  <!-- ============ SKINCARE ============ -->
 </div>
 
 <div class="statusbar"><span class="dot" id="saveDot"></span><span id="saveText">Loading…</span><span style="color:var(--muted-2)">·</span><span id="buildStamp" style="color:var(--muted-2)"></span></div>
@@ -1247,6 +865,12 @@ function esc(s) {
   });
 }
 function $(id) { return document.getElementById(id); }
+/* Attaching straight to $("x") throws the moment a section is removed from the
+   markup, which makes trimming the app a minefield. This no-ops instead. */
+function on(id, ev, fn) {
+  var el = $(id); if (!el) return false;
+  el.addEventListener(ev, fn); return true;
+}
 function today() { return dayStr(new Date()); }
 function dayStr(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -3361,6 +2985,7 @@ function checklistFor(d) {
 function dailyKey(d) { return "daily-" + dayStr(d); }
 
 function renderChecklist() {
+  if (!$("checklist")) return;  /* section not in this build */
   var items = checklistFor(new Date()), n = 0;
   $("checklist").innerHTML = items.map(function (it) {
     var on = !!todayState[it.id]; if (on) n++;
@@ -3523,6 +3148,7 @@ function energySeries(days) {
   return out;
 }
 function renderEnergyChart() {
+  if (!$("energyChart")) return;  /* section not in this build */
   var host = $("energyChart"); if (!host) return;
   var pts = energySeries(30);
   if (pts.length < 3) {
@@ -4039,6 +3665,7 @@ function adaptData(sid) {
   }).slice().sort(function (a, b) { return a.week - b.week; });
 }
 function renderAdaptPicker() {
+  if (!$("adaptPick")) return;  /* section not in this build */
   var sel = $("adaptPick"), avail = {};
   sessionHistory.forEach(function (h) { if (h.sid && h.feel) avail[h.sid] = true; });
   var ids = Object.keys(avail);
@@ -4497,6 +4124,7 @@ var K_FOODS = [
   ["Natural yoghurt, 200g", 440], ["Banana", 420], ["Beetroot, 1 cup", 520]
 ];
 function renderK() {
+  if (!$("kOut")) return;  /* section not in this build */
   var el = $("kOut"); if (!el) return;
   var tag = $("kTag");
   var ser = kSeries(7), t = todayState && isFinite(parseFloat(todayState.k)) ? parseFloat(todayState.k) : null;
@@ -4984,6 +4612,7 @@ var ALLTIME = [
    get closer to your ceiling. Deliberately the pessimistic end. */
 var VDOT_PER_YEAR = 2.5;
 function renderLongGame() {
+  if (!$("longOut")) return;  /* section not in this build */
   var el = $("longOut"); if (!el) return;
   var fit = currentFitness();
   if (!fit) { el.innerHTML = '<div class="note flat"><b>Nothing to project from yet</b>Log an aerobic effort and this fills in.</div>'; return; }
@@ -5194,6 +4823,7 @@ function renderHistory() {
 /* ================= reflections ================= */
 function currentReflWeek() { return blockWeekNow() || viewWeek; }
 function renderReflections() {
+  if (!$("reflWeekTag")) return;  /* section not in this build */
   $("reflWeekTag").textContent = "Week " + currentReflWeek();
   var mine = reflections.filter(function (r) { return r.week === currentReflWeek(); })[0];
   if (mine && !$("reflectionInput").value) $("reflectionInput").value = mine.text;
@@ -5606,6 +5236,7 @@ var LADDER = [
   { label: "8+", change: "Same pattern until the 7-day average rises two weeks running", kcal: null }
 ];
 function renderReverseTable() {
+  if (!$("targetKcal")) return;  /* section not in this build */
   var cur = settings.kcal || 1850;
   var el = $("reverseTable"); if (!el) return;
   el.innerHTML = LADDER.map(function (r) {
@@ -5681,6 +5312,7 @@ function renderRevGuide() {
 }
 
 function renderCalStep() {
+  if (!$("calStep")) return;  /* section not in this build */
   renderStages();
   var cur = settings.kcal || 1850;
   var since = settings.kcalSince || null;
@@ -5923,6 +5555,7 @@ function renderTrack() {
 /* A pre-committed stopping condition. The judgement you make now is better than
    the one you will make six weeks into a deficit, so record it while it is good. */
 function renderExit() {
+  if (!$("exitBox")) return;  /* section not in this build */
   var el = $("exitBox"); if (!el) return;
   var w = settings.exitWeight, d = settings.exitDate, n = settings.exitNote;
   if (!w && !d) {
@@ -5953,6 +5586,7 @@ function renderExit() {
 /* ================= fortnightly check-in ================= */
 var checkins = [];
 function renderCheckins() {
+  if (!$("checkinDue")) return;  /* section not in this build */
   var due = $("checkinDue"), tag = $("checkinTag"), log = $("checkinLog");
   if (!due) return;
   var last = checkins.length ? checkins[0] : null;
@@ -6219,6 +5853,7 @@ function renderStages() {
 
 /* ================= retinol ================= */
 function renderRetinol() {
+  if (!$("retinolLog")) return;  /* section not in this build */
   var now = new Date(), cut = dayStr(new Date(now.getTime() - 6 * 86400000));
   var week = retinolLog.filter(function (d) { return d >= cut; });
   var tag = $("retinolTag");
@@ -6248,6 +5883,7 @@ var PACE_ROWS = [
   { label: "Mile", d: 1609 }, { label: "3K", d: 3000 }, { label: "5K", d: 5000 }
 ];
 function runPace() {
+  if (!$("paceDist")) return;  /* section not in this build */
   var dist = parseFloat($("paceDist").value), t = toSec($("paceTime").value);
   var out = $("paceOut");
   if (!isFinite(dist) || dist <= 0 || !isFinite(t) || t <= 0) {
@@ -7431,10 +7067,12 @@ function renderAll() {
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
-  $("exitWeight").value = settings.exitWeight || "";
-  $("exitDate").value = settings.exitDate || "";
-  $("exitNote").value = settings.exitNote || "";
-  $("intakeInput").value = settings.intake || "";
+  if ($("exitWeight")) {
+    $("exitWeight").value = settings.exitWeight || "";
+    $("exitDate").value = settings.exitDate || "";
+    $("exitNote").value = settings.exitNote || "";
+  }
+  if ($("intakeInput")) $("intakeInput").value = settings.intake || "";
   renderStartInfo(); renderTrendOnlyBtn(); renderDeloadInfo(); renderBuild(); renderSaveStatus(); renderLaps(); renderPersistBanner();
 }
 function renderDeloadInfo() {
@@ -7593,60 +7231,60 @@ function renderStartInfo() {
     }
   });
 
-  $("kcalTodayBtn").addEventListener("click", function () {
+  on("kcalTodayBtn", "click", function () {
     var v = parseFloat($("kcalToday").value);
     if (!isFinite(v) || v <= 0) { $("kcalToday").focus(); return; }
     logKcal(Math.round(v));
   });
-  $("kcalOnTargetBtn").addEventListener("click", function () {
+  on("kcalOnTargetBtn", "click", function () {
     $("kcalToday").value = targetKcal(); logKcal(targetKcal());
   });
-  $("caliAddBtn").addEventListener("click", addCali);
-  $("caliFormat").addEventListener("change", renderCali);
-  $("foodAddBtn").addEventListener("click", addFoodRow);
+  on("caliAddBtn", "click", addCali);
+  on("caliFormat", "change", renderCali);
+  on("foodAddBtn", "click", addFoodRow);
   ["foodName", "cKcal", "cP", "cC", "cF"].forEach(function (id) {
     $(id).addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); addFoodRow(); }
     });
   });
-  $("askBtn").addEventListener("click", runAsk);
-  $("askIn").addEventListener("keydown", function (e) { if (e.key === "Enter") runAsk(); });
-  $("studyBtn").addEventListener("click", function () {
+  on("askBtn", "click", runAsk);
+  on("askIn", "keydown", function (e) { if (e.key === "Enter") runAsk(); });
+  on("studyBtn", "click", function () {
     var v = parseFloat($("studyToday").value);
     if (!isFinite(v) || v < 0 || v > 18) { $("studyToday").focus(); return; }
     logStudy(Math.round(v * 10) / 10);
   });
-  $("studyToday").addEventListener("keydown", function (e) {
+  on("studyToday", "keydown", function (e) {
     if (e.key === "Enter") $("studyBtn").click();
   });
-  $("stravaBtn").addEventListener("click", doStravaImport);
-  $("stravaForget").addEventListener("click", function () {
+  on("stravaBtn", "click", doStravaImport);
+  on("stravaForget", "click", function () {
     if (!confirm("Forget which activities have been imported?\n\nSessions already on the calendar stay. This only clears the do-not-repeat list, so pasting an old block would add them again.")) return;
     DB.set(STRAVA_IDS_KEY, []);
     renderStrava();
     $("stravaOut").innerHTML = '<div class="note flat" style="margin-top:10px"><b>Cleared</b>Nothing on your calendar changed.</div>';
   });
-  $("kTodayBtn").addEventListener("click", function () {
+  on("kTodayBtn", "click", function () {
     var v = parseFloat($("kToday").value);
     if (!isFinite(v) || v < 0) { $("kToday").focus(); return; }
     logK(Math.round(v));
   });
-  $("kToday").addEventListener("keydown", function (e) {
+  on("kToday", "keydown", function (e) {
     if (e.key === "Enter") $("kTodayBtn").click();
   });
-  $("cutStartBtn").addEventListener("click", function () {
+  on("cutStartBtn", "click", function () {
     var v = $("cutStartInput").value;
     if (!v) return;
     settings.cutStart = v;
     DB.set("settings", settings);
     renderCut();
   });
-  $("stepsTodayBtn").addEventListener("click", function () {
+  on("stepsTodayBtn", "click", function () {
     var v = parseFloat($("stepsToday").value);
     if (!isFinite(v) || v < 0) { $("stepsToday").focus(); return; }
     logSteps(Math.round(v));
   });
-  $("detailBtn").addEventListener("click", toggleDetail);
+  on("detailBtn", "click", toggleDetail);
 
   try {
     renderAll();
@@ -7660,13 +7298,13 @@ function renderStartInfo() {
       "Export a backup from Progress before changing anything.</div>";
     try { console.error(err); } catch (e2) {}
   }
-  $("weekSelect").addEventListener("change", function () {
+  on("weekSelect", "change", function () {
     viewWeek = parseInt(this.value, 10);
     DB.set("active-week", viewWeek);
     loadWeek(viewWeek); renderReflections();
   });
 
-  $("startDate").addEventListener("change", function () {
+  on("startDate", "change", function () {
     settings.startDate = this.value || null;
     DB.set("settings", settings);
     viewWeek = blockWeekNow() || viewWeek;
@@ -7674,7 +7312,7 @@ function renderStartInfo() {
     loadWeek(viewWeek);
     renderBlockBar(); renderToday(); renderStartInfo(); renderReflections();
   });
-  $("exitBtn").addEventListener("click", function () {
+  on("exitBtn", "click", function () {
     var w = parseFloat($("exitWeight").value);
     settings.exitWeight = isNaN(w) ? null : w;
     settings.exitDate = $("exitDate").value || null;
@@ -7682,12 +7320,12 @@ function renderStartInfo() {
     DB.set("settings", settings); renderExit(); renderTrack();
   });
   var photosTaken = false;
-  $("photoBtn").addEventListener("click", function () {
+  on("photoBtn", "click", function () {
     photosTaken = !photosTaken;
     this.textContent = photosTaken ? "✓ Photos taken" : "Photos taken";
     this.classList.toggle("on", photosTaken);
   });
-  $("checkinBtn").addEventListener("click", function () {
+  on("checkinBtn", "click", function () {
     checkins.unshift({ id: String(Date.now()), date: today(), waist: $("waistInput").value.trim(),
       photos: photosTaken, note: $("checkinNote").value.trim() });
     DB.set("checkins", checkins);
@@ -7696,7 +7334,7 @@ function renderStartInfo() {
     $("photoBtn").textContent = "Photos taken"; $("photoBtn").classList.remove("on");
     renderCheckins();
   });
-  $("deloadBtn").addEventListener("click", function () {
+  on("deloadBtn", "click", function () {
     var raw = $("deloadInput").value.trim();
     var list = raw ? raw.split(/[,\s]+/).map(function (x) { return parseInt(x, 10); })
                         .filter(function (n) { return !isNaN(n) && n >= 0 && n <= 13; }) : [];
@@ -7704,60 +7342,60 @@ function renderStartInfo() {
     DB.set("settings", settings);
     renderDeloadInfo(); loadWeek(viewWeek); renderToday();
   });
-  $("trendOnlyBtn").addEventListener("click", function () {
+  on("trendOnlyBtn", "click", function () {
     settings.trendOnly = !settings.trendOnly;
     DB.set("settings", settings);
     renderTrendOnlyBtn(); renderWeight();
   });
-  $("clearStart").addEventListener("click", function () {
+  on("clearStart", "click", function () {
     settings.startDate = null; DB.set("settings", settings);
     $("startDate").value = "";
     renderBlockBar(); renderToday(); renderStartInfo();
   });
 
-  $("weightBtn").addEventListener("click", addWeight);
-  $("resetWeightBtn").addEventListener("click", resetWeightLog);
-  $("weightInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addWeight(); });
-  $("hrBtn").addEventListener("click", addHR);
-  $("hrInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addHR(); });
-  $("pbBtn").addEventListener("click", logPB);
-  $("pbTimeInput").addEventListener("keydown", function (e) { if (e.key === "Enter") logPB(); });
-  $("saveReflectionBtn").addEventListener("click", saveReflection);
-  $("retinolBtn").addEventListener("click", logRetinol);
-  $("paceBtn").addEventListener("click", runPace);
-  $("paceTime").addEventListener("keydown", function (e) { if (e.key === "Enter") runPace(); });
+  on("weightBtn", "click", addWeight);
+  on("resetWeightBtn", "click", resetWeightLog);
+  on("weightInput", "keydown", function (e) { if (e.key === "Enter") addWeight(); });
+  on("hrBtn", "click", addHR);
+  on("hrInput", "keydown", function (e) { if (e.key === "Enter") addHR(); });
+  on("pbBtn", "click", logPB);
+  on("pbTimeInput", "keydown", function (e) { if (e.key === "Enter") logPB(); });
+  on("saveReflectionBtn", "click", saveReflection);
+  on("retinolBtn", "click", logRetinol);
+  on("paceBtn", "click", runPace);
+  on("paceTime", "keydown", function (e) { if (e.key === "Enter") runPace(); });
 
-  $("btnPrimary").addEventListener("click", timerPrimary);
-  $("btnStop").addEventListener("click", timerPause);
-  $("btnReset").addEventListener("click", timerReset);
-  $("tRep").addEventListener("change", function () { timerTargets(); setMode(T.mode); renderLaps(); });
-  $("tRest").addEventListener("change", function () { timerTargets(); setMode(T.mode); });
-  $("btnSound").addEventListener("click", function () {
+  on("btnPrimary", "click", timerPrimary);
+  on("btnStop", "click", timerPause);
+  on("btnReset", "click", timerReset);
+  on("tRep", "change", function () { timerTargets(); setMode(T.mode); renderLaps(); });
+  on("tRest", "change", function () { timerTargets(); setMode(T.mode); });
+  on("btnSound", "click", function () {
     T.sound = !T.sound;
     this.textContent = T.sound ? "Sound on" : "Sound off";
     this.setAttribute("aria-pressed", String(T.sound));
     this.classList.toggle("on", T.sound);
   });
 
-  $("btnAM").addEventListener("click", function () { setRoutine("AM"); });
-  $("btnPM").addEventListener("click", function () { setRoutine("PM"); });
+  on("btnAM", "click", function () { setRoutine("AM"); });
+  on("btnPM", "click", function () { setRoutine("PM"); });
 
-  $("exportBtn").addEventListener("click", doExport);
-  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
-  $("importFile").addEventListener("change", function () {
+  on("exportBtn", "click", doExport);
+  on("importBtn", "click", function () { $("importFile").click(); });
+  on("importFile", "change", function () {
     var f = this.files && this.files[0]; if (!f) return;
     var r = new FileReader();
     r.onload = function () { applyBackup(String(r.result)); };
     r.readAsText(f);
     this.value = "";
   });
-  $("showTextBtn").addEventListener("click", function () {
+  on("showTextBtn", "click", function () {
     var box = $("backupText"), open = box.style.display !== "none";
     box.style.display = open ? "none" : "block";
     if (!open) $("backupArea").value = JSON.stringify(backupObject(), null, 2);
     this.textContent = open ? "Show as text" : "Hide text";
   });
-  $("restoreTextBtn").addEventListener("click", function () { applyBackup($("backupArea").value); });
+  on("restoreTextBtn", "click", function () { applyBackup($("backupArea").value); });
 
   $("niggleArea").innerHTML = NIGGLE_AREAS.map(function (a) {
     return '<option value="' + esc(a) + '">' + esc(a) + "</option>";
@@ -7765,12 +7403,12 @@ function renderStartInfo() {
   $("niggleSev").innerHTML = NIGGLE_SEV.map(function (o) {
     return '<option value="' + o.v + '">' + esc(o.label) + "</option>";
   }).join("");
-  $("niggleBtn").addEventListener("click", function () {
+  on("niggleBtn", "click", function () {
     addNiggle($("niggleArea").value, parseInt($("niggleSev").value, 10), $("niggleNote").value.trim());
     $("niggleNote").value = "";
   });
-  $("adaptPick").addEventListener("change", renderAdapt);
-  $("intakeBtn").addEventListener("click", function () {
+  on("adaptPick", "change", renderAdapt);
+  on("intakeBtn", "click", function () {
     var v = parseInt($("intakeInput").value, 10);
     if (isNaN(v) || v < 800 || v > 6000) { $("intakeInput").focus(); return; }
     settings.intake = v; DB.set("settings", settings); renderTdee();
