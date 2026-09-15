@@ -325,6 +325,29 @@ the first. Hitting a smaller number later is the plan working. The 7 November
 landing is projected by walking that taper forward a week at a time rather than
 multiplying today's rate by the weeks left, which would overstate the finish.
 
+**Every weigh-in is read back.** Under the weight box: today's number against
+the 7-day average, what the average is doing, and whether to change anything.
+The point is to stop one morning being treated as a trend.
+
+It accounts for the lag. A trailing average sits behind a falling trend by
+roughly half a week's loss, so on a working cut today *should* read under it —
+calling that water would be wrong and would train you to discount the one number
+that is real. Only deviation beyond what the trend explains is called water.
+
+**The refeed call** fires on markers, never on a schedule, and never before day
+fourteen. It needs a genuine stall (the 7-day average barely moving across a
+fortnight), three low energy ratings in seven days, or morning HR up on three of
+seven mornings. A refeed taken while the rate is fine just slows the cut for
+nothing.
+
+The amount comes from `tdeeEstimate`, so it is the real gap between measured
+maintenance and actual intake rather than a rule of thumb, converted to grams of
+carbohydrate and capped at 300–800 kcal. It says to hold fat and protein where
+they are, since carbs are what restore leptin, T3 and training quality and fat
+added on a high-carb day buys none of that; to place it on a hard day or before
+a test; and to expect 1–2 lb on the scale the next morning that is gone within
+three days.
+
 **A chart of you against the target.** `cutTargetCurve` walks the taper forward
 a day at a time from whatever the first weigh-in actually was, and the chart
 draws your logged weights as a solid line against that target as a dashed one,

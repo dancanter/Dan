@@ -474,6 +474,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <input type="text" id="weightInput" inputmode="decimal" placeholder="Today's weight, e.g. 126.2">
         <button class="btn primary" id="weightBtn">Log</button>
       </div>
+      <div id="weighBack"></div>
       <div class="add-row">
         <button class="btn ghost" id="resetWeightBtn">Start a fresh log</button>
       </div>
@@ -3816,7 +3817,7 @@ function addWeight() {
   weightLog = weightLog.filter(function (w) { return w.date !== today(); });
   weightLog.push({ date: today(), weight: v });
   DB.set("weight-log", weightLog);
-  inp.value = ""; renderWeight(); renderCalStep(); renderTrack(); renderExit();
+  inp.value = ""; renderWeight(); renderCalStep(); renderTrack(); renderExit(); renderCut();
 }
 
 /* ================= morning HR ================= */
@@ -5289,9 +5290,102 @@ function renderCutChart() {
   });
 }
 
+/* Read back on every weigh-in. The job is to stop a single morning reading
+   being treated as a trend: the number you stepped on is mostly water, and the
+   7-day average is the thing that means anything. */
+function weighFeedback() {
+  var el = $("weighBack"); if (!el) return;
+  var asc = sortedWeights();
+  if (!asc.length) { el.innerHTML = ""; return; }
+  var last = asc[asc.length - 1], wr = weeklyRate();
+  var f1 = function (x) { return x.toFixed(1); };
+  var bits = [];
+
+  /* today against the average it sits inside */
+  if (wr && wr.cur) {
+    var off = last.weight - wr.cur;
+    /* A trailing average lags a falling trend by roughly half a week's loss, so
+       on a working cut today SHOULD sit under it. Calling that water would be
+       wrong, and would train you to ignore the one reading that is real. */
+    var expected = wr.ready ? wr.perWeek / 2 : 0;
+    var dev = off - expected;
+    var where = f1(Math.abs(off)) + " lb " + (off > 0 ? "above" : "below") + " your 7-day average of " + f1(wr.cur);
+    bits.push('<b>' + f1(last.weight) + " lb on " + esc(last.date) + "</b>" +
+      (Math.abs(dev) < 0.35
+        ? (Math.abs(off) < 0.3
+            ? "Right on your 7-day average of " + f1(wr.cur) + ". Nothing to read into."
+            : where + " \u2014 which is exactly where a falling average puts you. " +
+              "<span style=\"color:var(--chalk);font-weight:600\">That is the trend working, not noise.</span>")
+        : where + ", further than the trend accounts for. " +
+          "<span style=\"color:var(--chalk);font-weight:600\">That part is water, not fat</span> \u2014 " +
+          "salt, carbs the night before, and where you are in the week all move a single morning by a pound either way. " +
+          "The average is the number that means something."));
+  } else {
+    bits.push("<b>" + f1(last.weight) + " lb on " + esc(last.date) + "</b>" +
+      "Keep logging daily. Below eight readings there is no average yet, and a single morning is mostly water.");
+  }
+
+  /* what the average is doing, and whether to touch anything */
+  if (wr && wr.ready) {
+    var c = cutStatus();
+    var lo = c.cur ? c.cur * CUT_RATE_LOW : 0.6, hi = c.cur ? c.cur * CUT_RATE_HIGH : 1.2;
+    var down = -wr.perWeek;
+    bits.push("<br><br><b>The average is " +
+      (Math.abs(down) < 0.15 ? "flat" : down > 0 ? "falling " + f1(down) + " lb a week" : "rising " + f1(-down) + " lb a week") +
+      "</b>" +
+      (down >= lo && down <= hi
+        ? "Inside your " + f1(lo) + "\u2013" + f1(hi) + " band. <span style=\"color:var(--chalk);font-weight:600\">Change nothing.</span>"
+        : down > hi
+          ? "Faster than the " + f1(hi) + " top of your band. Add 75 kcal of carbs and hold there \u2014 past this rate you are spending muscle."
+          : "Under the " + f1(lo) + " floor of your band. " +
+            "<span style=\"color:var(--chalk);font-weight:600\">Do not cut calories for this.</span> " +
+            "Give it a fortnight, then steps before food."));
+  }
+
+  var rf = refeedCall();
+  el.innerHTML = '<div class="note flat" style="margin-top:10px">' + bits.join("") + "</div>" + rf;
+}
+
+/* A refeed is a day of carbs back up to roughly maintenance, not a cheat day.
+   It is worth doing when the markers say the deficit has stopped buying
+   anything, and it is worth NOT doing on a schedule, because a refeed taken
+   while the rate is fine just slows the cut down for nothing. */
+function refeedCall() {
+  var c = cutStatus(), wr = weeklyRate();
+  if (!c.first || c.days == null || c.days < 14 || !wr || !wr.ready) return "";
+
+  var reasons = [];
+  var lo = c.cur * CUT_RATE_LOW;
+  if (-wr.perWeek < lo * 0.5) reasons.push("the 7-day average has barely moved in a fortnight");
+  var eSer = energySeries(7), lowE = eSer.filter(function (p) { return p.v <= 2; }).length;
+  if (lowE >= 3) reasons.push("you have rated your energy 2 or below on " + lowE + " of the last seven days");
+  var hs = hrSorted(), base = hrBaseline(), up = 0;
+  if (base) for (var i = 0; i < Math.min(7, hs.length); i++) if (hs[i].hr >= base + 5) up++;
+  if (up >= 3) reasons.push("morning HR has been up on " + up + " of the last seven mornings");
+  if (!reasons.length) return "";
+
+  var r = tdeeEstimate();
+  var add = r && r.ok ? Math.max(300, Math.min(800, r.tdee - r.intake)) : 500;
+  var carbs = Math.round(add / 4 / 5) * 5;
+  var list = reasons.length > 1
+    ? reasons.slice(0, -1).join(", ") + " and " + reasons[reasons.length - 1]
+    : reasons[0];
+
+  return '<div class="note good" style="margin-top:10px"><b>Worth a refeed day</b>' +
+    list.charAt(0).toUpperCase() + list.slice(1) + ". That is the deficit having stopped buying you anything, " +
+    "and the answer is a day at maintenance rather than a deeper cut.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Add about ' + carbs + "g of carbs</span>, roughly " +
+    add + " kcal, for one day. " +
+    (r && r.ok ? "That takes you from " + r.intake.toLocaleString() + " to about " + r.tdee.toLocaleString() + " kcal. " : "") +
+    "<br><br><span style=\"color:var(--chalk);font-weight:600\">Keep the fat where it is</span> and protein unchanged " +
+    "\u2014 carbs are what restore leptin, T3 and training quality, and fat added on top of a high-carb day goes " +
+    "straight to storage without buying any of that back. Put it on a hard training day, or the day before a test. " +
+    "Expect the scale up 1\u20132 lb the morning after: that is glycogen and water, and it is gone within three days.</div>";
+}
+
 function renderCut() {
   var el = $("cutBox"); if (!el) return;
-  renderCutChart();
+  renderCutChart(); weighFeedback();
   var c = cutStatus(), tag = $("cutTag");
   var f1 = function (x) { return x.toFixed(1); };
   if (tag) tag.textContent = c.startsIn > 0 ? "starts in " + c.startsIn + " days"
@@ -6618,6 +6712,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
+  weighFeedback();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
