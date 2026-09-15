@@ -6432,9 +6432,28 @@ function studySeries(days) {
 function studyWeek() {
   return studySeries(7).reduce(function (a, x) { return a + x.v; }, 0);
 }
+var UNI_START = "2026-09-28";
+function daysToUni() {
+  var d = daysBetween(parseDay(today()), parseDay(UNI_START));
+  return isFinite(d) ? d : null;
+}
 function renderStudy() {
   var el = $("studyOut"); if (!el) return;
   var tag = $("studyTag"), ser = studySeries(7), tot = studyWeek();
+
+  /* Before term there is nothing to be behind on. A bar reading “16 hours
+     short” every morning for a fortnight is noise, and noise gets ignored
+     right up until the week it matters. */
+  var pre = daysToUni();
+  if (pre != null && pre > 0 && !tot) {
+    if (tag) tag.textContent = pre + " day" + (pre === 1 ? "" : "s") + " to term";
+    el.innerHTML = '<div class="note flat"><b>SK297 and SK298 start 28 September</b>' +
+      pre + " day" + (pre === 1 ? "" : "s") + " away, so nothing is owed yet and this stays quiet until then. " +
+      "Two 30-credit modules at 8\u201310 hours each is a 16\u201320 hour week. " +
+      "It lands four days after the cut\u2019s halfway point, and both draw on the same recovery \u2014 " +
+      "which is the whole reason study hours are logged here next to the training.</div>";
+    return;
+  }
   var t = todayState && isFinite(parseFloat(todayState.study)) ? parseFloat(todayState.study) : null;
   if (tag) tag.textContent = tot ? tot.toFixed(1) + "h this week" : "nothing logged";
 

@@ -259,7 +259,10 @@ reason: study load and training load draw on the same recovery, and an app that
 can only see the running will tell you to push in a week you are already buried.
 When effort sessions **and** study hours are both high at once, the week view
 says so and says which to drop — the session, not the hours, because the
-deadline does not move and the session does.
+deadline does not move and the session does. Before term starts (SK297 and
+SK298, 28 September) the section counts down instead of reporting a shortfall —
+a bar reading "16 hours short" every morning for a fortnight is noise, and noise
+gets ignored right up until the week it matters.
 
 **Days since your last hard session** sits at the top of the week with the
 answer attached rather than the number alone. Rest requirements come from the
