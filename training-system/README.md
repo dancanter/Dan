@@ -361,6 +361,28 @@ so the rebound is worse, and costing blood volume in the middle of a block built
 on hard running. Salt holds at once a day; the levers that move how watery he
 looks are potassium up, cortisol down, and fat off.
 
+**The Jaw and Cheek Thing** answers a question the rest of the tab could not:
+fluid round the lower jaw at a *lower* bodyweight than three years ago, on
+unchanged calories. That combination rules out the simple answers — if it
+tracked bodyweight it would be better now, and if it tracked intake it would
+have happened then. What changed is the cumulative restriction behind it.
+
+Five candidates, ranked. **Sialadenosis** fits best: bilateral painless parotid
+enlargement at exactly the angle of the jaw, strongly associated with chronic
+low-carbohydrate intake and repeated dieting, neither fat nor water, and it
+appears at lower weight rather than higher. Then cortisol-driven facial fluid,
+aldosterone amplifying a sodium load (which does not contradict the earlier
+answer — salt alone is still not stored water), low T3, and masseter hypertrophy
+from clenching, which is not fluid at all but reads identically in a mirror.
+
+They all point one way: **this is downstream of the restriction, not something
+more restriction fixes.** So the section says plainly that the reverse is the
+intervention rather than a reward, that it settles over months rather than
+weeks, and that the reverse should not be judged by week three. It also names
+red flags — one side only, hard, painful, dry mouth or eyes, skin change — that
+mean seeing someone sooner, and recommends a GP visit regardless, with thyroid
+function checked in the same appointment.
+
 **Does It Fit** checks the intake against the macros rather than against a
 target rate. Protein and fat are floors, so they take 1,154 kcal before a gram
 of carbohydrate; whatever is left is carbs, and on a hard day there may not be

@@ -766,6 +766,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="calStep"></div>
     </section>
 
+    <section class="block" data-fold="jaw">
+      <h2 class="block-title">The Jaw and Cheek Thing</h2>
+      <p class="block-sub">Holding fluid round the jaw at a lower weight than three years ago, on the same calories.</p>
+      <div id="jawOut"></div>
+    </section>
+
     <section class="block" data-fold="fit">
       <h2 class="block-title">Does It Fit</h2>
       <p class="block-sub">Protein and fat are floors. Whatever is left is carbs \u2014 and on a hard day there may not be enough left.</p>
@@ -1189,7 +1195,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "15 Sep 16:14";
+var BUILD = "15 Sep 18:04";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -6010,6 +6016,66 @@ function intakeFit() {
   }) };
 }
 
+/* The candidates, in the order they fit what he actually described: appearing
+   at a LOWER weight, on unchanged calories, after years of on-and-off
+   restriction. That last detail is what rules the simple answers out. */
+var JAW_CAUSES = [
+  ["Sialadenosis", "best fit",
+   "Bilateral, painless swelling of the parotid glands, which sit exactly at the angle of the jaw and over the back of the cheek. It is strongly associated with <b>chronic low-carbohydrate intake and prolonged or repeated dieting</b> — there is a recognised entity called carbohydrate-deficiency sialadenosis. The gland cells hypertrophy through autonomic dysregulation, so it is neither fat nor water. It fits because it appears at <em>lower</em> bodyweight, not higher, and it tracks cumulative restriction rather than today's calories — which is exactly why the same intake three years ago did not do this."],
+  ["Cortisol fluid", "likely contributor",
+   "A deficit, hard training, broken sleep and term starting all push cortisol up, and cortisol has a mineralocorticoid effect that pools fluid centrally and in the face. This is what people mean by diet face."],
+  ["Aldosterone plus sodium", "amplifier, not cause",
+   "Prolonged energy restriction raises aldosterone. A year of higher salt is still not stored water on its own — but a sodium load on top of high aldosterone does not behave like a sodium load on its own."],
+  ["Low T3", "worth a blood test",
+   "Chronic dieting lowers T3, and low thyroid puffs the face. Cheap to check and worth knowing either way."],
+  ["Masseter hypertrophy", "reads the same in a mirror",
+   "Clenching and grinding thicken the jaw muscle and widen the lower face. Not fluid at all, but visually identical, and stress and poor sleep are exactly what drive it."]
+];
+
+var JAW_FLAGS = [
+  "One side only rather than both",
+  "Hard rather than soft",
+  "Painful",
+  "Dry mouth or dry eyes alongside it",
+  "Any change in the skin over it"
+];
+
+function renderJaw() {
+  var el = $("jawOut"); if (!el) return;
+  var c = carbFloor(), f = intakeFit();
+  var hard = f.rows[0];
+
+  el.innerHTML =
+    '<div class="note flat"><b>What the pattern actually points at</b>' +
+    "It showed up at a <em>lower</em> weight than three years ago, on the same calories. " +
+    '<span style="color:var(--chalk);font-weight:600">That rules out the simple answers.</span> ' +
+    "If it tracked bodyweight it would be better now, and if it tracked intake it would have happened then. " +
+    "What changed is the years of on-and-off restriction behind you, which is cumulative.</div>" +
+
+    JAW_CAUSES.map(function (r) {
+      return '<div class="note ' + (r[1] === "best fit" ? "warn" : "flat") + '" style="margin-top:10px">' +
+        "<b>" + esc(r[0]) + " — " + esc(r[1]) + "</b>" + r[2] + "</div>";
+    }).join("") +
+
+    '<div class="note stop" style="margin-top:12px"><b>Every one of them points the same way</b>' +
+    '<span style="color:var(--chalk);font-weight:600">This is downstream of the restriction, not something more restriction fixes.</span> ' +
+    "If it is glandular, the treatment is restoring carbohydrate and calories. If it is cortisol, the treatment is " +
+    "less stress and more food. There is no version where going lower or cutting salt helps, and both would make it worse.<br><br>" +
+    "Which means <b>7 November is not just a date you are waiting for — it is the intervention.</b> " +
+    "Be ready for it to be slow: if it is glandular it settles over months of eating properly, not weeks. " +
+    "That is a reason not to judge the reverse by week three, not a reason to lose heart.<br><br>" +
+    "Worth knowing where you sit right now: a hard day affords <b>" + hard.carbsAfforded + "g</b> of carbs, which is " +
+    (hard.carbsAfforded / c.kg).toFixed(1) + " g/kg — under the " + CARB_LOW_PER_KG + " g/kg line, and probably " +
+    "where you have been for a long time.</div>" +
+
+    '<div class="note good" style="margin-top:10px"><b>Get it looked at anyway</b>' +
+    "Not because the likely answer is sinister — the picture above is the benign one. But bilateral parotid " +
+    "swelling should be examined properly, and the same appointment can check thyroid function.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Go sooner if any of these apply:</span><br>' +
+    JAW_FLAGS.map(function (x) { return "· " + esc(x); }).join("<br>") +
+    "<br><br>Those point somewhere different and should not wait.</div>";
+}
+
 function renderFit() {
   var el = $("fitOut"); if (!el) return;
   var f = intakeFit(), tp = tdeePredicted(), c = carbFloor();
@@ -7245,7 +7311,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit();
+  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit(); renderJaw();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
