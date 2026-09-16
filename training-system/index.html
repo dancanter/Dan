@@ -812,7 +812,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "16 Sep 11:01";
+var BUILD = "16 Sep 11:57";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -6544,6 +6544,30 @@ function renderPlans() {
    this is honest about what it is: the answers we actually arrived at, indexed
    and searchable, plus somewhere to park a question it cannot answer. */
 var QA = [
+  { q: "Do carbs give me AGEs?",
+    k: "ages age glycation carbs carbohydrate sugar oats honey scared afraid damage cells aging anti-ageing hba1c",
+    a: "<b>No. Not in you, not at these amounts.</b> This one is worth getting straight because the fear is costing you more than the carbs are.<br><br>" +
+       "AGEs arrive by two routes. The one that dominates is <b>dietary</b>, and they are formed by <b>cooking</b> — dry, high heat. Searing, roasting, grilling, browning, charring, toasting. " +
+       "The other is <b>endogenous</b>: glucose binding to proteins inside you, which is driven by <em>sustained high blood glucose over years</em>, the kind seen in poorly controlled diabetes.<br><br>" +
+       "<b>Oats simmered in milk is about the lowest-AGE meal it is possible to eat.</b> It is wet, it is capped at 100°C, and nothing browns. " +
+       "A single seared steak or a round of toast carries far more than a week of your porridge.<br><br>" +
+       "And on the endogenous side you are close to the best case there is: you train hard, your insulin sensitivity is high, and carbohydrate you eat goes into muscle glycogen rather than sitting in your blood looking for a protein to stick to. " +
+       "<span style=\"color:var(--chalk);font-weight:600\">Glycation is about how long glucose stays high, not whether you ate any.</span> If you want the real number rather than a worry, HbA1c measures exactly this and costs almost nothing.<br><br>" +
+       "The irony worth sitting with: <b>chronic low carb plus hard training raises cortisol, and cortisol raises blood glucose.</b> Being scared of carbs has kept you under 3 g/kg on hard days for a long time, which has cost you sessions, muscle and possibly the thing your face is doing. " +
+       "It has not bought you a single unit of protection.<br><br>" +
+       "<b>What to actually control:</b> bake, stew, poach, never char. That one cooking rule does more than any amount of carb avoidance." },
+
+  { q: "Why did I run better on oats than on eggs and rice cakes?",
+    k: "oats breakfast eggs rice cakes before run felt great fuel pre-run porridge honey milk energy",
+    a: "Because for once you were fuelled. It is almost entirely one number.<br><br>" +
+       "<b>Oats, milk and honey:</b> roughly 66g of carbohydrate, 12g fat.<br>" +
+       "<b>4 eggs and 4 rice cakes:</b> roughly 20g of carbohydrate, 21g fat.<br><br>" +
+       "Three things follow from that. " +
+       "<b>Liver glycogen</b> is what runs down overnight, and it is what holds your blood glucose steady while you run — the eggs barely touch it, the oats refill it. " +
+       "The <b>honey</b> helps here specifically: fructose refills liver glycogen preferentially, which is why a little of it before a run punches above its size. " +
+       "And <b>fat slows gastric emptying</b> — 21g of it sits in your stomach while you are trying to run, where 12g does not.<br><br>" +
+       "Protein and fat are for the rest of the day. Before a run, carbohydrate is the only macro doing any work." },
+
   { q: "Why is my jaw and cheek holding fluid at a lower weight?",
     k: "jaw cheek face fluid puffy swollen swelling parotid gland lower mouth wide moon bloated",
     a: "The detail that solves it: it appeared at a <b>lower</b> weight, on the <b>same</b> calories. If it tracked bodyweight it would be better now; if it tracked intake it would have happened three years ago. What changed is the cumulative restriction.<br><br>Best fit is <b>sialadenosis</b> - bilateral painless enlargement of the parotid glands, which sit exactly at the angle of the jaw. Strongly associated with chronic low-carb intake and repeated dieting; there is a recognised entity called carbohydrate-deficiency sialadenosis. It is neither fat nor water, and it appears at lower weight rather than higher.<br><br>Also in play: cortisol fluid from deficit plus poor sleep, aldosterone amplifying a sodium load, low T3, and masseter hypertrophy from clenching (not fluid, but identical in a mirror).<br><br><b>All of them point one way: this is downstream of restriction, not something more restriction fixes.</b> The reverse is the intervention, and it settles over months rather than weeks. Get it looked at - and sooner if it is one-sided, hard, painful, or comes with dry mouth or eyes." },
