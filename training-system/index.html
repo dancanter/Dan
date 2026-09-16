@@ -619,6 +619,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="cutWeeksOut"></div>
     </section>
 
+    <section class="block" data-fold="skin">
+      <h2 class="block-title">Skin <span class="tag" id="skinTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Everything for the glow, in the order it actually matters. Built around skin that reacts.</p>
+      <div id="skinOut"></div>
+    </section>
+
     <section class="block" data-fold="protocol">
       <h2 class="block-title">The Protocol <span class="tag" id="protoTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Everything that decides how you look on 7 November, in one list.</p>
@@ -812,7 +818,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "16 Sep 11:57";
+var BUILD = "16 Sep 15:02";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -6736,6 +6742,103 @@ function renderAsk(keepOut) {
     askParkedList();
 }
 
+/* Glow is three things: a barrier smooth enough to reflect light evenly, blood
+   flow under it, and a tone without red patches breaking it up. Products can
+   move the first and third. Nothing here is a retinoid and nothing is strong -
+   his skin reacts, and the whole plan is worthless if it flares in October. */
+var SKIN_GLOW = [
+  ["Barrier first, and it is most of it",
+   "Glow is light bouncing off a smooth, hydrated surface. Dry or rough skin scatters light and reads dull no matter what is layered on top. <b>Moisturiser onto damp skin, morning and night</b> - within a minute of washing, while the water is still there to trap. Look for <b>ceramides, glycerin, squalane, panthenol</b>. This is the least exciting thing on the page and the one that does the most."],
+  ["Niacinamide 4-5%",
+   "The single best active for your skin specifically. It <b>builds barrier, calms redness, evens tone and refines texture</b> - and it is one of the few things that does all that while being tolerated by skin that cannot take retinoids. Stay at 4-5%; the 10% versions buy nothing extra and start to sting. Once daily, under moisturiser."],
+  ["Tinted SPF50, every single day",
+   "Your instinct here was right, and it is better than you think. Tinted sunscreens carry <b>iron oxides, which block visible light</b> - plain SPF does not. Visible light drives pigmentation and <b>makes facial redness worse</b>, so for your face tinted is not a cosmetic preference, it is the better product. It also evens tone optically and gives exactly the warm colour you are after, daily, with zero damage. One step, three jobs."],
+  ["PHA once or twice a week",
+   "If you want the polished look, exfoliate - but not with what most people use. <b>Gluconolactone or lactobionic acid</b>, not glycolic and not salicylic. PHAs are larger molecules, so they work more slowly and far more gently, and they hold water rather than stripping it. Twice a week maximum. If it stings, stop."],
+  ["Microcirculation - already handled",
+   "The lit-from-within part is blood flow, and you get it from the running and the beetroot. Nothing topical competes with a hard session for this."],
+  ["Lips",
+   "Small thing, disproportionate effect - a good mouth reads badly when it is dry. Plain balm, no flavour, no menthol, no camphor."]
+];
+
+var SKIN_TAN = [
+  ["Tinted SPF", "best answer",
+   "Warm tone applied every morning, plus visible-light protection, plus redness correction. Build it up by choosing a shade a half-step warm rather than exact."],
+  ["Gradual self-tan for face", "fine, and honest",
+   "<b>DHA</b> reacts with dead cells at the very surface. It is not UV, it does not reach living tissue, and it does not age you. Use a <em>facial</em> gradual formula rather than a body one, apply at night over moisturiser, and build slowly."],
+  ["Actual sunbathing", "no",
+   "Roughly <b>80% of how a face ages is UV</b>. A tan is your skin reporting damage. You cannot chase anti-ageing and a real tan at the same time - it is the single most contradictory thing you could do."],
+  ["Beta carotene", "no",
+   "Off your list already, and it would not have worked anyway - the colour it gives is orange-toned rather than tanned, and it takes months."]
+];
+
+var SKIN_NEVER = [
+  "<b>Retinol or tretinoin</b> - settled, and not a gap. The SPF does the work retinol gets credit for.",
+  "<b>High-percentage vitamin C</b> (15-20% L-ascorbic acid) - acidic, unstable, and it stings reactive skin. Not worth the flare.",
+  "<b>Scrubs, pore strips, brushes</b> - they take the top off and the pore refills in days, and on red skin they make it worse.",
+  "<b>Fragrance, essential oils, alcohol-heavy toners</b> - the most common cause of a reaction people blame on an active.",
+  "<b>More than one new thing at a time</b> - if it flares you will not know which one did it."
+];
+
+function skinWindow() {
+  var d = daysBetween(parseDay(today()), parseDay(REVERSE_DEADLINE));
+  return { days: d, shut: d - 30 };
+}
+
+function renderSkin() {
+  var el = $("skinOut"); if (!el) return;
+  var w = skinWindow(), tag = $("skinTag");
+  if (tag) tag.textContent = w.shut > 0 ? w.shut + " days to start anything new" : "nothing new now";
+
+  el.innerHTML =
+    (w.shut > 0
+      ? '<div class="note warn"><b>You have ' + w.shut + " days to start things, then the door shuts</b>" +
+        "Nothing new goes on your face inside a month of 7 November - a reaction three weeks out cannot be undone in time. " +
+        "So anything below that you want to try, <span style=\"color:var(--chalk);font-weight:600\">start it now</span>, one at a time, " +
+        "a fortnight apart so you know what did what.</div>"
+      : '<div class="note stop"><b>Nothing new from here</b>' +
+        "You are inside a month of the date. Whatever your skin already handles is what you use.</div>") +
+
+    '<div class="block-title" style="font-size:17px;margin-top:16px">What actually makes skin glow</div>' +
+    SKIN_GLOW.map(function (r, i) {
+      return '<div class="note ' + (i === 0 ? "good" : "flat") + '" style="margin-top:10px"><b>' +
+        (i + 1) + ". " + esc(r[0]) + "</b>" + r[1] + "</div>";
+    }).join("") +
+
+    '<div class="block-title" style="font-size:17px;margin-top:18px">The daily routine</div>' +
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>' +
+    [["Morning", "Rinse or gentle cleanser", "Lukewarm. Never hot - heat flares redness."],
+     ["", "Niacinamide 4-5%", "Onto damp skin."],
+     ["", "Moisturiser", "Straight after, while still damp."],
+     ["", "<b>Tinted SPF50</b>", "A quarter teaspoon. Face, ears, neck. Rain or not."],
+     ["Before a session", "Reapply SPF · cap · sunglasses", "Hours a week outdoors is where your real dose comes from."],
+     ["Night", "Gentle cleanser", "Get the SPF off properly."],
+     ["", "Moisturiser on damp skin", "Squalane or a balm over the top if tight."],
+     ["", "PHA, 1-2× a week only", "Not on the same night as anything else."]].map(function (r) {
+      return "<tr><td><b>" + r[0] + "</b></td><td>" + r[1] + '</td><td class="hl">' + esc(r[2]) + "</td></tr>";
+    }).join("") + "</tbody></table></div>" +
+
+    '<div class="block-title" style="font-size:17px;margin-top:18px">The tan, honestly</div>' +
+    SKIN_TAN.map(function (r) {
+      return '<div class="note ' + (r[1] === "no" ? "stop" : r[1] === "best answer" ? "good" : "flat") +
+        '" style="margin-top:10px"><b>' + esc(r[0]) + " — " + esc(r[1]) + "</b>" + r[2] + "</div>";
+    }).join("") +
+
+    '<div class="block-title" style="font-size:17px;margin-top:18px">Never</div>' +
+    '<div class="note stop">' + SKIN_NEVER.map(function (x) { return "· " + x; }).join("<br><br>") + "</div>" +
+
+    '<div class="note warn" style="margin-top:12px"><b>And the redness still needs a professional</b>' +
+    "Persistent redness across the nose and cheeks is the one thing on this page a product should not be your first move on. " +
+    "<b>Azelaic acid 10-15%</b> is the ingredient to raise by name - not a retinoid, usually tolerated by reactive skin, " +
+    "and genuinely first-line for this - but that is a GP or pharmacist call, not a self-start.<br><br>" +
+    "Get it looked at and you may find the biggest single win on this whole page is a prescription rather than a purchase.</div>" +
+
+    '<div class="note flat" style="margin-top:10px"><b>What none of this can do</b>' +
+    "Products move barrier and tone. They do not move <b>sleep</b>, <b>being too lean</b>, or <b>how much water you are holding</b> — " +
+    "and those three decide more about how your face looks on 7 November than every bottle listed above put together. " +
+    "A sallow, flat face at 120 lb does not get rescued by a serum.</div>";
+}
+
 function protoList(rows) {
   return rows.map(function (r) {
     return '<div style="margin-bottom:9px"><b style="color:var(--chalk)">' + esc(r[0]) + "</b> " +
@@ -7310,7 +7413,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks();
+  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderSkin();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

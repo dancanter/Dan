@@ -458,6 +458,31 @@ There was a Shape section tracking waist and shoulders weekly; it came out at
 his request. The ratio it derived was a good number, but a tracker nobody fills
 in is worse than no tracker, because it reads as an outstanding task forever.
 
+**Skin** is its own section, built around skin that reacts. Glow is framed as
+what it physically is — light off a smooth hydrated surface — so barrier is
+ranked first and the boring instruction (moisturiser onto damp skin, twice a
+day) is the one that does the most. The single named active is **niacinamide
+4–5%**, because it builds barrier, calms redness and evens tone while being
+tolerated by skin that cannot take retinoids; exfoliation is **PHA only**, twice
+a week, never glycolic or salicylic.
+
+**Tinted SPF is treated as the headline product, not a cosmetic preference.**
+Tinted sunscreens carry iron oxides, which block visible light where plain SPF
+does not — and visible light drives pigmentation and worsens facial redness. So
+for him it is the better sunscreen, it evens tone optically, and it supplies the
+warm colour he wants daily with no UV. One step, three jobs.
+
+On the tan: tinted SPF first, facial gradual self-tan (DHA, which never reaches
+living tissue) as an honest second, actual sunbathing refused with the reason —
+80% of facial ageing is UV, so chasing a real tan and anti-ageing at once is the
+most self-contradictory thing available. Beta carotene stays off the list.
+
+A countdown says how many days remain before the month-out cut-off, after which
+nothing new goes on his face — with the instruction to start one thing at a time,
+a fortnight apart. The section ends by naming what products cannot do: sleep,
+being too lean and water retention decide more than any bottle, and a flat face
+at 120 lb is not rescued by a serum.
+
 **The Cut** leads the Model tab. Its weeks end on a **Sunday**: week 1 is a stub
 from the start day (a Tuesday) to that week's Sunday, and every week after it is
 a clean Monday-to-Sunday, so cut weeks line up with block weeks instead of
