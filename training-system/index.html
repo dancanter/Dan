@@ -614,8 +614,9 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
     </section>
 
     <section class="block">
-      <h2 class="block-title">The Look <span class="tag" id="lookTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <div id="lookBox"></div>
+      <h2 class="block-title">The Cut <span class="tag" id="cutWeeksTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Week by week to 7 November. What the average did, against what it was supposed to do.</p>
+      <div id="cutWeeksOut"></div>
     </section>
 
     <section class="block" data-fold="protocol">
@@ -658,12 +659,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="foodOut" style="margin-top:10px"></div>
     </section>
 
-    <section class="block" data-fold="fit">
-      <h2 class="block-title">Does It Fit</h2>
-      <p class="block-sub">Protein and fat are floors. Whatever is left is carbs \u2014 and on a hard day there may not be enough left.</p>
-      <div id="fitOut"></div>
-    </section>
-
     <section class="block" data-detail>
       <h2 class="block-title">Your Day</h2>
       <div class="card tbl-scroll" style="padding:4px 12px">
@@ -684,12 +679,6 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         Rice cakes <b>certified gluten-free</b> like the oats. Nothing else in the day moves.</div>
       <div class="note good" style="margin-top:8px"><b>Rice, ranked for you</b><b style="color:var(--chalk)">Black</b> — most anthocyanins of any rice, feeds the same pathways as your berries. <b style="color:var(--chalk)">Basmati</b> — lowest glucose spike. <b style="color:var(--chalk)">Jasmine</b> — fastest, so save it for around a session. All naturally GF.</div>
       <div class="note flat" style="margin-top:8px"><b>Four small swaps that help your face</b>Evening bowl earlier · raisins out, berries in · one honey a day not two · front-load your water.</div>
-    </section>
-
-    <section class="block" data-fold="plans">
-      <h2 class="block-title">Three Plans <span class="tag" id="plansTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">Same four meals throughout. What changes is the calorie level, where the carbs sit, and which pathways get fed hardest.</p>
-      <div id="plansBox"></div>
     </section>
 
     <section class="block" data-fold="reverse">
@@ -823,7 +812,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "16 Sep 10:11";
+var BUILD = "16 Sep 10:21";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5025,6 +5014,116 @@ function bmiWeights() {
     curBmi: lb / 2.2046 / m2, atTarget: 122 / 2.2046 / m2 };
 }
 
+/* The same idea as Every Week, but the weeks are counted from the cut's own
+   start rather than the block's, and the column that matters is what the
+   average did against what it was supposed to do. */
+function cutWeeks() {
+  var c = cutStatus();
+  if (!c.first || c.startsIn > 0) return [];
+  var startD = parseDay(c.start), todayD = parseDay(today());
+  var span = daysBetween(startD, parseDay(REVERSE_DEADLINE));
+  var weeks = Math.floor(daysBetween(startD, todayD) / 7) + 1;
+  var out = [], prevAvg = null;
+  for (var w = 1; w <= weeks; w++) {
+    var from = new Date(startD.getTime()); from.setDate(from.getDate() + (w - 1) * 7);
+    var to = new Date(from.getTime()); to.setDate(to.getDate() + 6);
+    var r = { from: from, to: to };
+    var here = weightLog.filter(function (x) { return inRange(x.date, r); })
+      .map(function (x) { return x.weight; });
+    var st = [], days = 0;
+    for (var i = 0; i < 7; i++) {
+      var dt = new Date(from.getTime()); dt.setDate(dt.getDate() + i);
+      if (dt > todayD) continue;
+      days++;
+      var rec = DB.get("daily-" + dayStr(dt), null);
+      if (rec && isFinite(parseFloat(rec.stepsN))) st.push(parseFloat(rec.stepsN));
+    }
+    var avgW = here.length ? avg(here) : null;
+    /* what the taper asked of this week, from where the week started */
+    var through = span > 0 ? daysBetween(startD, from) / span : 0;
+    var base = prevAvg != null ? prevAvg : (avgW != null ? avgW : c.first.weight);
+    var want = base * cutTargetPct(Math.max(0, Math.min(1, through)));
+    out.push({
+      w: w, range: r, days: days,
+      avg: avgW, n: here.length,
+      drop: (avgW != null && prevAvg != null) ? prevAvg - avgW : null,
+      want: w === 1 ? null : want,
+      steps: st.length ? { n: st.length, total: st.reduce(function (a, b) { return a + b; }, 0) } : null,
+      isNow: to >= todayD
+    });
+    if (avgW != null) prevAvg = avgW;
+  }
+  return out;
+}
+
+function renderCutWeeks() {
+  var el = $("cutWeeksOut"); if (!el) return;
+  var rows = cutWeeks(), c = cutStatus(), tag = $("cutWeeksTag");
+  var f1 = function (x) { return x.toFixed(1); };
+
+  if (!rows.length) {
+    if (tag) tag.textContent = "";
+    el.innerHTML = '<div class="note flat"><b>Nothing logged in the cut yet</b>' +
+      (c.startsIn > 0
+        ? "It starts in " + c.startsIn + " day" + (c.startsIn === 1 ? "" : "s") + "."
+        : "Log a weight and the first week fills in.") + "</div>";
+    return;
+  }
+  if (tag) tag.textContent = "week " + rows.length + " of " + Math.ceil(c.total);
+
+  var body = rows.slice().reverse().map(function (r) {
+    var cell;
+    if (r.avg == null) cell = '<span style="color:var(--muted-2)">no weights</span>';
+    else if (r.drop == null) cell = f1(r.avg) + ' <span style="color:var(--muted-2)">start</span>';
+    else {
+      var good = r.want == null || r.drop >= r.want * 0.6;
+      cell = f1(r.avg) + ' <span style="color:' + (r.drop > 0.05 ? "var(--go)" : "var(--muted)") + '">' +
+        (r.drop > 0.05 ? "\u2193" + f1(r.drop) : r.drop < -0.05 ? "\u2191" + f1(-r.drop) : "flat") + "</span>";
+    }
+    var wantCell = r.want == null
+      ? '<span style="color:var(--muted-2)">\u2014</span>'
+      : f1(r.want) + (r.drop != null
+          ? ' <span style="color:' + (r.drop >= r.want * 0.85 ? "var(--go)" : r.drop >= r.want * 0.5 ? "var(--muted)" : "var(--stop,#e06c6c)") + '">' +
+            (r.drop >= r.want * 0.85 ? "on" : r.drop >= r.want * 0.5 ? "under" : "short") + "</span>"
+          : "");
+    return "<tr><td><b>Week " + r.w + "</b>" +
+      '<span class="sub">' + fmtD(r.range.from) + "\u2013" + fmtD(r.range.to) +
+      (r.isNow ? " \u00b7 now" : "") + "</span></td>" +
+      '<td class="hl">' + cell + (r.n ? ' <span style="color:var(--muted-2)">' + r.n + "\u00d7</span>" : "") + "</td>" +
+      '<td class="hl">' + wantCell + "</td>" +
+      '<td class="hl">' + (r.steps
+        ? Math.round(r.steps.total).toLocaleString() +
+          (r.steps.n < r.days ? ' <span style="color:var(--muted-2)">' + r.steps.n + "d</span>" : "")
+        : "\u2014") + "</td></tr>";
+  }).join("");
+
+  var head = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Week</th><th>Average</th><th>Target drop</th><th>Steps</th></tr></thead>" +
+    "<tbody>" + body + "</tbody></table></div>";
+
+  var sum = "";
+  if (c.lost != null) {
+    sum = '<div class="note ' + (c.lost > 0 ? "good" : "flat") + '" style="margin-top:10px"><b>' +
+      (c.lost > 0 ? f1(c.lost) + " lb down" : c.lost < 0 ? f1(-c.lost) + " lb up" : "Level") +
+      " since " + esc(c.first.date) + "</b>" +
+      "From " + f1(c.first.weight) + " to " + f1(c.cur) + " lb, " +
+      "with <b>" + f1(c.weeksLeft) + " week" + (Math.round(c.weeksLeft) === 1 ? "" : "s") +
+      "</b> to 7 November." +
+      (c.landing != null ? " On the tapering target that lands you around <b>" + f1(c.landing) + " lb</b>." : "") +
+      "</div>";
+  }
+
+  el.innerHTML = head + sum +
+    '<div class="note flat" style="margin-top:10px"><b>How to read it</b>' +
+    '<span style="color:var(--chalk)">Average</span> is every weight logged that week, ' +
+    "not a single morning \u2014 and the arrow is against the week before. " +
+    '<span style="color:var(--chalk)">Target drop</span> is what the taper asked of that week: ' +
+    "0.9% of bodyweight at the start, easing to 0.5% by the end, because the same percentage is fewer " +
+    "pounds as you get lighter.<br><br>" +
+    "A week marked <b>short</b> is worth looking at, not acting on. " +
+    '<span style="color:var(--chalk);font-weight:600">Two short weeks in a row is a signal; one is noise.</span></div>';
+}
+
 function cutTargetCurve() {
   var c = cutStatus();
   if (!c.first) return null;
@@ -7168,7 +7267,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit(); renderAsk();
+  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();

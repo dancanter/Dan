@@ -458,6 +458,21 @@ There was a Shape section tracking waist and shoulders weekly; it came out at
 his request. The ratio it derived was a good number, but a tracker nobody fills
 in is worse than no tracker, because it reads as an outstanding task forever.
 
+**The Cut** leads the Model tab: the same week-by-week idea as Every Week, but
+counted from the cut's own start and with the column that matters being what the
+average did against **what it was supposed to do**. Target drop walks the taper
+forward a week at a time — 0.9% of bodyweight at the start easing to 0.5% by the
+end, because the same percentage is fewer pounds as you get lighter — and a week
+reads *on*, *under* or *short* against it. The summary line gives pounds down,
+weeks left and the projected landing; the footer says that two short weeks in a
+row is a signal and one is noise.
+
+The Model tab is now five things and nothing else, at his request: **the cut,
+the reverse, tracking, nutrition, skincare** — Ask, The Cut, The Protocol
+(which carries the daily list, sleep and skincare), Today's Fuel, Food Log, Your
+Day and Reversing. The Look, Three Plans and Does It Fit came out; their
+guidance either lives in The Protocol or is reachable through Ask.
+
 **Every Week** is the block as one table, newest first: runs (and how many of
 those were efforts), gym sessions, total steps, and the week's **average**
 weight with the change against the week before. Each row opens to the sessions
