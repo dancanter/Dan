@@ -458,6 +458,12 @@ There was a Shape section tracking waist and shoulders weekly; it came out at
 his request. The ratio it derived was a good number, but a tracker nobody fills
 in is worse than no tracker, because it reads as an outstanding task forever.
 
+**Deload weeks are 4, 7 and 12.** Week 7 was pulled forward from 8 — back from
+Rome and he called it himself, which is the right way round: a deload taken
+because you feel you need it beats one taken because the calendar said so. Week
+12 sits three weeks before the week-13 attempts, the spacing that preceded his
+1km and 800m bests. The field in Setup overrides the default.
+
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
 closing on 7 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the

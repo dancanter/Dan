@@ -911,9 +911,12 @@ function fmtPace(secPerKm) { return fmtSec(secPerKm) + "/km"; }
 /* Weeks 3+ are a pool of sessions you assign to days rather than a fixed
    weekday grid — which day a session lands on depends on how recovery is
    actually going that week. The plan checks the spacing instead of dictating it. */
-/* Week 4 is deliberately not a deload — Rome covers that slot as real time off.
-   Weeks 8 and 12 stay, and the field in Setup overrides all of it. */
-var DELOAD_WEEKS_DEFAULT = [4, 8, 12];
+/* Week 7 is the deload, pulled forward from 8: back from Rome and he called it
+   himself, which is the right way round — a deload taken when you feel you need
+   it beats one taken because the calendar said so. Week 12 sits three weeks
+   before the week-13 attempts, which is the spacing that preceded his 1km and
+   800m bests. The field in Setup overrides all of it. */
+var DELOAD_WEEKS_DEFAULT = [4, 7, 12];
 function deloadWeeks() {
   var v = settings.deloadWeeks;
   return (v && v.length) ? v : DELOAD_WEEKS_DEFAULT;
