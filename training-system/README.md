@@ -458,7 +458,13 @@ There was a Shape section tracking waist and shoulders weekly; it came out at
 his request. The ratio it derived was a good number, but a tracker nobody fills
 in is worse than no tracker, because it reads as an outstanding task forever.
 
-**The Cut** leads the Model tab: the same week-by-week idea as Every Week, but
+**The Cut** leads the Model tab. Its weeks end on a **Sunday**: week 1 is a stub
+from the start day (a Tuesday) to that week's Sunday, and every week after it is
+a clean Monday-to-Sunday, so cut weeks line up with block weeks instead of
+straddling two of them. Part-weeks are visible rather than hidden — the reading
+count is shown, so a six-day first week cannot be mistaken for a quiet one.
+
+It is the same week-by-week idea as Every Week, but
 counted from the cut's own start and with the column that matters being what the
 average did against **what it was supposed to do**. Target drop walks the taper
 forward a week at a time — 0.9% of bodyweight at the start easing to 0.5% by the

@@ -5014,21 +5014,40 @@ function bmiWeights() {
 /* The same idea as Every Week, but the weeks are counted from the cut's own
    start rather than the block's, and the column that matters is what the
    average did against what it was supposed to do. */
+/* Week 1 is a stub from the start day to that week's Sunday, so every week
+   after it is a clean Monday-to-Sunday and lines up with the block weeks. The
+   cut opened on a Tuesday; without this every "week" would straddle two. */
+function cutWeekRanges(startD, todayD) {
+  if (!startD) return [];
+  var out = [];
+  var firstEnd = new Date(startD.getTime());
+  var dow = (firstEnd.getDay() + 6) % 7;          /* 0 = Monday ... 6 = Sunday */
+  firstEnd.setDate(firstEnd.getDate() + (6 - dow));
+  out.push({ from: new Date(startD.getTime()), to: firstEnd });
+  var cursor = new Date(firstEnd.getTime());
+  while (cursor < todayD) {
+    var from = new Date(cursor.getTime()); from.setDate(from.getDate() + 1);
+    if (from > todayD) break;
+    var to = new Date(from.getTime()); to.setDate(to.getDate() + 6);
+    out.push({ from: from, to: to });
+    cursor = to;
+  }
+  return out;
+}
+
 function cutWeeks() {
   var c = cutStatus();
   if (!c.first || c.startsIn > 0) return [];
   var startD = parseDay(c.start), todayD = parseDay(today());
   var span = daysBetween(startD, parseDay(REVERSE_DEADLINE));
-  var weeks = Math.floor(daysBetween(startD, todayD) / 7) + 1;
+  var ranges = cutWeekRanges(startD, todayD);
   var out = [], prevAvg = null;
-  for (var w = 1; w <= weeks; w++) {
-    var from = new Date(startD.getTime()); from.setDate(from.getDate() + (w - 1) * 7);
-    var to = new Date(from.getTime()); to.setDate(to.getDate() + 6);
-    var r = { from: from, to: to };
+  for (var w = 1; w <= ranges.length; w++) {
+    var r = ranges[w - 1], from = r.from, to = r.to;
     var here = weightLog.filter(function (x) { return inRange(x.date, r); })
       .map(function (x) { return x.weight; });
-    var st = [], days = 0;
-    for (var i = 0; i < 7; i++) {
+    var st = [], days = 0, len = daysBetween(from, to) + 1;
+    for (var i = 0; i < len; i++) {
       var dt = new Date(from.getTime()); dt.setDate(dt.getDate() + i);
       if (dt > todayD) continue;
       days++;
