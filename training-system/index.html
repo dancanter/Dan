@@ -357,6 +357,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="suggestBox"></div>
     </section>
 
+    <section class="block" data-fold="sofar">
+      <h2 class="block-title">This Week So Far <span class="tag" id="sofarTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Everything logged in the current block week, in the order you did it.</p>
+      <div id="sofarOut"></div>
+    </section>
+
     <section class="block" data-fold="roundup" style="margin-top:26px">
       <h2 class="block-title">Every Week <span class="tag" id="roundTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">What you actually did, week by week. Tap a week to see the sessions.</p>
@@ -818,7 +824,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "16 Sep 15:02";
+var BUILD = "16 Sep 20:40";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -2086,7 +2092,18 @@ function renderRolling() {
   /* A 200m session is a hard effort in its own right and it also does the job
      the 100s do, so it covers the low day rather than adding to it. */
   var lows = w.low + w.bonus, sprintCovered = w.s200 > 0 && !lows;
-  var bars = loadBar("Effort", w.effort, EFFORT_TARGET, "all out, your pick of format", EFFORT_FLOOR) +
+  /* Total runs has no target and never will - nothing on the plan asks for a
+     number of runs. It sits here as a count because he wants to see it next to
+     the efforts, not because anything is owed. */
+  var strip = '<div class="card" style="padding:10px 12px;margin-bottom:12px;display:flex;gap:18px;flex-wrap:wrap">' +
+    [["Runs", w.runs], ["Efforts", w.effort], ["Sprints", sprintCovered ? 1 : lows], ["Gym", w.gym]]
+      .map(function (p) {
+        return '<div><div style="font-family:var(--f-mono);font-size:21px;color:var(--chalk);line-height:1.1">' +
+          p[1] + '</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">' +
+          p[0] + "</div></div>";
+      }).join("") + "</div>";
+  var bars = strip +
+    loadBar("Effort", w.effort, EFFORT_TARGET, "all out, your pick of format", EFFORT_FLOOR) +
     loadBar("Sprints", sprintCovered ? 1 : lows, 1,
       sprintCovered ? "covered by your 200m session" : "5–8 × 100m, the low day") +
     loadBar("Gym", w.gym, 5, "the running works around this", 4);
@@ -2534,6 +2551,55 @@ function reviewData(w) {
 /* One row per week of the block. Everything here already existed for the
    single-week review - this just runs it across every week that has happened
    and lines the numbers up so a trend is visible without scrolling. */
+/* The calendar week rather than the trailing seven days - when he asks what he
+   has done this week he means Monday onwards, not a window that slides. */
+function renderSoFar() {
+  var el = $("sofarOut"); if (!el) return;
+  var w = blockWeekNow(), tag = $("sofarTag");
+  if (!w) {
+    if (tag) tag.textContent = "";
+    el.innerHTML = '<div class="note flat"><b>No block start date</b>' +
+      "Set one under Progress \u2192 Setup and this fills in.</div>";
+    return;
+  }
+  var rv = reviewData(w), r = weekRange(w), st = weekSteps(w);
+  if (tag) tag.textContent = "week " + w + (isDeload(w) ? " \u00b7 deload" : "");
+  if (!rv) { el.innerHTML = ""; return; }
+
+  var order = { MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6 };
+  var rows = rv.runs.slice().sort(function (a, b) { return order[a.day] - order[b.day]; });
+
+  var list = rows.length
+    ? rows.map(function (x) {
+        return '<div class="log-item"><span class="l-main">' + esc(x.day) + " \u00b7 " + esc(x.type) + "</span>" +
+          '<span class="l-body">' +
+          (x.detail ? esc(x.detail) + " " : "") +
+          (x.avgPace ? '<span style="color:var(--muted-2)">' + fmtSec(x.avgPace) + "/km</span>" : "") +
+          (x.feel ? ' <span style="color:var(--muted-2)">\u00b7 felt ' + esc(x.feel) + "/5</span>" : "") +
+          "</span></div>";
+      }).join("")
+    : '<div class="empty">No runs logged this week yet.</div>';
+
+  var gymLine = rv.gym.length
+    ? rv.gym.length + " gym session" + (rv.gym.length === 1 ? "" : "s") +
+      (rv.gym.filter(function (x) { return x; }).length
+        ? " \u2014 " + esc(rv.gym.filter(function (x) { return x; }).join(", "))
+        : "")
+    : "No gym logged this week yet.";
+
+  el.innerHTML =
+    '<div class="note ' + (rows.length ? "good" : "flat") + '"><b>' +
+    rows.length + " run" + (rows.length === 1 ? "" : "s") +
+    (rv.effort ? ", " + rv.effort + " of them hard" : "") + " \u00b7 " +
+    rv.gym.length + " gym</b>" +
+    (r ? fmtD(r.from) + " \u2013 " + fmtD(r.to) + ". " : "") +
+    (st ? Math.round(st.total).toLocaleString() + " steps over " + st.n + " day" + (st.n === 1 ? "" : "s") + "." : "") +
+    "</div>" +
+    '<div class="block-title" style="font-size:15px;margin-top:12px">Runs</div>' + list +
+    '<div class="block-title" style="font-size:15px;margin-top:12px">Gym</div>' +
+    '<div class="note flat">' + gymLine + "</div>";
+}
+
 function roundupRows() {
   var now = blockWeekNow() || 13, out = [];
   for (var w = 1; w <= Math.min(now, 13); w++) {
@@ -7415,7 +7481,7 @@ function renderAll() {
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
   weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderSkin();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
-  renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup();
+  renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup(); renderSoFar();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   if ($("exitWeight")) {
     $("exitWeight").value = settings.exitWeight || "";

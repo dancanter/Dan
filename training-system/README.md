@@ -504,6 +504,19 @@ the reverse, tracking, nutrition, skincare** — Ask, The Cut, The Protocol
 Day and Reversing. The Look, Three Plans and Does It Fit came out; their
 guidance either lives in The Protocol or is reachable through Ask.
 
+**This Week So Far** answers the question the trim accidentally removed with
+the Week Review: what have I actually done *this* week. It reads the **calendar
+week**, not the trailing seven days, because that is what the question means —
+every run in day order with its detail, pace and feel rating, the gym sessions
+with their splits, the date range and the week's steps. Empty weeks say so
+rather than rendering nothing.
+
+**Rolling Targets** now opens with a counts strip — **runs, efforts, sprints,
+gym** as four plain numbers. The run total deliberately has no bar and no
+target: nothing in the plan asks for a number of runs, so it sits there as a
+count because he wants to see it beside the efforts, not because anything is
+owed.
+
 **Every Week** is the block as one table, newest first: runs (and how many of
 those were efforts), gym sessions, total steps, and the week's **average**
 weight with the change against the week before. Each row opens to the sessions
