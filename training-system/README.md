@@ -458,6 +458,19 @@ There was a Shape section tracking waist and shoulders weekly; it came out at
 his request. The ratio it derived was a good number, but a tracker nobody fills
 in is worse than no tracker, because it reads as an outstanding task forever.
 
+**Every Week** is the block as one table, newest first: runs (and how many of
+those were efforts), gym sessions, total steps, and the week's **average**
+weight with the change against the week before. Each row opens to the sessions
+themselves. Deload weeks and the current week are labelled, and a totals line
+sums the block.
+
+The weight column is deliberately an average rather than a reading. Two single
+mornings a week apart are mostly water; seven readings against seven readings is
+the comparison that means something. Steps show how many days of the week
+actually carry a number, so a part-logged week cannot masquerade as a low one.
+It reuses `reviewData` and `weekSteps`, which already did all of this for one
+week at a time.
+
 **Deload weeks are 4, 7 and 12.** Week 7 was pulled forward from 8 — back from
 Rome and he called it himself, which is the right way round: a deload taken
 because you feel you need it beats one taken because the calendar said so. Week

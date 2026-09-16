@@ -354,6 +354,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="suggestBox"></div>
     </section>
 
+    <section class="block" data-fold="roundup" style="margin-top:26px">
+      <h2 class="block-title">Every Week <span class="tag" id="roundTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">What you actually did, week by week. Tap a week to see the sessions.</p>
+      <div id="roundOut"></div>
+    </section>
+
     <section class="block" data-fold="block" style="margin-top:26px">
       <h2 class="block-title">The Whole Block</h2>
       <p class="block-sub">All 13 weeks, and why they are in that order.</p>
@@ -2525,6 +2531,92 @@ function reviewData(w) {
   out.lowEnergy = energySeries(14).filter(function (pt) { return inRange(pt.date, r) && pt.v <= 2; }).length;
   out.niggle = activeNiggles().filter(function (n) { return n.sev >= 2; }).length;
   return out;
+}
+
+/* One row per week of the block. Everything here already existed for the
+   single-week review - this just runs it across every week that has happened
+   and lines the numbers up so a trend is visible without scrolling. */
+function roundupRows() {
+  var now = blockWeekNow() || 13, out = [];
+  for (var w = 1; w <= Math.min(now, 13); w++) {
+    var rv = reviewData(w);
+    if (!rv) continue;
+    var st = weekSteps(w), r = weekRange(w);
+    out.push({
+      w: w, range: r,
+      runs: rv.runs.length, effort: rv.effort, gym: rv.gym.length,
+      sessions: rv.runs,
+      steps: st,
+      wt: rv.weight,
+      isDeload: isDeload(w),
+      isNow: w === blockWeekNow()
+    });
+  }
+  return out;
+}
+
+function roundDelta(wt) {
+  if (!wt || wt.prevAvg == null) return null;
+  return wt.avg - wt.prevAvg;
+}
+
+function renderRoundup() {
+  var el = $("roundOut"); if (!el) return;
+  var rows = roundupRows(), tag = $("roundTag");
+  if (!rows.length) {
+    if (tag) tag.textContent = "";
+    el.innerHTML = '<div class="note flat"><b>Nothing to round up yet</b>' +
+      "Set a block start date in Setup and this fills in a week at a time.</div>";
+    return;
+  }
+  if (tag) tag.textContent = rows.length + (rows.length === 1 ? " week" : " weeks");
+
+  var tRuns = 0, tEff = 0, tGym = 0, tSteps = 0, stepWeeks = 0;
+  rows.forEach(function (r) {
+    tRuns += r.runs; tEff += r.effort; tGym += r.gym;
+    if (r.steps) { tSteps += r.steps.total; stepWeeks++; }
+  });
+
+  var f1 = function (x) { return x.toFixed(1); };
+  var body = rows.slice().reverse().map(function (r) {
+    var d = roundDelta(r.wt);
+    var wtCell = r.wt
+      ? f1(r.wt.avg) + (d != null
+          ? ' <span style="color:' + (d < -0.05 ? "var(--go)" : d > 0.05 ? "var(--muted)" : "var(--muted-2)") + '">' +
+            (d < -0.05 ? "\u2193" + f1(-d) : d > 0.05 ? "\u2191" + f1(d) : "\u2014") + "</span>"
+          : "")
+      : "\u2014";
+    var sess = r.sessions.length
+      ? r.sessions.map(function (x) {
+          return "\u00b7 " + esc(x.day) + " \u2014 " + esc(x.type) +
+            (x.detail ? ' <span style="color:var(--muted-2)">' + esc(x.detail) + "</span>" : "");
+        }).join("<br>")
+      : '<span style="color:var(--muted-2)">nothing logged</span>';
+    return "<tr><td><b>Week " + r.w + "</b>" +
+      '<span class="sub">' + (r.range ? fmtD(r.range.from) + "–" + fmtD(r.range.to) : "") +
+      (r.isDeload ? " \u00b7 deload" : "") + (r.isNow ? " \u00b7 now" : "") + "</span></td>" +
+      '<td class="hl">' + r.runs + (r.effort ? ' <span style="color:var(--muted-2)">(' + r.effort + " hard)</span>" : "") + "</td>" +
+      '<td class="hl">' + r.gym + "</td>" +
+      '<td class="hl">' + (r.steps ? Math.round(r.steps.total).toLocaleString() +
+        (r.steps.n < 7 ? ' <span style="color:var(--muted-2)">' + r.steps.n + "d</span>" : "") : "\u2014") + "</td>" +
+      '<td class="hl">' + wtCell + "</td></tr>" +
+      '<tr><td colspan="5" style="padding-top:0;color:var(--muted);font-size:12.5px">' + sess + "</td></tr>";
+  }).join("");
+
+  el.innerHTML =
+    '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
+    "<thead><tr><th>Week</th><th>Runs</th><th>Gym</th><th>Steps</th><th>Weight</th></tr></thead>" +
+    "<tbody>" + body + "</tbody></table></div>" +
+    '<div class="note flat" style="margin-top:10px"><b>Across ' + rows.length +
+    (rows.length === 1 ? " week" : " weeks") + "</b>" +
+    tRuns + " run" + (tRuns === 1 ? "" : "s") + ", " + tEff + " of them hard \u00b7 " +
+    tGym + " gym session" + (tGym === 1 ? "" : "s") +
+    (stepWeeks ? " \u00b7 " + Math.round(tSteps).toLocaleString() + " steps over " + stepWeeks +
+      (stepWeeks === 1 ? " week" : " weeks") + ", " + Math.round(tSteps / stepWeeks).toLocaleString() + " a week" : "") +
+    ".<br><br>" +
+    '<span style="color:var(--muted)">Weight is the average of every reading in that week, ' +
+    "and the arrow is against the week before \u2014 which is the comparison that means something, " +
+    "because two single mornings a week apart are mostly water.</span></div>";
 }
 
 /* Steps for one named week, summed off the daily records by real date. */
@@ -4869,6 +4961,13 @@ function cutTargetPct(frac) {
   return CUT_RATE_START + (CUT_RATE_END - CUT_RATE_START) * f;
 }
 function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
+/* Short day-and-month, for week ranges. renderReview has called this for a
+   while without it ever existing - it only never threw because that section
+   is unreachable in this build. */
+function fmtD(d) {
+  var dt = (d instanceof Date) ? d : parseDay(d);
+  return dt ? dt.toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+}
 function fmtDate(iso) {
   var d = parseDay(iso);
   return d ? d.toLocaleDateString([], { day: "numeric", month: "long" }) : iso;
@@ -7068,7 +7167,7 @@ function renderAll() {
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
   weighFeedback(); renderLook(); renderProto(); renderPlans(); renderFit(); renderAsk();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
-  renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee();
+  renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
   if ($("exitWeight")) {
     $("exitWeight").value = settings.exitWeight || "";
