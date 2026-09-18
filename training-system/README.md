@@ -1002,19 +1002,28 @@ A new low gets its own line above everything else, with what it beat and how lon
 ago — and `WEIGHT_MARKS` names the round numbers so 127 and 125 are things you go
 *through* rather than past.
 
-## Two start dates, on purpose
+## One start date, and a water weekend before it
 
-The cut opens **Saturday 19 September** and block **week 1 opens Monday 21
-September**. They are different things and he asked for both: the weighing, the
-calories and the steps count from the Saturday, while the training week stays a
-clean Monday-to-Sunday.
+The cut and block **both open Monday 21 September**. The weekend before it —
+Saturday 19 and Sunday 20 — is deliberately the water coming off: a refeed Friday
+night, then two days of shedding it. Nothing weighed on those two mornings is
+cutting weight, so neither one seeds the start line; Monday's does.
 
-That leaves Saturday and Sunday sitting before week 1 with no grid slot — and
-since the goals are counted from the Saturday, a 3km test logged that morning
-would have been invisible to every one of them. **Week 0** is the Monday-to-Sunday
-week before the block, of which only its last two days fall inside the cut. It is
-in the week selector as *Pre-block — Sat & Sun*, and `cutTally()` counts sessions
-on those two days while still ignoring anything before the cut opened.
+This also collapsed a distinction that was costing more than it bought. Cut week
+N and block week N are now the **same Monday-to-Sunday week**, there is no stub
+first week any more, and all ten weeks are full sevens with the last ending on
+28 November itself.
+
+It also caught a disagreement between two counters: `cutTally()` counted the
+window inclusively (69 days) and `cutCountdown()` exclusively (68), so the goals
+panel said "day 14 of 69" while the countdown beside it called the same window 68
+days. Both are inclusive now. The copy claiming "10 weeks exactly" was wrong too
+— 69 days is 9.86 weeks — and now reports the real week count instead.
+
+Those two days still need somewhere to be logged — a 3km test on the Saturday is
+a real session. **Week 0** is the Monday-to-Sunday week before the block, in the
+week selector as *Pre-block — Sat & Sun*. It records what was done without
+counting toward the cut's goals, which start on the Monday with everything else.
 
 The bug underneath it: JavaScript's `%` keeps the sign, so `-2 % 7` is `-2` and
 `rows[-2]` is `undefined`. The offset has to be floored and the remainder

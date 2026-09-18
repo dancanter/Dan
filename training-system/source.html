@@ -1113,9 +1113,9 @@ function templateForWeek(w) {
   var phase, note;
   if (w === 0) {
     phase = "Pre-block";
-    note = "The two days before week 1. Weigh both mornings - those two readings are the " +
-      "start line the whole cut is measured from. Test the 3km if you feel like it, and let " +
-      "the water come off.";
+    note = "The two days before the cut. This weekend is the water: refeed behind you, " +
+      "sodium and glycogen settling back down. Weigh both mornings for the record, but " +
+      "neither one counts as a start line - Monday's does. Test the 3km if you feel like it.";
   } else if (w <= 2) {
     phase = "Cutting — " + kcal + " kcal";
     note = "Opening fortnight. The first pounds are water and gut contents rather than fat, " +
@@ -5093,7 +5093,12 @@ function deadlineLabel() {
   return d ? d.getDate() + " " + ["January","February","March","April","May","June","July",
     "August","September","October","November","December"][d.getMonth()] : REVERSE_DEADLINE;
 }
-var CUT_START_DEFAULT = "2026-09-19";
+/* The cut starts on the Monday, not the Saturday. The weekend before it is
+   deliberately the water coming off - a refeed Friday night, then two days of
+   shedding it - so nothing weighed on those two mornings is cutting weight. It
+   also makes the cut and the block share one Monday-to-Sunday week, which means
+   cut week N and block week N are finally the same week. */
+var CUT_START_DEFAULT = "2026-09-21";
 /* 0.5-1% of bodyweight a week. Below the floor is barely worth the hunger;
    above the ceiling stops being fat and starts being muscle and glycogen, which
    you hand straight back on the reverse. */
@@ -5286,8 +5291,12 @@ function cutCountdown() {
   var todayD = parseDay(today()), endD = parseDay(REVERSE_DEADLINE), startD = parseDay(cutStart());
   if (!todayD || !endD) return null;
   var days = daysBetween(todayD, endD);
+  /* Inclusive, to match cutTally - the first day and the last day are both days
+     of the cut. The two used to disagree by one, so the goals panel counted "day
+     14 of 69" while the countdown beside it called the same window 68 days. */
   return { days: days, weeks: days / 7, startsIn: daysBetween(todayD, startD),
-    total: daysBetween(startD, endD), done: days < 0,
+    total: daysBetween(startD, endD) + 1, done: days < 0,
+    weeksOfCut: cutWeekRanges(startD, endD).length,
     elapsed: Math.max(0, daysBetween(startD, todayD)) };
 }
 
@@ -5381,8 +5390,9 @@ function renderCutWeeks() {
         : '<span style="color:var(--chalk);font-weight:600">' + fmtDate(REVERSE_DEADLINE) +
           "</span> is " + cd.days + " days away — " + cd.weeks.toFixed(1) + " weeks. " +
           (cd.startsIn > 0
-            ? "The cut itself runs " + cd.total + " days from " + fmtDate(cutStart()) + ", which is " +
-              (cd.total / 7).toFixed(0) + " weeks exactly."
+            ? "The cut itself runs " + cd.total + " days from " + fmtDate(cutStart()) + " \u2014 " +
+              cd.weeksOfCut + " weeks, Monday to Sunday, the last of them ending on " +
+              deadlineShort() + " itself."
             : "You are " + cd.elapsed + " day" + (cd.elapsed === 1 ? "" : "s") + " in, of " + cd.total + ".")) +
       "</div>"
     : "";
@@ -5402,8 +5412,9 @@ function renderCutWeeks() {
       (base && base.n ? "You have logged " + base.n + " so far. " : "") +
       '<span style="color:var(--chalk);font-weight:600">Nothing you weigh before ' +
       fmtDate(cutStart()) + " counts.</span> " +
-      "A refeed the night before puts a pound of water and glycogen on the scale, and a curve built on " +
-      "that would set ten weeks of targets off a number that was never bodyweight.</div>";
+      "The weekend before it is the water coming off \u2014 a refeed, then two days of shedding it. " +
+      "Those mornings are glycogen and sodium rather than bodyweight, and a curve built on one of them " +
+      "would set ten weeks of targets off a number that was never real.</div>";
     return;
   }
   if (tag) tag.textContent = c.startsIn > 0
