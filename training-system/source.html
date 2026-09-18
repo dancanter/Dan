@@ -508,6 +508,11 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           <button class="btn" id="trendOnlyBtn" style="flex:1">Hide daily weights</button>
         </div>
         <p class="block-sub" style="margin:9px 0 0">Shows only the 7-day average and hides individual daily numbers. Nothing is deleted — the daily figure is mostly water and has never once been the number you act on.</p>
+        <div class="add-row" style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px">
+          <button class="btn" id="resetBlockBtn" style="flex:1">Start a new block</button>
+        </div>
+        <p class="block-sub" style="margin:9px 0 0">Files the current week grids away and starts week 1 fresh from a date you pick. <b>Your weights, PBs, times to beat and session history are all kept</b> — this only clears the ten week grids, so old sessions cannot be counted as new ones.</p>
+        <div id="resetBlockBox"></div>
       </div>
 
       <div class="note flat" data-detail style="margin-top:12px"><b>How often to weigh — it changes by phase</b>
@@ -5747,6 +5752,43 @@ function goalPace(done, want, t) {
     pct: want > 0 ? Math.min(1, done / want) : 0, on: done >= expect - 0.5 };
 }
 
+/* ---------- starting a new block ----------------------------------------
+   Moving the start date alone is not a reset. The week grids are stored by week
+   number, so week 1 of the old block becomes week 1 of the new one and thirteen
+   weeks of finished sessions get counted as this week's - which would have shown
+   him 48 gym sessions before he had done any. The grids have to be cleared for
+   the date to mean anything.
+
+   Everything that is not a week grid is kept, because he asked for exactly that:
+   the weights, the PBs, the times to beat, the session history and the daily
+   records all survive. The old grids are filed rather than deleted. */
+var BLOCK_START_DEFAULT = "2026-09-21";
+function archiveKey(iso, w) { return "block-" + iso + "-week-" + w; }
+function resetBlock(startIso) {
+  var stamp = today();
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
+    var rows = DB.get("week-" + w, null);
+    if (Array.isArray(rows)) DB.set(archiveKey(stamp, w), rows);
+    DB.set("week-" + w, buildWeek(w));
+  }
+  var filed = DB.get("blocks-filed", []) || [];
+  filed.unshift({ date: stamp, from: settings.startDate || null, weeks: BLOCK_WEEKS });
+  DB.set("blocks-filed", filed);
+  settings.startDate = startIso;
+  DB.set("settings", settings);
+  viewWeek = 1;
+  renderAll();
+}
+function renderResetBlock() {
+  var el = $("resetBlockBox"); if (!el) return;
+  var filed = DB.get("blocks-filed", []) || [];
+  el.innerHTML = filed.length
+    ? '<p class="block-sub" style="margin:9px 0 0;color:var(--muted-2)">Last filed ' +
+      fmtD(filed[0].date) + (filed[0].from ? ", a block that started " + fmtD(filed[0].from) : "") +
+      ".</p>"
+    : "";
+}
+
 function renderCutGoals() {
   var el = $("goalsOut"); if (!el) return;
   var tag = $("goalsTag"), t = cutTally(), cd = cutCountdown();
@@ -8186,7 +8228,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderCutGoals(); renderCutDays(); renderSkin();
+  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderCutGoals(); renderCutDays(); renderResetBlock(); renderSkin();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup(); renderSoFar();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -8469,6 +8511,16 @@ function renderStartInfo() {
     settings.trendOnly = !settings.trendOnly;
     DB.set("settings", settings);
     renderTrendOnlyBtn(); renderWeight();
+  });
+  on("resetBlockBtn", "click", function () {
+    var iso = ($("startDate") && $("startDate").value) || BLOCK_START_DEFAULT;
+    if (!parseDay(iso)) { alert("Set a block start date first."); return; }
+    /* Destructive to the grids, so it asks - and the message says exactly what
+       survives, because "are you sure?" on its own tells him nothing. */
+    if (!confirm("Start a new block from " + fmtDate(iso) + "?\n\n" +
+      "The " + BLOCK_WEEKS + " week grids are filed away and cleared.\n\n" +
+      "Kept: every weight, every PB, your times to beat, session history and daily records.")) return;
+    resetBlock(iso);
   });
   on("clearStart", "click", function () {
     settings.startDate = null; DB.set("settings", settings);
