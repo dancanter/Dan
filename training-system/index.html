@@ -443,7 +443,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
         <div class="chart-head"><span class="chart-title">Against the target taper</span>
           <span class="chart-title" id="cutChartTag"></span></div>
         <div id="cutChart"></div>
-        <div class="chart-legend"><span>Solid is you. Dashed is the target. Green line is 7 November.</span></div>
+        <div class="chart-legend"><span>Solid is you. Dashed is the target. Green line is 28 November.</span></div>
       </div>
       <div class="card" style="margin-top:10px">
         <div class="add-row" style="margin-top:0;align-items:center">
@@ -621,7 +621,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block">
       <h2 class="block-title">The Cut <span class="tag" id="cutWeeksTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">Week by week to 7 November. What the average did, against what it was supposed to do.</p>
+      <p class="block-sub">Week by week to 28 November. What the average did, against what it was supposed to do.</p>
       <div id="cutWeeksOut"></div>
     </section>
 
@@ -633,7 +633,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block" data-fold="protocol">
       <h2 class="block-title">The Protocol <span class="tag" id="protoTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
-      <p class="block-sub">Everything that decides how you look on 7 November, in one list.</p>
+      <p class="block-sub">Everything that decides how you look on 28 November, in one list.</p>
       <div id="protoBox"></div>
     </section>
 
@@ -684,7 +684,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
           </tbody>
         </table>
       </div>
-      <div class="note warn" style="margin-top:10px"><b>This is the cut version — it changes on 7 November</b>
+      <div class="note warn" style="margin-top:10px"><b>This is the cut version — it changes on 28 November</b>
         Four meals, same order, every day. From the reverse onwards breakfast goes back to
         <b style="color:var(--chalk)">5 eggs and 5 lentil rice cakes</b>, which is the higher-calorie breakfast and
         the one that suits training better — more protein, more yolks, and it lands closer to a session.
@@ -824,7 +824,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 09:54";
+var BUILD = "18 Sep 14:34";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5006,20 +5006,39 @@ function saveReflection() {
 
 /* ================= reverse diet stepper ================= */
 /* The reverse stays shut until the cut is genuinely finished — 123 held, not
-   touched once — or 7 November, whichever comes first. Reading step ladders
+   touched once — or 28 November, whichever comes first. Reading step ladders
    while still cutting is how a cut turns into a slow, permanent reverse. */
-var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-07";
-var CUT_START_DEFAULT = "2026-09-15";
+var REVERSE_HOLD_LB = 123.5, REVERSE_HOLD_DAYS = 14, REVERSE_DEADLINE = "2026-11-28";
+/* Every bit of copy that names the date derives it from here, so moving the
+   deadline moves the words too. It has already moved twice. */
+function deadlineShort() {
+  var d = parseDay(REVERSE_DEADLINE);
+  return d ? d.getDate() + " " + ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+    "Aug","Sep","Oct","Nov","Dec"][d.getMonth()] : REVERSE_DEADLINE;
+}
+function deadlineLabel() {
+  var d = parseDay(REVERSE_DEADLINE);
+  return d ? d.getDate() + " " + ["January","February","March","April","May","June","July",
+    "August","September","October","November","December"][d.getMonth()] : REVERSE_DEADLINE;
+}
+var CUT_START_DEFAULT = "2026-09-19";
 /* 0.5-1% of bodyweight a week. Below the floor is barely worth the hunger;
    above the ceiling stops being fat and starts being muscle and glycogen, which
    you hand straight back on the reverse. */
-var CUT_RATE_LOW = 0.005, CUT_RATE_HIGH = 0.01;
+/* Banded for a ten-week window with six pounds to lose. The old 0.5-1.0%
+   band belonged to a seven-week one and would have read a correct, gentle
+   rate as too slow every single week. */
+var CUT_RATE_LOW = 0.003, CUT_RATE_HIGH = 0.008;
 /* The band is a safety range; this is the number to actually aim at, and it
    tapers. The leaner you get the more of each pound comes out of muscle rather
    than fat, so the same percentage costs more at the end than at the start.
-   0.9% in week one down to 0.5% in the last, which over seven weeks is about
+   0.6% in week one down to 0.4% in the last, which over ten weeks is about
    5-6 lb — the honest figure, not the flattering one. */
-var CUT_RATE_START = 0.009, CUT_RATE_END = 0.005;
+/* Ten weeks for six pounds is about 0.5% a week, so the taper runs 0.6% to
+   0.4% rather than 0.9% to 0.5%. The old rates hit the target in week seven
+   and left three weeks of holding; these arrive at the deadline, which costs
+   less muscle and less cortisol for the same landing weight. */
+var CUT_RATE_START = 0.006, CUT_RATE_END = 0.004;
 function cutTargetPct(frac) {
   var f = Math.max(0, Math.min(1, frac));
   return CUT_RATE_START + (CUT_RATE_END - CUT_RATE_START) * f;
@@ -5255,7 +5274,7 @@ function renderCutWeeks() {
     ? '<div class="note ' + (holdWeek ? "warn" : "flat") + '" style="margin-top:10px">' +
       "<b>Where the curve lands you</b>" +
       "From " + f1(fc[0].start) + " lb, the taper puts you at about <b>" +
-      f1(fc[fc.length - 1].end) + " lb</b> on 7 November." +
+      f1(fc[fc.length - 1].end) + " lb</b> on " + deadlineLabel() + "." +
       (holdWeek
         ? '<br><br><span style="color:var(--chalk);font-weight:600">You reach your ' +
           f1(CUT_TARGET_LB) + " lb target in week " + holdWeek.w + "</span>, around " +
@@ -5263,7 +5282,7 @@ function renderCutWeeks() {
           " week" + (fc.length - holdWeek.w === 0 ? "" : "s") + " before the date. " +
           "From there the target stops falling and the job becomes holding it.<br><br>" +
           "That is not the plan going wrong. It is the target binding before the deadline does, " +
-          "and arriving early with time to settle is a better way to reach 7 November than still " +
+          "and arriving early with time to settle is a better way to reach " + deadlineLabel() + " than still " +
           "losing weight on the day.<br><br>" +
           '<span style="color:var(--muted)">For reference, BMI 18.5 \u2014 the clinical underweight ' +
           "line \u2014 is " + f1(cutFloorLb()) + " lb, about a pound under the target. " +
@@ -5279,7 +5298,7 @@ function renderCutWeeks() {
       " since " + esc(c.first.date) + "</b>" +
       "From " + f1(c.first.weight) + " to " + f1(c.cur) + " lb, " +
       "with <b>" + f1(c.weeksLeft) + " week" + (Math.round(c.weeksLeft) === 1 ? "" : "s") +
-      "</b> to 7 November." +
+      "</b> to " + deadlineLabel() + "." +
       (c.landing != null ? " On the tapering target that lands you around <b>" + f1(c.landing) + " lb</b>." : "") +
       "</div>";
   }
@@ -5287,7 +5306,7 @@ function renderCutWeeks() {
   el.innerHTML = head + land + sum +
     '<div class="note flat" style="margin-top:10px"><b>How to read it</b>' +
     '<span style="color:var(--chalk)">Should be</span> is the average the taper asks of that week. ' +
-    "It tapers 0.9% of bodyweight a week at the start to 0.5% by the end, because the same percentage " +
+    "It tapers 0.6% of bodyweight a week at the start to 0.4% by the end, because the same percentage " +
     "is fewer pounds as you get lighter \u2014 and it is the <em>middle</em> of the week, which is where " +
     "a week's average sits when the weight comes off evenly.<br><br>" +
     '<span style="color:var(--chalk)">You were</span> is every weight you logged that week averaged, ' +
@@ -5342,7 +5361,7 @@ function renderCutChart() {
     points: pts, overlay: overlay, overlayColor: "#8B9B99",
     marker: cv.target[cv.span], markerColor: "#6FCF97",
     dots: pts.length <= 30, uid: "cutc", height: 132,
-    aria: "Weight against the target taper, with the 7 November goal marked"
+    aria: "Weight against the target taper, with the 28 November goal marked"
   });
 }
 
@@ -5455,14 +5474,14 @@ function renderCut() {
     el.innerHTML = '<div class="note good"><b>Starts ' + fmtDate(c.start) + ", in " + c.startsIn + " days</b>" +
       "Rome first. Nothing you weigh before then counts — whatever you log on or after that day becomes the start line, " +
       "so you do not have to know now what you will come back at. " +
-      '<span style="color:var(--chalk);font-weight:600">' + c.total.toFixed(1) + " weeks from then to 7 November</span>, " +
+      '<span style="color:var(--chalk);font-weight:600">' + c.total.toFixed(1) + " weeks from then to 28 November</span>, " +
       "which at a safe rate is about 4–8 lb.</div>" + band;
     return;
   }
   if (!c.first) {
     el.innerHTML = '<div class="note warn"><b>Log a weight and this starts</b>' +
       "The cut window opened on " + fmtDate(c.start) + ". The first weight you log becomes the start line and everything " +
-      "here is measured from it. " + c.daysLeft + " days to 7 November.</div>" + band;
+      "here is measured from it. " + c.daysLeft + " days to 28 November.</div>" + band;
     return;
   }
 
@@ -5476,7 +5495,8 @@ function renderCut() {
     '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Down</span>' +
     '<span class="stone-when hl">' + f1(c.lost) + " lb in " + c.days + " days</span></div>" +
     '<div class="stone" style="grid-template-columns:1fr auto">' +
-    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Left to 7 Nov</span>' +
+    '<span class="stone-w" style="font-family:var(--f-body);font-size:13.5px;color:var(--muted)">Left to ' +
+      deadlineShort() + "</span>" +
     '<span class="stone-when hl">' + c.daysLeft + " days</span></div></div>";
 
   var verdict;
@@ -5510,13 +5530,13 @@ function renderCut() {
   var aim = '<div class="note good" style="margin-top:10px"><b>Aim for ' + c.target.toFixed(2) +
     " lb this week</b>" +
     "Week " + c.week + " of the cut. The target tapers on purpose — " +
-    '<span style="color:var(--chalk);font-weight:600">0.9% of bodyweight a week at the start, 0.5% by the end</span>. ' +
+    '<span style="color:var(--chalk);font-weight:600">0.6% of bodyweight a week at the start, 0.4% by the end</span>. ' +
     "The leaner you get, the more of each pound comes out of muscle instead of fat, so the same percentage " +
     "costs you more in week seven than it did in week one. Hitting a smaller number later is the plan working, " +
     "not it slowing down.</div>";
 
   var proj = c.weeksLeft > 0.5
-    ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 7 November</b>' +
+    ? '<div class="note flat" style="margin-top:10px"><b>Where that lands you on 28 November</b>' +
       '<span style="color:var(--chalk);font-weight:600">about ' + f1(c.landing) + " lb</span> if you hit the " +
       "tapering target every week for the " + c.weeksLeft.toFixed(1) + " left. The wider safe band puts it at " +
       f1(c.range[0]) + "–" + f1(c.range[1]) + " lb. " +
@@ -5566,7 +5586,7 @@ function renderCut() {
   el.innerHTML = head + early + aim + verdict + track + proj + band + floor;
 }
 function reverseUnlocked() {
-  if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 7 November" };
+  if (today() >= REVERSE_DEADLINE) return { open: true, why: "date", label: "open — 28 November" };
   var asc = sortedWeights();
   if (asc.length >= 8) {
     var roll = rollingAvg(asc.map(function (w) { return w.weight; }), 7);
@@ -5596,7 +5616,7 @@ function renderReverseGate() {
       "</span> ";
   el.innerHTML = '<div class="note stop"><b>Not yet — you are still cutting</b>' +
     "This opens when your 7-day average has been at or below " + REVERSE_HOLD_LB + " lb for " +
-    REVERSE_HOLD_DAYS + " days running, or on 7 November, whichever comes first. " + where +
+    REVERSE_HOLD_DAYS + " days running, or on 28 November, whichever comes first. " + where +
     (days > 0 ? days + " days until the date opens it anyway.<br><br>" : "<br><br>") +
     "Reading a step ladder in the middle of a cut is how a cut quietly becomes the reverse. Finish one thing first.</div>";
 }
@@ -5665,7 +5685,7 @@ function renderRevGuide() {
     "Keep the once-a-day exactly as it is. The carbs come up, the salt does not move. This is the single biggest lever.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Keep the potassium up.</span> ' +
     "3,500 mg minimum, through the reverse and not just the cut. It is the direct counter to sodium retention, and it " +
-    "is the reason the potassium target does not stop on 7 November.<br><br>" +
+    "is the reason the potassium target does not stop on 28 November.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Do not cut water.</span> ' +
     "Drinking less raises vasopressin and makes you hold more, not less. Steady intake, front-loaded in the day.<br><br>" +
     '<span style="color:var(--chalk);font-weight:600">Keep the steps and sleep.</span> ' +
@@ -6496,7 +6516,7 @@ var PROTO_SLEEP = [
 var PROTO_SKIN = [
   "SPF50 daily, a quarter teaspoon. Cap and sunglasses on outdoor sessions.",
   "Gentle cleanser morning and night, moisturiser onto damp skin.",
-  "No pore strips, no scrubs, nothing new inside a month of 7 November.",
+  "No pore strips, no scrubs, nothing new inside a month of 28 November.",
   "The redness across your nose and cheeks is worth a GP or pharmacist looking at. Heat and UV are the aggravators and you get plenty of both.",
   "Nothing with retinol. Settled, and not a gap \u2014 the SPF does the work retinol gets credit for."
 ];
@@ -6573,7 +6593,7 @@ function protoCarbs() {
    rather than one: you cannot build and clear at the same time. */
 var DIET_PLANS = [
   {
-    id: "cut", name: "Shred", when: "Now \u2192 7 November",
+    id: "cut", name: "Shred", when: "Now \u2192 28 November",
     aim: "Shredded, sessions intact, veins up",
     kcal: "Deficit \u2014 about 1,850\u20132,000",
     paths: "6 \u00b7 3 \u00b7 8 (clear)",
@@ -6613,7 +6633,7 @@ var DIET_PLANS = [
     why: "This is the only phase where repair is actually affordable. Cellular maintenance \u2014 collagen synthesis, barrier lipids, antioxidant enzymes \u2014 costs energy, and in a deficit the body will not spend it. At maintenance it will. That is why the face pathways live here and not in the cut: you can chase the look, or you can chase the deficit, but the week you try both is the week you get a sharp, flat, grey face."
   },
   {
-    id: "reverse", name: "Rebuild", when: "7 November onwards",
+    id: "reverse", name: "Rebuild", when: "28 November onwards",
     aim: "Health, longevity, 0.25 lb of real tissue a month",
     kcal: "+75 kcal steps \u2192 about 2,300",
     paths: "7 \u00b7 8 (build)",
@@ -6767,7 +6787,7 @@ var QA = [
 
   { q: "What should I do about my skin and the redness?",
     k: "skin redness red rosacea spf sunscreen retinol acne pores nose cleanser routine glow",
-    a: "SPF50 every day, a quarter teaspoon, face and neck, rain or not. That single thing beats every other intervention combined - roughly 80% of facial ageing is UV. Cap and sunglasses on outdoor sessions, since hours a week outside is where your dose comes from.<br><br>Gentle cleanser morning and night, moisturiser onto damp skin. That is the whole routine and it is enough.<br><br>No pore strips - they take the top off and the pore refills in days, and on reactive skin they worsen redness. Nothing new inside a month of 7 November.<br><br>The persistent redness across your nose and cheeks is worth a GP or pharmacist looking at rather than guessing about. Azelaic acid is the ingredient to raise by name - not a retinoid, usually tolerated by skin that cannot handle actives - but that is their call, not a self-start. Nothing with retinol." },
+    a: "SPF50 every day, a quarter teaspoon, face and neck, rain or not. That single thing beats every other intervention combined - roughly 80% of facial ageing is UV. Cap and sunglasses on outdoor sessions, since hours a week outside is where your dose comes from.<br><br>Gentle cleanser morning and night, moisturiser onto damp skin. That is the whole routine and it is enough.<br><br>No pore strips - they take the top off and the pore refills in days, and on reactive skin they worsen redness. Nothing new inside a month of 28 November.<br><br>The persistent redness across your nose and cheeks is worth a GP or pharmacist looking at rather than guessing about. Azelaic acid is the ingredient to raise by name - not a retinoid, usually tolerated by skin that cannot handle actives - but that is their call, not a self-start. Nothing with retinol." },
 
   { q: "What actually helps my sleep, and why does it matter so much?",
     k: "sleep sleeping tired insomnia wake bed rest night hours",
@@ -6779,7 +6799,7 @@ var QA = [
 
   { q: "When can I start creatine?",
     k: "creatine supplement monohydrate loading",
-    a: "On the reverse, from 7 November - not before.<br><br>It is comfortably the best-evidenced performance compound there is and it is specifically 400m-shaped, so you do want it. But it pulls 1-2kg of water into muscle, and for the next seven weeks you need to read your weight trend cleanly. A 2kg water shift would blind you to what the cut is actually doing.<br><br>3-5g daily, no loading phase needed. Expect the scale up; it is not fat." },
+    a: "On the reverse, from 28 November - not before.<br><br>It is comfortably the best-evidenced performance compound there is and it is specifically 400m-shaped, so you do want it. But it pulls 1-2kg of water into muscle, and for the next seven weeks you need to read your weight trend cleanly. A 2kg water shift would blind you to what the cut is actually doing.<br><br>3-5g daily, no loading phase needed. Expect the scale up; it is not fat." },
 
   { q: "Am I causing AGEs with all this training?",
     k: "ages glycation aging anti-ageing cellular damage char cooking burnt",
@@ -6789,7 +6809,7 @@ var QA = [
     k: "400 400m hard session tough brutal why struggled ladder",
     a: "Because you ran it about twelve seconds a rep faster than any 400 work in the block, on 24 hours of recovery from a lactate ladder.<br><br>Splits were roughly 62s, 58s and 61s, with Strava's best-400 window at 60s. Your earlier 400 sessions were 71-75s a rep - but those were labelled 70% and mile pace. That was the first time in the block you ran 400s flat out.<br><br>The 12-14 minutes standing between reps confirms it: that is the recovery profile of true maximal sprinting. Then the load on top - the ladder 24h before, gym legs in the window, and your own note that you were underfuelled.<br><br>The good news: a 58-second 400 on tired legs underfed means fresh and carbed it is quicker." },
 
-  { q: "Why does the plan change on 7 November?",
+  { q: "Why does the plan change on 28 November?",
     k: "reverse reversing november 7 after rebuild surplus gaining increase calories",
     a: "Because mTOR and autophagy are opposing switches, and you cannot build and clear at the same time. The cut is the clearing half; the reverse is the building half, and it is the only phase where tissue can actually be added.<br><br>Carbs come back before fat - per calorie, carbohydrate restores T3, leptin and training quality, and fat restores almost none of it. +75 kcal at a time, held a fortnight. Target is 0.25 lb a month of real tissue, which is three pounds a year.<br><br>Slow is the whole point: fast reverses add water, fat and inflammation together, which is the puffy face you said you did not want. The most common way people ruin it is aborting in week three." },
 
@@ -6944,7 +6964,7 @@ function renderSkin() {
   el.innerHTML =
     (w.shut > 0
       ? '<div class="note warn"><b>You have ' + w.shut + " days to start things, then the door shuts</b>" +
-        "Nothing new goes on your face inside a month of 7 November - a reaction three weeks out cannot be undone in time. " +
+        "Nothing new goes on your face inside a month of 28 November - a reaction three weeks out cannot be undone in time. " +
         "So anything below that you want to try, <span style=\"color:var(--chalk);font-weight:600\">start it now</span>, one at a time, " +
         "a fortnight apart so you know what did what.</div>"
       : '<div class="note stop"><b>Nothing new from here</b>' +
@@ -6986,7 +7006,7 @@ function renderSkin() {
 
     '<div class="note flat" style="margin-top:10px"><b>What none of this can do</b>' +
     "Products move barrier and tone. They do not move <b>sleep</b>, <b>being too lean</b>, or <b>how much water you are holding</b> — " +
-    "and those three decide more about how your face looks on 7 November than every bottle listed above put together. " +
+    "and those three decide more about how your face looks on 28 November than every bottle listed above put together. " +
     "A sallow, flat face at 120 lb does not get rescued by a serum.</div>";
 }
 
@@ -7037,11 +7057,11 @@ function renderLook() {
   var el = $("lookBox"); if (!el) return;
   var d = daysToLook(), ph = lookPhase(), tag = $("lookTag");
   var c = cutStatus();
-  if (tag) tag.textContent = d < 0 ? "date passed" : d + " days to 7 Nov";
+  if (tag) tag.textContent = d < 0 ? "date passed" : d + " days to " + deadlineShort();
 
   var head;
   if (ph === "after") {
-    head = '<div class="note good"><b>7 November has been and gone</b>' +
+    head = '<div class="note good"><b>28 November has been and gone</b>' +
       "The reverse is the job now. Everything below still holds \u2014 the look is kept by the same things that built it.</div>";
   } else if (ph === "final") {
     head = '<div class="note stop"><b>Final week \u2014 ' + d + " day" + (d === 1 ? "" : "s") + " to go</b>" +
@@ -7058,7 +7078,7 @@ function renderLook() {
       "you to the date.</span> The only thing still moving should be the scale.</div>";
   } else {
     var lands = c.landing != null ? f1x(c.landing) : null;
-    head = '<div class="note good"><b>' + d + " days to 7 November</b>" +
+    head = '<div class="note good"><b>' + d + " days to 28 November</b>" +
       "This is the working phase and it is almost entirely one thing: get the weight down at the rate on the Progress tab" +
       (lands ? ", which lands you around " + lands + " lb" : "") + ". " +
       "Everything below is what turns that weight into the look rather than just a smaller version of you.</div>";

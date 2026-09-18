@@ -252,7 +252,7 @@ meal plan, weekly food checklist, eight pathways, health notes, honest verdict
 and targets are all behind the reasoning switch rather than deleted.
 
 **The reverse is locked** until the 7-day average has held at or below 123.5 lb
-for a fortnight, or 7 November — whichever comes first.
+for a fortnight, or 28 November — whichever comes first.
 
 **Steps go in beside each day** on the week grid as well as on Nutrition. Both
 write the same record, keyed by the day's real date, so the number only ever
@@ -343,7 +343,7 @@ Block Bests, the PB board and the rolling counts would all miss them.
 recorded.
 
 **Model** — Nutrition and Skincare are one tab now, led by **The Look**: a
-countdown to 7 November and a phase that changes as it approaches.
+countdown to 28 November and a phase that changes as it approaches.
 
 - **Working phase** (over three weeks out) — almost entirely one thing, get the
   weight down at the rate on Progress, and it names the weight that lands you.
@@ -450,7 +450,7 @@ phase logic that drives The Look.
 oats with Estate Dairy milk and raw honey (or eggs), the collagen smoothie,
 meat and roots, the yoghurt bowl. Oats and rice cakes both **certified
 gluten-free**, always. It is labelled as the *cut* version, because breakfast
-changes on 7 November — from the reverse onwards it is 5 eggs and 5 lentil rice
+changes on 28 November — from the reverse onwards it is 5 eggs and 5 lentil rice
 cakes, which carries the calories and suits training better. Nothing else in
 the day moves.
 
@@ -483,6 +483,18 @@ a fortnight apart. The section ends by naming what products cannot do: sleep,
 being too lean and water retention decide more than any bottle, and a flat face
 at 120 lb is not rescued by a serum.
 
+**The window is Saturday 19 September to Saturday 28 November**, his birthday —
+ten weeks rather than seven. The taper came down with it: **0.6% of bodyweight a
+week easing to 0.4%**, not 0.9% to 0.5%. The old rates over the new window would
+have hit the target in week seven and left three weeks of holding; these arrive
+at the deadline, which costs less muscle and less cortisol for the same landing
+weight. The too-fast/too-slow band moved with them (0.3%–0.8%), because the old
+0.5%–1.0% band would have read a correct, gentle rate as too slow every week.
+
+The deadline is no longer a literal string in twenty-five places. `deadlineLabel()`
+and `deadlineShort()` derive it from `REVERSE_DEADLINE`, so moving the date moves
+the words. It has now moved twice.
+
 **The Cut** projects forward as well as back. Every week of the cut gets a row,
 oldest first, with **Should be** — the average the taper asks of that week — and
 **You were**, the average actually logged, with the count and how far off target
@@ -493,7 +505,7 @@ The projected average is the **midpoint** of the week, not its endpoint, because
 that is where a week's average sits when weight comes off evenly.
 
 Building it surfaced a real mis-calibration. The taper's own rates (0.9% easing
-to 0.5%) land at **121.6 lb** on 7 November — which is exactly BMI 18.5, the
+to 0.5%) land at **121.6 lb** on 28 November — which is exactly BMI 18.5, the
 clinical underweight line, with no margin whatever. The projection now clamps at
 **122.5**, the middle of the stated 122–123 target, which means it reaches the
 target at the end of week 7 and holds through week 8. The note says so plainly:
@@ -555,7 +567,7 @@ because you feel you need it beats one taken because the calendar said so. Week
 1km and 800m bests. The field in Setup overrides the default.
 
 **The Cut** — a bounded window on the Progress tab, opening 15 September and
-closing on 7 November whatever happens. The start line is **whatever you first
+closing on 28 November whatever happens. The start line is **whatever you first
 weigh on or after the opening date**, not a number set in advance, because the
 weight you come back from a trip at is not knowable beforehand. From there it
 reports the loss, the days left, **this week's target loss**, and the rate against
@@ -564,7 +576,7 @@ never answered with fewer calories; over it means part of what is leaving is
 muscle and glycogen, and the answer is to eat more. The target **tapers** — 0.9% of bodyweight a week at the start,
 0.5% by the end — because the leaner you get the more of each pound comes out of
 muscle rather than fat, so the same percentage costs more in the last week than
-the first. Hitting a smaller number later is the plan working. The 7 November
+the first. Hitting a smaller number later is the plan working. The 28 November
 landing is projected by walking that taper forward a week at a time rather than
 multiplying today's rate by the weeks left, which would overstate the finish.
 
@@ -601,7 +613,7 @@ three days.
 **A chart of you against the target.** `cutTargetCurve` walks the taper forward
 a day at a time from whatever the first weigh-in actually was, and the chart
 draws your logged weights as a solid line against that target as a dashed one,
-with the 7 November figure marked. Above the dashed line is behind, below is
+with the 28 November figure marked. Above the dashed line is behind, below is
 ahead, and the readout says which and by how much rather than leaving it to the
 eye.
 
