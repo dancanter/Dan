@@ -1089,3 +1089,41 @@ separate alarm replaces it.
 
 Also fixed in passing: the checklist's steps line still read "12,500–13,000"
 after the target moved to a 13,000 average.
+
+## The sleep data
+
+He asked for the numbers, so `sleepStats()` provides them: a **7- and 28-night
+average**, how many of the last seven cleared 7.5 hours, a **14-night bar strip**
+where height is hours and a dot marks a phone-free night, and a **phone-free
+streak**.
+
+The streak is the point rather than decoration. He has had a phone by the bed for
+years, and what makes that change stick is seeing the run of nights, not being
+told it is good for him. It also does not break just because today has not been
+ticked yet — a day that has not finished is not a failure, so the count starts at
+yesterday when today is blank.
+
+`sleepBand()` replaces pass/fail with what a number actually means: under 6 is
+severely short, 6–7 short, 7–7.5 just under, 7.5–9 the range, over 9 long but not
+wrong. Each says what that night does rather than scoring it.
+
+What the streak has bought is keyed to its length — first nights are the hardest,
+three nights is where onset speeds up, a week is where appetite and insulin
+settle, three weeks is where it shows on his face.
+
+The explainer answers what he actually asked: what it does **tonight** (growth
+hormone pulses in early deep sleep, the anabolic window that protects muscle on a
+deficit), **within a week** (insulin sensitivity, ghrelin and leptin, so the
+intake stops being a fight), **for the times** (sleep extension improving sprint
+performance in athletes — the most directly relevant finding there is to a 400m
+target), and **for his skin** (barrier repair and collagen synthesis run hardest
+overnight; chronic cortisol breaks collagen down, which is why his under-eyes
+went first).
+
+On the phone specifically: the gain is mostly **time, not blue light** — 30–60
+minutes more actual sleep, faster onset, no 3am checking — and since the first
+ninety minutes are the deepest, a later bedtime cuts into the most valuable part
+rather than the least.
+
+It closes by saying the studies are mostly small and the direction is what
+replicates, not the exact numbers.

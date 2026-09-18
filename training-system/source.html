@@ -3218,43 +3218,163 @@ function togglePhoneOut() {
   DB.set(dailyKey(new Date()), todayState);
   renderSleep();
 }
+/* The numbers he asked for. Streaks are the point here rather than decoration:
+   he has had a phone by the bed for years, and the thing that makes a habit
+   change stick is seeing the run of nights rather than being told it is good
+   for him. */
+function sleepStats() {
+  var out = { hours: [], nights: [], streak: 0, best: 0, phoneNights: 0,
+    avg7: null, avg28: null, good7: 0, logged7: 0, streakLive: true };
+  var run = 0;
+  for (var k = 0; k < 90; k++) {
+    var dt = new Date(); dt.setDate(dt.getDate() - k);
+    var st = DB.get(dailyKey(dt), null) || {};
+    var h = isFinite(parseFloat(st.sleepH)) ? parseFloat(st.sleepH) : null;
+    var out2 = st.phoneOut === true;
+    if (k < 14) out.nights.push({ date: dayStr(dt), h: h, phoneOut: out2, ago: k });
+    if (h != null) {
+      if (k < 7) { out.hours.push(h); out.logged7++; if (h >= SLEEP_MIN_H) out.good7++; }
+      if (k < 28) out.h28 = (out.h28 || []).concat([h]);
+    }
+    if (out2) out.phoneNights++;
+    /* Today not being ticked yet is not a broken streak - it is a day that has
+       not finished. Start counting at yesterday if today is blank. */
+    if (out.streakLive) {
+      if (out2) run++;
+      else if (k === 0) { /* today pending, keep looking */ }
+      else out.streakLive = false;
+    }
+  }
+  out.streak = run;
+  out.avg7 = out.hours.length ? avg(out.hours) : null;
+  out.avg28 = (out.h28 && out.h28.length) ? avg(out.h28) : null;
+  out.nights.reverse();
+  return out;
+}
+
+/* What a given night actually is, rather than just pass or fail. */
+function sleepBand(h) {
+  if (h == null) return null;
+  if (h < 6) return { k: "bad", label: "severely short",
+    what: "Under six hours is the range where the deficit starts costing you muscle rather than fat, hunger gets genuinely hard to hold, and a hard session lands worse than it should." };
+  if (h < 7) return { k: "bad", label: "short",
+    what: "Enough to blunt insulin sensitivity and lift hunger by tomorrow evening. One of these is nothing; three in a week shows up on the scale as water and in the gym as flat." };
+  if (h < SLEEP_MIN_H) return { k: "warn", label: "just under",
+    what: "Close. Half an hour earlier and this is a good night \u2014 and on a cut that half hour is worth more than anything else you could change today." };
+  if (h <= 9) return { k: "good", label: "in the range",
+    what: "This is the one that pays. Growth hormone comes in pulses concentrated in the first few hours of deep sleep, which is the window that protects muscle while you are eating under maintenance." };
+  return { k: "good", label: "long",
+    what: "No harm in it, and on a hard training week you may genuinely need it. If you need ten hours every night to feel human, that is worth looking at separately \u2014 it usually means the nights before it were short." };
+}
+
 function renderSleep() {
   var el = $("sleepOut"); if (!el) return;
   var tag = $("sleepTag"), h = todayState.sleepH, out = !!todayState.phoneOut;
+  var st = sleepStats(), r = sleepRun(7);
+  var f1 = function (x) { return x.toFixed(1); };
+
   var btn = $("phoneBtn");
   if (btn) { btn.className = "btn" + (out ? " on" : ""); btn.textContent = (out ? "\u2713 " : "") + "Phone out of the room"; }
   var inp = $("sleepH");
   if (inp && document.activeElement !== inp) inp.value = h == null ? "" : h;
+  if (tag) tag.textContent = st.avg7 != null
+    ? f1(st.avg7) + "h avg" + (st.streak ? " \u00b7 " + st.streak + " phone-free" : "")
+    : "nothing logged yet";
 
-  var r = sleepRun(7);
-  if (tag) tag.textContent = r.good + "/" + (r.good + r.bad) + " good this week" +
-    (r.unknown ? " \u00b7 " + r.unknown + " not logged" : "");
-
-  var lines = "";
+  /* tonight */
+  var band = sleepBand(h), lines;
   if (h == null) {
     lines = '<div class="note warn"><b>Log last night</b>' +
-      "Nothing here reads your sleep until you do, and it is the input that changes " +
-      "what the deficit costs you. " + SLEEP_MIN_H + " hours is the line.</div>";
+      "Nothing here reads your sleep until you do, and it is the input that changes what the " +
+      "deficit costs you. " + SLEEP_MIN_H + " hours is the line.</div>";
   } else {
-    lines = '<div class="note ' + (h >= SLEEP_MIN_H ? "good" : "warn") + '"><b>' +
-      h + " hours" + (out ? ", phone out" : "") + "</b>" +
-      (h >= SLEEP_MIN_H
-        ? "Above the " + SLEEP_MIN_H + "-hour line. On a deficit that is the difference between " +
-          "losing fat and losing muscle, and it is worth more than any other single thing you did today."
-        : "Under " + SLEEP_MIN_H + " hours. One night is a night \u2014 nothing to fix. " +
-          "A run of them and the same deficit starts coming off muscle instead of fat, " +
-          "and the hunger gets harder to hold at " + targetKcal() + " kcal.") +
+    lines = '<div class="note ' + (band.k === "good" ? "good" : band.k) + '"><b>' +
+      h + " hours \u2014 " + band.label + (out ? ", phone out" : "") + "</b>" + band.what +
       (out ? "" : "<br><br>Phone was in the room. It is the hour it steals rather than the light \u2014 " +
         "charge it somewhere else and use a separate alarm.") + "</div>";
   }
-  if (r.unknown >= 3) {
-    lines += '<div class="note flat" style="margin-top:10px"><b>' + r.unknown +
-      " of the last 7 nights are not logged</b>" +
-      "Readiness and the deload check both read this, and neither can see a blank. " +
-      "They are not assuming those nights were bad \u2014 they are ignoring them, which on a cut is " +
-      "the more expensive mistake.</div>";
+
+  /* the last fortnight, as data */
+  var strip = st.nights.filter(function (n) { return n.h != null || n.phoneOut; });
+  var bars = "";
+  if (strip.length) {
+    var top = Math.max(9.5, Math.max.apply(null, st.nights.map(function (n) { return n.h || 0; })));
+    bars = '<div class="card" style="padding:12px 14px;margin-top:10px">' +
+      '<div class="chart-title">Last 14 nights</div>' +
+      '<div style="display:flex;align-items:flex-end;gap:3px;height:64px;margin-top:8px">' +
+      st.nights.map(function (n) {
+        var pct = n.h == null ? 0 : Math.max(6, n.h / top * 100);
+        var col = n.h == null ? "var(--line)"
+          : n.h >= SLEEP_MIN_H ? "var(--go)" : n.h >= 7 ? "var(--muted)" : "var(--stop,#e06c6c)";
+        return '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%">' +
+          (n.phoneOut ? '<div style="height:4px;width:4px;border-radius:50%;background:var(--go);margin:0 auto 3px"></div>'
+                      : '<div style="height:7px"></div>') +
+          '<div title="' + n.date + '" style="height:' + pct + '%;background:' + col + ';border-radius:2px"></div></div>';
+      }).join("") + "</div>" +
+      '<div class="block-sub" style="margin:8px 0 0">Bar height is hours, green is ' + SLEEP_MIN_H +
+      "+. A dot above means the phone was out of the room.</div></div>";
   }
-  el.innerHTML = lines;
+
+  /* the averages he asked for */
+  var avgs = "";
+  if (st.avg7 != null) {
+    avgs = '<div class="note flat" style="margin-top:10px"><b>' + f1(st.avg7) +
+      "h over the last 7 nights</b>" +
+      (st.avg28 != null && st.logged7 ? f1(st.avg28) + "h over 28. " : "") +
+      st.good7 + " of " + st.logged7 + " nights at " + SLEEP_MIN_H + "+. " +
+      '<span style="color:var(--chalk);font-weight:600">The average is the number that matters</span> \u2014 ' +
+      "one short night is paid back by the next long one, a short week is not.</div>";
+  }
+
+  /* the streak, and what it has actually bought */
+  var streak = "";
+  if (st.streak > 0) {
+    var gain = st.streak >= 21
+      ? "Three weeks in. This is where it shows on your face rather than just in the numbers \u2014 barrier repair and collagen synthesis both run hardest overnight, and cortisol has had long enough to come down off its baseline."
+      : st.streak >= 7
+      ? "A week of it. Insulin sensitivity and appetite signalling have both had time to settle, which is why " + targetKcal() + " kcal should be getting easier to hold rather than harder."
+      : st.streak >= 3
+      ? "Three nights. Sleep onset gets quicker from here \u2014 the habit is mostly gone by about a week."
+      : "First nights are the hardest. Reaching for it is the habit, not the boredom.";
+    streak = '<div class="note good" style="margin-top:10px"><b>' + st.streak +
+      " night" + (st.streak === 1 ? "" : "s") + " phone-free</b>" + gain + "</div>";
+  }
+
+  var unk = r.unknown >= 3
+    ? '<div class="note flat" style="margin-top:10px"><b>' + r.unknown +
+      " of the last 7 nights are not logged</b>" +
+      "Readiness and the deload check both read this, and neither can see a blank. They are not " +
+      "assuming those nights were bad \u2014 they are ignoring them, which on a cut is the more " +
+      "expensive mistake.</div>"
+    : "";
+
+  el.innerHTML = lines + bars + avgs + streak + unk + sleepWhatItDoes();
+}
+
+/* Asked for directly: what it is doing for his body and his skin. Written to be
+   read once and then collapsed, so it is detail rather than a daily nag. */
+function sleepWhatItDoes() {
+  return '<div class="note flat" data-detail style="margin-top:10px"><b>What it is actually doing</b>' +
+    '<span style="color:var(--chalk);font-weight:600">Tonight.</span> Growth hormone comes in pulses concentrated in ' +
+    "the first few hours of deep sleep. That is the anabolic window, and on a deficit it is most of what stands between " +
+    "losing fat and losing muscle. Glycogen goes back, and cortisol falls to its lowest point of the day.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Within a week.</span> Insulin sensitivity recovers, and ghrelin ' +
+    "and leptin settle \u2014 which in plain terms is that " + targetKcal() + " kcal stops feeling like a fight. " +
+    "Perceived effort drops too, so the same session feels easier at the same pace.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">For the times.</span> Sleep extension has been shown to improve ' +
+    "sprint times in athletes \u2014 the best-known study put basketball players at ten hours in bed and their sprints, " +
+    "reaction time and accuracy all improved. Small study, but it is the most directly relevant finding there is to a " +
+    "400m target.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">For your skin.</span> Overnight is when barrier repair and ' +
+    "collagen synthesis run hardest, and when blood flow to the skin is highest. Chronically raised cortisol does the " +
+    "opposite \u2014 it breaks collagen down. That is the mechanism behind sleep showing on a face faster than almost " +
+    "anything else, and it is why your under-eyes were the first thing to go when you were not sleeping.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">Taking the phone out specifically.</span> Most of the gain is ' +
+    "not blue light, it is time. People who move the phone out of the room typically get 30\u201360 minutes more actual " +
+    "sleep, fall asleep quicker, and stop waking to check it. The first ninety minutes of the night are the deepest, " +
+    "so a later bedtime cuts into the most valuable part of it rather than the least.<br><br>" +
+    '<span style="color:var(--muted)">Individual variation here is large and most of these studies are small. ' +
+    "The direction is well replicated; the exact numbers are not promises.</span></div>";
 }
 
 function checklistFor(d) {
