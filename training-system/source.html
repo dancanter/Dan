@@ -949,12 +949,12 @@ function fmtPace(secPerKm) { return fmtSec(secPerKm) + "/km"; }
 /* Weeks 3+ are a pool of sessions you assign to days rather than a fixed
    weekday grid — which day a session lands on depends on how recovery is
    actually going that week. The plan checks the spacing instead of dictating it. */
-/* Week 7 is the deload, pulled forward from 8: back from Rome and he called it
-   himself, which is the right way round — a deload taken when you feel you need
-   it beats one taken because the calendar said so. Week 12 sits three weeks
-   before the week-13 attempts, which is the spacing that preceded his 1km and
-   800m bests. The field in Setup overrides all of it. */
-var DELOAD_WEEKS_DEFAULT = [4, 7, 12];
+/* Rebuilt for a ten-week block. Weeks 12 and 13 no longer exist, so the old
+   4/7/12 would have given him one deload in the back six weeks and none at all
+   before the attempts. Week 4 and week 8 split it evenly and leave week 9 to
+   sharpen and week 10 for the time trials - the same three-weeks-out spacing
+   that preceded his 1km and 800m bests. The field in Setup overrides it. */
+var DELOAD_WEEKS_DEFAULT = [4, 8];
 function deloadWeeks() {
   var v = settings.deloadWeeks;
   return (v && v.length) ? v : DELOAD_WEEKS_DEFAULT;
