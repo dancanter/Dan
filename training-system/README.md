@@ -1058,3 +1058,34 @@ weeks that were never a cut. Left alone it would have told him to start adding
 calories back in the middle of October. Every week of this block is the cut:
 weeks 1–2 opening, 3–8 the working phase, 9 sharpening, 10 the time trials, and
 the reverse begins after the deadline.
+
+## Sleep, which had no way in
+
+He said sleep is the most important thing in this cut. The app agreed in words —
+it was the first line of the daily checklist, labelled "biggest lever you have" —
+and could not record it. The checklist UI was removed in the trim, and nothing
+else ever wrote `daily.sleep`, so **the field two separate warnings depended on
+was always `undefined`**: readiness could never award its sleep point, and the
+strain and deload checks tested `sleep === false` against a value nothing set.
+
+A **Last Night** block now sits second on the Today tab: hours, and a phone-out
+toggle. Hours derive the boolean the rest of the app already reads
+(`>= SLEEP_MIN_H`, 7.5), so readiness, the strain warning and the deload prompt
+start working rather than being rewired.
+
+`sleepRun(days)` is the shared reader, and it returns **good, bad and unknown**
+separately. The first version counted a day with a record but no sleep field as a
+bad night, which would have made the strain warning fire on evidence that did not
+exist — every day before the control shipped. Unknown stays unknown, and when
+three or more of the last seven nights are blank the panel says so, and says
+plainly that they are being *ignored* rather than judged.
+
+The guidance changed too. The honest case for sleep on a cut is not that it helps
+recovery — it is that at the same deficit, short sleep shifts what you lose
+toward muscle and away from fat. That is stated with the caveat that the studies
+are small. The phone rule names the actual mechanism: not blue light, but that
+the thing is engaging and steals the hour, so it goes in another room and a
+separate alarm replaces it.
+
+Also fixed in passing: the checklist's steps line still read "12,500–13,000"
+after the target moved to a 13,000 average.
