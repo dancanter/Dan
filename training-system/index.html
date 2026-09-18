@@ -855,7 +855,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 21:13";
+var BUILD = "18 Sep 21:21";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5096,12 +5096,22 @@ function deadlineLabel() {
   return d ? d.getDate() + " " + ["January","February","March","April","May","June","July",
     "August","September","October","November","December"][d.getMonth()] : REVERSE_DEADLINE;
 }
-/* The cut starts on the Monday, not the Saturday. The weekend before it is
-   deliberately the water coming off - a refeed Friday night, then two days of
-   shedding it - so nothing weighed on those two mornings is cutting weight. It
-   also makes the cut and the block share one Monday-to-Sunday week, which means
-   cut week N and block week N are finally the same week. */
-var CUT_START_DEFAULT = "2026-09-21";
+/* Two dates, because they answer two different questions.
+
+   The CUT starts Saturday. From that morning he is on the intake, the steps and
+   the sessions, and every day of it counts toward the goals - that is behaviour,
+   and behaviour starts when he says it starts.
+
+   The WEIGHING starts Monday. The weekend is a refeed followed by two days of
+   shedding what it put on, so Saturday and Sunday mornings are sodium and
+   glycogen rather than bodyweight. Seeding a ten-week curve on either would
+   build every target off a number that was never real, and it would also hand
+   him a flattering first week that is pure water.
+
+   Collapsing these into one date was wrong in both directions: starting
+   everything Monday stopped counting two days he is really cutting for, and
+   starting everything Saturday poisons the start line. */
+var CUT_START_DEFAULT = "2026-09-19";
 /* 0.5-1% of bodyweight a week. Below the floor is barely worth the hunger;
    above the ceiling stops being fat and starts being muscle and glycogen, which
    you hand straight back on the reverse. */
@@ -5124,10 +5134,27 @@ function cutTargetPct(frac) {
   return CUT_RATE_START + (CUT_RATE_END - CUT_RATE_START) * f;
 }
 function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
+/* The scale starts on the first Monday of the cut. Two reasons, pointing the
+   same way: the opening days are water rather than bodyweight, and weeks here
+   run Monday to Sunday, so starting the curve on a Monday gives whole weeks
+   instead of a stub. A cut that opens on a Monday starts weighing that morning.
+
+   This is a rule rather than a date. Pinning it to an absolute day worked for
+   one calendar and broke the moment the cut start moved - every readout that
+   filters on it went empty, because the pinned Monday was in the future. */
+function cutWeighStart() {
+  var c = cutStart();
+  if (settings.cutWeighStart) return settings.cutWeighStart > c ? settings.cutWeighStart : c;
+  var d = parseDay(c);
+  if (!d) return c;
+  var dow = (d.getDay() + 6) % 7;                 /* 0 = Monday */
+  if (dow) d.setDate(d.getDate() + (7 - dow));
+  return dayStr(d);
+}
 /* The weight the cut works from: mornings inside the window and nothing else.
    Null until there is one, so callers can fall back to the whole log. */
 function cutCurrentLb() {
-  var asc = sortedWeights().filter(function (x) { return x.date >= cutStart(); });
+  var asc = sortedWeights().filter(function (x) { return x.date >= cutWeighStart(); });
   if (!asc.length) return null;
   var wr = weeklyRateOf(asc);
   return wr && wr.cur ? wr.cur : asc[asc.length - 1].weight;
@@ -5154,16 +5181,22 @@ function fmtDate(iso) {
 /* The start line is whatever you first weigh on or after the day you begin,
    because you do not know today what you will come back from Rome at. */
 function cutStatus() {
-  var start = cutStart(), asc = sortedWeights();
-  var todayD = parseDay(today()), startD = parseDay(start), endD = parseDay(REVERSE_DEADLINE);
-  var out = { start: start, startsIn: daysBetween(todayD, startD),
+  /* The window is the cut's, the weights are the weighing start's. */
+  var start = cutStart(), weighFrom = cutWeighStart(), asc = sortedWeights();
+  var todayD = parseDay(today()), startD = parseDay(weighFrom), endD = parseDay(REVERSE_DEADLINE);
+  var out = { start: start, weighFrom: weighFrom,
+    startsIn: daysBetween(todayD, parseDay(start)),
+    weighIn: daysBetween(todayD, startD),
     daysLeft: daysBetween(todayD, endD), weeksLeft: daysBetween(todayD, endD) / 7,
     total: daysBetween(startD, endD) / 7 };
-  if (out.startsIn > 0) return out;
-  var inWindow = asc.filter(function (w) { return w.date >= start; });
+  if (out.weighIn > 0) return out;
+  var inWindow = asc.filter(function (w) { return w.date >= weighFrom; });
   if (!inWindow.length) return out;
   out.first = inWindow[0];
   out.days = daysBetween(parseDay(out.first.date), todayD);
+  /* Days of deficit, which began when the cut did - not when the scale did.
+     Anything gated on "how long have you been cutting" wants this one. */
+  out.cutDays = daysBetween(parseDay(start), todayD);
   /* In-cut mornings only, everywhere - not just in the projection. A rolling
      average that reaches back over the start day blends a refeed into the number
      the whole panel reads from, and a rate measured across it compares a week of
@@ -5260,7 +5293,7 @@ function cutFloorLb() { return bmiWeights().under; }
 var BASELINE_WINDOW = 7;
 var BASELINE_MIN = 2;
 function cutBaseline() {
-  var startD = parseDay(cutStart());
+  var startD = parseDay(cutWeighStart());
   if (!startD) return null;
   var winTo = new Date(startD.getTime());
   winTo.setDate(winTo.getDate() + BASELINE_WINDOW - 1);
@@ -5272,7 +5305,7 @@ function cutBaseline() {
   var use = sortedWeights().filter(function (x) {
     var d = parseDay(x.date);
     return d && d >= startD && d <= winTo;
-  });
+  });   /* the water weekend sits before startD and never gets in */
   if (use.length < BASELINE_MIN) {
     return { ready: false, n: use.length, need: BASELINE_MIN - use.length,
       from: dayStr(startD), to: dayStr(winTo) };
@@ -5299,12 +5332,12 @@ function cutCountdown() {
      14 of 69" while the countdown beside it called the same window 68 days. */
   return { days: days, weeks: days / 7, startsIn: daysBetween(todayD, startD),
     total: daysBetween(startD, endD) + 1, done: days < 0,
-    weeksOfCut: cutWeekRanges(startD, endD).length,
+    weeksOfCut: cutWeekRanges(parseDay(cutWeighStart()), endD).length,
     elapsed: Math.max(0, daysBetween(startD, todayD)) };
 }
 
 function cutForecast() {
-  var startD = parseDay(cutStart()), endD = parseDay(REVERSE_DEADLINE);
+  var startD = parseDay(cutWeighStart()), endD = parseDay(REVERSE_DEADLINE);
   if (!startD || !endD) return [];
   var base = cutBaseline();
   if (!base || !base.ready) return [];
@@ -5338,8 +5371,8 @@ function cutForecast() {
 
 function cutWeeks() {
   var c = cutStatus();
-  if (!c.first || c.startsIn > 0) return [];
-  var startD = parseDay(c.start), todayD = parseDay(today());
+  if (!c.first || c.weighIn > 0) return [];
+  var startD = parseDay(c.weighFrom), todayD = parseDay(today());
   var span = daysBetween(startD, parseDay(REVERSE_DEADLINE));
   var ranges = cutWeekRanges(startD, todayD);
   var out = [], prevAvg = null;
@@ -5393,10 +5426,15 @@ function renderCutWeeks() {
         : '<span style="color:var(--chalk);font-weight:600">' + fmtDate(REVERSE_DEADLINE) +
           "</span> is " + cd.days + " days away — " + cd.weeks.toFixed(1) + " weeks. " +
           (cd.startsIn > 0
-            ? "The cut itself runs " + cd.total + " days from " + fmtDate(cutStart()) + " \u2014 " +
-              cd.weeksOfCut + " weeks, Monday to Sunday, the last of them ending on " +
-              deadlineShort() + " itself."
-            : "You are " + cd.elapsed + " day" + (cd.elapsed === 1 ? "" : "s") + " in, of " + cd.total + ".")) +
+            ? "The cut runs " + cd.total + " days from " + fmtDate(cutStart()) + "."
+            : "You are " + cd.elapsed + " day" + (cd.elapsed === 1 ? "" : "s") + " in, of " + cd.total + ".") +
+          (cutWeighStart() > cutStart()
+            ? '<br><br><span style="color:var(--muted)">The scale starts later than the cut does. ' +
+              "You are cutting from " + fmtD(cutStart()) + ", but the start line is taken from " +
+              fmtD(cutWeighStart()) + " \u2014 " + cd.weeksOfCut +
+              " Monday-to-Sunday weeks, the last ending on " + deadlineShort() +
+              ". The weekend between is the water, and it is not a weight you were.</span>"
+            : "")) +
       "</div>"
     : "";
 
@@ -5414,7 +5452,7 @@ function renderCutWeeks() {
       BASELINE_MIN + " of them before it means anything. " +
       (base && base.n ? "You have logged " + base.n + " so far. " : "") +
       '<span style="color:var(--chalk);font-weight:600">Nothing you weigh before ' +
-      fmtDate(cutStart()) + " counts.</span> " +
+      fmtDate(cutWeighStart()) + " counts.</span> " +
       "The weekend before it is the water coming off \u2014 a refeed, then two days of shedding it. " +
       "Those mornings are glycogen and sodium rather than bodyweight, and a curve built on one of them " +
       "would set ten weeks of targets off a number that was never real.</div>";
@@ -5597,7 +5635,7 @@ function cutSessionsOn(dt) {
   return out;
 }
 function cutCurrentWeek() {
-  var startD = parseDay(cutStart()), todayD = parseDay(today());
+  var startD = parseDay(cutStart()), todayD = parseDay(today());   /* the tick sheet is the cut's, not the scale's */
   if (!startD || todayD < startD) return null;
   var ranges = cutWeekRanges(startD, parseDay(REVERSE_DEADLINE));
   for (var i = 0; i < ranges.length; i++) {
@@ -6104,7 +6142,10 @@ function patienceNote(asc, lh) {
    while the rate is fine just slows the cut down for nothing. */
 function refeedCall() {
   var c = cutStatus(), wr = weeklyRate();
-  if (!c.first || c.days == null || c.days < 14 || !wr || !wr.ready) return "";
+  /* Fourteen days of deficit, counted from the cut rather than from the first
+     weigh-in - the hunger started on the Saturday whatever the scale was doing. */
+  var deficitDays = c.cutDays != null ? c.cutDays : c.days;
+  if (!c.first || deficitDays == null || deficitDays < 14 || !wr || !wr.ready) return "";
 
   var reasons = [];
   var lo = c.cur * CUT_RATE_LOW;
@@ -6135,6 +6176,26 @@ function refeedCall() {
     "Expect the scale up 1\u20132 lb the morning after: that is glycogen and water, and it is gone within three days.</div>";
 }
 
+/* Pulled out so the panel can show it before the scale has started. It is a
+   fact about his height and his target, not about his logged weights. */
+function floorNote() {
+  var bw = bmiWeights();
+  var f1 = function (x) { return x.toFixed(1); };
+  return '<div class="note warn" style="margin-top:10px"><b>Your floor is ' +
+      f1(bw.under) + ' lb, and it is not a cautious guess</b>' +
+      "At 5\u20328\u2033 that is the weight where BMI hits 18.5, which is the clinical underweight line. " +
+      "Your 122 target sits at BMI " + bw.atTarget.toFixed(1) + " — " +
+      '<span style="color:var(--chalk);font-weight:600">about a pound of headroom under it, and no more than that.</span> ' +
+      "You are at " + bw.curBmi.toFixed(1) + " today. That is the whole margin you are working inside, and it is why " +
+      "the rate matters more for you than it would for someone with a stone to lose.<br><br>" +
+      "That number is a hard stop rather than a target. " +
+      '<span style="color:var(--chalk);font-weight:600">The real floor is whichever arrives first — that weight, or two or three of these:</span> ' +
+      "morning HR drifting up and staying up · strength dropping in the gym rather than stalling · sprint times going " +
+      "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
+      "Those are all tracked here except the last two. If they start at 125, then 125 is your bottom and the " +
+      "arithmetic above stops mattering.</div>";
+}
+
 function renderCut() {
   var el = $("cutBox"); if (!el) return;
   renderCutChart(); weighFeedback();
@@ -6156,9 +6217,20 @@ function renderCut() {
     return;
   }
   if (!c.first) {
-    el.innerHTML = '<div class="note warn"><b>Log a weight and this starts</b>' +
-      "The cut window opened on " + fmtDate(c.start) + ". The first weight you log becomes the start line and everything " +
-      "here is measured from it. " + c.daysLeft + " days to 28 November.</div>" + band;
+    /* The floor and the safe band are facts about him, not about his data, so
+       they belong here too. Without them the whole panel goes blank for the
+       days between the cut opening and the scale starting - which is exactly
+       when he is most likely to open it. */
+    el.innerHTML = '<div class="note warn"><b>' +
+      (c.weighIn > 0
+        ? "The scale starts " + fmtDate(c.weighFrom) + "</b>" +
+          "You are cutting from " + fmtDate(c.start) + ", but the first mornings are water rather than " +
+          "bodyweight. The start line is taken from " + fmtDate(c.weighFrom) + ", and every number here " +
+          "fills in from there."
+        : "Log a weight and this starts</b>" +
+          "The cut window opened on " + fmtDate(c.start) + ". The first weight you log becomes the start line " +
+          "and everything here is measured from it.") +
+      " " + c.daysLeft + " days to " + deadlineLabel() + ".</div>" + band + floorNote();
     return;
   }
 
@@ -6220,20 +6292,7 @@ function renderCut() {
       "That is the honest arithmetic. Going below it means going faster than is safe, not trying harder.</div>"
     : "";
 
-  var bw = bmiWeights();
-  var floor = '<div class="note warn" style="margin-top:10px"><b>Your floor is ' +
-    f1(bw.under) + ' lb, and it is not a cautious guess</b>' +
-    "At 5\u20328\u2033 that is the weight where BMI hits 18.5, which is the clinical underweight line. " +
-    "Your 122 target sits at BMI " + bw.atTarget.toFixed(1) + " — " +
-    '<span style="color:var(--chalk);font-weight:600">about a pound of headroom under it, and no more than that.</span> ' +
-    "You are at " + bw.curBmi.toFixed(1) + " today. That is the whole margin you are working inside, and it is why " +
-    "the rate matters more for you than it would for someone with a stone to lose.<br><br>" +
-    "That number is a hard stop rather than a target. " +
-    '<span style="color:var(--chalk);font-weight:600">The real floor is whichever arrives first — that weight, or two or three of these:</span> ' +
-    "morning HR drifting up and staying up · strength dropping in the gym rather than stalling · sprint times going " +
-    "backwards while the sessions feel the same · sleep breaking up · libido gone · always cold. " +
-    "Those are all tracked here except the last two. If they start at 125, then 125 is your bottom and the " +
-    "arithmetic above stops mattering.</div>";
+  var floor = floorNote();
 
   /* Coming off four days away, the first pound or two is food volume, sodium
      and glycogen rather than fat. Saying so up front stops a flattering first

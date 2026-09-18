@@ -1002,23 +1002,46 @@ A new low gets its own line above everything else, with what it beat and how lon
 ago — and `WEIGHT_MARKS` names the round numbers so 127 and 125 are things you go
 *through* rather than past.
 
-## One start date, and a water weekend before it
+## Two dates, because there are two questions
 
-The cut and block **both open Monday 21 September**. The weekend before it —
-Saturday 19 and Sunday 20 — is deliberately the water coming off: a refeed Friday
-night, then two days of shedding it. Nothing weighed on those two mornings is
-cutting weight, so neither one seeds the start line; Monday's does.
+**The cut starts Saturday 19 September. The scale starts Monday 21.**
 
-This also collapsed a distinction that was costing more than it bought. Cut week
-N and block week N are now the **same Monday-to-Sunday week**, there is no stub
-first week any more, and all ten weeks are full sevens with the last ending on
-28 November itself.
+They answer different questions and collapsing them was wrong in both
+directions. The cut is behaviour: from Saturday morning he is on the intake, the
+steps and the sessions, and every day counts toward the goals — `cutStart()`.
+The weighing is measurement: the weekend is a refeed followed by two days of
+shedding what it put on, so Saturday and Sunday mornings are sodium and glycogen
+rather than bodyweight — `cutWeighStart()`.
 
-It also caught a disagreement between two counters: `cutTally()` counted the
-window inclusively (69 days) and `cutCountdown()` exclusively (68), so the goals
-panel said "day 14 of 69" while the countdown beside it called the same window 68
-days. Both are inclusive now. The copy claiming "10 weeks exactly" was wrong too
-— 69 days is 9.86 weeks — and now reports the real week count instead.
+Starting everything on the Monday stopped counting two days he is really cutting
+for. Starting everything on the Saturday poisons the start line and hands him a
+flattering first week that is pure water.
+
+`cutWeighStart()` is **a rule, not a date**: the first Monday on or after the cut
+start, so a cut opening on a Monday weighs that morning. Pinning it to an
+absolute day worked for one calendar and broke the moment the cut start moved —
+every readout filtering on it went empty, because the pinned Monday was in the
+future.
+
+What reads which:
+
+| From the cut start | From the weighing start |
+|---|---|
+| the countdown and day count | the baseline and the projection |
+| the goals (`cutTally`) | the 7-day average, the rate, BMI |
+| Did the Day | the actual-vs-target week table |
+| the refeed gate — 14 days of *deficit*, not of weighing | |
+
+The weight weeks are all full Monday-to-Sundays now, with no stub, the last
+ending on 28 November itself.
+
+Two things fell out of it. `cutTally()` counted its window inclusively (71 days)
+and `cutCountdown()` exclusively (70), so the goals panel said "day 14 of 71"
+beside a countdown calling the same window 70 days; both are inclusive now. And
+the cut panel used to go completely blank between the cut opening and the scale
+starting — precisely when he would open it — so `floorNote()` was pulled out and
+the waiting state now carries the floor and the safe band, which are facts about
+his height and his target rather than about his logged weights.
 
 Those two days still need somewhere to be logged — a 3km test on the Saturday is
 a real session. **Week 0** is the Monday-to-Sunday week before the block, in the
