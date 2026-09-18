@@ -513,22 +513,60 @@ say on one day. His own three readings that week spanned 1.4 lb (128.6 / 127.8 /
 low one half a pound low, and week one reads wrong either way for no reason but
 luck.
 
-The baseline prefers the **first seven days inside the cut** and needs two
-readings to use them; until then it falls back to the **seven days before the
-start**, which on day one is the only thing that exists. So it reads as a
-pre-cut average the day before, and re-reads itself from real in-cut mornings as
-soon as two are logged, without anything being re-entered.
+The baseline uses the **first seven days inside the cut** and needs two readings
+before it will draw anything. Nothing from before the start day counts, and that
+is deliberate rather than tidy-mindedness: he refeeds the night before he starts,
+so the last pre-cut morning is carbohydrate and water. Seeding ten weeks of
+targets on it would build the whole curve off a number that was never bodyweight.
+Until the second morning is logged the panel says what it is waiting for and why.
 
-Readings taken inside the cut are **walked back to the start day** at the opening
-rate, because an average sits at the middle of the days it came from rather than
-the first of them. Readings from before the start are not walked back — nothing
-was coming off yet.
+Readings are **walked back to the start day** at the opening rate, because an
+average sits at the middle of the days it came from rather than the first of
+them. The note shows both numbers — the measured average as the headline, the
+walked-back figure named separately as what the curve actually starts from.
 
-Because a start line can exist before the cut does, the table now renders
-**before the window opens**: all eleven weeks, targets filled in, actuals blank.
-The tag counts down instead of counting weeks. The final row's label is clamped
-to the deadline — its length always was, but the label read as ending after the
-cut it belonged to.
+The final row's label is clamped to the deadline — its length always was, but
+the label read as ending after the cut it belonged to.
+
+**A countdown** sits at the top of the section: days to 28 November, the same in
+weeks, and either how long until the cut opens or how far into it he is.
+`cutCountdown()` derives all of it from `REVERSE_DEADLINE` and `cutStart()`.
+
+`fmtD()` and `fmtDate()` now build **day-first dates by hand** instead of calling
+`toLocaleDateString`. `deadlineLabel()` always spelled out "28 November", so on
+any device not set to British English the page read "28 November" in one sentence
+and "September 19" in the next.
+
+## Did the Day
+
+Two ticks a day — calories and steps — on the Model tab under The Cut. The
+distinction it draws is between being on a cut and saying you are.
+
+The numbers are **his own template from the last time he got shredded**, not a
+generic one: 15,000 steps Monday to Friday, a deliberate low Saturday, 10,000 on
+Sunday, two hard runs, a five mile, and either sprints or an easy 5km. Copying a
+week that demonstrably worked for him beats inventing a better one.
+
+Saturday is a **ceiling rather than a floor** — under 8,000. A 15,000-step
+Saturday is not a better week, it is a missing rest day.
+
+Calories cycle with the training: `cutKcalFor()` returns `targetKcal() + 200` on
+a day with a hard run and `targetKcal() - 80` otherwise, which averages back to
+the number he set, so the cycle never quietly becomes a bigger deficit than he
+chose. Hard days are read off `cutSessionsOn()` — the week grids, by date — so
+the sheet follows the week he actually did rather than the one he planned.
+
+Steps **tick themselves** from the count already logged on the Nutrition tab, so
+he is not entering a number and then ticking a box for the same number. The tick
+stays overridable in both directions: `stepOk` is tri-state, and an explicit
+`false` survives a step count that would otherwise pass.
+
+The verdict is **5 of 7 days clean**, not 7 of 7. A rule you break once and
+abandon is worse than one you can hold, and two ordinary days off target across a
+week do not undo a deficit. When the week is short of the mark it names whether
+calories or steps is the lower of the two, because that is the one to fix.
+
+Future days render disabled — a day that has not happened cannot be a missed one.
 
 Building it surfaced a real mis-calibration. The taper's own rates (0.9% easing
 to 0.5%) land at **121.6 lb** on 28 November — which is exactly BMI 18.5, the

@@ -163,6 +163,20 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 .check-label b{display:block;font-weight:600}
 .check-label span{color:var(--muted);font-size:11.8px;display:block;margin-top:1px}
 
+/* ---------- the cut's daily tick sheet ---------- */
+.cutday{display:grid;grid-template-columns:46px 1fr 1fr;gap:6px;align-items:stretch;margin-bottom:6px}
+.cutday-d{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;display:flex;flex-direction:column;justify-content:center;line-height:1.25}
+.cutday-d em{font-style:normal;color:var(--muted-2);font-size:9.5px}
+.cutday.now .cutday-d{color:var(--chalk);font-weight:600}
+.cutday.ahead{opacity:.42}
+.tickbox{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;cursor:pointer;width:100%;text-align:left;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tickbox.on{background:linear-gradient(90deg,var(--go-wash),var(--surface) 70%);border-color:var(--go-dim);color:var(--chalk)}
+.tickbox .check-box{width:15px;height:15px;font-size:10px}
+.tickbox.on .check-box{border-color:var(--go);background:var(--go-dim)}
+.tickbox:disabled{cursor:default}
+.tickbox b{font-weight:600;color:inherit}
+.tickbox i{font-style:normal;color:var(--muted-2);display:block;font-size:9.5px}
+
 /* streak grid */
 .streak-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-bottom:8px}
 .sq{aspect-ratio:1;border-radius:2px;background:var(--surface-2);border:1px solid var(--line-soft)}
@@ -625,6 +639,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="cutWeeksOut"></div>
     </section>
 
+    <section class="block" data-fold="cutdays">
+      <h2 class="block-title">Did the Day <span class="tag" id="cutDaysTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">Two ticks a day — calories and steps. This is the difference between being on a cut and saying you are.</p>
+      <div id="cutDaysOut"></div>
+    </section>
+
     <section class="block" data-fold="skin">
       <h2 class="block-title">Skin <span class="tag" id="skinTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Everything for the glow, in the order it actually matters. Built around skin that reacts.</p>
@@ -824,7 +844,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 15:06";
+var BUILD = "18 Sep 15:20";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5047,13 +5067,21 @@ function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
 /* Short day-and-month, for week ranges. renderReview has called this for a
    while without it ever existing - it only never threw because that section
    is unreachable in this build. */
+/* Day first, spelled out here rather than left to the browser's locale.
+   deadlineLabel() has always built "28 November" by hand, so on any device that
+   is not set to British English the page read "28 November" in one sentence and
+   "September 19" in the next. */
+var MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var MONTHS_LONG = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
 function fmtD(d) {
   var dt = (d instanceof Date) ? d : parseDay(d);
-  return dt ? dt.toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+  return dt ? dt.getDate() + " " + MONTHS_SHORT[dt.getMonth()] : "";
 }
 function fmtDate(iso) {
-  var d = parseDay(iso);
-  return d ? d.toLocaleDateString([], { day: "numeric", month: "long" }) : iso;
+  var d = (iso instanceof Date) ? iso : parseDay(iso);
+  return d ? d.getDate() + " " + MONTHS_LONG[d.getMonth()] : iso;
 }
 /* The start line is whatever you first weigh on or after the day you begin,
    because you do not know today what you will come back from Rome at. */
@@ -5150,49 +5178,52 @@ function cutFloorLb() { return bmiWeights().under; }
    curve sits half a pound too high, from the low one half a pound too low, and
    week one reads wrong either way for no reason but luck. */
 var BASELINE_WINDOW = 7;
+var BASELINE_MIN = 2;
 function cutBaseline() {
   var startD = parseDay(cutStart());
   if (!startD) return null;
-  var asc = sortedWeights();
   var winTo = new Date(startD.getTime());
   winTo.setDate(winTo.getDate() + BASELINE_WINDOW - 1);
-  var preFrom = new Date(startD.getTime());
-  preFrom.setDate(preFrom.getDate() - BASELINE_WINDOW);
-
-  var pick = function (from, to) {
-    return asc.filter(function (x) {
-      var d = parseDay(x.date);
-      return d && d >= from && d <= to;
-    });
-  };
-  /* The first week of the cut is the real baseline. Until it has two readings in
-     it, the week before the start is the best thing that exists - and on day one
-     it is the only thing that exists. */
-  var use = pick(startD, winTo), kind = "window";
-  if (use.length < 2) {
-    var pre = pick(preFrom, winTo);
-    if (pre.length > use.length) { use = pre; kind = use.length > 1 ? "pre" : "single"; }
-    else if (use.length < 2) kind = "single";
+  /* Readings from inside the cut only. The week before it opens looks like data
+     and is not: he refeeds the day before he starts, so the last pre-cut morning
+     is carbohydrate and water, and seeding the whole curve on it would build ten
+     weeks of targets on a number that was never bodyweight. Nothing before the
+     start day counts, however tempting it is to use it. */
+  var use = sortedWeights().filter(function (x) {
+    var d = parseDay(x.date);
+    return d && d >= startD && d <= winTo;
+  });
+  if (use.length < BASELINE_MIN) {
+    return { ready: false, n: use.length, need: BASELINE_MIN - use.length,
+      from: dayStr(startD), to: dayStr(winTo) };
   }
-  if (!use.length) return null;
 
   var lb = avg(use.map(function (x) { return x.weight; }));
-  /* An average sits at the middle of the days it came from, so if those days are
-     inside the cut it is already a few days of loss below the start line. Walk it
-     back at the opening rate. Readings from before the start need no walking -
-     nothing was coming off yet. */
+  /* An average sits at the middle of the days it came from, so it is already a
+     few days of loss below the start line. Walk it back at the opening rate. */
   var off = avg(use.map(function (x) {
-    return Math.max(0, daysBetween(startD, parseDay(x.date)));
+    return daysBetween(startD, parseDay(x.date));
   }));
-  return { lb: lb + lb * cutTargetPct(0) / 7 * off, avg: lb, n: use.length, kind: kind,
+  return { ready: true, lb: lb + lb * cutTargetPct(0) / 7 * off, avg: lb, n: use.length,
     from: use[0].date, to: use[use.length - 1].date, offset: off };
+}
+
+/* Days to the deadline, and what that is in weeks. He asks for this often enough
+   that it belongs in the page rather than in a reply. */
+function cutCountdown() {
+  var todayD = parseDay(today()), endD = parseDay(REVERSE_DEADLINE), startD = parseDay(cutStart());
+  if (!todayD || !endD) return null;
+  var days = daysBetween(todayD, endD);
+  return { days: days, weeks: days / 7, startsIn: daysBetween(todayD, startD),
+    total: daysBetween(startD, endD), done: days < 0,
+    elapsed: Math.max(0, daysBetween(startD, todayD)) };
 }
 
 function cutForecast() {
   var startD = parseDay(cutStart()), endD = parseDay(REVERSE_DEADLINE);
   if (!startD || !endD) return [];
   var base = cutBaseline();
-  if (!base) return [];
+  if (!base || !base.ready) return [];
 
   var span = daysBetween(startD, endD);
   var ranges = cutWeekRanges(startD, endD);
@@ -5267,20 +5298,45 @@ function renderCutWeeks() {
      only the number to aim at. */
   var fc = cutForecast(), base = cutBaseline(), byWeek = {};
 
+  var cd = cutCountdown();
+  var countdown = cd
+    ? '<div class="note ' + (cd.done ? "flat" : "good") + '"><b>' +
+      (cd.done ? "The cut is over" :
+       cd.startsIn > 0
+         ? cd.startsIn + " day" + (cd.startsIn === 1 ? "" : "s") + " until it starts"
+         : cd.days + " day" + (cd.days === 1 ? "" : "s") + " left") + "</b>" +
+      (cd.done ? deadlineLabel() + " has been and gone."
+        : '<span style="color:var(--chalk);font-weight:600">' + fmtDate(REVERSE_DEADLINE) +
+          "</span> is " + cd.days + " days away — " + cd.weeks.toFixed(1) + " weeks. " +
+          (cd.startsIn > 0
+            ? "The cut itself runs " + cd.total + " days from " + fmtDate(cutStart()) + ", which is " +
+              (cd.total / 7).toFixed(0) + " weeks exactly."
+            : "You are " + cd.elapsed + " day" + (cd.elapsed === 1 ? "" : "s") + " in, of " + cd.total + ".")) +
+      "</div>"
+    : "";
+
   /* The projection only needs a start line, and a start line can exist before
-     the cut does. Showing all eleven weeks the day before it opens is the point
-     of the thing - he wants to see the curve he is about to walk. */
+     the cut does. Showing every week the day it opens is the point of the thing -
+     he wants to see the curve he is about to walk. */
   if (!fc.length) {
-    if (tag) tag.textContent = "";
-    el.innerHTML = '<div class="note flat"><b>Nothing logged in the cut yet</b>' +
-      (c.startsIn > 0
-        ? "It starts in " + c.startsIn + " day" + (c.startsIn === 1 ? "" : "s") + "."
-        : "Log a weight and the first week fills in.") + "</div>";
+    if (tag) tag.textContent = cd && cd.startsIn > 0
+      ? "starts in " + cd.startsIn + " day" + (cd.startsIn === 1 ? "" : "s") : "";
+    var need = base && base.need ? base.need : BASELINE_MIN;
+    el.innerHTML = countdown +
+      '<div class="note warn" style="margin-top:10px"><b>Waiting on ' + need +
+      " weigh-in" + (need === 1 ? "" : "s") + " to draw the curve</b>" +
+      "The start line is the average of your first mornings <em>inside</em> the cut, and it needs " +
+      BASELINE_MIN + " of them before it means anything. " +
+      (base && base.n ? "You have logged " + base.n + " so far. " : "") +
+      '<span style="color:var(--chalk);font-weight:600">Nothing you weigh before ' +
+      fmtDate(cutStart()) + " counts.</span> " +
+      "A refeed the night before puts a pound of water and glycogen on the scale, and a curve built on " +
+      "that would set ten weeks of targets off a number that was never bodyweight.</div>";
     return;
   }
   if (tag) tag.textContent = c.startsIn > 0
     ? "starts in " + c.startsIn + " day" + (c.startsIn === 1 ? "" : "s")
-    : "week " + rows.length + " of " + Math.ceil(c.total);
+    : "week " + rows.length + " of " + Math.ceil(c.total) + " · " + cd.days + "d left";
   rows.forEach(function (r) { byWeek[r.w] = r; });
 
   var body = fc.map(function (f) {
@@ -5324,23 +5380,18 @@ function renderCutWeeks() {
   /* Say what the curve is built on, in the open. A projection whose start line
      you cannot see is a number you have to take on trust, and the one thing he
      should be able to check is whether it started from a real weight. */
-  var startLine = base
-    ? '<div class="note ' + (base.n >= 2 ? "flat" : "warn") + '"><b>Start line ' +
-      f1(base.lb) + " lb</b>" +
-      (base.n >= 2
-        ? "The average of <b>" + base.n + " weigh-ins</b>, " + fmtD(base.from) +
-          "–" + fmtD(base.to) +
-          (base.kind === "pre"
-            ? ", the week before it opens. It re-reads itself from your first week inside the cut as soon as two mornings are logged in it."
-            : ", your first week inside the cut.") +
-          (base.offset > 0.05
-            ? " Walked back " + base.offset.toFixed(1) + " days to the start day, because an average " +
-              "sits at the middle of the days it came from, not the first of them."
-            : "") +
-          "<br><br>Every row below is an average against an average, which is the only comparison that means anything. " +
-          "One morning would not do — your last three spanned 1.4 lb."
-        : "Only one weigh-in to build it from, so treat the whole curve as provisional. " +
-          "Log a second and it becomes an average.") + "</div>"
+  var startLine = base && base.ready
+    ? '<div class="note flat"><b>Start line ' + f1(base.avg) + " lb</b>" +
+      "The average of <b>" + base.n + " weigh-in" + (base.n === 1 ? "" : "s") + "</b>, " +
+      fmtD(base.from) + "–" + fmtD(base.to) + ", all of them inside the cut." +
+      (base.offset > 0.05
+        ? " The curve itself starts from " + f1(base.lb) + " — that same average walked back " +
+          base.offset.toFixed(1) + " days to the start day, because an average sits at the middle " +
+          "of the days it came from, not the first of them."
+        : "") +
+      "<br><br>Every row below is an average against an average, which is the only comparison that means anything. " +
+      "One morning would not do — three of yours before the start spanned 1.4 lb, and the last of them " +
+      "was a refeed.</div>"
     : "";
 
   var holdWeek = null;
@@ -5378,7 +5429,8 @@ function renderCutWeeks() {
       "</div>";
   }
 
-  el.innerHTML = startLine + (startLine ? '<div style="height:10px"></div>' : "") + head + land + sum +
+  el.innerHTML = countdown + '<div style="height:10px"></div>' +
+    startLine + (startLine ? '<div style="height:10px"></div>' : "") + head + land + sum +
     '<div class="note flat" style="margin-top:10px"><b>How to read it</b>' +
     '<span style="color:var(--chalk)">Should be</span> is the average the taper asks of that week. ' +
     "It tapers 0.6% of bodyweight a week at the start to 0.4% by the end, because the same percentage " +
@@ -5392,6 +5444,201 @@ function renderCutWeeks() {
     "does not justify.<br><br>" +
     "A week marked <b>short</b> is worth looking at, not acting on. " +
     '<span style="color:var(--chalk);font-weight:600">Two short weeks in a row is a signal; one is noise.</span></div>';
+}
+
+/* ---------- the daily tick sheet ----------------------------------------
+   Not a generic template. This is what he actually did the last time he got
+   shredded: 15k Monday to Friday, a deliberate low Saturday, 10k Sunday, two
+   hard runs, a five mile, and either sprints or an easy 5km. Copying his own
+   working week beats inventing a better one. */
+var CUT_STEPS = [10000, 15000, 15000, 15000, 15000, 15000, null];  /* Sun .. Sat */
+/* Saturday is a ceiling rather than a floor. The low day is the point of it -
+   a 15,000-step Saturday is not a better week, it is a missing rest day. */
+var CUT_SAT_CEILING = 8000;
+var CUT_DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/* Two hard days at target+200 and five at target-80 average out to the number
+   he set, so the cycle never quietly becomes a bigger deficit than he chose. */
+function cutKcalFor(hard) {
+  var t = targetKcal();
+  return Math.round((hard ? t + 200 : t - 80) / 10) * 10;
+}
+var CUT_SESSIONS = [
+  { k: "hard", label: "Hard runs", want: 2 },
+  { k: "five", label: "5 mile", want: 1 },
+  { k: "spread", label: "Sprints or easy 5km", want: 1 }
+];
+function cutSessionKind(sid) {
+  if (!sid || sid === "none") return null;
+  if (sid === "easy_long") return "five";
+  if (sid === "bonus_sprint" || sid === "eff_hill" || sid === "easy_short") return "spread";
+  return groupOfSid(sid) === "effort" ? "hard" : null;
+}
+/* The week grids are the record of what was trained, so read them by date
+   rather than keeping a second copy of the same thing here. */
+function cutSessionsOn(dt) {
+  var out = { sids: [], gym: false };
+  if (!settings.startDate) return out;
+  var off = daysBetween(parseDay(settings.startDate), dt);
+  if (off < 0) return out;
+  var w = Math.floor(off / 7) + 1, i = off % 7;
+  var rows = w === viewWeek ? weekData : DB.get("week-" + w, null);
+  if (!Array.isArray(rows) || !rows[i]) return out;
+  var d = rows[i];
+  if (d.gym) out.gym = true;
+  if (!d.done) return out;
+  daySessions(d).forEach(function (ses, k) {
+    if (k && !ses.done) return;
+    if (ses.sid && ses.sid !== "none") out.sids.push(ses.sid);
+  });
+  return out;
+}
+function cutCurrentWeek() {
+  var startD = parseDay(cutStart()), todayD = parseDay(today());
+  if (!startD || todayD < startD) return null;
+  var ranges = cutWeekRanges(startD, parseDay(REVERSE_DEADLINE));
+  for (var i = 0; i < ranges.length; i++) {
+    if (todayD >= ranges[i].from && todayD <= ranges[i].to) {
+      return { n: i + 1, of: ranges.length, range: ranges[i] };
+    }
+  }
+  return null;
+}
+/* Steps tick themselves off the count he already logs, because asking him to
+   enter a number and then also tick a box for the same number is how a tracker
+   stops getting used. The tick stays overridable: an explicit false survives a
+   step count that would otherwise pass. */
+function cutDays() {
+  var cw = cutCurrentWeek();
+  if (!cw) return null;
+  var todayD = parseDay(today()), out = [];
+  var len = daysBetween(cw.range.from, cw.range.to) + 1;
+  for (var i = 0; i < len; i++) {
+    var dt = new Date(cw.range.from.getTime()); dt.setDate(dt.getDate() + i);
+    var iso = dayStr(dt), rec = DB.get("daily-" + iso, null) || {};
+    var ses = cutSessionsOn(dt);
+    var hard = ses.sids.some(function (s) { return cutSessionKind(s) === "hard"; });
+    var dow = dt.getDay(), want = CUT_STEPS[dow];
+    var n = isFinite(parseFloat(rec.stepsN)) ? parseFloat(rec.stepsN) : null;
+    var auto = n == null ? null : (want == null ? n <= CUT_SAT_CEILING : n >= want);
+    out.push({
+      date: iso, dt: dt, dow: dow,
+      ahead: dt > todayD, now: iso === today(),
+      kcal: cutKcalFor(hard), hard: hard,
+      stepWant: want, stepN: n, auto: auto,
+      calOk: rec.calOk === true,
+      stepOk: rec.stepOk === true ? true : rec.stepOk === false ? false : auto === true,
+      sids: ses.sids, gym: ses.gym
+    });
+  }
+  var counts = { hard: 0, five: 0, spread: 0 }, gym = 0;
+  out.forEach(function (x) {
+    if (x.gym) gym++;
+    x.sids.forEach(function (s) { var k = cutSessionKind(s); if (k) counts[k]++; });
+  });
+  var done = out.filter(function (x) { return !x.ahead; });
+  return { week: cw, days: out, counts: counts, gym: gym,
+    elapsed: done.length,
+    clean: done.filter(function (x) { return x.calOk && x.stepOk; }).length,
+    cal: done.filter(function (x) { return x.calOk; }).length,
+    step: done.filter(function (x) { return x.stepOk; }).length };
+}
+/* Five of seven. Not seven of seven - a rule you break once and abandon is
+   worse than one you can hold, and two ordinary days off target across a week
+   do not undo a deficit. */
+var CUT_CLEAN_DAYS = 5;
+function toggleCutDay(iso, field, cur) {
+  var key = "daily-" + iso, rec = DB.get(key, null) || {};
+  if (field === "cal") rec.calOk = !cur; else rec.stepOk = !cur;
+  DB.set(key, rec);
+  renderCutDays();
+}
+
+function renderCutDays() {
+  var el = $("cutDaysOut"); if (!el) return;
+  var tag = $("cutDaysTag"), d = cutDays(), cd = cutCountdown();
+  var num = function (n) { return Math.round(n).toLocaleString(); };
+
+  if (!d) {
+    if (tag) tag.textContent = "";
+    el.innerHTML = '<div class="note flat"><b>' +
+      (cd && cd.startsIn > 0
+        ? "Starts in " + cd.startsIn + " day" + (cd.startsIn === 1 ? "" : "s") + "</b>"
+        : "Not in the cut window</b>") +
+      "The sheet fills in on " + fmtDate(cutStart()) + " and runs to " + deadlineLabel() + ".</div>";
+    return;
+  }
+  if (tag) tag.textContent = "week " + d.week.n + " · " + d.clean + "/" + d.elapsed + " clean";
+
+  var rows = d.days.map(function (x) {
+    var stepLabel = x.stepWant == null
+      ? "low day"
+      : num(x.stepWant) + " steps";
+    var stepSub = x.stepN != null
+      ? num(x.stepN) + " logged"
+      : x.stepWant == null ? "under " + num(CUT_SAT_CEILING) : "not logged";
+    return '<div class="cutday' + (x.now ? " now" : "") + (x.ahead ? " ahead" : "") + '">' +
+      '<div class="cutday-d">' + CUT_DOW[x.dow].toUpperCase() +
+      "<em>" + x.dt.getDate() + "</em></div>" +
+      '<button class="tickbox' + (x.calOk ? " on" : "") + '" data-cutday="' + x.date +
+      '" data-cutfield="cal" data-cutcur="' + (x.calOk ? "1" : "0") + '"' +
+      (x.ahead ? " disabled" : "") + ' aria-pressed="' + x.calOk + '">' +
+      '<span class="check-box">' + (x.calOk ? "✓" : "") + "</span>" +
+      "<span><b>" + num(x.kcal) + "</b><i>" + (x.hard ? "hard day" : "kcal") + "</i></span></button>" +
+      '<button class="tickbox' + (x.stepOk ? " on" : "") + '" data-cutday="' + x.date +
+      '" data-cutfield="step" data-cutcur="' + (x.stepOk ? "1" : "0") + '"' +
+      (x.ahead ? " disabled" : "") + ' aria-pressed="' + x.stepOk + '">' +
+      '<span class="check-box">' + (x.stepOk ? "✓" : "") + "</span>" +
+      "<span><b>" + stepLabel + "</b><i>" + stepSub + "</i></span></button></div>";
+  }).join("");
+
+  var need = Math.min(CUT_CLEAN_DAYS, d.elapsed);
+  var onTrack = d.clean >= need;
+  var verdict = '<div class="note ' + (d.elapsed === 0 ? "flat" : onTrack ? "good" : "warn") +
+    '" style="margin-top:10px"><b>' + d.clean + " of " + d.elapsed + " day" +
+    (d.elapsed === 1 ? "" : "s") + " clean</b>" +
+    "A clean day is both boxes: the calories you set and the steps for that day. " +
+    '<span style="color:var(--chalk);font-weight:600">' + CUT_CLEAN_DAYS +
+    " of 7 makes it a cut week.</span> " +
+    (d.elapsed === 0 ? "Nothing to judge yet."
+      : onTrack ? "This one counts so far."
+      : "Calories " + d.cal + "/" + d.elapsed + ", steps " + d.step + "/" + d.elapsed +
+        " — whichever of those is lower is the one to fix.") +
+    "<br><br>Seven of seven is not the target. A rule you break once and abandon is worse than one " +
+    "you can hold, and two ordinary days off target across a week do not undo a deficit.</div>";
+
+  var sess = CUT_SESSIONS.map(function (s) {
+    var n = d.counts[s.k], hit = n >= s.want;
+    return '<div class="log-item"><span class="l-main"' + (hit ? ' style="color:var(--go)"' : "") + ">" +
+      (hit ? "✓ " : "· ") + s.label + "</span>" +
+      '<span class="l-body">' + n + " of " + s.want + "</span></div>";
+  }).join("") +
+    '<div class="log-item"><span class="l-main"' + (d.gym >= 4 ? ' style="color:var(--go)"' : "") + ">" +
+    (d.gym >= 4 ? "✓ " : "· ") + "Gym</span>" +
+    '<span class="l-body">' + d.gym + " of 4–5</span></div>";
+
+  el.innerHTML = rows + verdict +
+    '<div class="block-title" style="font-size:15px;margin-top:14px">The week\'s sessions</div>' +
+    sess +
+    '<div class="note flat" style="margin-top:10px"><b>Where these numbers come from</b>' +
+    "This is your own template from the last time you got shredded, not a generic one: " +
+    '<span style="color:var(--chalk)">15,000 steps Monday to Friday, a deliberate low Saturday, ' +
+    "10,000 Sunday</span>, two hard runs, a five mile, and either sprints or an easy 5km.<br><br>" +
+    "Saturday is a <b>ceiling</b>, not a floor — under " + num(CUT_SAT_CEILING) +
+    ". A 15,000-step Saturday is not a better week, it is a missing rest day, and it is the day " +
+    "the legs get back what the other six took.<br><br>" +
+    "Calories cycle with the training: <b>" + num(cutKcalFor(true)) + " on a day with a hard run, " +
+    num(cutKcalFor(false)) + " otherwise</b>, which averages the " + num(targetKcal()) +
+    " you set. The sheet reads the hard days off what you logged, so it follows the week you " +
+    "actually did rather than the one you planned.<br><br>" +
+    "Steps tick themselves from the count on the Nutrition tab. Tap to override either way — " +
+    "an untick sticks even if the number would have passed.</div>";
+
+  Array.prototype.forEach.call(el.querySelectorAll("[data-cutday]"), function (b) {
+    b.addEventListener("click", function () {
+      toggleCutDay(b.getAttribute("data-cutday"), b.getAttribute("data-cutfield"),
+        b.getAttribute("data-cutcur") === "1");
+    });
+  });
 }
 
 function cutTargetCurve() {
@@ -7659,7 +7906,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderSkin();
+  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderCutDays(); renderSkin();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup(); renderSoFar();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
