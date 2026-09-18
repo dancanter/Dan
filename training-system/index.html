@@ -824,7 +824,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 07:13";
+var BUILD = "18 Sep 09:54";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5120,6 +5120,8 @@ function cutWeekRanges(startD, endD) {
    below that. The taper's own rates happen to land exactly on 121.6, which is
    no margin at all, so the projection clamps at the target instead. */
 var CUT_TARGET_LB = 122.5;
+/* A week judged on three readings is judged on noise. */
+var WEEK_MIN_READINGS = 4;
 function cutFloorLb() { return bmiWeights().under; }
 
 function cutForecast() {
@@ -5217,10 +5219,17 @@ function renderCutWeeks() {
       avgCell = '<span style="color:var(--muted-2)">no weights</span>';
     } else {
       avgCell = f1(r.avg) + (r.n ? ' <span style="color:var(--muted-2)">' + r.n + "\u00d7</span>" : "");
-      var off = r.avg - f.target;
-      verdict = ' <span style="color:' +
-        (off <= 0.25 ? "var(--go)" : off <= 0.8 ? "var(--muted)" : "var(--stop,#e06c6c)") + '">' +
-        (off <= 0.25 ? "on" : "+" + f1(off)) + "</span>";
+      /* Four readings is the fewest that can outvote one bad morning. Under
+         that, an average is a coin toss and a verdict on it is worse than no
+         verdict at all - it invites a correction the data cannot justify. */
+      if (r.n < WEEK_MIN_READINGS) {
+        verdict = ' <span style="color:var(--muted-2)">too few</span>';
+      } else {
+        var off = r.avg - f.target;
+        verdict = ' <span style="color:' +
+          (off <= 0.25 ? "var(--go)" : off <= 0.8 ? "var(--muted)" : "var(--stop,#e06c6c)") + '">' +
+          (off <= 0.25 ? "on" : "+" + f1(off)) + "</span>";
+      }
     }
     return "<tr" + (f.hold ? ' style="opacity:.72"' : "") + "><td><b>Week " + f.w + "</b>" +
       '<span class="sub">' + fmtD(f.range.from) + "\u2013" + fmtD(f.range.to) +
@@ -5283,7 +5292,10 @@ function renderCutWeeks() {
     "a week's average sits when the weight comes off evenly.<br><br>" +
     '<span style="color:var(--chalk)">You were</span> is every weight you logged that week averaged, ' +
     "with the count beside it. <b>on</b> means within a quarter pound of the target; otherwise it shows " +
-    "how far above you are.<br><br>" +
+    "how far above you are. A week with fewer than " + WEEK_MIN_READINGS + " readings reads " +
+    "<b>too few</b> and gets no verdict at all \u2014 three mornings cannot outvote one bad one, " +
+    "and a judgement on that is worse than no judgement, because it invites a correction the data " +
+    "does not justify.<br><br>" +
     "A week marked <b>short</b> is worth looking at, not acting on. " +
     '<span style="color:var(--chalk);font-weight:600">Two short weeks in a row is a signal; one is noise.</span></div>';
 }
