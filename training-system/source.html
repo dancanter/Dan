@@ -324,6 +324,8 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <div id="sleepOut" style="margin-top:10px"></div>
     </section>
 
+    <div id="restBox"></div>
+
     <section class="block">
       <h2 class="block-title">Readiness</h2>
       <div id="readinessBox"></div>
@@ -6201,6 +6203,99 @@ function renderCutGoals() {
   el.innerHTML = rows + steps + weight + pace;
 }
 
+/* ---------- earned rest -------------------------------------------------
+   He asked for this and drew the boundary himself: only when he is ahead. That
+   restriction is the whole value of it. A rest prompt that turns up every week
+   is one he learns to scroll past, and then it is not there on the week it
+   matters. So this stays silent unless the numbers actually say he has bought
+   himself the days. */
+/* Two ways to be ahead on weight, and the second one matters more than it looks.
+   Position against the curve barely moves, because the curve is seeded from his
+   own opening week - a cut that runs fast from day one recalibrates the target
+   underneath itself and reads as "on schedule" forever. Rate against the taper
+   catches it immediately. */
+var REST_WEIGHT_AHEAD = 0.4;        /* lb under the week's target */
+/* This has to fit inside the safe band or the prompt is useless. At 125 lb the
+   taper asks about 0.73 lb a week and the band tops out at 1.00, so there is
+   only a quarter of a pound of room between "ahead" and "too fast". At 0.25 the
+   window was 0.98-1.00 and every firing would have been a too-fast warning
+   wearing a rest prompt's clothes. */
+var REST_RATE_AHEAD = 0.15;         /* lb a week faster than the taper asks */
+var REST_SESSION_AHEAD = 1;         /* whole sessions clear of pro-rata pace */
+function daysStraight() {
+  var n = 0;
+  for (var k = 1; k <= 21; k++) {            /* from yesterday back */
+    var dt = new Date(); dt.setDate(dt.getDate() - k);
+    var ses = cutSessionsOn(dt);
+    if (!ses.sids.length && !ses.gym) break;
+    n++;
+  }
+  return n;
+}
+function restEarned() {
+  var c = cutStatus(), t = cutTally();
+  if (!c.first || !t || c.cutDays == null || c.cutDays < 10) return null;
+  if (isDeload(blockWeekNow())) return null;          /* already a light week */
+
+  /* where the weight should be this week */
+  var fc = cutForecast(), todayD = parseDay(today()), wk = null;
+  for (var i = 0; i < fc.length; i++) {
+    if (todayD >= fc[i].range.from && todayD <= fc[i].range.to) { wk = fc[i]; break; }
+  }
+  var wAhead = (wk && c.cur != null) ? wk.target - c.cur : null;
+  var rAhead = (c.rate != null && c.target != null) ? c.rate - c.target : null;
+
+  /* and how the sessions sit against pro-rata */
+  var g = goalPace(t.gym, CUT_GOALS.gym, t);
+  var h = goalPace(t.hard, CUT_GOALS.hard, t);
+  var r = goalPace(t.runs, CUT_GOALS.runs, t);
+  var sAhead = Math.min(g.off, h.off, r.off);
+
+  var byPos = wAhead != null && wAhead >= REST_WEIGHT_AHEAD;
+  var byRate = rAhead != null && rAhead >= REST_RATE_AHEAD;
+  var byWeight = byPos || byRate;
+  var bySessions = sAhead >= REST_SESSION_AHEAD;
+  if (!byWeight && !bySessions) return null;
+
+  /* A rate over the top of the band means he is ahead for the wrong reason.
+     Rest still helps, but the first instruction has to be eat, not rest. */
+  var tooFast = c.rate != null && c.rate > c.band[1];
+  return { wAhead: wAhead, rAhead: rAhead, sAhead: sAhead,
+    byWeight: byWeight, byPos: byPos, byRate: byRate, bySessions: bySessions,
+    tooFast: tooFast, straight: daysStraight(), target: wk ? wk.target : null };
+}
+
+function renderRest() {
+  var el = $("restBox"); if (!el) return;
+  var e = restEarned();
+  if (!e) { el.innerHTML = ""; return; }
+  var f1 = function (x) { return x.toFixed(1); };
+
+  var why = [];
+  if (e.byPos) why.push("<b>" + f1(e.wAhead) + " lb under</b> where this week's target had you");
+  else if (e.byRate) why.push("losing <b>" + f1(e.rAhead) + " lb a week faster</b> than the taper asks");
+  if (e.bySessions) why.push("<b>" + e.sAhead.toFixed(1) + " sessions clear</b> of the pace you need");
+
+  el.innerHTML = '<section class="block"><div class="note good">' +
+    "<b>You have earned a couple of days off</b>" +
+    "You are " + why.join(" and ") + "." +
+    (e.straight >= 5 ? " That is <b>" + e.straight + " days straight</b> with something logged." : "") +
+    "<br><br>" +
+    (e.tooFast
+      ? '<span style="color:var(--chalk);font-weight:600">Read this one carefully, though.</span> ' +
+        "You are ahead partly because the weight is coming off faster than the band allows, and that " +
+        "is not the good kind of ahead. Take the days, and <b>eat more on them, not less</b> — " +
+        "carbs first. Rest without the food just carries the same problem into next week."
+      : '<span style="color:var(--chalk);font-weight:600">Take one or two days with no running and no gym.</span> ' +
+        "Keep the food exactly where it is — a rest day is not a day to eat less, and cutting on top " +
+        "of it is how you turn a good week into a flat one.") +
+    "<br><br>What it buys: glycogen back, cortisol down, and the water you have been holding on top " +
+    "of the fat loss usually lets go within a few days of easing off — which is why the scale often " +
+    "drops after a rest rather than during a hard week.<br><br>" +
+    '<span style="color:var(--muted)">Steps can stay. It is the hard sessions that need the days, ' +
+    "not your legs generally.</span></div></section>";
+}
+
 function cutTargetCurve() {
   var c = cutStatus();
   if (!c.first) return null;
@@ -8580,7 +8675,7 @@ function initState() {
 function renderAll() {
   $("weekSelect").value = viewWeek;
   loadWeek(viewWeek);
-  renderBlockBar(); renderToday(); renderChecklist(); renderSleep(); renderReadiness();
+  renderBlockBar(); renderToday(); renderChecklist(); renderSleep(); renderRest(); renderReadiness();
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();

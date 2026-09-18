@@ -1161,3 +1161,36 @@ slot, which is honest: he did not do an easy five-miler that week, he did a hard
 The panel says when this has happened, with the pace run, the line and the
 threshold behind it. A count that changes without explanation is a count he stops
 trusting.
+
+## Earned rest
+
+He asked for a prompt telling him to take a couple of days off, and drew the
+boundary himself: **only when he is ahead**. That restriction is the whole value
+of it — a rest prompt that turns up every week is one he learns to scroll past,
+and then it is not there on the week it matters.
+
+`restEarned()` fires on either of two things, after at least ten days of cut and
+never during a deload week:
+
+- **Weight ahead** — either 0.4 lb under the week's target, or losing 0.15 lb a
+  week faster than the taper asks
+- **Sessions ahead** — a whole session clear of pro-rata pace on gym, hard runs
+  *and* runs all in
+
+Two things only showed up by testing it.
+
+**Position against the curve barely moves.** The forecast is seeded from his own
+opening week, so a cut that runs fast from day one recalibrates the target
+underneath itself and reads as "on schedule" forever. Comparing the *rate*
+against the taper catches it immediately, which is why both tests exist.
+
+**The rate threshold has to fit inside the safe band.** At 125 lb the taper asks
+about 0.73 lb a week and the band tops out at 1.00 — only a quarter pound of room
+between "ahead" and "too fast". At 0.25 the window was 0.98–1.00 and every
+firing would have been a too-fast warning wearing a rest prompt's clothes. At
+0.15 there is a real window.
+
+When he is ahead *because* the rate is over the band, the message changes: take
+the days, but **eat more on them, not less**, carbs first. Otherwise it says keep
+the food exactly where it is, because a rest day is not a day to eat less. Steps
+stay either way — it is the hard sessions that need the days.
