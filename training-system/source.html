@@ -285,7 +285,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 <div class="wrap">
 
   <header class="hero">
-    <p class="eyebrow">13-week block · 400m / mile / 5K</p>
+    <p class="eyebrow">10-week cut block · 400m / mile / 5K</p>
     <h1>TRAINING · RECOVERY · NUTRITION</h1>
     <div class="goal-row" id="goalRow"></div>
     <div class="hero-meta">
@@ -382,7 +382,7 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
 
     <section class="block" data-fold="block" style="margin-top:26px">
       <h2 class="block-title">The Whole Block</h2>
-      <p class="block-sub">All 13 weeks, and why they are in that order.</p>
+      <p class="block-sub">All 10 weeks, and why they are in that order.</p>
       <div id="blockPlanBox"></div>
     </section>
 
@@ -634,6 +634,12 @@ table.ref td .sub{display:block;color:var(--muted);font-size:11.8px;line-height:
       <h2 class="block-title">The Cut <span class="tag" id="cutWeeksTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
       <p class="block-sub">Week by week to 28 November. What the average did, against what it was supposed to do.</p>
       <div id="cutWeeksOut"></div>
+    </section>
+
+    <section class="block" data-fold="goals">
+      <h2 class="block-title">The Goals <span class="tag" id="goalsTag" style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <p class="block-sub">48 gym, 21 hard runs, 43 runs all in, 13,000 steps a day, 122–123 lb. From the start of the cut to 28 November.</p>
+      <div id="goalsOut"></div>
     </section>
 
     <section class="block" data-fold="cutdays">
@@ -1209,11 +1215,14 @@ var settings = {}, weekData = [], weightLog = [], hrLog = [], sessionHistory = [
     reflections = [], pbLog = [], retinolLog = [], niggleLog = [], todayState = {}, viewWeek = 1;
 
 /* ================= block dates ================= */
+/* Ten weeks now, not thirteen. The block was reset to run with the cut rather
+   than across it, so the two no longer disagree about what week it is. */
+var BLOCK_WEEKS = 10;
 function blockWeekNow() {
   if (!settings.startDate) return null;
   var d = daysBetween(parseDay(settings.startDate), parseDay(today()));
   if (d < 0) return null;
-  return Math.min(13, Math.floor(d / 7) + 1);
+  return Math.min(BLOCK_WEEKS, Math.floor(d / 7) + 1);
 }
 /* 0 = Monday. getDay() counts from Sunday, so it needs rotating. */
 function dayIndexToday() { return (new Date().getDay() + 6) % 7; }
@@ -1225,7 +1234,7 @@ function renderBlockBar() {
     return;
   }
   var segs = "";
-  for (var i = 1; i <= 13; i++) {
+  for (var i = 1; i <= BLOCK_WEEKS; i++) {
     var cls = i === bw ? "now" : (bw && i < bw ? "past" : (i === 13 ? "pb" : ""));
     segs += '<div class="blockbar-seg ' + cls + '" title="Week ' + i + '"></div>';
   }
@@ -1240,7 +1249,7 @@ function renderBlockBar() {
     right = daysBetween(parseDay(today()), pbStart) + " days to PB week";
   }
   el.innerHTML = '<div class="blockbar-track">' + segs + "</div>" +
-    '<div class="blockbar-label"><span>' + (bw ? "Week " + bw + " of 13" : "Block not started") + "</span><span>" + esc(right) + "</span></div>";
+    '<div class="blockbar-label"><span>' + (bw ? "Week " + bw + " of " + BLOCK_WEEKS : "Block not started") + "</span><span>" + esc(right) + "</span></div>";
 }
 
 /* ================= week plan ================= */
@@ -1790,7 +1799,7 @@ function agesNote() {
 var HARD_REST = { eff_5k: 3, eff_10k: 3, eff_mile: 3, eff_3k: 2, eff_400tt: 2 };
 function lastHardDays() {
   var best = null;
-  for (var w = 1; w <= 13; w++) {
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
     var rows = DB.get("week-" + w, null);
     if (!Array.isArray(rows) || rows.length !== 7) continue;
     for (var i = 0; i < 7; i++) {
@@ -2020,7 +2029,7 @@ function toggleDetail() {
 var HARD_PER_MONTH = 10;
 function monthlyLoad() {
   var now = parseDay(today()), efforts = 0, gyms = 0, cali = 0;
-  for (var w = 1; w <= 13; w++) {
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
     var rows = weekRows(w);
     if (!rows) continue;
     for (var i = 0; i < 7; i++) {
@@ -2491,7 +2500,7 @@ function renderPlan() {
 function renderBlockPlan() {
   var el = $("blockPlanBox"); if (!el) return;
   var rows = "";
-  for (var w = 1; w <= 13; w++) {
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
     var pl = planFor(w), dl = isDeload(w), now = w === viewWeek;
     rows += "<tr" + (now ? ' style="background:var(--surface-2)"' : "") + "><td><b>" + w + "</b>" +
       (now ? '<span class="sub">you are here</span>' : "") + "</td>" +
@@ -2619,7 +2628,7 @@ function renderSoFar() {
 
 function roundupRows() {
   var now = blockWeekNow() || 13, out = [];
-  for (var w = 1; w <= Math.min(now, 13); w++) {
+  for (var w = 1; w <= Math.min(now, BLOCK_WEEKS); w++) {
     var rv = reviewData(w);
     if (!rv) continue;
     var st = weekSteps(w), r = weekRange(w);
@@ -2788,7 +2797,7 @@ var ALL_OUT = { eff_mile: 1, eff_5k: 1, eff_10k: 1, eff_3k: 1, eff_400tt: 1,
    ticked, which is not always the day it was run. */
 function daysSinceSid(sid) {
   var best = null, now = parseDay(today());
-  for (var w = 1; w <= 13; w++) {
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
     var rows = weekRows(w);
     if (!rows) continue;
     for (var i = 0; i < rows.length; i++) {
@@ -3714,20 +3723,42 @@ function addHR() {
    measures nothing — the first test you log at a distance is its start line. */
 /* Every distance actually run. A target only exists where one has been set —
    the rest just track the best ever, which is the point of a PB board. */
+/* `y26` is where he actually is, pulled off Strava for 2026 and not retyped from
+   memory: `avg` is the best session average at that distance, which is the number
+   he asked to be judged on, and `best` is Strava's single fastest effort where it
+   computes one. A target with no evidence under it is a wish. */
 var BENCH = [
   { id: "100",  label: "100m",  dist: 100,  target: null },
-  { id: "200",  label: "200m",  dist: 200,  target: 27.0,   targetLabel: "27.0" },
-  { id: "300",  label: "300m",  dist: 300,  target: null },
-  { id: "400",  label: "400m",  dist: 400,  target: 54.9,   targetLabel: "sub-55" },
-  { id: "500",  label: "500m",  dist: 500,  target: null },
-  { id: "600",  label: "600m",  dist: 600,  target: null },
-  { id: "800",  label: "800m",  dist: 800,  target: 144,    targetLabel: "2:24" },
-  { id: "1000", label: "1000m", dist: 1000, target: 202,    targetLabel: "3:22" },
-  { id: "mile", label: "Mile",  dist: 1609, target: 284.9,  targetLabel: "sub-4:45" },
+  { id: "200",  label: "200m",  dist: 200,  target: 27.0,   targetLabel: "27.0",
+    y26: { avg: 28.1, n: 4, date: "2026-07-20", what: "4 \u00d7 200m all out" } },
+  { id: "300",  label: "300m",  dist: 300,  target: null,
+    y26: { avg: 45.5, n: 5, date: "2026-05-12", what: "5 \u00d7 300m" } },
+  { id: "400",  label: "400m",  dist: 400,  target: 54.9,   targetLabel: "sub-55",
+    y26: { avg: 61.3, best: 59, n: 3, date: "2026-09-10", what: "3 \u00d7 400m",
+           bestDate: "2026-09-04", bestWhat: "inside the 4 \u00d7 600m" } },
+  { id: "500",  label: "500m",  dist: 500,  target: null,
+    y26: { avg: 85.8, n: 4, date: "2026-02-16", what: "4 \u00d7 500m" } },
+  { id: "600",  label: "600m",  dist: 600,  target: null,
+    y26: { avg: 100.1, n: 4, date: "2026-09-04", what: "4 \u00d7 600m \u2014 best session yet" } },
+  /* 2:10 is his own number. The 1000m one he gave with it was 2:40, which is a
+     faster pace per 400 than the 800 target - you cannot run 1000m quicker than
+     your 800m pace. 2:46 is the same fitness expressed over 1000m. */
+  { id: "800",  label: "800m",  dist: 800,  target: 130,    targetLabel: "sub-2:10",
+    y26: { avg: 152.3, n: 3, date: "2026-07-25", what: "3 \u00d7 800m" } },
+  { id: "1000", label: "1000m", dist: 1000, target: 166,    targetLabel: "sub-2:46",
+    y26: { avg: 192.7, best: 194, n: 3, date: "2026-06-17", what: "3 \u00d7 1km, strict form" } },
+  { id: "mile", label: "Mile",  dist: 1609, target: 284.9,  targetLabel: "sub-4:45",
+    y26: { best: 327, date: "2026-08-31", what: "inside the 18:05 5km" } },
   { id: "3k",   label: "3K",    dist: 3000, target: null },
-  { id: "5k",   label: "5K",    dist: 5000, target: 1009.9, targetLabel: "sub-16:50" },
+  { id: "5k",   label: "5K",    dist: 5000, target: 1009.9, targetLabel: "sub-16:50",
+    y26: { best: 1085, date: "2026-08-31", what: "fastest 5km of the year" } },
+  { id: "8k",   label: "8K",    dist: 8000, target: null,
+    y26: { best: 1958, date: "2026-08-24", what: "running-economy 8km" } },
   { id: "10k",  label: "10K",   dist: 10000, target: null }
 ];
+/* Little ones, so the scale has somewhere to land that is not 122.5. Every one of
+   these is a first time at that weight and worth saying so out loud. */
+var WEIGHT_MARKS = [128, 127, 126, 125, 124, 123.5, 123, 122.5];
 function benchById(id) { for (var i = 0; i < BENCH.length; i++) if (BENCH[i].id === id) return BENCH[i]; return null; }
 
 /* accepts "4:51", "57.2", "3:15/km" */
@@ -4368,7 +4399,7 @@ function logSteps(v) {
   DB.set(dailyKey(new Date()), todayState);
   renderKcal(); renderChecklist(); renderTrack();
 }
-var STEP_TARGET = 12500, STEP_BAND = 1500;   /* one band, so the two readouts cannot disagree */
+var STEP_TARGET = 13000, STEP_BAND = 1500;   /* one band, so the two readouts cannot disagree */
 
 /* Protein first and fixed, fat at the floor that keeps hormones working, carbs
    take whatever is left — because carbs are what fuel the sessions and they are
@@ -5471,7 +5502,11 @@ function renderCutWeeks() {
 var CUT_STEPS = [10000, 15000, 15000, 15000, 15000, 15000, null];  /* Sun .. Sat */
 /* Saturday is a ceiling rather than a floor. The low day is the point of it -
    a 15,000-step Saturday is not a better week, it is a missing rest day. */
-var CUT_SAT_CEILING = 8000;
+var CUT_SAT_CEILING = 6000;
+/* 15,000 x 5 + 6,000 + 10,000 = 91,000, which is 13,000 a day. His two numbers -
+   the pattern he ran last time and the 13,000 average he asked for - are the
+   same number, so the sheet shows the shape and judges the average. */
+var CUT_STEP_WEEK = 91000, CUT_STEP_AVG = 13000;
 var CUT_DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 /* Two hard days at target+200 and five at target-80 average out to the number
    he set, so the cycle never quietly becomes a bigger deficit than he chose. */
@@ -5479,15 +5514,20 @@ function cutKcalFor(hard) {
   var t = targetKcal();
   return Math.round((hard ? t + 200 : t - 80) / 10) * 10;
 }
+var CUT_GYM_WANT = 5;
 var CUT_SESSIONS = [
   { k: "hard", label: "Hard runs", want: 2 },
   { k: "five", label: "5 mile", want: 1 },
-  { k: "spread", label: "Sprints or easy 5km", want: 1 }
+  { k: "sprint", label: "Sprints", want: 1 }
 ];
+/* The easy 5km is off the template at his own call - he judged it negligible
+   next to the steps it displaces, and he is right: 5km easy is about 300 kcal
+   and 45 minutes, where the same time walking moves more and costs no recovery.
+   It still counts as a run if he does one, it just no longer owes him a slot. */
 function cutSessionKind(sid) {
   if (!sid || sid === "none") return null;
   if (sid === "easy_long") return "five";
-  if (sid === "bonus_sprint" || sid === "eff_hill" || sid === "easy_short") return "spread";
+  if (sid === "bonus_sprint" || sid === "eff_hill") return "sprint";
   return groupOfSid(sid) === "effort" ? "hard" : null;
 }
 /* The week grids are the record of what was trained, so read them by date
@@ -5547,7 +5587,7 @@ function cutDays() {
       sids: ses.sids, gym: ses.gym
     });
   }
-  var counts = { hard: 0, five: 0, spread: 0 }, gym = 0;
+  var counts = { hard: 0, five: 0, sprint: 0 }, gym = 0;
   out.forEach(function (x) {
     if (x.gym) gym++;
     x.sids.forEach(function (s) { var k = cutSessionKind(s); if (k) counts[k]++; });
@@ -5629,9 +5669,9 @@ function renderCutDays() {
       (hit ? "✓ " : "· ") + s.label + "</span>" +
       '<span class="l-body">' + n + " of " + s.want + "</span></div>";
   }).join("") +
-    '<div class="log-item"><span class="l-main"' + (d.gym >= 4 ? ' style="color:var(--go)"' : "") + ">" +
-    (d.gym >= 4 ? "✓ " : "· ") + "Gym</span>" +
-    '<span class="l-body">' + d.gym + " of 4–5</span></div>";
+    '<div class="log-item"><span class="l-main"' + (d.gym >= CUT_GYM_WANT ? ' style="color:var(--go)"' : "") + ">" +
+    (d.gym >= CUT_GYM_WANT ? "✓ " : "· ") + "Gym</span>" +
+    '<span class="l-body">' + d.gym + " of " + CUT_GYM_WANT + "</span></div>";
 
   el.innerHTML = rows + verdict +
     '<div class="block-title" style="font-size:15px;margin-top:14px">The week\'s sessions</div>' +
@@ -5639,7 +5679,9 @@ function renderCutDays() {
     '<div class="note flat" style="margin-top:10px"><b>Where these numbers come from</b>' +
     "This is your own template from the last time you got shredded, not a generic one: " +
     '<span style="color:var(--chalk)">15,000 steps Monday to Friday, a deliberate low Saturday, ' +
-    "10,000 Sunday</span>, two hard runs, a five mile, and either sprints or an easy 5km.<br><br>" +
+    "10,000 Sunday</span> — which comes to " + num(CUT_STEP_WEEK) + " a week, or " +
+    num(CUT_STEP_AVG) + " a day. Your pattern and the 13,000 average you asked for are the same " +
+    "number.<br><br>Two hard runs, a five mile, sprints, and five gym sessions.<br><br>" +
     "Saturday is a <b>ceiling</b>, not a floor — under " + num(CUT_SAT_CEILING) +
     ". A 15,000-step Saturday is not a better week, it is a missing rest day, and it is the day " +
     "the legs get back what the other six took.<br><br>" +
@@ -5656,6 +5698,133 @@ function renderCutDays() {
         b.getAttribute("data-cutcur") === "1");
     });
   });
+}
+
+/* ---------- the block's goals ------------------------------------------
+   His numbers, for the window from the start of the cut to the deadline. They
+   are counted off the same week grids and daily records as everything else, so
+   there is nothing extra to log to make them work. */
+var CUT_GOALS = { gym: 48, hard: 21, runs: 43, steps: CUT_STEP_AVG,
+  weightLo: 122, weightHi: 123 };
+function cutTally() {
+  var from = parseDay(cutStart()), to = parseDay(REVERSE_DEADLINE), todayD = parseDay(today());
+  if (!from || !to) return null;
+  /* Every field is set here, including the ones only the started case computes.
+     goalPace() reads `through` unconditionally, so a shape that changes between
+     the two returns is a throw waiting for the day before the cut opens. */
+  var out = { gym: 0, hard: 0, runs: 0, steps: 0, stepDays: 0, days: 0,
+    stepAvg: null, through: 0,
+    total: daysBetween(from, to) + 1, left: Math.max(0, daysBetween(todayD, to)) };
+  if (todayD < from) return out;
+  var end = todayD < to ? todayD : to;
+  out.days = daysBetween(from, end) + 1;
+  for (var i = 0; i < out.days; i++) {
+    var dt = new Date(from.getTime()); dt.setDate(dt.getDate() + i);
+    var ses = cutSessionsOn(dt);
+    if (ses.gym) out.gym++;
+    ses.sids.forEach(function (sid) {
+      if (cutSessionKind(sid) === "hard") out.hard++;
+      if (RUN_GROUP[groupOfSid(sid)]) out.runs++;
+    });
+    var rec = DB.get("daily-" + dayStr(dt), null);
+    if (rec && isFinite(parseFloat(rec.stepsN))) {
+      out.steps += parseFloat(rec.stepsN); out.stepDays++;
+    }
+  }
+  out.stepAvg = out.stepDays ? out.steps / out.stepDays : null;
+  out.through = out.total > 0 ? out.days / out.total : 0;
+  return out;
+}
+/* Counting sessions done is only half of it. What he needs to know is whether
+   that count is ahead or behind where it has to be today, and what the weekly
+   rate has to become if it is behind - a total with no pace attached is how you
+   arrive at the last fortnight owing eleven gym sessions. */
+function goalPace(done, want, t) {
+  var expect = want * t.through;
+  var weeksLeft = Math.max(0.15, t.left / 7);
+  return { done: done, want: want, expect: expect, off: done - expect,
+    left: Math.max(0, want - done), perWeek: Math.max(0, want - done) / weeksLeft,
+    pct: want > 0 ? Math.min(1, done / want) : 0, on: done >= expect - 0.5 };
+}
+
+function renderCutGoals() {
+  var el = $("goalsOut"); if (!el) return;
+  var tag = $("goalsTag"), t = cutTally(), cd = cutCountdown();
+  var num = function (n) { return Math.round(n).toLocaleString(); };
+  if (!t) { el.innerHTML = ""; return; }
+
+  if (!t.days) {
+    if (tag) tag.textContent = "";
+    el.innerHTML = '<div class="note flat"><b>The count starts ' + fmtDate(cutStart()) + '</b>' +
+      CUT_GOALS.gym + " gym, " + CUT_GOALS.hard + " hard runs, " + CUT_GOALS.runs +
+      " runs all in, " + num(CUT_GOALS.steps) + " steps a day, and " + CUT_GOALS.weightLo +
+      "–" + CUT_GOALS.weightHi + " lb, over the " + t.total + " days to " +
+      deadlineLabel() + ".</div>";
+    return;
+  }
+  if (tag) tag.textContent = "day " + t.days + " of " + t.total;
+
+  var rows = [
+    { label: "Gym sessions", p: goalPace(t.gym, CUT_GOALS.gym, t), unit: "" },
+    { label: "Hard runs", p: goalPace(t.hard, CUT_GOALS.hard, t), unit: "" },
+    { label: "Runs, all in", p: goalPace(t.runs, CUT_GOALS.runs, t), unit: "" }
+  ].map(function (r) {
+    var p = r.p;
+    return '<div class="bench"><div class="bench-top">' +
+      '<span class="bench-name">' + r.label +
+      ' <em>' + (p.on ? "on pace" : Math.abs(p.off).toFixed(0) + " behind") + " · " +
+      p.perWeek.toFixed(1) + "/wk to finish</em></span>" +
+      '<span class="bench-now">' + p.done + '<span class="to-go"> of ' + p.want + "</span></span>" +
+      '</div><div class="bar"><div class="bar-fill' + (p.on ? " hit" : "") +
+      '" style="width:' + (p.pct * 100).toFixed(0) + '%"></div></div>' +
+      '<div class="bar" style="height:2px;margin-top:2px;background:none">' +
+      '<div style="width:' + (Math.min(1, p.expect / p.want) * 100).toFixed(0) +
+      '%;height:2px;border-right:2px solid var(--muted-2)"></div></div></div>';
+  }).join("");
+
+  var stepOn = t.stepAvg != null && t.stepAvg >= CUT_GOALS.steps - STEP_BAND;
+  var steps = '<div class="bench"><div class="bench-top">' +
+    '<span class="bench-name">Steps a day <em>' +
+    (t.stepAvg == null ? "nothing logged yet"
+      : t.stepDays < t.days ? t.stepDays + " of " + t.days + " days logged"
+      : "every day logged") + "</em></span>" +
+    '<span class="bench-now">' + (t.stepAvg == null ? "—" : num(t.stepAvg)) +
+    '<span class="to-go"> of ' + num(CUT_GOALS.steps) + "</span></span></div>" +
+    '<div class="bar"><div class="bar-fill' + (stepOn ? " hit" : "") + '" style="width:' +
+    (t.stepAvg == null ? 0 : Math.min(1, t.stepAvg / CUT_GOALS.steps) * 100).toFixed(0) +
+    '%"></div></div></div>';
+
+  /* The weight goal is the one he must not chase, so it reads as a band with the
+     projection against it rather than as a bar that fills. */
+  var cur = cutCurrentLb(), fc = cutForecast();
+  var land = fc.length ? fc[fc.length - 1].end : null;
+  var weight = '<div class="note ' +
+    (land == null ? "flat" : land <= CUT_GOALS.weightHi + 0.4 ? "good" : "warn") +
+    '" style="margin-top:10px"><b>' + CUT_GOALS.weightLo + "–" + CUT_GOALS.weightHi +
+    " lb by " + deadlineShort() + "</b>" +
+    (cur == null ? "Log a weight inside the cut and this fills in."
+      : "You are at <b>" + cur.toFixed(1) + " lb</b>" +
+        (land != null
+          ? ", and the taper lands you at about <b>" + land.toFixed(1) + " lb</b> — " +
+            (land <= CUT_GOALS.weightHi + 0.4 ? "inside the band."
+              : (land - CUT_GOALS.weightHi).toFixed(1) + " lb over it.")
+          : ".")) +
+    "</div>";
+
+  var pace = '<div class="note flat" style="margin-top:10px"><b>How to read the bars</b>' +
+    "The faint line on each bar is where you should be <em>today</em>, not at the end. " +
+    "Being behind it in week one means nothing; being behind it in week six means the " +
+    "number at the end is already decided.<br><br>" +
+    '<span style="color:var(--chalk);font-weight:600">' + t.left + " days left</span> of " +
+    t.total + ". " +
+    (t.left > 0
+      ? "To finish every one of these you need " +
+        goalPace(t.gym, CUT_GOALS.gym, t).perWeek.toFixed(1) + " gym, " +
+        goalPace(t.hard, CUT_GOALS.hard, t).perWeek.toFixed(1) + " hard runs and " +
+        goalPace(t.runs, CUT_GOALS.runs, t).perWeek.toFixed(1) + " runs a week from here."
+      : "That is the block.") + "</div>";
+
+  el.innerHTML = rows + steps + weight + pace;
 }
 
 function cutTargetCurve() {
@@ -5707,6 +5876,26 @@ function renderCutChart() {
 /* Read back on every weigh-in. The job is to stop a single morning reading
    being treated as a trend: the number you stepped on is mostly water, and the
    7-day average is the thing that means anything. */
+/* Every morning that set a new low, and the gaps between them. The gaps are the
+   point: he gets angry on the days the number does not move, and the honest
+   answer to that is not encouragement, it is his own history showing that new
+   lows have never come daily and the weight came off anyway. */
+function lowHistory(asc) {
+  var lows = [], best = null;
+  asc.forEach(function (x) {
+    if (best == null || x.weight < best) { best = x.weight; lows.push(x); }
+  });
+  var gaps = [];
+  for (var i = 1; i < lows.length; i++) {
+    gaps.push(daysBetween(parseDay(lows[i - 1].date), parseDay(lows[i].date)));
+  }
+  var last = lows.length ? lows[lows.length - 1] : null;
+  return { lows: lows, gaps: gaps, last: last,
+    typical: gaps.length ? median(gaps) : null,
+    since: last ? daysBetween(parseDay(last.date), parseDay(today())) : null,
+    isNew: last && asc.length && last.date === asc[asc.length - 1].date && lows.length > 1 };
+}
+
 function weighFeedback() {
   var el = $("weighBack"); if (!el) return;
   var asc = sortedWeights();
@@ -5714,6 +5903,27 @@ function weighFeedback() {
   var last = asc[asc.length - 1], wr = weeklyRate();
   var f1 = function (x) { return x.toFixed(1); };
   var bits = [];
+
+  /* A new low gets its own line, above everything else, because this is the one
+     thing on the page worth stopping for and it has never been said out loud. */
+  var lh = lowHistory(asc);
+  if (lh.isNew) {
+    var prev = lh.lows[lh.lows.length - 2];
+    var passed = WEIGHT_MARKS.filter(function (m) {
+      return last.weight <= m && prev.weight > m;
+    });
+    bits.push('<div class="note good" style="margin-bottom:12px"><b>' +
+      f1(last.weight) + " lb — a new low</b>" +
+      "Lowest you have ever logged. " + f1(prev.weight - last.weight) +
+      " lb under the " + f1(prev.weight) + " you set on " + fmtD(prev.date) +
+      (lh.gaps.length ? ", " + lh.gaps[lh.gaps.length - 1] + " days ago" : "") + "." +
+      (passed.length
+        ? '<br><br><span style="color:var(--chalk);font-weight:600">You are through ' +
+          passed.map(function (m) { return f1(m); }).join(" and ") +
+          " for the first time.</span>"
+        : "") +
+      "</div>");
+  }
 
   /* today against the average it sits inside */
   if (wr && wr.cur) {
@@ -5757,7 +5967,51 @@ function weighFeedback() {
   }
 
   var rf = refeedCall();
-  el.innerHTML = '<div class="note flat" style="margin-top:10px">' + bits.join("") + "</div>" + rf;
+  el.innerHTML = '<div class="note flat" style="margin-top:10px">' + bits.join("") + "</div>" +
+    patienceNote(asc, lh) + rf;
+}
+
+/* He has said twice that the days the scale does not move make him angry, and
+   that is the failure mode most likely to end this cut - not hunger, not the
+   training. So answer it with his own numbers rather than with encouragement:
+   how often the scale actually goes up on a working cut, and how far apart his
+   own new lows have been while the average fell anyway. */
+function patienceNote(asc, lh) {
+  if (asc.length < 5) return "";
+  var last = asc[asc.length - 1], prev = asc[asc.length - 2];
+  var up = last.weight > prev.weight + 0.05;
+  var ups = 0, n = 0;
+  for (var i = Math.max(1, asc.length - 14); i < asc.length; i++) {
+    n++; if (asc[i].weight > asc[i - 1].weight + 0.05) ups++;
+  }
+  var pct = n ? Math.round(ups / n * 100) : 0;
+  var wr = weeklyRate(), falling = wr && wr.ready && wr.perWeek < -0.1;
+  var f1 = function (x) { return x.toFixed(1); };
+
+  return '<div class="note ' + (up ? "warn" : "flat") + '" style="margin-top:10px"><b>' +
+    (up ? "Up on yesterday — and that is not a bad day"
+        : "About the days it goes up") + "</b>" +
+    "Over your last " + n + " mornings the scale went <b>up on " + ups + " of them</b>, which is " +
+    pct + "% — " +
+    (falling
+      ? "while the average fell " + f1(-wr.perWeek) + " lb a week."
+      : "and that is normal.") +
+    " A day-to-day rise is food still in you, sodium, glycogen and where you are in the week. " +
+    '<span style="color:var(--chalk);font-weight:600">Fat cannot arrive overnight; at your deficit ' +
+    "a real gain of one pound would take three days of eating 1,200 calories over.</span>" +
+    (lh && lh.typical != null
+      ? "<br><br>Your new lows have come about <b>every " + Math.round(lh.typical) +
+        " days</b>, not daily" +
+        (lh.since != null && lh.since > 0
+          ? " — it has been " + lh.since + " since the last one, which is " +
+            (lh.since <= lh.typical * 1.6 ? "ordinary." : "longer than usual but still inside a fortnight's noise.")
+          : ".") +
+        " Expecting one every morning is expecting something that has never happened, " +
+        "on a cut that was working."
+      : "") +
+    "<br><br><b>The rule:</b> read the weekly average, never the morning. " +
+    "The morning is data for the average and nothing else — it is not a verdict on yesterday, " +
+    "and it is not a verdict on you.</div>";
 }
 
 /* A refeed is a day of carbs back up to roughly maintenance, not a cheat day.
@@ -7319,14 +7573,21 @@ function renderSkin() {
 
     '<div class="block-title" style="font-size:17px;margin-top:18px">The daily routine</div>' +
     '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref"><tbody>' +
-    [["Morning", "Rinse or gentle cleanser", "Lukewarm. Never hot - heat flares redness."],
-     ["", "Niacinamide 4-5%", "Onto damp skin."],
-     ["", "Moisturiser", "Straight after, while still damp."],
-     ["", "<b>Tinted SPF50</b>", "A quarter teaspoon. Face, ears, neck. Rain or not."],
-     ["Before a session", "Reapply SPF · cap · sunglasses", "Hours a week outdoors is where your real dose comes from."],
-     ["Night", "Gentle cleanser", "Get the SPF off properly."],
-     ["", "Moisturiser on damp skin", "Squalane or a balm over the top if tight."],
-     ["", "PHA, 1-2× a week only", "Not on the same night as anything else."]].map(function (r) {
+    /* His actual shelf, in the order it goes on. Naming the products rather than
+       the categories is the difference between a routine and a reading list -
+       and every one of these he already owns and already tolerates. */
+    [["Morning", "Light hydrating cleanser", "Lukewarm. Never hot - heat flares redness."],
+     ["", "The Ordinary niacinamide + zinc 1%", "Onto damp skin. Wait a minute."],
+     ["", "Ordinary caffeine eye serum", "Under-eye only, patted not rubbed."],
+     ["", "Simple moisturiser", "Straight after, while still damp."],
+     ["", "<b>Ultrasun tinted SPF50</b>", "A quarter teaspoon. Face, ears, neck. Rain or not. This is the tan and the protection in one step."],
+     ["Before a session", "Reapply the Ultrasun · cap · sunglasses", "Hours a week outdoors is where your real dose comes from."],
+     ["Night", "Light hydrating cleanser", "Get the SPF off properly - tinted needs a proper wash, not a rinse."],
+     ["", "Ordinary caffeine eye serum", "Same as morning."],
+     ["", "Simple moisturiser on damp skin", "While the skin is still wet."],
+     ["", "<b>La Roche-Posay Cicaplast baume</b>", "Over the top on any tight, red or flaking patch. Not all over unless you need it."],
+     ["", "Beef tallow + almond oil", "Last, and only on nights the barrier feels stripped. It seals - it does not sink in, so nothing goes over it."],
+     ["Teeth", "3× a day + floss", "Already doing it. It is on this list because gums show in every photo you will take."]].map(function (r) {
       return "<tr><td><b>" + r[0] + "</b></td><td>" + r[1] + '</td><td class="hl">' + esc(r[2]) + "</td></tr>";
     }).join("") + "</tbody></table></div>" +
 
@@ -7683,7 +7944,7 @@ function stravaImport(text) {
    session history has to be rebuilt from the grids or Block Bests, the PB board
    and the rolling counts would all miss it. */
 function rebuildHistoryFromWeeks() {
-  for (var w = 1; w <= 13; w++) {
+  for (var w = 1; w <= BLOCK_WEEKS; w++) {
     var rows = DB.get("week-" + w, null);
     if (!Array.isArray(rows) || rows.length !== 7) continue;
     rows.forEach(function (d, i) {
@@ -7925,7 +8186,7 @@ function renderAll() {
   renderGoalRow(); renderWeight(); renderHR(); renderBench(); renderPBHistory(); renderVdot(); renderGoal(); renderLongGame(); renderPBBoard(); renderHistory();
   renderReflections(); renderCalStep(); renderReverseTable(); renderRetinol(); renderBests(); renderBlueprint(); renderKcal(); renderReverseGate(); renderFoodLog();
   renderCut(); renderCutChart(); renderK(); renderRevGuide(); renderStrava(); renderStudy();
-  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderCutDays(); renderSkin();
+  weighFeedback(); renderProto(); renderAsk(); renderCutWeeks(); renderCutGoals(); renderCutDays(); renderSkin();
   if ($("cutStartInput")) $("cutStartInput").value = cutStart();
   renderNiggles(); renderAdaptPicker(); renderStages(); renderTdee(); renderRoundup(); renderSoFar();
   renderEnergy(); renderEnergyChart(); renderRestCheck(); renderExit(); renderCheckins(); renderTrack();
@@ -7949,16 +8210,16 @@ function renderTrendOnlyBtn() {
 function renderStartInfo() {
   var bw = blockWeekNow();
   $("startInfo").textContent = settings.startDate
-    ? (bw ? "You're in week " + bw + " of 13. Today's session shows on the Today tab."
+    ? (bw ? "You're in week " + bw + " of " + BLOCK_WEEKS + ". Today's session shows on the Today tab."
           : "That date is in the future — the block hasn't started yet.")
     : "No date set. Today's session and the block progress bar stay hidden until you set one.";
 }
 
 (function init() {
   var sel = $("weekSelect");
-  for (var i = 1; i <= 13; i++) {
+  for (var i = 1; i <= BLOCK_WEEKS; i++) {
     var o = document.createElement("option");
-    o.value = i; o.textContent = "Week " + i + (i === 13 ? " — PB attempts" : "");
+    o.value = i; o.textContent = "Week " + i + (i === BLOCK_WEEKS ? " — PB attempts" : "");
     sel.appendChild(o);
   }
   REVERSE.length;

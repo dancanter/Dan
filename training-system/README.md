@@ -950,3 +950,54 @@ private browsing, or switching phones loses everything. The Backup section on th
 Progress tab exports the whole state as a JSON file and restores from one — worth
 doing every few weeks. If the browser blocks storage entirely, the status bar at
 the bottom says so instead of failing quietly.
+
+## The reset — a 10-week cut block
+
+The 13-week block is gone. `BLOCK_WEEKS` is 10 and the block runs with the cut
+instead of across it, so the two no longer disagree about what week it is.
+Saturday 19 and Sunday 20 September are pre-block: the weigh-ins that build the
+start line, and a 3km to test where the fitness actually is.
+
+**The benchmarks now carry evidence.** Each `BENCH` row has a `y26` field pulled
+off Strava rather than retyped from memory — `avg` is the best session average at
+that distance, which is the number he asked to be judged on, and `best` is
+Strava's single fastest effort where it computes one. A target with nothing
+underneath it is a wish.
+
+Two targets changed. 800m went to **sub-2:10** at his request. The 1000m he gave
+alongside it was 2:40, which is 64.0 s/400 against the 800's 65.0 s/400 — a
+faster pace over a longer distance, which is not a thing that happens. It is set
+to **2:46**, the same fitness expressed over 1000m, and the reason is in a
+comment beside it.
+
+**The goals are his, and they carry a pace.** `CUT_GOALS` holds 48 gym, 21 hard
+runs, 43 runs all in, 13,000 steps a day and 122–123 lb, counted from the start
+of the cut by `cutTally()` off the same week grids everything else reads. A total
+with no pace attached is how you arrive at the last fortnight owing eleven gym
+sessions, so `goalPace()` gives each bar a faint marker at where it should be
+*today* and names the weekly rate needed to finish from here.
+
+**The steps reconciled themselves.** His remembered pattern (15k Mon–Fri, low
+Saturday, 10k Sunday) comes to 91,000 a week, which is 13,000 a day — the average
+he asked for. Both numbers were the same number. Saturday's ceiling tightened to
+6,000 to make the arithmetic exact.
+
+The easy 5km is off the weekly template at his own call, and he is right: 5km
+easy is ~300 kcal and 45 minutes where the same time walking moves more and costs
+no recovery. It still counts as a run; it no longer owes him a slot. Gym went to
+a flat 5.
+
+## The days it goes up
+
+He has said twice that the mornings the scale does not move make him angry, and
+that is the failure mode most likely to end this cut — not hunger, not the
+training. `patienceNote()` answers it with his own numbers rather than with
+encouragement: how often the scale actually rose over his last fortnight, what
+the average did across those same days, and how far apart his own new lows have
+been while it fell anyway. Expecting a new low every morning is expecting
+something that has never happened, on a cut that was working.
+
+`lowHistory()` finds every morning that set a new low and the gaps between them.
+A new low gets its own line above everything else, with what it beat and how long
+ago — and `WEIGHT_MARKS` names the round numbers so 127 and 125 are things you go
+*through* rather than past.
