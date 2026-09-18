@@ -1001,3 +1001,28 @@ something that has never happened, on a cut that was working.
 A new low gets its own line above everything else, with what it beat and how long
 ago — and `WEIGHT_MARKS` names the round numbers so 127 and 125 are things you go
 *through* rather than past.
+
+## Two start dates, on purpose
+
+The cut opens **Saturday 19 September** and block **week 1 opens Monday 21
+September**. They are different things and he asked for both: the weighing, the
+calories and the steps count from the Saturday, while the training week stays a
+clean Monday-to-Sunday.
+
+That leaves Saturday and Sunday sitting before week 1 with no grid slot — and
+since the goals are counted from the Saturday, a 3km test logged that morning
+would have been invisible to every one of them. **Week 0** is the Monday-to-Sunday
+week before the block, of which only its last two days fall inside the cut. It is
+in the week selector as *Pre-block — Sat & Sun*, and `cutTally()` counts sessions
+on those two days while still ignoring anything before the cut opened.
+
+The bug underneath it: JavaScript's `%` keeps the sign, so `-2 % 7` is `-2` and
+`rows[-2]` is `undefined`. The offset has to be floored and the remainder
+wrapped, or the two days silently vanish rather than failing loudly.
+
+`templateForWeek()` was also still describing the old block — it started
+reversing at week 5 and held maintenance from week 9, which belonged to thirteen
+weeks that were never a cut. Left alone it would have told him to start adding
+calories back in the middle of October. Every week of this block is the cut:
+weeks 1–2 opening, 3–8 the working phase, 9 sharpening, 10 the time trials, and
+the reverse begins after the deadline.

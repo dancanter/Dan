@@ -855,7 +855,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 19:52";
+var BUILD = "18 Sep 20:02";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1107,14 +1107,33 @@ function gymOptions(sel) {
   }).join("");
 }
 
+/* Every week of this block is the cut. The old text started reversing at week 5
+   and held maintenance from week 9, which belonged to a thirteen-week block that
+   was never a cut - left alone it would have told him to start adding calories
+   back in the middle of October. The reverse begins after the deadline. */
 function templateForWeek(w) {
-  var phase = "Cutting — 1,850 kcal", note = "Still working toward 122–124 lb. Hold 1,850 kcal.";
-  if (w >= 5 && w <= 8) {
-    phase = "Reversing calories";
-    note = "Once 122–124 lb is confirmed flat for two weeks, increase +50–75 kcal every 4–5 days.";
-  } else if (w >= 9) {
-    phase = "Maintenance — hold steady";
-    note = "Hold wherever the weight stabilised during the reverse.";
+  var kcal = targetKcal();
+  var phase, note;
+  if (w === 0) {
+    phase = "Pre-block";
+    note = "The two days before week 1. Weigh both mornings - those two readings are the " +
+      "start line the whole cut is measured from. Test the 3km if you feel like it, and let " +
+      "the water come off.";
+  } else if (w <= 2) {
+    phase = "Cutting — " + kcal + " kcal";
+    note = "Opening fortnight. The first pounds are water and gut contents rather than fat, " +
+      "so read the weekly average and nothing else.";
+  } else if (w <= 8) {
+    phase = "Cutting — " + kcal + " kcal";
+    note = "The working phase. Hold " + kcal + " kcal, hold the steps, and let the weekly " +
+      "average do the talking.";
+  } else if (w === 9) {
+    phase = "Cutting — sharpening";
+    note = "Volume comes down, intensity stays. This is the week the times start to feel quick " +
+      "because you are lighter and rested, not because anything new was added.";
+  } else {
+    phase = "Time trials — " + deadlineShort();
+    note = "The attempts. Deficit unchanged, but take the day before each one easy.";
   }
   note += isDeload(w)
     ? " Deload week — one short effort at most, sprints or rest otherwise."
@@ -5540,12 +5559,21 @@ function cutSessionKind(sid) {
 }
 /* The week grids are the record of what was trained, so read them by date
    rather than keeping a second copy of the same thing here. */
+/* The cut opens on the Saturday and block week 1 opens on the Monday, which are
+   two different things he asked for on purpose. That leaves Saturday and Sunday
+   sitting before week 1 with no grid slot, and his goals are counted from the
+   Saturday - so a 3km test logged that morning would have been invisible to
+   every one of them. Week 0 is the Monday-to-Sunday week before the block, of
+   which only its last two days fall inside the cut.
+
+   JavaScript's % keeps the sign, so -2 % 7 is -2 and rows[-2] is undefined.
+   Floor the division and wrap the remainder, or the two days silently vanish. */
 function cutSessionsOn(dt) {
   var out = { sids: [], gym: false };
   if (!settings.startDate) return out;
   var off = daysBetween(parseDay(settings.startDate), dt);
-  if (off < 0) return out;
-  var w = Math.floor(off / 7) + 1, i = off % 7;
+  if (off < -7) return out;
+  var w = Math.floor(off / 7) + 1, i = ((off % 7) + 7) % 7;
   var rows = w === viewWeek ? weekData : DB.get("week-" + w, null);
   if (!Array.isArray(rows) || !rows[i]) return out;
   var d = rows[i];
@@ -8262,9 +8290,11 @@ function renderStartInfo() {
 
 (function init() {
   var sel = $("weekSelect");
-  for (var i = 1; i <= BLOCK_WEEKS; i++) {
+  for (var i = 0; i <= BLOCK_WEEKS; i++) {
     var o = document.createElement("option");
-    o.value = i; o.textContent = "Week " + i + (i === BLOCK_WEEKS ? " — PB attempts" : "");
+    o.value = i;
+    o.textContent = i === 0 ? "Pre-block — Sat & Sun"
+      : "Week " + i + (i === BLOCK_WEEKS ? " — PB attempts" : "");
     sel.appendChild(o);
   }
   REVERSE.length;
