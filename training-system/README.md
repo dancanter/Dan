@@ -1127,3 +1127,37 @@ rather than the least.
 
 It closes by saying the studies are mostly small and the direction is what
 replicates, not the exact numbers.
+
+## An 8km is not one thing
+
+He asked for the app to decide whether a run was an effort from the pace rather
+than from what it was filed as, and he is right that the file cannot tell: the
+same 8km is a shakeout at 4:50/km and a quality session at 4:05.
+
+`cutSessionKind(sid, avgPace)` now takes the pace, and `cutSessionsOn()` carries
+it alongside each session. A run filed as easy is re-read as an effort when the
+pace says it was one. **Only when a pace was actually logged** — no pace, no
+opinion, and it stays what he filed it as rather than being guessed at.
+
+Finding the line took his own data rather than a textbook. Threshold is about
+**3:53/km** at his current fitness and nothing he runs over 8km is that fast, so
+threshold itself would never fire. His 8kms sort themselves cleanly:
+
+| Pace | What it was |
+|---|---|
+| 4:05 | the day he meant it |
+| 4:39 | a fun run with one quick km in it |
+| 4:46 · 5:09 | genuinely easy |
+
+The line is **10% the slow side of threshold**, which lands at 4:16 — it catches
+the first and leaves the rest alone. It is a **ratio rather than a fixed number
+of seconds**, because as he gets fitter every one of those paces moves together
+and a flat margin would drift into catching easy runs by the end of the block.
+
+A reclassified run counts toward the hard runs and **not** toward the five-mile
+slot, which is honest: he did not do an easy five-miler that week, he did a hard
+8km. The slot staying empty is information, not a bug.
+
+The panel says when this has happened, with the pace run, the line and the
+threshold behind it. A count that changes without explanation is a count he stops
+trusting.

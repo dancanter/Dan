@@ -865,7 +865,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 21:47";
+var BUILD = "18 Sep 21:54";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5792,15 +5792,43 @@ var CUT_SESSIONS = [
   { k: "five", label: "5 mile", want: 1 },
   { k: "sprint", label: "Sprints", want: 1 }
 ];
+/* An 8km run is not one thing. The same distance is a shakeout at 4:50/km and a
+   threshold run at 4:05, and the file it was logged under cannot tell them
+   apart - only the pace can. So a run filed as easy is re-read as an effort when
+   the pace says it was one.
+
+   Threshold is about 3:53/km at his current fitness, and nothing he runs over
+   8km is that fast - so threshold itself is the wrong line. His own 8kms sort
+   themselves cleanly: 4:05 the day he meant it, 4:39 a fun run with one quick
+   km in it, 4:46 and 5:09 genuinely easy. A line 10% the slow side of threshold
+   lands at 4:16, which catches the first and leaves the rest alone.
+
+   A ratio rather than a fixed number of seconds, because as he gets fitter every
+   one of those paces moves together. A flat margin would drift into catching
+   easy runs by the end of the block. */
+var PACE_EFFORT_RATIO = 1.10;
+function effortPaceLine() {
+  var tv = trainingFitness();
+  return tv ? paceAtPct(tv, 0.88) * PACE_EFFORT_RATIO : null;
+}
+function isEffortPace(sec) {
+  if (!sec || !isFinite(sec)) return false;
+  var line = effortPaceLine();
+  return line != null && sec <= line;
+}
 /* The easy 5km is off the template at his own call - he judged it negligible
    next to the steps it displaces, and he is right: 5km easy is about 300 kcal
    and 45 minutes, where the same time walking moves more and costs no recovery.
    It still counts as a run if he does one, it just no longer owes him a slot. */
-function cutSessionKind(sid) {
+function cutSessionKind(sid, avgPace) {
   if (!sid || sid === "none") return null;
-  if (sid === "easy_long") return "five";
+  if (groupOfSid(sid) === "effort") return "hard";
   if (sid === "bonus_sprint" || sid === "eff_hill") return "sprint";
-  return groupOfSid(sid) === "effort" ? "hard" : null;
+  /* Only when a pace was actually logged. No pace, no opinion - it stays what
+     he filed it as rather than being guessed at. */
+  if (isEffortPace(avgPace)) return "hard";
+  if (sid === "easy_long") return "five";
+  return null;
 }
 /* The week grids are the record of what was trained, so read them by date
    rather than keeping a second copy of the same thing here. */
@@ -5814,7 +5842,7 @@ function cutSessionKind(sid) {
    JavaScript's % keeps the sign, so -2 % 7 is -2 and rows[-2] is undefined.
    Floor the division and wrap the remainder, or the two days silently vanish. */
 function cutSessionsOn(dt) {
-  var out = { sids: [], gym: false };
+  var out = { sids: [], ses: [], gym: false };
   if (!settings.startDate) return out;
   var off = daysBetween(parseDay(settings.startDate), dt);
   if (off < -7) return out;
@@ -5826,7 +5854,10 @@ function cutSessionsOn(dt) {
   if (!d.done) return out;
   daySessions(d).forEach(function (ses, k) {
     if (k && !ses.done) return;
-    if (ses.sid && ses.sid !== "none") out.sids.push(ses.sid);
+    if (!ses.sid || ses.sid === "none") return;
+    out.sids.push(ses.sid);
+    /* Carry the pace with it, because what the session counted as depends on it. */
+    out.ses.push({ sid: ses.sid, avgPace: deriveSession(ses).avgPace });
   });
   return out;
 }
@@ -5854,7 +5885,7 @@ function cutDays() {
     var dt = new Date(cw.range.from.getTime()); dt.setDate(dt.getDate() + i);
     var iso = dayStr(dt), rec = DB.get("daily-" + iso, null) || {};
     var ses = cutSessionsOn(dt);
-    var hard = ses.sids.some(function (s) { return cutSessionKind(s) === "hard"; });
+    var hard = ses.ses.some(function (x) { return cutSessionKind(x.sid, x.avgPace) === "hard"; });
     var dow = dt.getDay(), want = CUT_STEPS[dow];
     var n = isFinite(parseFloat(rec.stepsN)) ? parseFloat(rec.stepsN) : null;
     var auto = n == null ? null : (want == null ? n <= CUT_SAT_CEILING : n >= want);
@@ -5865,13 +5896,15 @@ function cutDays() {
       stepWant: want, stepN: n, auto: auto,
       calOk: rec.calOk === true,
       stepOk: rec.stepOk === true ? true : rec.stepOk === false ? false : auto === true,
-      sids: ses.sids, gym: ses.gym
+      sids: ses.sids, ses: ses.ses, gym: ses.gym
     });
   }
   var counts = { hard: 0, five: 0, sprint: 0 }, gym = 0;
   out.forEach(function (x) {
     if (x.gym) gym++;
-    x.sids.forEach(function (s) { var k = cutSessionKind(s); if (k) counts[k]++; });
+    (x.ses || []).forEach(function (y) {
+      var k = cutSessionKind(y.sid, y.avgPace); if (k) counts[k]++;
+    });
   });
   var done = out.filter(function (x) { return !x.ahead; });
   return { week: cw, days: out, counts: counts, gym: gym,
@@ -5944,6 +5977,31 @@ function renderCutDays() {
     "<br><br>Seven of seven is not the target. A rule you break once and abandon is worse than one " +
     "you can hold, and two ordinary days off target across a week do not undo a deficit.</div>";
 
+  /* When a run filed as easy got counted as an effort, say so and show the two
+     paces. A count that changes without explanation is a count he stops
+     trusting. */
+  var reclassed = [];
+  d.days.forEach(function (x) {
+    (x.ses || []).forEach(function (y) {
+      if (groupOfSid(y.sid) === "effort") return;
+      if (cutSessionKind(y.sid, y.avgPace) !== "hard") return;
+      reclassed.push({ day: CUT_DOW[x.dow], pace: y.avgPace });
+    });
+  });
+  var reclassNote = reclassed.length
+    ? '<div class="note flat" style="margin-top:10px"><b>' +
+      (reclassed.length === 1 ? "One run counted as an effort on pace" :
+        reclassed.length + " runs counted as efforts on pace") + "</b>" +
+      reclassed.map(function (r) {
+        return r.day + " at " + fmtSec(r.pace) + "/km";
+      }).join(" \u00b7 ") +
+      ". The line is " + fmtSec(effortPaceLine()) + "/km \u2014 10% the slow side of your " +
+      fmtSec(paceAtPct(trainingFitness(), 0.88)) + "/km threshold \u2014 so that was a quality " +
+      "session whatever it was filed as. " +
+      "It counts toward the hard runs and not toward the five mile \u2014 " +
+      "the easy slot only fills if the run was actually easy.</div>"
+    : "";
+
   var sess = CUT_SESSIONS.map(function (s) {
     var n = d.counts[s.k], hit = n >= s.want;
     return '<div class="log-item"><span class="l-main"' + (hit ? ' style="color:var(--go)"' : "") + ">" +
@@ -5956,7 +6014,7 @@ function renderCutDays() {
 
   el.innerHTML = rows + verdict +
     '<div class="block-title" style="font-size:15px;margin-top:14px">The week\'s sessions</div>' +
-    sess +
+    sess + reclassNote +
     '<div class="note flat" style="margin-top:10px"><b>Where these numbers come from</b>' +
     "This is your own template from the last time you got shredded, not a generic one: " +
     '<span style="color:var(--chalk)">' + num(CUT_WEEKDAY_STEPS) + " steps Monday to Friday, a deliberate low Saturday, " +
@@ -6004,9 +6062,9 @@ function cutTally() {
     var dt = new Date(from.getTime()); dt.setDate(dt.getDate() + i);
     var ses = cutSessionsOn(dt);
     if (ses.gym) out.gym++;
-    ses.sids.forEach(function (sid) {
-      if (cutSessionKind(sid) === "hard") out.hard++;
-      if (RUN_GROUP[groupOfSid(sid)]) out.runs++;
+    ses.ses.forEach(function (x) {
+      if (cutSessionKind(x.sid, x.avgPace) === "hard") out.hard++;
+      if (RUN_GROUP[groupOfSid(x.sid)]) out.runs++;
     });
     var rec = DB.get("daily-" + dayStr(dt), null);
     if (rec && isFinite(parseFloat(rec.stepsN))) {
