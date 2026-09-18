@@ -504,6 +504,32 @@ line going down and a week that drifts is visible immediately.
 The projected average is the **midpoint** of the week, not its endpoint, because
 that is where a week's average sits when weight comes off evenly.
 
+**The start line is an average, not a morning.** `cutBaseline()` builds it, and
+the note above the table shows what it was built from. Every row of the table
+judges a weekly average, so the line it judges against has to be built the same
+way — otherwise the first comparison is decided by whatever the scale happened to
+say on one day. His own three readings that week spanned 1.4 lb (128.6 / 127.8 /
+129.2); seeded from the high one the whole curve sits half a pound high, from the
+low one half a pound low, and week one reads wrong either way for no reason but
+luck.
+
+The baseline prefers the **first seven days inside the cut** and needs two
+readings to use them; until then it falls back to the **seven days before the
+start**, which on day one is the only thing that exists. So it reads as a
+pre-cut average the day before, and re-reads itself from real in-cut mornings as
+soon as two are logged, without anything being re-entered.
+
+Readings taken inside the cut are **walked back to the start day** at the opening
+rate, because an average sits at the middle of the days it came from rather than
+the first of them. Readings from before the start are not walked back — nothing
+was coming off yet.
+
+Because a start line can exist before the cut does, the table now renders
+**before the window opens**: all eleven weeks, targets filled in, actuals blank.
+The tag counts down instead of counting weeks. The final row's label is clamped
+to the deadline — its length always was, but the label read as ending after the
+cut it belonged to.
+
 Building it surfaced a real mis-calibration. The taper's own rates (0.9% easing
 to 0.5%) land at **121.6 lb** on 28 November — which is exactly BMI 18.5, the
 clinical underweight line, with no margin whatever. The projection now clamps at

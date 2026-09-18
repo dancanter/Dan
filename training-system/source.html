@@ -5140,19 +5140,68 @@ var CUT_TARGET_LB = 122.5;
 var WEEK_MIN_READINGS = 4;
 function cutFloorLb() { return bmiWeights().under; }
 
+/* The start line is an average, not a morning. Every row of this table judges a
+   weekly average, so the line it judges against has to be built the same way or
+   the first comparison is rigged by whatever the scale said on one day. His own
+   three readings this week spanned 1.4 lb - seeded from the high one the whole
+   curve sits half a pound too high, from the low one half a pound too low, and
+   week one reads wrong either way for no reason but luck. */
+var BASELINE_WINDOW = 7;
+function cutBaseline() {
+  var startD = parseDay(cutStart());
+  if (!startD) return null;
+  var asc = sortedWeights();
+  var winTo = new Date(startD.getTime());
+  winTo.setDate(winTo.getDate() + BASELINE_WINDOW - 1);
+  var preFrom = new Date(startD.getTime());
+  preFrom.setDate(preFrom.getDate() - BASELINE_WINDOW);
+
+  var pick = function (from, to) {
+    return asc.filter(function (x) {
+      var d = parseDay(x.date);
+      return d && d >= from && d <= to;
+    });
+  };
+  /* The first week of the cut is the real baseline. Until it has two readings in
+     it, the week before the start is the best thing that exists - and on day one
+     it is the only thing that exists. */
+  var use = pick(startD, winTo), kind = "window";
+  if (use.length < 2) {
+    var pre = pick(preFrom, winTo);
+    if (pre.length > use.length) { use = pre; kind = use.length > 1 ? "pre" : "single"; }
+    else if (use.length < 2) kind = "single";
+  }
+  if (!use.length) return null;
+
+  var lb = avg(use.map(function (x) { return x.weight; }));
+  /* An average sits at the middle of the days it came from, so if those days are
+     inside the cut it is already a few days of loss below the start line. Walk it
+     back at the opening rate. Readings from before the start need no walking -
+     nothing was coming off yet. */
+  var off = avg(use.map(function (x) {
+    return Math.max(0, daysBetween(startD, parseDay(x.date)));
+  }));
+  return { lb: lb + lb * cutTargetPct(0) / 7 * off, avg: lb, n: use.length, kind: kind,
+    from: use[0].date, to: use[use.length - 1].date, offset: off };
+}
+
 function cutForecast() {
   var startD = parseDay(cutStart()), endD = parseDay(REVERSE_DEADLINE);
   if (!startD || !endD) return [];
-  var asc = sortedWeights().filter(function (x) { return x.date >= cutStart(); });
-  if (!asc.length) return [];
+  var base = cutBaseline();
+  if (!base) return [];
 
   var span = daysBetween(startD, endD);
   var ranges = cutWeekRanges(startD, endD);
   var floor = CUT_TARGET_LB;
-  var w = asc[0].weight, out = [], held = false;
+  var w = base.lb, out = [], held = false;
 
   ranges.forEach(function (r, i) {
     var len = Math.min(daysBetween(r.from, r.to), daysBetween(r.from, endD)) + 1;
+    /* The last Mon-Sun week overruns the deadline by a day or two. The length
+       was already clamped; the label was not, so the final row read as ending
+       after the cut it belongs to. */
+    if (r.to > endD) r = { from: r.from, to: endD };
     var through = span > 0 ? daysBetween(startD, r.from) / span : 0;
     var drop = w * cutTargetPct(through) * (len / 7);
     if (w - drop < floor) drop = Math.max(0, w - floor);   /* never project through it */
@@ -5210,8 +5259,15 @@ function renderCutWeeks() {
   var el = $("cutWeeksOut"); if (!el) return;
   var rows = cutWeeks(), c = cutStatus(), tag = $("cutWeeksTag");
   var f1 = function (x) { return x.toFixed(1); };
+  /* Every week of the cut, oldest first, so the target column reads as a line
+     going down. Weeks behind him carry an actual average; weeks ahead carry
+     only the number to aim at. */
+  var fc = cutForecast(), base = cutBaseline(), byWeek = {};
 
-  if (!rows.length) {
+  /* The projection only needs a start line, and a start line can exist before
+     the cut does. Showing all eleven weeks the day before it opens is the point
+     of the thing - he wants to see the curve he is about to walk. */
+  if (!fc.length) {
     if (tag) tag.textContent = "";
     el.innerHTML = '<div class="note flat"><b>Nothing logged in the cut yet</b>' +
       (c.startsIn > 0
@@ -5219,12 +5275,9 @@ function renderCutWeeks() {
         : "Log a weight and the first week fills in.") + "</div>";
     return;
   }
-  if (tag) tag.textContent = "week " + rows.length + " of " + Math.ceil(c.total);
-
-  /* Every week of the cut, oldest first, so the target column reads as a line
-     going down. Weeks behind him carry an actual average; weeks ahead carry
-     only the number to aim at. */
-  var fc = cutForecast(), byWeek = {};
+  if (tag) tag.textContent = c.startsIn > 0
+    ? "starts in " + c.startsIn + " day" + (c.startsIn === 1 ? "" : "s")
+    : "week " + rows.length + " of " + Math.ceil(c.total);
   rows.forEach(function (r) { byWeek[r.w] = r; });
 
   var body = fc.map(function (f) {
@@ -5265,6 +5318,28 @@ function renderCutWeeks() {
     "<thead><tr><th>Week</th><th>Should be</th><th>You were</th><th>Steps</th></tr></thead>" +
     "<tbody>" + body + "</tbody></table></div>";
 
+  /* Say what the curve is built on, in the open. A projection whose start line
+     you cannot see is a number you have to take on trust, and the one thing he
+     should be able to check is whether it started from a real weight. */
+  var startLine = base
+    ? '<div class="note ' + (base.n >= 2 ? "flat" : "warn") + '"><b>Start line ' +
+      f1(base.lb) + " lb</b>" +
+      (base.n >= 2
+        ? "The average of <b>" + base.n + " weigh-ins</b>, " + fmtD(base.from) +
+          "–" + fmtD(base.to) +
+          (base.kind === "pre"
+            ? ", the week before it opens. It re-reads itself from your first week inside the cut as soon as two mornings are logged in it."
+            : ", your first week inside the cut.") +
+          (base.offset > 0.05
+            ? " Walked back " + base.offset.toFixed(1) + " days to the start day, because an average " +
+              "sits at the middle of the days it came from, not the first of them."
+            : "") +
+          "<br><br>Every row below is an average against an average, which is the only comparison that means anything. " +
+          "One morning would not do — your last three spanned 1.4 lb."
+        : "Only one weigh-in to build it from, so treat the whole curve as provisional. " +
+          "Log a second and it becomes an average.") + "</div>"
+    : "";
+
   var holdWeek = null;
   for (var q = 0; q < fc.length; q++) { if (fc[q].hold) { holdWeek = fc[q]; break; } }
   var land = fc.length
@@ -5300,7 +5375,7 @@ function renderCutWeeks() {
       "</div>";
   }
 
-  el.innerHTML = head + land + sum +
+  el.innerHTML = startLine + (startLine ? '<div style="height:10px"></div>' : "") + head + land + sum +
     '<div class="note flat" style="margin-top:10px"><b>How to read it</b>' +
     '<span style="color:var(--chalk)">Should be</span> is the average the taper asks of that week. ' +
     "It tapers 0.6% of bodyweight a week at the start to 0.4% by the end, because the same percentage " +
