@@ -483,7 +483,25 @@ a fortnight apart. The section ends by naming what products cannot do: sleep,
 being too lean and water retention decide more than any bottle, and a flat face
 at 120 lb is not rescued by a serum.
 
-**The Cut** leads the Model tab. Its weeks end on a **Sunday**: week 1 is a stub
+**The Cut** projects forward as well as back. Every week of the cut gets a row,
+oldest first, with **Should be** — the average the taper asks of that week — and
+**You were**, the average actually logged, with the count and how far off target
+it landed. Weeks ahead carry only the number to aim at, so the column reads as a
+line going down and a week that drifts is visible immediately.
+
+The projected average is the **midpoint** of the week, not its endpoint, because
+that is where a week's average sits when weight comes off evenly.
+
+Building it surfaced a real mis-calibration. The taper's own rates (0.9% easing
+to 0.5%) land at **121.6 lb** on 7 November — which is exactly BMI 18.5, the
+clinical underweight line, with no margin whatever. The projection now clamps at
+**122.5**, the middle of the stated 122–123 target, which means it reaches the
+target at the end of week 7 and holds through week 8. The note says so plainly:
+the target binds before the deadline does, arriving early with time to settle
+beats still losing weight on the day, and the underweight line is quoted
+separately as the thing the plan deliberately does not aim at.
+
+Its weeks end on a **Sunday**: week 1 is a stub
 from the start day (a Tuesday) to that week's Sunday, and every week after it is
 a clean Monday-to-Sunday, so cut weeks line up with block weeks instead of
 straddling two of them. Part-weeks are visible rather than hidden — the reading

@@ -824,7 +824,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "16 Sep 20:40";
+var BUILD = "18 Sep 07:13";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5092,7 +5092,7 @@ function bmiWeights() {
 /* Week 1 is a stub from the start day to that week's Sunday, so every week
    after it is a clean Monday-to-Sunday and lines up with the block weeks. The
    cut opened on a Tuesday; without this every "week" would straddle two. */
-function cutWeekRanges(startD, todayD) {
+function cutWeekRanges(startD, endD) {
   if (!startD) return [];
   var out = [];
   var firstEnd = new Date(startD.getTime());
@@ -5100,13 +5100,54 @@ function cutWeekRanges(startD, todayD) {
   firstEnd.setDate(firstEnd.getDate() + (6 - dow));
   out.push({ from: new Date(startD.getTime()), to: firstEnd });
   var cursor = new Date(firstEnd.getTime());
-  while (cursor < todayD) {
+  while (cursor < endD) {
     var from = new Date(cursor.getTime()); from.setDate(from.getDate() + 1);
-    if (from > todayD) break;
+    if (from > endD) break;
     var to = new Date(from.getTime()); to.setDate(to.getDate() + 6);
     out.push({ from: from, to: to });
     cursor = to;
   }
+  return out;
+}
+
+/* The floor is a hard stop, so the projection stops there rather than walking
+   politely past it. Worth knowing: the taper as configured lands almost exactly
+   on the underweight line, which means the floor binds before the date does -
+   the honest read is that he arrives early and then holds. */
+/* Two different numbers, and conflating them is how people end up underweight.
+   122.5 is the middle of his stated 122-123 target and is where the projection
+   stops. 121.6 is BMI 18.5 - the clinical underweight line - and is a pound
+   below that. The taper's own rates happen to land exactly on 121.6, which is
+   no margin at all, so the projection clamps at the target instead. */
+var CUT_TARGET_LB = 122.5;
+function cutFloorLb() { return bmiWeights().under; }
+
+function cutForecast() {
+  var startD = parseDay(cutStart()), endD = parseDay(REVERSE_DEADLINE);
+  if (!startD || !endD) return [];
+  var asc = sortedWeights().filter(function (x) { return x.date >= cutStart(); });
+  if (!asc.length) return [];
+
+  var span = daysBetween(startD, endD);
+  var ranges = cutWeekRanges(startD, endD);
+  var floor = CUT_TARGET_LB;
+  var w = asc[0].weight, out = [], held = false;
+
+  ranges.forEach(function (r, i) {
+    var len = Math.min(daysBetween(r.from, r.to), daysBetween(r.from, endD)) + 1;
+    var through = span > 0 ? daysBetween(startD, r.from) / span : 0;
+    var drop = w * cutTargetPct(through) * (len / 7);
+    if (w - drop < floor) drop = Math.max(0, w - floor);   /* never project through it */
+    if (drop < 0.02) held = true;
+    out.push({
+      w: i + 1, range: r, days: len,
+      start: w,
+      target: w - drop / 2,     /* a week's average sits at its midpoint */
+      end: w - drop,
+      drop: drop, hold: held
+    });
+    w -= drop;
+  });
   return out;
 }
 
@@ -5162,35 +5203,65 @@ function renderCutWeeks() {
   }
   if (tag) tag.textContent = "week " + rows.length + " of " + Math.ceil(c.total);
 
-  var body = rows.slice().reverse().map(function (r) {
-    var cell;
-    if (r.avg == null) cell = '<span style="color:var(--muted-2)">no weights</span>';
-    else if (r.drop == null) cell = f1(r.avg) + ' <span style="color:var(--muted-2)">start</span>';
-    else {
-      var good = r.want == null || r.drop >= r.want * 0.6;
-      cell = f1(r.avg) + ' <span style="color:' + (r.drop > 0.05 ? "var(--go)" : "var(--muted)") + '">' +
-        (r.drop > 0.05 ? "\u2193" + f1(r.drop) : r.drop < -0.05 ? "\u2191" + f1(-r.drop) : "flat") + "</span>";
+  /* Every week of the cut, oldest first, so the target column reads as a line
+     going down. Weeks behind him carry an actual average; weeks ahead carry
+     only the number to aim at. */
+  var fc = cutForecast(), byWeek = {};
+  rows.forEach(function (r) { byWeek[r.w] = r; });
+
+  var body = fc.map(function (f) {
+    var r = byWeek[f.w], avgCell, verdict = "";
+    if (!r) {
+      avgCell = '<span style="color:var(--muted-2)">\u2014</span>';
+    } else if (r.avg == null) {
+      avgCell = '<span style="color:var(--muted-2)">no weights</span>';
+    } else {
+      avgCell = f1(r.avg) + (r.n ? ' <span style="color:var(--muted-2)">' + r.n + "\u00d7</span>" : "");
+      var off = r.avg - f.target;
+      verdict = ' <span style="color:' +
+        (off <= 0.25 ? "var(--go)" : off <= 0.8 ? "var(--muted)" : "var(--stop,#e06c6c)") + '">' +
+        (off <= 0.25 ? "on" : "+" + f1(off)) + "</span>";
     }
-    var wantCell = r.want == null
-      ? '<span style="color:var(--muted-2)">\u2014</span>'
-      : f1(r.want) + (r.drop != null
-          ? ' <span style="color:' + (r.drop >= r.want * 0.85 ? "var(--go)" : r.drop >= r.want * 0.5 ? "var(--muted)" : "var(--stop,#e06c6c)") + '">' +
-            (r.drop >= r.want * 0.85 ? "on" : r.drop >= r.want * 0.5 ? "under" : "short") + "</span>"
-          : "");
-    return "<tr><td><b>Week " + r.w + "</b>" +
-      '<span class="sub">' + fmtD(r.range.from) + "\u2013" + fmtD(r.range.to) +
-      (r.isNow ? " \u00b7 now" : "") + "</span></td>" +
-      '<td class="hl">' + cell + (r.n ? ' <span style="color:var(--muted-2)">' + r.n + "\u00d7</span>" : "") + "</td>" +
-      '<td class="hl">' + wantCell + "</td>" +
-      '<td class="hl">' + (r.steps
-        ? Math.round(r.steps.total).toLocaleString() +
-          (r.steps.n < r.days ? ' <span style="color:var(--muted-2)">' + r.steps.n + "d</span>" : "")
-        : "\u2014") + "</td></tr>";
+    return "<tr" + (f.hold ? ' style="opacity:.72"' : "") + "><td><b>Week " + f.w + "</b>" +
+      '<span class="sub">' + fmtD(f.range.from) + "\u2013" + fmtD(f.range.to) +
+      (r && r.isNow ? " \u00b7 now" : "") + (f.days < 7 ? " \u00b7 " + f.days + "d" : "") + "</span></td>" +
+      '<td class="hl">' + (f.hold
+        ? '<span style="color:var(--chalk)">hold ' + f1(f.target) + "</span>"
+        : f1(f.target)) + "</td>" +
+      '<td class="hl">' + avgCell + verdict + "</td>" +
+      '<td class="hl">' + (!r ? '<span style="color:var(--muted-2)">\u2014</span>'
+        : r.steps
+          ? Math.round(r.steps.total).toLocaleString() +
+            (r.steps.n < r.days ? ' <span style="color:var(--muted-2)">' + r.steps.n + "d</span>" : "")
+          : "\u2014") + "</td></tr>";
   }).join("");
 
   var head = '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
-    "<thead><tr><th>Week</th><th>Average</th><th>Target drop</th><th>Steps</th></tr></thead>" +
+    "<thead><tr><th>Week</th><th>Should be</th><th>You were</th><th>Steps</th></tr></thead>" +
     "<tbody>" + body + "</tbody></table></div>";
+
+  var holdWeek = null;
+  for (var q = 0; q < fc.length; q++) { if (fc[q].hold) { holdWeek = fc[q]; break; } }
+  var land = fc.length
+    ? '<div class="note ' + (holdWeek ? "warn" : "flat") + '" style="margin-top:10px">' +
+      "<b>Where the curve lands you</b>" +
+      "From " + f1(fc[0].start) + " lb, the taper puts you at about <b>" +
+      f1(fc[fc.length - 1].end) + " lb</b> on 7 November." +
+      (holdWeek
+        ? '<br><br><span style="color:var(--chalk);font-weight:600">You reach your ' +
+          f1(CUT_TARGET_LB) + " lb target in week " + holdWeek.w + "</span>, around " +
+          fmtD(holdWeek.range.from) + " \u2014 " + (fc.length - holdWeek.w + 1) +
+          " week" + (fc.length - holdWeek.w === 0 ? "" : "s") + " before the date. " +
+          "From there the target stops falling and the job becomes holding it.<br><br>" +
+          "That is not the plan going wrong. It is the target binding before the deadline does, " +
+          "and arriving early with time to settle is a better way to reach 7 November than still " +
+          "losing weight on the day.<br><br>" +
+          '<span style="color:var(--muted)">For reference, BMI 18.5 \u2014 the clinical underweight ' +
+          "line \u2014 is " + f1(cutFloorLb()) + " lb, about a pound under the target. " +
+          "The projection stops at the target rather than the line, because a plan aimed at the " +
+          "line has no margin in it at all.</span>"
+        : "") + "</div>"
+    : "";
 
   var sum = "";
   if (c.lost != null) {
@@ -5204,13 +5275,15 @@ function renderCutWeeks() {
       "</div>";
   }
 
-  el.innerHTML = head + sum +
+  el.innerHTML = head + land + sum +
     '<div class="note flat" style="margin-top:10px"><b>How to read it</b>' +
-    '<span style="color:var(--chalk)">Average</span> is every weight logged that week, ' +
-    "not a single morning \u2014 and the arrow is against the week before. " +
-    '<span style="color:var(--chalk)">Target drop</span> is what the taper asked of that week: ' +
-    "0.9% of bodyweight at the start, easing to 0.5% by the end, because the same percentage is fewer " +
-    "pounds as you get lighter.<br><br>" +
+    '<span style="color:var(--chalk)">Should be</span> is the average the taper asks of that week. ' +
+    "It tapers 0.9% of bodyweight a week at the start to 0.5% by the end, because the same percentage " +
+    "is fewer pounds as you get lighter \u2014 and it is the <em>middle</em> of the week, which is where " +
+    "a week's average sits when the weight comes off evenly.<br><br>" +
+    '<span style="color:var(--chalk)">You were</span> is every weight you logged that week averaged, ' +
+    "with the count beside it. <b>on</b> means within a quarter pound of the target; otherwise it shows " +
+    "how far above you are.<br><br>" +
     "A week marked <b>short</b> is worth looking at, not acting on. " +
     '<span style="color:var(--chalk);font-weight:600">Two short weeks in a row is a signal; one is noise.</span></div>';
 }
