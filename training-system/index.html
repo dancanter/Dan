@@ -844,7 +844,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "18 Sep 15:20";
+var BUILD = "18 Sep 15:27";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -5064,6 +5064,14 @@ function cutTargetPct(frac) {
   return CUT_RATE_START + (CUT_RATE_END - CUT_RATE_START) * f;
 }
 function cutStart() { return settings.cutStart || CUT_START_DEFAULT; }
+/* The weight the cut works from: mornings inside the window and nothing else.
+   Null until there is one, so callers can fall back to the whole log. */
+function cutCurrentLb() {
+  var asc = sortedWeights().filter(function (x) { return x.date >= cutStart(); });
+  if (!asc.length) return null;
+  var wr = weeklyRateOf(asc);
+  return wr && wr.cur ? wr.cur : asc[asc.length - 1].weight;
+}
 /* Short day-and-month, for week ranges. renderReview has called this for a
    while without it ever existing - it only never threw because that section
    is unreachable in this build. */
@@ -5096,7 +5104,13 @@ function cutStatus() {
   if (!inWindow.length) return out;
   out.first = inWindow[0];
   out.days = daysBetween(parseDay(out.first.date), todayD);
-  var wr = weeklyRate();
+  /* In-cut mornings only, everywhere - not just in the projection. A rolling
+     average that reaches back over the start day blends a refeed into the number
+     the whole panel reads from, and a rate measured across it compares a week of
+     eating normally against a week of not. Both would say the cut is going
+     better than it is, in its first fortnight, when he is most likely to act on
+     the number. */
+  var wr = weeklyRateOf(inWindow);
   out.cur = wr && wr.cur ? wr.cur : inWindow[inWindow.length - 1].weight;
   out.lost = out.first.weight - out.cur;
   out.rate = wr && wr.ready ? -wr.perWeek : null;
@@ -5127,8 +5141,14 @@ function cutStatus() {
    a lean distance runner is the build it describes most honestly. */
 function bmiWeights() {
   var m = BIO.heightCm / 100, m2 = m * m;
-  var wr = weeklyRate(), asc = sortedWeights();
-  var lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  /* Both readers of this sit inside the cut panel, so once the cut is running it
+     should be reading the cut's own weight rather than one averaged across the
+     start day. */
+  var asc = sortedWeights(), lb = cutCurrentLb();
+  if (lb == null) {
+    var wr = weeklyRate();
+    lb = wr && wr.cur ? wr.cur : (asc.length ? asc[asc.length - 1].weight : 126);
+  }
   return { under: 18.5 * m2 * 2.2046, cur: lb,
     curBmi: lb / 2.2046 / m2, atTarget: 122 / 2.2046 / m2 };
 }
@@ -6103,9 +6123,11 @@ function stepKcal(delta) {
    read flat at 0.1 lb/week while the trend readout said down 0.5, because one
    compared two complete seven-day windows and the other compared a full week
    against a four-day stub at the start of the log. */
-function weeklyRate() {
-  var asc = sortedWeights();
-  if (asc.length < 8) return null;
+function weeklyRate() { return weeklyRateOf(sortedWeights()); }
+/* Takes the log to read rather than always reading all of it, so the cut can ask
+   the same question of its own mornings only. */
+function weeklyRateOf(asc) {
+  if (!asc || asc.length < 8) return null;
   var roll = rollingAvg(asc.map(function (w) { return w.weight; }), 7);
   var FIRST_FULL = 6, lastIdx = roll.length - 1;
   var backIdx = Math.max(FIRST_FULL, roll.length - 15);

@@ -520,6 +520,18 @@ so the last pre-cut morning is carbohydrate and water. Seeding ten weeks of
 targets on it would build the whole curve off a number that was never bodyweight.
 Until the second morning is logged the panel says what it is waiting for and why.
 
+The isolation goes further than the projection. `cutCurrentLb()` and
+`weeklyRateOf()` mean **every number in the cut panel reads in-cut mornings
+only** — the 7-day average, the rate, the BMI line. A rolling average that
+reaches back across the start day blends a refeed into the number the whole panel
+works from, and a rate measured across that edge compares a week of eating
+normally against a week of not. Both would say the cut is going better than it is
+during its first fortnight, which is exactly when he is most likely to act on the
+number.
+
+Nothing is deleted to achieve this. The pre-cut weigh-ins stay in the log and
+still appear in Every Week and on the chart; the cut simply does not read them.
+
 Readings are **walked back to the start day** at the opening rate, because an
 average sits at the middle of the days it came from rather than the first of
 them. The note shows both numbers — the measured average as the headline, the
