@@ -3175,7 +3175,7 @@ var CHECKLIST = [
   { id: "sleep", label: "Sleep 8–10h, phone out of the room", sub: "On a cut this decides what you lose, not just how you feel" },
   { id: "meditation", label: "Meditation, 10 min", sub: "" },
   { id: "water", label: "Water 3–3.5L", sub: "More on hot or hard days" },
-  { id: "steps", label: "Steps 13,000 average", sub: "15k Mon–Fri · low Saturday · 10k Sunday" },
+  { id: "steps", label: "Steps 12,800 average", sub: "15k Mon–Fri · low Saturday · 10k Sunday" },
   { id: "protein", label: "Protein 155–160g", sub: "" },
   { id: "carbs", label: "Carbs on target for today", sub: "200–210g hard day / 150–170g rest day" },
   { id: "potassium", label: "Potassium foods included", sub: "Avocado, sweet potato, salmon, banana, greens" },
@@ -4494,7 +4494,7 @@ function logSteps(v) {
   DB.set(dailyKey(new Date()), todayState);
   renderKcal(); renderChecklist(); renderTrack();
 }
-var STEP_TARGET = 13000, STEP_BAND = 1500;   /* one band, so the two readouts cannot disagree */
+var STEP_TARGET = 12800, STEP_BAND = 1500;   /* one band, so the two readouts cannot disagree */
 
 /* Protein first and fixed, fat at the floor that keeps hormones working, carbs
    take whatever is left — because carbs are what fuel the sessions and they are
@@ -5643,14 +5643,19 @@ function renderCutWeeks() {
    shredded: 15k Monday to Friday, a deliberate low Saturday, 10k Sunday, two
    hard runs, a five mile, and either sprints or an easy 5km. Copying his own
    working week beats inventing a better one. */
-var CUT_STEPS = [10000, 15000, 15000, 15000, 15000, 15000, null];  /* Sun .. Sat */
+/* One source for the average, so the daily pattern and the target it is judged
+   against cannot drift apart. Change STEP_TARGET and everything below follows.
+   The weekdays and Sunday are the numbers he named and does not want moved, so
+   Saturday absorbs the difference - which is right, because Saturday is the
+   deliberately flexible day rather than a training one. */
+var CUT_STEP_AVG = STEP_TARGET;
+var CUT_STEP_WEEK = CUT_STEP_AVG * 7;
+var CUT_WEEKDAY_STEPS = 15000, CUT_SUNDAY_STEPS = 10000;
+var CUT_STEPS = [CUT_SUNDAY_STEPS, CUT_WEEKDAY_STEPS, CUT_WEEKDAY_STEPS,
+  CUT_WEEKDAY_STEPS, CUT_WEEKDAY_STEPS, CUT_WEEKDAY_STEPS, null];  /* Sun .. Sat */
 /* Saturday is a ceiling rather than a floor. The low day is the point of it -
    a 15,000-step Saturday is not a better week, it is a missing rest day. */
-var CUT_SAT_CEILING = 6000;
-/* 15,000 x 5 + 6,000 + 10,000 = 91,000, which is 13,000 a day. His two numbers -
-   the pattern he ran last time and the 13,000 average he asked for - are the
-   same number, so the sheet shows the shape and judges the average. */
-var CUT_STEP_WEEK = 91000, CUT_STEP_AVG = 13000;
+var CUT_SAT_CEILING = CUT_STEP_WEEK - CUT_WEEKDAY_STEPS * 5 - CUT_SUNDAY_STEPS;
 var CUT_DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 /* Two hard days at target+200 and five at target-80 average out to the number
    he set, so the cycle never quietly becomes a bigger deficit than he chose. */
@@ -5831,10 +5836,11 @@ function renderCutDays() {
     sess +
     '<div class="note flat" style="margin-top:10px"><b>Where these numbers come from</b>' +
     "This is your own template from the last time you got shredded, not a generic one: " +
-    '<span style="color:var(--chalk)">15,000 steps Monday to Friday, a deliberate low Saturday, ' +
-    "10,000 Sunday</span> — which comes to " + num(CUT_STEP_WEEK) + " a week, or " +
-    num(CUT_STEP_AVG) + " a day. Your pattern and the 13,000 average you asked for are the same " +
-    "number.<br><br>Two hard runs, a five mile, sprints, and five gym sessions.<br><br>" +
+    '<span style="color:var(--chalk)">' + num(CUT_WEEKDAY_STEPS) + " steps Monday to Friday, a deliberate low Saturday, " +
+    num(CUT_SUNDAY_STEPS) + " Sunday</span> — which comes to " + num(CUT_STEP_WEEK) + " a week, or " +
+    num(CUT_STEP_AVG) + " a day.<br><br>Saturday carries whatever the average needs, because the weekdays " +
+    "and Sunday are fixed. Move the average and Saturday is what moves.<br><br>" +
+    "Two hard runs, a five mile, sprints, and five gym sessions.<br><br>" +
     "Saturday is a <b>ceiling</b>, not a floor — under " + num(CUT_SAT_CEILING) +
     ". A 15,000-step Saturday is not a better week, it is a missing rest day, and it is the day " +
     "the legs get back what the other six took.<br><br>" +
