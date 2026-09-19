@@ -122,8 +122,12 @@ ok('with done, left and target', /Done/.test(wins) && /Left/.test(wins) && /Targ
 ok('wins keeps the weight goal', /Weight goal · 122–123 lb/.test(wins), wins.slice(0, 200));
 ok('and the weight milestones', /Weight milestones/.test(wins) && /Through 125 lb/.test(wins));
 ok('and the times', /2026 records/.test(wins));
-['Sleep', 'Study', 'Steps', 'Halfway — day', 'Final fortnight', 'nights phone-free'].forEach(k =>
+// The steps ACHIEVEMENT board is gone; the step AVERAGE was added later by
+// request, so the word "Steps" is expected here now — the specific tiles are not.
+['Sleep', 'Study', 'A 15,000 weekday', 'A Saturday under the ceiling',
+ 'Halfway — day', 'Final fortnight', 'nights phone-free'].forEach(k =>
   ok('wins no longer carries ' + k, wins.indexOf(k) < 0, wins.slice(Math.max(0, wins.indexOf(k) - 40), wins.indexOf(k) + 60)));
+ok('but it does carry the step average', /Steps, daily average/.test(wins), wins.slice(0, 300));
 ok('the unlocked X of Y scoreboard is gone', !/unlocked/i.test(wins));
 // but Today still uses the full list
 await pg.click('[data-t="today"]');

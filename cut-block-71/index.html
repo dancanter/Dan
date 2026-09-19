@@ -194,6 +194,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="restCard"></div>
   <div id="pushCard"></div>
   <div id="loadCard"></div>
+  <div id="tdeeCard"></div>
   <div id="fuelCard"></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
@@ -281,6 +282,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
   <div id="foodBudget"></div>
+  <div id="foodTdee"></div>
   <div id="foodFuel"></div>
   <div class="cols">
     <div class="p"><h2>Macros</h2>
@@ -571,6 +573,9 @@ var CFG={
      where it starts, how long it runs, how big the ladder is — is derived from
      the deficit his own weight actually measured over the block. */
   rev:{step:100,creatine:5,holdOver:0.5,settleWeeks:2},
+  /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
+     on the last day of the block. Height already lives in w.heightM. */
+  body:{dob:'2000-11-28'},
   tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
@@ -1493,9 +1498,20 @@ function renderWins(){
       '<td>'+(p.diff>=0?'<span class="pill g">'+f1(p.diff)+' ahead</span>':'<span class="pill w">'+f1(-p.diff)+' behind</span>')+
       (p.perWeek===null?'':' <span class="tiny">'+f1(p.perWeek)+'/wk from here</span>')+'</td></tr>';
   });
+  /* steps are an average rather than a count, so they read differently:
+     done/left makes no sense, over/under the target does. */
+  var sa=tr.stepsAvg;
+  h+='<tr><td><b>Steps, daily average</b></td>'+
+    '<td class="n">'+(sa===null?'—':ci(sa))+'</td>'+
+    '<td class="n"><span class="tiny">'+tr.stepsDays+' day'+(tr.stepsDays===1?'':'s')+' logged</span></td>'+
+    '<td class="n">'+ci(CFG.goals.steps)+'</td>'+
+    '<td>'+(sa===null?'<span class="tiny">nothing logged yet</span>'
+      :(sa>=CFG.goals.steps?'<span class="pill g">'+ci(sa-CFG.goals.steps)+' over</span>':'<span class="pill w">'+ci(CFG.goals.steps-sa)+' under</span>')+
+        ' <span class="tiny">'+ci(tr.stepsTotal)+' all in</span>')+'</td></tr>';
   h+='</tbody></table></div>'+
     '<div class="cols3" style="margin-top:12px">'+
     rows.map(function(r){return goalCard(r[0],r[1]);}).join('')+
+    stepsCard(tr)+
     '</div>'+
     '<p class="tiny" style="margin-top:10px">The notch on each bar is pro-rata — '+pct(c.through,1)+' of the block counted. Rest days are not misses; they are in the plan.</p></div>';
 
@@ -1704,6 +1720,97 @@ function renderFuel(tr){
     '<hr class="d"><p class="tiny"><b>What none of this changes: the total.</b> '+ci(KCAL_DAY)+' every day, hard session or not. '+
     'What the session changes is the <b>shape</b> of the day — which meal the carbohydrate sits in, and how close to the session it lands.</p></div>';
   E('foodFuel').innerHTML=all;
+}
+
+/* ===================== TDEE, built out of the day itself =====================
+   Every coefficient here is net of resting metabolism, so the BMR term covers
+   the whole 24 h and the activity terms sit on top without double counting.
+
+   Walking: the ACSM walking equation at ~3 mph gives 8 ml O2/kg/min above
+   rest; at ~107 steps a minute and 5 kcal per litre that is 0.375 kcal per kg
+   per 1,000 steps. For him that is about 22 kcal per 1,000 — a long way from
+   the 40-50 that step counters claim, and the honest number.
+
+   Running: ~1 kcal per kg per km net, near enough independent of pace.
+   Gym: 3.5 METs net for an hour, which is a real lifting session with real
+   rest between sets rather than an hour of continuous work.
+
+   The steps taken DURING a run have to come out of the walking total or the
+   run gets counted twice — an 8 km run is about 7,000 of his daily steps. */
+var WALK_KCAL_PER_KG_1K=0.375;
+var RUN_KCAL_PER_KG_KM=1.0;
+var GYM_MET_NET=3.5, GYM_HOURS=1;
+var TEF_RATE=0.10;
+var RUN_STEP_M=1.15;
+
+function ageOn(is){
+  var d=dt(CFG.body.dob),t=dt(is),a=t.getFullYear()-d.getFullYear();
+  var m=t.getMonth()-d.getMonth();
+  if(m<0||(m===0&&t.getDate()<d.getDate()))a--;
+  return a;
+}
+function lbOn(is){
+  if(typeof S.weights[is]==='number')return S.weights[is];
+  var rs=readings().filter(function(r){return r.d<=is;});
+  if(rs.length)return rs[rs.length-1].lb;
+  rs=readings();
+  return rs.length?rs[0].lb:CFG.w.target;
+}
+function bmrOf(kg,age){return 10*kg+6.25*(CFG.w.heightM*100)-5*age+5;}
+
+function tdeeFor(is){
+  var rec=S.days[is]||{};
+  var lb=lbOn(is),kg=lb*0.45359237,age=ageOn(is);
+  var bmr=bmrOf(kg,age);
+  var intake=(typeof rec.kcal==='number')?rec.kcal:null;
+  var tef=(intake===null?KCAL_DAY:intake)*TEF_RATE;
+  var runKm=0;
+  (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.km>0)runKm+=m.km;});
+  var runKcal=runKm*RUN_KCAL_PER_KG_KM*kg;
+  var runSteps=Math.round(runKm*1000/RUN_STEP_M);
+  var steps=(typeof rec.steps==='number')?rec.steps:null;
+  var walkSteps=(steps===null)?null:Math.max(0,steps-runSteps);
+  var walkKcal=(walkSteps===null)?null:walkSteps/1000*WALK_KCAL_PER_KG_1K*kg;
+  var gymKcal=rec.gym?GYM_MET_NET*kg*GYM_HOURS:0;
+  var total=bmr+tef+runKcal+gymKcal+(walkKcal||0);
+  var against=(intake===null?KCAL_DAY:intake);
+  return {date:is,lb:lb,kg:kg,age:age,bmr:bmr,tef:tef,runKm:runKm,runKcal:runKcal,
+          runSteps:runSteps,steps:steps,walkSteps:walkSteps,walkKcal:walkKcal,
+          gym:!!rec.gym,gymKcal:gymKcal,total:total,intake:intake,
+          against:against,deficit:total-against,
+          stepsKnown:steps!==null,intakeKnown:intake!==null};
+}
+function tdeeWeek(){
+  var t=today(),tr=trainingModel();
+  var from=tr.wkStart,to=tr.wkEnd>t?t:tr.wkEnd;
+  var out={from:from,to:to,days:[],total:0,intake:0,deficit:0,n:0,
+           stepsMissing:0,intakeMissing:0,lbEquiv:0,pre:tr.pre};
+  for(var i=0;i<=diffD(from,to);i++){
+    var d=addD(from,i);
+    if(d>t)break;
+    var x=tdeeFor(d);
+    out.days.push(x);out.n++;
+    out.total+=x.total;out.intake+=x.against;out.deficit+=x.deficit;
+    if(!x.stepsKnown)out.stepsMissing++;
+    if(!x.intakeKnown)out.intakeMissing++;
+  }
+  out.lbEquiv=out.deficit/3500;
+  out.perDay=out.n?out.deficit/out.n:0;
+  return out;
+}
+/* The model against the scale. The scale is the one that is right — it is the
+   only number here that is measured rather than estimated — so this reports
+   the gap and says which way to trust it. */
+function tdeeCheck(){
+  var w=weightModel();
+  if(w.rateLb===null)return null;
+  var measured=w.rateLb*3500/7;
+  var wk=tdeeWeek();
+  if(!wk.n)return null;
+  var modelled=wk.perDay;
+  return {measured:measured,modelled:modelled,diff:modelled-measured,
+          measuredLbWk:w.rateLb,modelledLbWk:modelled*7/3500,
+          off:Math.abs(modelled-measured)>150};
 }
 
 /* ===================== the reverse, from 29 November =====================
@@ -1947,6 +2054,7 @@ function render(){
   renderTimes();
   renderSleep();
   renderStudy(tr);
+  renderTdee();
   renderReverse();
   renderSkin();
   renderWins();
@@ -2619,6 +2727,97 @@ function renderStudy(tr){
     h+='</div>';
   }
   E('stTop').innerHTML=h;
+}
+
+/* ---------- TDEE and the deficit ---------- */
+function renderTdee(){
+  var t=today(),x=tdeeFor(t),wk=tdeeWeek(),ck=tdeeCheck();
+  var dayCls=x.deficit>=0?'':'bad';
+
+  E('tdeeCard').innerHTML='<div class="p '+(dayCls||'flag')+'"><h2>Burn and deficit · '+fmtL(t)+'</h2><div class="tiles t4">'+
+    tile('burning today',ci(x.total),'at '+f1(x.lb)+' lb, age '+x.age)+
+    tile(x.intakeKnown?'eaten':'target',ci(x.against),x.intakeKnown?'logged':'not logged yet — using the target')+
+    tile('deficit today',(x.deficit>=0?'−':'+')+ci(Math.abs(x.deficit)),f1(Math.abs(x.deficit)/3500*7)+' lb a week at this rate')+
+    tile(wk.pre?'pre-block so far':'this week so far',(wk.deficit>=0?'−':'+')+ci(Math.abs(wk.deficit)),
+         wk.n+' day'+(wk.n===1?'':'s')+' · '+f2(Math.abs(wk.lbEquiv))+' lb of '+(wk.deficit>=0?'fat':'surplus'))+
+    '</div>'+
+    (!x.stepsKnown?'<p class="tiny" style="margin-top:10px"><b>No step count on today yet</b>, so walking is not in that number — it will rise by roughly '+ci(12800/1000*WALK_KCAL_PER_KG_1K*x.kg)+' kcal once a normal day is logged.</p>':'')+
+    '<p class="tiny" style="margin-top:8px">Full breakdown on the <b>Food</b> tab, including how this estimate compares against what your weight actually did.</p></div>';
+
+  /* the whole thing, on Food */
+  var rows=[['Resting (Mifflin-St Jeor)',x.bmr,'5\'8", '+f1(x.lb)+' lb, age '+x.age+' — what you burn doing nothing'],
+            ['Digesting the food',x.tef,'about '+Math.round(TEF_RATE*100)+'% of what you eat, burnt off processing it'],
+            ['Walking',x.walkKcal,x.stepsKnown
+              ? ci(x.walkSteps)+' steps'+(x.runSteps?' ('+ci(x.steps)+' logged, minus about '+ci(x.runSteps)+' taken during the run)':'')
+              : 'no step count logged today'],
+            ['Running',x.runKcal,x.runKm>0?f2(x.runKm)+' km logged':'nothing logged'],
+            ['Gym',x.gymKcal,x.gym?'one session, 3.5 METs net for an hour':'not ticked']];
+  var h='<div class="p"><h2>What you actually burn · '+fmtL(t)+'</h2>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Where it goes</th><th class="n">kcal</th><th>From</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr'+(r[1]===null||r[1]===0?' class="dim"':'')+'><td>'+r[0]+'</td>'+
+      '<td class="n">'+(r[1]===null?'—':ci(r[1]))+'</td><td class="tiny">'+r[2]+'</td></tr>';
+  });
+  h+='<tr><td><b>TDEE today</b></td><td class="n"><b>'+ci(x.total)+'</b></td><td class="tiny">everything above</td></tr>'+
+    '<tr><td>'+(x.intakeKnown?'Eaten':'Target (nothing logged)')+'</td><td class="n">'+ci(x.against)+'</td><td class="tiny">'+(x.intakeKnown?'as logged':'log the day to make this real')+'</td></tr>'+
+    '<tr><td><b>Deficit</b></td><td class="n"><b class="'+(x.deficit>=0?'gd':'bd')+'">'+(x.deficit>=0?'−':'+')+ci(Math.abs(x.deficit))+'</b></td>'+
+    '<td class="tiny">'+f2(Math.abs(x.deficit)/3500)+' lb '+(x.deficit>=0?'off':'on')+', if every day looked like this</td></tr>'+
+    '</tbody></table></div></div>';
+
+  /* the week */
+  h+='<div class="p"><h2>'+(wk.pre?'Pre-block':'This week')+' · '+fmtS(wk.from)+'–'+fmtS(wk.to)+'</h2>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Steps</th><th class="n">Burn</th><th class="n">Ate</th><th class="n">Deficit</th></tr></thead><tbody>';
+  wk.days.forEach(function(d){
+    h+='<tr><td>'+DOWS[dow(d.date)]+' '+fmtS(d.date)+'</td>'+
+      '<td class="n">'+(d.stepsKnown?ci(d.steps):'—')+'</td>'+
+      '<td class="n">'+ci(d.total)+'</td>'+
+      '<td class="n">'+(d.intakeKnown?ci(d.intake):'<span class="tiny">'+ci(d.against)+'*</span>')+'</td>'+
+      '<td class="n">'+(d.deficit>=0?'−':'+')+ci(Math.abs(d.deficit))+'</td></tr>';
+  });
+  h+='<tr><td><b>Total</b></td><td class="n"></td><td class="n"><b>'+ci(wk.total)+'</b></td><td class="n"><b>'+ci(wk.intake)+'</b></td>'+
+    '<td class="n"><b class="'+(wk.deficit>=0?'gd':'bd')+'">'+(wk.deficit>=0?'−':'+')+ci(Math.abs(wk.deficit))+'</b></td></tr>'+
+    '</tbody></table></div>'+
+    '<div class="tiles t4" style="margin-top:12px">'+
+    tile('week deficit',(wk.deficit>=0?'−':'+')+ci(Math.abs(wk.deficit)),'over '+wk.n+' day'+(wk.n===1?'':'s')+' so far')+
+    tile('per day',(wk.perDay>=0?'−':'+')+ci(Math.abs(wk.perDay)),'average across those days')+
+    tile('that is',f2(Math.abs(wk.lbEquiv))+' lb','at 3,500 kcal a pound')+
+    tile('a full week would be',(wk.deficit>=0?'−':'+')+ci(Math.abs(wk.perDay*7)),f2(Math.abs(wk.perDay*7/3500))+' lb a week')+
+    '</div>'+
+    ((wk.intakeMissing||wk.stepsMissing)?'<p class="tiny" style="margin-top:10px">'+
+      (wk.intakeMissing?'<b>'+wk.intakeMissing+' day'+(wk.intakeMissing===1?'':'s')+' with no calories logged</b> — those rows use the '+ci(KCAL_DAY)+' target instead, marked with *. ':'')+
+      (wk.stepsMissing?'<b>'+wk.stepsMissing+' day'+(wk.stepsMissing===1?'':'s')+' with no step count</b> — walking is simply missing from those, so the burn is understated. ':'')+
+      'Log both and this whole table becomes real rather than assumed.</p>':'')+
+    '</div>';
+
+  /* the model against the scale */
+  if(ck){
+    var cls=ck.off?'warn':'good';
+    h+='<div class="p '+cls+'"><h2>Does this estimate match what your weight actually did?</h2>'+
+      '<div class="tiles t4">'+
+      tile('this says',ci(Math.round(ck.modelled))+'/day',f2(ck.modelledLbWk)+' lb a week')+
+      tile('your scale says',ci(Math.round(ck.measured))+'/day',f2(ck.measuredLbWk)+' lb a week')+
+      tile('gap',(ck.diff>=0?'+':'−')+ci(Math.abs(Math.round(ck.diff))),ck.off?'worth knowing about':'close enough')+
+      '</div>'+
+      '<p style="margin-top:10px"><b>Where they disagree, the scale is right.</b> It is the only number on this page that is measured rather than estimated. '+
+      'The resting figure is a population formula and is routinely 10% out on an individual; the step and session costs are averages.</p>'+
+      (ck.off?('<p class="note">'+(ck.diff>0
+        ? 'This is estimating a <b>bigger</b> deficit than your weight is showing. Usually one of three things: the calories eaten are under-counted (oil and the squash are the classic two), the step count is generous, or your resting rate genuinely sits under the formula — which is common after weeks of dieting.'
+        : 'This is estimating a <b>smaller</b> deficit than your weight is showing. Either you are burning more than the averages assume, or some of the loss on the scale is water rather than fat — check it again in a week before believing it.')+'</p>')
+        :'<p class="note">They agree within '+ci(Math.abs(Math.round(ck.diff)))+' kcal a day, which for a model built out of population averages is as good as it gets. You can trust these numbers.</p>')+
+      '</div>';
+  }else{
+    h+='<div class="p"><h2>Does this match what your weight actually did?</h2>'+
+      '<p class="note">Not yet — that needs two full 7-day weight windows so there is a measured rate to compare against. It will appear here on its own.</p></div>';
+  }
+  h+='<div class="p"><h2>How much to trust any of this</h2>'+
+    '<ul class="clean note">'+
+    '<li><b>Resting rate: ±10%.</b> Mifflin-St Jeor is the best of the formulas and it is still a population average. For you that is roughly ±150 kcal.</li>'+
+    '<li><b>Walking: about '+f1(WALK_KCAL_PER_KG_1K*x.kg)+' kcal per 1,000 steps.</b> Step counters and watches routinely claim double that. This is the ACSM walking equation, net of what you would have burnt sitting down.</li>'+
+    '<li><b>Running: 1 kcal per kg per km.</b> So an 8 km run is about '+ci(8*RUN_KCAL_PER_KG_KM*x.kg)+' kcal, and it barely changes with pace — distance is what costs, not speed.</li>'+
+    '<li><b>Gym: '+ci(GYM_MET_NET*x.kg)+' kcal an hour.</b> Lifting with real rest between sets is not the calorie burn people think it is. It is there for the muscle, not the deficit.</li>'+
+    '<li>Nothing here is a ceiling to eat to. It is the arithmetic behind the number you already chose.</li>'+
+    '</ul></div>';
+  E('foodTdee').innerHTML=h;
 }
 
 /* ---------- the reverse ---------- */
