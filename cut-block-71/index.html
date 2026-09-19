@@ -174,6 +174,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <button role="tab" data-t="times" aria-selected="false">Times</button>
     <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
     <button role="tab" data-t="study" aria-selected="false">Study</button>
+    <button role="tab" data-t="reverse" aria-selected="false">Reverse</button>
     <button role="tab" data-t="wins" aria-selected="false">Wins</button>
     <button role="tab" data-t="review" aria-selected="false">Review</button>
     <button role="tab" data-t="skin" aria-selected="false">Skin</button>
@@ -438,6 +439,14 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   </div>
 </section>
 
+<!-- ================= REVERSE ================= -->
+<section id="s-reverse" class="stack" hidden>
+  <div id="revTop"></div>
+  <div id="revLadder"></div>
+  <div id="revWater"></div>
+  <div id="revRest"></div>
+</section>
+
 <!-- ================= WINS ================= -->
 <section id="s-wins" class="stack" hidden>
   <div id="winTop"></div>
@@ -558,6 +567,10 @@ var CFG={
   steps:{weekday:15000,sunday:10000},
   study:{term:'2026-09-28',lo:16,hi:20},
   sleep:{line:7.5},
+  /* The reverse. step is the weekly rise in kcal; everything else about it —
+     where it starts, how long it runs, how big the ladder is — is derived from
+     the deficit his own weight actually measured over the block. */
+  rev:{step:100,creatine:5,holdOver:0.5,settleWeeks:2},
   tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
@@ -1693,6 +1706,43 @@ function renderFuel(tr){
   E('foodFuel').innerHTML=all;
 }
 
+/* ===================== the reverse, from 29 November =====================
+   Maintenance is not looked up in a formula. Ten weeks of daily weights and a
+   known intake measure his deficit directly: whatever he ate, plus whatever
+   the weight says he was short by, is what holds him level. That number only
+   gets better as the block runs, and a table of estimates never would. */
+var REV_START=addD(CFG.cutEnd,1);
+function reverseModel(){
+  var t=today(),w=weightModel();
+  var toStart=diffD(t,REV_START),live=(t>=REV_START);
+  var est=null;
+  if(w.baseline!==null&&w.a7!==null){
+    var days=diffD(WEIGH_START,t);
+    if(days>=14){
+      var lost=w.baseline-w.a7;
+      var perDay=lost/days*3500;
+      est={lbWk:lost/days*7,deficit:perDay,days:days,lost:lost,from:'measured'};
+    }
+  }
+  if(!est){
+    var wkNow=Math.max(1,Math.min(W_WEEKS,weekOf(t)));
+    var ref=(w.a7!==null?w.a7:CFG.w.target),lbWk=ref*taperAt(wkNow-1);
+    est={lbWk:lbWk,deficit:lbWk*3500/7,days:0,lost:null,from:'planned'};
+  }
+  var maint=Math.round((KCAL_DAY+est.deficit)/10)*10;
+  var rungs=[],kc=KCAL_DAY,wk=1;
+  while(kc<maint&&wk<=26){
+    kc=Math.min(maint,kc+CFG.rev.step);
+    rungs.push({wk:wk,kcal:kc,from:addD(REV_START,(wk-1)*7),to:addD(REV_START,wk*7-1),
+                carb:Math.round(CFG.rev.step/4),atTop:kc>=maint});
+    wk++;
+  }
+  var cur=live?Math.min(rungs.length,Math.floor(diffD(REV_START,t)/7)+1):0;
+  return {live:live,toStart:toStart,start:REV_START,est:est,maint:maint,rungs:rungs,
+          cur:cur,now:cur?rungs[cur-1]:null,weeks:rungs.length,
+          top:rungs.length?rungs[rungs.length-1]:null};
+}
+
 /* ===================== the other half of the call: go harder ===================== */
 /* Runs filed as a hard continuous effort that did not come in under the
    effort line. Evidence for "go harder", rather than a hunch about it. */
@@ -1897,6 +1947,7 @@ function render(){
   renderTimes();
   renderSleep();
   renderStudy(tr);
+  renderReverse();
   renderSkin();
   renderWins();
   renderReview();
@@ -1981,11 +2032,23 @@ function renderToday(c,w,tr){
   E('callCard').innerHTML=callToday(w,tr,rest);
   var rc='';
   if(rest.fire){
+    var ahR=aheadEnough(w,tr);
     rc='<div class="p good"><h2>Earned rest — you are ahead</h2><ul class="clean">'+rest.why.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><hr class="d">';
     if(rest.tooFast){
       rc+='<p><b>Take one or two days with no running and no gym — and eat more on them, carbs first.</b> You are ahead because the rate is over the safe band, so the days off come with food, not without it.</p>'+refeedLine(w);
     }else{
       rc+='<p><b>Take one or two days with no running and no gym. Keep the food exactly where it is</b> — a rest day is not a day to eat less. Steps can stay.</p>';
+      /* Being ahead is the whole condition a refeed is earned under, so if it
+         is earned it gets said here with the number on it — not left on
+         another card for him to go and find. */
+      if(ahR.ok){
+        var sinceR=lastRefeed()?diffD(lastRefeed(),today()):null;
+        rc+='<hr class="d"><p><b>And you have earned a refeed, if you want one.</b> The weight is ahead of the plan and the sessions are ahead of pro-rata, which is the only condition it is offered under'+
+          (sinceR!==null?' — the last one was '+sinceR+' days ago':' — none logged yet, and there is a toggle on the log')+'.</p>'+refeedLine(w)+
+          '<p class="note">A refeed on a rest day is the best version of it: the food goes in on the day the rebuilding happens.</p>';
+      }else{
+        rc+='<p class="note">Not a refeed day, though — '+noRefeedBecause(ahR)+', and a refeed is only earned when the weight and the sessions are both ahead. The rest is earned on its own.</p>';
+      }
     }
     rc+='<p class="note">What it buys: glycogen back, cortisol down, and the held water usually lets go within a few days of easing off. That is why the scale often drops after a rest rather than during a hard week.</p></div>';
   }
@@ -2558,6 +2621,86 @@ function renderStudy(tr){
   E('stTop').innerHTML=h;
 }
 
+/* ---------- the reverse ---------- */
+function renderReverse(){
+  var R=reverseModel(),c=cutTally();
+  var h='<div class="p '+(R.live?'lift':'flag')+'"><h2>The reverse'+(R.live?' · week '+R.cur+' of '+R.weeks:'')+'</h2>';
+  if(!R.live){
+    h+='<p class="lede">Starts <b>'+fmtL(R.start)+'</b> — the morning after the cut ends. <b class="num">'+R.toStart+' day'+(R.toStart===1?'':'s')+'</b> away.</p>'+
+       '<p>This is the half that sets the times. <b>Sub-55 and sub-17 do not happen on a deficit</b> — they happen three to six weeks into eating properly again, with glycogen back and creatine in. The cut makes you light; the reverse makes you fast. Doing them in the other order is how people end a cut in the best shape of their life and run slower than they did in August.</p>';
+  }else{
+    h+='<p class="lede">Eat <b class="num acc">'+ci(R.now.kcal)+' kcal</b> today'+(R.now.atTop?' — that is maintenance, and the ladder is done':'')+'.</p>';
+  }
+  h+='<div class="tiles t4" style="margin-top:12px">'+
+    tile('maintenance',ci(R.maint),R.est.from==='measured'?'measured off your own '+R.est.days+' days':'estimated from the plan, not yet measured')+
+    tile('from',ci(KCAL_DAY),'the cut number')+
+    tile('the climb','+'+ci(CFG.rev.step)+'/wk',R.weeks+' week'+(R.weeks===1?'':'s')+' to the top')+
+    tile('your deficit now',ci(Math.round(R.est.deficit))+'/day',f1(R.est.lbWk)+' lb a week')+
+    '</div>';
+  if(R.est.from==='measured'){
+    h+='<p class="tiny" style="margin-top:10px">That maintenance number is not from a formula. Over '+R.est.days+' days you have eaten '+ci(KCAL_DAY)+
+       ' a day and lost <b class="num">'+f1(R.est.lost)+' lb</b>, which at 3,500 kcal a pound is a <b class="num">'+ci(Math.round(R.est.deficit))+
+       ' kcal</b> daily shortfall. Add it back and you are level. It gets more accurate every morning you weigh, so the ladder below will move — that is it working.</p>';
+  }else{
+    h+='<p class="tiny" style="margin-top:10px">Sized off the taper for now, because a measured deficit needs a fortnight of mornings inside the cut. It will re-derive itself from your own numbers as soon as it can, and the ladder will change. Do not write these figures down yet.</p>';
+  }
+  h+='</div>';
+  E('revTop').innerHTML=h;
+
+  /* the ladder */
+  var t=today();
+  var lg='<div class="p"><h2>The ladder · +'+ci(CFG.rev.step)+' a week, all of it carbohydrate</h2><div class="scroll"><table class="tbl">'+
+    '<thead><tr><th>Week</th><th>Dates</th><th class="n">Eat</th><th class="n">Added carbs</th><th></th></tr></thead><tbody>';
+  R.rungs.forEach(function(r){
+    var now=R.live&&r.wk===R.cur,past=r.to<t;
+    lg+='<tr'+(r.from>t?' class="dim"':'')+'><td>'+r.wk+'</td><td class="tiny">'+fmtS(r.from)+'–'+fmtS(r.to)+'</td>'+
+      '<td class="n"><b>'+ci(r.kcal)+'</b></td><td class="n">+'+r.carb+' g</td>'+
+      '<td>'+(now?'<span class="pill a">this week</span>':(past?'<span class="tiny">done</span>':(r.atTop?'<span class="pill g">maintenance</span>':'')))+'</td></tr>';
+  });
+  lg+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px"><b>Protein stays at '+MACRO.pro+' g and fat stays at '+MACRO.fat+' g.</b> Every added calorie goes in as carbohydrate — '+
+    Math.round(CFG.rev.step/4)+' g a week — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
+    'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
+    '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing. Nothing is lost by taking twelve weeks instead of eight.</p></div>';
+  E('revLadder').innerHTML=lg;
+
+  /* the bit that will otherwise ruin his week */
+  E('revWater').innerHTML='<div class="p warn"><h2>The first fortnight will read as a disaster. It is not.</h2>'+
+    '<p class="lede">Expect <b class="num">+3 to +6 lb</b> in the first week or two. <b>None of it is fat.</b></p>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td><b>Glycogen and its water</b></td><td class="note">Every gram of glycogen holds about 3 g of water with it. Going from ten weeks depleted to full is 2–4 lb on the scale in a few days, and it is the thing you have been waiting for — it is stored fuel arriving in the muscle.</td></tr>'+
+    '<tr><td><b>Creatine</b></td><td class="note">Another 1–2 lb, and it is intracellular water, which is inside the muscle rather than under the skin. It does not make you look softer.</td></tr>'+
+    '<tr><td><b>Food in transit</b></td><td class="note">More food means more actually in you at any moment. A pound or so, and it is not you.</td></tr>'+
+    '<tr><td><b>Cortisol coming down</b></td><td class="note">Ten weeks of deficit plus 12,800 steps keeps cortisol up, which holds water. It releases unevenly as you eat again, so the scale can do nothing for four days and then move.</td></tr>'+
+    '</tbody></table>'+
+    '<hr class="d"><p><b>The arithmetic that settles it:</b> a pound of fat is 3,500 kcal of surplus. At +'+ci(CFG.rev.step)+
+    ' a week you are adding '+ci(CFG.rev.step*7)+' kcal across a whole week — under a fifth of a pound even if every calorie of it were stored, which it is not. '+
+    'Six pounds of fat in a fortnight would take eating 1,500 over maintenance every single day.</p>'+
+    '<p class="note"><b>So do not judge anything for '+CFG.rev.settleWeeks+' weeks.</b> Keep weighing, keep logging, and read the 7-day average from week '+(CFG.rev.settleWeeks+1)+' onward. '+
+    'After it settles the number to watch is about <b>0.2–0.3 lb a week</b> of genuine rise. Flat while eating '+ci(CFG.rev.step*3)+'+ above the cut is your metabolism coming back up, and it is the best outcome there is.</p></div>';
+
+  /* what changes besides the food */
+  E('revRest').innerHTML='<div class="cols">'+
+    '<div class="p"><h2>Creatine</h2>'+
+    '<p class="note"><b>'+CFG.rev.creatine+' g of creatine monohydrate a day, every day.</b> No loading phase — it just takes about three weeks to saturate either way, and loading only buys you speed you do not need.</p>'+
+    '<ul class="clean note"><li>Timing does not matter. With a meal is fine.</li>'+
+    '<li><b>Check it is certified gluten-free.</b> Plain monohydrate usually is, but powders get made on shared lines.</li>'+
+    '<li>Plain monohydrate. Not a blend, not something with creatine in it — the blends are where the additives you do not want live.</li>'+
+    '<li>It is one of the few supplements with genuinely strong evidence, and it is pointed straight at the 400m: repeat sprint work and short efforts are exactly what it improves.</li></ul></div>'+
+    '<div class="p"><h2>Steps come down</h2>'+
+    '<p class="note">12,800 a day was a tool for creating a deficit, not a health target. On the reverse it can drop to whatever you want — <b>8,000–10,000 is plenty</b>.</p>'+
+    '<p class="tiny">That is worth roughly 150–250 kcal a day of energy you get back without eating it, and it is 150–250 kcal of recovery the legs keep instead. Coming down on steps is part of the reverse, not a separate decision.</p></div>'+
+    '</div>'+
+    '<div class="p flag"><h2>When to actually go for the times</h2>'+
+    '<p>Not in week one. Glycogen is still filling and the legs are still carrying ten weeks of deficit.</p>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td class="mono">Weeks 1–2</td><td>Eat. Sleep. Sessions stay honest but nothing is a test. Expect them to feel better by the end of week two.</td></tr>'+
+    '<tr><td class="mono">Weeks 3–4</td><td>First real attempts. <b>The 400 first</b> — it responds fastest to glycogen and creatine, and it is the target you are closest to.</td></tr>'+
+    '<tr><td class="mono">Weeks 4–6</td><td>The 5 km. It needs the most accumulated freshness, so it goes last. Pick a flat one and a still day; you already know 75 s is a lot to find.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="tiny" style="margin-top:8px">One more time, because it is the whole logic of the block: <b>the cut does not set the times, it sets them up.</b> Every pound off is about 2 s a mile for free — you arrive at the reverse lighter than you have ever raced, and then you put the fuel back in.</p></div>';
+}
+
 /* ---------- skin ---------- */
 function renderSkin(){
   var t=today(),i,am=0,pm=0,te=0;
@@ -2635,7 +2778,7 @@ function renderData(w,tr,c){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','weight','food','training','times','sleep','study','wins','review','skin','data'].forEach(function(k){
+  ['today','weight','food','training','times','sleep','study','reverse','wins','review','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
