@@ -165,7 +165,11 @@ off a plan.
 - **300 ml semi-skimmed milk** across the day — 150 kcal
 - **Evening yoghurt bowl, 535 kcal, ~20:30, after the gym** — he will not move this
 
-That leaves **1,089 kcal** for three meals on a normal day, **1,315** on a hard day.
+Those two together are **685 kcal**, gone before anything is planned. So the three meals
+get **whatever the day's number is, minus 685**: **1,114** at a flat 1,799, **1,035** on
+a 1,720 day, **1,315** on a 2,000 hard day, **1,214** on an 1,899 day. Derive it —
+never carry a hard-coded figure, and never quote 1,089 (it came from an older 560 kcal
+bowl and is wrong at every intake).
 
 ### Macros
 - **Protein 130–140 g/day** (he is ~58 kg)
@@ -411,12 +415,13 @@ session average at that distance, which is the number he asked to be judged on.*
 | Distance | Best session average | Single best | Date | Session |
 |---|---|---|---|---|
 | 200m | **28.1 s** | — | 20 Jul | 4 × 200m all out |
-| 300m | **45.5 s** | — | 12 May | 5 × 300m |
+| 300m | **45.2 s** | — | 11 Aug | 4 × 300m, in 28 °C |
 | 400m | **61.3 s** | **59 s** | 10 Sep / 4 Sep | 3 × 400m; 59 s came inside the 4 × 600m |
 | 500m | **87.4 s** | — | 16 Feb | 4 × 500m |
 | 600m | **1:40.1** | — | 4 Sep | 4 × 600m, "best session yet" |
 | 800m | **2:32.0** | — | 25 Jul | 3 × 800m |
-| 1000m | **3:12.7** | 3:14 | 17 Jun | 3 × 1km, strict form |
+| 1000m | **3:12.7** (17 Jun) | **3:00** | 18 Aug | best rep sits inside the 5 × 1km |
+| 805m (half mile) | — | **2:24** | 18 Aug | split inside the same session |
 | 1 mile | — | **5:27** | 31 Aug | inside the 18:05 5 km |
 | 5 km | — | **18:05** | 31 Aug | fastest of the year |
 | 8 km | — | **32:38** | 24 Aug | running-economy 8 km |
@@ -462,7 +467,7 @@ session average at that distance, which is the number he asked to be judged on.*
 02 Jun  4 × 1km       4012.3 m / 787 s   — 2 PRs, "felt good"
 05 Jun  4 × 400m      1606.7 m / 258 s   — all out, 400 best 61 s
 12 Jun  4 × 200m       825.5 m / 119 s   — all out
-17 Jun  3 × 1km       3010.3 m / 580 s   — strict form, 1km best 3:14
+17 Jun  3 × 1km       3010.3 m / 580 s   — strict form, session avg 3:12.7
 22 Jun  3 × 400m + 200m sprints
 25 Jun  3 × 1km       3014.2 m / 600 s   (30 °C)
 29 Jun  8 × 400m      3211.9 m / 573 s
@@ -476,7 +481,8 @@ session average at that distance, which is the number he asked to be judged on.*
 06 Aug  5 × 400m      2012.8 m / 359 s   (mile pace, 90 s rest)
 11 Aug  4 × 300m      1208.5 m / 182 s   (28 °C)
 14 Aug  200-400-600-400-200 ladder, 1807.5 m / 316 s
-18 Aug  5 × 1km       5006.2 m / 982 s   — 2 PRs (bad wind)
+18 Aug  5 × 1km       5006.2 m / 982 s   — 2 PRs (bad wind); fastest 1 km 3:00,
+                                          fastest 805m 2:24, fastest 400m 69 s
 20 Aug  6 × 200m      1236.6 m / 189 s
 04 Sep  4 × 600m      2410.1 m / 402 s   — best session yet; 400 best 59 s
 09 Sep  200-400-600-400-200 ladder, 1813.1 m / 322 s (1:1 recovery)
@@ -503,20 +509,39 @@ easy 5 km typically **1,383–1,613 s**. Longest run of the year: 16 Aug, 9,452 
 
 ### How the Strava data actually gets in
 
-Worth knowing before anyone tries to build a live sync. A single published HTML page
-**cannot call the Strava API**, for three separate reasons:
+**Correction to an earlier version of this document, which said "build the parser, do
+not build the sync". That was wrong.** A published artifact *can* reach Strava — live,
+on Dan's own page.
 
-1. The page runs under a CSP that blocks every outbound request. A `fetch` to
-   strava.com fails silently — no prompt, no visible error, just nothing
-2. OAuth needs a registered redirect URI and a server to exchange the code for a
-   token. One HTML file has neither
-3. The exchange needs the client secret, which in a one-file page would sit in plain
-   text in something anyone with the link can read — leaking it and breaching Strava's
-   API terms
+What is true: the page cannot call `strava.com` directly. CSP blocks every outbound
+request, OAuth needs a redirect URI and a server, and the client secret would sit in
+plain text in a file anyone with the link can read.
 
-So **the transport is a paste**: activity JSON goes into an import box and is parsed
-client-side. Everything above was pulled through an assistant with Strava access and
-handed over as data. Build the parser; do not build the sync.
+What the earlier version missed: it does not have to. A published artifact can declare
+the **`mcp` runtime capability** and call **the viewer's own claude.ai Strava
+connector** through `window.claude.mcp`. The call runs with Dan's credentials inside
+the claude.ai shell — no secret in the page, no redirect URI, no server. The
+declaration looks like this:
+
+```json
+{"mcp": {"servers": [{"server": "Strava",
+  "tools": ["list_activities", "get_activity_performance"]}]}}
+```
+
+Two shapes in the page: a section that *displays* activities registers
+`watchTool(server, tool, input, handler)` — it replays from cache, refreshes when
+stale, and returns an unsubscribe to store; a one-off *action* calls `callTool` and
+reads `result.payload`. Tool failures reject with `tool_error`; retry only errors
+flagged `retryable`. Read the runtime's own `mcp.d.ts` type definitions before writing
+any of it — they are authoritative over anything remembered.
+
+Two caveats worth knowing. A page declaring `mcp` **cannot be shared publicly** — fine
+here, this is Dan's private artifact. And the viewer is asked to allow the connector on
+first use and can say no, so the page must still render and be useful with the Strava
+section empty. Keep a paste-JSON import box as the fallback, not as the plan.
+
+Everything in the tables above was pulled through an assistant with Strava access, so
+it is correct as data whichever transport gets used.
 
 ### Honest assessment of the gaps
 
@@ -524,7 +549,7 @@ handed over as data. Build the parser; do not build the sync.
 |---|---|---|---|
 | 400m | 59 s | sub-55 | 4 s |
 | 800m | ~2:32 | sub-2:10 | 22 s |
-| 1000m | ~3:13 | sub-2:46 | 27 s |
+| 1000m | 3:00 single, ~3:13 avg | sub-2:46 | 14 s |
 | Mile | 5:27 | sub-4:45 | 42 s |
 | 5 km | 18:05 | sub-16:50 | 75 s |
 
@@ -533,6 +558,12 @@ is a rep average off a 3 × 800. The mile came from inside a 5 km. He has not ra
 flat-out 800, 1 km or mile all year. A genuine single effort is typically 5–8 seconds
 quicker than a rep average — so his real 800 is nearer 2:25 and his real mile nearer
 5:05.
+
+The 1000m line proves the point. Read off the session average it looks like a 27-second
+gap; the fastest single kilometre he has actually run this year is **3:00**, on 18 Aug,
+inside a 5 × 1km in bad wind. That is a 14-second gap, not 27. **Always check the
+session's fastest split before quoting a gap** — a session average cannot see the one
+quick rep inside it, and quoting the average as his best understates him by a lot.
 
 **But be honest about ten weeks.** 18:05 to 16:50 is about five VDOT points. **On a
 calorie deficit you do not gain five VDOT points.** You gain one, maybe two, and you
