@@ -1,0 +1,2684 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cut Block 71</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#07090A; --panel:#0F1416; --panel-2:#151B1D; --panel-3:#1D2528;
+  --ink:#E9F0F0; --ink-2:#9FB4B8; --ink-3:#6E858A;
+  --rule:#232D30; --rule-2:#192123;
+  --accent:#4BC3B6; --accent-2:#6AD8CB; --accent-soft:#0E2F2C;
+  --good:#5FBA88; --good-soft:#0F2519;
+  --warn:#D9A64E; --warn-soft:#241D10;
+  --bad:#E08376; --bad-soft:#271614;
+  --on-accent:#04201D;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cond{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif}
+
+/* ---- shell ---- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:1px solid var(--rule)}
+.topin{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.brand{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:19px;letter-spacing:.01em}
+.brand span{color:var(--accent)}
+.topstat{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
+.topstat b{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.topstat i{font-style:normal;color:var(--ink-3);text-transform:uppercase;font-size:10px;letter-spacing:.09em;font-family:"IBM Plex Sans Condensed",sans-serif}
+nav.tabs{max-width:1080px;margin:0 auto;padding:0 8px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 10px;color:var(--ink-2);cursor:pointer;white-space:nowrap;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:14px;letter-spacing:.02em}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:16px 60px;display:grid;gap:14px}
+section[hidden]{display:none!important}
+.stack{display:grid;gap:14px}
+
+/* ---- panels ---- */
+.p{background:var(--panel);border:1px solid var(--rule);padding:14px;box-shadow:var(--shadow)}
+.p>h2{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:10px;font-weight:700}
+.p.flag{border-left:3px solid var(--accent)}
+.p.good{border-left:3px solid var(--good);background:var(--good-soft)}
+.p.warn{border-left:3px solid var(--warn);background:var(--warn-soft)}
+.p.bad{border-left:3px solid var(--bad);background:var(--bad-soft)}
+.p.lift{background:var(--accent-soft);border-left:3px solid var(--accent)}
+.cols{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.cols3{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sp{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+
+/* ---- stats ---- */
+.tiles{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.tile{background:var(--panel);padding:11px 12px}
+.tile .k{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
+.tile .v{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .s{font-size:12px;color:var(--ink-2);margin-top:1px}
+.big{font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* ---- text ---- */
+p{margin:0 0 8px}
+p:last-child{margin-bottom:0}
+.note{color:var(--ink-2);font-size:13px}
+.tiny{font-size:11.5px;color:var(--ink-3)}
+ul.clean{margin:0;padding-left:17px}
+ul.clean li{margin-bottom:5px}
+.lede{font-size:15px}
+b.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600}
+.acc{color:var(--accent)}
+.gd{color:var(--good)}.wn{color:var(--warn)}.bd{color:var(--bad)}
+
+/* ---- pills ---- */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border:1px solid var(--rule);background:var(--panel-2);font-size:11.5px;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);border-radius:2px}
+.pill.g{background:var(--good-soft);color:var(--good);border-color:transparent}
+.pill.w{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.b{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.pill.a{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+/* ---- tables ---- */
+.scroll{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{text-align:left;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700;padding:5px 8px 5px 0;border-bottom:1px solid var(--rule);white-space:nowrap}
+table.tbl td{padding:6px 8px 6px 0;border-bottom:1px solid var(--rule-2);vertical-align:top}
+table.tbl td.n,table.tbl th.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;padding-right:12px}
+table.tbl tr:last-child td{border-bottom:0}
+table.tbl tr.dim td{color:var(--ink-3)}
+
+/* ---- forms ---- */
+.f{display:grid;gap:4px}
+.f label{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);font-weight:700}
+input[type="text"],input[type="number"],input[type="date"],select,textarea{background:var(--panel-2);border:1px solid var(--rule);padding:7px 8px;width:100%;font-family:"IBM Plex Mono",monospace;font-size:13px;border-radius:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.fgrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.btn{background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);padding:7px 13px;cursor:pointer;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;letter-spacing:.03em;border-radius:2px}
+.btn.ghost{background:var(--panel-2);color:var(--ink);border-color:var(--rule)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.tog{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--rule);background:var(--panel-2);cursor:pointer;border-radius:2px;font-size:13px}
+.tog[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chk{width:15px;height:15px;border:1.5px solid var(--ink-3);display:inline-block;border-radius:2px;flex:0 0 auto;position:relative}
+.tog[aria-pressed="true"] .chk{background:var(--accent);border-color:var(--accent)}
+.tog[aria-pressed="true"] .chk::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--panel);border-width:0 2px 2px 0;transform:rotate(43deg)}
+
+/* ---- chart + bars ---- */
+svg.chart{width:100%;height:auto;display:block}
+.bars{display:flex;gap:3px;align-items:flex-end;height:78px}
+.bars .b{flex:1;min-width:0;background:var(--accent);border-radius:1px 1px 0 0}
+.bars .b.u{background:repeating-linear-gradient(45deg,var(--rule),var(--rule) 3px,transparent 3px,transparent 6px);border:1px dashed var(--rule)}
+.bars .b.lo{background:var(--warn)}
+.bars .b.vlo{background:var(--bad)}
+.barlab{display:flex;gap:3px;margin-top:3px}
+.barlab span{flex:1;text-align:center;font-size:9px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.track{height:7px;background:var(--panel-3);position:relative;border-radius:4px;overflow:hidden}
+.track i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px}
+.track u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink-2)}
+.milestones{display:flex;gap:6px;flex-wrap:wrap}
+.ms{padding:3px 8px;border:1px dashed var(--rule);font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);border-radius:2px}
+.ms.hit{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);font-weight:600}
+.goal{display:grid;gap:7px;padding:12px;background:var(--panel);border:1px solid var(--rule)}
+.goal .gt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.goal .gn{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
+.goal .gl{font-family:"IBM Plex Mono",monospace;font-size:27px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.goal .gl small{font-family:"IBM Plex Sans",sans-serif;font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:0}
+.goal .gs{font-size:12px;color:var(--ink-2)}
+.ach{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.ach .a{background:var(--panel);padding:10px 11px;display:grid;gap:2px;align-content:start}
+.ach .a.off{color:var(--ink-3)}
+.ach .a.on{box-shadow:inset 3px 0 0 var(--accent)}
+.ach .a .n{font-weight:600;font-size:13px}
+.ach .a.on .n{color:var(--accent)}
+.ach .a .m{font-size:11.5px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.nextup{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.nextup div{border:1px dashed var(--rule);padding:8px 10px}
+.nextup b{display:block;font-size:13px}
+hr.d{border:0;border-top:1px solid var(--rule-2);margin:10px 0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px}
+.kv dt{color:var(--ink-3)}
+.kv dd{margin:0;font-family:"IBM Plex Mono",monospace}
+details summary{cursor:pointer;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<header class="top">
+  <div class="topin">
+    <div class="brand">CUT <span>BLOCK</span> 71</div>
+    <div class="topstat mono">
+      <div><i>day</i> <b id="hDay">—</b></div>
+      <div><i>left</i> <b id="hLeft">—</b></div>
+      <div><i>kcal eaten / target</i> <b id="hKcal">—</b></div>
+      <div><i>steps / target</i> <b id="hSteps">—</b></div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-t="today" aria-selected="true">Today</button>
+    <button role="tab" data-t="weight" aria-selected="false">Weight</button>
+    <button role="tab" data-t="food" aria-selected="false">Food</button>
+    <button role="tab" data-t="training" aria-selected="false">Training</button>
+    <button role="tab" data-t="times" aria-selected="false">Times</button>
+    <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
+    <button role="tab" data-t="study" aria-selected="false">Study</button>
+    <button role="tab" data-t="wins" aria-selected="false">Wins</button>
+    <button role="tab" data-t="review" aria-selected="false">Review</button>
+    <button role="tab" data-t="skin" aria-selected="false">Skin</button>
+    <button role="tab" data-t="data" aria-selected="false">Data</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ================= TODAY ================= -->
+<section id="s-today" class="stack">
+  <div id="lowLine"></div>
+  <div id="revNudge"></div>
+  <div id="callCard"></div>
+  <div id="closeCard"></div>
+  <div id="restCard"></div>
+  <div id="pushCard"></div>
+  <div id="loadCard"></div>
+  <div id="fuelCard"></div>
+  <div class="p">
+    <h2>Log · <span id="logDateLabel">today</span></h2>
+    <div class="row" style="margin-bottom:12px">
+      <div class="f" style="max-width:190px"><label for="logDate">Date</label><input type="date" id="logDate"></div>
+      <button class="btn ghost sm" id="btnToday" type="button">Jump to today</button>
+    </div>
+    <div class="fgrid">
+      <div class="f"><label for="inWeight">Weight (lb)</label><input type="number" step="0.1" min="90" max="200" id="inWeight" placeholder="—"></div>
+      <div class="f"><label for="inSteps">Steps</label><input type="number" step="100" min="0" max="80000" id="inSteps" placeholder="—"></div>
+      <div class="f"><label for="inKcal">kcal eaten</label><input type="number" step="10" min="0" max="6000" id="inKcal" placeholder="—"></div>
+      <div class="f"><label for="inSleep">Sleep (h)</label><input type="number" step="0.25" min="0" max="14" id="inSleep" placeholder="—"></div>
+      <div class="f"><label for="inStudy">Study (h)</label><input type="number" step="0.25" min="0" max="16" id="inStudy" placeholder="—"></div>
+      <div class="f"><label for="inDeep">Of which deep (h)</label><input type="number" step="0.25" min="0" max="16" id="inDeep" placeholder="—"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="tog" id="tgGym" aria-pressed="false" type="button"><span class="chk"></span>Gym</button>
+      <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
+      <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
+      <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
+      <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
+      <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
+    </div>
+    <hr class="d">
+    <h2>Runs on this day</h2>
+    <div id="runList" class="note" style="margin-bottom:10px"></div>
+    <div class="fgrid">
+      <div class="f"><label for="inKind">Session</label>
+        <select id="inKind">
+          <option value="reps">Reps / intervals</option>
+          <option value="cont">Continuous run</option>
+        </select></div>
+      <div class="f rep"><label for="inRepD">Rep distance</label>
+        <select id="inRepD">
+          <option value="100u">100m uphill sprints</option>
+          <option value="100">100m sprints, flat</option>
+          <option value="200">200m</option>
+          <option value="300">300m</option>
+          <option value="400" selected>400m</option>
+          <option value="500">500m</option>
+          <option value="600">600m</option>
+          <option value="800">800m</option>
+          <option value="1000">1 km</option>
+          <option value="1609">1 mile</option>
+          <option value="3000">3 km</option>
+          <option value="5000">5 km</option>
+          <option value="ladder">Ladder — custom</option>
+        </select></div>
+      <div class="f rep"><label for="inReps">Reps</label><input type="number" step="1" min="1" max="40" id="inReps" placeholder="4"></div>
+      <div class="f rep" id="fLadder"><label for="inLadder">Ladder, metres in order</label><input type="text" id="inLadder" placeholder="200-400-600-400-200"></div>
+      <div class="f cont"><label for="inContType">Filed as</label>
+        <select id="inContType">
+          <option value="easy">Easy</option>
+          <option value="fivemile">5 mile</option>
+          <option value="threshold">Hard continuous / threshold</option>
+        </select></div>
+      <div class="f cont"><label for="inKm">Distance (km)</label><input type="number" step="0.01" min="0" max="60" id="inKm" placeholder="8.01"></div>
+      <div class="f"><label for="inTime" id="labTime">Total rep time (mm:ss)</label><input type="text" id="inTime" placeholder="3:07" inputmode="numeric"></div>
+      <div class="f rep"><label for="inBest">Best single rep</label><input type="text" id="inBest" placeholder="59.4" inputmode="decimal"></div>
+      <div class="f"><label for="inRunNote">Note</label><input type="text" id="inRunNote" placeholder="1:1 recovery, wind, 90%"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
+    <p class="tiny" id="paceHint" style="margin-top:8px"></p>
+  </div>
+  <div id="goalsPanel"></div>
+  <div id="todaySummary"></div>
+</section>
+
+<!-- ================= WEIGHT ================= -->
+<section id="s-weight" class="stack" hidden>
+  <div id="wTop"></div>
+  <div class="p"><h2>The curve — daily mornings, 7-day average, and where the plan says he should be</h2>
+    <div id="wChart"></div>
+    <div class="row" style="margin-top:8px">
+      <span class="pill a">— 7-day average</span><span class="pill">• morning</span>
+      <span class="pill">- - plan</span><span class="pill g">target 122.5</span><span class="pill b">floor 121.6 · BMI 18.5</span>
+      <span class="pill" style="margin-left:auto"><button class="btn ghost sm" id="btnHide" type="button">Hide daily numbers</button></span>
+    </div>
+  </div>
+  <div id="wNoise"></div>
+  <div id="wTable"></div>
+  <div id="wLog"></div>
+</section>
+
+<!-- ================= FOOD ================= -->
+<section id="s-food" class="stack" hidden>
+  <div id="foodBudget"></div>
+  <div id="foodFuel"></div>
+  <div class="cols">
+    <div class="p"><h2>Macros</h2>
+      <dl class="kv">
+        <dt>Protein</dt><dd>130–140 g</dd>
+        <dt>Carbs, hard day</dt><dd>200–210 g</dd>
+        <dt>Carbs, other</dt><dd>150–170 g</dd>
+        <dt>Fat</dt><dd>40–45 g</dd>
+      </dl>
+      <hr class="d">
+      <p class="note">The carb number is a <b>floor, not a ceiling</b>. Going under it raises cortisol, holds water, and makes you puffier and hungrier at the same rate of loss. Fat does not go under 40 g — testosterone and skin barrier.</p>
+    </div>
+    <div class="p"><h2>Eating times — built around gym 18:30 and the bowl 20:30</h2>
+      <table class="tbl"><tbody>
+        <tr><td class="mono">07:00–08:00</td><td>Breakfast. Hard runs 60–90 min after this</td></tr>
+        <tr><td class="mono">12:30–13:30</td><td>Lunch</td></tr>
+        <tr><td class="mono">16:30–17:00</td><td>Dinner — deliberately before the gym</td></tr>
+        <tr><td class="mono">18:30</td><td>Gym</td></tr>
+        <tr><td class="mono">20:30</td><td>Yoghurt bowl, post-gym · 535 kcal</td></tr>
+      </tbody></table>
+      <p class="tiny" style="margin-top:8px">Dinner after the gym would land at 20:00 with the bowl at 20:30 — two meals stacked, and the bowl loses its job as the post-lifting refuel.</p>
+    </div>
+  </div>
+  <div class="p"><h2>Breakfast follows the session, not the clock</h2>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>Morning</th><th>Breakfast</th><th>Lunch</th></tr></thead>
+      <tbody>
+        <tr><td><b>Hard run</b></td><td>70 g certified GF oats, 150 ml milk, 13 g raw honey — ~400 kcal, 66 g carbs. The proven one.</td><td>Collagen smoothie</td></tr>
+        <tr><td>Easy run or none</td><td>Lean fish + roots + veg, or eggs</td><td>Smoothie or oats</td></tr>
+        <tr><td>Fasted easy run</td><td>Run first</td><td>Then fish or eggs</td></tr>
+      </tbody></table></div>
+    <p class="tiny" style="margin-top:8px">Oats before a run felt great, four eggs before a run felt terrible: 66 g of carbohydrate against 20 g. Fish and veg on a hard-run morning recreates the eggs mistake.</p>
+  </div>
+  <div class="cols">
+    <div class="p"><h2>Protein — best is cod</h2>
+      <p class="tiny" style="margin-bottom:8px">27 g for 125 kcal. On a 1,719 day that gap is where dinner lives. Salmon or mackerel twice a week regardless, for the skin.</p>
+      <div class="scroll"><table class="tbl"><thead><tr><th>Food</th><th class="n">Portion</th><th class="n">kcal</th><th class="n">Pro</th></tr></thead><tbody>
+      <tr><td>Cod / haddock / pollock</td><td class="n">150 g</td><td class="n">125</td><td class="n">27</td></tr>
+      <tr><td>Prawns</td><td class="n">150 g</td><td class="n">149</td><td class="n">36</td></tr>
+      <tr><td>Chicken breast</td><td class="n">150 g</td><td class="n">248</td><td class="n">46</td></tr>
+      <tr><td>Turkey breast</td><td class="n">150 g</td><td class="n">237</td><td class="n">44</td></tr>
+      <tr><td>Beef mince 5%</td><td class="n">125 g</td><td class="n">171</td><td class="n">26</td></tr>
+      <tr><td>Salmon</td><td class="n">120 g</td><td class="n">250</td><td class="n">24</td></tr>
+      <tr><td>Mackerel</td><td class="n">100 g</td><td class="n">205</td><td class="n">19</td></tr>
+      <tr><td>Sardines, drained</td><td class="n">100 g</td><td class="n">208</td><td class="n">25</td></tr>
+      <tr><td>Eggs</td><td class="n">3 large</td><td class="n">216</td><td class="n">19</td></tr>
+      <tr><td>Egg whites</td><td class="n">200 g</td><td class="n">104</td><td class="n">22</td></tr>
+      <tr><td>Cottage cheese</td><td class="n">150 g</td><td class="n">147</td><td class="n">17</td></tr>
+      <tr><td>Skyr / 0% Greek</td><td class="n">150 g</td><td class="n">95</td><td class="n">17</td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="p"><h2>Carbs — best is boiled potatoes, cooled or reheated</h2>
+      <p class="tiny" style="margin-bottom:8px">Most filling food per calorie ever measured, 500 mg potassium per 100 g, and cooling turns some of the starch resistant. <b>Every oat and grain certified gluten-free.</b></p>
+      <div class="scroll"><table class="tbl"><thead><tr><th>Food</th><th class="n">Portion</th><th class="n">kcal</th></tr></thead><tbody>
+      <tr><td>New / white potatoes, boiled</td><td class="n">250 g</td><td class="n">213</td></tr>
+      <tr><td>Sweet potato, baked</td><td class="n">200 g</td><td class="n">180</td></tr>
+      <tr><td>White or basmati rice</td><td class="n">150 g</td><td class="n">195</td></tr>
+      <tr><td>Certified GF oats</td><td class="n">70 g</td><td class="n">263</td></tr>
+      <tr><td>Buckwheat, cooked</td><td class="n">150 g</td><td class="n">137</td></tr>
+      <tr><td>Quinoa, cooked</td><td class="n">150 g</td><td class="n">180</td></tr>
+      <tr><td>Banana</td><td class="n">120 g</td><td class="n">105</td></tr>
+      <tr><td>Berries</td><td class="n">150 g</td><td class="n">60</td></tr>
+      <tr><td>Kiwi</td><td class="n">2</td><td class="n">90</td></tr>
+      <tr><td>Orange</td><td class="n">1 large</td><td class="n">86</td></tr>
+      <tr><td>Pineapple</td><td class="n">150 g</td><td class="n">75</td></tr>
+      <tr><td>Raw honey</td><td class="n">13 g</td><td class="n">40</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="p"><h2>Fats — best is extra virgin olive oil</h2>
+      <p class="tiny" style="margin-bottom:8px">Anti-inflammatory polyphenols, and it makes tomato lycopene absorbable. Measure it.</p>
+      <table class="tbl"><tbody>
+      <tr><td>Extra virgin olive oil</td><td class="n">10 ml</td><td class="n">90</td></tr>
+      <tr><td>Avocado</td><td class="n">70 g</td><td class="n">112</td></tr>
+      <tr><td>Almonds</td><td class="n">20 g</td><td class="n">116</td></tr>
+      <tr><td>Walnuts</td><td class="n">20 g</td><td class="n">131</td></tr>
+      <tr><td>Macadamias</td><td class="n">15 g</td><td class="n">108</td></tr>
+      </tbody></table>
+    </div>
+    <div class="p"><h2>Vegetables — best for the goal is asparagus</h2>
+      <p class="tiny" style="margin-bottom:8px">Mild natural diuretic, high potassium. <b>No brassicas</b> — no broccoli, sprouts, cabbage or kale.</p>
+      <p class="note mono" style="font-size:12.5px">asparagus 150 g / 30 · spinach 100 g / 23 · rocket, watercress 80 g / 20 · cucumber 150 g / 23 · courgette 150 g / 25 · celery 100 g / 16 · tomatoes 150 g / 27 · peppers 100 g / 31 · mushrooms 100 g / 22 · green beans 100 g / 31 · peas 80 g / 65 · carrots 100 g / 41 · onion, garlic to taste</p>
+    </div>
+  </div>
+  <div class="p flag"><h2>Cooking method matters more than any ingredient</h2>
+    <p>Bake, stew, poach, steam, boil — <b>never char</b>. Browning and searing is where dietary AGEs actually come from, not carbohydrate. The standing fear about carbs and AGEs is pointed at the wrong target and has been costing carbs. Oats in milk is close to the lowest-AGE meal it is possible to eat.</p>
+  </div>
+  <div class="p"><h2>Drinks</h2>
+    <ul class="clean note">
+      <li>Filtered water as default, especially around sessions.</li>
+      <li>Squash is fine with a meal, in one go. Enamel damage comes from sipping across hours, not from the drink.</li>
+      <li>No fizzy within 2 hours of running — gastric distension, stitch.</li>
+      <li>Check the squash is no-added-sugar. Regular is 10–20 kcal a glass; four or five glasses is 50–100 kcal not being counted.</li>
+      <li>Salt stays where it is — once a day. The lever is potassium, not sodium.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= TRAINING ================= -->
+<section id="s-training" class="stack" hidden>
+  <div id="tWeek"></div>
+  <div id="tEffort"></div>
+  <div id="tSteps"></div>
+  <div id="tHistory"></div>
+</section>
+
+<!-- ================= TIMES ================= -->
+<section id="s-times" class="stack" hidden>
+  <div id="timesTargets"></div>
+  <div class="p"><h2>Ten weeks, honestly</h2>
+    <p>18:05 to 16:50 is about five VDOT points. <b>On a calorie deficit you do not gain five VDOT points.</b> You gain one, maybe two, and you are doing well to hold what you have.</p>
+    <p>What does move: about <b class="num">2 s per mile per pound</b>. Six pounds off is roughly <b class="num" id="fiveKGain">37 s</b> off a 5 km from weight alone.</p>
+    <p class="note">Realistic at the end of the cut: <b>5 km 17:20–17:30, 400m around 57</b>. Sub-55 and sub-17 happen on the reverse — light, glycogen back, creatine in. The cut does not set the times, it sets them up. That is the order those two things happen in, and it is not softening the target.</p>
+    <hr class="d">
+    <p class="tiny">The gaps below are overstated and you should know why: almost none of those are all-out efforts. The 800 is a rep average off a 3 × 800. The mile came from inside a 5 km. No flat-out 800, 1 km or mile has been run all year. A genuine single effort is typically 5–8 s quicker than a rep average — so the real 800 is nearer <b>2:25</b> and the real mile nearer <b>5:05</b>.</p>
+  </div>
+  <div id="stravaBest"></div>
+  <div class="p"><h2>2026 sessions, as actually run</h2>
+    <div class="row" style="margin-bottom:8px"><button class="btn ghost sm" id="btnAllSessions" type="button">Show all 2026 sessions</button><span class="tiny">Reps sessions show distance and total rep time; pace is the session average.</span></div>
+    <div id="sessionTable" class="scroll"></div>
+  </div>
+  <div class="p"><h2>Strava import</h2>
+    <p class="tiny">A correction to what this page used to say. It is true that the page cannot call the Strava API directly — the CSP blocks every outbound request, OAuth needs a redirect URI and a server, and the client secret would sit in plain text in a file anyone with the link can read. But it can call <b>your own Strava connector</b> through the viewer, which is what the Wins tab now does: it reads this year's activities with your credentials, and the page never sees a token. This paste box stays for anything the connector cannot reach — a year it will not return, or a view with no connector. Drop activity JSON here, one object or an array, and it is parsed in the browser.</p>
+    <div class="f" style="margin-top:8px"><label for="stravaIn">Activity JSON</label><textarea id="stravaIn" rows="4" placeholder='[{"name":"8km economy","distance":8010.4,"moving_time":1958,"start_date_local":"2026-08-24T07:12:00Z","type":"Run"}]'></textarea></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="btnStrava" type="button">Parse</button><button class="btn ghost" id="btnStravaImport" type="button" hidden>Import into log</button></div>
+    <div id="stravaOut" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ================= SLEEP ================= -->
+<section id="s-sleep" class="stack" hidden>
+  <div id="slTop"></div>
+  <div id="slChart"></div>
+  <div class="p"><h2>Why this is the top lever, honestly</h2>
+    <p>Not "it helps recovery". At the same calorie deficit, short sleep changes <b>what</b> you lose — more of it comes off as muscle, less as fat. The studies are small; say so. The direction replicates.</p>
+    <ul class="clean note">
+      <li>Ghrelin up, leptin down — holding 1,799 gets genuinely harder.</li>
+      <li>Cortisol stays elevated — that is the under-eye puffiness.</li>
+      <li>Hard sessions land worse, which costs the times. Sleep extension has been shown to improve sprint times; the best-known study put basketball players at ten hours in bed and their sprints, reaction time and accuracy all improved. Small study — and the most directly relevant finding there is to a 400m target.</li>
+      <li>Skin: overnight is when barrier repair and collagen synthesis run hardest and skin blood flow is highest. Chronically raised cortisol breaks collagen down.</li>
+    </ul>
+    <hr class="d">
+    <h2>The phone</h2>
+    <p class="note">Most of the gain is not blue light, it is time. Moving the phone out of the room typically buys 30–60 minutes of actual sleep, faster sleep onset, and no waking to check it. The first ninety minutes of the night are the deepest, so a later bedtime cuts into the most valuable part, not the least. The rule that works is <b>charge it in another room and use a separate alarm</b> — not "don't look at it". Screens off 60–90 minutes before bed.</p>
+  </div>
+</section>
+
+<!-- ================= STUDY ================= -->
+<section id="s-study" class="stack" hidden>
+  <div id="stTop"></div>
+  <div class="p"><h2>Why study is in a cut app at all</h2>
+    <p>SK297 and SK298 — two 30-credit modules, 8–10 hours each, so a 16–20 hour week. Term starts <b>Monday 28 September</b>.</p>
+    <p class="note">The point is not to manage the degree. It is that training load and study load draw down the same recovery, and an app that can only see the running will tell you to push in a week you are already buried.</p>
+    <p class="note">When both are high in the same week the instruction has a direction: <b>drop the third effort session, not the study hours.</b> The deadline does not move and the session does.</p>
+  </div>
+</section>
+
+<!-- ================= WINS ================= -->
+<section id="s-wins" class="stack" hidden>
+  <div id="winTop"></div>
+  <div id="winRecords"></div>
+  <div id="winGrid"></div>
+</section>
+
+<!-- ================= REVIEW ================= -->
+<section id="s-review" class="stack" hidden>
+  <div class="p"><h2>Week review</h2>
+    <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
+  </div>
+  <div id="revBody"></div>
+</section>
+
+<!-- ================= SKIN ================= -->
+<section id="s-skin" class="stack" hidden>
+  <div id="skTop"></div>
+  <div class="cols">
+    <div class="p"><h2>Morning</h2>
+      <table class="tbl"><tbody>
+        <tr><td>Light hydrating cleanser</td><td class="note">Lukewarm. Never hot — heat flares redness</td></tr>
+        <tr><td>The Ordinary niacinamide + zinc 1%</td><td class="note">Onto damp skin, wait a minute</td></tr>
+        <tr><td>Ordinary caffeine eye serum</td><td class="note">Under-eye only, patted not rubbed</td></tr>
+        <tr><td>Simple moisturiser</td><td class="note">While still damp</td></tr>
+        <tr><td>Ultrasun tinted SPF50</td><td class="note">Quarter teaspoon. Face, ears, neck. Rain or not</td></tr>
+        <tr><td><b>Before a session</b></td><td class="note">Reapply Ultrasun, cap, sunglasses. Hours outdoors is where the real dose comes from</td></tr>
+      </tbody></table>
+    </div>
+    <div class="p"><h2>Night</h2>
+      <table class="tbl"><tbody>
+        <tr><td>Light hydrating cleanser</td><td class="note">Tinted needs a proper wash, not a rinse</td></tr>
+        <tr><td>Ordinary caffeine eye serum</td><td class="note"></td></tr>
+        <tr><td>Simple moisturiser</td><td class="note">On damp skin</td></tr>
+        <tr><td>La Roche-Posay Cicaplast baume</td><td class="note">Over the top, on tight, red or flaking patches only</td></tr>
+        <tr><td>Beef tallow + almond oil (Fat Cow)</td><td class="note">Last, only when the barrier feels stripped. It seals — nothing goes over it</td></tr>
+        <tr><td>Teeth 3× + floss</td><td class="note">Gums show in every photo</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="p flag"><h2>What products cannot do</h2>
+    <p>They move barrier and tone. They do not move sleep, being too lean, or how much water you are holding — and those three decide more about how your face looks on 28 November than every bottle combined.</p>
+    <p class="tiny">Never retinol or tretinoin. Persistent redness across nose and cheeks is a GP or pharmacist conversation — azelaic acid 10–15% is the ingredient to raise by name, but it is not a self-start.</p>
+  </div>
+  <div class="p"><h2>Facial puffiness, ranked for you</h2>
+    <div class="scroll"><table class="tbl"><tbody>
+      <tr><td class="n mono">1</td><td><b>Sleep</b></td><td class="note">Bigger than everything else combined. Short sleep raises cortisol, cortisol holds sodium, the face shows it first</td></tr>
+      <tr><td class="n mono">2</td><td><b>Cortisol from the deficit</b></td><td class="note">Sustained deficit plus low carbs raises cortisol, which has genuine mineralocorticoid activity. This is why the scale flatlines then drops all at once — and an argument for not dropping carbs below the floor</td></tr>
+      <tr><td class="n mono">3</td><td><b>Salt</b></td><td class="note">You have this backwards. Acutely yes; chronically no — kidneys adapt within days and a year on high salt has built no backlog. Keep the once-a-day salt. The lever is potassium</td></tr>
+      <tr><td class="n mono">4</td><td><b>Gluten</b></td><td class="note">Specific to you. Accidental exposure causes inflammation and fluid retention. Puffy with no explanation — look back 24–48 hours</td></tr>
+      <tr><td class="n mono">5</td><td><b>Training load</b></td><td class="note">Hard sessions + deficit + 12,800 steps is a lot of total stress</td></tr>
+      <tr><td class="n mono">6</td><td><b>Sleeping position</b></td><td class="note">On your back, head slightly elevated</td></tr>
+      <tr><td class="n mono">7</td><td><b>Alcohol</b></td><td class="note">Worst single-night input there is</td></tr>
+      <tr><td class="n mono">8</td><td><b>Dehydration</b></td><td class="note">Counterintuitive — under-drinking makes you hold more</td></tr>
+    </tbody></table></div>
+    <p class="tiny" style="margin-top:8px">Morning puffiness is normal and resolves in 1–2 hours. Judging your face at 7 am is judging the worst version of it that exists, every day.</p>
+  </div>
+</section>
+
+<!-- ================= DATA ================= -->
+<section id="s-data" class="stack" hidden>
+  <div id="dStatus"></div>
+  <div id="dChecks"></div>
+  <div id="dImpossible"></div>
+  <div class="p"><h2>Hard constraints — the app will not break these</h2>
+    <div class="scroll"><table class="tbl"><tbody>
+      <tr><td>Celiac</td><td class="note">Every oat, grain and rice cake certified gluten-free</td></tr>
+      <tr><td>No retinol or tretinoin</td><td class="note">Already tried, already reacted</td></tr>
+      <tr><td>No beta carotene, no biotin</td><td class="note">Stated exclusion</td></tr>
+      <tr><td>No vitamin D tablets</td><td class="note">History of reactions. Sun and food only</td></tr>
+      <tr><td>No high-dose vitamin C</td><td class="note">Food sources only</td></tr>
+      <tr><td>No brassicas</td><td class="note">No broccoli, sprouts, cabbage, kale</td></tr>
+      <tr><td>Salt stays</td><td class="note">Once a day. The lever is potassium</td></tr>
+      <tr><td>No calorie cut for a plateau under two weeks</td><td class="note">This is how previous cuts got wrecked</td></tr>
+      <tr><td>A rest day is never a missed target</td><td class="note">Rest is in the plan</td></tr>
+      <tr><td>No prescribed paces or rest intervals</td><td class="note">You run on feel; prescribing has backfired</td></tr>
+      <tr><td>No processed or packaged substitutes</td><td class="note">Whole-food rotation</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="p"><h2>Export, import, reset</h2>
+    <div class="row"><button class="btn ghost" id="btnExport" type="button">Show export JSON</button><button class="btn ghost" id="btnReset" type="button">Reset the whole block</button></div>
+    <div class="f" style="margin-top:10px"><label for="ioBox">JSON in / out</label><textarea id="ioBox" rows="4" placeholder="Paste a previous export here and press Load"></textarea></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="btnLoad" type="button">Load pasted JSON</button><span class="tiny" id="ioMsg"></span></div>
+    <p class="tiny" style="margin-top:10px">Reset clears <b>every</b> date key and every legacy week key, not just this block's — the last block ran to 13 weeks and clearing 1–10 left three weeks sitting in storage waiting to be counted.</p>
+  </div>
+</section>
+
+</main>
+<script>
+(function(){
+'use strict';
+
+/* ===================== dates: built day-first, by hand ===================== */
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DOWL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function dt(is){var p=is.split('-');return new Date(+p[0],+p[1]-1,+p[2],12,0,0);}
+function iso(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+function addD(is,n){var x=dt(is);x.setDate(x.getDate()+n);return iso(x);}
+function diffD(a,b){return Math.round((dt(b)-dt(a))/864e5);}
+function today(){return iso(new Date());}
+function fmtS(is){var x=dt(is);return x.getDate()+' '+MONS[x.getMonth()];}
+function fmtL(is){var x=dt(is);return DOWL[x.getDay()]+' '+x.getDate()+' '+MONL[x.getMonth()];}
+function dow(is){return dt(is).getDay();}
+function fmod(n,m){return ((n%m)+m)%m;}
+function ord(n){var v=n%100;var s=(v>=11&&v<=13)?'th':(['th','st','nd','rd'][n%10]||'th');return n+s;}
+function mondayOnOrAfter(is){return addD(is,fmod(1-dow(is),7));}
+function mondayOf(is){return addD(is,-fmod(dow(is)-1,7));}
+
+/* ===================== one config, everything derived ===================== */
+var CFG={
+  cutStart:'2026-09-19', cutEnd:'2026-11-28',
+  deloadWeeks:[4,8],
+  goals:{gym:48,hard:21,runs:43,steps:12800},
+  w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
+  kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
+  steps:{weekday:15000,sunday:10000},
+  study:{term:'2026-09-28',lo:16,hi:20},
+  sleep:{line:7.5},
+  tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
+};
+var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
+var WEIGH_START=mondayOnOrAfter(CFG.cutStart);
+var W_WEEKS=Math.ceil((diffD(WEIGH_START,CFG.cutEnd)+1)/7);
+var PRE_END=addD(WEIGH_START,-1);
+var PRE_DAYS=diffD(CFG.cutStart,WEIGH_START);
+var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
+/* Flat, by his call: the same number every day. The cycle only moved
+   calories between days; the week's total is unchanged either way. */
+var KCAL_DAY=CFG.kcal.avg;
+var KCAL_FREE=KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl;
+var KCAL_LIGHTUP=KCAL_DAY+100;
+var MACRO={pro:135,fat:42};
+var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
+var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
+
+function stepTarget(is){var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
+function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
+function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
+function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
+function inCut(is){return is>=CFG.cutStart&&is<=CFG.cutEnd;}
+function isPreBlock(is){return is>=CFG.cutStart&&is<WEIGH_START;}
+
+/* one source for every day count on the page */
+function cutTally(){
+  var t=today();
+  var day=diffD(CFG.cutStart,t)+1;
+  var elapsed=Math.max(0,Math.min(CUT_DAYS,day));
+  var remaining=CUT_DAYS-elapsed;
+  var through=elapsed/CUT_DAYS;
+  return {t:t,day:day,elapsed:elapsed,remaining:remaining,through:through,
+          before:day<1,after:day>CUT_DAYS,toEnd:diffD(t,CFG.cutEnd)};
+}
+function goalPace(done,target){
+  var c=cutTally();
+  var due=target*c.through;
+  var perWeek=c.remaining>0?(target-done)/(c.remaining/7):null;
+  return {done:done,target:target,due:due,diff:done-due,perWeek:perWeek,left:Math.max(0,target-done)};
+}
+
+/* ===================== state ===================== */
+var LS='cutblock71.v1';
+var SEED={
+  weights:{'2026-09-15':128.6,'2026-09-17':127.8,'2026-09-18':129.2,'2026-09-19':131.6},
+  days:{},bests:{},
+  settings:{hideDaily:false,fiveK:1085},
+  updatedAt:0
+};
+var S=null, DB=null, dbDoc=null, saveTimer=null, dbState='local';
+
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function normalise(x){
+  var s;
+  try{s=(x&&typeof x==='object')?JSON.parse(JSON.stringify(x)):{};}catch(e){s={};}
+  if(!s.weights||typeof s.weights!=='object')s.weights={};
+  if(!s.days||typeof s.days!=='object')s.days={};
+  if(!s.settings||typeof s.settings!=='object')s.settings={};
+  if(typeof s.settings.hideDaily!=='boolean')s.settings.hideDaily=false;
+  if(typeof s.settings.fiveK!=='number')s.settings.fiveK=1085;
+  if(!s.bests||typeof s.bests!=='object')s.bests={};
+  if(typeof s.updatedAt!=='number')s.updatedAt=0;
+  return s;
+}
+function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function touch(){S.updatedAt=Date.now();saveLocal();queueRemote();render();}
+function queueRemote(){
+  if(!dbDoc)return;
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){
+    saveTimer=null;
+    dbDoc.set(clone(S)).then(function(){dbState='synced';paintStatus();},
+      function(err){dbState='error:'+(err&&err.code||'unknown');paintStatus();});
+  },600);
+}
+/* A run row with no time and no distance records nothing. They only exist
+   because an early version of the form let one be created. Drop them on
+   load and say so, rather than leaving a phantom hard run in the counts. */
+var PRUNED=0;
+function pruneEmptyRuns(){
+  var n=0,d,rs,keep,i;
+  for(d in S.days){
+    rs=S.days[d].runs;
+    if(!rs||!rs.length)continue;
+    keep=[];
+    for(i=0;i<rs.length;i++){if(!runMeta(rs[i]).empty)keep.push(rs[i]);}
+    if(keep.length!==rs.length){
+      n+=rs.length-keep.length;
+      if(keep.length)S.days[d].runs=keep;else delete S.days[d].runs;
+      if(!Object.keys(S.days[d]).length)delete S.days[d];
+    }
+  }
+  return n;
+}
+function day(is){var r=S.days[is];if(!r){r={};}return r;}
+function setDay(is,patch){
+  var r=S.days[is]?clone(S.days[is]):{};
+  for(var k in patch){if(patch[k]===null||patch[k]===undefined||patch[k]===''){delete r[k];}else{r[k]=patch[k];}}
+  if(Object.keys(r).length===0){delete S.days[is];}else{S.days[is]=r;}
+  touch();
+}
+
+/* ===================== weight model ===================== */
+function readings(){
+  var out=[];for(var k in S.weights){if(typeof S.weights[k]==='number')out.push({d:k,lb:S.weights[k]});}
+  out.sort(function(a,b){return a.d<b.d?-1:1;});return out;
+}
+function cutReadings(){var t=today();return readings().filter(function(r){return r.d>=WEIGH_START&&r.d<=t;});}
+function mean(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i];return a.length?s/a.length:null;}
+function avgWindow(endIso,days){
+  var start=addD(endIso,-(days-1));
+  var rs=cutReadings().filter(function(r){return r.d>=start&&r.d<=endIso;});
+  return {avg:rs.length?mean(rs.map(function(r){return r.lb;})):null,n:rs.length};
+}
+function bmiOf(lb){var kg=lb*0.45359237;return kg/(CFG.w.heightM*CFG.w.heightM);}
+
+function weightModel(){
+  var t=today(), cr=cutReadings();
+  var m={reads:cr,n:cr.length,baseline:null,seed:null,curve:[],a7:null,a7n:0,prev7:null,
+         rateLb:null,ratePct:null,taperNow:null,taperLb:null,band:null,low:null,prevLow:null,
+         daysSinceLow:null,newLowToday:false,bmi:null,proj:null,weeks:[],noise:null,ahead:null};
+
+  var win=cr.filter(function(r){return diffD(WEIGH_START,r.d)<7;});
+  if(win.length>=2){
+    var mn=mean(win.map(function(r){return r.lb;}));
+    var off=mean(win.map(function(r){return diffD(WEIGH_START,r.d);}));
+    var openRate=mn*CFG.w.taperA;
+    m.baseline=mn+off*(openRate/7);
+    m.seed={n:win.length,mean:mn,off:off,rate:openRate};
+  }
+  if(m.baseline!==null){
+    var w=m.baseline;m.curve.push(w);
+    for(var k=0;k<W_WEEKS;k++){
+      w=w*(1-taperAt(k));
+      if(w<CFG.w.target)w=CFG.w.target;
+      if(w<CFG.w.floor)w=CFG.w.floor;
+      m.curve.push(w);
+    }
+  }
+  var a=avgWindow(t,7);m.a7=a.avg;m.a7n=a.n;
+  var b=avgWindow(addD(t,-7),7);m.prev7=b.avg;
+  if(m.a7!==null&&m.prev7!==null&&a.n>=2&&b.n>=2){
+    m.rateLb=m.prev7-m.a7;
+    m.ratePct=m.rateLb/m.prev7;
+    m.band=m.ratePct<CFG.w.bandLo?'slow':(m.ratePct>CFG.w.bandHi?'fast':'in');
+  }
+  var wkNow=Math.max(1,Math.min(W_WEEKS,weekOf(t)));
+  m.taperNow=taperAt(wkNow-1);
+  if(m.a7!==null)m.taperLb=m.a7*m.taperNow;
+  if(m.a7!==null){m.bmi=bmiOf(m.a7);}
+  if(cr.length){
+    var lowest=cr[0],lowIdx=0,i;
+    for(i=0;i<cr.length;i++){if(cr[i].lb<lowest.lb){lowest=cr[i];lowIdx=i;}}
+    m.low=lowest;
+    var prior=cr.slice(0,lowIdx);
+    var pl=null;for(i=0;i<prior.length;i++){if(!pl||prior[i].lb<pl.lb)pl=prior[i];}
+    m.prevLow=pl;
+    m.newLowToday=(cr[cr.length-1].d===t&&lowest.d===t&&cr.length>1);
+    m.daysSinceLow=diffD(lowest.d,t);
+  }
+  /* weekly table */
+  for(var wk=1;wk<=W_WEEKS;wk++){
+    var st=addD(WEIGH_START,(wk-1)*7), en=addD(st,6);
+    var rs=cr.filter(function(r){return r.d>=st&&r.d<=en;});
+    var avg=rs.length?mean(rs.map(function(r){return r.lb;})):null;
+    var plan=m.curve.length?m.curve[Math.min(wk,m.curve.length-1)]:null;
+    m.weeks.push({wk:wk,start:st,end:en,n:rs.length,avg:avg,plan:plan,deload:isDeload(wk),
+                  future:st>t,partial:st<=t&&en>t});
+  }
+  for(var j=1;j<m.weeks.length;j++){
+    var p=m.weeks[j-1],c=m.weeks[j];
+    if(p.avg!==null&&c.avg!==null){c.dLb=p.avg-c.avg;c.dPct=c.dLb/p.avg;}
+  }
+  /* projection from the current average at the current taper */
+  if(m.a7!==null){
+    var pw=m.a7,wks=0;
+    while(pw>CFG.w.target&&wks<40){var kk=Math.min(W_WEEKS-1,wkNow-1+wks);pw=pw*(1-taperAt(kk));wks++;}
+    m.proj={weeks:wks,date:addD(t,wks*7),end:Math.max(CFG.w.target,pw)};
+  }
+  /* the scale-noise answer, built only from his own last fortnight */
+  var f=cr.filter(function(r){return diffD(r.d,t)<14;});
+  if(f.length>=4){
+    var up=0,pairs=0;
+    for(i=1;i<f.length;i++){pairs++;if(f[i].lb>=f[i-1].lb)up++;}
+    var lows=[],best=Infinity;
+    for(i=0;i<cr.length;i++){if(cr[i].lb<best){best=cr[i].lb;lows.push(cr[i]);}}
+    var gaps=[];for(i=1;i<lows.length;i++)gaps.push(diffD(lows[i-1].d,lows[i].d));
+    var firstHalf=f.filter(function(r){return diffD(r.d,t)>=7}),secondHalf=f.filter(function(r){return diffD(r.d,t)<7});
+    m.noise={days:f.length,pairs:pairs,up:up,pctUp:pairs?up/pairs:0,
+             avgThen:firstHalf.length?mean(firstHalf.map(function(r){return r.lb;})):null,
+             avgNow:secondHalf.length?mean(secondHalf.map(function(r){return r.lb;})):null,
+             gaps:gaps,medGap:gaps.length?gaps.slice().sort(function(x,y){return x-y;})[Math.floor(gaps.length/2)]:null,
+             lows:lows.length};
+  }
+  /* ahead of the curve? */
+  if(m.a7!==null&&m.curve.length){
+    var planNow=curveAt(m,t);
+    if(planNow!==null){m.ahead={plan:planNow,by:planNow-m.a7};}
+  }
+  return m;
+}
+function curveAt(m,is){
+  if(!m.curve.length)return null;
+  var f=diffD(WEIGH_START,is)/7;
+  if(f<0)f=0;if(f>W_WEEKS)f=W_WEEKS;
+  var i=Math.floor(f),fr=f-i;
+  if(i>=m.curve.length-1)return m.curve[m.curve.length-1];
+  return m.curve[i]+(m.curve[i+1]-m.curve[i])*fr;
+}
+
+/* ===================== training model ===================== */
+function fiveKPace(){return S.settings.fiveK/5;}
+function thresholdPace(){return fiveKPace()*0.945/0.88;}
+function effortLine(){return thresholdPace()*1.10;}
+function paceOf(r){return (r.km>0&&r.secs>0)?r.secs/r.km:null;}
+function runMeta(r){
+  if(r.k==='reps'){
+    var laps=(r.laps&&r.laps.length)?r.laps:null,i,tot=0;
+    if(laps){for(i=0;i<laps.length;i++)tot+=laps[i];}else{tot=(r.dm||0)*(r.n||0);}
+    var n=laps?laps.length:(r.n||0);
+    var km=tot/1000;
+    var sprint=(!laps&&r.dm===100);
+    return {kind:'reps',km:km,secs:r.secs||null,pace:(km>0&&r.secs)?r.secs/km:null,
+            repAvg:(n>0&&r.secs)?r.secs/n:null,n:n,dm:laps?null:(r.dm||null),laps:laps,
+            label:laps?(laps.join('-')+' ladder'):(n+' × '+repLabel(r.dm||0)+(r.up?' uphill':'')),
+            hard:!sprint,sprint:sprint,judged:true,empty:!(r.secs>0)};
+  }
+  var type=r.type||'easy';
+  /* rows written before the rep logger existed */
+  if(type==='reps'||type==='sprints'){
+    var pp=paceOf(r);
+    return {kind:'cont',km:r.km||null,secs:r.secs||null,pace:pp,repAvg:null,n:null,dm:null,laps:null,
+            label:type==='sprints'?'100m sprints':'reps',hard:type==='reps',sprint:type==='sprints',judged:pp!==null,
+            empty:!(r.km>0||r.secs>0)};
+  }
+  var p=paceOf(r);
+  return {kind:'cont',km:r.km||null,secs:r.secs||null,pace:p,repAvg:null,n:null,dm:null,laps:null,
+          label:({easy:'easy run',fivemile:'5 mile',threshold:'hard continuous'})[type]||type,
+          hard:p!==null?(p<=effortLine()):(type==='threshold'),sprint:false,judged:p!==null,
+          empty:!(r.km>0||r.secs>0)};
+}
+function judge(r){return runMeta(r);}
+function repCompare(m){
+  if(m.kind!=='reps'||!m.dm||m.repAvg===null)return '';
+  var out=[secFmt(m.repAvg)+' rep average'];
+  var b=BESTAVG[m.dm],t=TGT[m.dm];
+  if(b){var d=m.repAvg-b;out.push(d<0?('new best session average at '+repLabel(m.dm)+', '+f1(-d)+' s under '+secFmt(b)):(f1(d)+' s off the 2026 best of '+secFmt(b)));}
+  if(t)out.push(m.repAvg<=t?('target '+secFmt(t)+' — met'):('target '+secFmt(t)+', '+f1(m.repAvg-t)+' s to go'));
+  return out.join(' · ');
+}
+function eachRun(fn){
+  var t=today();
+  for(var d in S.days){
+    if(!inCut(d)||d>t)continue;
+    var rs=S.days[d].runs||[];
+    for(var i=0;i<rs.length;i++)fn(rs[i],d,i);
+  }
+}
+function trainingModel(){
+  var gym=0,runs=0,hard=0,t=today();
+  for(var d in S.days){if(inCut(d)&&d<=t&&S.days[d].gym)gym++;}
+  eachRun(function(r){var q=runMeta(r);if(q.empty)return;runs++;if(q.hard)hard++;});
+  var stepsTotal=0,stepsDays=0,stepsDue=0;
+  var c=cutTally();
+  for(var k in S.days){
+    if(!inCut(k)||k>t)continue;
+    if(typeof S.days[k].steps==='number'){stepsTotal+=S.days[k].steps;stepsDays++;}
+  }
+  var pre=isPreBlock(t);
+  var wkStart=pre?CFG.cutStart:mondayOf(t),wkEnd=pre?PRE_END:addD(wkStart,6);
+  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0};
+  for(var dd in S.days){
+    if(dd<wkStart||dd>wkEnd||dd>t)continue;
+    if(S.days[dd].gym)wk.gym++;
+    var rs=S.days[dd].runs||[];
+    for(var i=0;i<rs.length;i++){
+      var jd=runMeta(rs[i]);
+      if(jd.empty){wk.blank=(wk.blank||0)+1;continue;}
+      wk.runs++;
+      if(jd.hard)wk.hard++;
+      if(jd.sprint)wk.sprints++;
+      if(rs[i].type==='fivemile'){if(jd.hard&&jd.judged){wk.recl++;}else{wk.fivemile++;}}
+    }
+  }
+  return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),
+          stepsTotal:stepsTotal,stepsDays:stepsDays,stepsAvg:stepsDays?stepsTotal/stepsDays:null,
+          stepsUnlogged:c.elapsed-stepsDays,week:wk,wkStart:wkStart,wkEnd:wkEnd,pre:pre,
+          effortSessions:wk.hard};
+}
+
+/* ===================== sleep, study ===================== */
+function sleepModel(){
+  var t=today(),i,r,v;
+  function avgN(n){var s=0,c=0,blank=0;for(i=0;i<n;i++){var d=addD(t,-i);v=S.days[d]&&S.days[d].sleep;if(typeof v==='number'){s+=v;c++;}else{blank++;}}return {avg:c?s/c:null,n:c,blank:blank};}
+  var last7=avgN(7),last28=avgN(28);
+  var bars=[];for(i=13;i>=0;i--){var d=addD(t,-i);var rec=S.days[d]||{};bars.push({d:d,h:typeof rec.sleep==='number'?rec.sleep:null,phone:!!rec.phoneOut});}
+  /* streak: a day that has not finished is not a failure */
+  var streak=0,start=(S.days[t]&&S.days[t].phoneOut)?0:1;
+  for(i=start;i<400;i++){var dd=addD(t,-i);if(S.days[dd]&&S.days[dd].phoneOut)streak++;else break;}
+  return {a7:last7,a28:last28,bars:bars,streak:streak,blank7:last7.blank};
+}
+function sleepBand(h){
+  if(h===null)return {k:'unknown',t:'not logged'};
+  if(h<6)return {k:'b',t:'severely short'};
+  if(h<7)return {k:'w',t:'short'};
+  if(h<7.5)return {k:'w',t:'just under'};
+  if(h<=9)return {k:'g',t:'in the range'};
+  return {k:'a',t:'long, but not wrong'};
+}
+function studyModel(){
+  var t=today(),i,s=0,n=0,dp=0,pre=0,preN=0,preDeep=0;
+  var live=t>=CFG.study.term;
+  for(i=0;i<7;i++){
+    var d=addD(t,-i),rec=S.days[d]||{};
+    var v=typeof rec.study==='number'?rec.study:null,w=typeof rec.deep==='number'?rec.deep:0;
+    if(v===null)continue;
+    if(d<CFG.study.term){pre+=v;preN++;preDeep+=w;}else{s+=v;n++;dp+=w;}
+  }
+  return {live:live,toTerm:diffD(t,CFG.study.term),total:s,daysLogged:n,deep:dp,
+          deepShare:s>0?dp/s:null,preTotal:pre,preDays:preN,preDeep:preDeep,
+          state:!live?'pre':(s<CFG.study.lo?'under':(s>=CFG.study.hi?'full':'in'))};
+}
+
+/* ===================== what a session actually was =====================
+   Normalised rep average = time x rep distance / total distance. That is the
+   number in your 2026 table: 187 s over 1220.2 m of 3 x 400 is 61.30. */
+function repsFromName(name){
+  var n=String(name||'');
+  if(/\d+\s*[-–]\s*\d+\s*[-–]\s*\d+/.test(n))return null;      /* a ladder is not n x d */
+  var m=n.match(/(\d{1,2})\s*[x×]\s*(\d{1,4}(?:\.\d+)?)\s*(km|k\b|m\b|metre|mile)/i);
+  if(m)return {n:+m[1],d:unitM(+m[2],m[3])};
+  m=n.match(/(\d{1,4}(?:\.\d+)?)\s*(km|k\b|m\b|metre|mile)\s*[x×]\s*(\d{1,2})/i);
+  if(m)return {n:+m[3],d:unitM(+m[1],m[2])};
+  return null;
+}
+function unitM(v,u){u=String(u).toLowerCase();if(u.indexOf('mile')===0)return v*1609;if(u[0]==='k')return v*1000;return v;}
+function nearestBench(d){
+  var best=null;
+  for(var i=0;i<BENCH.length;i++){
+    var e=Math.abs(d-BENCH[i])/BENCH[i];
+    if(e<=0.03&&(!best||e<best.e))best={dm:BENCH[i],e:e};
+  }
+  return best;
+}
+function classifyRun(distM,movS,elaS,kindHint,name){
+  if(!(distM>0&&movS>0))return null;
+  var named=repsFromName(name);
+  if(named&&named.n>0&&named.d>0){
+    var implied=named.n*named.d;
+    if(Math.abs(implied-distM)/distM<=0.10){
+      var nb=nearestBench(named.d);
+      if(nb)return {dm:nb.dm,n:named.n,norm:movS*nb.dm/distM,how:'named'};
+      return null;
+    }
+    return null;   /* the name says one thing and the distance another - say nothing */
+  }
+  var reps=(kindHint==='reps')||(kindHint==null&&elaS>movS*1.25);
+  var lo=reps?2:1,hi=reps?10:1,hits=[];
+  for(var n=lo;n<=hi;n++){
+    var b=nearestBench(distM/n);
+    if(b)hits.push({dm:b.dm,n:n,e:b.e});
+  }
+  var uniq={};hits.forEach(function(h){uniq[h.dm]=1;});
+  if(hits.length!==1||Object.keys(uniq).length!==1)return null;  /* ambiguous, so no opinion */
+  return {dm:hits[0].dm,n:hits[0].n,norm:movS*hits[0].dm/distM,how:'shape'};
+}
+
+/* live Strava, through the viewer's own connector */
+var LIVE=[],LIVEst={state:'off',at:null,code:null};
+function stravaCopy(){
+  var c=LIVEst.code;
+  if(LIVEst.state==='live')return {k:'g',t:'Synced from Strava'+(LIVEst.at?' · '+fmtS(iso(new Date(LIVEst.at)))+' '+new Date(LIVEst.at).getHours()+':'+String(new Date(LIVEst.at).getMinutes()).padStart(2,'0'):'')};
+  if(LIVEst.state==='connecting')return {k:'',t:'Asking Strava…'};
+  if(LIVEst.state==='unavailable')return {k:'',t:'No connector on this view — the records below are the verified 2026 table'};
+  if(c==='needs_reauth')return {k:'w',t:'Strava needs reconnecting — claude.ai Settings → Connectors'};
+  if(c==='server_not_connected')return {k:'w',t:'Add Strava in claude.ai Settings → Connectors'};
+  if(c==='selection_required')return {k:'w',t:'Two Strava connectors are configured — choose one when asked'};
+  if(c==='not_in_manifest')return {k:'w',t:'Strava is switched off for this page'};
+  if(c==='blocked_by_policy'||c==='approval_required')return {k:'w',t:'Strava is not allowed for this view'};
+  if(c==='server_unavailable'||c==='upstream_error')return {k:'w',t:'Strava did not answer — showing the last good read'};
+  if(c==='rate_limited')return {k:'w',t:'Too many Strava calls — it will retry'};
+  if(c)return {k:'w',t:'Strava returned '+esc(c)};
+  return {k:'',t:'Records below come from the verified 2026 table'};
+}
+function initStrava(){
+  if(!(window.claude&&window.claude.use))return;
+  window.claude.use('mcp').then(function(mcp){
+    if(!mcp){LIVEst.state='unavailable';renderWins();return;}
+    LIVEst.state='connecting';renderWins();
+    var yr=today().slice(0,4);
+    mcp.watchTool('Strava','list_activities',
+      {range_start:yr+'-01-01T00:00:00',range_end:today()+'T23:59:59',first:100,ordering:'StartDateLocalDesc'},
+      function(ev){
+        if(ev.type==='error'){
+          var code=(ev.error&&ev.error.code)||'upstream_error';
+          LIVEst.code=code;LIVEst.state='error';
+          if(['needs_reauth','server_not_connected','not_in_manifest','blocked_by_policy','approval_required','consent_required','selection_required','not_granted','capability_disabled'].indexOf(code)>=0)LIVE=[];
+          renderWins();return;
+        }
+        var pay=ev.result&&ev.result.payload,acts=(pay&&pay.activities)||[];
+        LIVE=acts.filter(function(a){return a&&a.sport_type==='Run'&&a.summary&&a.summary.distance>0&&a.summary.moving_time>0;})
+          .map(function(a){return {id:String(a.id||''),d:String(a.start_local||'').slice(0,10),name:String(a.name||''),
+            dist:a.summary.distance,mov:a.summary.moving_time,ela:a.summary.elapsed_time||a.summary.moving_time};});
+        LIVEst.state='live';LIVEst.code=null;
+        LIVEst.at=(ev.result.cache&&ev.result.cache.storedAt)||Date.now();
+        renderWins();renderTimes();
+      },{refetchInterval:900000,cache:{staleTime:300000}});
+  },function(){LIVEst.state='unavailable';renderWins();});
+}
+
+/* Strava measures a best effort across ELAPSED distance, so on a rep session
+   anything longer than one rep is timed straight through the standing
+   recoveries. The 3 x 400 on 10 Sep reports a half mile of 843 s and a
+   kilometre of 1735 s — fourteen and twenty-nine minutes — alongside a
+   perfectly real 400 of 60 s. Trust an effort that fits inside one rep; throw
+   the rest away. Without this the first pull at a distance with no existing
+   best writes a walk down as a personal record. */
+var TRUST_SLOWEST=480;                       /* s/km — slower than anything he runs */
+function trustEffort(a,dm,t){
+  if(!(dm>0&&t>0))return false;
+  if(t/(dm/1000)>TRUST_SLOWEST)return false;
+  var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);
+  if(c&&c.n>1&&dm>c.dm*1.02)return false;    /* longer than a single rep */
+  return true;
+}
+
+var PULL={state:'idle',msg:''};
+function pullSingles(){
+  if(PULL.state==='running')return;
+  if(!(window.claude&&window.claude.use)){PULL.state='done';PULL.msg='No connector on this view.';renderWins();return;}
+  PULL.state='running';PULL.msg='Reading best efforts…';renderWins();
+  window.claude.use('mcp').then(function(mcp){
+    if(!mcp){PULL.state='done';PULL.msg='No connector on this view.';renderWins();return;}
+    var cands=LIVE.filter(function(a){return a.id&&a.dist>=800&&a.mov>0;})
+      .sort(function(x,y){return (x.mov/x.dist)-(y.mov/y.dist);}).slice(0,8);
+    if(!cands.length){PULL.state='done';PULL.msg='No activities to read yet — the Strava list has not loaded.';renderWins();return;}
+    var found=0,failed=0,junk=0;
+    Promise.all(cands.map(function(a){
+      return mcp.callTool('Strava','get_activity_performance',{activity_id:a.id},{cache:{staleTime:300000}})
+        .then(function(res){
+          var pay=res&&res.payload,eff=(pay&&pay.best_efforts)||[];
+          eff.forEach(function(e){
+            var dm=EFFORT_M[e.name||e.type_value],t=Number(e.value);
+            if(!dm||!(t>0))return;
+            if(!trustEffort(a,dm,t)){junk++;return;}
+            var cur=S.bests[dm];
+            if(!cur||t<cur.t){S.bests[dm]={t:t,d:a.d,n:a.name.slice(0,60),src:'strava'};found++;}
+          });
+        },function(err){failed++;PULL.code=(err&&err.code)||'upstream_error';});
+    })).then(function(){
+      PULL.state='done';
+      PULL.msg=(found?found+' best'+(found===1?'':'s')+' updated from '+cands.length+' sessions.':'Nothing beat what is already here, across '+cands.length+' sessions.')+
+        (junk?' '+junk+' effort'+(junk===1?'':'s')+' ignored — measured through the rest between reps.':'')+
+        (failed?' '+failed+' session'+(failed===1?'':'s')+' could not be read ('+esc(PULL.code||'')+').':'');
+      touch();
+    });
+  },function(){PULL.state='done';PULL.msg='The connector did not answer.';renderWins();});
+}
+
+/* the year's records: verified table, plus anything the sessions or Strava beat */
+function records(){
+  var out={};
+  function put(dm,t,date,label,src){
+    if(!(t>0))return;
+    if(!out[dm]||t<out[dm].t)out[dm]={t:t,date:date,label:label,src:src};
+  }
+  Object.keys(BESTAVG).forEach(function(k){
+    var dm=+k;out[dm]={t:BESTAVG[dm],date:BAKED_DATE[dm]||null,label:'verified 2026 best',src:'table'};
+  });
+  SESS.forEach(function(r){
+    if(!r[2]||!r[3])return;
+    var c=classifyRun(r[2],r[3],null,r[4]==='reps'?'reps':'cont',r[1]);
+    if(c)put(c.dm,c.norm,r[0],r[1],'session');
+  });
+  LIVE.forEach(function(a){
+    var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);
+    if(c)put(c.dm,c.norm,a.d,a.name,'strava');
+  });
+  /* What he logs in the cut has to be able to beat the table, or the whole
+     Speed board is a museum of things that happened before the block. */
+  eachRun(function(r,d){
+    var m=runMeta(r);
+    if(m.dm&&m.repAvg!==null)put(m.dm,m.repAvg,d,m.label,'logged');
+  });
+  /* first effort of the year at each distance, for the progress bar */
+  var firsts={};
+  function scanFirst(date,dm,t){if(!firsts[dm]||date<firsts[dm].date)firsts[dm]={date:date,t:t};}
+  SESS.forEach(function(r){if(!r[2]||!r[3])return;var c=classifyRun(r[2],r[3],null,r[4]==='reps'?'reps':'cont',r[1]);if(c)scanFirst(r[0],c.dm,c.norm);});
+  LIVE.forEach(function(a){var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);if(c)scanFirst(a.d,c.dm,c.norm);});
+  eachRun(function(r,d){var m=runMeta(r);if(m.dm&&m.repAvg!==null)scanFirst(d,m.dm,m.repAvg);});
+  Object.keys(out).forEach(function(k){out[k].first=firsts[k]||null;});
+  BENCH.forEach(function(dm){if(!out[dm])out[dm]={t:null,date:null,label:'nothing this year',src:'none',first:firsts[dm]||null};});
+  return out;
+}
+function singleBest(dm){
+  var best=null;
+  if(SINGLE[dm])best={t:SINGLE[dm].t,d:SINGLE[dm].d,n:SINGLE[dm].n,src:'strava'};
+  var st=S.bests&&S.bests[dm];
+  if(st&&st.t>0&&(!best||st.t<best.t))best={t:st.t,d:st.d,n:st.n||'',src:st.src||'strava'};
+  for(var day in S.days){
+    var rs=S.days[day].runs||[];
+    for(var i=0;i<rs.length;i++){
+      var m=runMeta(rs[i]),bt=rs[i].best;
+      if(m.dm===dm&&bt>0&&(!best||bt<best.t))best={t:bt,d:day,n:m.label,src:'logged'};
+    }
+  }
+  return best;
+}
+function closeTo(dm,rec){
+  var tg=TGT[dm];
+  if(!tg||!rec||!rec.t)return false;
+  return (rec.t-tg)>0&&(rec.t-tg)/tg<=0.03;
+}
+
+/* ===================== the week, reviewed ===================== */
+var REVWK=null;
+function reviewWeeks(){
+  var t=today(),out=[],i;
+  if(PRE_DAYS>0&&t>=CFG.cutStart)out.push({k:'pre',label:'Pre-block',start:CFG.cutStart,end:PRE_END,deload:false});
+  for(i=1;i<=W_WEEKS;i++){
+    var st=addD(WEIGH_START,(i-1)*7);
+    if(st>t)break;
+    out.push({k:i,label:'Week '+i,start:st,end:addD(st,6),deload:isDeload(i)});
+  }
+  return out;
+}
+function defaultReviewWeek(){
+  var ws=reviewWeeks(),t=today();
+  for(var i=ws.length-1;i>=0;i--){if(ws[i].end<=t)return String(ws[i].k);}
+  return ws.length?String(ws[ws.length-1].k):null;
+}
+function buildReview(wk){
+  var t=today(),cut=wk.end>t?t:wk.end,done=wk.end<=t,i,d,rec;
+  var R={wk:wk,done:done,through:cut,days:diffD(wk.start,cut)+1};
+  /* weight */
+  var all=cutReadings();
+  var inw=all.filter(function(r){return r.d>=wk.start&&r.d<=cut;});
+  var prevStart=addD(wk.start,-7);
+  var prev=all.filter(function(r){return r.d>=prevStart&&r.d<wk.start;});
+  R.w={n:inw.length,avg:inw.length?mean(inw.map(function(r){return r.lb;})):null,
+       prevAvg:prev.length?mean(prev.map(function(r){return r.lb;})):null};
+  if(R.w.avg!==null&&R.w.prevAvg!==null){R.w.dLb=R.w.prevAvg-R.w.avg;R.w.dPct=R.w.dLb/R.w.prevAvg;}
+  var m=weightModel();
+  R.w.plan=(typeof wk.k==='number'&&m.curve.length)?m.curve[Math.min(wk.k,m.curve.length-1)]:null;
+  R.w.taper=(typeof wk.k==='number')?taperAt(Math.max(0,wk.k-1)):null;
+  R.w.verdict=(R.w.n<CFG.w.minReads)?'thin':(R.w.dPct===undefined?'first':(R.w.dPct<CFG.w.bandLo?'under':(R.w.dPct>CFG.w.bandHi?'over':'in')));
+  /* lows and milestones */
+  var before=all.filter(function(r){return r.d<wk.start;});
+  var loBefore=before.length?Math.min.apply(null,before.map(function(r){return r.lb;})):null;
+  var loIn=inw.length?Math.min.apply(null,inw.map(function(r){return r.lb;})):null;
+  R.newLow=(loIn!==null&&(loBefore===null||loIn<loBefore))?loIn:null;
+  R.ms=MILESTONES.filter(function(x){return loIn!==null&&loIn<=x&&(loBefore===null||loBefore>x);});
+  /* sessions */
+  var S2={gym:0,hard:0,runs:0,sprints:0,fivemile:0,recl:0,best:null};
+  for(i=0;i<=diffD(wk.start,cut);i++){
+    d=addD(wk.start,i);rec=S.days[d];if(!rec)continue;
+    if(rec.gym)S2.gym++;
+    (rec.runs||[]).forEach(function(r){
+      var q=runMeta(r);if(q.empty)return;
+      S2.runs++;
+      if(q.hard)S2.hard++;
+      if(q.sprint)S2.sprints++;
+      if(r.type==='fivemile'){if(q.hard&&q.judged)S2.recl++;else S2.fivemile++;}
+      if(q.dm&&q.repAvg!==null){
+        var ref=BESTAVG[q.dm]||null,gap=ref?q.repAvg-ref:null;
+        if(!S2.best||(gap!==null&&S2.best.gap!==null&&gap<S2.best.gap))S2.best={d:d,dm:q.dm,avg:q.repAvg,ref:ref,gap:gap,label:q.label};
+      }
+    });
+  }
+  R.s=S2;
+  /* steps, sleep, study, food */
+  var st=0,stD=0,stT=0,sat=null,sl=0,slN=0,ph=0,sy=0,dp=0,syN=0,kc=0,kcN=0;
+  for(i=0;i<=diffD(wk.start,cut);i++){
+    d=addD(wk.start,i);rec=S.days[d]||{};
+    stT+=stepTarget(d);
+    if(typeof rec.steps==='number'){st+=rec.steps;stD++;if(dow(d)===6)sat=rec.steps;}
+    if(typeof rec.sleep==='number'){sl+=rec.sleep;slN++;}
+    if(rec.phoneOut)ph++;
+    if(typeof rec.study==='number'){sy+=rec.study;syN++;dp+=(typeof rec.deep==='number'?rec.deep:0);}
+    if(typeof rec.kcal==='number'){kc+=rec.kcal;kcN++;}
+  }
+  R.steps={total:st,days:stD,target:stT,avg:stD?st/stD:null,sat:sat,blank:(diffD(wk.start,cut)+1)-stD};
+  R.sleep={avg:slN?sl/slN:null,n:slN,blank:(diffD(wk.start,cut)+1)-slN,phone:ph};
+  R.study={total:sy,deep:dp,n:syN,live:wk.end>=CFG.study.term};
+  R.food={avg:kcN?kc/kcN:null,n:kcN,blank:(diffD(wk.start,cut)+1)-kcN};
+  return R;
+}
+function renderReview(){
+  var ws=reviewWeeks();
+  if(!ws.length){E('revPick').innerHTML='<option>Nothing to review yet</option>';E('revBody').innerHTML='<div class="p"><p class="note">The first review lands at the end of week 1, '+fmtL(addD(WEIGH_START,6))+'.</p></div>';return;}
+  if(REVWK===null||!ws.some(function(x){return String(x.k)===REVWK;}))REVWK=defaultReviewWeek();
+  E('revPick').innerHTML=ws.map(function(x){
+    return '<option value="'+x.k+'"'+(String(x.k)===REVWK?' selected':'')+'>'+x.label+' · '+fmtS(x.start)+'–'+fmtS(x.end)+(x.deload?' · deload':'')+(x.end>today()?' · in progress':'')+'</option>';
+  }).reverse().join('');
+  var wk=null;ws.forEach(function(x){if(String(x.k)===REVWK)wk=x;});
+  if(!wk){E('revBody').innerHTML='';return;}
+  var R=buildReview(wk),m=weightModel(),h='';
+  var head=wk.label+' · '+fmtS(wk.start)+' to '+fmtS(wk.end)+(wk.deload?' · deload week':'');
+
+  /* headline */
+  var lead;
+  if(R.newLow!==null)lead='<b class="acc">New low this week: '+(S.settings.hideDaily?'yes':f1(R.newLow)+' lb')+'.</b> ';
+  else lead='';
+  var vtxt={thin:'Not enough mornings for a verdict — '+R.w.n+' of '+CFG.w.minReads+'.',
+            first:'First week of weighing, so there is nothing to compare it against yet.',
+            under:'Under the band.',in:'Inside the band.',over:'Over the band.'}[R.w.verdict];
+  h+='<div class="p '+({thin:'',first:'flag',under:'warn',in:'good',over:'bad'}[R.w.verdict]||'')+'"><h2>'+head+(R.done?'':' · still running')+'</h2>'+
+     '<p class="lede">'+lead+vtxt+'</p>'+
+     (R.ms.length?'<p><b>Through '+R.ms.join(', ')+' for the first time.</b></p>':'')+
+     '</div>';
+
+  /* the numbers */
+  h+='<div class="p"><h2>Weight</h2><div class="tiles t4">'+
+    tile('average',R.w.avg===null?'—':f1(R.w.avg)+' lb',R.w.n+' morning'+(R.w.n===1?'':'s')+' logged')+
+    tile('change',R.w.dLb===undefined?'—':signed(-R.w.dLb)+' lb',R.w.dPct===undefined?'no previous week':pct(-R.w.dPct,2)+' of bodyweight')+
+    tile('the taper asked',R.w.taper===null?'—':pct(R.w.taper),'band '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1))+
+    tile('against plan',(R.w.avg===null||R.w.plan===null)?'—':signed(R.w.avg-R.w.plan)+' lb',R.w.plan===null?'':'plan '+f1(R.w.plan))+
+    '</div>'+
+    (R.w.verdict==='under'?'<p class="tiny" style="margin-top:10px">One week under the band changes nothing. Two consecutive weeks is the line, and even then the first look is steps, sleep and study load — not intake.</p>':'')+
+    (R.w.verdict==='over'?'<p class="tiny" style="margin-top:10px">Faster than the band, which costs muscle. Food back up, carbs first — the Today tab sizes it.</p>':'')+
+    '</div>';
+
+  /* sessions */
+  var tmplRow=function(name,got,want){
+    return '<tr><td>'+name+'</td><td class="n">'+got+(want!==null?' / '+want:'')+'</td><td>'+
+      (want===null?'<span class="tiny">no target this week</span>':(got>=want?'<span class="pill g">met</span>':'<span class="pill">'+(want-got)+' short</span>'))+'</td></tr>';
+  };
+  var pre=(wk.k==='pre');
+  h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
+    tmplRow('Hard runs',R.s.hard,pre?null:CFG.tmpl.hard)+
+    tmplRow('5 mile',R.s.fivemile,pre?null:CFG.tmpl.fivemile)+
+    tmplRow('100m sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
+    tmplRow('Gym',R.s.gym,pre?null:CFG.tmpl.gym)+
+    '<tr><td>Runs, all in</td><td class="n">'+R.s.runs+'</td><td></td></tr>'+
+    '</tbody></table>'+
+    (R.s.recl?'<p class="tiny" style="margin-top:8px">'+R.s.recl+' run filed as a 5 mile came in under the effort line, so it counted as a hard run and the five-mile slot stayed open.</p>':'')+
+    (R.s.best?'<p class="tiny" style="margin-top:8px">Best session: <b>'+esc(R.s.best.label)+'</b> on '+fmtS(R.s.best.d)+' at <b class="num">'+secFmt(R.s.best.avg)+'</b> rep average'+
+      (R.s.best.ref?(R.s.best.gap<0?' — <b class="gd">under the 2026 best of '+secFmt(R.s.best.ref)+'</b>':', '+f1(R.s.best.gap)+' s off the 2026 best of '+secFmt(R.s.best.ref)):'')+'.</p>':'')+
+    '<p class="tiny">Days with nothing on them were rest. Rest is in the plan and is never counted as a miss.</p></div>';
+
+  /* the rest of the inputs */
+  h+='<div class="cols"><div class="p"><h2>Steps</h2><div class="tiles t4">'+
+    tile('total',ci(R.steps.total),R.steps.days+' day'+(R.steps.days===1?'':'s')+' logged')+
+    tile('against target',R.steps.days?signed(R.steps.total-R.steps.target,0):'—','target '+ci(R.steps.target)+' for these days')+
+    '</div>'+
+    (R.steps.sat!==null?'<p class="tiny" style="margin-top:8px">Saturday: '+ci(R.steps.sat)+' against a ceiling of '+ci(STEPS_SAT)+' — '+(R.steps.sat<=STEPS_SAT?'under it, which is the point':'over it, which means the rest day went missing')+'.</p>':'')+
+    (R.steps.blank?'<p class="tiny">'+R.steps.blank+' day'+(R.steps.blank===1?'':'s')+' unlogged, left out rather than counted as zero.</p>':'')+
+    '</div>'+
+    '<div class="p"><h2>Sleep</h2><div class="tiles t4">'+
+    tile('average',R.sleep.avg===null?'—':f1(R.sleep.avg)+' h',R.sleep.n+' night'+(R.sleep.n===1?'':'s')+' logged')+
+    tile('phone out',R.sleep.phone+' night'+(R.sleep.phone===1?'':'s'),'of '+R.days)+
+    '</div>'+
+    (R.sleep.blank>=3?'<p class="tiny" style="margin-top:8px">'+R.sleep.blank+' nights unlogged. They are ignored, not judged.</p>':
+     (R.sleep.avg!==null?'<p class="tiny" style="margin-top:8px">'+(R.sleep.avg>=CFG.sleep.line?'At or over the 7.5 h line.':f1(CFG.sleep.line-R.sleep.avg)+' h a night under the 7.5 line — the single biggest lever in the block.')+'</p>':''))+
+    '</div></div>';
+
+  h+='<div class="cols"><div class="p"><h2>Food</h2><div class="tiles t4">'+
+    tile('average logged',R.food.avg===null?'—':ci(R.food.avg),R.food.n+' day'+(R.food.n===1?'':'s')+' logged')+
+    tile('against target',R.food.avg===null?'—':signed(R.food.avg-KCAL_DAY,0),'target '+ci(KCAL_DAY)+' flat')+
+    '</div></div>'+
+    '<div class="p"><h2>Study</h2>'+
+    (R.study.live?('<div class="tiles t4">'+tile('hours',f1(R.study.total)+' h',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
+      tile('deep',f1(R.study.deep)+' h',R.study.total>0?Math.round(R.study.deep/R.study.total*100)+'% of them':'')+'</div>'+
+      '<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(f1(CFG.study.lo-R.study.total)+' h under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>')
+     :'<p class="note">Term starts '+fmtL(CFG.study.term)+'. Nothing judged before then.</p>')+
+    '</div></div>';
+
+  /* next week */
+  if(typeof wk.k==='number'&&wk.k<W_WEEKS){
+    var nx=wk.k+1,nTaper=taperAt(nx-1),nPlan=m.curve.length?m.curve[Math.min(nx,m.curve.length-1)]:null;
+    h+='<div class="p flag"><h2>Week '+nx+(isDeload(nx)?' · deload':'')+'</h2>'+
+      '<p>The taper asks <b class="num">'+pct(nTaper)+'</b>'+(R.w.avg!==null?' — about <b class="num">'+f2(R.w.avg*nTaper)+' lb</b> off this week&rsquo;s average':'')+
+      (nPlan!==null?', putting the plan at <b class="num">'+f1(nPlan)+' lb</b> by '+fmtS(addD(WEIGH_START,nx*7-1)):'')+'.</p>'+
+      (isDeload(nx)?'<p class="note">It is a deload: sessions come down, the food does not move.</p>':'')+
+      '<p class="tiny">Smaller numbers later are the plan working. The leaner you get, the more of each pound comes out of muscle, so the same percentage costs more in week nine than in week one.</p></div>';
+  }
+  E('revBody').innerHTML=h;
+}
+
+/* ===================== the call, today ===================== */
+function lastRefeed(){
+  var t=today(),best=null;
+  for(var d in S.days){if(S.days[d].refeed&&d<=t&&(!best||d>best))best=d;}
+  return best;
+}
+function weeksUnderBand(w){
+  var n=0;
+  for(var i=w.weeks.length-1;i>=0;i--){
+    var wk=w.weeks[i];
+    if(wk.future||wk.partial||wk.n<CFG.w.minReads||wk.dPct===undefined)continue;
+    if(wk.dPct<CFG.w.bandLo)n++;else break;
+  }
+  return n;
+}
+function refeedPlan(w){
+  var lbwk=(w.rateLb!==null&&w.rateLb>0)?w.rateLb:((w.taperLb!==null&&w.taperLb>0)?w.taperLb:null);
+  if(lbwk===null)return null;
+  var perDay=Math.round(lbwk*3500/7/10)*10;
+  var extra=Math.min(700,Math.max(150,perDay));
+  extra=Math.round(extra/10)*10;
+  return {lbwk:lbwk,perDay:perDay,maint:KCAL_DAY+perDay,extra:extra,day:KCAL_DAY+extra,
+          carbs:Math.round(extra/4/5)*5,fromRate:(w.rateLb!==null&&w.rateLb>0)};
+}
+function refeedLine(w){
+  var r=refeedPlan(w);
+  if(!r)return '<p class="note">Not enough weeks of data to size a refeed yet — that needs a measured rate.</p>';
+  return '<p><b>Eat +'+ci(r.extra)+' kcal — '+ci(r.day)+' for the day — and put all of it into carbohydrate, about '+r.carbs+' g.</b></p>'+
+    '<p class="note">That is roughly maintenance. '+(r.fromRate
+      ? 'You are losing '+f1(r.lbwk)+' lb a week, which at 3,500 kcal a pound is a '+ci(r.perDay)+' kcal daily deficit'
+      : 'No measured rate yet, so this is sized off the taper your week asks for: '+ci(r.perDay)+' kcal a day')+
+    '. One day, then straight back to '+ci(KCAL_DAY)+'. A smaller correction is the '+ci(KCAL_LIGHTUP)+' day, +100.</p>';
+}
+function aheadEnough(w,tr){
+  var wAhead=(w.ahead&&w.ahead.by>=0.4)||(w.rateLb!==null&&w.taperLb!==null&&w.rateLb>=w.taperLb+0.15);
+  var sOk=(tr.gym.diff>=0&&tr.hard.diff>=0&&tr.runs.diff>=0);
+  return {ok:!!(wAhead&&sOk),wAhead:!!wAhead,sOk:sOk};
+}
+function noRefeedBecause(ah){
+  if(!ah.wAhead&&!ah.sOk)return 'the weight is not ahead of the week&rsquo;s target and the sessions are behind pro-rata';
+  if(!ah.wAhead)return 'the weight is not ahead of the week&rsquo;s target yet';
+  return 'the sessions are behind pro-rata';
+}
+function callToday(w,tr,rest){
+  var c=cutTally(),wk=Math.max(1,Math.min(W_WEEKS,weekOf(c.t))),rf=lastRefeed();
+  var since=rf?diffD(rf,c.t):null;
+  function box(k,t,b){return '<div class="p '+k+'"><h2>The call today</h2><p class="lede">'+t+'</p>'+b+'</div>';}
+  if(c.before)return box('flag','Nothing to judge yet.','<p class="note">The cut opens '+fmtL(CFG.cutStart)+'.</p>');
+  var ah=aheadEnough(w,tr);
+  if(w.band==='fast'){
+    return box('bad','You are losing too fast — put food back, carbs first.',
+      '<p>'+pct(w.ratePct)+' a week against a band that tops out at '+pct(CFG.w.bandHi,1)+'. At this rate more of each pound comes out of muscle.</p>'+
+      (ah.ok
+        ? '<p><b>You are ahead, so the refeed is earned.</b>'+(since!==null?' Last one was '+since+' days ago.':' None logged yet — there is a toggle on the log.')+'</p>'+refeedLine(w)+'<p class="note">Not less training.</p>'
+        : '<p><b>Take the '+ci(KCAL_LIGHTUP)+' day — +100, carbs first.</b> Not a refeed: '+noRefeedBecause(ah)+', and a refeed is only for when the weight and the sessions are both ahead.</p>'));
+  }
+  if(isDeload(wk)){
+    return box('flag','Deload week — sessions come down, food does not.',
+      '<p class="note">Week '+wk+' is a deload. The intake stays exactly where it is; a rest day is not a day to eat less.</p>'+
+      (ah.ok?('<p class="note">You are ahead on both the weight and the sessions, so if you want a refeed this is a fair place for it'+(since!==null?' — last one '+since+' days ago':'')+'.</p>'+refeedLine(w)):''));
+  }
+  if(rest.fire){
+    return box('good','You are ahead — take the rest, it is on the card below.','<p class="note">Food stays where it is'+(rest.tooFast?', and goes up on those days':'')+'.</p>');
+  }
+  var under=weeksUnderBand(w);
+  if(under>=2){
+    return box('warn',under+' full weeks under the band.',
+      '<p>That is past the two-week line, so it is now fair to act. In order: are the steps actually being logged, is the sleep there, and has the study load just doubled? Those move the number before intake does.</p>'+
+      '<p><b>Only if all three are clean, a small trim — not a deeper cut stacked on a flat fortnight.</b> No refeed here: you are behind the curve, not ahead of it.</p>');
+  }
+  if(under===1){
+    return box('flag','One week under the band. Change nothing.',
+      '<p class="note">Never cut calories for a plateau shorter than two weeks — that is how the last cuts got wrecked. Water is held and released on a longer clock than the scale suggests.</p>');
+  }
+  if(w.band==='in'){
+    return box('good','On the rate. Hold everything where it is.',
+      '<p class="note">'+pct(w.ratePct)+' a week, inside '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1)+', against a taper asking '+pct(w.taperNow)+'.</p>'+
+      (ah.ok?('<p class="note">Weight and sessions are both ahead, which is the only condition a refeed is earned under'+(since!==null?' — last one '+since+' days ago':'')+'.</p>'+refeedLine(w)):''));
+  }
+  return box('flag','Not enough readings for a verdict yet.',
+    '<p class="note">A weekly verdict needs '+CFG.w.minReads+' mornings; the rate needs two full 7-day windows. Keep weighing and nothing here will guess.</p>');
+}
+
+/* ===================== achievements ===================== */
+function achList(){
+  var t=today(),c=cutTally(),w=weightModel(),sl=sleepModel(),st=studyModel();
+  var days=Object.keys(S.days).filter(function(d){return inCut(d)&&d<=t;}).sort();
+  var gym=[],hard=[],runs=[],pbs={},sprint=[];
+  days.forEach(function(d){
+    if(S.days[d].gym)gym.push(d);
+    (S.days[d].runs||[]).forEach(function(r){
+      var m=runMeta(r);if(m.empty)return;
+      runs.push(d);
+      if(m.hard)hard.push(d);
+      if(m.sprint)sprint.push(d);
+      if(m.dm&&m.repAvg!==null&&BESTAVG[m.dm]&&m.repAvg<BESTAVG[m.dm]&&(!pbs[m.dm]||m.repAvg<pbs[m.dm].v))pbs[m.dm]={d:d,v:m.repAvg};
+    });
+  });
+  function tiers(label,arr,marks){
+    return marks.map(function(mk){
+      var got=arr.length>=mk;
+      return {n:mk+' '+label,got:got,when:got?arr[mk-1]:null,close:!got&&(mk-arr.length)<=1,
+              m:got?('hit '+fmtS(arr[mk-1])):((mk-arr.length)+' to go')};
+    });
+  }
+  var cr=cutReadings(),cur=w.low?w.low.lb:null;
+  var weight=MILESTONES.map(function(ms){
+    var hit=null;
+    for(var i=0;i<cr.length;i++){if(cr[i].lb<=ms){hit=cr[i];break;}}
+    return {n:'Through '+ms+' lb',got:!!hit,when:hit?hit.d:null,
+            close:!hit&&cur!==null&&(cur-ms)<=0.5,
+            m:hit?('first on '+fmtS(hit.d)):(cur!==null?(f1(cur-ms)+' lb to go'):'weighing opens '+fmtS(WEIGH_START))};
+  });
+  /* steps */
+  var wkd=null,sat=null,fullWk=null,i2;
+  days.forEach(function(d){
+    var v=S.days[d].steps;if(typeof v!=='number')return;
+    var dd=dow(d);
+    if(!wkd&&dd>=1&&dd<=5&&v>=CFG.steps.weekday)wkd=d;
+    if(!sat&&dd===6&&v<=STEPS_SAT)sat=d;
+  });
+  var wkTarget=5*CFG.steps.weekday+CFG.steps.sunday+STEPS_SAT;
+  for(var ws=mondayOnOrAfter(CFG.cutStart);ws<=t;ws=addD(ws,7)){
+    var tot=0,nlog=0;
+    for(i2=0;i2<7;i2++){var dv=S.days[addD(ws,i2)];if(dv&&typeof dv.steps==='number'){tot+=dv.steps;nlog++;}}
+    if(nlog===7&&tot>=wkTarget&&!fullWk)fullWk=addD(ws,6);
+  }
+  var steps=[
+    {n:'A 15,000 weekday',got:!!wkd,when:wkd,m:wkd?('first on '+fmtS(wkd)):'log a weekday at target'},
+    {n:'A Saturday under the ceiling',got:!!sat,when:sat,m:sat?('first on '+fmtS(sat)):(ci(STEPS_SAT)+' or under on a Saturday')},
+    {n:'A full week at '+ci(wkTarget),got:!!fullWk,when:fullWk,m:fullWk?('week to '+fmtS(fullWk)):'all seven days logged, at or over target'}
+  ];
+  var sleep=[
+    {n:'7 nights phone-free',got:sl.streak>=7,when:null,close:sl.streak>=5&&sl.streak<7,m:sl.streak>=7?(sl.streak+' nights and counting'):((7-sl.streak)+' more nights')},
+    {n:'21 nights phone-free',got:sl.streak>=21,when:null,m:sl.streak>=21?(sl.streak+' nights and counting'):((21-sl.streak)+' more nights')},
+    {n:'A week averaging 7.5 h',got:(sl.a7.avg!==null&&sl.a7.n>=4&&sl.a7.avg>=CFG.sleep.line),when:null,
+     m:sl.a7.avg===null?'no nights logged yet':(sl.a7.n<4?(sl.a7.n+' of 7 nights logged — not enough to say'):(f1(sl.a7.avg)+' h over '+sl.a7.n+' nights'))}
+  ];
+  var study=[
+    {n:'A week inside 16–20 h',got:st.live&&st.total>=CFG.study.lo,when:null,
+     m:!st.live?('term starts '+fmtS(CFG.study.term)):(f1(st.total)+' h in the last 7 days')},
+    {n:'10 deep hours in a week',got:st.deep>=10,when:null,m:f1(st.deep)+' h deep in the last 7 days'}
+  ];
+  var rec=records();
+  var speed=[200,400,800,1000,1609,5000].map(function(dm){
+    var r=rec[dm],tg=TGT[dm],hit=!!(r&&r.t&&r.t<=tg);
+    return {n:'Sub-'+secFmt(tg)+' at '+repLabel(dm),got:hit,when:hit?r.date:null,close:closeTo(dm,r),
+            m:(!r||!r.t)?'nothing at this distance yet':(hit?(secFmt(r.t)+' on '+fmtS(r.date)):(f1(r.t-tg)+' s to go from '+secFmt(r.t)))};
+  }).concat(Object.keys(BESTAVG).map(Number).sort(function(a,b){return a-b;}).map(function(dm){
+    /* It has to happen inside the block. A row from the 2026 history table
+       undercutting the table it came from is arithmetic, not an achievement. */
+    var r=rec[dm],beat=!!(r&&r.date&&inCut(r.date)&&r.t<BESTAVG[dm]);
+    return {n:'Beat the 2026 best at '+repLabel(dm),got:beat,when:beat?r.date:null,
+            close:!!(r&&r.t&&r.date&&inCut(r.date)&&r.t>BESTAVG[dm]&&(r.t-BESTAVG[dm])/BESTAVG[dm]<=0.02),
+            m:beat?(secFmt(r.t)+' on '+fmtS(r.date)+', under '+secFmt(BESTAVG[dm])):('go under '+secFmt(BESTAVG[dm])+' in the block')};
+  }));
+  var half=Math.ceil(CUT_DAYS/2);
+  var block=[
+    {n:'Halfway — day '+half,got:c.elapsed>=half,when:c.elapsed>=half?addD(CFG.cutStart,half-1):null,
+     m:c.elapsed>=half?('reached '+fmtS(addD(CFG.cutStart,half-1))):((half-c.elapsed)+' days away')},
+    {n:'Final fortnight',got:c.remaining<=14&&!c.before,when:null,m:c.remaining<=14?'you are in it':((c.remaining-14)+' days away')},
+    {n:'28 November',got:c.after,when:c.after?CFG.cutEnd:null,m:c.after?'done':(c.toEnd+' days — and your birthday')}
+  ];
+  return [
+    {g:'Weight',items:weight},
+    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,15,CFG.goals.hard])).concat(tiers('runs',runs,[11,22,33,CFG.goals.runs]))},
+    {g:'Speed',items:speed},
+    {g:'Steps',items:steps},
+    {g:'Sleep',items:sleep},
+    {g:'Study',items:study},
+    {g:'The block',items:block}
+  ];
+}
+function renderWins(){
+  var groups=achList(),got=0,tot=0,locked=[],nextUp=[];
+  groups.forEach(function(gr){
+    var first=null;
+    gr.items.forEach(function(a){tot++;if(a.got){got++;}else{locked.push(a);if(!first)first=a;}});
+    if(first)nextUp.push({g:gr.g,a:first});
+  });
+  var h='<div class="p"><h2>Wins</h2><div class="tiles t4">'+
+    tile('unlocked',got+' / '+tot,'across the block')+
+    tile('next up',locked.length?esc(locked[0].n):'all of them',''+(locked.length?esc(locked[0].m):'nothing left to unlock'))+
+    tile('weight milestones',groups[0].items.filter(function(a){return a.got;}).length+' / '+groups[0].items.length,'128 down to 122.5')+
+    tile('speed bests',groups[2].items.filter(function(a){return a.got;}).length+' / '+groups[2].items.length,'beating your own 2026 session averages')+
+    '</div>';
+  if(locked.length){
+    h+='<div class="nextup" style="margin-top:12px">'+nextUp.slice(0,4).map(function(x){
+      return '<div><span class="gn" style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)">'+esc(x.g)+'</span><b>'+esc(x.a.n)+'</b><span class="tiny">'+esc(x.a.m)+'</span></div>';
+    }).join('')+'</div>';
+  }
+  h+='</div>';
+  E('winTop').innerHTML=h;
+  renderRecords();
+  var g='';
+  groups.forEach(function(gr){
+    g+='<div class="p"><h2>'+gr.g+'</h2><div class="ach">'+gr.items.map(function(a){
+      return '<div class="a '+(a.got?'on':'off')+'"><div class="n">'+(a.got?'✓ ':'')+esc(a.n)+'</div><div class="m">'+esc(a.m)+'</div></div>';
+    }).join('')+'</div></div>';
+  });
+  E('winGrid').innerHTML=g;
+}
+
+function renderRecords(){
+  var rec=records(),cp=stravaCopy();
+  var h='<div class="p"><h2>2026 records · every distance</h2>'+
+    '<div class="row" style="margin-bottom:10px"><span class="pill '+cp.k+'">'+esc(cp.t)+'</span>'+
+    '<button class="btn ghost sm" id="btnPull" type="button">'+(PULL.state==='running'?'Reading…':'Pull single bests from Strava')+'</button>'+
+    (PULL.msg?'<span class="tiny">'+esc(PULL.msg)+'</span>':'')+'</div>'+
+    '<p class="tiny" style="margin-bottom:10px">Two numbers per distance. The <b>session average</b> is normalised — time × rep distance ÷ total distance, the arithmetic behind your own table. The <b>single best</b> is Strava&rsquo;s own best-effort split, which is the only way to see the one fast rep inside a session.</p>'+
+    '<div class="cols3">';
+  BENCH.forEach(function(dm){
+    var r=rec[dm],tg=TGT[dm],near=closeTo(dm,r);
+    var first=r&&r.first?r.first.t:null;
+    var fill=0;
+    if(r&&r.t&&tg){
+      if(r.t<=tg)fill=1;
+      else if(first&&first>tg)fill=Math.max(0,Math.min(1,(first-r.t)/(first-tg)));
+    }
+    h+='<div class="goal"'+(near?' style="box-shadow:inset 3px 0 0 var(--warn)"':(r&&r.t&&tg&&r.t<=tg?' style="box-shadow:inset 3px 0 0 var(--accent)"':''))+'>'+
+      '<div class="gt"><span class="gn">'+repLabel(dm)+'</span><span class="gs">'+(r&&r.date?fmtS(r.date):'—')+(near?' <span class="pill w">close</span>':'')+'</span></div>'+
+      '<div class="gl">'+(r&&r.t?secFmt(r.t):'—')+' <small>'+(tg?'target '+secFmt(tg):'benchmark, no target')+'</small></div>'+
+      (tg?'<div class="track"><i style="width:'+(fill*100).toFixed(0)+'%"></i></div>':'')+
+      '<div class="gs">'+(!r||!r.t?'nothing at this distance this year'
+        :(tg?((r.t<=tg?'<b class="gd">target met</b>':f1(r.t-tg)+' s to go')+(first&&first>r.t?' · '+Math.round(fill*100)+'% of the way from '+secFmt(first)+' in '+MONS[dt(r.first.date).getMonth()]:'')):esc(r.label||'')))+'</div>'+
+      (function(){
+        var sb=singleBest(dm),extra='';
+        if(sb)extra+='<div class="tiny acc">single best '+secFmt(sb.t)+' · '+fmtS(sb.d)+(sb.n?' · '+esc(sb.n):'')+'</div>';
+        if(dm===800&&SINGLE[805])extra+='<div class="tiny">fastest 805 m (Strava half-mile split) '+secFmt(SINGLE[805].t)+' on '+fmtS(SINGLE[805].d)+' — not an 800 m time, but the closest real evidence</div>';
+        return extra;
+      })()+
+      (r&&r.t?'<div class="tiny">'+esc((r.label||'').slice(0,64))+(r.src==='strava'?' · from Strava':(r.src==='table'?' · verified table':''))+'</div>':'')+
+      '</div>';
+  });
+  h+='</div></div>';
+  E('winRecords').innerHTML=h;
+}
+
+/* ===================== earned rest ===================== */
+function restModel(w,tr){
+  var c=cutTally();
+  var wk=Math.max(1,Math.min(W_WEEKS,weekOf(c.t)));
+  var out={fire:false,why:[],deload:isDeload(wk),tooFast:false,wk:wk};
+  if(c.elapsed<10||c.before||c.after)return out;
+  if(out.deload)return out;
+  if(w.a7!==null&&w.ahead&&w.ahead.by>=0.4)out.why.push('The 7-day average is '+w.ahead.by.toFixed(1)+' lb under where the plan has you this week.');
+  if(w.rateLb!==null&&w.taperLb!==null&&w.rateLb>=w.taperLb+0.15)out.why.push('You are losing '+w.rateLb.toFixed(2)+' lb a week against a taper asking '+w.taperLb.toFixed(2)+'.');
+  var sess=(tr.gym.diff>=1&&tr.hard.diff>=1&&tr.runs.diff>=1);
+  if(sess)out.why.push('Gym, hard runs and runs are each a whole session clear of pro-rata.');
+  out.fire=out.why.length>0;
+  out.tooFast=(w.band==='fast');
+  return out;
+}
+
+/* ===================== fuelling, around the session =====================
+   Built at render time rather than as a constant, because half of it quotes
+   numbers that are themselves derived — the day's target, the fixed spend,
+   the carb floor. A hard-coded copy of any of those is the drift bug. */
+function fuelBook(){
+  return {
+  hard:{n:'Hard run — reps, or anything at or under the effort line',
+    w:'The session that actually runs on glycogen, and the only one where being underfed shows up in the numbers on the day rather than a week later.',
+    r:[['60–90 min before','70 g certified GF oats, 150 ml milk, 13 g raw honey.','~400 kcal and 66 g of carbohydrate. The proven one. Four eggs before a run felt terrible and the oats felt great — that is 20 g of carbohydrate against 66, not something about eggs.'],
+       ['During','Water. Nothing to eat under an hour.','Nothing fizzy inside two hours of running — gastric distension, stitch.'],
+       ['Within the hour after','About 30 g of protein alongside 60 g of carbohydrate, together. Skyr and a banana with honey; cod and potatoes if it lands at lunch.','The post-session window is oversold in general. It is not oversold on a day you also lift at 18:30, because the glycogen has to be back by then.'],
+       ['16:30–17:00','Dinner, before the gym as always.',''],
+       ['20:30','The bowl — '+CFG.kcal.bowl+' kcal.','Protein overnight, which is when the repair actually runs.']]},
+  sprint:{n:'100m uphill sprints',
+    w:'Ten to fifteen seconds at a time. This is a nervous-system session, limited by how fresh you are rather than by how much carbohydrate is in the muscle — but it is only worth doing at full power, and power is the first thing to go when you are empty.',
+    r:[['About an hour before','Something small and mostly carbohydrate — a banana with honey, or half the oats.','Enough not to start flat. You do not need the full 66 g for a session this short.'],
+       ['After','Normal meal timing. Nothing special.','The muscle damage is real but small; the protein across the day covers it.'],
+       ['The morning after','Expect the scale up, and do not read anything into it.','Hard eccentric work holds water in the legs for 24–48 hours. That is repair. It is the single most common way a good session reads as a bad morning.']]},
+  easy:{n:'Easy run, or the five mile',
+    w:'Under about seventy minutes at an easy effort, glycogen is not the limiter. This is the session you can genuinely run fasted, and you have.',
+    r:[['Fasted','Run first, then lean fish and roots, or eggs.','Fine at easy effort. Not fine before a rep session.'],
+       ['Or fed','Keep it small and leave it 90 minutes.','A full breakfast half an hour before an easy run buys nothing and costs a stitch.'],
+       ['After','No rush. Normal meal.',''],
+       ['If it came in under the effort line','Then it was not an easy run, and the app has already counted it as a hard one.','Fuel the next one like a hard session. The five-mile slot stays open when that happens, and the empty slot is information.']]},
+  gym:{n:'Gym at 18:30',
+    w:'The 16:30–17:00 dinner is the pre-lift meal. That is why it sits there and not after.',
+    r:[['16:30–17:00','Dinner: a real protein and a real carbohydrate. Cod and potatoes is the cheapest version of both.','Ninety minutes clear of lifting, which is about right.'],
+       ['20:30','The bowl.','Post-lifting refuel and the overnight protein in one. That is why moving it is a bad trade even at '+CFG.kcal.bowl+' kcal.'],
+       ['Not after the gym','Dinner after lifting lands at 20:00 with the bowl at 20:30.','Two meals stacked, and the bowl stops doing the job it is there for.']]},
+  rest:{n:'Rest day',
+    w:'Rest is in the plan. It is never a missed target, and it is not a day to eat less.',
+    r:[['The food does not come down','The same '+ci(KCAL_DAY)+' as every other day.','Eating less on a rest day is the most common way a cut turns into muscle loss. Rest is when the rebuilding gets paid for.'],
+       ['Protein especially','130–140 g, same as any day.','Today is the day it actually gets used.'],
+       ['Carbohydrate','At or above the floor — '+CARB_AT+' g is what '+ci(KCAL_DAY)+' leaves you at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat.','Going under the floor raises cortisol, which holds water and makes the face puffier at the same rate of loss.'],
+       ['Steps can stay','A rest day is a rest from sessions, not from walking.','']]}
+  };
+}
+function fuelShapes(is){
+  var rec=S.days[is]||{},rs=rec.runs||[],i,m;
+  var out={hard:false,sprint:false,easy:false,gym:!!rec.gym,labels:[]};
+  for(i=0;i<rs.length;i++){
+    m=runMeta(rs[i]);if(m.empty)continue;
+    out.labels.push(m.label);
+    if(m.sprint)out.sprint=true;else if(m.hard)out.hard=true;else out.easy=true;
+  }
+  return out;
+}
+function weekOwes(tr){
+  if(tr.pre)return [];
+  var o=[];
+  if(tr.week.hard<CFG.tmpl.hard)o.push({k:'hard',n:CFG.tmpl.hard-tr.week.hard,label:'hard run'});
+  if(tr.week.fivemile<CFG.tmpl.fivemile)o.push({k:'easy',n:CFG.tmpl.fivemile-tr.week.fivemile,label:'five mile'});
+  if(tr.week.sprints<CFG.tmpl.sprints)o.push({k:'sprint',n:CFG.tmpl.sprints-tr.week.sprints,label:'sprint session'});
+  if(tr.week.gym<CFG.tmpl.gym)o.push({k:'gym',n:CFG.tmpl.gym-tr.week.gym,label:'gym session'});
+  return o;
+}
+function fuelToday(tr){
+  var t=today(),sh=fuelShapes(t),keys=[];
+  if(sh.hard)keys.push('hard');
+  if(sh.sprint)keys.push('sprint');
+  if(sh.easy)keys.push('easy');
+  if(sh.gym)keys.push('gym');
+  var owed=weekOwes(tr);
+  if(keys.length)return {keys:keys,src:'logged',sh:sh,owed:owed,two:(sh.hard||sh.sprint)&&sh.gym};
+  var ahead=[];
+  owed.forEach(function(o){if(ahead.indexOf(o.k)<0)ahead.push(o.k);});
+  if(!ahead.length)return {keys:['rest'],src:'rest',sh:sh,owed:owed,two:false};
+  return {keys:ahead,src:'open',sh:sh,owed:owed,two:false};
+}
+function fuelBlockHTML(key,book){
+  var b=book[key];if(!b)return '';
+  return '<h2 style="margin-top:14px">'+esc(b.n)+'</h2><p class="note">'+b.w+'</p>'+
+    '<div class="scroll"><table class="tbl"><tbody>'+b.r.map(function(row){
+      return '<tr><td style="white-space:nowrap"><b>'+row[0]+'</b></td><td>'+row[1]+
+        (row[2]?'<div class="tiny" style="margin-top:2px">'+row[2]+'</div>':'')+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+function renderFuel(tr){
+  var book=fuelBook(),f=fuelToday(tr),h='';
+  var head,lead;
+  if(f.src==='logged'){
+    head='Fuel for what you logged today';
+    lead='Logged: <b>'+f.sh.labels.map(esc).join('</b>, <b>')+(f.sh.labels.length&&f.sh.gym?'</b>, <b>gym':'')+(!f.sh.labels.length&&f.sh.gym?'gym':'')+'</b>.';
+  }else if(f.src==='rest'){
+    head='Fuel today';
+    lead=tr.pre
+      ? 'Nothing logged, and the Monday-to-Sunday template has not opened yet — the pre-block is '+PRE_DAYS+' days. Treat it as a rest day and read the rest-day rules, which is the part that matters most this weekend anyway.'
+      : 'Nothing logged, and the week owes nothing. That makes today a rest day, and a rest day is in the plan.';
+  }else{
+    head='Fuel for what the week still owes';
+    lead='Nothing logged today yet. This week still owes '+f.owed.map(function(o){
+      return '<b>'+o.n+' '+esc(o.label)+(o.n===1?'':'s')+'</b>';}).join(', ')+
+      '. Whichever of those today turns out to be, here is how it gets fed.';
+  }
+  h='<div class="p"><h2>'+head+'</h2><p class="lede">'+lead+'</p>';
+  if(f.two){
+    h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>Two sessions today — lunch is not optional.</b> '+
+       'A run in the morning and lifting at 18:30 is the combination that empties you, and it empties you through the meal in the middle. '+
+       'Everything that goes wrong in a cut — the flat fortnight, the session that feels twice as hard for no reason, the sleep going — tends to start with the lunch that got skipped because breakfast was big.</div>';
+  }
+  f.keys.forEach(function(k){h+=fuelBlockHTML(k,book);});
+  h+='<hr class="d"><p class="tiny">Every number here is the '+ci(KCAL_DAY)+' day being <b>spent differently</b>, never being added to. '+
+     'The only thing that raises the total is a refeed or the '+ci(KCAL_LIGHTUP)+' day, and those are sized on the Today card when they are earned.</p></div>';
+  E('fuelCard').innerHTML=h;
+
+  var all='<div class="p"><h2>Fuelling, session by session</h2>'+
+    '<p class="note">The Today tab shows whichever of these applies to the day in front of you. This is the whole set.</p>'+
+    ['hard','sprint','easy','gym','rest'].map(function(k){return fuelBlockHTML(k,book);}).join('')+
+    '<hr class="d"><p class="tiny"><b>What none of this changes: the total.</b> '+ci(KCAL_DAY)+' every day, hard session or not. '+
+    'What the session changes is the <b>shape</b> of the day — which meal the carbohydrate sits in, and how close to the session it lands.</p></div>';
+  E('foodFuel').innerHTML=all;
+}
+
+/* ===================== the other half of the call: go harder ===================== */
+/* Runs filed as a hard continuous effort that did not come in under the
+   effort line. Evidence for "go harder", rather than a hunch about it. */
+function softEfforts(days){
+  var t=today(),soft=0,tot=0;
+  eachRun(function(r,d){
+    var off=diffD(d,t);
+    if(off<0||off>=days)return;
+    if(r.k==='reps'||r.type!=='threshold')return;
+    var m=runMeta(r);if(!m.judged)return;
+    tot++;if(!m.hard)soft++;
+  });
+  return {soft:soft,tot:tot};
+}
+var PUSH_BEHIND=1.5;
+function pushCall(w,tr,c,rest){
+  if(c.before||c.after||rest.fire)return '';
+  if(c.elapsed<7)return '';
+  var behind=[];
+  [['Gym sessions',tr.gym],['Hard runs',tr.hard],['Runs, all in',tr.runs]].forEach(function(p){
+    if(p[1].diff<=-PUSH_BEHIND)behind.push({n:p[0],p:p[1]});
+  });
+  var dw=dow(c.t),late=(dw===0||dw>=4);          /* Thu, Fri, Sat, Sun */
+  var owed=weekOwes(tr),owedSess=0;
+  owed.forEach(function(o){if(o.k!=='gym')owedSess+=o.n;});
+  var se=softEfforts(14);
+  var weekLate=late&&owedSess>=2&&!isDeload(Math.max(1,Math.min(W_WEEKS,weekOf(c.t))));
+  var soft=(se.tot>=2&&se.soft>=2);
+  if(!behind.length&&!weekLate&&!soft)return '';
+
+  var h='<div class="p warn"><h2>Step it up</h2>';
+  /* Say what the weight is doing first, because that is the part he reads
+     as a verdict on himself and it is usually not the thing that is wrong. */
+  if(w.band==='in')h+='<p class="lede"><b class="gd">The weight is doing its job</b> — '+pct(w.ratePct)+' a week, inside the band. The sessions are the part that is behind.</p>';
+  else if(w.band==='fast')h+='<p class="lede"><b>The weight is coming off faster than the band allows</b>, so this is not a call to train more on less food. It is a call to get the sessions in <i>and</i> eat — the Today card sizes that.</p>';
+  else if(w.ahead&&w.ahead.by>=0)h+='<p class="lede"><b class="gd">The weight is at or under the plan.</b> The sessions are the part that is behind.</p>';
+  else h+='<p class="lede">The sessions are behind, and that is worth fixing before anything touches the food.</p>';
+
+  if(behind.length){
+    h+='<table class="tbl"><tbody>'+behind.map(function(b){
+      return '<tr><td>'+b.n+'</td><td class="n">'+b.p.done+' of '+b.p.target+'</td>'+
+        '<td class="tiny">'+f1(-b.p.diff)+' behind pro-rata'+(b.p.perWeek===null?'':' · '+f1(b.p.perWeek)+' a week from here closes it')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+  }
+  if(weekLate){
+    h+='<p style="margin-top:8px">It is '+DOWL[dw]+' and this week still owes '+owed.filter(function(o){return o.k!=='gym';})
+       .map(function(o){return '<b>'+o.n+' '+esc(o.label)+(o.n===1?'':'s')+'</b>';}).join(' and ')+'. '+
+       (function(){var n=(dw===0?0:7-dw);return n===0?'Today is the last day of it.':('There '+(n===1?'is 1 day':'are '+n+' days')+' left in it after today.');})()+'</p>';
+  }
+  if(soft){
+    h+='<p style="margin-top:8px"><b>'+se.soft+' of your last '+se.tot+' runs filed as a hard effort came in over the effort line of '+pace(effortLine())+'</b>, '+
+       'so they counted as runs rather than hard runs. That is the literal version of going harder: the sessions are happening, they are just not landing at effort pace.</p>';
+  }
+  h+='<hr class="d"><p class="tiny"><b>This is a session call, not a food call.</b> Nothing here says eat less — being behind on sessions is never a reason to cut calories, and a rest day is never one of the misses being counted.</p></div>';
+  return h;
+}
+
+/* ===================== 2026, as actually run (from Strava) ===================== */
+var SESS=[
+['2026-01-09','4 × 500m',2008.5,343,'reps',''],
+['2026-01-14','5 × 400m',2001.3,333,'reps',''],
+['2026-01-16','5 km threshold',5019.0,1208,'cont',''],
+['2026-01-20','4 × 1 km',4004.3,814,'reps','heavy wind'],
+['2026-01-22','5 × 200m uphill',1046.7,161,'reps',''],
+['2026-01-28','5 × 400m',2008.0,333,'reps',''],
+['2026-01-30','6 × 200m',1219.0,193,'reps','into wind'],
+['2026-02-02','4 × 800m',3213.8,643,'reps',''],
+['2026-02-07','5 km threshold',5010.6,1215,'cont',''],
+['2026-02-12','5 × 400m',2005.2,358,'reps','no carbs'],
+['2026-02-16','4 × 500m',2008.9,351,'reps',''],
+['2026-02-23','1 mile + 2 × 200m',null,null,'reps',''],
+['2026-02-25','5 × 200m uphill',1026.8,156,'reps',''],
+['2026-03-02','4 × 800m',3211.5,646,'reps','wind, heavy clothes'],
+['2026-03-05','5 × 400m',1991.0,357,'reps','low carb'],
+['2026-03-06','5 × 200m',1155.8,176,'reps',''],
+['2026-03-11','4 × 400m',1607.5,294,'reps',''],
+['2026-03-17','4 × 1 km',4003.7,842,'reps','wind'],
+['2026-03-20','4 × 400m',1606.5,261,'reps',''],
+['2026-03-24','5 × 200m',1011.0,162,'reps',''],
+['2026-03-30','5 × 400m',2008.7,350,'reps','last two uphill, wind — PR'],
+['2026-04-10','5 × 400m',2002.9,366,'reps','ill'],
+['2026-04-18','6 × 200m',1267.6,196,'reps',''],
+['2026-04-20','4 × 400m',1606.0,290,'reps',''],
+['2026-04-22','3 × 1 km',3007.9,636,'reps',''],
+['2026-04-25','4 × 300m',1221.3,186,'reps',''],
+['2026-04-27','5 × 400m',2019.3,357,'reps','last 150m uphill + wind'],
+['2026-04-30','4 × 1 km',4004.7,800,'reps','2 PRs'],
+['2026-05-01','5 × 200m uphill',1038.6,157,'reps',''],
+['2026-05-04','4 × 600m',2404.1,444,'reps',''],
+['2026-05-08','5 km threshold',5008.5,1110,'cont','3 PRs, first of the block'],
+['2026-05-12','5 × 300m',1504.1,228,'reps',''],
+['2026-05-15','4 × 1 km',4005.3,788,'reps','2 PRs'],
+['2026-05-18','5 × 400m',2042.7,342,'reps',''],
+['2026-05-27','4 × 800m',3207.0,628,'reps',''],
+['2026-05-29','3 × 300m + 2 × 200m',null,null,'reps',''],
+['2026-06-02','4 × 1 km',4012.3,787,'reps','2 PRs, felt good'],
+['2026-06-05','4 × 400m',1606.7,258,'reps','all out — 400 best 61 s'],
+['2026-06-09','5 km',5004.8,1117,'cont','3 PRs, stomach cramps'],
+['2026-06-12','4 × 200m',825.5,119,'reps','all out'],
+['2026-06-17','3 × 1 km',3010.3,580,'reps','strict form — 1 km best 3:14'],
+['2026-06-22','3 × 400m + 200m sprints',null,null,'reps',''],
+['2026-06-25','3 × 1 km',3014.2,600,'reps','30 °C'],
+['2026-06-29','8 × 400m',3211.9,573,'reps',''],
+['2026-07-01','5 km threshold',5009.1,1126,'cont','2 PRs'],
+['2026-07-04','5 × 200m strides',null,null,'reps',''],
+['2026-07-17','3 × 1 km',3012.0,607,'reps',''],
+['2026-07-20','4 × 200m',819.3,115,'reps','flat, 95% — best 200 avg'],
+['2026-07-25','3 × 800m',2405.9,457,'reps','best 800 avg'],
+['2026-07-27','6 × 400m',2414.7,448,'reps','70%'],
+['2026-08-02','5 × 1 km',5004.5,1013,'reps','target 5 km pace'],
+['2026-08-04','5 × 200m',1008.4,146,'reps','half uphill + bend'],
+['2026-08-06','5 × 400m',2012.8,359,'reps','mile pace, 90 s rest'],
+['2026-08-09','threshold',5284.7,1218,'cont','28 °C, way off'],
+['2026-08-11','4 × 300m',1208.5,182,'reps','28 °C'],
+['2026-08-14','200-400-600-400-200 ladder',1807.5,316,'reps',''],
+['2026-08-16','long run',9452,2802,'cont','longest of the year'],
+['2026-08-18','5 × 1 km',5006.2,982,'reps','2 PRs, bad wind'],
+['2026-08-20','6 × 200m',1236.6,189,'reps',''],
+['2026-08-21','5 km threshold',5009.7,1127,'cont','2 PRs'],
+['2026-08-24','8 km economy',8010.4,1958,'cont','4:05/km'],
+['2026-08-31','5 km',5013.8,1089,'cont','FASTEST OF YEAR — 18:05'],
+['2026-09-04','4 × 600m',2410.1,402,'reps','best session yet — 400 best 59 s'],
+['2026-09-09','200-400-600-400-200 ladder',1813.1,322,'reps','1:1 recovery'],
+['2026-09-10','3 × 400m',1220.2,187,'reps','best 400 avg 61.3 s'],
+['2026-09-16','8 km fun run',8008.3,2231,'cont','one fast km at 6 km']
+];
+var BESTS=[
+['200m','28.1 s','—','20 Jul','4 × 200m all out'],
+['300m','45.2 s','—','11 Aug','4 × 300m in 28 °C — faster than the 45.5 on 12 May'],
+['400m','61.3 s','59 s','10 Sep / 4 Sep','3 × 400m; the 59 came inside the 4 × 600m'],
+['½ mile','—','2:24','18 Aug','805 m — Strava&rsquo;s own split'],
+['500m','87.4 s','—','16 Feb','4 × 500m'],
+['600m','1:40.1','—','4 Sep','4 × 600m, best session yet'],
+['800m','2:32.0','2:24 *','18 Aug','session avg 25 Jul; * is Strava&rsquo;s 805 m split, not an 800 m time'],
+['1000m','3:12.7','<b class="acc">3:00</b>','18 Aug','session avg 17 Jun; the 3:00 single came inside the 5 × 1 km'],
+['1 mile','—','5:27','31 Aug','inside the 18:05 5 km'],
+['5 km','—','18:05','31 Aug','fastest of the year'],
+['8 km','—','32:38','24 Aug','running-economy 8 km'],
+['3 km','—','—','—','no 3 km effort in 2026'],
+['10 km','—','—','—','no 10 km effort in 2026']
+];
+/* [label, target, best session average, best single effort] */
+var TARGETS=[
+['200m',27.0,28.1,null],
+['400m',55,61.3,59],
+['800m',130,152.0,null],
+['1000m',166,192.7,180],
+['1 mile',285,null,327],
+['5 km',1010,null,1085]
+];
+
+/* rep distances, 2026 best session averages, and the targets */
+/* 300m was 45.5 from 12 May. 11 Aug is 182 s over 1208.5 m of 4 × 300 —
+   45.18 normalised, and the faster of the two. Corrected against Strava. */
+var BESTAVG={200:28.1,300:45.2,400:61.3,500:87.4,600:100.1,800:152.0,1000:192.7,1609:327,5000:1085,8000:1958};
+var BENCH=[100,200,300,400,500,600,800,1000,1609,3000,5000,8000,10000];
+/* Single bests, read from Strava's own best-effort data, not from rep averages.
+   805 m is Strava's half-mile split and is NOT an 800 m time — kept honest. */
+var SINGLE={400:{t:59,d:'2026-09-04',n:'inside the 4 × 600m'},
+            805:{t:144,d:'2026-08-18',n:'inside the 5 × 1km'},
+            1000:{t:180,d:'2026-08-18',n:'inside the 5 × 1km'},
+            1609:{t:327,d:'2026-08-31',n:'inside the 18:05 5 km'},
+            5000:{t:1085,d:'2026-08-31',n:'fastest of the year'}};
+var EFFORT_M={Fastest400:400,FastestHalfMile:805,Fastest1k:1000,FastestMile:1609,Fastest2Mile:3219,Fastest5k:5000,Fastest10k:10000};
+var BAKED_DATE={200:'2026-07-20',300:'2026-08-11',400:'2026-09-10',500:'2026-02-16',600:'2026-09-04',800:'2026-07-25',1000:'2026-06-17',1609:'2026-08-31',5000:'2026-08-31',8000:'2026-08-24'};
+var TGT={200:27,400:55,800:130,1000:166,1609:285,5000:1010};
+function repLabel(m){
+  if(m===1609)return '1 mile';
+  if(m>=1000&&m%1000===0)return (m/1000)+' km';
+  return m+'m';
+}
+
+/* ===================== small helpers ===================== */
+function E(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function f1(x){return x===null||x===undefined?'—':(Math.round(x*10)/10).toFixed(1);}
+function f2(x){return x===null||x===undefined?'—':(Math.round(x*100)/100).toFixed(2);}
+function pct(x,dp){return x===null||x===undefined?'—':(x*100).toFixed(dp===undefined?2:dp)+'%';}
+function ci(x){return x===null||x===undefined?'—':Math.round(x).toLocaleString('en-GB');}
+function mmss(s){if(s===null||s===undefined)return '—';s=Math.round(s);var m=Math.floor(s/60);var r=s-m*60;if(m>=60){var h=Math.floor(m/60);return h+':'+String(m-h*60).padStart(2,'0')+':'+String(r).padStart(2,'0');}return m+':'+String(r).padStart(2,'0');}
+function pace(sk){return sk===null||sk===undefined?'—':mmss(sk)+'/km';}
+function signed(x,dp){if(x===null||x===undefined)return '—';var a=Math.abs(x);var v=(dp===0?ci(a):(dp===2?f2(a):f1(a)));return (x>0?'+':(x<0?'-':''))+v;}
+function parseTime(s){
+  s=String(s||'').trim();if(!s)return null;
+  var p=s.split(':').map(Number);
+  if(p.some(isNaN))return null;
+  if(p.length===1)return p[0];
+  if(p.length===2)return p[0]*60+p[1];
+  return p[0]*3600+p[1]*60+p[2];
+}
+
+/* ===================== render ===================== */
+var CUR='today';
+function render(){
+  var c=cutTally(), w=weightModel(), tr=trainingModel();
+  paintHeader(c,tr);
+  renderToday(c,w,tr);
+  renderWeight(w,c);
+  renderFood(c,tr);
+  renderFuel(tr);
+  renderTraining(tr,c);
+  renderTimes();
+  renderSleep();
+  renderStudy(tr);
+  renderSkin();
+  renderWins();
+  renderReview();
+  renderData(w,tr,c);
+  paintStatus();
+}
+function paintHeader(c,tr){
+  E('hDay').textContent=c.before?('starts '+fmtS(CFG.cutStart)):(c.after?'done':c.day+' / '+CUT_DAYS);
+  E('hLeft').textContent=c.after?'0 d':(c.remaining+' d');
+  var rec0=S.days[today()]||{};
+  E('hKcal').textContent=(typeof rec0.kcal==='number'?ci(rec0.kcal):'—')+' / '+ci(kcalToday());
+  E('hSteps').textContent=(typeof rec0.steps==='number'?ci(rec0.steps):'—')+' / '+ci(stepTarget(today()));
+}
+/* A hard day needs evidence, not a filing. No distance and no time means
+   no opinion — the session still counts toward the goals, it just does not
+   move 280 kcal on the strength of an empty row. */
+function hardRunOn(is){
+  var rs=(S.days[is]&&S.days[is].runs)||[],i,m;
+  for(i=0;i<rs.length;i++){m=runMeta(rs[i]);if(m.hard&&m.km>0&&m.secs>0)return true;}
+  return false;
+}
+function emptyRunsOn(is){
+  var rs=(S.days[is]&&S.days[is].runs)||[],i,n=0;
+  for(i=0;i<rs.length;i++){if(runMeta(rs[i]).empty)n++;}
+  return n;
+}
+function hardFiledOn(is){
+  var rs=(S.days[is]&&S.days[is].runs)||[],i,m;
+  for(i=0;i<rs.length;i++){m=runMeta(rs[i]);if(m.hard&&!(m.km>0&&m.secs>0))return true;}
+  return false;
+}
+function whyKcal(is){
+  var rs=(S.days[is]&&S.days[is].runs)||[],i,m;
+  for(i=0;i<rs.length;i++){m=runMeta(rs[i]);if(m.hard&&m.km>0&&m.secs>0)return m.label;}
+  return null;
+}
+function kcalToday(){return KCAL_DAY;}
+
+/* ---------- today ---------- */
+function renderToday(c,w,tr){
+  /* new low gets its own line, above everything */
+  var hide=S.settings.hideDaily;
+  var lw='';
+  if(w.newLowToday&&w.low){
+    var beat=w.prevLow;
+    lw='<div class="p lift"><div class="sp"><div><div class="k cond" style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">New low</div>'+
+       '<div class="big acc">'+(hide?'lower than anything in the cut':f1(w.low.lb)+' lb')+'</div>'+
+       (beat?'<div class="note">Beats '+(hide?'the old low':f1(beat.lb))+' by <b class="num">'+f1(beat.lb-w.low.lb)+' lb</b>, set '+diffD(beat.d,w.low.d)+' days ago on '+fmtS(beat.d)+'.</div>':'<div class="note">First reading of the cut to hold as a low.</div>')+
+       '</div></div>';
+    var crossed=MILESTONES.filter(function(ms){return w.low.lb<=ms&&beat&&beat.lb>ms;});
+    if(crossed.length&&!hide)lw+='<div class="note" style="margin-top:6px">Through <b>'+crossed.map(function(x){return x;}).join(', ')+'</b> for the first time.</div>';
+    lw+='</div>';
+  }else if(w.low&&w.daysSinceLow!==null&&w.daysSinceLow>0){
+    lw='<div class="p"><h2>Last new low</h2><p class="note">'+(hide?'':'<b class="num">'+f1(w.low.lb)+' lb</b> — ')+fmtS(w.low.d)+', '+w.daysSinceLow+' day'+(w.daysSinceLow===1?'':'s')+' ago.'+
+       (w.noise&&w.noise.medGap!==null?' Your own typical gap between new lows this block is <b class="num">'+w.noise.medGap+' days</b>.':'')+'</p></div>';
+  }
+  E('lowLine').innerHTML=lw;
+
+  /* the week is up */
+  var nud='',dw=dow(c.t),ws=reviewWeeks(),lastW=ws.length?ws[ws.length-1]:null;
+  if(lastW&&!c.before&&!c.after){
+    if(dw===0){
+      nud='<div class="p flag"><h2>End of '+lastW.label.toLowerCase()+'</h2><p>'+lastW.label+' closes tonight — '+fmtS(lastW.start)+' to '+fmtS(lastW.end)+'. <button class="btn ghost sm" data-goto="review" type="button">Read the review</button></p></div>';
+    }else if(dw===1||dw===2){
+      var doneW=null;ws.forEach(function(x){if(x.end<c.t)doneW=x;});
+      if(doneW)nud='<div class="p flag"><h2>'+doneW.label+' is finished</h2><p>'+fmtS(doneW.start)+' to '+fmtS(doneW.end)+', reviewed and closed. <button class="btn ghost sm" data-goto="review" type="button">Read the review</button></p></div>';
+    }
+  }
+  if(PRUNED)nud=('<div class="p warn"><h2>Cleared</h2><p>'+PRUNED+' session row'+(PRUNED===1?'':'s')+' had no time and no distance, so '+(PRUNED===1?'it recorded':'they recorded')+' nothing and '+(PRUNED===1?'was':'were')+' removed. That is what was showing as a hard run you had not done.</p></div>')+nud;
+  E('revNudge').innerHTML=nud;
+
+  /* closing in */
+  var groups=achList(),soon=[];
+  groups.forEach(function(gr){gr.items.forEach(function(a){if(!a.got&&a.close)soon.push({g:gr.g,a:a});});});
+  E('closeCard').innerHTML=soon.length?
+    ('<div class="p lift"><h2>Closing in</h2><div class="nextup">'+soon.slice(0,6).map(function(x){
+      return '<div><span class="tiny">'+esc(x.g)+'</span><b>'+esc(x.a.n)+'</b><span class="tiny">'+esc(x.a.m)+'</span></div>';
+    }).join('')+'</div></div>'):'';
+
+  /* earned rest */
+  var rest=restModel(w,tr);
+  E('callCard').innerHTML=callToday(w,tr,rest);
+  var rc='';
+  if(rest.fire){
+    rc='<div class="p good"><h2>Earned rest — you are ahead</h2><ul class="clean">'+rest.why.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><hr class="d">';
+    if(rest.tooFast){
+      rc+='<p><b>Take one or two days with no running and no gym — and eat more on them, carbs first.</b> You are ahead because the rate is over the safe band, so the days off come with food, not without it.</p>'+refeedLine(w);
+    }else{
+      rc+='<p><b>Take one or two days with no running and no gym. Keep the food exactly where it is</b> — a rest day is not a day to eat less. Steps can stay.</p>';
+    }
+    rc+='<p class="note">What it buys: glycogen back, cortisol down, and the held water usually lets go within a few days of easing off. That is why the scale often drops after a rest rather than during a hard week.</p></div>';
+  }
+  E('restCard').innerHTML=rc;
+  E('pushCard').innerHTML=pushCall(w,tr,c,rest);
+
+  /* combined load */
+  var st=studyModel();
+  var lc='';
+  if(st.live&&st.total>=CFG.study.hi&&(tr.week.hard>=3||(tr.week.hard>=2&&tr.week.gym>=5))){
+    lc='<div class="p warn"><h2>Both loads are high this week</h2><p>'+tr.week.hard+' effort session'+(tr.week.hard===1?'':'s')+' and '+tr.week.gym+' gym, against <b class="num">'+f1(st.total)+' h</b> of study in the last seven days.</p>'+
+       '<p>Neither on its own is a problem. Together, in a deficit, they are the combination that turns into a flat fortnight. <b>Drop the third effort session, not the study hours</b> — the deadline does not move and the session does.</p></div>';
+  }
+  E('loadCard').innerHTML=lc;
+
+  /* goals — how many left, and whether that is on pace */
+  var g='<div class="p"><h2>Goals — '+fmtS(CFG.cutStart)+' to '+fmtS(CFG.cutEnd)+' · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+'</h2>'+
+    '<div class="cols3">'+
+    goalCard('Gym sessions',tr.gym)+goalCard('Hard runs',tr.hard)+goalCard('Runs, all in',tr.runs)+
+    stepsCard(tr)+
+    weightCard(w)+
+    daysCard(c)+
+    '</div>'+
+    '<p class="tiny" style="margin-top:10px">The notch on each bar is pro-rata — '+pct(c.through,1)+' of the block counted. A total with no pace attached is how you arrive at the last fortnight owing eleven gym sessions.</p></div>';
+  E('goalsPanel').innerHTML=g;
+
+  /* today summary */
+  var t=today(), rec=S.days[t]||{};
+  var hard=hardRunOn(t);
+  var kc=kcalToday();
+  var s='<div class="cols"><div class="p"><h2>Today · '+fmtL(t)+'</h2><div class="tiles t4">'+
+    tile('kcal target',ci(kc),'every day, hard or not')+
+    tile('eaten',typeof rec.kcal==='number'?ci(rec.kcal):'—',typeof rec.kcal==='number'?signed(rec.kcal-kc,0).replace('.0','')+' vs target':'not logged')+
+    tile('steps target',ci(stepTarget(t)),dow(t)===6?'Saturday is a ceiling, not a floor':DOWS[dow(t)])+
+    tile('steps',typeof rec.steps==='number'?ci(rec.steps):'—',typeof rec.steps==='number'?(rec.steps>=stepTarget(t)?'target met':ci(stepTarget(t)-rec.steps)+' to go'):'not logged')+
+    '</div>';
+  s+='<p class="tiny" style="margin-top:10px">Meals: 300 ml semi-skimmed milk ('+CFG.kcal.milk+') and the evening bowl ('+CFG.kcal.bowl+') are fixed, which leaves <b class="num">'+ci(kc-CFG.kcal.milk-CFG.kcal.bowl)+' kcal</b> for the three meals. Breakfast '+(hard?'is the oats — 70 g GF oats, 150 ml milk, 13 g honey, 60–90 min before the run.':'is lean fish + roots + veg, or eggs.')+'</p>';
+  s+='<p class="tiny">Flat '+ci(KCAL_DAY)+' every day — no hard-day bump. The session logged still decides the breakfast, not the total.</p></div>';
+  s+='<div class="p"><h2>'+(tr.pre?'Pre-block':'This week')+' · '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd)+(tr.pre?'':(isDeload(weekOf(t))?' · DELOAD':''))+'</h2>'+weekTemplateHTML(tr)+'</div></div>';
+  E('todaySummary').innerHTML=s;
+
+  paintForm();
+}
+function bar(done,target,due){
+  var a=Math.max(0,Math.min(1,target?done/target:0)),b=Math.max(0,Math.min(1,target?due/target:0));
+  return '<div class="track"><i style="width:'+(a*100).toFixed(1)+'%"></i><u style="left:'+(b*100).toFixed(1)+'%"></u></div>';
+}
+function goalCard(name,p){
+  var pacing=p.diff>=0?('<b class="gd">'+f1(p.diff)+' ahead of pace</b>'):(f1(-p.diff)+' behind pace');
+  return '<div class="goal"><div class="gt"><span class="gn">'+name+'</span><span class="gs">'+p.done+' of '+p.target+'</span></div>'+
+    '<div class="gl">'+p.left+' <small>left</small></div>'+bar(p.done,p.target,p.due)+
+    '<div class="gs">'+pacing+(p.perWeek===null?'':' · '+f1(p.perWeek)+' a week from here')+'</div></div>';
+}
+function stepsCard(tr){
+  var a=tr.stepsAvg;
+  return '<div class="goal"><div class="gt"><span class="gn">Steps, daily average</span><span class="gs">'+(a===null?'—':ci(a))+' of '+ci(CFG.goals.steps)+'</span></div>'+
+    '<div class="gl">'+(a===null?'—':(a>=CFG.goals.steps?'on it':ci(CFG.goals.steps-a)))+' <small>'+(a===null?'nothing logged yet':(a>=CFG.goals.steps?'average is over target':'a day short on average'))+'</small></div>'+
+    bar(a||0,CFG.goals.steps,CFG.goals.steps)+
+    '<div class="gs">'+ci(tr.stepsTotal)+' steps over '+tr.stepsDays+' logged day'+(tr.stepsDays===1?'':'s')+(tr.stepsUnlogged>0?' · '+tr.stepsUnlogged+' unlogged, left out rather than counted as zero':'')+'</div></div>';
+}
+function weightCard(w){
+  var next=null,i;
+  for(i=0;i<MILESTONES.length;i++){if(!w.low||w.low.lb>MILESTONES[i]){next=MILESTONES[i];break;}}
+  var cur=w.a7!==null?w.a7:(w.low?w.low.lb:null);
+  var togo=(cur!==null)?cur-CFG.w.target:null;
+  return '<div class="goal"><div class="gt"><span class="gn">Weight to 122.5</span><span class="gs">'+(cur===null?'not started':f1(cur)+' now')+'</span></div>'+
+    '<div class="gl">'+(togo===null?'—':f1(Math.max(0,togo)))+' <small>lb left</small></div>'+
+    bar(cur===null?0:Math.max(0,(refStart()-cur)),Math.max(0.1,refStart()-CFG.w.target),0)+
+    '<div class="gs">'+(next===null?'every milestone through':('next milestone '+next+(cur!==null?' — '+f1(cur-next)+' lb':'')))+'</div></div>';
+}
+function daysCard(c){
+  return '<div class="goal"><div class="gt"><span class="gn">The block</span><span class="gs">'+c.elapsed+' of '+CUT_DAYS+' days</span></div>'+
+    '<div class="gl">'+c.remaining+' <small>days left</small></div>'+bar(c.elapsed,CUT_DAYS,c.elapsed)+
+    '<div class="gs">ends '+fmtL(CFG.cutEnd)+' — your birthday</div></div>';
+}
+function tile(k,v,s){return '<div class="tile"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+(s||'')+'</div></div>';}
+function weekExtrasHTML(start,end){
+  var t=today(),cut=end>t?t:end,i,d,rec,lb=function(r){return r.lb;};
+  var st=0,stT=0,stD=0,sy=0,dp=0,syN=0,span=diffD(start,cut);
+  for(i=0;i<=span;i++){
+    d=addD(start,i);rec=S.days[d]||{};
+    stT+=stepTarget(d);
+    if(typeof rec.steps==='number'){st+=rec.steps;stD++;}
+    if(typeof rec.study==='number'){sy+=rec.study;syN++;dp+=(typeof rec.deep==='number'?rec.deep:0);}
+  }
+  var all=cutReadings();
+  var inw=all.filter(function(r){return r.d>=start&&r.d<=cut;});
+  var prv=all.filter(function(r){return r.d>=addD(start,-7)&&r.d<start;});
+  var a=inw.length?mean(inw.map(lb)):null,b=prv.length?mean(prv.map(lb)):null;
+  var h='<hr class="d"><table class="tbl"><tbody>';
+
+  h+='<tr><td>Steps</td><td class="n">'+ci(st)+' / '+ci(stT)+'</td><td>'+
+     (stD===0?'<span class="tiny">none logged yet</span>':
+      (st>=stT?'<span class="pill g">on target</span>':'<span class="pill">'+ci(stT-st)+' short</span>')+
+      (stD<=span?' <span class="tiny">'+stD+' of '+(span+1)+' days logged</span>':''))+'</td></tr>';
+
+  var wcell,wnote;
+  if(a===null){
+    wcell='—';
+    wnote='<span class="tiny">'+(cut<WEIGH_START?('weighing opens '+fmtS(WEIGH_START)):'no mornings logged yet')+'</span>';
+  }else{
+    wcell=f1(a)+' lb';
+    if(b===null){wnote='<span class="tiny">'+inw.length+' morning'+(inw.length===1?'':'s')+' · nothing before it to compare</span>';}
+    else{
+      var dLb=b-a;
+      wnote=(dLb>0?'<span class="pill g">-'+f1(dLb)+' lb on last week</span>':(dLb<0?'<span class="pill">+'+f1(-dLb)+' lb on last week</span>':'<span class="pill">level with last week</span>'))+
+            ' <span class="tiny">'+pct(-dLb/b,2)+' · '+inw.length+' of '+CFG.w.minReads+' mornings</span>';
+    }
+  }
+  h+='<tr><td>Weight, average</td><td class="n">'+wcell+'</td><td>'+wnote+'</td></tr>';
+
+  if(cut>=CFG.study.term){
+    h+='<tr><td>Study</td><td class="n">'+f1(sy)+' h</td><td>'+
+       (syN===0?'<span class="tiny">none logged yet</span>':
+        (sy>=CFG.study.lo?(sy>=CFG.study.hi?'<span class="pill">full week</span>':'<span class="pill g">in the band</span>'):'<span class="pill w">'+f1(CFG.study.lo-sy)+' h short</span>')+
+        (dp>0?' <span class="tiny">'+f1(dp)+' h deep</span>':''))+'</td></tr>';
+  }
+  return h+'</tbody></table>';
+}
+function weekTemplateHTML(tr){
+  if(tr.pre){
+    var p='<table class="tbl"><tbody>'+
+      '<tr><td>Hard runs</td><td class="n">'+tr.week.hard+'</td></tr>'+
+      '<tr><td>5 mile</td><td class="n">'+tr.week.fivemile+'</td></tr>'+
+      '<tr><td>100m sprints</td><td class="n">'+tr.week.sprints+'</td></tr>'+
+      '<tr><td>Gym</td><td class="n">'+tr.week.gym+'</td></tr>'+
+      '</tbody></table>';
+    p+=weekExtrasHTML(tr.wkStart,tr.wkEnd);
+    p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard / 1 five-mile / 1 sprints / 5 gym. Everything logged still counts toward the block totals.</p>';
+    return p;
+  }
+  var rows=[['Hard runs',tr.week.hard,CFG.tmpl.hard],['5 mile',tr.week.fivemile,CFG.tmpl.fivemile],
+            ['100m sprints',tr.week.sprints,CFG.tmpl.sprints],['Gym',tr.week.gym,CFG.tmpl.gym]];
+  var h='<table class="tbl"><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+' / '+r[2]+'</td><td class="n">'+
+       (r[1]>=r[2]?'<span class="pill g">done</span>':'<span class="pill">'+(r[2]-r[1])+' to go</span>')+'</td></tr>';
+  });
+  h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
+  if(tr.week.recl)h+='<p class="tiny" style="margin-top:8px">'+tr.week.recl+' run filed as a 5 mile came in under the effort line, so it counts as a hard run and the five-mile slot stays open. You did not do an easy five-miler this week — the empty slot is information.</p>';
+  h+='<p class="tiny" style="margin-top:8px">The easy 5 km is deliberately off this template. It still counts as a run; it no longer owes you a slot. Days with nothing on them are rest, not misses.</p>';
+  return h;
+}
+function paintForm(){
+  var d=E('logDate').value||today();
+  var rec=S.days[d]||{};
+  E('logDateLabel').textContent=fmtL(d)+(d===today()?' · today':'');
+  E('inWeight').value=(typeof S.weights[d]==='number')?S.weights[d]:'';
+  E('inWeight').type=S.settings.hideDaily?'password':'number';
+  E('inSteps').value=typeof rec.steps==='number'?rec.steps:'';
+  E('inKcal').value=typeof rec.kcal==='number'?rec.kcal:'';
+  E('inSleep').value=typeof rec.sleep==='number'?rec.sleep:'';
+  E('inStudy').value=typeof rec.study==='number'?rec.study:'';
+  E('inDeep').value=typeof rec.deep==='number'?rec.deep:'';
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth']].forEach(function(p){
+    E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
+  });
+  var rs=rec.runs||[];
+  E('runList').innerHTML=rs.length?rs.map(function(r,i){
+    var j=runMeta(r),cmp=repCompare(j),sb=j.dm?singleBest(j.dm):null;
+    if(r.best>0&&j.dm){
+      var against=(sb&&sb.t<r.best)?(f1(r.best-sb.t)+' s off the year&rsquo;s best single of '+secFmt(sb.t)):'<b>best single rep of the year at this distance</b>';
+      cmp=(cmp?cmp+' · ':'')+'best rep '+secFmt(r.best)+' — '+against;
+    }
+    return '<div style="border-bottom:1px solid var(--rule-2);padding:5px 0"><div class="row" style="gap:8px">'+
+      '<span class="pill '+(j.empty?'w':(j.sprint?'':(j.hard?'a':'')))+'">'+(j.empty?'incomplete':(j.sprint?'sprints':(j.hard?'hard run':'run')))+'</span>'+
+      '<b>'+esc(j.label)+'</b>'+
+      '<span class="mono">'+(j.km?f2(j.km)+' km':'—')+'</span><span class="mono">'+(j.secs?mmss(j.secs):'—')+'</span>'+
+      '<span class="mono">'+pace(j.pace)+'</span>'+
+      (r.best>0?'<span class="mono">best '+secFmt(r.best)+'</span>':'')+
+      (j.judged?'':'<span class="tiny">no pace, filed only</span>')+
+      (r.note?'<span class="tiny">'+esc(r.note)+'</span>':'')+
+      '<button class="btn ghost sm" data-del="'+i+'" type="button" style="margin-left:auto">remove</button></div>'+
+      (j.empty?'<div class="tiny wn" style="margin-top:2px">No time on this one, so it counts toward nothing. Add a time, or remove it.</div>':'')+
+      (cmp?'<div class="tiny acc" style="margin-top:2px">'+cmp+'</div>':'')+'</div>';
+  }).join(''):'<span class="tiny">Nothing logged on this day. That is a rest day, not a miss.</span>';
+  var kind=E('inKind').value;
+  E('paceHint').innerHTML=kind==='reps'
+    ? 'Total rep time is the reps, not the recoveries; the best single rep is the one that beats a record. A rep session at 200m and up counts as a <b>hard run</b>; 100s count as the <b>sprints</b> slot and toward runs all-in, not toward the 21 hard runs.'
+    : 'Effort line today: <b class="num">'+pace(effortLine())+'</b>. Anything at or under it counts as a hard run whatever it was filed as, and a reclassified 5 mile leaves that slot open.';
+}
+
+/* ---------- weight ---------- */
+function renderWeight(m,c){
+  var hide=S.settings.hideDaily;
+  var h='<div class="p"><h2>Weight — every number below reads in-cut mornings only</h2><div class="tiles t4">';
+  h+=tile('7-day average',m.a7===null?'—':f1(m.a7)+' lb',m.a7n?m.a7n+' reading'+(m.a7n===1?'':'s')+' in the window':'no in-cut readings yet');
+  h+=tile('rate',m.rateLb===null?'—':f1(m.rateLb)+' lb/wk',m.ratePct===null?'needs two 7-day windows':pct(m.ratePct)+' of bodyweight');
+  h+=tile('taper asks',m.taperLb===null?pct(taperAt(Math.max(0,weekOf(c.t)-1))):f2(m.taperLb)+' lb/wk',
+    'week '+Math.max(1,Math.min(W_WEEKS,weekOf(c.t)))+' · '+pct(m.taperNow));
+  h+=tile('at target',m.proj?fmtS(m.proj.date):'—',m.proj?(m.proj.weeks+' weeks at this taper'):'needs a 7-day average');
+  h+='</div>';
+
+  if(m.rateLb!==null){
+    var bandTxt={'slow':['warn','Under the safe band'],'in':['good','Inside the safe band'],'fast':['bad','Over the safe band']}[m.band];
+    h+='<div class="p '+bandTxt[0]+'" style="margin-top:12px;box-shadow:none"><b>'+bandTxt[1]+'</b> — '+pct(m.ratePct)+' a week against a band of '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1)+' and a taper asking '+pct(m.taperNow)+'.';
+    if(m.band==='fast')h+=' Losing this fast takes more of it out of muscle. Food back up is the correction, not less training — the Today tab says how much.';
+    if(m.band==='slow')h+=' Two weeks under the band before anything changes. Never cut calories for a plateau shorter than that.';
+    h+='</div>';
+  }
+  h+='<p class="tiny" style="margin-top:10px"><b>Read the rate, not the position.</b> The curve is seeded from your own opening week, so a cut that runs fast from day one moves the target down underneath itself and reads as on schedule forever. Rate against taper catches that. Position against the curve does not.</p>';
+  if(m.ahead)h+='<p class="tiny">For what it is worth: the plan has you at <b class="num">'+f1(m.ahead.plan)+'</b> today and the average is '+(m.ahead.by>=0?'<b class="num">'+f1(m.ahead.by)+' lb under</b>':'<b class="num">'+f1(-m.ahead.by)+' lb over</b>')+' it.</p>';
+  if(m.a7!==null)h+='<p class="tiny">BMI at the current average: <b class="num">'+f2(bmiOf(m.a7))+'</b>. The floor is 121.6 lb — BMI 18.5 at 5\'8". Nothing here ever projects through it.</p>';
+  h+='</div>';
+
+  /* start line */
+  h+='<div class="p"><h2>The start line</h2>';
+  if(m.baseline===null){
+    var pre=readings().filter(function(r){return r.d<WEIGH_START;});
+    h+='<p>Weighing opens <b>'+fmtL(WEIGH_START)+'</b> — the first Monday on or after the cut start, as a rule, not a pinned date. It needs <b>two readings in the first seven days</b> before a baseline exists.</p>';
+    if(pre.length){
+      var lo2=Math.min.apply(null,pre.map(function(r){return r.lb;})),hi2=Math.max.apply(null,pre.map(function(r){return r.lb;}));
+      h+='<p class="note">Pre-cut mornings on file: '+pre.map(function(r){return fmtS(r.d)+(hide?'':' <b class="num">'+f1(r.lb)+'</b>');}).join(' · ')+'.';
+      if(!hide)h+=' Those span <b class="num">'+f1(hi2-lo2)+' lb</b>, which is exactly why a single morning can never be a start line.';
+      h+='</p>';
+      h+='<p class="tiny">The 19 Sep reading is post-refeed and inflated. It stays in the log and it does not count. Saturday and Sunday mornings are sodium and glycogen, not bodyweight — seeding a ten-week curve on either builds every target off a number that was never real.</p>';
+    }
+  }else{
+    h+='<p>Seeded from the average of the first seven days of weighing — <b class="num">'+f1(m.seed.mean)+' lb</b> across '+m.seed.n+' readings, sitting on average <b class="num">'+f1(m.seed.off)+' days</b> in. Walked back to day zero at the opening rate of '+pct(CFG.w.taperA,1)+' a week, that puts the start line at <b class="num">'+f1(m.baseline)+' lb</b>.</p>';
+    h+='<p class="tiny">An average sits at the middle of the days it came from, not the first of them. Every row of the table below judges a weekly average, so the line it is judged against is built the same way.</p>';
+  }
+  h+='</div>';
+  E('wTop').innerHTML=h;
+  E('wChart').innerHTML=chartSVG(m);
+  E('btnHide').textContent=hide?'Show daily numbers':'Hide daily numbers';
+
+  /* the daily-number answer */
+  var n=m.noise,nh='';
+  if(n){
+    nh='<div class="p flag"><h2>The morning the scale does not move</h2>'+
+      '<p class="lede">Over your last '+n.days+' in-cut mornings the scale was level or up on <b class="num">'+n.up+' of '+n.pairs+'</b> of them — <b class="num">'+Math.round(n.pctUp*100)+'%</b>.</p>';
+    if(n.avgThen!==null&&n.avgNow!==null){
+      var dd=n.avgThen-n.avgNow;
+      nh+='<p>Across those same days the 7-day average went '+(dd>0?'<b class="gd">down '+f1(dd)+' lb</b>':(dd<0?'<b>up '+f1(-dd)+' lb</b>':'<b>nowhere</b>'))+'.</p>';
+    }
+    if(n.medGap!==null)nh+='<p>Your own new lows have come <b class="num">'+n.medGap+' days</b> apart on median, over '+n.lows+' of them.</p>';
+    nh+='<p class="note">Expecting a new low every morning is expecting something that has never happened, on a cut that was working. And fat cannot arrive overnight: at this deficit a real one-pound gain would take three days of eating 1,200 calories over.</p></div>';
+  }
+  E('wNoise').innerHTML=nh;
+
+  /* weekly table */
+  var tb='<div class="p"><h2>Week by week · Monday to Sunday · '+W_WEEKS+' weight weeks</h2><div class="scroll"><table class="tbl">'+
+    '<thead><tr><th>Wk</th><th>Dates</th><th class="n">Reads</th><th class="n">Average</th><th class="n">Plan</th><th class="n">Diff</th><th class="n">Change</th><th>Verdict</th></tr></thead><tbody>';
+  m.weeks.forEach(function(wk){
+    var verdict='',cls='';
+    if(wk.future){verdict='<span class="tiny">to come</span>';}
+    else if(wk.n<CFG.w.minReads){verdict='<span class="tiny">'+wk.n+' of '+CFG.w.minReads+' readings — no verdict'+(wk.partial?' yet':'')+'</span>';}
+    else if(wk.dPct===undefined){verdict='<span class="pill a">baseline week</span>';}
+    else if(wk.dPct<CFG.w.bandLo){verdict='<span class="pill w">under band</span>';}
+    else if(wk.dPct>CFG.w.bandHi){verdict='<span class="pill b">over band</span>';}
+    else {verdict='<span class="pill g">in band</span>';}
+    tb+='<tr'+(wk.future?' class="dim"':'')+'><td>'+wk.wk+(wk.deload?' <span class="pill">deload</span>':'')+'</td><td class="tiny">'+fmtS(wk.start)+'–'+fmtS(wk.end)+'</td>'+
+      '<td class="n">'+(wk.future?'':wk.n)+'</td><td class="n">'+(wk.avg===null?'—':f1(wk.avg))+'</td><td class="n">'+(wk.plan===null?'—':f1(wk.plan))+'</td>'+
+      '<td class="n">'+(wk.avg!==null&&wk.plan!==null?signed(wk.avg-wk.plan):'—')+'</td>'+
+      '<td class="n">'+(wk.dLb===undefined?'—':signed(-wk.dLb)+' lb / '+pct(-wk.dPct,2))+'</td><td>'+verdict+'</td></tr>';
+  });
+  tb+='</tbody></table></div>';
+  tb+='<p class="tiny" style="margin-top:8px">The taper runs '+pct(CFG.w.taperA,1)+' a week at the start to '+pct(CFG.w.taperB,1)+' at the end. The leaner you get, the more of each pound comes out of muscle, so the same percentage costs more in week nine than in week one. <b>Hitting a smaller number later is the plan working, not slowing down.</b></p></div>';
+  E('wTable').innerHTML=tb;
+
+  /* log */
+  var all=readings().slice().reverse();
+  var lg='<div class="p"><h2>Every morning on file · '+all.length+'</h2><div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th class="n">lb</th><th class="n">7-day avg</th><th>Note</th></tr></thead><tbody>';
+  all.forEach(function(r){
+    var pre=r.d<WEIGH_START;
+    var a=pre?null:avgWindow(r.d,7);
+    lg+='<tr'+(pre?' class="dim"':'')+'><td>'+fmtS(r.d)+' <span class="tiny">'+DOWS[dow(r.d)]+'</span></td>'+
+      '<td class="n">'+(hide?'logged':f1(r.lb))+'</td>'+
+      '<td class="n">'+(a&&a.n>=2?f1(a.avg):'—')+'</td>'+
+      '<td class="tiny">'+(pre?'pre-cut — kept, not read':(r.d===(m.low&&m.low.d)?'lowest of the cut':''))+'</td></tr>';
+  });
+  lg+='</tbody></table></div>';
+  lg+='<div class="milestones" style="margin-top:10px">'+MILESTONES.map(function(ms){
+    var hit=m.low&&m.low.lb<=ms;
+    return '<span class="ms'+(hit?' hit':'')+'">'+ms+(hit?' ✓':'')+'</span>';
+  }).join('')+'</div><p class="tiny" style="margin-top:6px">Milestones are things you go through for the first time.</p></div>';
+  E('wLog').innerHTML=lg;
+}
+
+function chartSVG(m){
+  var W=740,H=300,L=40,R=52,T=14,B=26,hide=S.settings.hideDaily;
+  var x0=addD(CFG.cutStart,-5),x1=CFG.cutEnd,span=diffD(x0,x1);
+  function X(is){return +(L+(diffD(x0,is)/span)*(W-L-R)).toFixed(1);}
+  var vals=[CFG.w.floor-0.5,CFG.w.target-0.3],all=readings();
+  all.forEach(function(r){vals.push(r.lb);});
+  if(m.baseline!==null)vals.push(m.baseline);
+  var lo=Math.min.apply(null,vals)-0.8,hi=Math.max.apply(null,vals)+1.0;
+  function Y(v){return +(T+((hi-v)/(hi-lo))*(H-T-B)).toFixed(1);}
+  var g='';
+  g+='<rect x="'+L+'" y="'+T+'" width="'+(X(WEIGH_START)-L).toFixed(1)+'" height="'+(H-T-B)+'" fill="var(--panel-2)"></rect>';
+  g+='<text x="'+(L+5)+'" y="'+(T+11)+'" font-size="9" fill="var(--ink-3)">pre-cut · not read</text>';
+  for(var v=Math.ceil(lo/2)*2;v<=hi;v+=2){
+    g+='<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="var(--rule-2)" stroke-width="1"></line>';
+    g+='<text x="'+(L-6)+'" y="'+(Y(v)+3.5)+'" font-size="10" text-anchor="end" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace">'+v+'</text>';
+  }
+  var tick=mondayOnOrAfter(x0);
+  while(tick<=x1){
+    g+='<line x1="'+X(tick)+'" y1="'+(H-B)+'" x2="'+X(tick)+'" y2="'+(H-B+4)+'" stroke="var(--rule)"></line>';
+    g+='<text x="'+X(tick)+'" y="'+(H-B+15)+'" font-size="9.5" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace">'+fmtS(tick)+'</text>';
+    tick=addD(tick,14);
+  }
+  g+='<line x1="'+L+'" y1="'+Y(CFG.w.target)+'" x2="'+(W-R)+'" y2="'+Y(CFG.w.target)+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="1 3"></line>';
+  g+='<text x="'+(W-R+5)+'" y="'+(Y(CFG.w.target)+3.5)+'" font-size="10" fill="var(--good)" font-family="IBM Plex Mono, monospace">122.5</text>';
+  g+='<line x1="'+L+'" y1="'+Y(CFG.w.floor)+'" x2="'+(W-R)+'" y2="'+Y(CFG.w.floor)+'" stroke="var(--bad)" stroke-width="1" stroke-dasharray="1 3"></line>';
+  g+='<text x="'+(W-R+5)+'" y="'+(Y(CFG.w.floor)+3.5)+'" font-size="10" fill="var(--bad)" font-family="IBM Plex Mono, monospace">121.6</text>';
+  if(m.curve.length){
+    var pts=[];
+    for(var k=0;k<m.curve.length;k++){var d=addD(WEIGH_START,k*7);if(d>x1)d=x1;pts.push(X(d)+','+Y(m.curve[k]));}
+    g+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="5 4"></polyline>';
+  }else{
+    g+='<line x1="'+X(WEIGH_START)+'" y1="'+T+'" x2="'+X(WEIGH_START)+'" y2="'+(H-B)+'" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"></line>';
+    g+='<text x="'+(X(WEIGH_START)+5)+'" y="'+(T+26)+'" font-size="10" fill="var(--accent)">plan opens '+fmtS(WEIGH_START)+'</text>';
+  }
+  var t=today(),ap=[];
+  var cr=cutReadings();
+  cr.forEach(function(r){var a=avgWindow(r.d,7);if(a.n>=2)ap.push(X(r.d)+','+Y(a.avg));});
+  if(ap.length>1)g+='<polyline points="'+ap.join(' ')+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round"></polyline>';
+  if(!hide){
+    all.forEach(function(r){
+      var pre=r.d<WEIGH_START;
+      g+='<circle cx="'+X(r.d)+'" cy="'+Y(r.lb)+'" r="'+(pre?2.4:3)+'" fill="'+(pre?'none':'var(--accent)')+'" stroke="'+(pre?'var(--ink-3)':'var(--panel)')+'" stroke-width="1"></circle>';
+    });
+  }
+  if(t>=x0&&t<=x1){
+    g+='<line x1="'+X(t)+'" y1="'+T+'" x2="'+X(t)+'" y2="'+(H-B)+'" stroke="var(--ink-2)" stroke-width="1" opacity=".45"></line>';
+    g+='<text x="'+(X(t)+4)+'" y="'+(H-B-4)+'" font-size="9" fill="var(--ink-2)">today</text>';
+  }
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Weight against the planned taper">'+g+'</svg>';
+}
+
+/* ---------- food ---------- */
+function renderFood(c,tr){
+  var hard=hardRunOn(today());
+  var kc=KCAL_DAY;
+  var free=kc-CFG.kcal.milk-CFG.kcal.bowl;
+  var h='<div class="p"><h2>The budget — one number, every day</h2><div class="tiles t4">'+
+    tile('every day',ci(KCAL_DAY),'hard session or not')+
+    tile('fixed',ci(CFG.kcal.milk+CFG.kcal.bowl),'milk '+CFG.kcal.milk+' + bowl '+CFG.kcal.bowl)+
+    tile('three meals',ci(KCAL_FREE),'what is left to spend')+
+    tile('carbs it leaves',CARB_AT+' g','at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat')+
+    '</div>'+
+    '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, above the 200–210 g a hard day asks for. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
+    '<hr class="d"><div class="cols"><div>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td>300 ml semi-skimmed milk, across the day</td><td class="n">'+CFG.kcal.milk+'</td></tr>'+
+    '<tr><td>Evening yoghurt bowl, ~20:30, post-gym</td><td class="n">'+CFG.kcal.bowl+'</td></tr>'+
+    '<tr><td><b>Left for three meals</b></td><td class="n"><b>'+ci(KCAL_FREE)+'</b></td></tr>'+
+    '</tbody></table></div><div>'+
+    '<p class="tiny">'+ci(KCAL_DAY)+' − '+CFG.kcal.milk+' − '+CFG.kcal.bowl+' = <b class="num">'+ci(KCAL_FREE)+'</b> for breakfast, lunch and dinner, derived rather than typed in, so it cannot drift.</p>'+
+    '<p class="tiny">The '+ci(KCAL_LIGHTUP)+' day (+100) is the small correction for losing a little quick. A full refeed is bigger and only earned when the weight and the sessions are both ahead — the Today tab sizes it in calories and grams of carbohydrate when that happens.</p>'+
+    '</div></div></div>';
+  E('foodBudget').innerHTML=h;
+}
+
+/* ---------- training ---------- */
+function renderTraining(tr,c){
+  var t=today();
+  var h='<div class="p"><h2>'+(tr.pre?'Pre-block':'This week')+' · '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd)+(tr.pre?'':(isDeload(weekOf(t))?' · deload week':''))+'</h2>'+weekTemplateHTML(tr)+'</div>';
+  E('tWeek').innerHTML=h;
+
+  var thr=thresholdPace(),line=effortLine();
+  var e='<div class="p"><h2>Judge an effort by pace, not by what it was filed as</h2><div class="tiles t4">'+
+    tile('5 km reference',mmss(S.settings.fiveK),'current fitness')+
+    tile('threshold',pace(thr),'≈ 88% of VDOT')+
+    tile('effort line',pace(line),'10% the slow side of threshold')+
+    tile('ratio, not seconds','×1.10','so it moves as you get fitter')+
+    '</div>'+
+    '<p class="tiny" style="margin-top:10px">The same 8 km is a shakeout at 4:50/km and a quality session at 4:05, and the file cannot tell them apart. Your own 8 kms sort cleanly: 4:05 the day you meant it, 4:39 a fun run with one quick km in it, 4:46 and 5:09 genuinely easy. A flat margin in seconds would drift into catching easy runs by the end of the block — a ratio does not.</p>'+
+    '<p class="tiny"><b>No pace, no opinion.</b> A run logged without a distance and time is counted as filed and marked as such.</p>'+
+    '<div class="row" style="margin-top:10px"><div class="f" style="max-width:150px"><label for="in5k">5 km reference (mm:ss)</label><input type="text" id="in5k" value="'+mmss(S.settings.fiveK)+'"></div><button class="btn ghost sm" id="btn5k" type="button">Update the line</button></div></div>';
+  E('tEffort').innerHTML=e;
+
+  var wkStart=tr.wkStart,got=0,due=0,totTarget=0;
+  var srows='',span=diffD(tr.wkStart,tr.wkEnd);
+  for(var i=0;i<=span;i++){
+    var d=addD(wkStart,i),rec=S.days[d]||{},tg=stepTarget(d);
+    totTarget+=tg;
+    var v=typeof rec.steps==='number'?rec.steps:null;
+    if(d<=t){due+=tg;if(v!==null)got+=v;}
+    srows+='<tr'+(d>t?' class="dim"':'')+'><td>'+DOWS[dow(d)]+' '+fmtS(d)+'</td><td class="n">'+ci(tg)+'</td><td class="n">'+(v===null?'—':ci(v))+'</td>'+
+      '<td>'+(v===null?'':(dow(d)===6?(v<=tg?'<span class="pill g">under the ceiling</span>':'<span class="pill w">over the ceiling</span>'):(v>=tg?'<span class="pill g">met</span>':'<span class="pill">'+ci(tg-v)+' short</span>')))+'</td></tr>';
+  }
+  var st='<div class="p"><h2>Steps'+(tr.pre?' · pre-block, '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd):'')+' — Saturday is derived from the average, so the pattern can never drift from the target</h2>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Target</th><th class="n">Logged</th><th></th></tr></thead><tbody>'+srows+
+    '<tr><td><b>'+(tr.pre?'Pre-block':'Week')+'</b></td><td class="n"><b>'+ci(totTarget)+'</b></td><td class="n"><b>'+ci(got)+'</b></td><td class="tiny">'+ci(CFG.goals.steps)+'/day average</td></tr>'+
+    '</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px">Mon–Fri '+ci(CFG.steps.weekday)+', Sunday '+ci(CFG.steps.sunday)+', so Saturday absorbs the rest: <b class="num">'+ci(STEPS_SAT)+'</b>. That is a <b>ceiling, not a floor</b> — a 15,000-step Saturday is not a better week, it is a missing rest day.</p>'+
+    '<p class="tiny">Block so far: '+ci(tr.stepsTotal)+' steps over '+tr.stepsDays+' logged day'+(tr.stepsDays===1?'':'s')+(tr.stepsAvg!==null?' — averaging <b class="num">'+ci(tr.stepsAvg)+'</b>':'')+'.'+(tr.stepsUnlogged>0?' '+tr.stepsUnlogged+' day'+(tr.stepsUnlogged===1?'':'s')+' of the block have no step count, and are left out of that average rather than counted as zero.':'')+'</p></div>';
+  E('tSteps').innerHTML=st;
+
+  var rows=[];
+  eachRun(function(r,d,i){rows.push({d:d,r:r,i:i});});
+  rows.sort(function(a,b){return a.d<b.d?1:-1;});
+  var hh='<div class="p"><h2>Runs logged in the cut · '+rows.length+'</h2>';
+  if(!rows.length){hh+='<p class="note">Nothing logged yet. Runs added on the Today tab appear here, classified by pace.</p>';}
+  else{
+    hh+='<div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th>Session</th><th class="n">km</th><th class="n">Time</th><th class="n">Rep avg</th><th class="n">Best rep</th><th class="n">Pace</th><th>Counts as</th><th>Against 2026</th></tr></thead><tbody>';
+    rows.forEach(function(x){
+      var j=runMeta(x.r);
+      hh+='<tr><td>'+fmtS(x.d)+'</td><td>'+esc(j.label)+(x.r.note?' <span class="tiny">'+esc(x.r.note)+'</span>':'')+'</td>'+
+        '<td class="n">'+(j.km?f2(j.km):'—')+'</td><td class="n">'+mmss(j.secs)+'</td>'+
+        '<td class="n">'+(j.repAvg===null?'—':secFmt(j.repAvg))+'</td>'+
+        '<td class="n">'+(x.r.best>0?secFmt(x.r.best):'—')+'</td>'+
+        '<td class="n">'+pace(j.pace)+'</td>'+
+        '<td>'+(j.empty?'<span class="pill w">incomplete</span>':(j.sprint?'<span class="pill">sprints</span>':(j.hard?'<span class="pill a">hard run</span>':'<span class="pill">run</span>')))+(j.judged||j.empty?'':' <span class="tiny">filed</span>')+'</td>'+
+        '<td class="tiny">'+esc(repCompare(j).replace(secFmt(j.repAvg===null?0:j.repAvg)+' rep average · ',''))+'</td></tr>';
+    });
+    hh+='</tbody></table></div>';
+  }
+  hh+='</div>';
+  E('tHistory').innerHTML=hh;
+}
+
+/* ---------- times ---------- */
+var SHOW_ALL=false;
+function secFmt(s){return s<100?f1(s)+' s':mmss(s);}
+function refStart(){
+  var m=weightModel();
+  if(m.baseline!==null)return m.baseline;
+  var pre=readings().filter(function(r){return r.d<CFG.cutStart;});
+  return pre.length?mean(pre.map(function(r){return r.lb;})):131.6;
+}
+function renderTimes(){
+  var h='<div class="p"><h2>Times to beat</h2><div class="scroll"><table class="tbl">'+
+    '<thead><tr><th>Distance</th><th class="n">Target</th><th class="n">Session avg</th><th class="n">Single best</th><th class="n">Real gap</th><th></th></tr></thead><tbody>';
+  TARGETS.forEach(function(r){
+    var best=(r[3]!==null?r[3]:r[2]);
+    h+='<tr><td>'+r[0]+'</td><td class="n">'+secFmt(r[1])+'</td>'+
+       '<td class="n">'+(r[2]===null?'—':secFmt(r[2]))+'</td>'+
+       '<td class="n">'+(r[3]===null?'—':'<b class="acc">'+secFmt(r[3])+'</b>')+'</td>'+
+       '<td class="n">'+secFmt(best-r[1])+'</td>'+
+       '<td class="tiny">'+(r[0]==='1000m'?'gap from the 3:00, not the rep average':(r[0]==='800m'?'no flat 800 run this year; 805 m split says 2:24':(r[3]===null?'no single effort logged':'')))+'</td></tr>';
+  });
+  h+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px">100m, 300m, 500m, 600m, 3 km, 8 km and 10 km are benchmarks with no target set.</p>'+
+    '<hr class="d"><p class="tiny"><b>A correction to the numbers this app shipped with.</b> The 1 km single best was listed as 3:14. Strava&rsquo;s own best-effort data says <b class="acc">3:00</b>, inside the 5 × 1 km on 18 August — you were right. Same read found a 2:24 for 805 m on that session. The rep <i>averages</i> were correct; what was missing was the fast single rep buried inside each session, which only the best-effort split shows.</p>'+
+    '<p class="tiny">One more: the 300m best was listed as <b>45.5 s</b> from 12 May. The 4 × 300 on <b>11 August</b> — 1208.5 m in 182 s, in 28 °C — normalises to <b class="acc">45.2 s</b>, which is faster. The table and every comparison now read 11 August.</p>'+
+    '<p class="tiny">Eight sessions were checked, the strongest candidates — not all hundred-odd runs of the year. Pull single bests from the Wins tab to re-read them against your live data.</p>'+
+    '<hr class="d"><p class="tiny"><b>One correction.</b> You gave 800m sub-2:10 and 1000m sub-2:40. Sub-2:10 for 800 is 65.0 s per 400; 2:40 for 1000 is 64.0 s per 400 — a faster pace over a longer distance, which is not a thing that happens. <b>2:46</b> is the same fitness expressed over 1000 m. Overrule it if you want, but that is why it changed.</p></div>';
+  E('timesTargets').innerHTML=h;
+
+  var lbs=Math.max(0,refStart()-CFG.w.target);
+  E('fiveKGain').textContent=Math.round(2*3.107*lbs)+' s';
+
+  var b='<div class="p"><h2>2026 bests — session average is the number you asked to be judged on</h2><div class="scroll"><table class="tbl">'+
+    '<thead><tr><th>Distance</th><th class="n">Best session avg</th><th class="n">Single best</th><th>Date</th><th>Session</th></tr></thead><tbody>';
+  BESTS.forEach(function(r){b+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td><td class="n">'+r[2]+'</td><td class="tiny">'+r[3]+'</td><td class="tiny">'+r[4]+'</td></tr>';});
+  b+='</tbody></table></div></div>';
+  E('stravaBest').innerHTML=b;
+
+  var line=effortLine();
+  var list=SESS.slice().sort(function(a,b2){return a[0]<b2[0]?1:-1;});
+  var shown=SHOW_ALL?list:list.slice(0,12);
+  var s='<table class="tbl"><thead><tr><th>Date</th><th>Session</th><th class="n">Distance</th><th class="n">Time</th><th class="n">Pace</th><th>Note</th></tr></thead><tbody>';
+  shown.forEach(function(r){
+    var p=(r[2]&&r[3])?r[3]/(r[2]/1000):null;
+    var tag='';
+    if(r[4]==='cont'&&p!==null)tag=p<=line?'<span class="pill a">hard</span> ':'<span class="pill">easy</span> ';
+    s+='<tr><td class="mono">'+fmtS(r[0])+'</td><td>'+r[1]+'</td><td class="n">'+(r[2]?ci(r[2])+' m':'—')+'</td>'+
+      '<td class="n">'+(r[3]?mmss(r[3]):'—')+'</td><td class="n">'+pace(p)+'</td><td class="tiny">'+tag+esc(r[5])+'</td></tr>';
+  });
+  s+='</tbody></table>';
+  E('sessionTable').innerHTML=s;
+  E('btnAllSessions').textContent=SHOW_ALL?('Show the last 12'):('Show all '+list.length+' 2026 sessions');
+}
+
+/* ---------- sleep ---------- */
+function renderSleep(){
+  var m=sleepModel(),t=today();
+  var lastNight=S.days[t]&&typeof S.days[t].sleep==='number'?S.days[t].sleep:null;
+  var bd=sleepBand(lastNight);
+  var h='<div class="p"><h2>Sleep — the top lever, and you named it yourself</h2><div class="tiles t4">'+
+    tile('7-night average',m.a7.avg===null?'—':f1(m.a7.avg)+' h',m.a7.n+' of 7 nights logged')+
+    tile('28-night average',m.a28.avg===null?'—':f1(m.a28.avg)+' h',m.a28.n+' of 28 nights logged')+
+    tile('last night',lastNight===null?'—':f1(lastNight)+' h',bd.t)+
+    tile('phone-free streak',m.streak+' night'+(m.streak===1?'':'s'),'tonight is not counted until it is ticked')+
+    '</div>';
+  if(m.blank7>=3){
+    h+='<div class="p" style="margin-top:12px;box-shadow:none;border-left:3px solid var(--ink-3)"><b>'+m.blank7+' of the last 7 nights are not logged.</b> They are being ignored, not judged. Nothing here reads a blank as a bad night — that is how fatigue warnings get fired on evidence that does not exist.</div>';
+  }
+  h+='<p class="tiny" style="margin-top:10px">The line is <b class="num">7.5 h</b> — roughly where the evidence sits, not a bedtime. Bands, not pass/fail: under 6 severely short · 6–7 short · 7–7.5 just under · 7.5–9 the range · over 9 long, but not wrong.</p></div>';
+  E('slTop').innerHTML=h;
+
+  var maxH=10;
+  var bars='<div class="p"><h2>Last 14 nights</h2><div class="bars">';
+  m.bars.forEach(function(b){
+    if(b.h===null){bars+='<div class="b u" style="height:14%" title="'+fmtS(b.d)+' — not logged"></div>';}
+    else{
+      var cls=b.h<6?' vlo':(b.h<7.5?' lo':'');
+      bars+='<div class="b'+cls+'" style="height:'+Math.max(4,Math.min(100,(b.h/maxH)*100))+'%" title="'+fmtS(b.d)+' — '+f1(b.h)+' h"></div>';
+    }
+  });
+  bars+='</div><div class="barlab">'+m.bars.map(function(b){return '<span>'+(dow(b.d)===1?fmtS(b.d).split(' ')[0]:DOWS[dow(b.d)].slice(0,1))+'</span>';}).join('')+'</div>';
+  bars+='<div class="row" style="margin-top:10px"><span class="pill g">7.5 h and over</span><span class="pill w">under the line</span><span class="pill b">under 6</span><span class="pill">hatched = not logged, not judged</span></div></div>';
+  E('slChart').innerHTML=bars;
+}
+
+/* ---------- study ---------- */
+function renderStudy(tr){
+  var m=studyModel(),h;
+  if(!m.live){
+    h='<div class="p"><h2>Study</h2><div class="tiles t4">'+
+      tile('term starts',fmtS(CFG.study.term),'SK297 + SK298')+
+      tile('days away',m.toTerm,'nothing to judge until then')+
+      tile('logged so far',f1(m.preTotal)+' h',m.preDays+' day'+(m.preDays===1?'':'s')+(m.preDeep>0?' · '+f1(m.preDeep)+' h deep':''))+
+      tile('cut day then',(diffD(CFG.cutStart,CFG.study.term)+1)+' / '+CUT_DAYS,'four days past halfway')+
+      '</div><p class="tiny" style="margin-top:10px">Log hours whenever you like — they are kept, and nothing judges them against the 16–20 band until term. This panel stays quiet until then. A bar reading "16 hours short" every morning for a fortnight is noise, and noise gets ignored right up until the week it matters.</p></div>';
+  }else{
+    var cls=m.state==='under'?'warn':(m.state==='full'?'flag':'good');
+    h='<div class="p"><h2>Study · rolling 7 days</h2><div class="tiles t4">'+
+      tile('last 7 days',f1(m.total)+' h',m.daysLogged+' day'+(m.daysLogged===1?'':'s')+' logged')+
+      tile('deep work',f1(m.deep)+' h',m.deepShare===null?'inside the 7-day total':Math.round(m.deepShare*100)+'% of the hours were deep')+
+      tile('standing',m.state==='under'?f1(CFG.study.lo-m.total)+' h short':(m.state==='full'?'full week':'inside the band'),'')+
+      tile('effort sessions',tr.week.hard,'this Mon–Sun week')+
+      '</div>';
+    if(m.state==='under')h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>'+f1(CFG.study.lo-m.total)+' h short of the band.</b> Deep blocks beat scattered hours — two more three-hour sessions close it faster than an hour a day.</div>';
+    if(m.state==='in')h+='<div class="p good" style="margin-top:12px;box-shadow:none">Inside the band — '+f1(m.total)+' h against '+CFG.study.lo+'–'+CFG.study.hi+'.</div>';
+    if(m.deepShare!==null&&m.deepShare<0.5&&m.total>=6)h+='<div class="p" style="margin-top:12px;box-shadow:none;border-left:3px solid var(--ink-3)">Under half of those hours were deep. The hours are there; the shape of them is what costs you.</div>';
+    if(m.state==='full')h+='<div class="p lift" style="margin-top:12px;box-shadow:none"><b>That is a full week — protect the Saturday.</b></div>';
+    h+='</div>';
+  }
+  E('stTop').innerHTML=h;
+}
+
+/* ---------- skin ---------- */
+function renderSkin(){
+  var t=today(),i,am=0,pm=0,te=0;
+  for(i=0;i<7;i++){var d=addD(t,-i),r=S.days[d]||{};if(r.skinAM)am++;if(r.skinPM)pm++;if(r.teeth)te++;}
+  var r0=S.days[t]||{};
+  var h='<div class="p"><h2>Routine</h2><div class="tiles t4">'+
+    tile('today',(r0.skinAM?'AM ✓':'AM —')+'  '+(r0.skinPM?'PM ✓':'PM —'),'ticked on the Today tab')+
+    tile('AM, last 7',am+' / 7','SPF is the one that matters')+
+    tile('PM, last 7',pm+' / 7','tinted needs a proper wash')+
+    tile('teeth, last 7',te+' / 7','3× a day + floss')+
+    '</div></div>';
+  E('skTop').innerHTML=h;
+}
+
+/* ---------- data ---------- */
+function impossibleRows(){
+  var t=today(),out=[];
+  for(var d in S.days){
+    var r=S.days[d];
+    if(d>t&&(r.gym||(r.runs&&r.runs.length)||typeof r.steps==='number'||typeof r.kcal==='number'||typeof r.sleep==='number'||typeof r.study==='number'))out.push(d);
+  }
+  for(var w in S.weights){if(w>t)out.push(w);}
+  return out.sort();
+}
+function paintStatus(){
+  var el=E('dStatus');if(!el)return;
+  var txt={local:'browser only',synced:'saved to this artifact',connecting:'connecting'}[dbState]||dbState;
+  el.innerHTML='<div class="p"><h2>Storage</h2><p class="note">State: <b>'+esc(txt)+'</b>. '+
+    (dbState==='local'?'No shared store on this view, so the log lives in this browser only — export it from below if you are moving devices.':'The log is written to the artifact\'s own store, so it survives a cleared cache and follows you between devices.')+
+    '</p><p class="tiny">Everything is keyed by date, never by position in a grid. Moving the block start re-reads the dates; it cannot re-date finished work onto days you have not trained yet.</p></div>';
+}
+function renderData(w,tr,c){
+  var t=today();
+  var checks=[
+    ['Weighing start is the first Monday on or after the cut start',dow(WEIGH_START)===1&&WEIGH_START>=CFG.cutStart&&diffD(CFG.cutStart,WEIGH_START)<7,fmtL(WEIGH_START)],
+    ['Day counts come from one source',c.elapsed+c.remaining===CUT_DAYS,c.elapsed+' counted + '+c.remaining+' left = '+CUT_DAYS],
+    ['Step pattern sums to the average',5*CFG.steps.weekday+CFG.steps.sunday+STEPS_SAT===7*CFG.goals.steps,ci(5*CFG.steps.weekday+CFG.steps.sunday+STEPS_SAT)+' = 7 × '+ci(CFG.goals.steps)],
+    ['Daily target is flat and matches the week',KCAL_DAY*7===CFG.kcal.avg*7,ci(KCAL_DAY)+' × 7 = '+ci(KCAL_DAY*7)+' a week'],
+    ['Meal allowance is derived, not typed',KCAL_FREE===KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl,ci(KCAL_DAY)+' − '+(CFG.kcal.milk+CFG.kcal.bowl)+' = '+ci(KCAL_FREE)],
+    ['Weight weeks cover the block',W_WEEKS*7>=diffD(WEIGH_START,CFG.cutEnd)+1,W_WEEKS+' weeks × 7 = '+(W_WEEKS*7)+' days ≥ '+(diffD(WEIGH_START,CFG.cutEnd)+1)],
+    ['Nothing is logged on a day that has not happened',impossibleRows().length===0,impossibleRows().length+' impossible row'+(impossibleRows().length===1?'':'s')],
+    ['The plan never projects through the floor',!w.curve.length||Math.min.apply(null,w.curve)>=CFG.w.floor,w.curve.length?'lowest planned '+f1(Math.min.apply(null,w.curve)):'no curve yet']
+  ];
+  var h='<div class="p"><h2>Self-checks — all computed from today, never hard-coded</h2><div class="scroll"><table class="tbl"><tbody>';
+  checks.forEach(function(ck){
+    h+='<tr><td>'+(ck[1]?'<span class="pill g">ok</span>':'<span class="pill b">check</span>')+'</td><td>'+ck[0]+'</td><td class="tiny mono">'+ck[2]+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<p class="tiny" style="margin-top:8px">The block is <b>'+CUT_DAYS+' days</b> and '+W_WEEKS+' Monday-to-Sunday weight weeks. Those weeks span '+(W_WEEKS*7)+' days from '+fmtS(WEIGH_START)+', while the block itself runs '+(diffD(WEIGH_START,CFG.cutEnd)+1)+' days from there — <b>'+f2((diffD(WEIGH_START,CFG.cutEnd)+1)/7)+' weeks</b>, not ten exactly. Saying "ten weeks exactly" would be the old bug.</p></div>';
+  E('dChecks').innerHTML=h;
+
+  var imp=impossibleRows();
+  E('dImpossible').innerHTML=imp.length?
+    '<div class="p bad"><h2>Impossible rows</h2><p>These days are in the future and carry logged work: <b class="mono">'+imp.map(fmtS).join(', ')+'</b>. A session marked done on a day that has not happened cannot be real.</p><button class="btn" id="btnClearImp" type="button">Clear only these rows</button></div>':'';
+  if(E('btnClearImp'))E('btnClearImp').addEventListener('click',function(){
+    imp.forEach(function(d){delete S.days[d];delete S.weights[d];});touch();
+  });
+}
+
+/* ===================== events ===================== */
+function tab(name){
+  CUR=name;
+  ['today','weight','food','training','times','sleep','study','wins','review','skin','data'].forEach(function(k){
+    E('s-'+k).hidden=(k!==name);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
+    b.setAttribute('aria-selected',b.dataset.t===name?'true':'false');
+  });
+  try{localStorage.setItem(LS+'.tab',name);}catch(e){}
+  window.scrollTo(0,0);
+}
+function wire(){
+  document.getElementById('tabs').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t);
+  });
+  E('logDate').addEventListener('change',function(){paintForm();});
+  E('revPick').addEventListener('change',function(){REVWK=this.value;renderReview();});
+  E('btnToday').addEventListener('click',function(){E('logDate').value=today();paintForm();});
+  function num(el){var v=el.value.trim();if(v==='')return null;var n=Number(v);return isNaN(n)?null:n;}
+  E('inWeight').addEventListener('change',function(){
+    var d=E('logDate').value||today(),v=num(this);
+    if(v===null){delete S.weights[d];}else{S.weights[d]=Math.round(v*10)/10;}
+    touch();
+  });
+  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep']].forEach(function(p){
+    E(p[0]).addEventListener('change',function(){
+      var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
+    });
+  });
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth']].forEach(function(p){
+    E(p[0]).addEventListener('click',function(){
+      var d=E('logDate').value||today(),on=this.getAttribute('aria-pressed')==='true',o={};
+      o[p[1]]=on?null:true;setDay(d,o);
+    });
+  });
+  function kindFields(){
+    var reps=E('inKind').value==='reps';
+    Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.rep'),function(x){x.hidden=!reps;});
+    Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.cont'),function(x){x.hidden=reps;});
+    E('fLadder').hidden=!(reps&&E('inRepD').value==='ladder');
+    if(reps&&E('inRepD').value==='ladder')E('inReps').parentNode.hidden=true;
+    E('labTime').textContent=reps?'Total rep time (mm:ss)':'Time (mm:ss)';
+    E('inTime').placeholder=reps?'3:07':'32:38';
+    paintForm();
+  }
+  E('inKind').addEventListener('change',kindFields);
+  E('inRepD').addEventListener('change',kindFields);
+  kindFields();
+  E('btnAddRun').addEventListener('click',function(){
+    var d=E('logDate').value||today(),msg=E('runMsg');
+    msg.textContent='';
+    var secs=parseTime(E('inTime').value);
+    var note=E('inRunNote').value.trim();
+    var r;
+    if(E('inKind').value==='reps'){
+      var dv=E('inRepD').value;
+      r={k:'reps'};
+      if(dv==='ladder'){
+        var laps=E('inLadder').value.split(/[^0-9.]+/).filter(Boolean).map(Number).filter(function(x){return x>0&&x<=10000;});
+        if(laps.length<2){msg.textContent='Give the ladder as metres in order, like 200-400-600-400-200.';return;}
+        r.laps=laps;
+      }else{
+        var n=Math.round(Number(E('inReps').value)||0);
+        if(!(n>0)){msg.textContent='How many reps?';return;}
+        r.dm=(dv==='100u')?100:Number(dv);
+        r.n=n;
+        if(dv==='100u')r.up=true;
+      }
+    }else{
+      var km=Number(E('inKm').value);
+      r={type:E('inContType').value};
+      if(km>0)r.km=Math.round(km*100)/100;
+      if(!(km>0))msg.textContent='No distance, so no pace and no opinion — it still counts as a run.';
+      if(!(km>0)&&!(secs>0)){msg.textContent='A run needs a distance or a time.';return;}
+    }
+    if(!(secs>0)&&!(E('inKind').value==='cont'&&Number(E('inKm').value)>0)){
+      msg.textContent='A session needs a time — without one there is nothing to log and nothing to judge.';
+      return;
+    }
+    if(secs)r.secs=secs;
+    var bst=parseTime(E('inBest').value);
+    if(bst>0)r.best=bst;
+    if(note)r.note=note.slice(0,80);
+    var rec=S.days[d]?clone(S.days[d]):{};
+    rec.runs=(rec.runs||[]).concat([r]);
+    S.days[d]=rec;
+    E('inKm').value='';E('inTime').value='';E('inRunNote').value='';E('inReps').value='';E('inLadder').value='';E('inBest').value='';
+    touch();
+  });
+  E('runList').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-del]');if(!b)return;
+    var d=E('logDate').value||today(),i=+b.dataset.del;
+    var rec=S.days[d]?clone(S.days[d]):{};
+    if(rec.runs){rec.runs.splice(i,1);if(!rec.runs.length)delete rec.runs;}
+    if(Object.keys(rec).length)S.days[d]=rec;else delete S.days[d];
+    touch();
+  });
+  E('btnHide').addEventListener('click',function(){S.settings.hideDaily=!S.settings.hideDaily;touch();});
+  document.addEventListener('click',function(e){
+    if(e.target.id==='btn5k'){
+      var v=parseTime(E('in5k').value);
+      if(v&&v>600&&v<2400){S.settings.fiveK=v;touch();}
+    }
+    if(e.target.id==='btnAllSessions'){SHOW_ALL=!SHOW_ALL;renderTimes();}
+    if(e.target.id==='btnPull'){pullSingles();}
+    var go=e.target.closest&&e.target.closest('[data-goto]');
+    if(go)tab(go.getAttribute('data-goto'));
+  });
+  /* strava paste */
+  var parsed=null;
+  E('btnStrava').addEventListener('click',function(){
+    var out=E('stravaOut');parsed=null;E('btnStravaImport').hidden=true;
+    var raw=E('stravaIn').value.trim();
+    if(!raw){out.innerHTML='<p class="tiny">Nothing pasted.</p>';return;}
+    var j;
+    try{j=JSON.parse(raw);}catch(err){out.innerHTML='<p class="tiny bd">That is not valid JSON. Paste the activity objects exactly as Strava returns them — one object or an array.</p>';return;}
+    var arr=Array.isArray(j)?j:(j.activities&&Array.isArray(j.activities)?j.activities:[j]);
+    var rows=[];
+    arr.forEach(function(a){
+      if(!a||typeof a!=='object')return;
+      var ds=a.start_date_local||a.start_date||a.date;
+      if(!ds)return;
+      var d=String(ds).slice(0,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return;
+      var m2=Number(a.distance)||0, sec=Number(a.moving_time||a.elapsed_time||a.time)||0;
+      var km=m2>0?Math.round((m2/1000)*100)/100:0;
+      var p=(km>0&&sec>0)?sec/km:null;
+      var type=p!==null?(p<=effortLine()?'threshold':'easy'):'easy';
+      if(km>=7&&km<=9&&p!==null&&p>effortLine())type='fivemile';
+      rows.push({d:d,km:km,secs:sec,type:type,note:String(a.name||'').slice(0,60),pace:p});
+    });
+    if(!rows.length){out.innerHTML='<p class="tiny bd">No activities with a date found in that JSON.</p>';return;}
+    parsed=rows;
+    var t2='<div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th class="n">km</th><th class="n">Time</th><th class="n">Pace</th><th>Will count as</th><th>Name</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      t2+='<tr><td>'+fmtS(r.d)+'</td><td class="n">'+f2(r.km)+'</td><td class="n">'+mmss(r.secs)+'</td><td class="n">'+pace(r.pace)+'</td>'+
+        '<td>'+(r.pace!==null&&r.pace<=effortLine()?'<span class="pill a">hard run</span>':'<span class="pill">run</span>')+'</td><td class="tiny">'+esc(r.note)+'</td></tr>';
+    });
+    t2+='</tbody></table></div><p class="tiny">'+rows.length+' activity(ies) parsed. Importing adds them to those dates; it does not overwrite anything already there.</p>';
+    out.innerHTML=t2;
+    E('btnStravaImport').hidden=false;
+  });
+  E('btnStravaImport').addEventListener('click',function(){
+    if(!parsed)return;
+    parsed.forEach(function(r){
+      var rec=S.days[r.d]?clone(S.days[r.d]):{};
+      rec.runs=(rec.runs||[]).concat([{type:r.type==='threshold'?'threshold':r.type,km:r.km||undefined,secs:r.secs||undefined,note:r.note||undefined}]);
+      S.days[r.d]=rec;
+    });
+    E('stravaOut').innerHTML='<p class="tiny gd">Imported '+parsed.length+' activity(ies).</p>';
+    E('btnStravaImport').hidden=true;parsed=null;touch();
+  });
+  /* export / import / reset */
+  E('btnExport').addEventListener('click',function(){E('ioBox').value=JSON.stringify(S);E('ioMsg').textContent='Copy this somewhere safe.';});
+  E('btnLoad').addEventListener('click',function(){
+    try{
+      var j=JSON.parse(E('ioBox').value);
+      S=normalise(j);touch();E('ioMsg').textContent='Loaded.';
+    }catch(e){E('ioMsg').textContent='That is not valid JSON.';}
+  });
+  E('btnReset').addEventListener('click',function(){
+    if(!window.confirm('Clear every logged day and every weight in this block, including any left over from the previous 13-week block? This cannot be undone.'))return;
+    S={weights:{},days:{},settings:{hideDaily:S.settings.hideDaily,fiveK:S.settings.fiveK},updatedAt:Date.now()};
+    try{
+      var kill=[];
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&(k.indexOf('week')===0||k.indexOf('cutblock')===0||/^w(eek)?\d+$/.test(k)))kill.push(k);
+      }
+      kill.forEach(function(k){if(k!==LS+'.tab')localStorage.removeItem(k);});
+    }catch(e){}
+    touch();E('ioMsg').textContent='Reset. Every week key cleared, not just weeks 1–10.';
+  });
+}
+
+/* ===================== boot ===================== */
+function boot(){
+  var local=loadLocal();
+  S=local?local:normalise(clone(SEED));
+  PRUNED+=pruneEmptyRuns();
+  if(!local||PRUNED)saveLocal();
+  E('logDate').value=today();
+  wire();
+  try{var tb=localStorage.getItem(LS+'.tab');if(tb)tab(tb);}catch(e){}
+  render();
+  if(window.claude&&window.claude.use){
+    dbState='connecting';paintStatus();
+    window.claude.use('db').then(function(db){
+      if(!db){dbState='local';paintStatus();return;}
+      DB=db;dbDoc=db.doc('state/main');
+      dbDoc.get().then(function(snap){
+        var remote=snap&&snap.exists?normalise(snap.data()):null;
+        if(remote&&remote.updatedAt>=S.updatedAt&&(Object.keys(remote.weights).length||Object.keys(remote.days).length)){
+          S=remote;PRUNED+=pruneEmptyRuns();saveLocal();dbState='synced';render();
+        }else{
+          dbState='synced';queueRemote();paintStatus();
+        }
+        dbDoc.onSnapshot(function(sn){
+          if(!sn.exists)return;
+          var r=normalise(sn.data());
+          if(r.updatedAt>S.updatedAt){S=r;PRUNED+=pruneEmptyRuns();saveLocal();render();}
+        },function(){});
+      },function(err){dbState='error:'+(err&&err.code||'unknown');paintStatus();});
+    },function(){dbState='local';paintStatus();});
+  }else{
+    dbState='local';paintStatus();
+  }
+  initStrava();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+</body></html>
