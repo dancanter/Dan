@@ -867,7 +867,7 @@ function firstSeenDate() {
   var m = DB.get("__seen", null);
   return m ? String(m).slice(0, 10) : null;
 }
-var BUILD = "19 Sep 08:32";
+var BUILD = "19 Sep 09:28";
 function renderBuild() {
   var el = document.getElementById("buildStamp");
   if (el) el.textContent = "build " + BUILD;
@@ -1884,6 +1884,64 @@ function restNote() {
     "</div>";
 }
 
+/* A week grid is stored by position, not by date. So moving the block start
+   does not move the sessions in it - it re-dates them. Thirteen weeks of
+   finished work silently became this block's work, sitting on dates he had not
+   trained on yet, and the only way out was a button in Setup he had to know to
+   press.
+
+   A session marked done on a day that has not happened is impossible, and that
+   is enough to find every one of them without needing any history. */
+function futureDone() {
+  var out = [];
+  if (!settings.startDate) return out;
+  var t = today();
+  for (var w = 0; w <= BLOCK_WEEKS; w++) {
+    var rows = DB.get("week-" + w, null);
+    if (!Array.isArray(rows)) continue;
+    for (var i = 0; i < rows.length; i++) {
+      var d = rows[i];
+      if (!d.done && !d.gym) continue;
+      var dt = slotDate(w, i);
+      if (!dt) continue;
+      var iso = dayStr(dt);
+      if (iso > t) out.push({ w: w, i: i, iso: iso, day: d.day,
+        type: sessionOf(d).type, detail: d.detail || "" });
+    }
+  }
+  return out;
+}
+/* Clears only the impossible ones, leaving anything he really did alone. */
+function clearFutureDone() {
+  var list = futureDone(), byWeek = {};
+  list.forEach(function (x) { (byWeek[x.w] = byWeek[x.w] || []).push(x.i); });
+  Object.keys(byWeek).forEach(function (w) {
+    var rows = DB.get("week-" + w, null);
+    if (!Array.isArray(rows)) return;
+    byWeek[w].forEach(function (i) {
+      var fresh = buildWeek(+w)[i] || {};
+      rows[i] = Object.assign({}, fresh, { day: rows[i].day });
+    });
+    DB.set("week-" + w, rows);
+  });
+  loadWeek(viewWeek);
+  renderAll();
+}
+function staleNote() {
+  var list = futureDone();
+  if (!list.length) return "";
+  var wks = {}; list.forEach(function (x) { wks[x.w] = 1; });
+  return '<div class="note stop" style="margin-bottom:12px"><b>' + list.length +
+    " session" + (list.length === 1 ? "" : "s") + " ticked on days that have not happened</b>" +
+    list.slice(0, 6).map(function (x) {
+      return fmtD(x.iso) + " \u00b7 " + esc(x.type) + (x.detail ? " " + esc(x.detail) : "");
+    }).join("<br>") + (list.length > 6 ? "<br>\u2026and " + (list.length - 6) + " more" : "") +
+    "<br><br>These are the old block's. A week grid is stored by position rather than by date, " +
+    "so moving the block start re-dated them onto this block instead of leaving them behind.<br><br>" +
+    '<button class="btn primary" id="clearStaleBtn" style="width:100%">Clear these ' +
+    list.length + " and keep everything else</button></div>";
+}
+
 function renderWeek() {
   var t = currentPlan || templateForWeek(viewWeek);
   $("phaseTag").textContent = t.phase;
@@ -1901,7 +1959,7 @@ function renderWeek() {
       return dt && dayStr(dt) >= cutStart();
     });
   }
-  $("weekList").innerHTML = autoDeloadFlag() + energyNote(false) + restNote() + totalLoadNote() +
+  $("weekList").innerHTML = staleNote() + autoDeloadFlag() + energyNote(false) + restNote() + totalLoadNote() +
     intensityNote() + agesNote() + show.map(function (i) {
     return dayCard(weekData[i], i, isCurrent && i === ti);
   }).join("");
@@ -2709,10 +2767,11 @@ function roundDelta(wt) {
 
 function renderRoundup() {
   var el = $("roundOut"); if (!el) return;
+  var stale = staleNote();
   var rows = roundupRows(), tag = $("roundTag");
   if (!rows.length) {
     if (tag) tag.textContent = "";
-    el.innerHTML = '<div class="note flat"><b>Nothing to round up yet</b>' +
+    el.innerHTML = stale + '<div class="note flat"><b>Nothing to round up yet</b>' +
       "Set a block start date in Setup and this fills in a week at a time.</div>";
     return;
   }
@@ -2750,7 +2809,7 @@ function renderRoundup() {
       '<tr><td colspan="5" style="padding-top:0;color:var(--muted);font-size:12.5px">' + sess + "</td></tr>";
   }).join("");
 
-  el.innerHTML =
+  el.innerHTML = stale +
     '<div class="card tbl-scroll" style="padding:4px 12px"><table class="ref">' +
     "<thead><tr><th>Week</th><th>Runs</th><th>Gym</th><th>Steps</th><th>Weight</th></tr></thead>" +
     "<tbody>" + body + "</tbody></table></div>" +
@@ -9005,6 +9064,17 @@ function renderStartInfo() {
     settings.trendOnly = !settings.trendOnly;
     DB.set("settings", settings);
     renderTrendOnlyBtn(); renderWeight();
+  });
+  /* Delegated, because the button is drawn inside two different panels and
+     re-rendered every time either of them updates. */
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest("#clearStaleBtn");
+    if (!b) return;
+    var n = futureDone().length;
+    if (!n) return;
+    if (!confirm("Clear " + n + " session" + (n === 1 ? "" : "s") +
+      " ticked on days that have not happened?\n\nNothing else is touched.")) return;
+    clearFutureDone();
   });
   on("resetBlockBtn", "click", function () {
     var iso = ($("startDate") && $("startDate").value) || BLOCK_START_DEFAULT;

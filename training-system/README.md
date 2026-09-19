@@ -1221,3 +1221,28 @@ starts" — and went red the moment the date rolled over, with nothing wrong in 
 app. Those assertions now derive their numbers from today's date, and fixtures
 anchor to the cut's own Monday rather than to `back(4)` and hoping today is a
 Friday. A test that fails every night is a test nobody reads.
+
+## Sessions ticked on days that have not happened
+
+He reset the block and his old runs were still sitting in week 1. The reset
+itself was fine — reproducing his state and running it cleared everything. The
+fault was one level up.
+
+**A week grid is stored by position, not by date.** So moving the block start
+does not move the sessions in it, it *re-dates* them: the old block's week 1
+becomes this block's week 1, and thirteen weeks of finished work silently lands
+on days he has not trained yet. The only way out was a button in Setup he had to
+know to press, on a problem the app never told him he had.
+
+`futureDone()` finds them without needing any history: **a session marked done on
+a day that has not happened is impossible.** That one test catches every
+re-dated session and cannot catch a real one.
+
+The warning now appears at the top of both the Week tab and Every Week, lists the
+sessions with their dates, explains the positional-storage cause in a sentence,
+and carries a one-tap **Clear these and keep everything else**. It blanks only
+the impossible rows — a session on a date that has already passed is left alone,
+because that one might be real.
+
+The listener is delegated from `document`, since the button is drawn inside two
+panels that both re-render independently.
