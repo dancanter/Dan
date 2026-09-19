@@ -352,7 +352,38 @@ but **eat more on them, carbs first**.
 
 ---
 
-## 7. Times to beat
+## 7. Study — it shares the recovery, that's why it's here
+
+**SK297 and SK298** — two 30-credit modules, **8–10 hours each, so a 16–20 hour
+week**. Term starts **28 September 2026**, four days after the cut's halfway point.
+
+The point of tracking this is **not** to manage the degree. It is that **training load
+and study load draw down the same recovery**, and an app that can only see the running
+will tell him to push in a week he is already buried.
+
+### Rules
+- **Stay silent before term.** A bar reading "16 hours short" every morning for a
+  fortnight is noise, and noise gets ignored right up until the week it matters. Before
+  28 September it shows the countdown and nothing else
+- Log hours per day; judge the **rolling 7-day total** against the 16–20 band
+- Under 16: say how many hours short, and that **deep blocks beat scattered hours** —
+  two more three-hour sessions close it faster than an hour a day
+- Inside the band: say so
+- At or over 20: *"That is a full week — protect the Saturday."*
+
+### The combined-load warning
+When **both** are high in the same week — three or more effort sessions, or two efforts
+plus five gym, **and** 20+ study hours — say so explicitly:
+
+> Neither on its own is a problem. Together, in a deficit, they are the combination
+> that turns into a flat fortnight. **Drop the third effort session, not the study
+> hours** — the deadline does not move and the session does.
+
+That instruction direction matters. The training is the flexible thing; the coursework
+deadline is not.
+
+
+## 8. Times to beat
 
 | Distance | Target |
 |---|---|
@@ -371,7 +402,7 @@ expressed over 1000 m. He can overrule it, but he should know why it changed.
 
 ---
 
-## 8. Strava — 2026 fitness, as actually run
+## 9. Strava — 2026 fitness, as actually run
 
 This is where he is, pulled from Strava rather than remembered. **`avg` is the best
 session average at that distance, which is the number he asked to be judged on.**
@@ -470,6 +501,23 @@ session average at that distance, which is the number he asked to be judged on.*
 easy 5 km typically **1,383–1,613 s**. Longest run of the year: 16 Aug, 9,452 m /
 2,802 s.
 
+### How the Strava data actually gets in
+
+Worth knowing before anyone tries to build a live sync. A single published HTML page
+**cannot call the Strava API**, for three separate reasons:
+
+1. The page runs under a CSP that blocks every outbound request. A `fetch` to
+   strava.com fails silently — no prompt, no visible error, just nothing
+2. OAuth needs a registered redirect URI and a server to exchange the code for a
+   token. One HTML file has neither
+3. The exchange needs the client secret, which in a one-file page would sit in plain
+   text in something anyone with the link can read — leaking it and breaching Strava's
+   API terms
+
+So **the transport is a paste**: activity JSON goes into an import box and is parsed
+client-side. Everything above was pulled through an assistant with Strava access and
+handed over as data. Build the parser; do not build the sync.
+
 ### Honest assessment of the gaps
 
 | | Now | Target | Gap |
@@ -503,7 +551,7 @@ those two things actually happen in, and it is not softening the target.
 
 ---
 
-## 9. Sleep — the top lever
+## 10. Sleep — the top lever
 
 He has named this himself as the most important thing in the cut, and he is right.
 
@@ -550,7 +598,7 @@ The rule that works is **charge it in another room and use a separate alarm**, n
 
 ---
 
-## 10. Skincare — his actual products
+## 11. Skincare — his actual products
 
 | When | What | Note |
 |---|---|---|
@@ -577,7 +625,7 @@ face looks on 28 November than every bottle combined.
 
 ---
 
-## 11. Facial puffiness — ranked for him
+## 12. Facial puffiness — ranked for him
 
 1. **Sleep** — bigger than everything else combined. Short sleep raises cortisol,
    cortisol holds sodium, and the face shows it first
@@ -600,7 +648,7 @@ judging the worst version of it that exists, every day.
 
 ---
 
-## 12. Implementation notes — bugs worth not repeating
+## 13. Implementation notes — bugs worth not repeating
 
 These all actually happened.
 
@@ -637,7 +685,7 @@ nothing wrong in the app. A suite that fails every night is one nobody reads.
 
 ---
 
-## 13. How to talk to him
+## 14. How to talk to him
 
 - He wants **honest**, not encouraging. He has asked for this directly and repeatedly
 - Give the realistic answer on the time goals, then the path to them — do not inflate
