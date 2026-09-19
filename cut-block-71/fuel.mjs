@@ -158,7 +158,9 @@ await p.click('[data-t="times"]');
 t = await p.textContent('#stravaBest');
 ok('the bests table shows 45.2', /45\.2 s/.test(t), (t.match(/300m[^|]{0,60}/) || [])[0]);
 ok('and no longer shows 45.5 as the best', !/45\.5 s/.test(t));
-ok('the correction is spelled out', /the 300m best was listed as/i.test(await p.textContent('#timesTargets')));
+ok('the correction is spelled out', /Listed as 45\.5 s from 12 May/i.test(await p.textContent('#timesNotes')),
+  (await p.textContent('#timesNotes')).slice(0, 200));
+ok('and the six target cards lead the tab', (await p.$$('.six .t')).length === 6);
 
 // an achievement cannot be unlocked by a row from the history table
 await p.click('[data-t="wins"]');
