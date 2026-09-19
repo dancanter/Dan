@@ -1647,10 +1647,28 @@ function saveSlotSteps(i, v) {
   renderRolling(); renderReview(); renderKcal(); renderChecklist();
 }
 
+/* Ordinal, because "Sat 19th" is how he says it and how he will check it
+   against his own memory of what he did. */
+function ordinal(n) {
+  var t = n % 100;
+  if (t >= 11 && t <= 13) return n + "th";
+  /* + binds tighter than ||, so the obvious one-liner returns "19undefined"
+     rather than falling through to "th". */
+  var suf = ["th", "st", "nd", "rd"][n % 10] || "th";
+  return n + suf;
+}
+function dayDateLabel(i) {
+  var dt = slotDate(viewWeek, i);
+  if (!dt) return "";
+  return ordinal(dt.getDate()) + " " + MONTHS_SHORT[dt.getMonth()];
+}
 function dayCard(d, i, isToday) {
   var s = sessionOf(d), flex = currentPlan && currentPlan.flexible;
+  var when = dayDateLabel(i);
   return '<div class="day-card' + (d.done ? " done" : "") + (isToday ? " today" : "") + '">' +
     '<div class="day-top"><div class="day-name">' + d.day +
+      (when ? ' <span style="font-family:var(--f-mono);font-size:10.5px;color:var(--muted-2);font-weight:400;letter-spacing:0">' +
+        when + "</span>" : "") +
       '<span>' + esc(s.type) + "</span>" + (isToday ? '<span class="today-pill">Today</span>' : "") + "</div>" +
     '<button class="btn ' + (d.done ? "on" : "") + '" data-done="' + i + '">' + (d.done ? "✓ Done" : "Mark done") + "</button></div>" +
     (flex ? '<div class="row-inputs" style="margin-bottom:8px">' +
@@ -1870,9 +1888,19 @@ function renderWeek() {
   $("weekDone").textContent = weekData.filter(function (d) { return d.done; }).length + " logged this week";
   renderRolling();
   var isCurrent = blockWeekNow() === viewWeek, ti = dayIndexToday();
+  /* Week 0 is the two days before the block, not a whole week. Showing Monday
+     to Friday of a week that belongs to nothing is just five empty cards to
+     scroll past, so only the days actually inside the cut are drawn. */
+  var show = weekData.map(function (d, i) { return i; });
+  if (viewWeek === 0) {
+    show = show.filter(function (i) {
+      var dt = slotDate(0, i);
+      return dt && dayStr(dt) >= cutStart();
+    });
+  }
   $("weekList").innerHTML = autoDeloadFlag() + energyNote(false) + restNote() + totalLoadNote() +
-    intensityNote() + agesNote() + weekData.map(function (d, i) {
-    return dayCard(d, i, isCurrent && i === ti);
+    intensityNote() + agesNote() + show.map(function (i) {
+    return dayCard(weekData[i], i, isCurrent && i === ti);
   }).join("");
   renderSuggest(); renderReview(); renderPlan(); renderBlockPlan(); renderCali();
 }
@@ -6100,10 +6128,20 @@ var BLOCK_START_DEFAULT = "2026-09-21";
 function archiveKey(iso, w) { return "block-" + iso + "-week-" + w; }
 function resetBlock(startIso) {
   var stamp = today();
-  for (var w = 1; w <= BLOCK_WEEKS; w++) {
+  /* Every week key in storage, not just this block's ten. The block before this
+     one ran to thirteen, so clearing 1-10 left weeks 11, 12 and 13 sitting there
+     full of finished sessions, waiting to be counted the moment the new block
+     grew long enough to reach them. Week 0 goes too. */
+  var last = BLOCK_WEEKS;
+  for (var k = 0; k < localStorage.length; k++) {
+    var m = /^fs2::week-(\d+)$/.exec(localStorage.key(k));
+    if (m && +m[1] > last) last = +m[1];
+  }
+  for (var w = 0; w <= last; w++) {
     var rows = DB.get("week-" + w, null);
     if (Array.isArray(rows)) DB.set(archiveKey(stamp, w), rows);
-    DB.set("week-" + w, buildWeek(w));
+    if (w <= BLOCK_WEEKS) DB.set("week-" + w, buildWeek(w));
+    else localStorage.removeItem("fs2::week-" + w);   /* past this block's length */
   }
   var filed = DB.get("blocks-filed", []) || [];
   filed.unshift({ date: stamp, from: settings.startDate || null, weeks: BLOCK_WEEKS });

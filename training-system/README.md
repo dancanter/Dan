@@ -1194,3 +1194,30 @@ When he is ahead *because* the rate is over the band, the message changes: take
 the days, but **eat more on them, not less**, carbs first. Otherwise it says keep
 the food exactly where it is, because a rest day is not a day to eat less. Steps
 stay either way — it is the hard sessions that need the days.
+
+## Dates on the days, and a reset that finishes the job
+
+**Every day card carries its date** — `MON 21st Sep`, `SAT 19th Sep` — because
+that is how he checks a week against his own memory of it. `ordinal()` had the
+classic precedence bug on the way in: `n + arr[n % 10] || n + "th"` returns
+`"19undefined"`, because `+` binds tighter than `||` and the result is truthy.
+
+**The pre-block week shows only Saturday and Sunday.** Week 0 is a full
+Monday-to-Sunday grid internally, but Monday to Friday of it belong to nothing —
+five empty cards to scroll past before reaching the two days that matter. Only
+days on or after the cut start are drawn.
+
+**The reset now clears every week key, not just this block's ten.** The block
+before this one ran to thirteen, so clearing 1–10 left weeks 11, 12 and 13 in
+storage full of finished sessions, waiting to be counted the moment a future
+block grew long enough to reach them. It now scans `localStorage` for the highest
+`week-N` present, archives all of them, blanks 0 through `BLOCK_WEEKS` and
+removes anything past that.
+
+## Tests that survive the clock
+
+Several suites hard-coded day counts — "71 days", "10.1 weeks", "1 day until it
+starts" — and went red the moment the date rolled over, with nothing wrong in the
+app. Those assertions now derive their numbers from today's date, and fixtures
+anchor to the cut's own Monday rather than to `back(4)` and hoping today is a
+Friday. A test that fails every night is a test nobody reads.
