@@ -2490,6 +2490,27 @@ function renderWeight(m,c){
     if(m.band==='slow')h+=' Two weeks under the band before anything changes. Never cut calories for a plateau shorter than that.';
     h+='</div>';
   }
+  /* "Taper asks" is jargon until someone says what it is, and he had to ask. */
+  h+='<details style="margin-top:12px"><summary>What "the taper asks" means</summary>'+
+    '<p style="margin-top:8px">The taper is <b>the rate of loss the plan is aiming for</b>, written as a percentage of your bodyweight per week. '+
+    '"Asks" because it is a target the week is set against, not a rule you have broken if you miss it.</p>'+
+    '<p class="note">It slides from <b class="num">'+pct(CFG.w.taperA,1)+' a week</b> at the start of the block to <b class="num">'+pct(CFG.w.taperB,1)+'</b> at the end. '+
+    'That slide is the whole idea: <b>the leaner you get, the more of each pound comes out of muscle rather than fat</b>, so the plan asks for less as you go. '+
+    'And because it is a percentage of a weight that is falling, the pounds shrink twice over.</p>'+
+    (m.a7!==null?('<p class="note">Right now it is asking <b class="num">'+pct(m.taperNow)+'</b> of '+f1(m.a7)+' lb, which is <b class="num">'+f2(m.taperLb)+' lb</b> this week.</p>'):'')+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Week</th><th class="n">Asks</th><th class="n">'+(m.a7!==null?'lb at today&rsquo;s weight':'lb at 125 lb')+'</th></tr></thead><tbody>'+
+    (function(){
+      var ref=(m.a7!==null?m.a7:125),out='',wkNow=Math.max(1,Math.min(W_WEEKS,weekOf(c.t)));
+      for(var i=0;i<W_WEEKS;i++){
+        out+='<tr'+(i+1===wkNow?' style="color:var(--accent)"':'')+'><td>'+(i+1)+(i+1===wkNow?' <span class="pill a">now</span>':'')+'</td>'+
+          '<td class="n">'+pct(taperAt(i))+'</td><td class="n">'+f2(ref*taperAt(i))+'</td></tr>';
+      }
+      return out;
+    })()+
+    '</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px"><b>Hitting a smaller number in week nine than in week one is the plan working, not you slowing down.</b> '+
+    'The thing you are actually judged against is the safe band, '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1)+' — the taper is where inside that band the plan would like you to sit.</p>'+
+    '<p class="tiny">Nothing to do with tapering before a race. Different word, same spelling.</p></details>';
   h+='<p class="tiny" style="margin-top:10px"><b>Read the rate, not the position.</b> The curve is seeded from your own opening week, so a cut that runs fast from day one moves the target down underneath itself and reads as on schedule forever. Rate against taper catches that. Position against the curve does not.</p>';
   if(m.ahead)h+='<p class="tiny">For what it is worth: the plan has you at <b class="num">'+f1(m.ahead.plan)+'</b> today and the average is '+(m.ahead.by>=0?'<b class="num">'+f1(m.ahead.by)+' lb under</b>':'<b class="num">'+f1(-m.ahead.by)+' lb over</b>')+' it.</p>';
   if(m.a7!==null)h+='<p class="tiny">BMI at the current average: <b class="num">'+f2(bmiOf(m.a7))+'</b>. The floor is 121.6 lb — BMI 18.5 at 5\'8". Nothing here ever projects through it.</p>';

@@ -87,6 +87,27 @@ ok('it explains the minus-sign convention once', /a minus sign is weight going t
 ok('Average is named as the real weight', /This is your weight for the week/.test(t));
 ok('and Plan is not sold as a rule', /it is not a rule/.test(t));
 
+// ---- the taper explainer -------------------------------------------------
+await p.click('[data-t="weight"]');
+await p.$$eval('#wTop details', els => els.forEach(e => { e.open = true; }));
+const tp = await p.textContent('#wTop');
+ok('the taper is explained', /What "the taper asks" means/.test(tp), tp.slice(0, 200));
+ok('as a rate, not a rule', /it is a target the week is set against, not a rule/.test(tp));
+ok('it gives both ends of the slide', /0\.6% a week/.test(tp) && /0\.4%/.test(tp), tp.slice(tp.indexOf('slides'), tp.indexOf('slides') + 200));
+ok('and why it slides', /the more of each pound comes out of muscle/.test(tp));
+ok('and that the pounds shrink twice over', /shrink twice over/.test(tp));
+ok('it shows what it is asking right now', /Right now it is asking/.test(tp));
+const rows = await p.$$eval('#wTop details table.tbl tbody tr', els => els.map(e => e.textContent.trim()));
+ok('a row per week of the block', rows.length === await p.evaluate(() => W_WEEKS), rows.length + ' vs W_WEEKS');
+ok('the current week is marked', rows.some(r => /now/.test(r)), rows.join(' | ').slice(0, 200));
+const taps = await p.evaluate(() => { const o = []; for (let i = 0; i < W_WEEKS; i++) o.push(taperAt(i)); return o; });
+ok('the schedule really does descend', taps.every((v, i) => i === 0 || v <= taps[i - 1]), JSON.stringify(taps.map(v => +(v * 100).toFixed(2))));
+ok('starting at taperA and ending at taperB',
+  Math.abs(taps[0] - 0.006) < 1e-9 && Math.abs(taps[taps.length - 1] - 0.004) < 1e-9, JSON.stringify([taps[0], taps[taps.length - 1]]));
+ok('it says a smaller number later is the plan working', /is the plan working, not you slowing down/.test(tp));
+ok('and points at the band as the real judge', /the taper is where inside that band/.test(tp));
+ok('and heads off the race-taper confusion', /Different word, same spelling/.test(tp));
+
 // ---- nothing broke -------------------------------------------------------
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
   await p.click(`[data-t="${tab}"]`);
