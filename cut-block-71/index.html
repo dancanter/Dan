@@ -778,7 +778,13 @@ function weightModel(){
     var st=addD(WEIGH_START,(wk-1)*7), en=addD(st,6);
     var rs=cr.filter(function(r){return r.d>=st&&r.d<=en;});
     var avg=rs.length?mean(rs.map(function(r){return r.lb;})):null;
-    var plan=m.curve.length?m.curve[Math.min(wk,m.curve.length-1)]:null;
+    /* An average sits at the MIDDLE of the days it came from, so it has to be
+       judged against the curve at that middle — not against the end of the
+       week. Comparing a Mon-Sun mean to the Sunday target made every Diff read
+       about half a week of loss worse than it was. Same mistake as seeding the
+       baseline off a single morning, in a different place. */
+    var off=rs.length?mean(rs.map(function(r){return diffD(WEIGH_START,r.d);})):((wk-1)*7+3);
+    var plan=curveAtDays(m,off);
     m.weeks.push({wk:wk,start:st,end:en,n:rs.length,avg:avg,plan:plan,deload:isDeload(wk),
                   future:st>t,partial:st<=t&&en>t});
   }
@@ -814,14 +820,15 @@ function weightModel(){
   }
   return m;
 }
-function curveAt(m,is){
+function curveAtDays(m,days){
   if(!m.curve.length)return null;
-  var f=diffD(WEIGH_START,is)/7;
+  var f=days/7;
   if(f<0)f=0;if(f>W_WEEKS)f=W_WEEKS;
   var i=Math.floor(f),fr=f-i;
   if(i>=m.curve.length-1)return m.curve[m.curve.length-1];
   return m.curve[i]+(m.curve[i+1]-m.curve[i])*fr;
 }
+function curveAt(m,is){return curveAtDays(m,diffD(WEIGH_START,is));}
 
 /* ===================== training model ===================== */
 function fiveKPace(){return S.settings.fiveK/5;}
@@ -1174,7 +1181,11 @@ function buildReview(wk){
        prevAvg:prev.length?mean(prev.map(function(r){return r.lb;})):null};
   if(R.w.avg!==null&&R.w.prevAvg!==null){R.w.dLb=R.w.prevAvg-R.w.avg;R.w.dPct=R.w.dLb/R.w.prevAvg;}
   var m=weightModel();
-  R.w.plan=(typeof wk.k==='number'&&m.curve.length)?m.curve[Math.min(wk.k,m.curve.length-1)]:null;
+  /* same rule as the weekly table: the average is judged against the curve
+     where the average actually sits, not at the end of the week */
+  R.w.plan=(typeof wk.k==='number'&&m.curve.length)
+    ?curveAtDays(m,inw.length?mean(inw.map(function(r){return diffD(WEIGH_START,r.d);})):((wk.k-1)*7+3))
+    :null;
   R.w.taper=(typeof wk.k==='number')?taperAt(Math.max(0,wk.k-1)):null;
   R.w.verdict=(R.w.n<CFG.w.minReads)?'thin':(R.w.dPct===undefined?'first':(R.w.dPct<CFG.w.bandLo?'under':(R.w.dPct>CFG.w.bandHi?'over':'in')));
   /* lows and milestones */
@@ -2536,6 +2547,17 @@ function renderWeight(m,c){
       '<td class="n">'+(wk.dLb===undefined?'—':signed(-wk.dLb)+' lb / '+pct(-wk.dPct,2))+'</td><td>'+verdict+'</td></tr>';
   });
   tb+='</tbody></table></div>';
+  tb+='<details style="margin-top:10px"><summary>What each column means</summary>'+
+    '<table class="tbl" style="margin-top:8px"><tbody>'+
+    '<tr><td><b>Reads</b></td><td class="note">How many mornings you logged that week. Under '+CFG.w.minReads+' and the week gets no verdict — too few mornings to average.</td></tr>'+
+    '<tr><td><b>Average</b></td><td class="note">The mean of those mornings. <b>This is your weight for the week.</b> Any single morning is mostly water, food in transit and yesterday.</td></tr>'+
+    '<tr><td><b>Plan</b></td><td class="note">Where the taper says you should be, at the point in the week your average actually sits. It is not a prediction and it is not a rule — it is the line the block was drawn against.</td></tr>'+
+    '<tr><td><b>Diff</b></td><td class="note">Average minus Plan. <b class="gd">Negative means you are under the line</b>, which is ahead. Positive means above it. This is your <i>position</i>.</td></tr>'+
+    '<tr><td><b>Change</b></td><td class="note">What you lost against the week before, in pounds and as a percentage of bodyweight. <b class="gd">Negative means down.</b> This is your <i>rate</i>, and it is the one that matters.</td></tr>'+
+    '<tr><td><b>Verdict</b></td><td class="note">Change measured against the safe band, '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1)+' a week. Under it is slow, over it costs muscle, inside it is the job being done.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="tiny" style="margin-top:8px"><b>If Diff and Change disagree, believe Change.</b> The curve is seeded from your own opening week, so a cut that runs fast from day one drags the whole line down underneath itself and then reads as on schedule forever. Rate against the taper catches that; position against the curve does not.</p>'+
+    '<p class="tiny">Both Diff and Change are written the way the scale reads: <b>a minus sign is weight going the way you want</b>.</p></details>';
   tb+='<p class="tiny" style="margin-top:8px">The taper runs '+pct(CFG.w.taperA,1)+' a week at the start to '+pct(CFG.w.taperB,1)+' at the end. The leaner you get, the more of each pound comes out of muscle, so the same percentage costs more in week nine than in week one. <b>Hitting a smaller number later is the plan working, not slowing down.</b></p></div>';
   E('wTable').innerHTML=tb;
 
