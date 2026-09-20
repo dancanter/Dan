@@ -112,6 +112,38 @@ await pg.click('#btnAddBest');
 ok('a date in the future is refused', /has not happened yet/.test(await pg.textContent('#mbMsg')), await pg.textContent('#mbMsg'));
 await ctx.close();
 
+// ===================== a time he entered wins ==============================
+// His 20 Sep 3 km: Strava scales to 10:28.0, his watch read 10:29. He was
+// there. A measurement must not be overridden by a derived number.
+({ ctx, pg } = await open(st({
+  bests: { '3000': { t: 629, d: '2026-09-20', n: '3km all out', src: 'you' } },
+  days: { '2026-09-20': { runs: [{ type: 'threshold', km: 3.01, secs: 630, note: '3km all out' }] } }
+}), null));
+await pg.evaluate(() => {
+  LIVE = [{ id: '1', d: '2026-09-20', name: '3km all out', dist: 3009.6, mov: 630, ela: 630 }];
+  render();
+});
+const k3 = await pg.evaluate(() => {
+  const rec = records(), pair = bestAt(3000, rec[3000]);
+  return { best: pair.best, other: pair.other, derived: rec[3000] };
+});
+ok('the derived 3 km is 10:28', Math.round(k3.derived.t) === 628, JSON.stringify(k3.derived));
+ok('but his own 10:29 leads', k3.best.t === 629 && k3.best.src === 'you', JSON.stringify(k3.best));
+ok('and it is called a single effort', k3.best.kind === 'single effort', k3.best.kind);
+ok('the derived one is still shown, not hidden', k3.other && Math.round(k3.other.t) === 628, JSON.stringify(k3.other));
+ok('a continuous run is not mislabelled a session average',
+  k3.derived.single === true && k3.other.kind === 'single effort', JSON.stringify({ s: k3.derived.single, k: k3.other.kind }));
+// A rep session must still read as an average. 200m is the distance to check:
+// at 400m his single 59 rightly leads, so "single effort" there is correct.
+const r200 = await pg.evaluate(() => { const r = records()[200]; return { single: r.single, kind: bestAt(200, r).best.kind }; });
+ok('a rep average still says session average',
+  r200.single === false && r200.kind === 'session average', JSON.stringify(r200));
+// and without a manual entry the faster derived number leads again
+({ ctx: ctx, pg: pg } = (await ctx.close(), await open(st({}), null)));
+const noManual = await pg.evaluate(() => bestAt(400, records()[400]).best);
+ok('with nothing entered, the fastest evidence still leads', noManual.t === 59, JSON.stringify(noManual));
+await ctx.close();
+
 // ===================== the trimmed Wins tab ================================
 ({ ctx, pg } = await open(st({ days: { [back(0)]: { gym: true, runs: [{ k: 'reps', dm: 400, n: 4, secs: 250 }] } } }), null));
 await pg.click('[data-t="wins"]');

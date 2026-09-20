@@ -1151,27 +1151,29 @@ function pullSingles(){
 /* the year's records: verified table, plus anything the sessions or Strava beat */
 function records(){
   var out={};
-  function put(dm,t,date,label,src){
+  /* `single` marks a one-off effort as opposed to a rep average, so a
+     continuous 3 km is not labelled "session average" on the board. */
+  function put(dm,t,date,label,src,single){
     if(!(t>0))return;
-    if(!out[dm]||t<out[dm].t)out[dm]={t:t,date:date,label:label,src:src};
+    if(!out[dm]||t<out[dm].t)out[dm]={t:t,date:date,label:label,src:src,single:!!single};
   }
   Object.keys(BESTAVG).forEach(function(k){
-    var dm=+k;out[dm]={t:BESTAVG[dm],date:BAKED_DATE[dm]||null,label:'verified 2026 best',src:'table'};
+    var dm=+k;out[dm]={t:BESTAVG[dm],date:BAKED_DATE[dm]||null,label:'verified 2026 best',src:'table',single:false};
   });
   SESS.forEach(function(r){
     if(!r[2]||!r[3])return;
     var c=classifyRun(r[2],r[3],null,r[4]==='reps'?'reps':'cont',r[1]);
-    if(c)put(c.dm,c.norm,r[0],r[1],'session');
+    if(c)put(c.dm,c.norm,r[0],r[1],'session',c.n===1);
   });
   LIVE.forEach(function(a){
     var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);
-    if(c)put(c.dm,c.norm,a.d,a.name,'strava');
+    if(c)put(c.dm,c.norm,a.d,a.name,'strava',c.n===1);
   });
   /* What he logs in the cut has to be able to beat the table, or the whole
      Speed board is a museum of things that happened before the block. */
   eachRun(function(r,d){
     var m=runMeta(r);
-    if(m.dm&&m.repAvg!==null)put(m.dm,m.repAvg,d,m.label,'logged');
+    if(m.dm&&m.repAvg!==null)put(m.dm,m.repAvg,d,m.label,'logged',m.n===1);
   });
   /* first effort of the year at each distance, for the progress bar */
   var firsts={};
@@ -1180,7 +1182,7 @@ function records(){
   LIVE.forEach(function(a){var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);if(c)scanFirst(a.d,c.dm,c.norm);});
   eachRun(function(r,d){var m=runMeta(r);if(m.dm&&m.repAvg!==null)scanFirst(d,m.dm,m.repAvg);});
   Object.keys(out).forEach(function(k){out[k].first=firsts[k]||null;});
-  BENCH.forEach(function(dm){if(!out[dm])out[dm]={t:null,date:null,label:'nothing this year',src:'none',first:firsts[dm]||null};});
+  BENCH.forEach(function(dm){if(!out[dm])out[dm]={t:null,date:null,label:'nothing this year',src:'none',single:false,first:firsts[dm]||null};});
   return out;
 }
 function singleBest(dm){
@@ -1203,9 +1205,18 @@ function singleBest(dm){
    off the slower number too — 6.3 s to go at 400m when it is really 4. The rep
    average is still shown; it just stops being the headline. */
 function bestAt(dm,rec){
-  var a=(rec&&rec.t>0)?{t:rec.t,kind:'session average',date:rec.date,label:rec.label,src:rec.src}:null;
+  var a=(rec&&rec.t>0)?{t:rec.t,kind:rec.single?'single effort':'session average',
+                        date:rec.date,label:rec.label,src:rec.src}:null;
   var s=singleBest(dm);
   var b=s?{t:s.t,kind:'single effort',date:s.d,label:s.n,src:s.src}:null;
+  /* A time he typed in himself is a MEASUREMENT — he was there with a watch.
+     Everything else here is derived: a rep average, or a distance scaled to
+     the benchmark on the assumption that pace held through the final metres,
+     which is exactly where it does not, because that is where the kick is.
+     His 3 km scales to 10:28.0 and his watch read 10:29. The watch wins. */
+  if(b&&b.src==='you'){
+    return {best:b,other:(a&&Math.abs(a.t-b.t)>=0.05)?a:null};
+  }
   if(a&&b){
     var pair=(b.t<=a.t)?{best:b,other:a}:{best:a,other:b};
     /* When the single and the rep average are the same number — a 5 km is one
