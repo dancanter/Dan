@@ -385,6 +385,9 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TRAINING ================= -->
 <section id="s-training" class="stack" hidden>
   <div id="tWeek"></div>
+  <div id="tPlan"></div>
+  <div id="tMix"></div>
+  <div id="tRest"></div>
   <div id="tEffort"></div>
   <div id="tSteps"></div>
   <div id="tHistory"></div>
@@ -1722,6 +1725,124 @@ function renderFuel(tr){
   E('foodFuel').innerHTML=all;
 }
 
+/* ===================== what moves each time =====================
+   Session SHAPES and what each one develops. Deliberately no paces and no rest
+   intervals anywhere in here: prescribing those has backfired before, and the
+   shape of a session is the part that decides what it trains anyway. */
+var PLAN={
+  200:{limiter:'Pure speed and how well you hold form at the top end. Over 200m there is nowhere to hide and nothing to pace.',
+    does:['Short flat sprints with as much recovery as you want between them — the point is that every one is fast, not that it hurts.',
+          'Flying starts: roll into it over 20–30m so the rep is run at speed rather than spent getting up to it.',
+          'Your 100m uphill sprints. Hills build the force without the braking, which is why they are kinder on the hamstrings.'],
+    note:'This is your closest target and it is the one least affected by the deficit — speed work is short enough that low glycogen barely touches it.'},
+  400:{limiter:'Speed endurance. You already have the speed; the 400 is decided by how little you lose in the last 120m.',
+    does:['<b>300m reps</b> — the classic 400 session. Long enough to rehearse the last bend, short enough to run properly.',
+          '<b>500m and 600m reps.</b> Over-distance. Your 59 came inside a 4 × 600, which is your own evidence that they work.',
+          'Broken 400s — split the distance with a short break so you can run both halves faster than you could run them joined up.',
+          '200s for the top-end speed the 400 is built on.'],
+    note:'You have done a lot of 400s and 200s this year. The over-distance work is the part that has gone quiet.'},
+  800:{limiter:'The middle. It needs the 400 speed you already have and an aerobic base you have not built much of.',
+    does:['<b>600m reps</b> — close enough to race distance to matter, short enough to hold shape.',
+          '<b>1 km reps</b>, which you already do well.',
+          'Broken 800s — 400 + 400 with a short break, or 600 + 200.',
+          'Actual 800 sessions. You have done four all year.'],
+    note:'You have never run a flat-out 800 in 2026. The 2:32 is a rep average and the 2:24 is a 805m split from inside a 5 × 1 km. Your real 800 is a genuine unknown, and probably nearer 2:25.'},
+  1000:{limiter:'Aerobic power. This is where the engine starts to matter more than the legs.',
+    does:['<b>5 × 1 km</b> — you have done this and it is the session that produced the 3:00.',
+          '600m reps for the speed end of it.',
+          '1,200m reps: long enough that pacing becomes the skill.'],
+    note:'Your 3:00 came inside a 5 × 1 km rather than as a standalone effort. A single one, fresh, would already be quicker than that.'},
+  1609:{limiter:'Both ends at once — it needs 800 speed and 5 km endurance, which is why it is the furthest away.',
+    does:['1 km reps and 1,200s.',
+          'Longer continuous hard running, which builds the part of the mile that is not speed.',
+          'A mile broken into 4 × 400 with short breaks, to feel the whole distance at pace.'],
+    note:'The 5:27 came from inside a 5 km, so it was never a mile effort. Treat it as a floor, not a best.'},
+  5000:{limiter:'Aerobic capacity, and almost nothing else. Your own numbers prove it.',
+    does:['<b>More easy volume.</b> This is the thin part of your year — one run over 9 km in 2026.',
+          'Continuous hard running, the 5 km threshold sessions you already do.',
+          '<b>5 × 1 km</b> and 2 km reps.',
+          '3 km reps — you have not done a single 3 km effort this year.'],
+    note:'You can run a kilometre in 3:00, which is 15:00 5 km pace. You are nowhere near speed-limited at this distance. The gap is the engine, and engines are built with volume and time, which is exactly what a ten-week deficit is worst at giving you. This is mostly a reverse-phase target and it is honest to say so.'}
+};
+/* What he has actually been running, by rep distance, from the 2026 record
+   plus anything logged in the block. A distance he used to do and has stopped
+   doing is the most actionable thing on this page. */
+function distFreq(){
+  var out={};
+  function put(dm,d){
+    if(!out[dm])out[dm]={n:0,last:null};
+    out[dm].n++;
+    if(!out[dm].last||d>out[dm].last)out[dm].last=d;
+  }
+  SESS.forEach(function(r){
+    var x=repsFromName(r[1]);
+    if(!x||!x.d)return;
+    var nb=nearestBench(x.d);
+    if(nb)put(nb.dm,r[0]);
+  });
+  eachRun(function(r,d){var m=runMeta(r);if(m.dm)put(m.dm,d);});
+  return out;
+}
+var COLD_DAYS=42;
+function goneCold(){
+  var f=distFreq(),t=today(),out=[];
+  for(var k in f){
+    var age=diffD(f[k].last,t);
+    if(f[k].n>=2&&age>=COLD_DAYS)out.push({dm:+k,n:f[k].n,last:f[k].last,age:age});
+  }
+  out.sort(function(a,b){return b.age-a.age;});
+  return out;
+}
+function catOfSession(name,distM,secs,kind){
+  var r=repsFromName(name);
+  if(r&&r.d>0){
+    if(r.d<=200)return 'speed';
+    if(r.d<=600)return 'speedEnd';
+    if(r.d<=1609)return 'vo2';
+    return 'threshold';
+  }
+  if(/ladder/i.test(String(name)))return 'speedEnd';
+  if(kind==='reps')return 'speedEnd';
+  var p=(distM>0&&secs>0)?secs/(distM/1000):null;
+  if(p===null)return null;
+  return p<=effortLine()?'threshold':'aerobic';
+}
+var MIX_LABEL={speed:'Speed — 100–200m',speedEnd:'Speed endurance — 300–600m',
+               vo2:'Aerobic power — 800m–1 mile',threshold:'Threshold — continuous hard',
+               aerobic:'Easy and long'};
+function mixModel(){
+  var m={speed:0,speedEnd:0,vo2:0,threshold:0,aerobic:0},total=0;
+  SESS.forEach(function(r){
+    var c=catOfSession(r[1],r[2],r[3],r[4]);
+    if(c){m[c]++;total++;}
+  });
+  eachRun(function(r){
+    var q=runMeta(r);
+    if(q.empty)return;
+    var c;
+    if(q.kind==='reps')c=(q.dm===null?'speedEnd':(q.dm<=200?'speed':(q.dm<=600?'speedEnd':(q.dm<=1609?'vo2':'threshold'))));
+    else c=q.hard?'threshold':'aerobic';
+    m[c]++;total++;
+  });
+  return {counts:m,total:total,
+          longest:SESS.reduce(function(a,r){return (r[2]&&r[2]>a)?r[2]:a;},0)};
+}
+/* Hard sessions on consecutive days. The adaptation happens in the gap, so
+   this is the one scheduling mistake worth naming — and his own log has it. */
+function backToBack(){
+  var hard={},pairs=[];
+  SESS.forEach(function(r){
+    var c=catOfSession(r[1],r[2],r[3],r[4]);
+    if(c&&c!=='aerobic')hard[r[0]]=r[1];
+  });
+  eachRun(function(r,d){var q=runMeta(r);if(!q.empty&&q.hard)hard[d]=q.label;});
+  Object.keys(hard).sort().forEach(function(d){
+    var prev=addD(d,-1);
+    if(hard[prev])pairs.push({a:prev,b:d,an:hard[prev],bn:hard[d]});
+  });
+  return pairs;
+}
+
 /* ===================== TDEE, built out of the day itself =====================
    Every coefficient here is net of resting metabolism, so the BMR term covers
    the whole 24 h and the activity terms sit on top without double counting.
@@ -2051,6 +2172,7 @@ function render(){
   renderFood(c,tr);
   renderFuel(tr);
   renderTraining(tr,c);
+  renderPlan();
   renderTimes();
   renderSleep();
   renderStudy(tr);
@@ -2727,6 +2849,96 @@ function renderStudy(tr){
     h+='</div>';
   }
   E('stTop').innerHTML=h;
+}
+
+/* ---------- what to run to beat each time ---------- */
+function renderPlan(){
+  var six=sixTargets().slice().sort(function(a,b){return a.pct-b.pct;});
+  var f=distFreq(),cold=goneCold(),t=today();
+
+  var h='<div class="p flag"><h2>What actually moves each time</h2>'+
+    '<p class="lede">Closest first. Each one names the limiter, then the session shapes that train it.</p>'+
+    '<p class="tiny">There are deliberately <b>no paces and no rest intervals</b> anywhere in here. You run on feel and prescribing numbers has backfired before — and the <i>shape</i> of a session is what decides what it trains anyway. How hard and how long you stand around is yours.</p>';
+  six.forEach(function(x){
+    var pl=PLAN[x.dm];if(!pl)return;
+    var fq=f[x.dm];
+    h+='<details style="margin-top:10px"><summary>'+repLabel(x.dm)+' — '+
+      (x.met?'target met':(x.best?secFmt(x.gap)+' to go, '+gapFeel(x.dm,x.gap):'nothing logged yet'))+'</summary>'+
+      '<p style="margin-top:8px"><b>The limiter:</b> '+pl.limiter+'</p>'+
+      '<ul class="clean note">'+pl.does.map(function(d){return '<li>'+d+'</li>';}).join('')+'</ul>'+
+      '<p class="tiny" style="margin-top:8px">'+pl.note+'</p>'+
+      (fq?'<p class="tiny">Your own record at this distance: <b>'+fq.n+' session'+(fq.n===1?'':'s')+'</b>, most recently '+fmtS(fq.last)+
+        ' — '+diffD(fq.last,t)+' days ago.</p>':'<p class="tiny">No rep sessions at this distance on file.</p>')+
+      '</details>';
+  });
+  h+='</div>';
+
+  if(cold.length){
+    h+='<div class="p warn"><h2>Sessions you used to do and have stopped</h2>'+
+      '<p class="lede">These are distances you have run at least twice this year and not touched in '+COLD_DAYS+'+ days.</p>'+
+      '<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Sessions</th><th>Last one</th><th>Why it matters</th></tr></thead><tbody>'+
+      cold.map(function(c){
+        var why=({100:'the 400 is built on top-end speed',200:'top-end speed for the 400',
+          300:'the single best 400m session there is',400:'your main target distance',
+          500:'over-distance for the 400',600:'over-distance for the 400 and race-distance for the 800',
+          800:'a target you have never run flat out',1000:'aerobic power, and it produced your 3:00',
+          1609:'the mile target',3000:'the 5 km engine',5000:'the 5 km itself'})[c.dm]||'';
+        return '<tr><td><b>'+repLabel(c.dm)+'</b></td><td class="n">'+c.n+'</td><td class="tiny">'+fmtS(c.last)+' · '+c.age+' days ago</td><td class="tiny">'+why+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<p class="tiny" style="margin-top:8px">Not a telling-off — a rotation drifts without anyone deciding it should. Putting one of these back in is usually worth more than doing another session you are already good at.</p></div>';
+  }
+  E('tPlan').innerHTML=h;
+
+  /* the mix */
+  var mx=mixModel(),keys=['speed','speedEnd','vo2','threshold','aerobic'];
+  var max=Math.max.apply(null,keys.map(function(k){return mx.counts[k];}))||1;
+  var mh='<div class="p"><h2>Your 2026 session mix · '+mx.total+' sessions</h2><table class="tbl"><tbody>';
+  keys.forEach(function(k){
+    var n=mx.counts[k],pc=mx.total?n/mx.total:0;
+    mh+='<tr><td style="width:44%">'+MIX_LABEL[k]+'</td><td class="n">'+n+'</td>'+
+      '<td style="width:40%"><div class="track"><i style="width:'+(n/max*100).toFixed(0)+'%"></i></div></td>'+
+      '<td class="n tiny">'+Math.round(pc*100)+'%</td></tr>';
+  });
+  mh+='</tbody></table>'+
+    '<p class="tiny" style="margin-top:10px"><b>The shape of that is a track runner\'s year, and your targets are not all track targets.</b> '+
+    'The 5 km wants the bottom two rows and they are the two smallest. Your longest run of 2026 is '+f1(mx.longest/1000)+' km.</p>'+
+    '<p class="tiny">Said plainly: you are well trained for the 200 and the 400 and under-trained for the 5 km, and the 5 km is the biggest gap on the board. '+
+    'That is not an argument for abandoning the reps — it is an argument for the easy running being real training rather than filler.</p></div>';
+  E('tMix').innerHTML=mh;
+
+  /* rest and adaptation */
+  var b2b=backToBack(),recent=b2b.filter(function(x){return diffD(x.b,t)<=120;});
+  var rh='<div class="p"><h2>Rest, and where the fitness is actually made</h2>'+
+    '<p class="lede">The session is the stimulus. <b>The fitness is built in the 24–72 hours afterwards</b>, while you are doing nothing. Training without that gap gives you the fatigue of both sessions and the adaptation of about one.</p>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td><b>Supercompensation</b></td><td class="note">Right after a hard session you are worse than when you started. Then you recover, and then you rise slightly above where you began. That rise is the whole point, and it arrives days later — which is why testing yourself in the dip tells you nothing except that you are tired.</td></tr>'+
+    '<tr><td><b>Why 48 hours</b></td><td class="note">A hard session leaves you needing roughly two days before the next one lands properly. Back-to-back hard days are not twice the training; they are one good session and one session run on the fatigue of the first.</td></tr>'+
+    '<tr><td><b>On a deficit it is slower</b></td><td class="note">Less glycogen to replace it with, more cortisol, and repair competing with a calorie shortfall. The same session you have always done costs more to come back from right now. That is a reason to space them, not a reason to do fewer.</td></tr>'+
+    '<tr><td><b>The deloads</b></td><td class="note">Weeks '+CFG.deloadWeeks.join(' and ')+' exist for this. Sessions come down, the food does not move. A deload is where accumulated work turns into fitness.</td></tr>'+
+    '<tr><td><b>Sleep</b></td><td class="note">The largest recovery lever there is, and the one you already named as most important. Growth hormone, tissue repair and glycogen resynthesis all run overnight.</td></tr>'+
+    '</tbody></table>'+
+    '<hr class="d"><h2>How to tell you have not recovered</h2>'+
+    '<ul class="clean note">'+
+    '<li>The same effort produces a slower time — the clearest signal there is, and the app is already watching it.</li>'+
+    '<li>The warm-up feels like the session.</li>'+
+    '<li>Sleep gets worse rather than better after a hard day.</li>'+
+    '<li>The same weight in the gym feels heavier for no reason.</li>'+
+    '<li>You stop wanting to do the session. Motivation drops before performance does.</li>'+
+    '</ul>';
+  if(recent.length){
+    rh+='<hr class="d"><div class="p warn" style="box-shadow:none"><b>'+recent.length+' time'+(recent.length===1?'':'s')+
+      ' in the last four months you did hard sessions on consecutive days.</b><ul class="clean tiny" style="margin-top:6px">'+
+      recent.slice(-4).map(function(x){
+        return '<li>'+fmtS(x.a)+' <i>'+esc(String(x.an).slice(0,44))+'</i> → '+fmtS(x.b)+' <i>'+esc(String(x.bn).slice(0,44))+'</i></li>';
+      }).join('')+'</ul>'+
+      '<p class="tiny" style="margin-top:6px">Your own note on the 10 September session says it: "very intense day after legs and a hard session". '+
+      'That is the pattern to break — and it is the cheapest improvement available, because it costs no extra work.</p></div>';
+  }
+  rh+='<hr class="d"><h2>Before you actually go for a time</h2>'+
+    '<p class="note">Volume down for about a week, a little intensity kept in so you do not go flat, and a genuinely easy day or two immediately before. '+
+    'You cannot build fitness in the last week but you can absolutely lose the freshness that shows it. '+
+    'The Reverse tab stages the real attempts — nothing in the first week, the 400 at weeks three to four, the 5 km later.</p></div>';
+  E('tRest').innerHTML=rh;
 }
 
 /* ---------- TDEE and the deficit ---------- */
