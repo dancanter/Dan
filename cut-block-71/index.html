@@ -855,12 +855,28 @@ function refCandidates(){
   }
   for(var k in SINGLE)put(+k,SINGLE[k].t,SINGLE[k].d,SINGLE[k].n);
   for(var j in S.bests){var x=S.bests[j];if(x)put(+j,x.t,x.d,x.n||'');}
+  /* Runs off Strava. classifyRun never consults the effort line, so this is
+     safe here — and it is the path that matters: an all-out 3 km syncs and
+     lifts the reference on its own, which is the whole point of deriving it.
+     A rep session classifies at its rep distance, which is under 1500m and so
+     drops out; an easy long run classifies honestly and simply loses. */
+  LIVE.forEach(function(a){
+    var c=classifyRun(a.dist,a.mov,a.ela,null,a.name);
+    if(c&&c.n===1)put(c.dm,c.norm,a.d,a.name);
+  });
   for(var d in S.days){
     var rs=S.days[d].runs||[];
     for(var i=0;i<rs.length;i++){
-      if(rs[i].k!=='reps')continue;              /* reps only — no effortLine */
-      var m=runMeta(rs[i]);
-      if(m.dm&&rs[i].best>0)put(m.dm,rs[i].best,d,m.label);
+      var r=rs[i];
+      if(r.k==='reps'){
+        var m=runMeta(r);                        /* the reps branch never reads effortLine */
+        if(m.dm&&r.best>0)put(m.dm,r.best,d,m.label);
+      }else if(r.km>0&&r.secs>0){
+        /* measured straight off the row rather than through runMeta, whose
+           continuous branch would call back into the effort line */
+        var nb=nearestBench(r.km*1000);
+        if(nb)put(nb.dm,r.secs,d,r.note||'');
+      }
     }
   }
   out.sort(function(a,b){return a.eq-b.eq;});

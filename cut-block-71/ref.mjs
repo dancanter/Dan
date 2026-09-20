@@ -79,6 +79,49 @@ ok('back to automatic restores the derived value', back.manual === false && back
 ok('and the predictor says yes again',
   /Yes, this updates as you get better/.test(await p.textContent('#tPredict')));
 
+// ---- a real effort, logged or synced, lifts the reference ---------------
+// His actual 20 Sep run: 3,009.6 m in 630 s, all out.
+await boot(st({ days: { '2026-09-20': { sleep: 8,
+  runs: [{ type: 'threshold', km: 3.01, secs: 630, note: '3km all out' }] } } }));
+const k3 = await p.evaluate(() => ({ ref: fiveKRef(), auto: refAuto(),
+  cands: refCandidates().map(c => [c.dm, Math.round(c.t), Math.round(c.eq)]) }));
+ok('a logged 3 km effort becomes a reference candidate',
+  k3.cands.some(c => c[0] === 3000 && c[1] === 630), JSON.stringify(k3.cands));
+ok('worth about 18:03 over 5 km',
+  Math.abs(k3.cands.filter(c => c[0] === 3000)[0][2] - 1083) < 4, JSON.stringify(k3.cands));
+ok('which beats the 18:05 and takes over the reference',
+  k3.auto.dm === 3000 && k3.ref < 1085, JSON.stringify({ ref: k3.ref, dm: k3.auto.dm }));
+ok('and every prediction moves with it',
+  (await p.evaluate(() => predictAt(3000))) < 631, String(await p.evaluate(() => predictAt(3000))));
+
+// the same run arriving through the Strava sync rather than the log
+await boot(st({}));
+await p.evaluate(() => {
+  LIVE = [{ id: '1', d: '2026-09-20', name: '3km all out', dist: 3009.6, mov: 630, ela: 630 }];
+  render();
+});
+const viaLive = await p.evaluate(() => ({ ref: fiveKRef(), auto: refAuto() }));
+ok('a synced 3 km does the same', viaLive.auto && viaLive.auto.dm === 3000 && viaLive.ref < 1085,
+  JSON.stringify(viaLive));
+
+// an easy long run off Strava must not win
+await p.evaluate(() => {
+  LIVE = [{ id: '2', d: '2026-08-24', name: '8km economy', dist: 8010.4, mov: 1958, ela: 1958 }];
+  render();
+});
+const easy = await p.evaluate(() => ({ ref: fiveKRef(), auto: refAuto() }));
+ok('an easy 8 km loses to the 18:05 rather than dragging it down',
+  easy.ref === 1085 && easy.auto.dm === 5000, JSON.stringify(easy));
+
+// a rep session off Strava must not set it either
+await p.evaluate(() => {
+  LIVE = [{ id: '3', d: '2026-09-10', name: '3 x 400 m', dist: 1220.2, mov: 187, ela: 1770 }];
+  render();
+});
+ok('a rep session never becomes the reference',
+  (await p.evaluate(() => refCandidates().every(c => c.dm !== 400))) && (await p.evaluate(() => fiveKRef())) === 1085,
+  JSON.stringify(await p.evaluate(() => refCandidates().map(c => c.dm))));
+
 // ---- no recursion, and no stack blowup ----------------------------------
 await boot(st({ days: { '2026-09-20': { runs: [{ type: 'threshold', km: 5, secs: 1100 }] } } }));
 const safe = await p.evaluate(() => {
