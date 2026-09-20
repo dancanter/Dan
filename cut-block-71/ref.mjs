@@ -85,14 +85,31 @@ await boot(st({ days: { '2026-09-20': { sleep: 8,
   runs: [{ type: 'threshold', km: 3.01, secs: 630, note: '3km all out' }] } } }));
 const k3 = await p.evaluate(() => ({ ref: fiveKRef(), auto: refAuto(),
   cands: refCandidates().map(c => [c.dm, Math.round(c.t), Math.round(c.eq)]) }));
+// 3,009.6 m in 630 s is NOT a 630 s 3 km — the overrun cost 2 s, and his
+// watch read 10:28 at the 3 km mark. The logged path must normalise like the
+// synced one, or it charges him for distance he did not need to run.
 ok('a logged 3 km effort becomes a reference candidate',
-  k3.cands.some(c => c[0] === 3000 && c[1] === 630), JSON.stringify(k3.cands));
-ok('worth about 18:03 over 5 km',
-  Math.abs(k3.cands.filter(c => c[0] === 3000)[0][2] - 1083) < 4, JSON.stringify(k3.cands));
+  k3.cands.some(c => c[0] === 3000), JSON.stringify(k3.cands));
+ok('normalised to 3,000 m, not the raw 630',
+  k3.cands.filter(c => c[0] === 3000)[0][1] === 628, JSON.stringify(k3.cands));
+ok('worth about 17:59 over 5 km',
+  Math.abs(k3.cands.filter(c => c[0] === 3000)[0][2] - 1079) < 3, JSON.stringify(k3.cands));
 ok('which beats the 18:05 and takes over the reference',
   k3.auto.dm === 3000 && k3.ref < 1085, JSON.stringify({ ref: k3.ref, dm: k3.auto.dm }));
 ok('and every prediction moves with it',
   (await p.evaluate(() => predictAt(3000))) < 631, String(await p.evaluate(() => predictAt(3000))));
+
+// the logged row and the synced activity must agree on the same run
+await p.evaluate(() => {
+  LIVE = [{ id: '1', d: '2026-09-20', name: '3km all out', dist: 3009.6, mov: 630, ela: 630 }];
+  render();
+});
+const agree = await p.evaluate(() => {
+  const c = refCandidates().filter(x => x.dm === 3000).map(x => Math.round(x.t));
+  return { times: c, spread: Math.max.apply(null, c) - Math.min.apply(null, c) };
+});
+ok('the logged and synced versions of one run give the same 3 km time',
+  agree.spread === 0, JSON.stringify(agree));
 
 // the same run arriving through the Strava sync rather than the log
 await boot(st({}));

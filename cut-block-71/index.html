@@ -872,10 +872,17 @@ function refCandidates(){
         var m=runMeta(r);                        /* the reps branch never reads effortLine */
         if(m.dm&&r.best>0)put(m.dm,r.best,d,m.label);
       }else if(r.km>0&&r.secs>0){
-        /* measured straight off the row rather than through runMeta, whose
-           continuous branch would call back into the effort line */
+        /* Measured straight off the row rather than through runMeta, whose
+           continuous branch would call back into the effort line.
+
+           NORMALISE to the benchmark, the way classifyRun does for a synced
+           run. A 3 km is almost never exactly 3,000 m: his 20 Sep run was
+           3,009.6 m in 630 s, and using 630 as the 3 km time charges him the
+           2 s the extra 9.6 m cost. His watch read 10:28 at 3 km and it was
+           right. Scaling gives the same answer, and the synced and logged
+           paths now agree instead of differing by the overrun. */
         var nb=nearestBench(r.km*1000);
-        if(nb)put(nb.dm,r.secs,d,r.note||'');
+        if(nb)put(nb.dm,r.secs*nb.dm/(r.km*1000),d,r.note||'');
       }
     }
   }
