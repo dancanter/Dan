@@ -645,6 +645,7 @@ function normalise(x){
   if(!s.settings||typeof s.settings!=='object')s.settings={};
   if(typeof s.settings.hideDaily!=='boolean')s.settings.hideDaily=false;
   if(typeof s.settings.fiveK!=='number')s.settings.fiveK=1085;
+  if(typeof s.settings.fiveKManual!=='boolean')s.settings.fiveKManual=false;
   if(!s.bests||typeof s.bests!=='object')s.bests={};
   if(typeof s.updatedAt!=='number')s.updatedAt=0;
   return s;
@@ -832,7 +833,51 @@ function curveAtDays(m,days){
 function curveAt(m,is){return curveAtDays(m,diffD(WEIGH_START,is));}
 
 /* ===================== training model ===================== */
-function fiveKPace(){return S.settings.fiveK/5;}
+/* The reference every prediction and the effort line hang off. It used to be
+   a number typed once, which meant it went stale the moment he got quicker —
+   and the whole point is that it should move on its own.
+
+   It now takes the fastest 5 km-EQUIVALENT of any real single effort he has
+   at 1500m or more, so running a quick mile lifts it without touching a
+   setting. Below 1500m nothing qualifies: Riegel does not reach into sprints,
+   and a fast 200 says nothing about a 5 km.
+
+   The sources are deliberately ones that CANNOT call back into the effort
+   line — Strava's own best efforts, bests he entered, and the best-rep field
+   on logged rep sessions. runMeta consults effortLine for continuous runs, so
+   reading those here would be a loop. REF_BUSY guards it anyway. */
+var REF_MIN_M=1500, REF_FALLBACK=1085, REF_BUSY=false;
+function refCandidates(){
+  var out=[];
+  function put(dm,t,date,label){
+    if(!(dm>=REF_MIN_M)||!(t>0))return;
+    out.push({dm:dm,t:t,date:date||null,label:label||'',eq:riegel(t,dm,5000)});
+  }
+  for(var k in SINGLE)put(+k,SINGLE[k].t,SINGLE[k].d,SINGLE[k].n);
+  for(var j in S.bests){var x=S.bests[j];if(x)put(+j,x.t,x.d,x.n||'');}
+  for(var d in S.days){
+    var rs=S.days[d].runs||[];
+    for(var i=0;i<rs.length;i++){
+      if(rs[i].k!=='reps')continue;              /* reps only — no effortLine */
+      var m=runMeta(rs[i]);
+      if(m.dm&&rs[i].best>0)put(m.dm,rs[i].best,d,m.label);
+    }
+  }
+  out.sort(function(a,b){return a.eq-b.eq;});
+  return out;
+}
+function refAuto(){var c=refCandidates();return c.length?c[0]:null;}
+function fiveKRef(){
+  if(S.settings.fiveKManual&&typeof S.settings.fiveK==='number')return S.settings.fiveK;
+  if(REF_BUSY)return (typeof S.settings.fiveK==='number')?S.settings.fiveK:REF_FALLBACK;
+  REF_BUSY=true;
+  var a=null;
+  try{a=refAuto();}catch(e){a=null;}
+  REF_BUSY=false;
+  if(a)return Math.round(a.eq);
+  return (typeof S.settings.fiveK==='number')?S.settings.fiveK:REF_FALLBACK;
+}
+function fiveKPace(){return fiveKRef()/5;}
 function thresholdPace(){return fiveKPace()*0.945/0.88;}
 function effortLine(){return thresholdPace()*1.10;}
 function paceOf(r){return (r.km>0&&r.secs>0)?r.secs/r.km:null;}
@@ -1752,7 +1797,7 @@ var PREDICT_MIN_M=800;
 function riegel(t1,d1,d2){return t1*Math.pow(d2/d1,RIEGEL);}
 function predictAt(dm){
   if(!(dm>=PREDICT_MIN_M))return null;
-  return riegel(S.settings.fiveK,5000,dm);
+  return riegel(fiveKRef(),5000,dm);
 }
 
 /* ===================== what moves each time =====================
@@ -2703,14 +2748,41 @@ function renderTraining(tr,c){
 
   var thr=thresholdPace(),line=effortLine();
   var e='<div class="p"><h2>Judge an effort by pace, not by what it was filed as</h2><div class="tiles t4">'+
-    tile('5 km reference',mmss(S.settings.fiveK),'current fitness')+
+    tile('5 km reference',mmss(fiveKRef()),S.settings.fiveKManual?'set by you':'automatic, from your best effort')+
     tile('threshold',pace(thr),'≈ 88% of VDOT')+
     tile('effort line',pace(line),'10% the slow side of threshold')+
     tile('ratio, not seconds','×1.10','so it moves as you get fitter')+
     '</div>'+
     '<p class="tiny" style="margin-top:10px">The same 8 km is a shakeout at 4:50/km and a quality session at 4:05, and the file cannot tell them apart. Your own 8 kms sort cleanly: 4:05 the day you meant it, 4:39 a fun run with one quick km in it, 4:46 and 5:09 genuinely easy. A flat margin in seconds would drift into catching easy runs by the end of the block — a ratio does not.</p>'+
     '<p class="tiny"><b>No pace, no opinion.</b> A run logged without a distance and time is counted as filed and marked as such.</p>'+
-    '<div class="row" style="margin-top:10px"><div class="f" style="max-width:150px"><label for="in5k">5 km reference (mm:ss)</label><input type="text" id="in5k" value="'+mmss(S.settings.fiveK)+'"></div><button class="btn ghost sm" id="btn5k" type="button">Update the line</button></div></div>';
+    (function(){
+      var a=refAuto(),cands=refCandidates();
+      var out='<hr class="d"><h2>Where this number comes from</h2>';
+      if(S.settings.fiveKManual){
+        out+='<p class="note"><b>You set it by hand at '+mmss(S.settings.fiveK)+'</b>, so it stays there until you change it — it will not move as you get quicker.'+
+          (a?' Automatically it would read <b class="num">'+mmss(Math.round(a.eq))+'</b>, off your '+secFmt(a.t)+' at '+repLabel(a.dm)+(a.date?' on '+fmtS(a.date):'')+'.':'')+'</p>';
+      }else if(a){
+        out+='<p class="note"><b>It updates on its own.</b> It is the fastest 5 km-equivalent of any real single effort you have at '+REF_MIN_M+'m or more — right now that is your '+
+          '<b class="num">'+secFmt(a.t)+'</b> at '+repLabel(a.dm)+(a.date?' on '+fmtS(a.date):'')+', which is worth <b class="num">'+mmss(Math.round(a.eq))+'</b> over 5 km. '+
+          'Run something quicker at any of those distances — or pull a faster best off Strava — and this moves by itself, and every prediction on the page moves with it.</p>';
+      }else{
+        out+='<p class="note">No single effort at '+REF_MIN_M+'m or more on file yet, so it is sitting on the fallback of '+mmss(REF_FALLBACK)+'.</p>';
+      }
+      if(cands.length>1){
+        out+='<div class="scroll"><table class="tbl"><thead><tr><th>Effort</th><th class="n">Time</th><th>Date</th><th class="n">Worth over 5 km</th></tr></thead><tbody>'+
+          cands.slice(0,5).map(function(x,i){
+            return '<tr'+(i?'':' style="color:var(--accent)"')+'><td>'+repLabel(x.dm)+(i?'':' <span class="pill a">used</span>')+'</td>'+
+              '<td class="n">'+secFmt(x.t)+'</td><td class="tiny">'+(x.date?fmtS(x.date):'—')+'</td><td class="n">'+mmss(Math.round(x.eq))+'</td></tr>';
+          }).join('')+'</tbody></table></div>'+
+          '<p class="tiny" style="margin-top:6px">The quickest equivalent wins, which is why an easy 8 km never drags it down — it simply loses to a real effort.</p>';
+      }
+      out+='<p class="tiny">Sprints are left out on purpose: below '+REF_MIN_M+'m the equivalence does not hold, and a quick 200 says nothing about a 5 km.</p>';
+      return out;
+    })()+
+    '<div class="row" style="margin-top:10px"><div class="f" style="max-width:150px"><label for="in5k">Override (mm:ss)</label><input type="text" id="in5k" value="'+mmss(fiveKRef())+'"></div>'+
+    '<button class="btn ghost sm" id="btn5k" type="button">Set it by hand</button>'+
+    (S.settings.fiveKManual?'<button class="btn ghost sm" id="btn5kAuto" type="button">Back to automatic</button>':'')+
+    '</div></div>';
   E('tEffort').innerHTML=e;
 
   var wkStart=tr.wkStart,got=0,due=0,totTarget=0;
@@ -3010,7 +3082,7 @@ function renderPredict(){
   var rec=records(),dm=PRED_DM;
   var pair=bestAt(dm,rec[dm]),best=pair.best;
   var pred=predictAt(dm),tg=TGT[dm];
-  var ref=S.settings.fiveK;
+  var ref=fiveKRef();
 
   var lines='';
   if(pred!==null){
@@ -3051,6 +3123,10 @@ function renderPredict(){
     (pred===null
       ? '<p class="tiny"><b>Under '+PREDICT_MIN_M+'m there is no prediction, on purpose.</b> Endurance equivalence does not reach down to sprints — those are decided by top-end speed, and no amount of 5 km fitness tells you what you will run for 200m. Your own best is the only honest number at this distance.</p>'
       : '<p class="tiny">Riegel&rsquo;s equivalence, the standard formula. It is reliable from about 1500m up to a half marathon and drifts either side of that, so treat '+repLabel(dm)+' as '+(dm<1500?'a rough steer rather than a time to chase':'a fair estimate')+'.</p>')+
+    '<p class="tiny"><b>Yes, this updates as you get better.</b> '+
+    (S.settings.fiveKManual
+      ? 'Except right now it will not — you have set the 5 km reference by hand, so it is pinned until you change it or put it back to automatic, just below.'
+      : 'The reference underneath it is taken automatically from your best real effort at 1500m or more, so the day you run a quicker mile or 5 km — or pull a faster one off Strava — every number here moves on its own.')+'</p>'+
     '<p class="tiny"><b>You are in a deficit, so expect the slow end of it</b> — and a genuinely fresh day after a rest is where the quick end lives. '+
     'If this number looks wrong in either direction, the 5 km reference below it is the dial: change that and every prediction moves with it.</p></div>';
 }
@@ -3406,8 +3482,9 @@ function wire(){
   document.addEventListener('click',function(e){
     if(e.target.id==='btn5k'){
       var v=parseTime(E('in5k').value);
-      if(v&&v>600&&v<2400){S.settings.fiveK=v;touch();}
+      if(v&&v>600&&v<2400){S.settings.fiveK=v;S.settings.fiveKManual=true;touch();}
     }
+    if(e.target.id==='btn5kAuto'){S.settings.fiveKManual=false;touch();}
     if(e.target.id==='btnAllSessions'){SHOW_ALL=!SHOW_ALL;renderTimes();}
     if(e.target.id==='btnPull'){pullSingles();}
     if(e.target.id==='btnAddBest'){
@@ -3479,7 +3556,7 @@ function wire(){
   });
   E('btnReset').addEventListener('click',function(){
     if(!window.confirm('Clear every logged day and every weight in this block, including any left over from the previous 13-week block? This cannot be undone.'))return;
-    S={weights:{},days:{},settings:{hideDaily:S.settings.hideDaily,fiveK:S.settings.fiveK},updatedAt:Date.now()};
+    S={weights:{},days:{},settings:{hideDaily:S.settings.hideDaily,fiveK:S.settings.fiveK,fiveKManual:S.settings.fiveKManual},updatedAt:Date.now()};
     try{
       var kill=[];
       for(var i=0;i<localStorage.length;i++){
