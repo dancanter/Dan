@@ -388,6 +388,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="tPlan"></div>
   <div id="tMix"></div>
   <div id="tRest"></div>
+  <div id="tPredict"></div>
   <div id="tEffort"></div>
   <div id="tSteps"></div>
   <div id="tHistory"></div>
@@ -1736,6 +1737,24 @@ function renderFuel(tr){
   E('foodFuel').innerHTML=all;
 }
 
+/* ===================== what an all-out effort should come out at =========
+   Riegel's equivalence, T2 = T1 x (D2/D1)^1.06 — the standard one. It holds
+   from roughly 1500m to a half marathon and drifts badly below that, because
+   short distances are decided by speed rather than endurance. So under 800m
+   it is not used at all and his own best is the number instead.
+
+   This predicts a SINGLE ALL-OUT EFFORT. It is deliberately not a rep target:
+   a rep inside a session is run slower than a one-off, on purpose. That
+   distinction is the difference between this being useful and it being the
+   prescribed-pace thing that has backfired on him before. */
+var RIEGEL=1.06;
+var PREDICT_MIN_M=800;
+function riegel(t1,d1,d2){return t1*Math.pow(d2/d1,RIEGEL);}
+function predictAt(dm){
+  if(!(dm>=PREDICT_MIN_M))return null;
+  return riegel(S.settings.fiveK,5000,dm);
+}
+
 /* ===================== what moves each time =====================
    Session SHAPES and what each one develops. Deliberately no paces and no rest
    intervals anywhere in here: prescribing those has backfired before, and the
@@ -2982,6 +3001,58 @@ function renderPlan(){
     'You cannot build fitness in the last week but you can absolutely lose the freshness that shows it. '+
     'The Reverse tab stages the real attempts — nothing in the first week, the 400 at weeks three to four, the 5 km later.</p></div>';
   E('tRest').innerHTML=rh;
+  renderPredict();
+}
+
+/* ---------- what should I be running today? ---------- */
+var PRED_DM=3000;
+function renderPredict(){
+  var rec=records(),dm=PRED_DM;
+  var pair=bestAt(dm,rec[dm]),best=pair.best;
+  var pred=predictAt(dm),tg=TGT[dm];
+  var ref=S.settings.fiveK;
+
+  var lines='';
+  if(pred!==null){
+    lines+='<div class="goal"><div class="gt"><span class="gn">On today&rsquo;s fitness</span></div>'+
+      '<div class="gl">'+secFmt(pred)+'</div>'+
+      '<div class="gs">'+pace(pred/(dm/1000))+' · off your '+mmss(ref)+' 5 km</div></div>';
+  }else{
+    lines+='<div class="goal"><div class="gt"><span class="gn">On today&rsquo;s fitness</span></div>'+
+      '<div class="gl">—</div>'+
+      '<div class="gs">too short to predict from endurance — see below</div></div>';
+  }
+  lines+='<div class="goal"><div class="gt"><span class="gn">Your best</span></div>'+
+    '<div class="gl">'+(best?secFmt(best.t):'—')+'</div>'+
+    '<div class="gs">'+(best?(best.kind+(best.date?', '+fmtS(best.date):'')):'nothing at this distance yet')+'</div></div>';
+  if(tg){
+    lines+='<div class="goal"><div class="gt"><span class="gn">Your target</span></div>'+
+      '<div class="gl">'+secFmt(tg)+'</div>'+
+      '<div class="gs">'+(best?(best.t<=tg?'<b class="gd">already met</b>':secFmt(best.t-tg)+' to go'):'—')+'</div></div>';
+  }
+
+  var verdict='';
+  if(pred!==null&&best){
+    var d=best.t-pred;
+    if(Math.abs(d)<=pred*0.01)verdict='Your best and your current fitness agree, which means that best is a fair reflection of where you are.';
+    else if(d>0)verdict='Your best here is <b>'+secFmt(d)+' slower</b> than your 5 km fitness says you should manage. That usually means you have never actually run this one hard — which makes it the cheapest personal best on the board.';
+    else verdict='Your best here is <b>'+secFmt(-d)+' quicker</b> than your 5 km fitness predicts. Either this is a strong distance for you, or that best came out of a session with recovery in it rather than as a single effort.';
+  }
+
+  E('tPredict').innerHTML='<div class="p flag"><h2>What should I be running?</h2>'+
+    '<div class="row" style="margin-bottom:12px"><div class="f" style="max-width:180px"><label for="predDist">All-out effort at</label>'+
+    '<select id="predDist">'+BENCH.map(function(d){
+      return '<option value="'+d+'"'+(d===dm?' selected':'')+'>'+repLabel(d)+'</option>';}).join('')+'</select></div>'+
+    '<span class="tiny">Predicted off your 5 km reference, which you set just below.</span></div>'+
+    '<div class="cols3">'+lines+'</div>'+
+    (verdict?'<p style="margin-top:12px">'+verdict+'</p>':'')+
+    '<hr class="d">'+
+    '<p class="tiny"><b>This is a single all-out effort, not a rep target.</b> A rep inside a session is run slower than a one-off, deliberately — the point of reps is repeating them. Do not take this number into a 5 × 1 km.</p>'+
+    (pred===null
+      ? '<p class="tiny"><b>Under '+PREDICT_MIN_M+'m there is no prediction, on purpose.</b> Endurance equivalence does not reach down to sprints — those are decided by top-end speed, and no amount of 5 km fitness tells you what you will run for 200m. Your own best is the only honest number at this distance.</p>'
+      : '<p class="tiny">Riegel&rsquo;s equivalence, the standard formula. It is reliable from about 1500m up to a half marathon and drifts either side of that, so treat '+repLabel(dm)+' as '+(dm<1500?'a rough steer rather than a time to chase':'a fair estimate')+'.</p>')+
+    '<p class="tiny"><b>You are in a deficit, so expect the slow end of it</b> — and a genuinely fresh day after a rest is where the quick end lives. '+
+    'If this number looks wrong in either direction, the 5 km reference below it is the dial: change that and every prediction moves with it.</p></div>';
 }
 
 /* ---------- TDEE and the deficit ---------- */
@@ -3328,6 +3399,10 @@ function wire(){
     touch();
   });
   E('btnHide').addEventListener('click',function(){S.settings.hideDaily=!S.settings.hideDaily;touch();});
+  /* the distance picker is rebuilt on every render, so it is delegated */
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.id==='predDist'){PRED_DM=Number(e.target.value);renderPredict();}
+  });
   document.addEventListener('click',function(e){
     if(e.target.id==='btn5k'){
       var v=parseTime(E('in5k').value);
