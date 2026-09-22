@@ -99,6 +99,37 @@ ok('gym sessions with no split are flagged', /logged without saying which/.test(
   (await p.textContent('#tSplit')).slice(-300));
 ok('and none is claimed as done', (await p.evaluate(() => splitModel().core.every(c => c.n === 0))) === true);
 
+// ===== set volume per muscle ============================================
+await boot(st({}));
+await p.click('[data-t="training"]');
+t = await p.textContent('#tSplit');
+ok('there is a sets-per-week table', /Hard sets per muscle, per week/.test(t), t.slice(0, 200));
+ok('it leads with the honest point', /You cannot build muscle in a real deficit/.test(t));
+const splitHtml = await p.innerHTML('#tSplit');
+['Chest', 'Back', 'Shoulders', 'Legs', 'Biceps', 'Triceps', 'Forearms'].forEach(k =>
+  ok('covers ' + k, new RegExp('<b>' + k + '</b>').test(splitHtml)));
+const sets = await p.evaluate(() => CFG.sets);
+ok('cut numbers are lower than reverse numbers everywhere',
+  sets.every(x => x.cut[0] < x.rev[0] && x.cut[1] < x.rev[1]),
+  JSON.stringify(sets.map(x => [x.m, x.cut, x.rev])));
+ok('legs are the lowest of the big muscles',
+  sets.filter(x => x.m === 'Legs')[0].cut[1] <= sets.filter(x => x.m === 'Chest')[0].cut[1],
+  JSON.stringify(sets.filter(x => /Legs|Chest/.test(x.m)).map(x => [x.m, x.cut])));
+ok('and it says why legs are low', /Legs are low on purpose/.test(t) && /12,800 steps a day/.test(t));
+ok('a hard set is defined', /within one to three reps of failure/.test(t));
+ok('junk volume is excluded', /Eight real sets beat fourteen soft ones/.test(t));
+ok('the load rule is the headline', /drop sets, never load/.test(t));
+ok('with the reason', /how people finish a cut smaller than they planned/.test(t));
+ok('it warns against adding volume later', /Do not add volume as the block runs/.test(t));
+ok('and names the scheduling trap', /heavy legs day next to a hard run day/.test(t));
+ok('each muscle is mapped to a split day', /Chest \+ triceps/.test(t) && /Back \+ biceps/.test(t));
+ok('and it points at the reverse for growth', /roughly double on the reverse/.test(t));
+
+// on the reverse the growth column is the live one
+await p.evaluate(() => { CFG.cutEnd = '2026-09-01'; REV_START = addD(CFG.cutEnd, 1); render(); });
+t = await p.textContent('#tSplit');
+ok('after the cut it switches to growth numbers', /You are on the reverse now/.test(t), t.slice(0, 200));
+
 // ===== nothing broke =====================================================
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
   await p.click(`[data-t="${tab}"]`);

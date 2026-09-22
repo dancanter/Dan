@@ -602,6 +602,18 @@ var CFG={
   split:[{k:'delts',n:'Shoulders + forearms'},{k:'chest',n:'Chest + triceps'},
          {k:'back',n:'Back + biceps'},{k:'legs',n:'Legs'},
          {k:'arms',n:'Arms'},{k:'calis',n:'Calisthenics'},{k:'other',n:'Something else'}],
+  /* Hard sets per muscle per week. Two columns because they are two different
+     jobs: in a deficit the target is RETENTION and the lever is load, so the
+     volume comes down; growth volume belongs on the reverse. Legs sit low in
+     both because his running already supplies an enormous leg stimulus and the
+     app would otherwise recommend recovery he does not have. */
+  sets:[{m:'Chest',cut:[6,10],rev:[12,18],day:'chest'},
+        {m:'Back',cut:[8,12],rev:[14,20],day:'back'},
+        {m:'Shoulders',cut:[6,10],rev:[12,18],day:'delts'},
+        {m:'Legs',cut:[4,8],rev:[8,14],day:'legs'},
+        {m:'Biceps',cut:[4,8],rev:[8,14],day:'back'},
+        {m:'Triceps',cut:[4,8],rev:[8,14],day:'chest'},
+        {m:'Forearms',cut:[2,6],rev:[6,10],day:'delts'}],
   tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
@@ -3038,7 +3050,10 @@ function chartSVG(m){
   var lo=Math.min.apply(null,vals)-0.8,hi=Math.max.apply(null,vals)+1.0;
   function Y(v){return +(T+((hi-v)/(hi-lo))*(H-T-B)).toFixed(1);}
   var g='';
-  g+='<rect x="'+L+'" y="'+T+'" width="'+(X(WEIGH_START)-L).toFixed(1)+'" height="'+(H-T-B)+'" fill="var(--panel-2)"></rect>';
+  /* clamped: if the block ever ends before the scale opens — which a moved
+     cutEnd can do — this width goes negative and the browser rejects it */
+  var preW=Math.max(0,Math.min(W-L-R,X(WEIGH_START)-L));
+  g+='<rect x="'+L+'" y="'+T+'" width="'+preW.toFixed(1)+'" height="'+(H-T-B)+'" fill="var(--panel-2)"></rect>';
   g+='<text x="'+(L+5)+'" y="'+(T+11)+'" font-size="9" fill="var(--ink-3)">pre-cut · not read</text>';
   for(var v=Math.ceil(lo/2)*2;v<=hi;v+=2){
     g+='<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="var(--rule-2)" stroke-width="1"></line>';
@@ -3392,6 +3407,36 @@ function renderSplit(){
   }
   if(m.unlabelled)h+='<p class="tiny">'+m.unlabelled+' gym session'+(m.unlabelled===1?'':'s')+' logged without saying which — pick one on the Today log and it lands here.</p>';
   h+='</div>';
+
+  /* how many hard sets each muscle wants, and why the answer changes on 29 Nov */
+  var onRev=today()>=REV_START;
+  h+='<div class="p flag"><h2>Hard sets per muscle, per week</h2>'+
+    '<p class="lede">'+(onRev
+      ? 'You are on the reverse now, so these are <b>growth</b> numbers — the right-hand column.'
+      : '<b>You cannot build muscle in a real deficit</b>, so the job until 28 November is keeping what you have. That is the left-hand column, and it is deliberately lower.')+'</p>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Muscle</th>'+
+    '<th class="n">Now · keeping it</th><th class="n">Reverse · growing it</th><th>Where it lands</th></tr></thead><tbody>';
+  CFG.sets.forEach(function(x){
+    var cutN=x.cut[0]+'–'+x.cut[1],revN=x.rev[0]+'–'+x.rev[1];
+    h+='<tr><td><b>'+x.m+'</b></td>'+
+      '<td class="n"'+(onRev?'':' style="color:var(--accent)"')+'>'+cutN+'</td>'+
+      '<td class="n"'+(onRev?' style="color:var(--accent)"':' class="dim"')+'>'+revN+'</td>'+
+      '<td class="tiny">'+splitName(x.day)+'</td></tr>';
+  });
+  h+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px"><b>A "hard set" means within one to three reps of failure.</b> '+
+    'Sets that stop well short do not count toward these numbers — they cost recovery and buy very little. Eight real sets beat fourteen soft ones, especially right now.</p>'+
+    '<hr class="d">'+
+    '<p><b>The one rule that decides whether you keep your muscle: drop sets, never load.</b> '+
+    'In a deficit it is the weight on the bar that tells the body to hold onto muscle. Cutting the volume is fine and sometimes necessary; going lighter because you feel tired is how people finish a cut smaller than they planned. '+
+    'If a session has to shrink, lose the last set, not the plates.</p>'+
+    '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and 12,800 steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
+    'The trap is putting a heavy legs day next to a hard run day; they compete for the same recovery and both come out worse.</p>'+
+    '<p class="note"><b>Do not add volume as the block runs.</b> Recovery falls as you get leaner and the deficit accumulates, so the sensible direction is the same or slightly less, not more. If anything starts feeling heavier than it should, that is the signal to drop a set rather than push through.</p>'+
+    '<p class="tiny">Your split hits most muscles once a week, which is the cost of four core days. '+
+    'The free fifth day is where a lagging one gets a second go — and a second session is worth more than adding sets to the first.</p>'+
+    (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
+    '</div>';
 
   /* calisthenics, because a max set is a number worth chasing */
   h+='<div class="p flag"><h2>Calisthenics</h2>'+
