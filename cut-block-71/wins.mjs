@@ -230,7 +230,37 @@ const checks = await pg.$$eval('#dChecks tr', rows => rows.map(r => r.children[0
 ok('every self-check passes', checks.every(c => c.startsWith('ok')), checks.filter(c => !c.startsWith('ok')).join(' ;; '));
 await ctx.close();
 
-ok('no page errors anywhere', errs.length === 0, errs.slice(0, 4).join(' | '));
+// ===== the mission: what the two blocks are for, and the tie-breaks ======
+// A list of goals with no priority order is a mood board. The tie-breaks are
+// the part that decides anything, so they are pinned harder than the lists.
+const mz = await open(st({}), null);
+await mz.pg.click('[data-t="wins"]');
+const tM = (await mz.pg.textContent('#winMission')).replace(/\s+/g, ' ');
+const M = await mz.pg.evaluate(() => CFG.mission);
+ok('both blocks are on the page', /Cut Block 71/.test(tM) && /The reverse/.test(tM), tM.slice(0, 140));
+ok('the cut lede is health AND shredded, not one of them',
+  /Balance health while getting genuinely shredded/.test(tM));
+ok('the reverse lede is calories up with the leanness held',
+  /hold the weight .{0,20}and.{0,20} the shreds/i.test(tM), (tM.match(/Get the calories[^.]{0,120}/) || [''])[0]);
+M.cut.goals.forEach(g => ok('cut goal listed: ' + g.slice(0, 28), tM.includes(g.replace(/<[^>]+>/g, ''))));
+M.rev.goals.forEach(g => ok('reverse goal listed: ' + g.slice(0, 28), tM.includes(g.replace(/<[^>]+>/g, ''))));
+ok('the goals are numbered, so there is an order', /1 Health held, not spent/.test(tM), tM.slice(0, 260));
+ok('the live block is flagged', /Cut Block 71 19 Sep [^ ]+ 28 Nov now/.test(tM), tM.slice(0, 160));
+
+ok('there is a tie-break table', /When two of them pull against each other/.test(tM));
+ok('and it says why it exists', /Five goals with no order is a wish list/.test(tM));
+ok('sleep beats everything', /Sleep wins, every time/.test(tM));
+ok('study beats a session', /The deadline does not move and the session does/.test(tM));
+ok('shredded beats times during the cut', /The cut does not set your times, it sets them up/.test(tM));
+ok('and leaner has a floor', /Past it, leaner starts costing sleep, mood and hormones/.test(tM));
+ok('strength and running are not a real conflict', /they only fight when they are stacked/.test(tM));
+ok('every tie-break has a resolution, not just a restatement',
+  M.ties.every(t => t[1].length > 60), JSON.stringify(M.ties.map(t => t[1].length)));
+ok('no unrendered placeholder leaked in', !/\+D\+|undefined|NaN|\\u2014/.test(tM),
+  (tM.match(/.{20}(\+D\+|undefined|NaN|\\u2014).{20}/) || [''])[0]);
+await mz.ctx.close();
+ok('and the mission card raised no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
+
 await b.close();
 if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n' + fails.map(f => ' - ' + f).join('\n')); process.exit(1); }
 console.log('\nall passed');

@@ -473,6 +473,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= WINS ================= -->
 <section id="s-wins" class="stack" hidden>
+  <div id="winMission"></div>
   <div id="winTop"></div>
   <div id="winBoard"></div>
   <div id="winStudy"></div>
@@ -605,6 +606,25 @@ var CFG={
      in, never the target, and there is no four. This counts hard RUNS — a
      heavy leg session is a hard day but it is not one of these. */
   hardRuns:{target:2,cap:3},
+  /* What the two blocks are actually FOR, in Dan's words, plus the thing a
+     list of goals never has and always needs: what wins when two of them
+     fight. Without the tie-breaks this is a mood board, not a plan. */
+  mission:{
+    cut:{n:'Cut Block 71',w:'19 Sep \u2013 28 Nov',
+      lede:'Balance health while getting genuinely shredded \u2014 and keep the times and the study moving through it.',
+      goals:['Health held, not spent','Shredded by 28 November','Looks \u2014 which is downstream of the first two',
+             'Running times improving','Study hours protected']},
+    rev:{n:'The reverse',w:'from 29 Nov',
+      lede:'Get the calories back up so you hold the weight <i>and</i> the shreds \u2014 then use the energy that comes back to optimise everything else.',
+      goals:['Calories up, leanness held','Hormones and cellular health','Gym strength','Running times',
+             'Study','Looks, on a body that is finally fed']},
+    ties:[
+      ['Sleep vs anything','Sleep wins, every time. It is the input to the leanness, the hormones, the face, the times and the studying \u2014 nothing on either list survives without it.'],
+      ['Study vs a session','Study. The deadline does not move and the session does. Drop the third hard day, never the hours.'],
+      ['Times vs shredded, on the cut','Shredded. The cut does not set your times, it sets them up \u2014 you arrive lighter than you have ever raced and then put the fuel back in.'],
+      ['Leaner vs looking better','There is a floor, and you are heading to it. Past it, leaner starts costing sleep, mood and hormones, and those show up in the face as exactly the puffiness you are trying to avoid.'],
+      ['Strength vs running, on the reverse','Neither \u2014 they only fight when they are stacked. Space them and you can have both, which is the whole reason the week is laid out the way it is.']]
+  },
   rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardDays:3,deloadEvery:4},
   /* The reverse week. Legs sits as far from both runs as seven days allow,
      because the one thing that actually costs muscle is running hard into a
@@ -1848,7 +1868,28 @@ function achList(){
    boards were noise here — every one of those numbers already lives on the tab
    that owns it. achList() is left whole because Today's "closing in" card still
    reads all of it; this only chooses what to show. */
+/* The why, on the tab he opens when he wants to feel good about it. Both
+   blocks side by side, the live one flagged, and underneath the part that
+   actually does work: what wins when two goals pull against each other. */
+function renderMission(){
+  var M=CFG.mission,live=phaseModel().now.k;
+  var card=function(k,x){
+    var on=(k==='cut'&&live==='cut')||(k==='rev'&&live!=='cut');
+    return '<div class="p'+(on?' lift':'')+'"><h2>'+x.n+' <span class="tiny dim">'+x.w+'</span>'+
+      (on?' <span class="pill a">now</span>':'')+'</h2>'+
+      '<p class="lede">'+x.lede+'</p><ol class="clean">'+
+      x.goals.map(function(g,i){return '<li><b class="num">'+(i+1)+'</b> &nbsp;'+g+'</li>';}).join('')+
+      '</ol></div>';
+  };
+  E('winMission').innerHTML='<div class="cols">'+card('cut',M.cut)+card('rev',M.rev)+'</div>'+
+    '<div class="p flag"><h2>When two of them pull against each other</h2>'+
+    '<p class="tiny">Five goals with no order is a wish list. This is the order.</p>'+
+    '<table class="tbl"><tbody>'+
+    M.ties.map(function(t){return '<tr><td style="width:34%"><b>'+t[0]+'</b></td><td class="note">'+t[1]+'</td></tr>';}).join('')+
+    '</tbody></table></div>';
+}
 function renderWins(){
+  renderMission();
   var tr=trainingModel(),w=weightModel(),c=cutTally();
   var rows=[['Gym sessions',tr.gym],['Hard runs',tr.hard],['Runs, all in',tr.runs]];
   var h='<div class="p"><h2>This camp · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+
