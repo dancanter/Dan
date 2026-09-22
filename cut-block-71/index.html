@@ -3433,8 +3433,24 @@ function renderSplit(){
     '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and 12,800 steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
     'The trap is putting a heavy legs day next to a hard run day; they compete for the same recovery and both come out worse.</p>'+
     '<p class="note"><b>Do not add volume as the block runs.</b> Recovery falls as you get leaner and the deficit accumulates, so the sensible direction is the same or slightly less, not more. If anything starts feeling heavier than it should, that is the signal to drop a set rather than push through.</p>'+
-    '<p class="tiny">Your split hits most muscles once a week, which is the cost of four core days. '+
-    'The free fifth day is where a lagging one gets a second go — and a second session is worth more than adding sets to the first.</p>'+
+    '<hr class="d">'+
+    '<p><b>These are weekly totals — but your split hits each muscle once a week, so for you the week IS the session.</b> '+
+    'Six to ten chest sets means six to ten on your chest day, not six to ten each time you happen to press something.</p>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Session</th><th class="n">Sets in it'+(onRev?', growing':', now')+'</th><th class="tiny">Made up of</th></tr></thead><tbody>'+
+    (function(){
+      var out='',byDay={};
+      CFG.sets.forEach(function(x){(byDay[x.day]=byDay[x.day]||[]).push(x);});
+      SPLIT_CORE.forEach(function(k){
+        var list=byDay[k]||[],lo=0,hi=0;
+        list.forEach(function(x){var r=onRev?x.rev:x.cut;lo+=r[0];hi+=r[1];});
+        out+='<tr><td><b>'+splitName(k)+'</b></td><td class="n">'+lo+'–'+hi+'</td><td class="tiny">'+
+          list.map(function(x){var r=onRev?x.rev:x.cut;return x.m.toLowerCase()+' '+r[0]+'–'+r[1];}).join(' · ')+'</td></tr>';
+      });
+      return out;
+    })()+
+    '</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px">Once a week each is the cost of four core days, and once a week is a bit less efficient than twice. '+
+    'The free fifth day is where a lagging muscle gets its second go — <b>a second session beats adding sets to the first</b>, every time.</p>'+
     (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
     '</div>';
 

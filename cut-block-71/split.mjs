@@ -125,6 +125,30 @@ ok('and names the scheduling trap', /heavy legs day next to a hard run day/.test
 ok('each muscle is mapped to a split day', /Chest \+ triceps/.test(t) && /Back \+ biceps/.test(t));
 ok('and it points at the reverse for growth', /roughly double on the reverse/.test(t));
 
+// the per-week / per-session point
+ok('it says outright these are weekly totals', /These are weekly totals/.test(t), t.slice(t.indexOf('weekly totals') - 40, t.indexOf('weekly totals') + 200));
+ok('and that for his split the week is the session', /the week IS the session/.test(t));
+ok('with a worked example', /not six to ten each time you happen to press something/.test(t));
+// pick the table by its header, not by position — the panel has several
+const perDay = await p.$$eval('#tSplit table', ts => {
+  const tbl = ts.filter(x => {
+    const h = x.querySelector('thead th');
+    return h && h.textContent.trim() === 'Session';
+  })[0];
+  if (!tbl) return [];
+  return Array.from(tbl.querySelectorAll('tbody tr')).map(r =>
+    Array.from(r.children).map(c => c.textContent.trim()));
+});
+ok('a per-session table exists for the four core days', perDay.length === 4, JSON.stringify(perDay));
+const chestRow = perDay.filter(r => /Chest/.test(r[0]))[0];
+ok('chest day totals chest plus triceps', chestRow && chestRow[1] === '10–18', JSON.stringify(chestRow));
+ok('and shows what it is made of', /chest 6–10/.test(chestRow[2]) && /triceps 4–8/.test(chestRow[2]), chestRow[2]);
+const backRow = perDay.filter(r => /Back/.test(r[0]))[0];
+ok('back day totals back plus biceps', backRow && backRow[1] === '12–20', JSON.stringify(backRow));
+const legRow = perDay.filter(r => /Legs/.test(r[0]))[0];
+ok('legs day is just legs', legRow && legRow[1] === '4–8', JSON.stringify(legRow));
+ok('a second session beats more sets', /a second session beats adding sets to the first/.test(t));
+
 // on the reverse the growth column is the live one
 await p.evaluate(() => { CFG.cutEnd = '2026-09-01'; REV_START = addD(CFG.cutEnd, 1); render(); });
 t = await p.textContent('#tSplit');
