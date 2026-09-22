@@ -221,6 +221,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
       <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
       <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
+      <button class="tog" id="tgRet" aria-pressed="false" type="button"><span class="chk"></span>Retinol</button>
     </div>
     <hr class="d">
     <h2>Runs on this day</h2>
@@ -479,6 +480,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= SKIN ================= -->
 <section id="s-skin" class="stack" hidden>
   <div id="skTop"></div>
+  <div id="skRetinol"></div>
   <div class="cols">
     <div class="p"><h2>Morning</h2>
       <table class="tbl"><tbody>
@@ -503,7 +505,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   </div>
   <div class="p flag"><h2>What products cannot do</h2>
     <p>They move barrier and tone. They do not move sleep, being too lean, or how much water you are holding — and those three decide more about how your face looks on 28 November than every bottle combined.</p>
-    <p class="tiny">Never retinol or tretinoin. Persistent redness across nose and cheeks is a GP or pharmacist conversation — azelaic acid 10–15% is the ingredient to raise by name, but it is not a self-start.</p>
+    <p class="tiny">Persistent redness across nose and cheeks is a GP or pharmacist conversation — azelaic acid 10–15% is the ingredient to raise by name, but it is not a self-start.</p>
   </div>
   <div class="p"><h2>Facial puffiness, ranked for you</h2>
     <div class="scroll"><table class="tbl"><tbody>
@@ -528,7 +530,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div class="p"><h2>Hard constraints — the app will not break these</h2>
     <div class="scroll"><table class="tbl"><tbody>
       <tr><td>Celiac</td><td class="note">Every oat, grain and rice cake certified gluten-free</td></tr>
-      <tr><td>No retinol or tretinoin</td><td class="note">Already tried, already reacted</td></tr>
+      <tr><td>Retinol — reintroducing, his call</td><td class="note">He reacted to one before, so it was a standing no. He has chosen to restart from 24 Sep on a slow ramp; the app follows the schedule on the Skin tab rather than the old ban. Tretinoin is still a no.</td></tr>
       <tr><td>No beta carotene, no biotin</td><td class="note">Stated exclusion</td></tr>
       <tr><td>No vitamin D tablets</td><td class="note">History of reactions. Sun and food only</td></tr>
       <tr><td>No high-dose vitamin C</td><td class="note">Food sources only</td></tr>
@@ -588,6 +590,13 @@ var CFG={
   /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
      on the last day of the block. Height already lives in w.heightM. */
   body:{dob:'2000-11-28'},
+  /* His call, after reacting to a retinoid before. The job now is to make the
+     reintroduction slow enough to survive rather than to argue about it. */
+  retinol:{start:'2026-09-24',product:'CeraVe Resurfacing Retinol Serum',
+    phases:[{wk:0,n:1,days:[4],label:'once a week'},
+            {wk:2,n:2,days:[1,4],label:'twice a week'},
+            {wk:4,n:3,days:[1,3,5],label:'three times a week'},
+            {wk:6,n:3,days:[1,3,5],label:'hold at three'}]},
   /* His split. Four core days that must all come round; the fifth is a free
      day — a second go at one of them, arms, or calisthenics. */
   split:[{k:'delts',n:'Shoulders + forearms'},{k:'chest',n:'Chest + triceps'},
@@ -2550,6 +2559,7 @@ function render(){
   renderTdee();
   renderReverse();
   renderSkin();
+  renderRetinol();
   renderWins();
   renderReview();
   renderData(w,tr,c);
@@ -2854,7 +2864,7 @@ function paintForm(){
   Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.calis'),function(x){
     x.hidden=(rec.split!=='calis');
   });
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth']].forEach(function(p){
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
   var rs=rec.runs||[];
@@ -3743,6 +3753,110 @@ function renderReverse(){
     '<p class="tiny" style="margin-top:8px">One more time, because it is the whole logic of the block: <b>the cut does not set the times, it sets them up.</b> Every pound off is about 2 s a mile for free — you arrive at the reverse lighter than you have ever raced, and then you put the fuel back in.</p></div>';
 }
 
+/* ===================== the retinol ramp =====================
+   Slow on purpose. He reacted to a retinoid before, he is in a deficit —
+   which repairs a barrier more slowly — and he runs outdoors most days. The
+   schedule is dates rather than advice so there is nothing to interpret at
+   10pm: tonight is either on the list or it is not. */
+function retinolModel(){
+  var t=today(),R=CFG.retinol;
+  var started=t>=R.start,toStart=diffD(t,R.start);
+  var wks=started?Math.floor(diffD(R.start,t)/7):0;
+  var ph=R.phases[0],i;
+  for(i=0;i<R.phases.length;i++)if(wks>=R.phases[i].wk)ph=R.phases[i];
+  var next=null;
+  for(i=0;i<R.phases.length;i++)if(R.phases[i].wk>wks){next={p:R.phases[i],on:addD(R.start,R.phases[i].wk*7)};break;}
+  /* the nights this week, and whether tonight is one */
+  var wkStart=mondayOf(t),nights=ph.days.map(function(d){return addD(wkStart,(d+6)%7);}).sort();
+  var tonight=nights.indexOf(t)>=0&&started;
+  /* what he actually did */
+  var done=0,lastDone=null,firstDone=null;
+  for(var d in S.days){
+    if(!S.days[d].retinol||d>t)continue;
+    done++;
+    if(!lastDone||d>lastDone)lastDone=d;
+    if(!firstDone||d<firstDone)firstDone=d;
+  }
+  return {started:started,toStart:toStart,weeks:wks,phase:ph,next:next,nights:nights,
+          tonight:tonight,done:done,last:lastDone,first:firstDone,
+          sinceLast:lastDone?diffD(lastDone,t):null,
+          product:R.product,start:R.start};
+}
+function renderRetinol(){
+  var m=retinolModel(),t=today();
+  var h='<div class="p '+(m.tonight?'lift':'flag')+'"><h2>Retinol · '+esc(m.product)+'</h2>';
+  if(!m.started){
+    h+='<p class="lede">Starts <b>'+fmtL(CFG.retinol.start)+'</b> — '+m.toStart+' night'+(m.toStart===1?'':'s')+' away.</p>';
+  }else{
+    h+='<p class="lede">'+(m.tonight
+      ? '<b class="acc">Tonight is a retinol night.</b> Pea-sized, sandwiched.'
+      : 'Not tonight. Next one: <b>'+(m.nights.filter(function(x){return x>t;})[0]
+          ? fmtL(m.nights.filter(function(x){return x>t;})[0])
+          : fmtL(addD(mondayOf(t),7+((m.phase.days[0]+6)%7))))+'</b>.')+
+      ' Week '+(m.weeks+1)+', '+m.phase.label+'.</p>';
+  }
+  h+='<div class="tiles t4">'+
+    tile('right now',m.phase.n+'× a week',m.phase.label)+
+    tile('nights',m.phase.days.map(function(d){return DOWS[d];}).join(' · '),'this week')+
+    tile('applied so far',m.done+' night'+(m.done===1?'':'s'),m.last?'last '+fmtS(m.last):'none yet')+
+    tile('steps up',m.next?fmtS(m.next.on):'holding',m.next?m.next.p.label:'no further increase in this block')+
+    '</div>';
+
+  /* the ramp, with real dates */
+  h+='<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th>From</th><th>How often</th><th>Nights</th><th></th></tr></thead><tbody>';
+  CFG.retinol.phases.forEach(function(ph2,ix){
+    var from=addD(CFG.retinol.start,ph2.wk*7);
+    var isNow=(m.started&&m.phase===ph2);
+    h+='<tr'+(isNow?' style="color:var(--accent)"':(from>t?' class="dim"':''))+'>'+
+      '<td>'+fmtS(from)+(isNow?' <span class="pill a">now</span>':'')+'</td>'+
+      '<td>'+ph2.n+'× a week</td>'+
+      '<td class="tiny">'+ph2.days.map(function(d){return DOWS[d];}).join(', ')+'</td>'+
+      '<td class="tiny">'+(ix===0?'one night a week for a fortnight — the whole point':
+        (ix===CFG.retinol.phases.length-1?'stay here. Nightly is not the goal in a deficit':'only if the last fortnight was calm'))+'</td></tr>';
+  });
+  h+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px"><b>Only move up if the last fortnight was genuinely calm.</b> '+
+    'No stinging that outlasts a minute, no flaking, no new redness. If it was not, repeat the fortnight you just did — there is no prize for getting to three a week quickly.</p></div>';
+
+  /* how to apply it */
+  h+='<div class="p"><h2>How, on a retinol night</h2><table class="tbl"><tbody>'+
+    '<tr><td><b>1</b></td><td>Cleanse, then <b>wait until the skin is properly dry</b> — 10–20 minutes. Retinol on damp skin goes in faster and stings more.</td></tr>'+
+    '<tr><td><b>2</b></td><td>A layer of <b>Simple moisturiser first</b>. This is the sandwich, and for a reintroduction after a reaction it is the whole difference.</td></tr>'+
+    '<tr><td><b>3</b></td><td><b>A pea. For the entire face.</b> Not per area — one pea, spread thin. Almost everyone uses three times too much.</td></tr>'+
+    '<tr><td><b>4</b></td><td>Keep it off the <b>eyelids and under-eyes, the creases beside the nose, and the corners of the mouth</b>. Those go first, every time.</td></tr>'+
+    '<tr><td><b>5</b></td><td>Wait 10 minutes, then <b>moisturiser again</b>, and Cicaplast over the top if anywhere feels tight.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="tiny" style="margin-top:8px">Encapsulated retinol with ceramides and niacinamide in it is about the gentlest way back in, which is why this product is a sensible pick after a reaction.</p></div>';
+
+  /* what pairs and what does not */
+  h+='<div class="cols"><div class="p good"><h2>Keep using</h2><ul class="clean note">'+
+    '<li><b>Ultrasun SPF50 every morning, without exception.</b> Retinol thins the outer layer while it adapts and you run outdoors most days. This is the one that is not optional.</li>'+
+    '<li><b>Niacinamide, in the morning.</b> It pairs well and the old scare about it cancelling other actives was wrong.</li>'+
+    '<li><b>Cicaplast.</b> Over the top on a retinol night, or on its own the night after.</li>'+
+    '<li><b>Simple moisturiser</b>, both sides of the retinol.</li>'+
+    '<li>Caffeine eye serum — fine, but it is the one area the retinol does not go.</li>'+
+    '</ul></div>'+
+    '<div class="p bad"><h2>Not on a retinol night</h2><ul class="clean note">'+
+    '<li><b>The beef tallow and almond oil.</b> It is an occlusive seal — anything under it goes in harder. Use it on the off nights, or use it instead and skip the retinol.</li>'+
+    '<li><b>Any acid — AHA, BHA, glycolic, salicylic.</b> Not the same night, and honestly not at all while you are ramping.</li>'+
+    '<li><b>Scrubs, flannels, anything physical.</b> The flaking is not dirt and rubbing it off sets you back a week.</li>'+
+    '<li><b>Benzoyl peroxide</b> — it oxidises retinol and irritates on its own.</li>'+
+    '<li>Vitamin C serums — fine in the morning, not stacked at night.</li>'+
+    '</ul></div></div>';
+
+  /* when to stop */
+  h+='<div class="p warn"><h2>When to stop, and how to restart</h2>'+
+    '<p><b>Stop for a week</b> if you get any of: stinging that lasts past a minute, flaking that runs more than three or four days, redness spreading across the nose and cheeks, or your SPF starting to burn going on.</p>'+
+    '<p class="note">That week is cleanser, moisturiser, Cicaplast, SPF. Nothing else. Then restart <b>one step below</b> where you were — if you were on twice a week, go back to once, and hold it for a fortnight.</p>'+
+    '<hr class="d">'+
+    '<p class="tiny"><b>Two things that make this harder for you than for most people.</b> A calorie deficit repairs a barrier more slowly, and you are heading for 122 lb, which means less oil and drier skin as the block runs. '+
+    'And you already reacted to a retinoid once — which is not a reason not to try again, but it is a reason the first fortnight is one night a week rather than three.</p>'+
+    '<p class="tiny"><b>The timing is better than it looks.</b> Irritation, if it comes, usually lands between weeks two and six — '+
+    fmtS(addD(CFG.retinol.start,14))+' to '+fmtS(addD(CFG.retinol.start,42))+' for you. That clears 28 November by about three weeks, '+
+    'so the worst of it should be well behind you by your birthday. Starting any later than this week and it would not have been.</p></div>';
+  E('skRetinol').innerHTML=h;
+}
+
 /* ---------- skin ---------- */
 function renderSkin(){
   var t=today(),i,am=0,pm=0,te=0;
@@ -3851,7 +3965,7 @@ function wire(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
   });
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth']].forEach(function(p){
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol']].forEach(function(p){
     E(p[0]).addEventListener('click',function(){
       var d=E('logDate').value||today(),on=this.getAttribute('aria-pressed')==='true',o={};
       o[p[1]]=on?null:true;setDay(d,o);
