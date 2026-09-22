@@ -137,26 +137,31 @@ ok('steady reads as level', (await p.evaluate(() => rhrModel())).state === 'leve
 t = await p.textContent('#signalCard');
 ok('and gets one line', /level against your own baseline/.test(t) && !/rest week/.test(t));
 
-// ===== 6. effort counts hard days by HIS score, not by distance =========
-// Only days up to today are in the training week, so the fixture stacks the
-// sessions onto the days that actually exist rather than dating them forward
-// — the app is right to ignore a session logged for next Thursday.
+// ===== 6. hard RUNS, counted by his score, against his own rule =========
+// Dan's rule is about runs: two is the week, three is a ceiling for a week he
+// feels good in, four does not exist. A heavy leg day is a hard DAY but it is
+// not a hard run, and conflating the two was the bug this replaces.
 const wk = await p.evaluate(() => trainingModel().wkStart);
 const addD = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return ds(d); };
 const t0 = await p.evaluate(() => today());
 const inWeek = []; for (let i = 0; i < 7; i++) { const d = addD(wk, i); if (d <= t0) inWeek.push(d); }
+const HR = await p.evaluate(() => CFG.hardRuns);
+ok('the rule is two, ceiling three', HR.target === 2 && HR.cap === 3, JSON.stringify(HR));
+
+// Four hard runs plus a hard lift: over the ceiling on runs alone.
 days = {};
 days[inWeek[0]] = { gym: true, gymRpe: 9,
-  runs: [{ km: 6, secs: 1800, type: 'easy', rpe: 8 },       // "easy" but he called it an 8
-          { km: 8, secs: 2700, type: 'easy', rpe: 3 }] };   // long, and genuinely easy
+  runs: [{ km: 6, secs: 1800, type: 'easy', rpe: 8 },
+          { km: 8, secs: 2700, type: 'easy', rpe: 3 }] };
 days[inWeek[inWeek.length - 1]] = { gym: true, gymRpe: 8,
   runs: [{ k: 'reps', dm: 400, n: 5, secs: 320, rpe: 9 },
-          { km: 5, secs: 1500, type: 'easy' }] };            // unscored
+          { k: 'reps', dm: 800, n: 4, secs: 600, rpe: 8 },
+          { km: 5, secs: 1500, type: 'easy' }] };
 await boot(st({ days }));
 let EF = await p.evaluate(() => effortWeek());
-// Four hard against a ceiling of three. Hitting the ceiling exactly is fine;
-// going past it is the thing worth interrupting him for.
-ok('hard sessions are counted by his own score', EF.hard === 4, JSON.stringify(EF.sessions));
+ok('hard runs are counted by his own score', EF.hardRuns === 3, JSON.stringify(EF.sessions));
+ok('hard lifts are counted apart from them', EF.hardGym === 2, String(EF.hardGym));
+ok('and hard days is the sum', EF.hard === EF.hardRuns + EF.hardGym, JSON.stringify(EF));
 // The 8 km run scored 3 is NOT hard; the 6 km "easy" run scored 8 IS. Distance
 // and file-type do not get a vote — that is the whole reason for asking.
 ok('a long run he called easy does not count as hard',
@@ -164,20 +169,39 @@ ok('a long run he called easy does not count as hard',
 ok('an easy-filed run he called an 8 does count',
   EF.sessions.some(x => x.rpe === 8), JSON.stringify(EF.sessions));
 ok('unscored sessions are counted separately, not assumed', EF.unscored === 1, String(EF.unscored));
+// Three is the ceiling, so three must read as "at your ceiling", not a breach.
 t = await p.textContent('#signalCard');
-const cap = await p.evaluate(() => CFG.rev.hardCap);
-ok('going over the ceiling is called out', new RegExp(EF.hard + ' sessions at 7 or above this week').test(t), t.slice(0, 340));
-ok('it names the ceiling', new RegExp('the ceiling is ' + cap).test(t));
-ok('it ties back to what he asked for', /the exact thing you asked me to catch/.test(t));
-ok('and says which session to drop', /drop the speed session rather than the easy one/.test(t));
+ok('three hard runs is not treated as a breach', !/your ceiling is 3\./.test(t), t.slice(0, 200));
+ok('it is named as the ceiling rather than the target', /that is your ceiling, not your target/.test(t),
+  (t.match(/hard runs[^.]{0,60}/) || [''])[0]);
+ok('and warns what happens if it becomes normal', /four becomes the new three/.test(t));
 
-// Under the ceiling: reported, not scolded — and unscored sessions are named
-// as invisible rather than quietly assumed to be easy.
-days = {}; days[inWeek[0]] = { gym: true, gymRpe: 8, runs: [{ km: 5, secs: 1500, type: 'easy' }] };
+// A fourth hard run is the breach.
+days[inWeek[0]].runs.push({ k: 'reps', dm: 1000, n: 4, secs: 800, rpe: 9 });
 await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('a fourth hard run tips it over', EF.hardRuns === 4, String(EF.hardRuns));
 t = await p.textContent('#signalCard');
-ok('under the ceiling it just reports', /1 hard session this week by your own score/.test(t), t.slice(0, 300));
-ok('and does not warn', !/exact thing you asked me to catch/.test(t));
+ok('going over the ceiling is called out', /4 hard runs this week/.test(t), t.slice(0, 340));
+ok('it names the ceiling', new RegExp('your ceiling is ' + HR.cap).test(t));
+ok('and says there is no four', /there is no four/.test(t));
+ok('it ties back to what he asked for', /the exact thing you asked me to catch/.test(t));
+ok('and says which session to drop', /the speed session, not the easy one/.test(t));
+
+// Two hard runs is the normal week: reported, not scolded, and the heavy lift
+// is explicitly kept out of the count.
+days = {};
+days[inWeek[0]] = { gym: true, gymRpe: 9, runs: [{ k: 'reps', dm: 400, n: 5, secs: 320, rpe: 9 }] };
+days[inWeek[inWeek.length - 1]] = { runs: [{ km: 6, secs: 1500, type: 'threshold', rpe: 8 },
+                                            { km: 5, secs: 1500, type: 'easy' }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('the normal week is two hard runs', EF.hardRuns === 2 && EF.hardGym === 1, JSON.stringify(EF));
+t = await p.textContent('#signalCard');
+ok('under the ceiling it just reports', /2 hard runs this week by your own score/.test(t), t.slice(0, 320));
+ok('and does not warn', !/the exact thing you asked me to catch/.test(t));
+ok('the heavy lift is named as a hard day but not a hard run',
+  /hard day but not a hard run/.test(t), (t.match(/heavy lift[^.]{0,70}/) || [''])[0]);
 ok('an unscored session is called invisible', /invisible to this count/.test(t),
   (t.match(/without an effort[^.]{0,50}/) || [''])[0]);
 

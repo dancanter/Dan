@@ -599,7 +599,12 @@ var CFG={
      the deficit his own weight actually measured over the block. */
   /* first: the one step up on day one. holdWeeks: how long it sits there
      before anything moves again. step: every rung after that. */
-  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardCap:3,deloadEvery:4},
+  /* Dan's own rule, and it applies in every block, not just the reverse:
+     TWO hard runs is the week. Three is the ceiling for a week he feels good
+     in, never the target, and there is no four. This counts hard RUNS — a
+     heavy leg session is a hard day but it is not one of these. */
+  hardRuns:{target:2,cap:3},
+  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardDays:3,deloadEvery:4},
   /* The reverse week. Legs sits as far from both runs as seven days allow,
      because the one thing that actually costs muscle is running hard into a
      leg session. Upper-body days do not care about running at all, which is
@@ -612,7 +617,7 @@ var CFG={
     {d:3,n:'Run 1 — the engine session',k:'run',run:'engine',hard:true,w:'Threshold, 1 km reps or 800 m reps — one of the three, not two of them. Two clear days since legs and two before the speed day.'},
     {d:4,n:'Back + biceps',k:'back',w:'Upper body again. Move it a day if life demands; it changes nothing.'},
     {d:5,n:'Run 2 — the speed session',k:'run',run:'speed',hard:true,w:'400 m, 300 m or 200 m. Three clear days before legs comes round again, which is what makes three hard days a week survivable at all.'},
-    {d:6,n:'Shoulders + forearms, then Run 3',k:'delts',run:'third',w:'Lifting first. Run 3 is the easy run by default — it has no fixed home, so move it wherever it fits. If you are doing the hills instead, they go in Run 2’s place that week, never the day after it.'}
+    {d:6,n:'Shoulders + forearms, then Run 3',k:'delts',run:'third',w:'Lifting first. Easy run by default, and it has no fixed home — move it wherever it fits. Hills instead only on a week you feel good, and then they go in Run 2’s place, never the day after it.'}
   ],
   /* Three sessions now, and only ONE of them is hard in any given week. The
      brief changed: health first, stress limited, times still improving. That
@@ -644,8 +649,8 @@ var CFG={
      opts:[
       {n:'Easy run',w:'Conversational the whole way — full sentences, not gasped phrases. If you can breathe through your nose for most of it, that is about right. It should feel almost boring and end with you feeling better than when you started.'},
       {n:'Short uphill sprints',w:'Very short efforts up a hill, walk back down, go again when you are ready. Keep it to a handful. Because you are not braking on the way down there is almost no eccentric load, so the hamstring risk that comes with flat-out flat sprinting mostly is not there — which makes these the safest hard-feeling running you can do.'}],
-     y:'The easy run is the cellular one: easy aerobic work is the strongest stimulus there is for mitochondria and capillaries, at close to zero stress cost, and it raises the floor the two hard sessions are built on. The hills buy you power and running economy for almost no damage. Either way this slot is not meant to be a third hard day.',
-     stop:'On the easy run there is nothing to stop — the only way to fail it is to run it too hard, and almost everyone does. On the hills, stop when you are no longer getting up as fast. A dozen of them with short recoveries is a conditioning session wearing a disguise, and then it <i>is</i> a third hard day.'}
+     y:'Two different jobs, and which one you pick decides whether this is a hard run. The easy run is the cellular one — easy aerobic work is the strongest stimulus there is for mitochondria and capillaries, at close to zero cost, and it raises the floor the other two are built on; that is the default. The hills are your optional <b>third hard run</b>: real power and running economy for far less damage than flat sprinting, and they are earned by feeling good that week, not scheduled.',
+     stop:'On the easy run there is nothing to stop — the only way to fail it is to run it too hard, and almost everyone does. On the hills, stop when you are no longer getting up as fast. A dozen of them with short recoveries is not a hill session any more, it is a conditioning grind, and it costs you the week rather than the day.'}
   ],
   /* The four things with real evidence behind them, and nothing that sounds
      better than it is. Dan asked for anti-ageing; this is the honest version
@@ -658,7 +663,7 @@ var CFG={
      e:'28 November, on the date. Not early because the scale is ahead, and not late because it is behind.'},
     {k:'rev',n:'The reverse',f:'Food back to maintenance, health and sleep first, times held rather than chased, a bit of muscle if it comes.',
      e:'When the ladder reaches maintenance and the weight has sat flat there for a few weeks. Length is your call — say the word and I will set it.'},
-    {k:'run',n:'The running block',f:'The one that actually moves the times. Volume and quality both go up, and lifting drops back to holding what you have.',
+    {k:'run',n:'The running block',f:'The one that actually moves the times. Volume goes up and lifting drops back to holding what you have — but the hard sessions do not: still two a week, three at the very most. More volume, not more hard days.',
      e:'When the times stop moving for three or four weeks, or the legs stop recovering between sessions. That is the end of it, not a reason to add another session.'},
     {k:'next',n:'The next cut, if you want one',f:'Only if there is something to cut for, and only from a maintenance that is genuinely restored.',
      e:'A date set in advance, like this one, and never while a running block is live.'}
@@ -2470,19 +2475,19 @@ function rhrModel(){
 var RPE_HARD=7;
 function effortWeek(){
   var tr=trainingModel(),t=today(),from=tr.wkStart,to=tr.wkEnd>t?t:tr.wkEnd;
-  var out={from:from,to:to,sessions:[],hard:0,scored:0,unscored:0};
+  var out={from:from,to:to,sessions:[],hard:0,hardRuns:0,hardGym:0,scored:0,unscored:0};
   for(var i=0;i<=diffD(from,to);i++){
     var d=addD(from,i);if(d>t)break;
     var rec=S.days[d]||{},j,rs=rec.runs||[];
     for(j=0;j<rs.length;j++){
       var m=runMeta(rs[j]);if(m.empty)continue;
-      if(typeof rs[j].rpe==='number'){out.sessions.push({d:d,what:m.label,rpe:rs[j].rpe});out.scored++;
-        if(rs[j].rpe>=RPE_HARD)out.hard++;}
+      if(typeof rs[j].rpe==='number'){out.sessions.push({d:d,what:m.label,rpe:rs[j].rpe,run:true});out.scored++;
+        if(rs[j].rpe>=RPE_HARD){out.hard++;out.hardRuns++;}}
       else out.unscored++;
     }
     if(rec.gym){
-      if(typeof rec.gymRpe==='number'){out.sessions.push({d:d,what:splitName(rec.split)||'gym',rpe:rec.gymRpe});out.scored++;
-        if(rec.gymRpe>=RPE_HARD)out.hard++;}
+      if(typeof rec.gymRpe==='number'){out.sessions.push({d:d,what:splitName(rec.split)||'gym',rpe:rec.gymRpe,run:false});out.scored++;
+        if(rec.gymRpe>=RPE_HARD){out.hard++;out.hardGym++;}}
       else out.unscored++;
     }
   }
@@ -2776,7 +2781,10 @@ function render(){
    say. An empty card every day teaches him to scroll past it. */
 function renderSignals(tr){
   var R=rhrModel(),EF=effortWeek(),NG=niggleModel();
-  var cap=CFG.rev.hardCap,over=EF.hard>cap;
+  /* His rule, and it is about RUNS: two is the week, three is a ceiling for
+     a week he feels good in, four does not exist. The leg day is a hard day
+     but it is not a hard run, so it is counted and reported separately. */
+  var HR=CFG.hardRuns,over=EF.hardRuns>HR.cap,atCap=EF.hardRuns===HR.cap;
   if(R.state==='none'&&!EF.scored&&!NG.n){
     E('signalCard').innerHTML='<div class="p"><h2>Three new boxes on the log</h2>'+
       '<p class="note"><b>Resting HR</b> on waking, <b>effort 1–10</b> after a session, and <b>something hurts</b> when it does. '+
@@ -2790,8 +2798,8 @@ function renderSignals(tr){
   var h='<div class="p'+((over||NG.persistent||R.state==='high')?' warn':(R.state==='up'?' flag':''))+'"><h2>Signals</h2><div class="tiles t4">'+
     tile('resting HR',R.today!==null?R.today:(R.recentAvg!==null?Math.round(R.recentAvg):'—'),
          R.ready?('7-day '+Math.round(R.recentAvg)+' vs baseline '+Math.round(R.baseAvg)):(R.state==='building'?'building your baseline':'log it on waking'))+
-    tile('hard sessions',EF.hard+' / '+cap,'this week, by your own score')+
-    tile('scored',EF.scored+' of '+(EF.scored+EF.unscored),EF.unscored?(EF.unscored+' without an effort'):'all of them')+
+    tile('hard runs',EF.hardRuns+' / '+HR.cap,'target '+HR.target+', ceiling '+HR.cap)+
+    tile('hard days',EF.hard,EF.hardGym?(EF.hardGym+' of them lifting'):'runs only')+
     tile('niggles',NG.n?NG.n+' d':'none',NG.n?(NG.top||'last 10 days'):'last 10 days')+
     '</div>';
 
@@ -2808,10 +2816,14 @@ function renderSignals(tr){
     h+='<p class="tiny" style="margin-top:10px">'+R.n+' morning'+(R.n===1?'':'s')+' logged. It needs about a fortnight before the baseline means anything — a single reading is noise, the drift is the signal.</p>';
   }
 
-  if(over)h+='<p class="note"><b>'+EF.hard+' sessions at '+RPE_HARD+' or above this week — the ceiling is '+cap+'.</b> '+
-    'This is the exact thing you asked me to catch. Whatever is left in the week, make it genuinely easy, and if something has to go, drop the speed session rather than the easy one.</p>';
-  else if(EF.scored)h+='<p class="tiny"><b>'+EF.hard+' hard '+(EF.hard===1?'session':'sessions')+' this week by your own score</b>, against a ceiling of '+cap+'. '+
-    (EF.unscored?'<b>'+EF.unscored+'</b> session'+(EF.unscored===1?'':'s')+' went in without an effort score — those are invisible to this count.':'Everything scored.')+'</p>';
+  if(over)h+='<p class="note"><b>'+EF.hardRuns+' hard runs this week \u2014 your ceiling is '+HR.cap+'.</b> '+
+    'This is the exact thing you asked me to catch. Two is the week and three is for a week you feel good in; there is no four. '+
+    'Whatever running is left, make it genuinely easy, and if something has to go it is the speed session, not the easy one.</p>';
+  else if(atCap)h+='<p class="tiny"><b>'+EF.hardRuns+' hard runs \u2014 that is your ceiling, not your target.</b> '+
+    'Fine on a week you felt good. It is only a problem if it becomes the normal week, because then '+HR.cap+' stops being a ceiling and four becomes the new three.</p>';
+  else if(EF.scored)h+='<p class="tiny"><b>'+EF.hardRuns+' hard '+(EF.hardRuns===1?'run':'runs')+' this week by your own score</b>, against a target of '+HR.target+' and a ceiling of '+HR.cap+'. '+
+    (EF.hardGym?'The '+(EF.hardGym===1?'heavy lift is a hard day but not a hard run, so it is not in that count. ':'heavy lifts are hard days but not hard runs, so they are not in that count. '):'')+
+    (EF.unscored?'<b>'+EF.unscored+'</b> session'+(EF.unscored===1?'':'s')+' went in without an effort score \u2014 those are invisible to this count.':'Everything scored.')+'</p>';
 
   if(NG.persistent)h+='<p class="note"><b>Something has hurt on '+NG.n+' of the last '+NIG_WINDOW+' days'+(NG.top?' — '+NG.top:'')+'.</b> '+
     'That is not a niggle any more, it is an injury forming, and it is the one thing on this page that does not resolve by being ignored. '+
@@ -4163,10 +4175,12 @@ function renderReverse(){
   var hardDays=CFG.revWeek.filter(function(x){return x.hard;});
   var runDays=CFG.revWeek.filter(function(x){return x.run;});
   var tv='<div class="p flag"><h2>The week — health first, times still moving, stress capped</h2>'+
-    '<p class="lede">Four lifting days, <b class="num">'+runDays.length+' runs — two hard, one that is not</b>, a rest day, and <b class="num">'+hardDays.length+' hard days a week, which is the ceiling</b>.</p>'+
-    '<p class="note"><b>Straight about what this changed.</b> Your three sessions are an engine day and a speed day, so the hard days went from two to <b>'+hardDays.length+'</b> — legs, Run 1, Run 2. '+
-    'That is a real step up from the week you asked for last time, and it is the most this brief will carry: a fourth hard day and the health half of what you asked for is gone. '+
-    'It works because <b>Run 3 is not a hard session</b>. Keep it that way and three is fine; let the hills turn into a conditioning grind and you are training four hard days a week and calling it three.</p>'+
+    '<p class="lede">Four lifting days, <b class="num">'+runDays.length+' runs</b>, a rest day — and <b class="num">'+CFG.hardRuns.target+'</b> hard runs, <b>'+CFG.hardRuns.cap+' at the absolute most</b>.</p>'+
+    '<p class="note"><b>Your own rule, and the week is built on it: <b class="num">'+CFG.hardRuns.target+'</b> hard runs is the week, <b class="num">'+CFG.hardRuns.cap+'</b> is the ceiling, and there is no four.</b> '+
+    'Run 1 and Run 2 are the two. <b>Run 3 is the optional third</b> — take the hills on a week you feel good and you are at your ceiling, which is allowed; take the easy run and you are at your normal, which is the default for a reason. '+
+    'What the ceiling is not is a target. Three every week and it stops being a ceiling: four becomes the new three, and that is how this unravels.</p>'+
+    '<p class="tiny">Counted separately: the heavy leg day is a <b>hard day</b> but it is not a hard run, so it never eats into the '+CFG.hardRuns.target+'–'+CFG.hardRuns.cap+'. '+
+    'It does still have to be spaced like one, which is what the timetable below is doing.</p>'+
     '<p class="tiny">Three runs like this will hold what you have earned and creep the times forward. It still is not what makes you much faster — that is the running block, and this page will tell you when it is time.</p>'+
     '<p>You asked for three things that people usually assume fight each other: better times, a bit more muscle, and less wear. They mostly do not fight. '+
     '<b>The shape that gives you all three is polarised</b> — the easy work genuinely easy, the hard work genuinely hard, and <b>nothing in the grey middle</b>. '+
@@ -4183,7 +4197,7 @@ function renderReverse(){
   tv+='</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px"><b>Two hard days, and the heavy leg session is one of them.</b> '+
     'That is the stress budget for the week and it is the part to protect — if a third hard day creeps in, it has come from somewhere, and it is usually the easy run that paid for it.</p>'+
-    '<p class="note"><b>Every '+CFG.rev.deloadEvery+'th week, drop Run 2 and keep Run 1 honest rather than hard.</b> Run 3 stays. Keep lifting, drop the top set from each exercise. '+
+    '<p class="note"><b>Every '+CFG.rev.deloadEvery+'th week, drop Run 2 and keep Run 1 honest rather than hard.</b> That leaves zero hard runs, Run 3 easy, and lifting with the top set off each exercise. '+
     'A week that feels too gentle is doing exactly what it is supposed to — adaptation lands in the recovery, not in the session.</p>'+
     '<p class="note"><b>On the sets: run the bottom of the reverse column, not the top.</b> '+
     'The top of that column is what you would do if maximum growth were the only goal, and it is not — you asked for a bit of muscle without the wear. The bottom of the range gets you most of the muscle for a fraction of the fatigue.</p>'+
@@ -4195,9 +4209,9 @@ function renderReverse(){
     '<tr><td><b>Same day? Lift first, and only on an upper day</b></td><td class="note">Running first blunts the load you can put on the bar, and load is what grows you. A run stacked onto a legs day is the worst combination available.</td></tr>'+
     '<tr><td><b>Never run hard in the morning and train legs that night</b></td><td class="note">It reads like two separate sessions and behaves like one very bad one.</td></tr>'+
     '<tr><td><b>Nothing in the grey middle</b></td><td class="note">If a run is not clearly easy, it has to be clearly hard, and you only get one clearly hard one. A "steady" run at three-quarter effort is the single most expensive habit in distance running.</td></tr>'+
-    '<tr><td><b>Never two hard days back to back</b></td><td class="note">Legs, Run 1 and Run 2 are the three, and the week keeps every pair of them two clear days apart. Swap days around freely as long as that survives — it is the only thing making three hard days a week work.</td></tr>'+
+    '<tr><td><b>Never two hard days back to back</b></td><td class="note">Legs, Run 1 and Run 2 all need two clear days from each other, and so do the hills on a week you take them. Swap days around freely as long as that survives — it is the only thing making this week work.</td></tr>'+
     '</tbody></table>'+
-    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> three hard days leaves less room than two did. There is no spare capacity in this week for a heavy weekend, a bad sleep run, or a fourth session you fancied on the day — something has to come out, and it should be Run 2. '+
+    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> two hard runs plus a heavy leg day leaves very little room. There is no spare capacity here for a bad sleep week, a heavy weekend, or a session you fancied on the day — something has to come out, and it should be Run 2. '+
     'That is the trade you asked for and it is a reasonable one — the speed comes back inside a fortnight of adding a session, and it buys you a block you can actually hold for a year rather than eight weeks.</p>'+
     '<p class="tiny"><b>And one thing that has not changed:</b> the five-mile slot stays out. Run 3 is in the week because it does real cellular work at almost no stress cost — not as mileage for its own sake, and not as a place to sneak a third hard effort.</p>'+
     '</div>';
