@@ -193,6 +193,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="callCard"></div>
   <div id="closeCard"></div>
   <div id="restCard"></div>
+  <div id="signalCard"></div>
   <div id="pushCard"></div>
   <div id="loadCard"></div>
   <div id="tdeeCard"></div>
@@ -208,6 +209,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f"><label for="inSteps">Steps</label><input type="number" step="100" min="0" max="80000" id="inSteps" placeholder="—"></div>
       <div class="f"><label for="inKcal">kcal eaten</label><input type="number" step="10" min="0" max="6000" id="inKcal" placeholder="—"></div>
       <div class="f"><label for="inSleep">Sleep (h)</label><input type="number" step="0.25" min="0" max="14" id="inSleep" placeholder="—"></div>
+      <div class="f"><label for="inRhr">Resting HR, on waking</label><input type="number" step="1" min="25" max="120" id="inRhr" placeholder="—"></div>
       <div class="f"><label for="inStudy">Study (h)</label><input type="number" step="0.25" min="0" max="16" id="inStudy" placeholder="—"></div>
       <div class="f"><label for="inDeep">Of which deep (h)</label><input type="number" step="0.25" min="0" max="16" id="inDeep" placeholder="—"></div>
     </div>
@@ -216,12 +218,15 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f" style="max-width:190px"><label for="inSplit">Which session</label><select id="inSplit"></select></div>
       <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
       <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
+      <div class="f" style="max-width:130px"><label for="inGymRpe">Gym effort 1–10</label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
       <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
       <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
       <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
       <button class="tog" id="tgRet" aria-pressed="false" type="button"><span class="chk"></span>Retinol</button>
+      <button class="tog" id="tgNiggle" aria-pressed="false" type="button"><span class="chk"></span>Something hurts</button>
+      <div class="f niggle" style="max-width:220px"><label for="inNiggle">Where / what</label><input type="text" id="inNiggle" placeholder="left achilles, tight"></div>
     </div>
     <hr class="d">
     <h2>Runs on this day</h2>
@@ -259,6 +264,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f cont"><label for="inKm">Distance (km)</label><input type="number" step="0.01" min="0" max="60" id="inKm" placeholder="8.01"></div>
       <div class="f"><label for="inTime" id="labTime">Total rep time (mm:ss)</label><input type="text" id="inTime" placeholder="3:07" inputmode="numeric"></div>
       <div class="f rep"><label for="inBest">Best single rep</label><input type="text" id="inBest" placeholder="59.4" inputmode="decimal"></div>
+      <div class="f" style="max-width:150px"><label for="inRpe">Effort 1–10</label>
+        <select id="inRpe"><option value="">—</option><option value="1">1</option><option value="2">2 · easy</option><option value="3">3</option><option value="4">4 · steady</option><option value="5">5</option><option value="6">6</option><option value="7">7 · hard</option><option value="8">8</option><option value="9">9 · very hard</option><option value="10">10 · all out</option></select></div>
       <div class="f"><label for="inRunNote">Note</label><input type="text" id="inRunNote" placeholder="1:1 recovery, wind, 90%"></div>
     </div>
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
@@ -2426,6 +2433,66 @@ function tdeeCheck(){
    known intake measure his deficit directly: whatever he ate, plus whatever
    the weight says he was short by, is what holds him level. That number only
    gets better as the block runs, and a table of estimates never would. */
+/* ===================== the three new signals =====================
+   Resting heart rate, how hard sessions actually felt, and whether anything
+   hurts. None of them mean anything as a single number — they are all read
+   against his own recent history, which is why the models hold a baseline
+   rather than a threshold. */
+var RHR_RECENT=7, RHR_BASE=21, RHR_MIN=5, RHR_FLAG=3, RHR_BIG=5;
+function rhrModel(){
+  var t=today(),i,d,rec,recent=[],base=[];
+  for(i=0;i<RHR_RECENT+RHR_BASE;i++){
+    d=addD(t,-i);rec=S.days[d];
+    if(!rec||typeof rec.rhr!=='number')continue;
+    (i<RHR_RECENT?recent:base).push({d:d,v:rec.rhr});
+  }
+  var out={recent:recent,base:base,n:recent.length+base.length,
+           recentAvg:recent.length?mean(recent.map(function(x){return x.v;})):null,
+           baseAvg:base.length?mean(base.map(function(x){return x.v;})):null,
+           today:(S.days[t]&&typeof S.days[t].rhr==='number')?S.days[t].rhr:null,
+           delta:null,state:'none',ready:false};
+  if(out.recentAvg===null)return out;
+  if(base.length<RHR_MIN){out.state='building';return out;}
+  out.ready=true;
+  out.delta=out.recentAvg-out.baseAvg;
+  out.state=(out.delta>=RHR_BIG)?'high':(out.delta>=RHR_FLAG?'up':(out.delta<=-RHR_FLAG?'down':'level'));
+  return out;
+}
+/* A session counts as hard when he says it was, not when the distance
+   suggests it. That is the entire point of asking. */
+var RPE_HARD=7;
+function effortWeek(){
+  var tr=trainingModel(),t=today(),from=tr.wkStart,to=tr.wkEnd>t?t:tr.wkEnd;
+  var out={from:from,to:to,sessions:[],hard:0,scored:0,unscored:0};
+  for(var i=0;i<=diffD(from,to);i++){
+    var d=addD(from,i);if(d>t)break;
+    var rec=S.days[d]||{},j,rs=rec.runs||[];
+    for(j=0;j<rs.length;j++){
+      var m=runMeta(rs[j]);if(m.empty)continue;
+      if(typeof rs[j].rpe==='number'){out.sessions.push({d:d,what:m.label,rpe:rs[j].rpe});out.scored++;
+        if(rs[j].rpe>=RPE_HARD)out.hard++;}
+      else out.unscored++;
+    }
+    if(rec.gym){
+      if(typeof rec.gymRpe==='number'){out.sessions.push({d:d,what:splitName(rec.split)||'gym',rpe:rec.gymRpe});out.scored++;
+        if(rec.gymRpe>=RPE_HARD)out.hard++;}
+      else out.unscored++;
+    }
+  }
+  return out;
+}
+/* Three flags inside ten days is not a niggle any more. */
+var NIG_WINDOW=10, NIG_RUN=3;
+function niggleModel(){
+  var t=today(),i,d,rec,days=[],what={};
+  for(i=0;i<NIG_WINDOW;i++){
+    d=addD(t,-i);rec=S.days[d];
+    if(rec&&rec.niggle){days.push(d);if(rec.niggleWhat)what[rec.niggleWhat]=(what[rec.niggleWhat]||0)+1;}
+  }
+  var names=Object.keys(what).sort(function(a,b){return what[b]-what[a];});
+  return {days:days,n:days.length,today:!!(S.days[t]&&S.days[t].niggle),
+          persistent:days.length>=NIG_RUN,top:names[0]||null,names:names};
+}
 var REV_START=addD(CFG.cutEnd,1);
 /* Which block he is in today, and which one follows. The reverse has no end
    date yet on purpose — that one is Dan's to set — so everything after it is
@@ -2679,6 +2746,7 @@ function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
   paintHeader(c,tr);
   renderToday(c,w,tr);
+  renderSignals(tr);
   renderWeight(w,c);
   renderFood(c,tr);
   renderFuel(tr);
@@ -2696,6 +2764,51 @@ function render(){
   renderReview();
   renderData(w,tr,c);
   paintStatus();
+}
+/* The three new signals, in one card, and only when they have something to
+   say. An empty card every day teaches him to scroll past it. */
+function renderSignals(tr){
+  var R=rhrModel(),EF=effortWeek(),NG=niggleModel();
+  var cap=CFG.rev.hardCap,over=EF.hard>cap;
+  if(R.state==='none'&&!EF.scored&&!NG.n){
+    E('signalCard').innerHTML='<div class="p"><h2>Three new boxes on the log</h2>'+
+      '<p class="note"><b>Resting HR</b> on waking, <b>effort 1–10</b> after a session, and <b>something hurts</b> when it does. '+
+      'None of them mean anything on their own — they all get read against your own history, so the first fortnight is just collecting. '+
+      'After that this card starts telling you things the scale cannot.</p></div>';
+    return;
+  }
+  var h='<div class="p'+((over||NG.persistent||R.state==='high')?' warn':(R.state==='up'?' flag':''))+'"><h2>Signals</h2><div class="tiles t4">'+
+    tile('resting HR',R.today!==null?R.today:(R.recentAvg!==null?Math.round(R.recentAvg):'—'),
+         R.ready?('7-day '+Math.round(R.recentAvg)+' vs baseline '+Math.round(R.baseAvg)):(R.state==='building'?'building your baseline':'log it on waking'))+
+    tile('hard sessions',EF.hard+' / '+cap,'this week, by your own score')+
+    tile('scored',EF.scored+' of '+(EF.scored+EF.unscored),EF.unscored?(EF.unscored+' without an effort'):'all of them')+
+    tile('niggles',NG.n?NG.n+' d':'none',NG.n?(NG.top||'last 10 days'):'last 10 days')+
+    '</div>';
+
+  if(R.ready){
+    if(R.state==='high')h+='<p class="note" style="margin-top:10px"><b>Your resting HR is up '+f1(R.delta)+' beats on your own baseline.</b> '+
+      'That is the size of rise that usually means accumulated fatigue rather than one bad night — and it tends to show up before you feel it. '+
+      'Take the next hard day out, keep the easy work, and look again in three days. If it is still up, that is a rest week, not a rest day.</p>';
+    else if(R.state==='up')h+='<p class="note" style="margin-top:10px"><b>Resting HR is drifting up — '+f1(R.delta)+' beats on baseline.</b> '+
+      'Not alarming on its own. Worth noticing if sleep has been short or the week has been heavy; if it keeps climbing, the next hard day is the one to drop.</p>';
+    else if(R.state==='down')h+='<p class="note" style="margin-top:10px"><b>Resting HR is '+f1(-R.delta)+' beats below your baseline.</b> '+
+      'That is fitness arriving, or a genuinely well-recovered week, or both. It is the green light for a hard session if you wanted one.</p>';
+    else h+='<p class="tiny" style="margin-top:10px">Resting HR is level against your own baseline, which is exactly what you want it to be.</p>';
+  }else if(R.state==='building'){
+    h+='<p class="tiny" style="margin-top:10px">'+R.n+' morning'+(R.n===1?'':'s')+' logged. It needs about a fortnight before the baseline means anything — a single reading is noise, the drift is the signal.</p>';
+  }
+
+  if(over)h+='<p class="note"><b>'+EF.hard+' sessions at '+RPE_HARD+' or above this week — the ceiling is '+cap+'.</b> '+
+    'This is the exact thing you asked me to catch. Whatever is left in the week, make it genuinely easy, and if something has to go, drop the speed session rather than the easy one.</p>';
+  else if(EF.scored)h+='<p class="tiny"><b>'+EF.hard+' hard '+(EF.hard===1?'session':'sessions')+' this week by your own score</b>, against a ceiling of '+cap+'. '+
+    (EF.unscored?'<b>'+EF.unscored+'</b> session'+(EF.unscored===1?'':'s')+' went in without an effort score — those are invisible to this count.':'Everything scored.')+'</p>';
+
+  if(NG.persistent)h+='<p class="note"><b>Something has hurt on '+NG.n+' of the last '+NIG_WINDOW+' days'+(NG.top?' — '+NG.top:'')+'.</b> '+
+    'That is not a niggle any more, it is an injury forming, and it is the one thing on this page that does not resolve by being ignored. '+
+    'Take the running down to easy only until it has been quiet for a week. Losing a fortnight now is cheaper than losing the block.</p>';
+  else if(NG.today)h+='<p class="tiny"><b>Flagged today'+(NG.top?' — '+NG.top:'')+'.</b> One day is information, not a problem. If it turns up on '+NIG_RUN+' days in '+NIG_WINDOW+', I will say so.</p>';
+
+  E('signalCard').innerHTML=h+'</div>';
 }
 function paintHeader(c,tr){
   E('hDay').textContent=c.before?('starts '+fmtS(CFG.cutStart)):(c.after?'done':c.day+' / '+CUT_DAYS);
@@ -2991,12 +3104,21 @@ function paintForm(){
   E('inDeep').value=typeof rec.deep==='number'?rec.deep:'';
   E('inPush').value=typeof rec.push==='number'?rec.push:'';
   E('inPull').value=typeof rec.pull==='number'?rec.pull:'';
+  E('inRhr').value=typeof rec.rhr==='number'?rec.rhr:'';
+  E('inGymRpe').value=typeof rec.gymRpe==='number'?rec.gymRpe:'';
+  E('inNiggle').value=rec.niggleWhat||'';
   E('inSplit').innerHTML='<option value="">—</option>'+CFG.split.map(function(x){
     return '<option value="'+x.k+'"'+(rec.split===x.k?' selected':'')+'>'+x.n+'</option>';}).join('');
   Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.calis'),function(x){
     x.hidden=(rec.split!=='calis');
   });
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol']].forEach(function(p){
+  /* the "where" box only appears once something actually hurts, so the form
+     does not grow a permanent empty field for a day that is fine */
+  Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.niggle'),function(x){
+    x.hidden=!rec.niggle;
+  });
+  E('inGymRpe').parentNode.hidden=!rec.gym;
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
   var rs=rec.runs||[];
@@ -4324,12 +4446,16 @@ function wire(){
     var d=E('logDate').value||today();
     setDay(d,{split:this.value||null});
   });
-  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep'],['inPush','push'],['inPull','pull']].forEach(function(p){
+  E('inNiggle').addEventListener('change',function(){
+    var d=E('logDate').value||today();
+    setDay(d,{niggleWhat:this.value.trim().slice(0,60)||null});
+  });
+  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep'],['inPush','push'],['inPull','pull'],['inRhr','rhr'],['inGymRpe','gymRpe']].forEach(function(p){
     E(p[0]).addEventListener('change',function(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
   });
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol']].forEach(function(p){
+  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).addEventListener('click',function(){
       var d=E('logDate').value||today(),on=this.getAttribute('aria-pressed')==='true',o={};
       o[p[1]]=on?null:true;setDay(d,o);
@@ -4382,6 +4508,8 @@ function wire(){
     if(secs)r.secs=secs;
     var bst=parseTime(E('inBest').value);
     if(bst>0)r.best=bst;
+    var rpe=Math.round(Number(E('inRpe').value)||0);
+    if(rpe>=1&&rpe<=10)r.rpe=rpe;
     if(note)r.note=note.slice(0,80);
     var rec=S.days[d]?clone(S.days[d]):{};
     rec.runs=(rec.runs||[]).concat([r]);
