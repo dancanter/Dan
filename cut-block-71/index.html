@@ -213,6 +213,9 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     </div>
     <div class="row" style="margin-top:12px">
       <button class="tog" id="tgGym" aria-pressed="false" type="button"><span class="chk"></span>Gym</button>
+      <div class="f" style="max-width:190px"><label for="inSplit">Which session</label><select id="inSplit"></select></div>
+      <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
+      <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
       <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
@@ -386,6 +389,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TRAINING ================= -->
 <section id="s-training" class="stack" hidden>
   <div id="tWeek"></div>
+  <div id="tSplit"></div>
   <div id="tPlan"></div>
   <div id="tMix"></div>
   <div id="tRest"></div>
@@ -584,6 +588,11 @@ var CFG={
   /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
      on the last day of the block. Height already lives in w.heightM. */
   body:{dob:'2000-11-28'},
+  /* His split. Four core days that must all come round; the fifth is a free
+     day — a second go at one of them, arms, or calisthenics. */
+  split:[{k:'delts',n:'Shoulders + forearms'},{k:'chest',n:'Chest + triceps'},
+         {k:'back',n:'Back + biceps'},{k:'legs',n:'Legs'},
+         {k:'arms',n:'Arms'},{k:'calis',n:'Calisthenics'},{k:'other',n:'Something else'}],
   tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
@@ -975,7 +984,7 @@ function trainingModel(){
   }
   var pre=isPreBlock(t);
   var wkStart=pre?CFG.cutStart:mondayOf(t),wkEnd=pre?PRE_END:addD(wkStart,6);
-  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0};
+  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0,easy:0};
   for(var dd in S.days){
     if(dd<wkStart||dd>wkEnd||dd>t)continue;
     if(S.days[dd].gym)wk.gym++;
@@ -987,7 +996,10 @@ function trainingModel(){
       if(jd.hard)wk.hard++;
       if(jd.sprint)wk.sprints++;
       /* an easy continuous run of about 5 km, whatever it was filed as */
-      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint&&jd.km>=4.5&&jd.km<=5.6)wk.easy5k++;
+      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint){
+        wk.easy++;
+        if(jd.km>=4.5&&jd.km<=5.6)wk.easy5k++;
+      }
       if(rs[i].type==='fivemile'){if(jd.hard&&jd.judged){wk.recl++;}else{wk.fivemile++;}}
     }
   }
@@ -1006,6 +1018,54 @@ function trainingModel(){
           stepsTotal:stepsTotal,stepsDays:stepsDays,stepsAvg:stepsDays?stepsTotal/stepsDays:null,
           stepsUnlogged:c.elapsed-stepsDays,week:wk,wkStart:wkStart,wkEnd:wkEnd,pre:pre,
           effortSessions:wk.hard};
+}
+
+/* ===================== the gym split ===================== */
+var SPLIT_CORE=['delts','chest','back','legs'];
+function splitName(k){
+  for(var i=0;i<CFG.split.length;i++)if(CFG.split[i].k===k)return CFG.split[i].n;
+  return k||'';
+}
+function splitModel(){
+  var t=today(),c=cutTally(),tr=trainingModel();
+  var seen={},order=[],pushBest=null,pullBest=null,total=0,unlabelled=0;
+  for(var d in S.days){
+    var r=S.days[d];
+    if(!inCut(d)||d>t)continue;
+    if(typeof r.push==='number'&&(!pushBest||r.push>pushBest.v))pushBest={v:r.push,d:d};
+    if(typeof r.pull==='number'&&(!pullBest||r.pull>pullBest.v))pullBest={v:r.pull,d:d};
+    if(!r.gym)continue;
+    total++;
+    if(!r.split){unlabelled++;continue;}
+    if(!seen[r.split])seen[r.split]={n:0,last:null};
+    seen[r.split].n++;
+    if(!seen[r.split].last||d>seen[r.split].last)seen[r.split].last=d;
+    order.push({d:d,k:r.split});
+  }
+  order.sort(function(a,b){return a.d<b.d?1:-1;});
+  var core=SPLIT_CORE.map(function(k){
+    var x=seen[k]||{n:0,last:null};
+    return {k:k,n:x.n,last:x.last,since:x.last?diffD(x.last,t):null};
+  });
+  /* the one that has gone longest without being trained — nulls first */
+  var due=core.slice().sort(function(a,b){
+    if(a.last===null&&b.last===null)return 0;
+    if(a.last===null)return -1;
+    if(b.last===null)return 1;
+    return b.since-a.since;
+  })[0];
+  var wkDone={};
+  for(var i=0;i<=diffD(tr.wkStart,tr.wkEnd);i++){
+    var dd=addD(tr.wkStart,i);
+    if(dd>t)break;
+    var rr=S.days[dd];
+    if(rr&&rr.gym&&rr.split)wkDone[rr.split]=true;
+  }
+  return {core:core,due:due,extra:(seen.arms||seen.calis||seen.other)?
+            [seen.arms?{k:'arms',x:seen.arms}:null,seen.calis?{k:'calis',x:seen.calis}:null,
+             seen.other?{k:'other',x:seen.other}:null].filter(Boolean):[],
+          recent:order.slice(0,6),total:total,unlabelled:unlabelled,
+          push:pushBest,pull:pullBest,wkDone:wkDone,wkGym:tr.week.gym};
 }
 
 /* ===================== sleep, study ===================== */
@@ -2483,6 +2543,7 @@ function render(){
   renderFuel(tr);
   renderTraining(tr,c);
   renderPlan();
+  renderSplit();
   renderTimes();
   renderSleep();
   renderStudy(tr);
@@ -2719,6 +2780,21 @@ function weekExtrasHTML(start,end){
   }
   h+='<tr><td>Weight, average</td><td class="n">'+wcell+'</td><td>'+wnote+'</td></tr>';
 
+  /* the deficit for these same days, so it sits with the rest of the week
+     rather than only on Food and Wins */
+  var dfT=0,dfN=0,dfBlank=0;
+  for(i=0;i<=span;i++){
+    d=addD(start,i);
+    if(d>t)break;
+    var dx=tdeeFor(d);
+    if(!dx.stepsKnown&&!dx.intakeKnown){dfBlank++;continue;}
+    dfT+=dx.deficit;dfN++;
+  }
+  h+='<tr><td>Deficit so far</td><td class="n">'+(dfN?(dfT>=0?'−':'+')+ci(Math.abs(dfT)):'—')+'</td><td>'+
+     (dfN?('<span class="tiny">'+f2(Math.abs(dfT)/3500)+' lb · '+(dfT>=0?'−':'+')+ci(Math.abs(dfT/dfN))+' a day across '+dfN+' logged day'+(dfN===1?'':'s')+
+       (dfBlank?' · '+dfBlank+' not logged, left out':'')+'</span>')
+        :'<span class="tiny">nothing logged yet</span>')+'</td></tr>';
+
   if(cut>=CFG.study.term){
     h+='<tr><td>Study</td><td class="n">'+f1(sy)+' h</td><td>'+
        (syN===0?'<span class="tiny">none logged yet</span>':
@@ -2751,7 +2827,8 @@ function weekTemplateHTML(tr){
        (r[3]?'<span class="pill g">'+(covered?'covered':'done')+'</span>'
             :'<span class="pill">'+(r[2]-r[1])+' to go</span>')+'</td></tr>';
   });
-  if(w.easy5k)h+='<tr class="dim"><td class="tiny">easy 5 km runs</td><td class="n tiny">'+w.easy5k+'</td><td class="tiny">counted toward the five-mile slot</td></tr>';
+  if(w.easy)h+='<tr><td>Easy runs</td><td class="n">'+w.easy+'</td><td class="tiny">'+
+    (w.easy5k?w.easy5k+' of them about 5 km, counting toward the five-mile slot':'no target — they are volume, and volume is the thin part of your year')+'</td></tr>';
   h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
   if(w.fiveWhy==='two5k')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered by two easy 5 km runs.</b> Ten kilometres of easy aerobic running is the point of that slot, and you have done it — you do not owe a five-miler this week.</p>';
   if(w.fiveWhy==='fullweek')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered.</b> An easy 5 km plus the sprints plus both hard runs is a full week — a five-miler on top would be mileage on tired legs rather than training.</p>';
@@ -2770,6 +2847,13 @@ function paintForm(){
   E('inSleep').value=typeof rec.sleep==='number'?rec.sleep:'';
   E('inStudy').value=typeof rec.study==='number'?rec.study:'';
   E('inDeep').value=typeof rec.deep==='number'?rec.deep:'';
+  E('inPush').value=typeof rec.push==='number'?rec.push:'';
+  E('inPull').value=typeof rec.pull==='number'?rec.pull:'';
+  E('inSplit').innerHTML='<option value="">—</option>'+CFG.split.map(function(x){
+    return '<option value="'+x.k+'"'+(rec.split===x.k?' selected':'')+'>'+x.n+'</option>';}).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.calis'),function(x){
+    x.hidden=(rec.split!=='calis');
+  });
   [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
@@ -3272,6 +3356,46 @@ function renderStudy(tr){
   E('stTop').innerHTML=h;
 }
 
+/* ---------- the gym split ---------- */
+function renderSplit(){
+  var m=splitModel();
+  var h='<div class="p"><h2>The split · four core days and a free one</h2>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">This block</th><th>Last done</th><th></th></tr></thead><tbody>';
+  m.core.forEach(function(x){
+    var isDue=m.due&&m.due.k===x.k&&m.total>0;
+    h+='<tr'+(isDue?' style="color:var(--accent)"':'')+'><td><b>'+splitName(x.k)+'</b></td>'+
+      '<td class="n">'+x.n+'</td>'+
+      '<td class="tiny">'+(x.last?fmtS(x.last)+' · '+x.since+' day'+(x.since===1?'':'s')+' ago':'not yet this block')+'</td>'+
+      '<td>'+(m.wkDone[x.k]?'<span class="pill g">this week</span>':(isDue?'<span class="pill a">up next</span>':''))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<p class="tiny" style="margin-top:8px"><b>The fifth day is free</b> — a second go at any of the four, arms, or calisthenics. '+
+     'It is not a fixed slot, which is why it is not in the table: the four above are the ones that have to come round.</p>';
+  if(m.due&&m.total>0){
+    h+='<p class="note"><b>Longest since trained: '+splitName(m.due.k)+'</b>'+
+       (m.due.last?' — '+m.due.since+' day'+(m.due.since===1?'':'s')+' ago':' — not yet this block')+'.</p>';
+  }
+  if(m.extra.length){
+    h+='<table class="tbl"><tbody>'+m.extra.map(function(e){
+      return '<tr><td class="tiny">'+splitName(e.k)+'</td><td class="n tiny">'+e.x.n+'</td><td class="tiny">last '+fmtS(e.x.last)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+  }
+  if(m.unlabelled)h+='<p class="tiny">'+m.unlabelled+' gym session'+(m.unlabelled===1?'':'s')+' logged without saying which — pick one on the Today log and it lands here.</p>';
+  h+='</div>';
+
+  /* calisthenics, because a max set is a number worth chasing */
+  h+='<div class="p flag"><h2>Calisthenics</h2>'+
+    '<div class="tiles t4">'+
+    tile('most push-ups',m.push?ci(m.push.v):'—',m.push?fmtS(m.push.d):'log one on the Today tab')+
+    tile('most pull-ups',m.pull?ci(m.pull.v):'—',m.pull?fmtS(m.pull.d):'log one on the Today tab')+
+    '</div>'+
+    '<p class="tiny" style="margin-top:10px">Pick <b>Calisthenics</b> as the session on the Today log and two boxes appear for the numbers. '+
+    'A 45-minute max set of push-ups or pull-ups is a real benchmark and it belongs on the board like a running time does — '+
+    'and unlike a run, it costs almost nothing to recover from, which makes it a good free-day option deep in a cut.</p>'+
+    '<p class="tiny">Both are recorded per day, so the best one stands and the rest are history.</p></div>';
+  E('tSplit').innerHTML=h;
+}
+
 /* ---------- what to run to beat each time ---------- */
 function renderPlan(){
   var six=sixTargets().slice().sort(function(a,b){return a.pct-b.pct;});
@@ -3718,7 +3842,11 @@ function wire(){
     if(v===null){delete S.weights[d];}else{S.weights[d]=Math.round(v*10)/10;}
     touch();
   });
-  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep']].forEach(function(p){
+  E('inSplit').addEventListener('change',function(){
+    var d=E('logDate').value||today();
+    setDay(d,{split:this.value||null});
+  });
+  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep'],['inPush','push'],['inPull','pull']].forEach(function(p){
     E(p[0]).addEventListener('change',function(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
