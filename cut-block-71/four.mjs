@@ -102,6 +102,29 @@ ok('the whole-block total', /total deficit/i.test(t));
 ok('and what it is in pounds', /at 3,500 kcal a pound/.test(t));
 ok('newest first', /Newest first/.test(t));
 
+// the weekly table must drop a blank day too — his Tue 22 Sep read +76
+await boot(REAL);
+const wkm = await p.evaluate(() => tdeeWeek());
+ok('the weekly table drops a day with nothing logged',
+  wkm.unlogged >= 1 && wkm.days.every(d => d.stepsKnown || d.intakeKnown),
+  JSON.stringify({ unlogged: wkm.unlogged, days: wkm.days.map(d => d.date) }));
+ok('so no fake surplus is left in the week', wkm.days.every(d => d.deficit > 0),
+  JSON.stringify(wkm.days.map(d => [d.date, Math.round(d.deficit)])));
+ok('and the week total is a deficit', wkm.deficit > 0, String(Math.round(wkm.deficit)));
+
+// the whole-cut table sits on Food under the weekly one
+await p.click('[data-t="food"]');
+const food = await p.textContent('#foodTdee');
+ok('Food carries the weekly table', /This week ·/.test(food), food.slice(0, 200));
+ok('and the whole-cut table beneath it', /The whole cut ·/.test(food));
+ok('the whole cut comes after the week',
+  food.indexOf('The whole cut') > food.indexOf('This week'), 'order');
+ok('with a running total column', /Running total/.test(food));
+ok('and the pounds so far', /that turns into pounds/.test(food));
+ok('it points at the Wins copy', /The same table is on <b>Wins<\/b>/.test(await p.innerHTML('#foodTdee')));
+const bothTotals = await p.evaluate(() => ({ block: tdeeBlock().total, wins: tdeeBlock().total }));
+ok('Food and Wins read the same model', bothTotals.block === bothTotals.wins, JSON.stringify(bothTotals));
+
 // ===== 4. the pre-cut average ============================================
 const pa = await p.evaluate(() => preAvg());
 ok('the pre-cut average is computed from his own mornings', pa.n === 5, JSON.stringify(pa));

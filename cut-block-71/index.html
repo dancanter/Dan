@@ -2098,11 +2098,16 @@ function tdeeWeek(){
   var t=today(),tr=trainingModel();
   var from=tr.wkStart,to=tr.wkEnd>t?t:tr.wkEnd;
   var out={from:from,to:to,days:[],total:0,intake:0,deficit:0,n:0,
-           stepsMissing:0,intakeMissing:0,lbEquiv:0,pre:tr.pre};
+           stepsMissing:0,intakeMissing:0,unlogged:0,lbEquiv:0,pre:tr.pre};
   for(var i=0;i<=diffD(from,to);i++){
     var d=addD(from,i);
     if(d>t)break;
     var x=tdeeFor(d);
+    /* Same rule as the block total: a day with neither steps nor calories is
+       evidence-free, and counting it invents a SURPLUS, because resting plus
+       digestion alone comes to less than the target. This morning before
+       anything was logged was reading +76 and eating into the week. */
+    if(!x.stepsKnown&&!x.intakeKnown){out.unlogged++;continue;}
     out.days.push(x);out.n++;
     out.total+=x.total;out.intake+=x.against;out.deficit+=x.deficit;
     if(!x.stepsKnown)out.stepsMissing++;
@@ -3397,7 +3402,37 @@ function renderTdee(){
       (wk.intakeMissing?'<b>'+wk.intakeMissing+' day'+(wk.intakeMissing===1?'':'s')+' with no calories logged</b> — those rows use the '+ci(KCAL_DAY)+' target instead, marked with *. ':'')+
       (wk.stepsMissing?'<b>'+wk.stepsMissing+' day'+(wk.stepsMissing===1?'':'s')+' with no step count</b> — walking is simply missing from those, so the burn is understated. ':'')+
       'Log both and this whole table becomes real rather than assumed.</p>':'')+
+    (wk.unlogged?'<p class="tiny">'+wk.unlogged+' day'+(wk.unlogged===1?'':'s')+' this week with nothing logged at all, left out rather than counted. '+
+      'A day with no steps and no calories would read as a small <i>surplus</i> — resting and digesting alone come to less than the target — which is what today looks like before you log it.</p>':'')+
     '</div>';
+
+  /* the same table again, for the whole cut */
+  var tb=tdeeBlock();
+  if(tb.n){
+    h+='<div class="p flag"><h2>The whole cut · '+fmtS(CFG.cutStart)+'–'+fmtS(today())+'</h2>'+
+      '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Steps</th><th class="n">Burn</th><th class="n">Ate</th><th class="n">Deficit</th><th class="n">Running total</th></tr></thead><tbody>';
+    tb.days.slice().reverse().forEach(function(d){
+      h+='<tr'+(d.date===today()?' style="color:var(--accent)"':'')+'><td>'+DOWS[dow(d.date)]+' '+fmtS(d.date)+'</td>'+
+        '<td class="n">'+(d.stepsKnown?ci(d.steps):'—')+'</td>'+
+        '<td class="n">'+ci(d.burn)+'</td>'+
+        '<td class="n">'+(d.intakeKnown?ci(d.ate):'<span class="tiny">'+ci(d.ate)+'*</span>')+'</td>'+
+        '<td class="n">'+(d.deficit>=0?'−':'+')+ci(Math.abs(d.deficit))+'</td>'+
+        '<td class="n"><b>'+(d.run>=0?'−':'+')+ci(Math.abs(d.run))+'</b></td></tr>';
+    });
+    h+='<tr><td><b>Total</b></td><td class="n"></td><td class="n"><b>'+ci(tb.burn)+'</b></td><td class="n"><b>'+ci(tb.ate)+'</b></td>'+
+      '<td class="n"><b class="'+(tb.total>=0?'gd':'bd')+'">'+(tb.total>=0?'−':'+')+ci(Math.abs(tb.total))+'</b></td><td class="n"></td></tr>'+
+      '</tbody></table></div>'+
+      '<div class="tiles t4" style="margin-top:12px">'+
+      tile('whole cut',(tb.total>=0?'−':'+')+ci(Math.abs(tb.total)),'over '+tb.n+' logged day'+(tb.n===1?'':'s'))+
+      tile('that is',f2(Math.abs(tb.lb))+' lb','at 3,500 kcal a pound')+
+      tile('per day',(tb.perDay>=0?'−':'+')+ci(Math.abs(tb.perDay)),'average across the block')+
+      tile('biggest day',tb.best?(tb.best.deficit>=0?'−':'+')+ci(Math.abs(tb.best.deficit)):'—',tb.best?fmtS(tb.best.date):'')+
+      '</div>'+
+      '<p class="tiny" style="margin-top:10px">Newest first. <b>Running total</b> is every logged day of the block added up, so it only ever grows — that is the column that turns into pounds, and it is at <b class="num">'+
+      f2(Math.abs(tb.lb))+' lb</b> so far.</p>'+
+      (tb.unlogged?'<p class="tiny">'+tb.unlogged+' day'+(tb.unlogged===1?'':'s')+' of the block left out for having nothing logged.</p>':'')+
+      '<p class="tiny">The same table is on <b>Wins</b> if you want it next to the session counts.</p></div>';
+  }
 
   /* the model against the scale */
   if(ck){
