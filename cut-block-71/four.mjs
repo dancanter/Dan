@@ -41,45 +41,51 @@ ok('the 805m half-mile note survives', /805 m in 2:24/.test(t), t.slice(-320));
 const rows = await p.$$eval('#stravaBest tbody tr', els => els.length);
 ok('one row per benchmark distance', rows === await p.evaluate(() => BENCH.length), rows + ' vs BENCH');
 
-// ===== 2. the five-mile slot ==============================================
+// ===== 2. distance does not decide anything; effort does ================
+// Dan's call: a 5 km and a 5 mile easy run are the same thing. The separate
+// five-mile slot is gone, so the only question a continuous run has to answer
+// is whether it was easy or hard — and that is judged on pace, not on length
+// and not on what he filed it as.
 const mk = (o) => st({ days: Object.assign({ '2026-09-21': {}, '2026-09-22': {} }, o) });
-// two easy 5 km
 await boot(mk({ '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }] },
-                '2026-09-22': { runs: [{ km: 5.02, secs: 1500, type: 'easy' }] } }));
+                '2026-09-22': { runs: [{ km: 8.05, secs: 2600, type: 'easy' }] } }));
 let wk = await p.evaluate(() => trainingModel().week);
-ok('two easy 5 km runs are counted', wk.easy5k === 2, JSON.stringify(wk.easy5k));
-ok('and they cover the five-mile slot', wk.fiveMet === true && wk.fiveWhy === 'two5k', JSON.stringify({ m: wk.fiveMet, w: wk.fiveWhy }));
+ok('a 5 km and a 5 mile plod both count as easy runs', wk.easy === 2, JSON.stringify(wk));
+ok('and they are the same bucket', wk.byKind.easy === 2, JSON.stringify(wk.byKind));
+ok('the old five-mile bookkeeping is gone',
+  wk.fivemile === undefined && wk.easy5k === undefined && wk.fiveWhy === undefined,
+  JSON.stringify(Object.keys(wk)));
+
+// A five-mile threshold is a hard run. A five-mile plod is not.
+await boot(mk({ '2026-09-21': { runs: [{ km: 8.05, secs: 1750, type: 'threshold' }] },
+                '2026-09-22': { runs: [{ km: 8.05, secs: 2600, type: 'easy' }] } }));
+wk = await p.evaluate(() => trainingModel().week);
+ok('a five-mile threshold is a hard run', wk.hard === 1, JSON.stringify(wk));
+ok('and a five-mile plod is an easy one', wk.easy === 1, JSON.stringify(wk));
+
+// Filing does not get a vote: a run filed easy but run fast is hard, and one
+// filed hard but run slow is easy.
+await boot(mk({ '2026-09-21': { runs: [{ km: 5, secs: 1050, type: 'easy' }] },
+                '2026-09-22': { runs: [{ km: 5, secs: 1900, type: 'threshold' }] } }));
+wk = await p.evaluate(() => trainingModel().week);
+ok('a fast run filed as easy is still hard', wk.hard === 1, JSON.stringify(wk));
+ok('and a slow run filed as threshold is still easy', wk.easy === 1, JSON.stringify(wk));
+
+// The week panel says the rule in Dan's own terms.
 await p.click('[data-t="training"]');
-t = await p.textContent('#tWeek');
-ok('the row reads covered, not owed', /covered/.test(t), t.slice(0, 300));
-ok('and says why', /Five-mile slot covered by two easy 5 km runs/.test(t));
-
-// one easy 5 km is not enough on its own
-await boot(mk({ '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }] } }));
-wk = await p.evaluate(() => trainingModel().week);
-ok('one easy 5 km alone does not cover it', wk.fiveMet === false, JSON.stringify({ e: wk.easy5k, m: wk.fiveMet }));
-
-// 5 km + sprints + 2 hard runs does
-await boot(mk({
-  '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }, { k: 'reps', dm: 100, n: 8, secs: 120, up: true }] },
-  '2026-09-22': { runs: [{ k: 'reps', dm: 400, n: 4, secs: 250 }, { k: 'reps', dm: 1000, n: 3, secs: 560 }] } }));
-wk = await p.evaluate(() => trainingModel().week);
-ok('a full week covers it too', wk.fiveMet === true && wk.fiveWhy === 'fullweek',
-  JSON.stringify({ e: wk.easy5k, s: wk.sprints, h: wk.hard, w: wk.fiveWhy }));
-await p.click('[data-t="training"]');
-ok('and explains that a five-miler on top is just mileage',
-  /mileage on tired legs rather than training/.test(await p.textContent('#tWeek')));
-
-// an actual five-miler still works
-await boot(mk({ '2026-09-21': { runs: [{ km: 8.05, secs: 2450, type: 'fivemile' }] } }));
-wk = await p.evaluate(() => trainingModel().week);
-ok('the five-miler itself still fills the slot', wk.fiveMet === true && wk.fiveWhy === 'done', JSON.stringify(wk.fiveWhy));
-// and a hard 5 km is not an easy one
-await boot(mk({ '2026-09-21': { runs: [{ km: 5, secs: 1000, type: 'threshold' }] },
-                '2026-09-22': { runs: [{ km: 5, secs: 1010, type: 'threshold' }] } }));
-wk = await p.evaluate(() => trainingModel().week);
-ok('two HARD 5 km runs do not cover the easy slot', wk.easy5k === 0 && wk.fiveMet === false,
-  JSON.stringify({ e: wk.easy5k, h: wk.hard, m: wk.fiveMet }));
+t = (await p.textContent('#tWeek')).replace(/\s+/g, ' ');
+ok('the easy-run row is the slot now', /Easy runs/.test(t), t.slice(0, 260));
+// Only the TABLE must be free of it — the sentence explaining the rule says
+// "5 mile" on purpose.
+const wkRows = await p.$$eval('#tWeek table tr td:first-child', c => c.map(x => x.textContent.trim()));
+ok('there is no five-mile row left', !wkRows.some(x => /5 ?mile/i.test(x)), wkRows.join(' | '));
+ok('and the rule is stated', /A 5 km and a 5 mile easy run are the same thing here/.test(t));
+ok('with what actually splits them', /a five-mile threshold is a hard run, a five-mile plod is an easy one/.test(t));
+// The "Filed as" menu should no longer offer a distance as a category.
+await p.click('[data-t="today"]');
+const filed = await p.$$eval('#inContType option', o => o.map(x => x.textContent));
+ok('the form files by effort, not distance', !filed.some(x => /5 mile/i.test(x)), filed.join(' | '));
+ok('and still offers both efforts', filed.length === 2, filed.join(' | '));
 
 // ===== 3. the running deficit total on Wins ==============================
 await boot(REAL);

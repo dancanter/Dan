@@ -187,6 +187,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TODAY ================= -->
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
+  <div id="alertCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
   <div id="revNudge"></div>
@@ -258,7 +259,6 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f cont"><label for="inContType">Filed as</label>
         <select id="inContType">
           <option value="easy">Easy</option>
-          <option value="fivemile">5 mile</option>
           <option value="threshold">Hard continuous / threshold</option>
         </select></div>
       <div class="f cont"><label for="inKm">Distance (km)</label><input type="number" step="0.01" min="0" max="60" id="inKm" placeholder="8.01"></div>
@@ -461,6 +461,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= REVERSE ================= -->
 <section id="s-reverse" class="stack" hidden>
+  <div id="revCard"></div>
   <div id="revTop"></div>
   <div id="revLadder"></div>
   <div id="revPhase"></div>
@@ -701,7 +702,11 @@ var CFG={
         {m:'Biceps',cut:[4,8],rev:[8,14],day:'back'},
         {m:'Triceps',cut:[4,8],rev:[8,14],day:'chest'},
         {m:'Forearms',cut:[2,6],rev:[6,10],day:'delts'}],
-  tmpl:{hard:2,fivemile:1,sprints:1,gym:5}
+  /* Dan's call: a 5 km and a 5 mile easy run are the same thing, so there is
+     no separate five-mile slot any more — there are easy runs. What splits a
+     run is the EFFORT, not the distance: a five-mile threshold is a hard run,
+     a five-mile plod is an easy one, exactly like a 5 km. */
+  tmpl:{hard:2,easy:1,sprints:1,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
 var WEIGH_START=mondayOnOrAfter(CFG.cutStart);
@@ -1073,7 +1078,7 @@ function runMeta(r){
   }
   var p=paceOf(r);
   return {kind:'cont',km:r.km||null,secs:r.secs||null,pace:p,repAvg:null,n:null,dm:null,laps:null,
-          label:({easy:'easy run',fivemile:'5 mile',threshold:'hard continuous'})[type]||type,
+          label:({easy:'easy run',fivemile:'easy run',threshold:'hard continuous'})[type]||type,
           hard:p!==null?(p<=effortLine()):(type==='threshold'),sprint:false,judged:p!==null,
           empty:!(r.km>0||r.secs>0)};
 }
@@ -1110,8 +1115,7 @@ function trainingModel(){
      exactly one bucket. The older counters overlap on purpose (a five-miler
      is both a five-miler and an easy run), which is fine for the template
      rows but useless for a total that has to add up. */
-  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0,easy:0,
-          byKind:{easy:0,hard:0,sprint:0}};
+  var wk={hard:0,sprints:0,gym:0,runs:0,easy:0,byKind:{easy:0,hard:0,sprint:0}};
   for(var dd in S.days){
     if(dd<wkStart||dd>wkEnd||dd>t)continue;
     if(S.days[dd].gym)wk.gym++;
@@ -1123,25 +1127,10 @@ function trainingModel(){
       wk.byKind[jd.sprint?'sprint':(jd.hard?'hard':'easy')]++;
       if(jd.hard)wk.hard++;
       if(jd.sprint)wk.sprints++;
-      /* an easy continuous run of about 5 km, whatever it was filed as */
-      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint){
-        wk.easy++;
-        if(jd.km>=4.5&&jd.km<=5.6)wk.easy5k++;
-      }
-      if(rs[i].type==='fivemile'){if(jd.hard&&jd.judged){wk.recl++;}else{wk.fivemile++;}}
+      /* any easy continuous run, 5 km or 5 miles or anything else */
+      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint)wk.easy++;
     }
   }
-  /* His call: the five-mile slot is there for easy aerobic volume, and there
-     is more than one way to get it. Two easy 5 km runs cover the same ground.
-     So does an easy 5 km alongside a sprint session and both hard runs — by
-     then the week has done its work and a five-miler is just more mileage on
-     tired legs. The slot stays in the template so the default is unchanged;
-     it just stops reading as owed when one of these is true. */
-  wk.fiveWhy=null;
-  if(wk.fivemile>=CFG.tmpl.fivemile)wk.fiveWhy='done';
-  else if(wk.easy5k>=2)wk.fiveWhy='two5k';
-  else if(wk.easy5k>=1&&wk.sprints>=CFG.tmpl.sprints&&wk.hard>=CFG.tmpl.hard)wk.fiveWhy='fullweek';
-  wk.fiveMet=!!wk.fiveWhy;
   return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),
           stepsTotal:stepsTotal,stepsDays:stepsDays,stepsAvg:stepsDays?stepsTotal/stepsDays:null,
           stepsUnlogged:c.elapsed-stepsDays,week:wk,wkStart:wkStart,wkEnd:wkEnd,pre:pre,
@@ -1554,7 +1543,7 @@ function buildReview(wk){
   R.newLow=(loIn!==null&&(loBefore===null||loIn<loBefore))?loIn:null;
   R.ms=MILESTONES.filter(function(x){return loIn!==null&&loIn<=x&&(loBefore===null||loBefore>x);});
   /* sessions */
-  var S2={gym:0,hard:0,runs:0,sprints:0,fivemile:0,recl:0,best:null};
+  var S2={gym:0,hard:0,runs:0,sprints:0,easy:0,best:null};
   for(i=0;i<=diffD(wk.start,cut);i++){
     d=addD(wk.start,i);rec=S.days[d];if(!rec)continue;
     if(rec.gym)S2.gym++;
@@ -1563,7 +1552,7 @@ function buildReview(wk){
       S2.runs++;
       if(q.hard)S2.hard++;
       if(q.sprint)S2.sprints++;
-      if(r.type==='fivemile'){if(q.hard&&q.judged)S2.recl++;else S2.fivemile++;}
+      if(q.kind==='cont'&&!q.hard&&!q.sprint)S2.easy++;
       if(q.dm&&q.repAvg!==null){
         var ref=BESTAVG[q.dm]||null,gap=ref?q.repAvg-ref:null;
         if(!S2.best||(gap!==null&&S2.best.gap!==null&&gap<S2.best.gap))S2.best={d:d,dm:q.dm,avg:q.repAvg,ref:ref,gap:gap,label:q.label};
@@ -1631,12 +1620,12 @@ function renderReview(){
   var pre=(wk.k==='pre');
   h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
     tmplRow('Hard runs',R.s.hard,pre?null:CFG.tmpl.hard)+
-    tmplRow('5 mile',R.s.fivemile,pre?null:CFG.tmpl.fivemile)+
+    tmplRow('Easy runs',R.s.easy,pre?null:CFG.tmpl.easy)+
     tmplRow('100m sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
     tmplRow('Gym',R.s.gym,pre?null:CFG.tmpl.gym)+
     '<tr><td>Runs, all in</td><td class="n">'+R.s.runs+'</td><td></td></tr>'+
     '</tbody></table>'+
-    (R.s.recl?'<p class="tiny" style="margin-top:8px">'+R.s.recl+' run filed as a 5 mile came in under the effort line, so it counted as a hard run and the five-mile slot stayed open.</p>':'')+
+
     (R.s.best?'<p class="tiny" style="margin-top:8px">Best session: <b>'+esc(R.s.best.label)+'</b> on '+fmtS(R.s.best.d)+' at <b class="num">'+secFmt(R.s.best.avg)+'</b> rep average'+
       (R.s.best.ref?(R.s.best.gap<0?' — <b class="gd">under the 2026 best of '+secFmt(R.s.best.ref)+'</b>':', '+f1(R.s.best.gap)+' s off the 2026 best of '+secFmt(R.s.best.ref)):'')+'.</p>':'')+
     '<p class="tiny">Days with nothing on them were rest. Rest is in the plan and is never counted as a miss.</p></div>';
@@ -2111,7 +2100,7 @@ function weekOwes(tr){
   if(tr.pre)return [];
   var o=[];
   if(tr.week.hard<CFG.tmpl.hard)o.push({k:'hard',n:CFG.tmpl.hard-tr.week.hard,label:'hard run'});
-  if(tr.week.fivemile<CFG.tmpl.fivemile)o.push({k:'easy',n:CFG.tmpl.fivemile-tr.week.fivemile,label:'five mile'});
+  if(tr.week.easy<CFG.tmpl.easy)o.push({k:'easy',n:CFG.tmpl.easy-tr.week.easy,label:'easy run'});
   if(tr.week.sprints<CFG.tmpl.sprints)o.push({k:'sprint',n:CFG.tmpl.sprints-tr.week.sprints,label:'sprint session'});
   if(tr.week.gym<CFG.tmpl.gym)o.push({k:'gym',n:CFG.tmpl.gym-tr.week.gym,label:'gym session'});
   return o;
@@ -2758,6 +2747,7 @@ function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
   paintHeader(c,tr);
   renderToday(c,w,tr);
+  renderAlerts(w,tr,c);
   renderSignals(tr);
   renderWeight(w,c);
   renderFood(c,tr);
@@ -2777,6 +2767,38 @@ function render(){
   renderData(w,tr,c);
   paintStatus();
 }
+/* One banner, at the top, for the three calls Dan actually wants interrupting
+   for: rest, refeed, ease off. The reasoning still lives in the cards below —
+   this is the bit he should not have to scroll to find. If nothing fires it
+   renders nothing at all, which is the whole point: a banner that is always
+   there is a banner nobody reads. */
+function alertsNow(w,tr,c){
+  var out=[],rest=restModel(w,tr),R=rhrModel(),NG=niggleModel(),EF=effortWeek(),ah=aheadEnough(w,tr);
+  if(rest.fire){
+    out.push({k:'REST',t:'Take a day or two off',
+      w:rest.tooFast?'You are coming down faster than the safe band. Days off, and eat <b>more</b> on them \u2014 carbs first.'
+                    :'You are ahead of the curve. No running, no gym, and the food stays exactly where it is.'});
+    if(rest.tooFast)out.push({k:'REFEED',t:'A refeed is due',w:'The rate is over the band, so this one is not optional. The size is on the card below.'});
+    else if(ah.ok)out.push({k:'REFEED',t:'A refeed is earned, if you want it',w:'Weight and sessions both ahead \u2014 the only condition it is offered under. Size below.'});
+  }
+  if(R.state==='high')out.push({k:'EASE OFF',t:'Resting HR is up '+f1(R.delta)+' beats on your baseline',
+    w:'That is fatigue, and it shows before you feel it. Take the next hard day out and look again in three days.'});
+  if(EF.hardRuns>CFG.hardRuns.cap)out.push({k:'EASE OFF',t:EF.hardRuns+' hard runs this week',
+    w:'Your ceiling is '+CFG.hardRuns.cap+'. Whatever running is left, make it genuinely easy.'});
+  if(NG.persistent)out.push({k:'CHECK',t:'Something has hurt on '+NG.n+' of the last '+NIG_WINDOW+' days'+(NG.top?' \u2014 '+NG.top:''),
+    w:'That is an injury forming. Easy running only until it has been quiet for a week.'});
+  return out;
+}
+function renderAlerts(w,tr,c){
+  var a=alertsNow(w,tr,c);
+  if(!a.length){E('alertCard').innerHTML='';return;}
+  var bad=a.some(function(x){return x.k!=='REFEED';});
+  E('alertCard').innerHTML='<div class="p '+(bad?'warn':'good')+'"><h2>'+(a.length===1?'Heads up':a.length+' things to know')+'</h2>'+
+    a.map(function(x){
+      return '<p style="margin:6px 0"><span class="pill'+(x.k==='REFEED'?' g':'')+'">'+x.k+'</span> <b>'+x.t+'</b><br><span class="note">'+x.w+'</span></p>';
+    }).join('')+'</div>';
+}
+
 /* The three new signals, in one card, and only when they have something to
    say. An empty card every day teaches him to scroll past it. */
 function renderSignals(tr){
@@ -3084,17 +3106,17 @@ function weekTemplateHTML(tr){
   if(tr.pre){
     var p='<table class="tbl"><tbody>'+
       '<tr><td>Hard runs</td><td class="n">'+tr.week.hard+'</td></tr>'+
-      '<tr><td>5 mile</td><td class="n">'+tr.week.fivemile+'</td></tr>'+
+      '<tr><td>Easy runs</td><td class="n">'+tr.week.easy+'</td></tr>'+
       '<tr><td>100m sprints</td><td class="n">'+tr.week.sprints+'</td></tr>'+
       '<tr><td>Gym</td><td class="n">'+tr.week.gym+'</td></tr>'+
       '</tbody></table>';
     p+=weekExtrasHTML(tr.wkStart,tr.wkEnd);
-    p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard / 1 five-mile / 1 sprints / 5 gym. Everything logged still counts toward the block totals.</p>';
+    p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard / 1 easy / 1 sprints / 5 gym. Everything logged still counts toward the block totals.</p>';
     return p;
   }
   var w=tr.week;
   var rows=[['Hard runs',w.hard,CFG.tmpl.hard,w.hard>=CFG.tmpl.hard],
-            ['5 mile',w.fivemile,CFG.tmpl.fivemile,w.fiveMet],
+            ['Easy runs',w.easy,CFG.tmpl.easy,w.easy>=CFG.tmpl.easy],
             ['100m sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
             ['Gym',w.gym,CFG.tmpl.gym,w.gym>=CFG.tmpl.gym]];
   var bk=w.byKind||{easy:0,hard:0,sprint:0};
@@ -3116,13 +3138,11 @@ function weekTemplateHTML(tr){
        (r[3]?'<span class="pill g">'+(covered?'covered':'done')+'</span>'
             :'<span class="pill">'+(r[2]-r[1])+' to go</span>')+'</td></tr>';
   });
-  if(w.easy)h+='<tr><td>Easy runs</td><td class="n">'+w.easy+'</td><td class="tiny">'+
-    (w.easy5k?w.easy5k+' of them about 5 km, counting toward the five-mile slot':'no target — they are volume, and volume is the thin part of your year')+'</td></tr>';
+
   h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
-  if(w.fiveWhy==='two5k')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered by two easy 5 km runs.</b> Ten kilometres of easy aerobic running is the point of that slot, and you have done it — you do not owe a five-miler this week.</p>';
-  if(w.fiveWhy==='fullweek')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered.</b> An easy 5 km plus the sprints plus both hard runs is a full week — a five-miler on top would be mileage on tired legs rather than training.</p>';
-  if(tr.week.recl)h+='<p class="tiny" style="margin-top:8px">'+tr.week.recl+' run filed as a 5 mile came in under the effort line, so it counts as a hard run rather than filling the slot.</p>';
-  h+='<p class="tiny" style="margin-top:8px">The five-mile slot is about easy aerobic volume, so there is more than one way to fill it: the five-miler itself, <b>two easy 5 km runs</b>, or <b>one easy 5 km once the sprints and both hard runs are done</b>. Days with nothing on them are rest, not misses.</p>';
+
+
+  h+='<p class="tiny" style="margin-top:8px"><b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
   return h;
 }
 function paintForm(){
@@ -3177,7 +3197,7 @@ function paintForm(){
   var kind=E('inKind').value;
   E('paceHint').innerHTML=kind==='reps'
     ? 'Total rep time is the reps, not the recoveries; the best single rep is the one that beats a record. A rep session at 200m and up counts as a <b>hard run</b>; 100s count as the <b>sprints</b> slot and toward runs all-in, not toward the 21 hard runs.'
-    : 'Effort line today: <b class="num">'+pace(effortLine())+'</b>. Anything at or under it counts as a hard run whatever it was filed as, and a reclassified 5 mile leaves that slot open.';
+    : 'Effort line today: <b class="num">'+pace(effortLine())+'</b>. Anything at or under it counts as a hard run whatever distance it was and whatever you filed it as.';
 }
 
 /* ---------- weight ---------- */
@@ -4095,6 +4115,23 @@ function renderReverse(){
      himself into the ground. So the sequence is written down, each phase has
      an exit condition rather than a vibe, and the page says plainly what it
      can and cannot see. */
+  /* The short version, first, because the rest of this tab is long and the
+     long version is not what he needs at 10pm on a Tuesday. */
+  E('revCard').innerHTML='<div class="p lift"><h2>The reverse, in one screen</h2>'+
+    '<div class="tiles t4">'+
+    tile('eat',ci(R.rungs[0].kcal),'day one, then hold '+CFG.rev.holdWeeks+' weeks')+
+    tile('then','+'+ci(CFG.rev.step)+'/wk','up to '+ci(R.maint))+
+    tile('runs',CFG.hardRuns.target+' hard','+ easy, '+CFG.hardRuns.cap+' hard is the ceiling')+
+    tile('lift','4 days','legs once, far from the hard runs')+
+    '</div>'+
+    '<table class="tbl" style="margin-top:12px"><tbody>'+
+    '<tr><td><b>The job</b></td><td class="note">Food back to normal without the scale running away. Health and sleep first. Times held, not chased. A bit of muscle if it turns up.</td></tr>'+
+    '<tr><td><b>The one rule</b></td><td class="note">Never a hard run in the 24 hours before legs.</td></tr>'+
+    '<tr><td><b>The one fear</b></td><td class="note">You will not go puffy. The first weeks usually make your face <b>sharper</b>, not softer — the card below does the maths.</td></tr>'+
+    '<tr><td><b>When it ends</b></td><td class="note">Your call. Say the word and I will set it.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="tiny" style="margin-top:10px">Everything under here is the detail behind those four lines. You do not need it on a normal day.</p></div>';
+
   var ph=phaseModel();
   var pv='<div class="p '+(ph.now.k==='rev'?'lift':'flag')+'"><h2>Where you are, and what ends it</h2>'+
     '<p class="lede">Right now: <b class="acc">'+ph.now.n+'</b>'+(ph.now.k==='cut'?' — day '+c.day+' of '+CUT_DAYS:'')+'. '+
@@ -4609,7 +4646,8 @@ function wire(){
       var km=m2>0?Math.round((m2/1000)*100)/100:0;
       var p=(km>0&&sec>0)?sec/km:null;
       var type=p!==null?(p<=effortLine()?'threshold':'easy'):'easy';
-      if(km>=7&&km<=9&&p!==null&&p>effortLine())type='fivemile';
+      /* distance no longer picks a category: anything continuous that came in
+         over the effort line is simply an easy run, 5 km or 5 miles alike */
       rows.push({d:d,km:km,secs:sec,type:type,note:String(a.name||'').slice(0,60),pace:p});
     });
     if(!rows.length){out.innerHTML='<p class="tiny bd">No activities with a date found in that JSON.</p>';return;}

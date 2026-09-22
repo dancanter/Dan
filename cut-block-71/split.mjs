@@ -19,12 +19,13 @@ await boot(st({ days: {
   '2026-09-22': { runs: [{ km: 7.2, secs: 2300, type: 'easy' }] } } }));
 let wk = await p.evaluate(() => trainingModel().week);
 ok('every easy run is counted', wk.easy === 2, JSON.stringify({ easy: wk.easy, easy5k: wk.easy5k }));
-ok('and only the ~5 km ones count toward the slot', wk.easy5k === 1, String(wk.easy5k));
+// No more length test: an easy run is an easy run whatever the distance.
+ok('length no longer sorts them', wk.easy5k === undefined, String(wk.easy5k));
 await p.click('[data-t="training"]');
 let t = await p.textContent('#tWeek');
 ok('the week shows an easy runs row', /Easy runs/.test(t), t.slice(0, 300));
 ok('with the count', /Easy runs\s*2/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
-ok('and says which count toward the slot', /counting toward the five-mile slot/.test(t));
+ok('and says distance does not sort them', /A 5 km and a 5 mile easy run are the same thing here/.test(t));
 
 // ===== 2. the deficit is on the week panel ===============================
 await boot(st({ days: {

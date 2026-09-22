@@ -129,6 +129,23 @@ ok('there is a way to judge it that is not a late-night mirror',
 ok('and the leanness limit is named honestly',
   /reveals bone structure, it does not add it/.test(tFace) && /where it turns on you/.test(tFace));
 
+// ---- the short version, up top, before any of the long version ----------
+const tCard = await p.textContent('#revCard');
+ok('there is a one-screen summary', /The reverse, in one screen/.test(tCard), tCard.slice(0, 120));
+ok('it carries the first rung', new RegExp(m.rungs[0].kcal.toLocaleString('en-GB')).test(tCard), tCard.slice(0, 200));
+ok('the hold', new RegExp('hold ' + rev.hold + ' weeks').test(tCard));
+ok('the step and the destination',
+  new RegExp('\\+' + rev.step + '/wk').test(tCard) && new RegExp('up to ' + m.maint.toLocaleString('en-GB')).test(tCard), tCard.slice(0, 260));
+const hrCard = await p.evaluate(() => CFG.hardRuns);
+ok('the run rule', new RegExp(hrCard.target + ' hard').test(tCard) && new RegExp(hrCard.cap + ' hard is the ceiling').test(tCard));
+ok('the one rule about legs', /Never a hard run in the 24 hours before legs/.test(tCard));
+ok('the puffiness fear, answered in one line', /You will not go puffy/.test(tCard));
+ok('and that the length is his call', /Your call/.test(tCard));
+ok('it says the rest is optional detail', /You do not need it on a normal day/.test(tCard));
+// A template artefact would render as literal text and be easy to miss.
+ok('no unrendered placeholders leaked into it', !/\+D\+|undefined|NaN/.test(tCard),
+  (tCard.match(/.{20}(\+D\+|undefined|NaN).{20}/) || [''])[0]);
+
 // ---- the phase guide: he asked to be told when to change gear ------------
 const tPh = await p.textContent('#revPhase');
 const pm = await p.evaluate(() => ({ now: phaseModel().now.k, next: phaseModel().next && phaseModel().next.k,
