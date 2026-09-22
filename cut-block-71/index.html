@@ -591,7 +591,7 @@ var CFG={
      the deficit his own weight actually measured over the block. */
   /* first: the one step up on day one. holdWeeks: how long it sits there
      before anything moves again. step: every rung after that. */
-  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardCap:2,deloadEvery:4},
+  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardCap:3,deloadEvery:4},
   /* The reverse week. Legs sits as far from both runs as seven days allow,
      because the one thing that actually costs muscle is running hard into a
      leg session. Upper-body days do not care about running at all, which is
@@ -601,10 +601,10 @@ var CFG={
     {d:0,n:'Rest, or a walk outdoors',k:'rest',w:'A real one. Get the daylight early — it is the cheapest thing on this page and it sets the sleep that everything else depends on.'},
     {d:1,n:'Legs',k:'legs',hard:true,w:'The freshest day of the week and 48 hours clear of the hard run on either side. One of your two hard days.'},
     {d:2,n:'Chest + triceps',k:'chest',w:'Upper body. Running has no quarrel with it, and lifting for lean mass is health work, not vanity.'},
-    {d:3,n:'The quality run',k:'run',run:'quality',hard:true,w:'Alternate short reps and threshold week by week. One hard run, not two — this is the day the stress is allowed.'},
+    {d:3,n:'Run 1 — the engine session',k:'run',run:'engine',hard:true,w:'Threshold, 1 km reps or 800 m reps — one of the three, not two of them. Two clear days since legs and two before the speed day.'},
     {d:4,n:'Back + biceps',k:'back',w:'Upper body again. Move it a day if life demands; it changes nothing.'},
-    {d:5,n:'Easy run',k:'run',run:'easy',w:'The first of the two that do the cellular work. It must be genuinely easy — this day is ruined more often than any other by running it slightly too hard.'},
-    {d:6,n:'Shoulders + forearms, then the second easy run',k:'delts',run:'easy',w:'The lightest lift day carries the double, and lifting goes first. Two easy runs back to back is fine — at this effort they are not a stressor, which is the whole point of them.'}
+    {d:5,n:'Run 2 — the speed session',k:'run',run:'speed',hard:true,w:'400 m, 300 m or 200 m. Three clear days before legs comes round again, which is what makes three hard days a week survivable at all.'},
+    {d:6,n:'Shoulders + forearms, then Run 3',k:'delts',run:'third',w:'Lifting first. Run 3 is the easy run by default — it has no fixed home, so move it wherever it fits. If you are doing the hills instead, they go in Run 2’s place that week, never the day after it.'}
   ],
   /* Three sessions now, and only ONE of them is hard in any given week. The
      brief changed: health first, stress limited, times still improving. That
@@ -612,19 +612,32 @@ var CFG={
      and nothing living in the grey middle where the fatigue is real and the
      adaptation is small. Described by intent and by feel, never by a pace or a
      stopwatch on the recoveries. */
+  /* Three slots, Dan's menu. Each slot is a job, and the options inside it are
+     different ways of doing that job — pick one per week rather than stacking
+     them. Slots 1 and 2 are the hard days; slot 3 is deliberately not, and it
+     only stays that way if the hills are kept genuinely short. Described by
+     intent and feel, never by a pace or a stopwatch on the recoveries. */
   revRuns:[
-    {k:'easy',n:'Easy aerobic',t:'The cellular one',hard:false,
-     s:'Conversational the whole way — full sentences, not gasped phrases. If you can breathe through your nose most of it, that is about right. It should feel almost boring, and it should end with you feeling better than when you started.',
-     y:'This is the session that does what you are asking for. Easy aerobic work is the strongest stimulus there is for building mitochondria and capillaries — the actual cellular machinery — and it does it at close to zero stress cost. It is also what raises the floor your hard sessions are built on.',
-     stop:'There is nothing to stop. The only way to fail this one is to run it too hard, and almost everyone does. If you finish it tired, it was not an easy run.'},
-    {k:'short',n:'Short reps',t:'VO₂ and top-end speed',hard:true,
-     s:'Reps short enough that the last one is as quick as the first. Walk back, get your breath fully, go again — the recovery is however long that takes, not a number. Your flat-out sprints live at the front, while you are fresh.',
-     y:'VO₂ max is the single strongest modifiable predictor of how long you live, and this is the session that moves it fastest. Total volume is tiny, so there is almost nothing for the legs to recover from. This is stress that pays for itself.',
-     stop:'When a rep comes in slower than the one before it, the session is over. Chasing it turns this into a conditioning grind, which is exactly the stress you are trying not to carry.'},
-    {k:'thresh',n:'Threshold',t:'The engine behind the 3 km and 5 km',hard:true,
-     s:'One sustained block, or a few long ones. Comfortably hard — you can speak, but only in short phrases. It should feel like something you could just about hold for an hour if you had to, and it should never feel like a race.',
-     y:'This is what actually moves a 3 km and a 5 km, and per minute of fitness it costs the legs far less than the same time spent plodding. Alternating it with the reps week by week keeps both stimuli without ever putting two hard runs in one week.',
-     stop:'If the effort starts creeping up to hold the same feel, end it there. Threshold done too hard is a race you did not enter, and it takes the same two days back.'}
+    {k:'engine',slot:1,n:'The engine session',t:'Threshold, 1 km reps or 800 m reps',hard:true,
+     opts:[
+      {n:'Threshold',w:'One sustained block, or a few long ones. Comfortably hard — you can speak, but only in short phrases. It should feel like something you could just about hold for an hour if you had to, and it should never feel like a race.'},
+      {n:'1 km reps',w:'A handful of them, each at an effort you could honestly repeat. The whole set should feel like one long controlled effort broken into pieces, not a series of races. Threshold’s sharper cousin, and the most specific thing here to a 3 km.'},
+      {n:'800 m reps',w:'Shorter and faster than the kilometres, which puts it closer to true VO₂ work. The last one should come in at the same speed as the first. If it hurts, it should hurt in the last 200 of each rep, not from the start.'}],
+     y:'This is the session that carries both of the things you asked for at once. VO₂ max is the strongest modifiable predictor of how long you live, and it is also the engine behind your 3 km and 5 km — the same session serves the healthspan and the times. Pick one option a week; they are three ways of doing one job, not three jobs.',
+     stop:'If the effort has to keep creeping up to hold the same feel, or a rep comes in slower than the one before, the session is done. Pushing past that is where the week stops being repeatable.'},
+    {k:'speed',slot:2,n:'The speed session',t:'400 m, 300 m or 200 m',hard:true,
+     opts:[
+      {n:'400 m',w:'The classic, and the one that serves your 400 target most directly. Fast, controlled, and full recovery between — walk until you genuinely want to go again. Also the most costly of the three; treat it that way.'},
+      {n:'300 m',w:'Near flat out but short enough to hold your shape all the way through. The sweet spot — nearly all of the speed benefit of a 400 set for a fraction of the wreckage.'},
+      {n:'200 m',w:'Pure speed. Nothing to survive, no lactic hangover, just fast running with full recovery. The cheapest hard session on this page and the right pick on a week you are tired but want to keep the top end.'}],
+     y:'Short, fast running keeps the top end you have already earned and costs almost nothing in volume. It is also the only thing here that protects your 400, which a reverse would otherwise quietly let go.',
+     stop:'The moment a rep is slower than the one before it, you are finished for the day. Chasing a set past that point is conditioning, not speed, and it is exactly the stress you said you did not want.'},
+    {k:'third',slot:3,n:'The third run',t:'Short uphill sprints, or an easy run',hard:false,
+     opts:[
+      {n:'Easy run',w:'Conversational the whole way — full sentences, not gasped phrases. If you can breathe through your nose for most of it, that is about right. It should feel almost boring and end with you feeling better than when you started.'},
+      {n:'Short uphill sprints',w:'Very short efforts up a hill, walk back down, go again when you are ready. Keep it to a handful. Because you are not braking on the way down there is almost no eccentric load, so the hamstring risk that comes with flat-out flat sprinting mostly is not there — which makes these the safest hard-feeling running you can do.'}],
+     y:'The easy run is the cellular one: easy aerobic work is the strongest stimulus there is for mitochondria and capillaries, at close to zero stress cost, and it raises the floor the two hard sessions are built on. The hills buy you power and running economy for almost no damage. Either way this slot is not meant to be a third hard day.',
+     stop:'On the easy run there is nothing to stop — the only way to fail it is to run it too hard, and almost everyone does. On the hills, stop when you are no longer getting up as fast. A dozen of them with short recoveries is a conditioning session wearing a disguise, and then it <i>is</i> a third hard day.'}
   ],
   /* The four things with real evidence behind them, and nothing that sounds
      better than it is. Dan asked for anti-ageing; this is the honest version
@@ -4006,9 +4019,11 @@ function renderReverse(){
   var hardDays=CFG.revWeek.filter(function(x){return x.hard;});
   var runDays=CFG.revWeek.filter(function(x){return x.run;});
   var tv='<div class="p flag"><h2>The week — health first, times still moving, stress capped</h2>'+
-    '<p class="lede">Four lifting days, <b class="num">'+runDays.length+' runs — one hard, '+(runDays.length-1)+' easy</b>, a rest day, and <b class="num">'+hardDays.length+' hard days a week, which is the ceiling</b>.</p>'+
-    '<p class="tiny">You called the three runs and you called it right: three is enough to <b>hold</b> what you have earned and creep forward slowly, without any of them costing you a recovery day. '+
-    'It is not enough to make you much faster — that is what the running block is for, and this page will tell you when it is time.</p>'+
+    '<p class="lede">Four lifting days, <b class="num">'+runDays.length+' runs — two hard, one that is not</b>, a rest day, and <b class="num">'+hardDays.length+' hard days a week, which is the ceiling</b>.</p>'+
+    '<p class="note"><b>Straight about what this changed.</b> Your three sessions are an engine day and a speed day, so the hard days went from two to <b>'+hardDays.length+'</b> — legs, Run 1, Run 2. '+
+    'That is a real step up from the week you asked for last time, and it is the most this brief will carry: a fourth hard day and the health half of what you asked for is gone. '+
+    'It works because <b>Run 3 is not a hard session</b>. Keep it that way and three is fine; let the hills turn into a conditioning grind and you are training four hard days a week and calling it three.</p>'+
+    '<p class="tiny">Three runs like this will hold what you have earned and creep the times forward. It still is not what makes you much faster — that is the running block, and this page will tell you when it is time.</p>'+
     '<p>You asked for three things that people usually assume fight each other: better times, a bit more muscle, and less wear. They mostly do not fight. '+
     '<b>The shape that gives you all three is polarised</b> — the easy work genuinely easy, the hard work genuinely hard, and <b>nothing in the grey middle</b>. '+
     'The grey middle is moderately-hard running done often: it feels productive, it accumulates real fatigue, and it returns very little. It is where almost all unnecessary stress in a training week lives.</p>'+
@@ -4024,7 +4039,7 @@ function renderReverse(){
   tv+='</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px"><b>Two hard days, and the heavy leg session is one of them.</b> '+
     'That is the stress budget for the week and it is the part to protect — if a third hard day creeps in, it has come from somewhere, and it is usually the easy run that paid for it.</p>'+
-    '<p class="note"><b>Every '+CFG.rev.deloadEvery+'th week, take the hard run out and leave the easy one.</b> Keep lifting, drop the top set from each exercise. '+
+    '<p class="note"><b>Every '+CFG.rev.deloadEvery+'th week, drop Run 2 and keep Run 1 honest rather than hard.</b> Run 3 stays. Keep lifting, drop the top set from each exercise. '+
     'A week that feels too gentle is doing exactly what it is supposed to — adaptation lands in the recovery, not in the session.</p>'+
     '<p class="note"><b>On the sets: run the bottom of the reverse column, not the top.</b> '+
     'The top of that column is what you would do if maximum growth were the only goal, and it is not — you asked for a bit of muscle without the wear. The bottom of the range gets you most of the muscle for a fraction of the fatigue.</p>'+
@@ -4036,11 +4051,11 @@ function renderReverse(){
     '<tr><td><b>Same day? Lift first, and only on an upper day</b></td><td class="note">Running first blunts the load you can put on the bar, and load is what grows you. A run stacked onto a legs day is the worst combination available.</td></tr>'+
     '<tr><td><b>Never run hard in the morning and train legs that night</b></td><td class="note">It reads like two separate sessions and behaves like one very bad one.</td></tr>'+
     '<tr><td><b>Nothing in the grey middle</b></td><td class="note">If a run is not clearly easy, it has to be clearly hard, and you only get one clearly hard one. A "steady" run at three-quarter effort is the single most expensive habit in distance running.</td></tr>'+
-    '<tr><td><b>Never two hard days back to back</b></td><td class="note">The leg day and the quality run are the two, and the week keeps them 48 hours apart in both directions. Swap days freely as long as that survives.</td></tr>'+
+    '<tr><td><b>Never two hard days back to back</b></td><td class="note">Legs, Run 1 and Run 2 are the three, and the week keeps every pair of them two clear days apart. Swap days around freely as long as that survives — it is the only thing making three hard days a week work.</td></tr>'+
     '</tbody></table>'+
-    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> one hard run a week is slower progress than two, and by week six you may notice your top end has gone a bit quiet between quality sessions. '+
+    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> three hard days leaves less room than two did. There is no spare capacity in this week for a heavy weekend, a bad sleep run, or a fourth session you fancied on the day — something has to come out, and it should be Run 2. '+
     'That is the trade you asked for and it is a reasonable one — the speed comes back inside a fortnight of adding a session, and it buys you a block you can actually hold for a year rather than eight weeks.</p>'+
-    '<p class="tiny"><b>And one thing that has not changed:</b> the five-mile slot stays out. The two easy runs are in the week because they do real cellular work at almost no stress cost — not as mileage for its own sake, and not as a place to sneak a third hard effort.</p>'+
+    '<p class="tiny"><b>And one thing that has not changed:</b> the five-mile slot stays out. Run 3 is in the week because it does real cellular work at almost no stress cost — not as mileage for its own sake, and not as a place to sneak a third hard effort.</p>'+
     '</div>';
 
   /* the health card: the honest version of what he asked for */
@@ -4062,13 +4077,17 @@ function renderReverse(){
 
   /* the two sessions themselves */
   tv+='<div class="p"><h2>The sessions</h2>'+
-    '<p class="tiny">Three shapes, but only <b>one hard one in any given week</b> — the reps and the threshold alternate, and the easy run is there every week. '+
+    '<p class="tiny">Three slots. <b>Pick one option from each, each week</b> — the options inside a slot are different ways of doing that slot’s job, not extra sessions to stack. '+
     'No paces and no stopwatch on the recoveries: all of these are run on feel, which is not a cop-out, it is the only way they survive a day when you slept badly.</p>';
   CFG.revRuns.forEach(function(r){
-    tv+='<hr class="d"><h2 style="font-size:15px">'+r.n+' <span class="tiny dim">· '+r.t+'</span>'+
-      (r.hard?' <span class="pill">hard</span>':' <span class="pill g">easy</span>')+'</h2>'+
-      '<p>'+r.s+'</p>'+
-      '<p class="note"><b>Why it is in a growth block:</b> '+r.y+'</p>'+
+    tv+='<hr class="d"><h2 style="font-size:15px">Run '+r.slot+' · '+r.n+' <span class="tiny dim">'+r.t+'</span>'+
+      (r.hard?' <span class="pill">hard</span>':' <span class="pill g">not a hard day</span>')+'</h2>'+
+      '<table class="tbl"><tbody>';
+    r.opts.forEach(function(o){
+      tv+='<tr><td style="width:34%"><b>'+o.n+'</b></td><td class="note">'+o.w+'</td></tr>';
+    });
+    tv+='</tbody></table>'+
+      '<p class="note" style="margin-top:8px"><b>Why this slot exists:</b> '+r.y+'</p>'+
       '<p class="tiny"><b>When to stop:</b> '+r.stop+'</p>';
   });
   tv+='</div>';

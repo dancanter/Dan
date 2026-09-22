@@ -156,13 +156,18 @@ ok('and what it cannot', /I cannot see how you feel/.test(tPh),
 // run, a capped number of hard days, and legs still clear of the hard run.
 t = await p.textContent('#revTrain');
 const wk = await p.evaluate(() => CFG.revWeek.map(x => ({ d: x.d, n: x.n, run: x.run || null, hard: !!x.hard })));
-const rn = await p.evaluate(() => CFG.revRuns.map(r => ({ k: r.k, hard: !!r.hard, s: r.s, y: r.y, stop: r.stop })));
+const rn = await p.evaluate(() => CFG.revRuns.map(r => ({ k: r.k, slot: r.slot, hard: !!r.hard,
+  opts: r.opts.map(o => o.n), txt: r.opts.map(o => o.w).join(' ') + ' ' + r.y + ' ' + r.stop })));
 const cap = await p.evaluate(() => CFG.rev.hardCap);
 ok('the week covers all seven days', wk.length === 7 && wk.every((x, i) => x.d === i), JSON.stringify(wk.map(x => x.d)));
 ok('hard days are capped at the configured number', wk.filter(x => x.hard).length === cap, JSON.stringify(wk.filter(x => x.hard).map(x => x.n)));
-ok('exactly one run is hard', wk.filter(x => x.run && x.hard).length === 1, JSON.stringify(wk.filter(x => x.run)));
-ok('the rest of the runs are easy', wk.filter(x => x.run === 'easy').length === wk.filter(x => x.run).length - 1,
-  JSON.stringify(wk.filter(x => x.run).map(x => [x.n, x.run])));
+// Dan's menu: an engine day and a speed day are both hard, the third is not.
+ok('two of the three runs are hard', wk.filter(x => x.run && x.hard).length === 2, JSON.stringify(wk.filter(x => x.run)));
+ok('and the third one is not a hard day', wk.filter(x => x.run && !x.hard).length === 1,
+  JSON.stringify(wk.filter(x => x.run).map(x => [x.n, x.run, x.hard])));
+ok('the week slots match the session slots',
+  wk.filter(x => x.run).map(x => x.run).join() === rn.map(r => r.k).join(),
+  wk.filter(x => x.run).map(x => x.run).join() + ' vs ' + rn.map(r => r.k).join());
 ok('there are three runs, as Dan called it', wk.filter(x => x.run).length === 3, JSON.stringify(wk.filter(x => x.run).map(x => x.d)));
 ok('there is one rest day', wk.filter(x => /^Rest/.test(x.n)).length === 1);
 ok('and exactly one heavy leg day', wk.filter(x => /^Legs$/.test(x.n)).length === 1);
@@ -185,26 +190,46 @@ ok('it says where interference actually lands', /lands almost entirely on/.test(
 ok('and that upper body is unaffected', /Upper body barely notices/.test(t));
 ok('the grey middle is named as the thing to avoid', /nothing in the grey middle/i.test(t) && /grey middle is moderately-hard/.test(t));
 ok('the hard-day ceiling is on the page', new RegExp(cap + ' hard days a week').test(t), (t.match(/\d+ hard days a week[^.]{0,40}/) || [''])[0]);
-ok('there is a deload rhythm', /take the hard run out and leave the easy one/.test(t));
+ok('there is a deload rhythm', /drop Run 2 and keep Run 1 honest rather than hard/.test(t));
 ok('sets are steered to the bottom of the reverse column', /run the bottom of the reverse column/.test(t));
 ok('and the cost of one hard run a week is admitted', /What this costs you, honestly/.test(t));
 ok('the five-mile slot stays out', /five-mile slot stays out/.test(t));
 ok('and the easy runs are not a place to sneak a third hard effort', /sneak a third hard effort/.test(t));
-ok('three runs are framed as holding, not chasing', /three is enough to/.test(t) && /running block/.test(t));
+ok('three runs are framed as holding, not chasing', /hold what you have earned and creep the times forward/.test(t) && /running block/.test(t));
+// The hard-day count went 2 -> 3 with this menu. That has to be stated, not
+// absorbed, because it cuts against the brief he gave for this block.
+ok('the step up in hard days is admitted', /Straight about what this changed/.test(t) && /went from two to/.test(t),
+  (t.match(/hard days went from two to[^.]{0,60}/) || [''])[0]);
+ok('and a fourth hard day is ruled out', /a fourth hard day and the health half/.test(t));
+ok('it warns the hills can turn into a fourth', /calling it three/.test(t));
 
 // Three shapes, one hard in any week, all on feel — paces and numbered
 // recoveries are a standing no.
-const runTxt = rn.map(r => r.s + ' ' + r.y + ' ' + r.stop);
-ok('three sessions are written out', rn.length === 3 && runTxt.every(x => x.length > 200));
-ok('exactly two of them are the hard alternates', rn.filter(r => r.hard).length === 2, JSON.stringify(rn.map(r => [r.k, r.hard])));
-ok('and one is the easy aerobic one', rn.filter(r => !r.hard).map(r => r.k).join() === 'easy');
-ok('the card says only one is hard in a given week', /only <?b?>?one hard one in any given week|one hard one in any given week/.test(t));
+const runTxt = rn.map(r => r.txt);
+ok('three slots are written out', rn.length === 3 && runTxt.every(x => x.length > 200));
+ok('and they are numbered 1 to 3', rn.map(r => r.slot).join() === '1,2,3', rn.map(r => r.slot).join());
+ok('exactly two slots are hard', rn.filter(r => r.hard).length === 2, JSON.stringify(rn.map(r => [r.k, r.hard])));
+ok('and one slot is deliberately not hard', rn.filter(r => !r.hard).map(r => r.k).join() === 'third');
+ok('every slot offers real options', rn.every(r => r.opts.length >= 2), JSON.stringify(rn.map(r => [r.k, r.opts.length])));
+// The menu Dan actually asked for, checked by name.
+const optNames = await p.evaluate(() => CFG.revRuns.map(r => r.opts.map(o => o.n)));
+ok('slot 1 is threshold, 1 km or 800 m',
+  optNames[0].join() === 'Threshold,1 km reps,800 m reps', optNames[0].join());
+ok('slot 2 is 400, 300 or 200', optNames[1].join() === '400 m,300 m,200 m', optNames[1].join());
+ok('slot 3 is the easy run or short uphill sprints',
+  optNames[2].join() === 'Easy run,Short uphill sprints', optNames[2].join());
+ok('and the options are on the page', optNames.flat().every(n => t.includes(n)),
+  optNames.flat().filter(n => !t.includes(n)).join());
+ok('hills are explained as low eccentric load', /not braking on the way down/.test(t) && /eccentric load/.test(t));
+ok('the card says to pick one option per slot', /Pick one option from each, each week/.test(t));
+ok('and that stacking options is not the idea', /not extra sessions to stack/.test(t));
 ok('none prescribes a pace', !runTxt.some(x => /\d+:\d\d\s*\/?\s*km|\d+:\d\d per/.test(x)), runTxt.join(' | ').slice(0, 200));
 ok('none prescribes a rest interval', !runTxt.some(x => /\d+\s*(s|sec|seconds|min|minutes)\s+(rest|recovery)/i.test(x)));
-ok('the recovery is by feel', /the recovery is however long that takes, not a number/.test(t));
-ok('each says when to stop', (t.match(/When to stop/g) || []).length === 3);
+ok('the recovery is by feel', /walk until you genuinely want to go again/.test(t) || /go again when you are ready/.test(t));
+ok('each slot says when to stop', (t.match(/When to stop/g) || []).length === rn.length);
 ok('the easy run is defined by breathing, not by pace', /breathe through your nose/.test(t) && /full sentences/.test(t));
-ok('and the usual failure mode is named', /The only way to fail this one is to run it too hard/.test(t));
+ok('and the usual failure mode is named', /the only way to fail it is to run it too hard/i.test(t));
+ok('the hills have their own failure mode', /conditioning session wearing a disguise/.test(t));
 
 // ---- the honest version of "anti-ageing" ---------------------------------
 const hl = await p.evaluate(() => CFG.revHealth.map(x => x.n));
