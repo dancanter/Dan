@@ -154,6 +154,28 @@ await p.evaluate(() => { CFG.cutEnd = '2026-09-01'; REV_START = addD(CFG.cutEnd,
 t = await p.textContent('#tSplit');
 ok('after the cut it switches to growth numbers', /You are on the reverse now/.test(t), t.slice(0, 200));
 
+// ===== the per-session ceiling ===========================================
+// One muscle once a week means the weekly number IS the session number, so a
+// weekly target above what a session can hold is a target he cannot bank.
+await boot(st());
+await p.click('[data-t="training"]');
+await p.waitForTimeout(150);
+const cap = await p.evaluate(() => SESSION_CAP);
+const need = await p.evaluate(() => CFG.sets.map(x => ({ m: x.m, cut: sessionsNeeded(x.cut[1]), rev: sessionsNeeded(x.rev[1]) })));
+ok('nothing in the cut column overflows a session', need.every(x => x.cut === 1), JSON.stringify(need.filter(x => x.cut > 1)));
+ok('the big reverse targets do need a second day',
+  need.filter(x => x.rev > 1).map(x => x.m).join(',') === 'Chest,Back,Shoulders,Legs,Biceps,Triceps',
+  JSON.stringify(need));
+ok('and forearms do not, because ten fits', need.find(x => x.m === 'Forearms').rev === 1);
+const tSets = await p.textContent('#s-training');
+ok('the ceiling is stated as a number', new RegExp('About ' + cap + ' hard sets').test(tSets), tSets.slice(0, 120));
+ok('during the cut no muscle is flagged for a split', !/split over \d+ days/.test(tSets),
+  (tSets.match(/.{30}split over \d+ days/) || [''])[0]);
+ok('and the why-not-now answer is there',
+  /volume you cannot recover from is not training/.test(tSets) &&
+  /weight on the bar is the one signal/.test(tSets));
+ok('it blames recovery, not permission', /not permission, it is recovery/.test(tSets));
+
 // ===== nothing broke =====================================================
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
   await p.click(`[data-t="${tab}"]`);

@@ -1049,6 +1049,14 @@ function trainingModel(){
 
 /* ===================== the gym split ===================== */
 var SPLIT_CORE=['delts','chest','back','legs'];
+/* How many hard sets one muscle can absorb in a SINGLE session before the
+   next set stops paying for itself. Weekly volume keeps helping well past
+   this; per-session volume does not. It matters because the split trains
+   each muscle once a week, so the weekly number and the session number are
+   the same number — and the top of the reverse column quietly asks for a
+   34-set back day, which no one grows from. */
+var SESSION_CAP=12;
+function sessionsNeeded(hi){return Math.max(1,Math.ceil(hi/SESSION_CAP));}
 function splitName(k){
   for(var i=0;i<CFG.split.length;i++)if(CFG.split[i].k===k)return CFG.split[i].n;
   return k||'';
@@ -3430,10 +3438,12 @@ function renderSplit(){
     '<th class="n">Now · keeping it</th><th class="n">Reverse · growing it</th><th>Where it lands</th></tr></thead><tbody>';
   CFG.sets.forEach(function(x){
     var cutN=x.cut[0]+'–'+x.cut[1],revN=x.rev[0]+'–'+x.rev[1];
+    var need=sessionsNeeded((onRev?x.rev:x.cut)[1]);
     h+='<tr><td><b>'+x.m+'</b></td>'+
       '<td class="n"'+(onRev?'':' style="color:var(--accent)"')+'>'+cutN+'</td>'+
       '<td class="n"'+(onRev?' style="color:var(--accent)"':' class="dim"')+'>'+revN+'</td>'+
-      '<td class="tiny">'+splitName(x.day)+'</td></tr>';
+      '<td class="tiny">'+splitName(x.day)+
+      (need>1?' <b style="color:var(--accent)">· split over '+need+' days</b>':'')+'</td></tr>';
   });
   h+='</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px"><b>A "hard set" means within one to three reps of failure.</b> '+
@@ -3468,6 +3478,16 @@ function renderSplit(){
     '</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px">Once a week each is the cost of four core days, and once a week is a bit less efficient than twice. '+
     'The free fifth day is where a lagging muscle gets its second go — <b>a second session beats adding sets to the first</b>, every time.</p>'+
+    '<hr class="d">'+
+    '<p><b>About '+SESSION_CAP+' hard sets is all one muscle can absorb in a single session.</b> '+
+    'Weekly volume keeps paying well past that; volume crammed into one sitting does not — the last sets of a 20-set chest day are done tired, on lighter weight, and buy close to nothing for what they cost. '+
+    'Training a muscle once a week makes the weekly number and the session number the same number, so <b>'+SESSION_CAP+' a week is your real ceiling until a muscle gets a second day</b>. '+
+    'That is what the accent notes in the table mean. The fifth day is how you get past it, and on the reverse it stops being optional.</p>'+
+    (onRev?'':'<p class="note"><b>Why not just do the reverse numbers now, on the cut?</b> Because volume you cannot recover from is not training, it is damage. '+
+      'Recovery is a fixed budget and you have already committed most of it to two hard runs, a sprint session, a five-mile and 12,800 steps a day, on '+ci(KCAL_DAY)+' kcal. '+
+      'Doubling the sets into what is left does not produce growth in a deficit — there is no spare energy to build with — it produces fatigue, and fatigue shows up as lighter weight on the bar. '+
+      '<b>The weight on the bar is the one signal keeping your muscle on you.</b> So the extra sets would not just fail to add muscle, they would cost you some. '+
+      'What actually changes on 29 November is not permission, it is recovery: the calories come back, so the budget grows, so the sets can.</p>')+
     (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
     '</div>';
 
