@@ -218,7 +218,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f" style="max-width:190px"><label for="inSplit">Which session</label><select id="inSplit"></select></div>
       <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
       <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
-      <div class="f" style="max-width:130px"><label for="inGymRpe">Gym effort 1–10</label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
+      <div class="f" style="max-width:130px"><label for="inGymRpe">Gym: how hard it <i>felt</i></label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
       <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
@@ -264,10 +264,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f cont"><label for="inKm">Distance (km)</label><input type="number" step="0.01" min="0" max="60" id="inKm" placeholder="8.01"></div>
       <div class="f"><label for="inTime" id="labTime">Total rep time (mm:ss)</label><input type="text" id="inTime" placeholder="3:07" inputmode="numeric"></div>
       <div class="f rep"><label for="inBest">Best single rep</label><input type="text" id="inBest" placeholder="59.4" inputmode="decimal"></div>
-      <div class="f" style="max-width:150px"><label for="inRpe">Effort 1–10</label>
-        <select id="inRpe"><option value="">—</option><option value="1">1</option><option value="2">2 · easy</option><option value="3">3</option><option value="4">4 · steady</option><option value="5">5</option><option value="6">6</option><option value="7">7 · hard</option><option value="8">8</option><option value="9">9 · very hard</option><option value="10">10 · all out</option></select></div>
+      <div class="f" style="max-width:190px"><label for="inRpe">How hard it <i>felt</i>, 1–10</label>
+        <select id="inRpe"><option value="">—</option><option value="1">1</option><option value="2">2 · barely noticed it</option><option value="3">3</option><option value="4">4 · comfortable</option><option value="5">5</option><option value="6">6</option><option value="7">7 · genuinely hard work</option><option value="8">8</option><option value="9">9 · hanging on</option><option value="10">10 · nothing left</option></select></div>
       <div class="f"><label for="inRunNote">Note</label><input type="text" id="inRunNote" placeholder="1:1 recovery, wind, 90%"></div>
     </div>
+    <p class="tiny" style="margin-top:8px">Effort is <b>how hard it felt</b>, not how hard you tried — an easy run that felt like an 8 is an 8.</p>
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
@@ -1100,7 +1101,12 @@ function trainingModel(){
   }
   var pre=isPreBlock(t);
   var wkStart=pre?CFG.cutStart:mondayOf(t),wkEnd=pre?PRE_END:addD(wkStart,6);
-  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0,easy:0};
+  /* byKind is the mutually exclusive split — every counted run lands in
+     exactly one bucket. The older counters overlap on purpose (a five-miler
+     is both a five-miler and an easy run), which is fine for the template
+     rows but useless for a total that has to add up. */
+  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0,easy:0,
+          byKind:{easy:0,hard:0,sprint:0}};
   for(var dd in S.days){
     if(dd<wkStart||dd>wkEnd||dd>t)continue;
     if(S.days[dd].gym)wk.gym++;
@@ -1109,6 +1115,7 @@ function trainingModel(){
       var jd=runMeta(rs[i]);
       if(jd.empty){wk.blank=(wk.blank||0)+1;continue;}
       wk.runs++;
+      wk.byKind[jd.sprint?'sprint':(jd.hard?'hard':'easy')]++;
       if(jd.hard)wk.hard++;
       if(jd.sprint)wk.sprints++;
       /* an easy continuous run of about 5 km, whatever it was filed as */
@@ -2774,7 +2781,10 @@ function renderSignals(tr){
     E('signalCard').innerHTML='<div class="p"><h2>Three new boxes on the log</h2>'+
       '<p class="note"><b>Resting HR</b> on waking, <b>effort 1–10</b> after a session, and <b>something hurts</b> when it does. '+
       'None of them mean anything on their own — they all get read against your own history, so the first fortnight is just collecting. '+
-      'After that this card starts telling you things the scale cannot.</p></div>';
+      'After that this card starts telling you things the scale cannot.</p>'+
+      '<p class="note"><b>Effort means how hard it <i>felt</i>, not how hard you tried.</b> '+
+      'An easy run that felt like an 8 is an 8 — and that is the single most useful number you can give me, because it is fatigue showing up before anything else does. '+
+      'Score it by intent and the whole thing is worthless: the day you did nothing and felt wrecked is exactly the day I need to see.</p></div>';
     return;
   }
   var h='<div class="p'+((over||NG.persistent||R.state==='high')?' warn':(R.state==='up'?' flag':''))+'"><h2>Signals</h2><div class="tiles t4">'+
@@ -3075,7 +3085,19 @@ function weekTemplateHTML(tr){
             ['5 mile',w.fivemile,CFG.tmpl.fivemile,w.fiveMet],
             ['100m sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
             ['Gym',w.gym,CFG.tmpl.gym,w.gym>=CFG.tmpl.gym]];
-  var h='<table class="tbl"><tbody>';
+  var bk=w.byKind||{easy:0,hard:0,sprint:0};
+  var parts=[['easy',bk.easy],['hard',bk.hard],['sprints',bk.sprint]].filter(function(x){return x[1]>0;});
+  var h='';
+  if(w.runs){
+    h+='<p class="lede" style="margin-bottom:10px"><b class="num">'+w.runs+'</b> run'+(w.runs===1?'':'s')+' this week — '+
+      parts.map(function(x){return '<b class="num">'+x[1]+'</b> '+x[0];}).join(', ')+
+      '</p>';   /* no "not counted" note: pruneEmptyRuns drops timeless rows at
+                   load and the form refuses to create one, so w.blank cannot
+                   fire here and a clause for it would be dead */
+  }else{
+    h+='<p class="tiny" style="margin-bottom:10px">No runs logged this week yet.</p>';
+  }
+  h+='<table class="tbl"><tbody>';
   rows.forEach(function(r){
     var covered=r[3]&&r[1]<r[2];
     h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+' / '+r[2]+'</td><td class="n">'+

@@ -154,6 +154,57 @@ await p.evaluate(() => { CFG.cutEnd = '2026-09-01'; REV_START = addD(CFG.cutEnd,
 t = await p.textContent('#tSplit');
 ok('after the cut it switches to growth numbers', /You are on the reverse now/.test(t), t.slice(0, 200));
 
+// ===== the week's runs, totalled and split ===============================
+// The older counters overlap (a five-miler is also an easy run), so the split
+// has to come from its own mutually exclusive buckets or the total will not
+// add up to the parts printed beside it.
+const wkStart = await p.evaluate(() => trainingModel().wkStart);
+const t0 = await p.evaluate(() => today());
+const dsx = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const addDx = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return dsx(d); };
+const inWk = []; for (let i = 0; i < 7; i++) { const d = addDx(wkStart, i); if (d <= t0) inWk.push(d); }
+const dayA = inWk[0], dayB = inWk[inWk.length - 1];
+await boot(st({ days: {
+  [dayA]: { runs: [
+    { km: 5, secs: 1500, type: 'easy' },
+    { km: 8.05, secs: 2600, type: 'fivemile' },          // easy AND a five-miler
+    { k: 'reps', dm: 400, n: 5, secs: 320 } ] },          // hard
+  [dayB]: { runs: [
+    { k: 'reps', dm: 100, n: 8, secs: 120 },              // sprints
+    { km: 6, secs: 1300, type: 'threshold' },             // hard — and fast
+                                                          // enough to be judged
+                                                          // hard, which a 4:20/km
+                                                          // "threshold" is not
+    ] } } }));
+let bk = await p.evaluate(() => trainingModel().week);
+ok('the buckets add up to the total', bk.byKind.easy + bk.byKind.hard + bk.byKind.sprint === bk.runs,
+  JSON.stringify({ byKind: bk.byKind, runs: bk.runs }));
+ok('easy counts the five-miler once', bk.byKind.easy === 2, JSON.stringify(bk.byKind));
+ok('hard counts the reps and the threshold', bk.byKind.hard === 2, JSON.stringify(bk.byKind));
+ok('sprints are their own bucket', bk.byKind.sprint === 1, JSON.stringify(bk.byKind));
+ok('the total is every judged run', bk.runs === 5, String(bk.runs));
+// pruneEmptyRuns strips timeless rows on load and the form refuses to make
+// one, so the week can never hold an uncounted run — worth pinning, because a
+// "not counted" note on the panel would be a clause that can never fire.
+await p.evaluate(() => { S.days[today()] = S.days[today()] || {};
+  S.days[today()].runs = (S.days[today()].runs || []).concat([{ k: 'reps', dm: 400, n: 4 }]);
+  localStorage.setItem('cutblock71.v1', JSON.stringify(S)); });
+await p.reload(); await p.waitForTimeout(220);
+ok('a timeless run never survives to be counted',
+  !(await p.evaluate(() => trainingModel().week.blank)), String(await p.evaluate(() => trainingModel().week.blank)));
+await p.click('[data-t="training"]');
+let wkTxt = (await p.textContent('#tWeek')).replace(/\s+/g, ' ');
+ok('the week panel leads with the total', /5 runs this week/.test(wkTxt), wkTxt.slice(0, 160));
+ok('and splits it', /2 easy, 2 hard, 1 sprints/.test(wkTxt), wkTxt.slice(0, 200));
+ok('and nothing else is bolted onto that line', !/not counted/.test(wkTxt));
+
+// A quiet week says so rather than printing a row of zeroes.
+await boot(st());
+await p.click('[data-t="training"]');
+wkTxt = (await p.textContent('#tWeek')).replace(/\s+/g, ' ');
+ok('with nothing logged it says so plainly', /No runs logged this week yet/.test(wkTxt), wkTxt.slice(0, 120));
+ok('and prints no empty split', !/0 easy/.test(wkTxt));
+
 // ===== the per-session ceiling ===========================================
 // One muscle once a week means the weekly number IS the session number, so a
 // weekly target above what a session can hold is a target he cannot bank.

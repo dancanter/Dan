@@ -21,6 +21,21 @@ let t = await p.textContent('#signalCard');
 ok('with no data it introduces the three boxes', /Three new boxes on the log/.test(t), t.slice(0, 120));
 ok('and says they need history before they mean anything', /read against your own history/.test(t));
 ok('it does not pretend to have a reading', !/resting HR is/i.test(t));
+// The one thing the label alone could not carry: effort is perceived, not
+// intended. Dan asked, which means it was ambiguous, which means it belongs
+// on the page rather than in a chat reply.
+ok('it defines effort as felt, not tried', /how hard it .?felt.?, not how hard you tried/i.test(t),
+  (t.match(/Effort means[^.]{0,80}/) || [''])[0]);
+ok('and gives the case that matters', /easy run that felt like an 8 is an 8/.test(t));
+ok('it says why that case is the useful one', /fatigue showing up before anything else/.test(t));
+ok('and warns that scoring by intent ruins it', /Score it by intent and the whole thing is worthless/.test(t));
+// The intro card disappears once anything is logged, so the definition has to
+// live beside the field as well, permanently.
+await p.click('[data-t="today"]');
+const formHint = (await p.textContent('#s-today')).replace(/\s+/g, ' ');
+ok('the definition also sits next to the field itself',
+  /Effort is how hard it felt, not how hard you tried/.test(formHint),
+  (formHint.match(/Effort is[^.]{0,70}/) || [''])[0]);
 
 // ===== 2. the fields exist and round-trip through the store ==============
 await boot(st());
@@ -61,6 +76,14 @@ rec = await p.evaluate(() => S.days[today()]);
 ok('a run stores the effort it was given', rec.runs[0].rpe === 9, JSON.stringify(rec.runs));
 ok('and the effort selector offers 1 to 10',
   (await p.$$eval('#inRpe option', o => o.length)) === 11);
+// Anchors describe a sensation, never an intention — "easy"/"hard" read as
+// how much he decided to push, which is the wrong question.
+const anchors = await p.$$eval('#inRpe option', o => o.map(x => x.textContent));
+ok('the anchors describe sensation, not intent',
+  /barely noticed it/.test(anchors.join(' ')) && /hanging on/.test(anchors.join(' ')) &&
+  !/ easy$| hard$/.test(anchors.join(' ')), anchors.filter(a => a.includes('·')).join(' | '));
+ok('the run label says felt', /felt/i.test(await p.$eval('label[for="inRpe"]', e => e.textContent)));
+ok('and so does the gym one', /felt/i.test(await p.$eval('label[for="inGymRpe"]', e => e.textContent)));
 
 // ===== 4. the RHR baseline: a single reading is never a verdict ==========
 // Five mornings is under the minimum, so it must say it is still building
