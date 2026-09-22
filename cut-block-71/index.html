@@ -455,7 +455,9 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <section id="s-reverse" class="stack" hidden>
   <div id="revTop"></div>
   <div id="revLadder"></div>
+  <div id="revPhase"></div>
   <div id="revWater"></div>
+  <div id="revFace"></div>
   <div id="revTrain"></div>
   <div id="revRest"></div>
 </section>
@@ -587,32 +589,64 @@ var CFG={
   /* The reverse. step is the weekly rise in kcal; everything else about it —
      where it starts, how long it runs, how big the ladder is — is derived from
      the deficit his own weight actually measured over the block. */
-  rev:{step:50,creatine:5,holdOver:0.5,settleWeeks:2},
+  /* first: the one step up on day one. holdWeeks: how long it sits there
+     before anything moves again. step: every rung after that. */
+  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardCap:2,deloadEvery:4},
   /* The reverse week. Legs sits as far from both runs as seven days allow,
      because the one thing that actually costs muscle is running hard into a
      leg session. Upper-body days do not care about running at all, which is
      why the second run is stacked onto the lightest of them. run:true marks
      a day that carries one of the two quality sessions. */
   revWeek:[
-    {d:0,n:'Rest',k:'rest',w:'A real one. Tomorrow is the only heavy leg day you get, and it is the session most likely to be wasted by turning up tired.'},
-    {d:1,n:'Legs',k:'legs',w:'The freshest day of the week, 48 hours clear of Saturday’s run and 48 hours before Wednesday’s. This is the whole reason the week is laid out this way.'},
-    {d:2,n:'Chest + triceps',k:'chest',w:'Upper body. Running has no quarrel with it.'},
-    {d:3,n:'Short reps',k:'run',run:'short',w:'Legs have had two clear days since Monday and get three more before the next hard lift for them.'},
-    {d:4,n:'Back + biceps',k:'back',w:'Upper body again. Pull the day after a running session if that suits you better — it changes nothing.'},
-    {d:5,n:'Second upper — your weak point',k:'other',w:'Chest or back for the second time this week. This is the day that turns a once-a-week split into something that actually grows, and it costs legs nothing.'},
-    {d:6,n:'Shoulders + forearms, then the threshold run',k:'delts',run:'thresh',w:'The lightest lift day, so it is the one that carries the double. Lift first, run after — never the other way round.'}
+    {d:0,n:'Rest, or a walk outdoors',k:'rest',w:'A real one. Get the daylight early — it is the cheapest thing on this page and it sets the sleep that everything else depends on.'},
+    {d:1,n:'Legs',k:'legs',hard:true,w:'The freshest day of the week and 48 hours clear of the hard run on either side. One of your two hard days.'},
+    {d:2,n:'Chest + triceps',k:'chest',w:'Upper body. Running has no quarrel with it, and lifting for lean mass is health work, not vanity.'},
+    {d:3,n:'The quality run',k:'run',run:'quality',hard:true,w:'Alternate short reps and threshold week by week. One hard run, not two — this is the day the stress is allowed.'},
+    {d:4,n:'Back + biceps',k:'back',w:'Upper body again. Move it a day if life demands; it changes nothing.'},
+    {d:5,n:'Easy run',k:'run',run:'easy',w:'The first of the two that do the cellular work. It must be genuinely easy — this day is ruined more often than any other by running it slightly too hard.'},
+    {d:6,n:'Shoulders + forearms, then the second easy run',k:'delts',run:'easy',w:'The lightest lift day carries the double, and lifting goes first. Two easy runs back to back is fine — at this effort they are not a stressor, which is the whole point of them.'}
   ],
-  /* Two sessions, both of them quality. Described by intent and by feel,
-     never by a pace or a stopwatch on the recoveries. */
+  /* Three sessions now, and only ONE of them is hard in any given week. The
+     brief changed: health first, stress limited, times still improving. That
+     is a polarised week — easy work genuinely easy, hard work genuinely hard,
+     and nothing living in the grey middle where the fatigue is real and the
+     adaptation is small. Described by intent and by feel, never by a pace or a
+     stopwatch on the recoveries. */
   revRuns:[
-    {k:'short',n:'Short reps',t:'Speed and VO2',
-     s:'Reps short enough that the last one is as quick as the first. Walk back, get your breath fully, go again — the recovery is however long that takes, not a number.',
-     y:'The least interfering running there is. Total volume is tiny, so there is almost nothing for the legs to recover from, and the return in top-end speed is the largest of any session you do. Your flat-out sprints live at the front of this one, while you are fresh.',
-     stop:'When a rep comes in slower than the one before it, the session is over. Chasing it is how this turns into a conditioning session, which is the thing you are trying to avoid.'},
-    {k:'thresh',n:'Threshold',t:'The engine behind the 3 km and 5 km',
+    {k:'easy',n:'Easy aerobic',t:'The cellular one',hard:false,
+     s:'Conversational the whole way — full sentences, not gasped phrases. If you can breathe through your nose most of it, that is about right. It should feel almost boring, and it should end with you feeling better than when you started.',
+     y:'This is the session that does what you are asking for. Easy aerobic work is the strongest stimulus there is for building mitochondria and capillaries — the actual cellular machinery — and it does it at close to zero stress cost. It is also what raises the floor your hard sessions are built on.',
+     stop:'There is nothing to stop. The only way to fail this one is to run it too hard, and almost everyone does. If you finish it tired, it was not an easy run.'},
+    {k:'short',n:'Short reps',t:'VO₂ and top-end speed',hard:true,
+     s:'Reps short enough that the last one is as quick as the first. Walk back, get your breath fully, go again — the recovery is however long that takes, not a number. Your flat-out sprints live at the front, while you are fresh.',
+     y:'VO₂ max is the single strongest modifiable predictor of how long you live, and this is the session that moves it fastest. Total volume is tiny, so there is almost nothing for the legs to recover from. This is stress that pays for itself.',
+     stop:'When a rep comes in slower than the one before it, the session is over. Chasing it turns this into a conditioning grind, which is exactly the stress you are trying not to carry.'},
+    {k:'thresh',n:'Threshold',t:'The engine behind the 3 km and 5 km',hard:true,
      s:'One sustained block, or a few long ones. Comfortably hard — you can speak, but only in short phrases. It should feel like something you could just about hold for an hour if you had to, and it should never feel like a race.',
-     y:'This is what actually moves a 3 km and a 5 km, and per minute of fitness it damages the legs far less than the same time spent plodding. Fewer total ground contacts for more adaptation is exactly the trade a growth block wants.',
-     stop:'If the effort starts creeping up to hold the same feel, end it there. Threshold done too hard is just a race you did not enter, and it takes the same two days back.'}
+     y:'This is what actually moves a 3 km and a 5 km, and per minute of fitness it costs the legs far less than the same time spent plodding. Alternating it with the reps week by week keeps both stimuli without ever putting two hard runs in one week.',
+     stop:'If the effort starts creeping up to hold the same feel, end it there. Threshold done too hard is a race you did not enter, and it takes the same two days back.'}
+  ],
+  /* The four things with real evidence behind them, and nothing that sounds
+     better than it is. Dan asked for anti-ageing; this is the honest version
+     of that answer, which is mostly things he is already doing. */
+  /* The sequence, with an exit condition per block rather than a feeling.
+     Dan asked to be told when to change gear; this is the thing that gets
+     compared against the dates and his own logged numbers. */
+  phases:[
+    {k:'cut',n:'Cut Block 71',f:'Get lean, keep the muscle, set up the times rather than chase them.',
+     e:'28 November, on the date. Not early because the scale is ahead, and not late because it is behind.'},
+    {k:'rev',n:'The reverse',f:'Food back to maintenance, health and sleep first, times held rather than chased, a bit of muscle if it comes.',
+     e:'When the ladder reaches maintenance and the weight has sat flat there for a few weeks. Length is your call — say the word and I will set it.'},
+    {k:'run',n:'The running block',f:'The one that actually moves the times. Volume and quality both go up, and lifting drops back to holding what you have.',
+     e:'When the times stop moving for three or four weeks, or the legs stop recovering between sessions. That is the end of it, not a reason to add another session.'},
+    {k:'next',n:'The next cut, if you want one',f:'Only if there is something to cut for, and only from a maintenance that is genuinely restored.',
+     e:'A date set in advance, like this one, and never while a running block is live.'}
+  ],
+  revHealth:[
+    {n:'VO₂ max',w:'The strongest modifiable predictor of all-cause mortality that has been measured — stronger than smoking status, blood pressure or BMI. Moving it is the same project as beating your times, which is the happiest overlap on this page. It is also the one place hard effort earns the stress it costs.'},
+    {n:'Lean mass and strength',w:'Muscle mass and grip strength track with how long people live, independently of everything else, and the gap widens the older you get. The lifting is not vanity work and it is not separate from the health goal — it is a large part of it.'},
+    {n:'Sleep',w:'The biggest lever and the cheapest one. Under-sleeping raises cortisol, blunts recovery, blunts glucose handling and blunts the muscle you are trying to keep. Nothing else here works properly without it, and no amount of training buys it back.'},
+    {n:'Not living in chronic stress',w:'A deficit, heavy intensity and short sleep at the same time is the combination that actually wears you down. The reverse removes the deficit and this week removes the second hard run. That is the whole mechanism — there is nothing more exotic going on.'}
   ],
   /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
      on the last day of the block. Height already lives in w.heightM. */
@@ -2380,6 +2414,17 @@ function tdeeCheck(){
    the weight says he was short by, is what holds him level. That number only
    gets better as the block runs, and a table of estimates never would. */
 var REV_START=addD(CFG.cutEnd,1);
+/* Which block he is in today, and which one follows. The reverse has no end
+   date yet on purpose — that one is Dan's to set — so everything after it is
+   named as a sequence rather than dated. */
+function phaseModel(){
+  var t=today(),k=(t<CFG.cutStart)?'cut':(t<=CFG.cutEnd?'cut':'rev');
+  var i=0,j;
+  for(j=0;j<CFG.phases.length;j++)if(CFG.phases[j].k===k)i=j;
+  var R=reverseModel();
+  return {now:CFG.phases[i],next:CFG.phases[i+1]||null,all:CFG.phases,
+          minWeeks:R.weeks,maint:R.maint};
+}
 function reverseModel(){
   var t=today(),w=weightModel();
   var toStart=diffD(t,REV_START),live=(t>=REV_START);
@@ -2398,12 +2443,25 @@ function reverseModel(){
     est={lbWk:lbWk,deficit:lbWk*3500/7,days:0,lost:null,from:'planned'};
   }
   var maint=Math.round((KCAL_DAY+est.deficit)/10)*10;
-  var rungs=[],kc=KCAL_DAY,wk=1;
-  while(kc<maint&&wk<=26){
-    kc=Math.min(maint,kc+CFG.rev.step);
-    rungs.push({wk:wk,kcal:kc,from:addD(REV_START,(wk-1)*7),to:addD(REV_START,wk*7-1),
-                carb:Math.round(CFG.rev.step/4),atTop:kc>=maint});
-    wk++;
+  /* Dan's shape, not a generic ramp: one honest step up to the first rung,
+     hold it long enough to see what the scale actually does, then small
+     steps from there. The hold is the part that makes the rest readable —
+     a fortnight at one number is the only way to separate glycogen water
+     from anything real. */
+  var rungs=[],kc=KCAL_DAY,wk=1,prev=KCAL_DAY,i;
+  function rung(k,hold){
+    rungs.push({wk:wk,kcal:k,from:addD(REV_START,(wk-1)*7),to:addD(REV_START,wk*7-1),
+                carb:Math.round((k-prev)/4),hold:!!hold,atTop:k>=maint});
+    prev=k;wk++;
+  }
+  kc=Math.min(maint,KCAL_DAY+CFG.rev.first);
+  for(i=0;i<Math.max(1,CFG.rev.holdWeeks);i++)rung(kc,i>0);
+  /* Stop one step short of a stub. Without this the last rung can be a
+     1 kcal climb — a whole week that adds nothing but a row — so a remainder
+     under half a step gets folded into the rung before it instead. */
+  while(kc<maint&&wk<=40){
+    kc=(maint-kc<=CFG.rev.step*1.5)?maint:kc+CFG.rev.step;
+    rung(kc,false);
   }
   var cur=live?Math.min(rungs.length,Math.floor(diffD(REV_START,t)/7)+1):0;
   return {live:live,toStart:toStart,start:REV_START,est:est,maint:maint,rungs:rungs,
@@ -3822,7 +3880,7 @@ function renderReverse(){
   h+='<div class="tiles t4" style="margin-top:12px">'+
     tile('maintenance',ci(R.maint),R.est.from==='measured'?'measured off your own '+R.est.days+' days':'estimated from the plan, not yet measured')+
     tile('from',ci(KCAL_DAY),'the cut number')+
-    tile('the climb','+'+ci(CFG.rev.step)+'/wk',R.weeks+' week'+(R.weeks===1?'':'s')+' to the top')+
+    tile('the climb',ci(R.rungs[0].kcal)+' first','hold '+CFG.rev.holdWeeks+' wk, then +'+ci(CFG.rev.step)+'/wk · '+R.weeks+' wk to the top')+
     tile('your deficit now',ci(Math.round(R.est.deficit))+'/day',f1(R.est.lbWk)+' lb a week')+
     '</div>';
   if(R.est.from==='measured'){
@@ -3837,26 +3895,63 @@ function renderReverse(){
 
   /* the ladder */
   var t=today();
-  var lg='<div class="p"><h2>The ladder · +'+ci(CFG.rev.step)+' a week, all of it carbohydrate</h2><div class="scroll"><table class="tbl">'+
+  var first=R.rungs[0];
+  var lg='<div class="p"><h2>The ladder · up to '+ci(first.kcal)+', hold, then +'+ci(CFG.rev.step)+' a week</h2>'+
+    '<p class="tiny" style="margin-bottom:10px">One step of +'+ci(CFG.rev.first)+' on day one, <b>'+CFG.rev.holdWeeks+
+    ' weeks sitting at '+ci(first.kcal)+'</b>, and small steps after that. '+
+    'The hold is not caution for its own sake — it is the only way to tell glycogen water from anything real, because two weeks at one number is what it takes for the scale to stop lying to you.</p>'+
+    '<div class="scroll"><table class="tbl">'+
     '<thead><tr><th>Week</th><th>Dates</th><th class="n">Eat</th><th class="n">Added carbs</th><th></th></tr></thead><tbody>';
   R.rungs.forEach(function(r){
     var now=R.live&&r.wk===R.cur,past=r.to<t;
     lg+='<tr'+(r.from>t?' class="dim"':'')+'><td>'+r.wk+'</td><td class="tiny">'+fmtS(r.from)+'–'+fmtS(r.to)+'</td>'+
-      '<td class="n"><b>'+ci(r.kcal)+'</b></td><td class="n">+'+r.carb+' g</td>'+
-      '<td>'+(now?'<span class="pill a">this week</span>':(past?'<span class="tiny">done</span>':(r.atTop?'<span class="pill g">maintenance</span>':'')))+'</td></tr>';
+      '<td class="n"><b>'+ci(r.kcal)+'</b></td><td class="n">'+(r.carb>0?'+'+r.carb+' g':'—')+'</td>'+
+      '<td>'+(now?'<span class="pill a">this week</span>':(past?'<span class="tiny">done</span>':
+        (r.atTop?'<span class="pill g">maintenance</span>':(r.hold?'<span class="tiny">hold</span>':''))))+'</td></tr>';
   });
   lg+='</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px"><b>Protein goes to '+MACRO.proRev+' g and fat stays at '+MACRO.fat+' g.</b> '+
     'On the cut it sits at '+MACRO.pro+' g because raising it would have pushed carbohydrate under the hard-day floor. Here there is room for both. Every calorie of the climb itself goes in as carbohydrate — '+
-    Math.round(CFG.rev.step/4)+' g a week — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
+    Math.round(CFG.rev.first/4)+' g on the first step and '+Math.round(CFG.rev.step/4)+' g a week after the hold — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
     '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+
-    '<p class="note"><b>This is the very slow version, as asked — and it has a price worth naming.</b> At +'+ci(CFG.rev.step)+
-    ' a week it takes <b>'+R.weeks+' weeks</b> to reach '+ci(R.maint)+', so you are still under maintenance until <b>'+fmtL(R.top?R.top.to:R.start)+'</b>. '+
-    'Muscle is not built under maintenance, so a slow climb is also a late start on growing — roughly '+Math.max(0,R.weeks-Math.ceil(R.weeks/2))+' weeks later than a +'+ci(CFG.rev.step*2)+' climb would be. '+
-    'What you buy for it is the thing you actually asked for: almost no chance of putting fat back on, and a metabolism that comes up with the food rather than behind it. '+
-    'It is a fair trade and it is your call — but if by January you would rather be growing than protecting, doubling the step is the switch.</p></div>';
+    '<p class="note"><b>The price of the slow half, named.</b> After the hold it takes <b>'+R.weeks+' weeks</b> in total to reach '+ci(R.maint)+
+    ', so you are under maintenance until <b>'+fmtL(R.top?R.top.to:R.start)+'</b>. Muscle is not built under maintenance, so a slow climb is also a late start on growing. '+
+    'What you buy for it is exactly what you asked for: the scale stays readable, fat regain is arithmetically hard, and your metabolism comes up with the food rather than behind it. '+
+    'If by January you would rather be growing than protecting, the step is the switch.</p></div>';
   E('revLadder').innerHTML=lg;
+
+  /* ---- the phase guide: what block you are in and what ends it ----
+     Dan asked to be told when to change gear, because left alone he will run
+     himself into the ground. So the sequence is written down, each phase has
+     an exit condition rather than a vibe, and the page says plainly what it
+     can and cannot see. */
+  var ph=phaseModel();
+  var pv='<div class="p '+(ph.now.k==='rev'?'lift':'flag')+'"><h2>Where you are, and what ends it</h2>'+
+    '<p class="lede">Right now: <b class="acc">'+ph.now.n+'</b>'+(ph.now.k==='cut'?' — day '+c.day+' of '+CUT_DAYS:'')+'. '+
+    'Next: <b>'+(ph.next?ph.next.n:'your call')+'</b>.</p>'+
+    '<p>You asked me to be the one who says <i>time to change gear</i>, and that is a fair thing to hand over — nobody is a good judge of their own fatigue from inside it. '+
+    'So here is the whole sequence, with the thing that ends each block written down in advance rather than decided on a day you feel rough.</p>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Block</th><th>What it is for</th><th>What ends it</th></tr></thead><tbody>';
+  CFG.phases.forEach(function(x){
+    var on=x.k===ph.now.k;
+    pv+='<tr'+(on?'':' class="dim"')+'><td><b'+(on?' class="acc"':'')+'>'+x.n+'</b>'+(on?' <span class="pill a">now</span>':'')+'</td>'+
+      '<td class="tiny">'+x.f+'</td><td class="tiny">'+x.e+'</td></tr>';
+  });
+  pv+='</tbody></table></div>'+
+    '<hr class="d">'+
+    '<p><b>The two rules that stop the whole thing collapsing:</b></p>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td><b>Never two hard blocks at once</b></td><td class="note">A cut is a hard block. A running block is a hard block. Running both is the single most common way people spend six months getting slower and softer at the same time.</td></tr>'+
+    '<tr><td><b>Never start a running block from a deficit</b></td><td class="note">The running block is where the times actually move, and it needs you at maintenance or above with glycogen full. Starting it hungry wastes the block and usually ends in an injury.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="note" style="margin-top:10px"><b>How long the reverse runs is your call — tell me and I will set it.</b> '+
+    'The floor is the ladder itself: <b>'+ph.minWeeks+' weeks</b> to reach '+ci(R.maint)+', and it is worth a few weeks sitting at maintenance after that before anything else starts. '+
+    'Under that and you are starting the next block from a hole.</p>'+
+    '<p class="tiny"><b>What I can and cannot see, honestly.</b> I can watch dates, your weights, your logged food and steps, and your times — so I can tell you when the ladder is done, when the scale has settled, when your times have gone flat, and when you have quietly stacked a third hard day into the week. '+
+    'I cannot see how you feel, how you slept if you do not log it, or whether something hurts. Those are the ones you have to say out loud, and they are usually the first to go.</p>'+
+    '</div>';
+  E('revPhase').innerHTML=pv;
 
   /* the bit that will otherwise ruin his week */
   E('revWater').innerHTML='<div class="p warn"><h2>The first fortnight will read as a disaster. It is not.</h2>'+
@@ -3867,11 +3962,39 @@ function renderReverse(){
     '<tr><td><b>Food in transit</b></td><td class="note">More food means more actually in you at any moment. A pound or so, and it is not you.</td></tr>'+
     '<tr><td><b>Cortisol coming down</b></td><td class="note">Ten weeks of deficit plus 12,800 steps keeps cortisol up, which holds water. It releases unevenly as you eat again, so the scale can do nothing for four days and then move.</td></tr>'+
     '</tbody></table>'+
-    '<hr class="d"><p><b>The arithmetic that settles it:</b> a pound of fat is 3,500 kcal of surplus. At +'+ci(CFG.rev.step)+
-    ' a week you are adding '+ci(CFG.rev.step*7)+' kcal across a whole week — '+f1(CFG.rev.step*7/3500)+' lb even if every calorie of it were stored, which it is not. '+
+    '<hr class="d"><p><b>The arithmetic that settles it:</b> a pound of fat is 3,500 kcal of surplus. At +'+ci(CFG.rev.first)+
+    ' a week you are adding '+ci(CFG.rev.first*7)+' kcal across a whole week — '+f1(CFG.rev.first*7/3500)+' lb even if every calorie of it were stored, which it is not, and that is the <i>biggest</i> step in the whole ladder. '+
     'Six pounds of fat in a fortnight would take eating 1,500 over maintenance every single day.</p>'+
     '<p class="note"><b>So do not judge anything for '+CFG.rev.settleWeeks+' weeks.</b> Keep weighing, keep logging, and read the 7-day average from week '+(CFG.rev.settleWeeks+1)+' onward. '+
     'After it settles the number to watch is about <b>0.2–0.3 lb a week</b> of genuine rise. Flat while eating several hundred above the cut number is your metabolism coming back up, and it is the best outcome there is.</p></div>';
+
+  /* ---- the face. He is frightened of going puffy, and that fear is the most
+     likely thing to make him cut the reverse short and undo it. So: what
+     actually drives facial leanness, in order, and what actually causes puff.
+     Salt stays where it is — steady, once a day — because the problem is
+     swings, never the level. ---- */
+  E('revFace').innerHTML='<div class="p flag"><h2>The face — staying sharp through the reverse</h2>'+
+    '<p class="lede">This is the fear that would make you quit the reverse early, so it gets answered properly. '+
+    '<b>The slow ladder is not a risk to your face. It is the thing that protects it.</b></p>'+
+    '<p>Facial definition comes from four things, and they are not equally important:</p>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td><b>1. Body fat</b></td><td class="note">By far the largest. Nothing else on this list moves the face as much as being lean does, and you are about to be the leanest you have been. At +'+ci(CFG.rev.first)+' on day one and +'+ci(CFG.rev.step)+' a week after the hold, meaningful fat regain is arithmetically hard — that is the whole point of the shape you chose.</td></tr>'+
+    '<tr><td><b>2. Sleep</b></td><td class="note">The second biggest and the fastest-acting. One short night shows in the face the next morning; a fortnight of them shows all day. If you want one lever for how you look, it is this one, not the food.</td></tr>'+
+    '<tr><td><b>3. Cortisol</b></td><td class="note">Chronic stress holds water in the face specifically. Ten weeks of deficit, 12,800 steps and hard sessions keeps it high — which means your face is currently carrying some puff <i>because</i> of the cut, not in spite of it. Eating again is what releases it.</td></tr>'+
+    '<tr><td><b>4. Alcohol, illness, crying, bad allergies</b></td><td class="note">Real, obvious, and temporary. Worth knowing so you do not read a hangover as fat gain and panic-cut.</td></tr>'+
+    '</tbody></table>'+
+    '<hr class="d">'+
+    '<p><b>The thing you are actually scared of is not going to happen, and here is why.</b> '+
+    'The 3–6 lb that arrives in the first fortnight is glycogen and the water bound to it. That water is stored <i>inside muscle</i> — it is intramuscular, it is not subcutaneous, and it does not sit in your face. '+
+    'What most people notice in the first weeks of a sensible reverse is the opposite: the face gets <b>sharper</b>, because cortisol comes down and the water it was holding leaves. '+
+    'You will probably look better at 1,899 than you did at 1,799, and the scale will be higher. Both of those are true at once.</p>'+
+    '<p class="note"><b>Salt stays exactly as it is — once a day, same as always.</b> Sodium does not make a face puffy at a steady intake; <b>swings</b> do. '+
+    'Cutting it is the classic mistake here: you drop it, aldosterone rises to hold onto what is left, you retain more water than before, and you look softer while eating less salt. Keep it steady and it is a non-issue.</p>'+
+    '<hr class="d">'+
+    '<p><b>How to judge it, so you do not judge it wrongly.</b> A face in a bathroom mirror at 11pm after a hard session is not data. '+
+    'Take one photo a week — same morning, same light, before food, same angle. Compare week to week, never day to day. The day-to-day signal is almost entirely sleep and water, and reading it that way is how people talk themselves into cutting again three weeks into a reverse.</p>'+
+    '<p class="note"><b>And the honest limit:</b> leanness reveals bone structure, it does not add it. There is a point below which getting leaner stops sharpening the face and starts costing you sleep, mood and hormones — which then show up in the face as exactly the puffiness and flatness you are trying to avoid. '+
+    'You are heading to '+f1(CFG.w.target)+' lb, which is the sharp end of that range. Going further is where it turns on you.</p></div>';
 
   /* ---- how the running and the lifting share a week once growth is the point ----
      The interference effect is real but it is not mystical: it is competition
@@ -3880,21 +4003,31 @@ function renderReverse(){
      rule — nothing hard runs into the leg session — and the mileage that buys
      the least fitness is the mileage that gets cut. */
   var dayName=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var tv='<div class="p flag"><h2>The week, once growth is the point</h2>'+
-    '<p class="lede">Five lifting days, <b>two runs, both of them quality</b>, one real rest day. '+
-    'The running does not stop — it stops being <b>volume</b>.</p>'+
-    '<p>The interference effect is not a mystery and it is not everywhere. It is competition for one recovery budget, it lands almost entirely on <b>legs</b>, and it scales with <b>how much</b> you run rather than how hard. '+
-    'Upper body barely notices running at all. That gives you one rule worth more than the rest of this page put together: <b>never run hard in the 24 hours before a leg session.</b> '+
-    'Everything below is just that rule turned into a timetable.</p>'+
+  var hardDays=CFG.revWeek.filter(function(x){return x.hard;});
+  var runDays=CFG.revWeek.filter(function(x){return x.run;});
+  var tv='<div class="p flag"><h2>The week — health first, times still moving, stress capped</h2>'+
+    '<p class="lede">Four lifting days, <b class="num">'+runDays.length+' runs — one hard, '+(runDays.length-1)+' easy</b>, a rest day, and <b class="num">'+hardDays.length+' hard days a week, which is the ceiling</b>.</p>'+
+    '<p class="tiny">You called the three runs and you called it right: three is enough to <b>hold</b> what you have earned and creep forward slowly, without any of them costing you a recovery day. '+
+    'It is not enough to make you much faster — that is what the running block is for, and this page will tell you when it is time.</p>'+
+    '<p>You asked for three things that people usually assume fight each other: better times, a bit more muscle, and less wear. They mostly do not fight. '+
+    '<b>The shape that gives you all three is polarised</b> — the easy work genuinely easy, the hard work genuinely hard, and <b>nothing in the grey middle</b>. '+
+    'The grey middle is moderately-hard running done often: it feels productive, it accumulates real fatigue, and it returns very little. It is where almost all unnecessary stress in a training week lives.</p>'+
+    '<p>The other rule is about legs. Interference is not mysterious — it is competition for one recovery budget, it lands almost entirely on <b>legs</b>, and it scales with how much you run rather than how hard. Upper body barely notices. '+
+    'So: <b>never run hard in the 24 hours before a leg session.</b> The week below is those two rules turned into a timetable.</p>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th>Session</th><th class="tiny">Why there</th></tr></thead><tbody>';
   CFG.revWeek.forEach(function(x){
     tv+='<tr><td class="mono tiny">'+dayName[x.d]+'</td>'+
-      '<td><b'+(x.run?' style="color:var(--accent)"':'')+'>'+x.n+'</b></td>'+
+      '<td><b'+(x.run?' style="color:var(--accent)"':'')+'>'+x.n+'</b>'+
+      (x.hard?' <span class="pill">hard</span>':'')+'</td>'+
       '<td class="tiny">'+x.w+'</td></tr>';
   });
   tv+='</tbody></table></div>'+
-    '<p class="tiny" style="margin-top:8px">Legs get <b>one</b> heavy day and that is deliberate — two quality runs a week is already a serious amount of leg work, and the gym only has to top it up. '+
-    'The second upper day is where the growth you are actually chasing comes from.</p>'+
+    '<p class="tiny" style="margin-top:8px"><b>Two hard days, and the heavy leg session is one of them.</b> '+
+    'That is the stress budget for the week and it is the part to protect — if a third hard day creeps in, it has come from somewhere, and it is usually the easy run that paid for it.</p>'+
+    '<p class="note"><b>Every '+CFG.rev.deloadEvery+'th week, take the hard run out and leave the easy one.</b> Keep lifting, drop the top set from each exercise. '+
+    'A week that feels too gentle is doing exactly what it is supposed to — adaptation lands in the recovery, not in the session.</p>'+
+    '<p class="note"><b>On the sets: run the bottom of the reverse column, not the top.</b> '+
+    'The top of that column is what you would do if maximum growth were the only goal, and it is not — you asked for a bit of muscle without the wear. The bottom of the range gets you most of the muscle for a fraction of the fatigue.</p>'+
     '<hr class="d">'+
     '<h2>The rules, if you want to shuffle it</h2>'+
     '<table class="tbl"><tbody>'+
@@ -3902,17 +4035,38 @@ function renderReverse(){
     '<tr><td><b>About 48 h after legs before a hard run</b></td><td class="note">This protects the run, not the muscle. Break it if a week demands it.</td></tr>'+
     '<tr><td><b>Same day? Lift first, and only on an upper day</b></td><td class="note">Running first blunts the load you can put on the bar, and load is what grows you. A run stacked onto a legs day is the worst combination available.</td></tr>'+
     '<tr><td><b>Never run hard in the morning and train legs that night</b></td><td class="note">It reads like two separate sessions and behaves like one very bad one.</td></tr>'+
-    '<tr><td><b>Cut the miles, keep the intensity</b></td><td class="note">Long steady running is the worst thing on the menu for a growth block — most damage and most recovery for the least fitness. Short and fast is the least. The five-mile slot and the easy filler runs come out; the two quality sessions stay.</td></tr>'+
+    '<tr><td><b>Nothing in the grey middle</b></td><td class="note">If a run is not clearly easy, it has to be clearly hard, and you only get one clearly hard one. A "steady" run at three-quarter effort is the single most expensive habit in distance running.</td></tr>'+
+    '<tr><td><b>Never two hard days back to back</b></td><td class="note">The leg day and the quality run are the two, and the week keeps them 48 hours apart in both directions. Swap days freely as long as that survives.</td></tr>'+
     '</tbody></table>'+
-    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> dropping to two runs a week will not make you faster on its own, and somewhere around week six you may notice the top end of your endurance has gone quiet. '+
-    'That is the trade you are making on purpose. The speed comes back inside a fortnight of putting the sessions back; muscle you did not build takes months.</p>'+
+    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> one hard run a week is slower progress than two, and by week six you may notice your top end has gone a bit quiet between quality sessions. '+
+    'That is the trade you asked for and it is a reasonable one — the speed comes back inside a fortnight of adding a session, and it buys you a block you can actually hold for a year rather than eight weeks.</p>'+
+    '<p class="tiny"><b>And one thing that has not changed:</b> the five-mile slot stays out. The two easy runs are in the week because they do real cellular work at almost no stress cost — not as mileage for its own sake, and not as a place to sneak a third hard effort.</p>'+
+    '</div>';
+
+  /* the health card: the honest version of what he asked for */
+  tv+='<div class="p flag"><h2>What “anti-ageing” actually means here</h2>'+
+    '<p class="lede">Four things have real evidence behind them. You are already doing three.</p>'+
+    '<table class="tbl"><tbody>';
+  CFG.revHealth.forEach(function(x){
+    tv+='<tr><td><b>'+x.n+'</b></td><td class="note">'+x.w+'</td></tr>';
+  });
+  tv+='</tbody></table>'+
+    '<hr class="d">'+
+    '<p><b>Now the part you should hear straight.</b> Nothing has been shown to slow human cellular ageing — no supplement, no protocol, no device, no test that prints a "biological age". '+
+    'The things on that list do not work by reversing anything at a cellular level; they work because a bigger engine, more muscle, real sleep and less chronic stress keep you further from every common way people decline. '+
+    'That is the whole mechanism, and it is enough. Anything sold to you as deeper than that is selling you something.</p>'+
+    '<p class="note">The good news is that what you asked for is not a different plan. A week that improves your VO₂ max, keeps you lifting, protects your sleep and refuses a third hard day <b>is</b> the health plan. '+
+    'You do not have to choose between the times and the healthspan — for the next few years they are the same training.</p>'+
+    '<p class="tiny">Two things worth adding because they are cheap: <b>daylight early in the day</b>, which sets the sleep everything else depends on and costs you a walk; and the oily fish already on your food list, twice a week, which is the one dietary item in this area with evidence that has held up.</p>'+
     '</div>';
 
   /* the two sessions themselves */
-  tv+='<div class="p"><h2>The two sessions</h2>'+
-    '<p class="tiny">No paces and no stopwatch on the recoveries — both of these are run on feel, and that is not a cop-out, it is the only way they survive a day when you slept badly.</p>';
+  tv+='<div class="p"><h2>The sessions</h2>'+
+    '<p class="tiny">Three shapes, but only <b>one hard one in any given week</b> — the reps and the threshold alternate, and the easy run is there every week. '+
+    'No paces and no stopwatch on the recoveries: all of these are run on feel, which is not a cop-out, it is the only way they survive a day when you slept badly.</p>';
   CFG.revRuns.forEach(function(r){
-    tv+='<hr class="d"><h2 style="font-size:15px">'+r.n+' <span class="tiny dim">· '+r.t+'</span></h2>'+
+    tv+='<hr class="d"><h2 style="font-size:15px">'+r.n+' <span class="tiny dim">· '+r.t+'</span>'+
+      (r.hard?' <span class="pill">hard</span>':' <span class="pill g">easy</span>')+'</h2>'+
       '<p>'+r.s+'</p>'+
       '<p class="note"><b>Why it is in a growth block:</b> '+r.y+'</p>'+
       '<p class="tiny"><b>When to stop:</b> '+r.stop+'</p>';
@@ -3939,7 +4093,9 @@ function renderReverse(){
     '<tr><td class="mono">Weeks 3–4</td><td>First real attempts. <b>The 400 first</b> — it responds fastest to glycogen and creatine, and it is the target you are closest to.</td></tr>'+
     '<tr><td class="mono">Weeks 4–6</td><td>The 5 km. It needs the most accumulated freshness, so it goes last. Pick a flat one and a still day; you already know 75 s is a lot to find.</td></tr>'+
     '</tbody></table>'+
-    '<p class="tiny" style="margin-top:8px">One more time, because it is the whole logic of the block: <b>the cut does not set the times, it sets them up.</b> Every pound off is about 2 s a mile for free — you arrive at the reverse lighter than you have ever raced, and then you put the fuel back in.</p></div>';
+    '<p class="note" style="margin-top:8px"><b>One all-out effort a fortnight, maximum.</b> A genuine time trial costs about the same as a hard session and takes as long to come back from, so it has to come out of the two-hard-day budget, not sit on top of it. '+
+    'Testing more often than that is how people end up chronically flat and then conclude they are not improving.</p>'+
+    '<p class="tiny">One more time, because it is the whole logic of the block: <b>the cut does not set the times, it sets them up.</b> Every pound off is about 2 s a mile for free — you arrive at the reverse lighter than you have ever raced, and then you put the fuel back in.</p></div>';
 }
 
 /* ===================== the retinol ramp =====================

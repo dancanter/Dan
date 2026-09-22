@@ -57,21 +57,37 @@ ok('and warns the number will move', /more accurate every morning/.test(t));
 t = await p.textContent('#revLadder');
 // Derived from CFG: the step is Dan's dial and the suite should follow it,
 // not pin it. It moved 100 -> 50 when he asked for a very slow reverse.
-const rev = await p.evaluate(() => ({ step: CFG.rev.step, kcal: KCAL_DAY }));
-ok('the ladder climbs by the configured step',
-  m.rungs[0].kcal === rev.kcal + rev.step && m.rungs[1].kcal === rev.kcal + rev.step * 2,
-  JSON.stringify(m.rungs.slice(0, 2)));
-ok('and the heading says so', new RegExp('\\+' + rev.step + ' a week').test(t), t.slice(0, 80));
+const rev = await p.evaluate(() => ({ step: CFG.rev.step, first: CFG.rev.first,
+  hold: CFG.rev.holdWeeks, kcal: KCAL_DAY }));
+// Dan's shape: one step of `first` on day one, `holdWeeks` sitting there,
+// then `step` a week. The suite follows CFG rather than pinning the numbers.
+ok('the first rung is the one big step',
+  m.rungs[0].kcal === rev.kcal + rev.first, JSON.stringify(m.rungs[0]));
+ok('and it is held for the configured weeks',
+  m.rungs.slice(0, rev.hold).every(r => r.kcal === rev.kcal + rev.first) &&
+  m.rungs[rev.hold].kcal === rev.kcal + rev.first + rev.step,
+  JSON.stringify(m.rungs.slice(0, rev.hold + 1).map(r => r.kcal)));
+ok('the held weeks are marked as holds',
+  m.rungs.filter(r => r.hold).length === rev.hold - 1 && m.rungs[1].hold === true,
+  JSON.stringify(m.rungs.map(r => r.hold)));
+ok('and the heading says the shape', new RegExp('hold, then \\+' + rev.step + ' a week').test(t), t.slice(0, 120));
 ok('it never overshoots maintenance', m.rungs.every(r => r.kcal <= m.maint), String(m.maint));
 ok('and the last rung is maintenance exactly', m.top.kcal === m.maint && m.top.atTop === true, JSON.stringify(m.top));
 // A slower ladder means longer under maintenance, and that cost must be on
 // the page rather than quietly absorbed.
-ok('the slow climb names its own price', /very slow version, as asked/.test(t) && /still under maintenance until/.test(t),
-  (t.match(/very slow version[^.]{0,120}/) || [''])[0]);
-ok('the number of rungs matches the climb', m.weeks === Math.ceil((m.maint - rev.kcal) / rev.step), m.weeks + ' vs ' + Math.ceil((m.maint - rev.kcal) / rev.step));
+ok('the slow climb names its own price', /The price of the slow half, named/.test(t) && /under maintenance until/.test(t),
+  (t.match(/price of the slow half[^.]{0,120}/) || [''])[0]);
+ok('the ladder ends exactly at maintenance and never overshoots',
+  m.top.kcal === m.maint && m.rungs.every(r => r.kcal <= m.maint), JSON.stringify(m.top));
+// No stub rung: a final week that climbs by a kcal or two is a wasted row.
+ok('no rung adds a trivial amount',
+  m.rungs.every((r, i) => i === 0 || r.hold || r.carb >= Math.round(rev.step / 4) - 1 || r.kcal === m.maint),
+  JSON.stringify(m.rungs.map(r => r.carb)));
+ok('the last climb is a real one', m.rungs[m.rungs.length - 1].carb === 0 ? m.rungs[m.rungs.length - 1].hold : m.rungs[m.rungs.length - 1].carb >= 5,
+  JSON.stringify(m.rungs.slice(-2)));
 ok('each week is seven days', m.rungs.every(r => r.from < r.to));
 ok('week 1 starts on the start date', m.rungs[0].from === '2026-11-29', m.rungs[0].from);
-ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round(rev.step / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
+ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round((r.kcal - (m.rungs[m.rungs.indexOf(r) - 1] || { kcal: rev.kcal }).kcal) / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
 // Derived, not typed: protein moved 135 -> 150 g and this assertion was the
 // only thing that noticed. It should never need editing again when it moves.
 const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev }));
@@ -86,47 +102,129 @@ ok('it warns about the first fortnight up front', /\+3 to \+6 lb/.test(t), t.sli
 ok('and says plainly none of it is fat', /None of it is fat/.test(t));
 ok('glycogen water is explained', /3 g of water/.test(t));
 ok('creatine water is called intracellular', /intracellular water/.test(t));
-ok('it does the surplus arithmetic', /3,500 kcal of surplus/.test(t) &&
-  new RegExp((rev.step * 7).toLocaleString('en-GB') + ' kcal across a whole week').test(t), t.slice(-400));
+// The arithmetic must use the BIGGEST step in the ladder, not the smallest,
+// or it is quietly reassuring him with the easy case.
+ok('it does the surplus arithmetic on the biggest step', /3,500 kcal of surplus/.test(t) &&
+  new RegExp((rev.first * 7).toLocaleString('en-GB') + ' kcal across a whole week').test(t) &&
+  /biggest.{0,20}step in the whole ladder/.test(t), t.slice(-400));
 ok('and tells him not to judge it for two weeks', /do not judge anything for 2 weeks/i.test(t));
 ok('flat weight is named as the best outcome', /best outcome there is/.test(t));
 
-// ---- the training week, built so the running stops interfering -----------
-// The one rule that actually costs muscle is a hard run landing into a leg
-// session, so the week is checked as a schedule, not as prose.
+// ---- the face: the fear most likely to make him quit the reverse early ---
+const tFace = await p.textContent('#revFace');
+ok('the face card exists', tFace.length > 600, String(tFace.length));
+ok('it leads with the ladder protecting the face, not risking it',
+  /is not a risk to your face/.test(tFace), tFace.slice(0, 200));
+ok('body fat is ranked first', /1\. ?Body fat|Body fat/.test(tFace));
+ok('sleep is ranked above food as a lever', /it is this one, not the food/.test(tFace));
+ok('it explains glycogen water is intramuscular, not facial',
+  /intramuscular/.test(tFace) && /does not sit in your face/.test(tFace));
+ok('and predicts the face gets sharper, not puffier', /sharper/.test(tFace));
+// Standing constraint: salt stays, once a day. Cutting it is never advice.
+ok('salt is kept, never cut', /Salt stays exactly as it is/.test(tFace) && /Cutting it is the classic mistake/.test(tFace),
+  (tFace.match(/Salt stays[^.]{0,80}/) || [''])[0]);
+ok('it blames swings rather than the level', /swings<\/b>? do|swings/.test(tFace));
+ok('there is a way to judge it that is not a late-night mirror',
+  /one photo a week/.test(tFace) && /never day to day/.test(tFace));
+ok('and the leanness limit is named honestly',
+  /reveals bone structure, it does not add it/.test(tFace) && /where it turns on you/.test(tFace));
+
+// ---- the phase guide: he asked to be told when to change gear ------------
+const tPh = await p.textContent('#revPhase');
+const pm = await p.evaluate(() => ({ now: phaseModel().now.k, next: phaseModel().next && phaseModel().next.k,
+  all: CFG.phases.map(x => x.k) }));
+ok('the phase model knows we are in the cut', pm.now === 'cut', JSON.stringify(pm));
+ok('and that the reverse is next', pm.next === 'rev', String(pm.next));
+ok('the sequence runs cut, reverse, running block, next cut',
+  pm.all.join(',') === 'cut,rev,run,next', pm.all.join(','));
+ok('every block has an exit condition',
+  await p.evaluate(() => CFG.phases.every(x => x.e && x.e.length > 20)));
+ok('the card names the running block', /running block/i.test(tPh));
+ok('it refuses two hard blocks at once', /Never two hard blocks at once/.test(tPh));
+ok('and refuses starting a running block hungry', /Never start a running block from a deficit/.test(tPh));
+ok('the reverse length is left to Dan', /is your call/.test(tPh) && /tell me and I will set it/.test(tPh));
+ok('but a floor is given', new RegExp(m.weeks + ' weeks<\\/b>? to reach|' + m.weeks + ' weeks').test(tPh),
+  (tPh.match(/The floor is[^.]{0,90}/) || [''])[0]);
+// The honest limit — it can only guide on what it can actually see.
+ok('it says what it can see', /I can watch dates/.test(tPh));
+ok('and what it cannot', /I cannot see how you feel/.test(tPh),
+  (tPh.match(/I cannot see[^.]{0,90}/) || [''])[0]);
+
+// ---- the training week: health first, stress capped, times still moving ---
+// The brief changed from "maximise growth" to health with limited stress, so
+// the week is checked against the new one: ONE hard run, one genuinely easy
+// run, a capped number of hard days, and legs still clear of the hard run.
 t = await p.textContent('#revTrain');
-const wk = await p.evaluate(() => CFG.revWeek.map(x => ({ d: x.d, n: x.n, run: x.run || null })));
+const wk = await p.evaluate(() => CFG.revWeek.map(x => ({ d: x.d, n: x.n, run: x.run || null, hard: !!x.hard })));
+const rn = await p.evaluate(() => CFG.revRuns.map(r => ({ k: r.k, hard: !!r.hard, s: r.s, y: r.y, stop: r.stop })));
+const cap = await p.evaluate(() => CFG.rev.hardCap);
 ok('the week covers all seven days', wk.length === 7 && wk.every((x, i) => x.d === i), JSON.stringify(wk.map(x => x.d)));
-ok('exactly two of them are runs', wk.filter(x => x.run).length === 2, JSON.stringify(wk.filter(x => x.run).map(x => x.n)));
-ok('and both runs are different sessions', new Set(wk.filter(x => x.run).map(x => x.run)).size === 2);
-ok('there is one rest day', wk.filter(x => /^Rest$/.test(x.n)).length === 1);
+ok('hard days are capped at the configured number', wk.filter(x => x.hard).length === cap, JSON.stringify(wk.filter(x => x.hard).map(x => x.n)));
+ok('exactly one run is hard', wk.filter(x => x.run && x.hard).length === 1, JSON.stringify(wk.filter(x => x.run)));
+ok('the rest of the runs are easy', wk.filter(x => x.run === 'easy').length === wk.filter(x => x.run).length - 1,
+  JSON.stringify(wk.filter(x => x.run).map(x => [x.n, x.run])));
+ok('there are three runs, as Dan called it', wk.filter(x => x.run).length === 3, JSON.stringify(wk.filter(x => x.run).map(x => x.d)));
+ok('there is one rest day', wk.filter(x => /^Rest/.test(x.n)).length === 1);
 ok('and exactly one heavy leg day', wk.filter(x => /^Legs$/.test(x.n)).length === 1);
+ok('the leg day counts against the hard budget', wk.find(x => /^Legs$/.test(x.n)).hard === true);
 
-// The rule, checked as arithmetic on the cycle rather than taken on trust.
+// The spacing rules, as arithmetic on the cycle rather than taken on trust.
 const legD = wk.find(x => /^Legs$/.test(x.n)).d;
-const runDs = wk.filter(x => x.run).map(x => x.d);
-const before = runDs.map(r => (legD - r + 7) % 7);   // days from that run to legs
-const after = runDs.map(r => (r - legD + 7) % 7);    // days from legs to that run
-ok('no run lands in the 24 h before legs', before.every(g => g >= 2), JSON.stringify({ legD, runDs, before }));
-ok('and legs get about 48 h before the next run', after.every(g => g >= 2), JSON.stringify({ legD, runDs, after }));
-ok('neither run shares the leg day', !runDs.includes(legD), JSON.stringify({ legD, runDs }));
+const hardRunDs = wk.filter(x => x.run && x.hard).map(x => x.d);
+const before = hardRunDs.map(r => (legD - r + 7) % 7);
+const after = hardRunDs.map(r => (r - legD + 7) % 7);
+ok('no hard run lands in the 24 h before legs', before.every(g => g >= 2), JSON.stringify({ legD, hardRunDs, before }));
+ok('and legs get about 48 h before the hard run', after.every(g => g >= 2), JSON.stringify({ legD, hardRunDs, after }));
+ok('no two hard days are back to back',
+  wk.filter(x => x.hard).every(a => wk.filter(x => x.hard && x.d !== a.d).every(b => {
+    const g = Math.min((a.d - b.d + 7) % 7, (b.d - a.d + 7) % 7); return g >= 2; })),
+  JSON.stringify(wk.filter(x => x.hard).map(x => x.d)));
 
-ok('the rule is stated, not just implied', /never run hard in the 24 hours before a leg session/i.test(t), t.slice(0, 200));
+ok('the leg rule is stated, not just implied', /never run hard in the 24 hours before a leg session/i.test(t), t.slice(0, 200));
 ok('it says where interference actually lands', /lands almost entirely on/.test(t) && /legs/i.test(t));
 ok('and that upper body is unaffected', /Upper body barely notices/.test(t));
-ok('lift first when a day carries both', /Lift first, run after/.test(t) || /lift first/i.test(t));
-ok('the mileage comes out, not the intensity', /Cut the miles, keep the intensity/.test(t));
-ok('the five-mile slot is named as going', /five-mile slot/.test(t), (t.match(/five-mile[^.]{0,60}/) || [''])[0]);
-ok('and the cost of two runs a week is admitted', /What this costs you, honestly/.test(t));
+ok('the grey middle is named as the thing to avoid', /nothing in the grey middle/i.test(t) && /grey middle is moderately-hard/.test(t));
+ok('the hard-day ceiling is on the page', new RegExp(cap + ' hard days a week').test(t), (t.match(/\d+ hard days a week[^.]{0,40}/) || [''])[0]);
+ok('there is a deload rhythm', /take the hard run out and leave the easy one/.test(t));
+ok('sets are steered to the bottom of the reverse column', /run the bottom of the reverse column/.test(t));
+ok('and the cost of one hard run a week is admitted', /What this costs you, honestly/.test(t));
+ok('the five-mile slot stays out', /five-mile slot stays out/.test(t));
+ok('and the easy runs are not a place to sneak a third hard effort', /sneak a third hard effort/.test(t));
+ok('three runs are framed as holding, not chasing', /three is enough to/.test(t) && /running block/.test(t));
 
-// Both sessions described by feel, since prescribing paces and rest intervals
-// is a standing no.
-const runs = await p.evaluate(() => CFG.revRuns.map(r => r.n + ' ' + r.s + ' ' + r.y + ' ' + r.stop));
-ok('both quality sessions are written out', runs.length === 2 && runs.every(x => x.length > 200));
-ok('neither prescribes a pace', !runs.some(x => /\d+:\d\d\s*\/?\s*km|\d+:\d\d per/.test(x)), runs.join(' | ').slice(0, 200));
-ok('neither prescribes a rest interval', !runs.some(x => /\d+\s*(s|sec|seconds|min|minutes)\s+(rest|recovery)/i.test(x)));
+// Three shapes, one hard in any week, all on feel — paces and numbered
+// recoveries are a standing no.
+const runTxt = rn.map(r => r.s + ' ' + r.y + ' ' + r.stop);
+ok('three sessions are written out', rn.length === 3 && runTxt.every(x => x.length > 200));
+ok('exactly two of them are the hard alternates', rn.filter(r => r.hard).length === 2, JSON.stringify(rn.map(r => [r.k, r.hard])));
+ok('and one is the easy aerobic one', rn.filter(r => !r.hard).map(r => r.k).join() === 'easy');
+ok('the card says only one is hard in a given week', /only <?b?>?one hard one in any given week|one hard one in any given week/.test(t));
+ok('none prescribes a pace', !runTxt.some(x => /\d+:\d\d\s*\/?\s*km|\d+:\d\d per/.test(x)), runTxt.join(' | ').slice(0, 200));
+ok('none prescribes a rest interval', !runTxt.some(x => /\d+\s*(s|sec|seconds|min|minutes)\s+(rest|recovery)/i.test(x)));
 ok('the recovery is by feel', /the recovery is however long that takes, not a number/.test(t));
-ok('each says when to stop', /When to stop/.test(t) && (t.match(/When to stop/g) || []).length === 2);
+ok('each says when to stop', (t.match(/When to stop/g) || []).length === 3);
+ok('the easy run is defined by breathing, not by pace', /breathe through your nose/.test(t) && /full sentences/.test(t));
+ok('and the usual failure mode is named', /The only way to fail this one is to run it too hard/.test(t));
+
+// ---- the honest version of "anti-ageing" ---------------------------------
+const hl = await p.evaluate(() => CFG.revHealth.map(x => x.n));
+ok('the health card lists the four levers', hl.length === 4, JSON.stringify(hl));
+ok('VO2 max is named as the mortality predictor', /strongest modifiable predictor of all-cause mortality/.test(t));
+ok('lean mass is counted as health, not vanity', /is not vanity work/.test(t));
+ok('sleep is called the biggest lever', /biggest lever and the cheapest/.test(t));
+ok('chronic stress is named as the mechanism', /chronic stress/i.test(t));
+// The no-sugarcoating half: he asked for cellular anti-ageing and the honest
+// answer includes what does not exist.
+ok('it says plainly that nothing slows cellular ageing',
+  /Nothing has been shown to slow human cellular ageing/.test(t), (t.match(/Nothing has been shown[^.]{0,90}/) || [''])[0]);
+ok('and names the biological-age tests as part of that', /biological age/.test(t));
+ok('it warns about what is being sold', /is selling you something/.test(t));
+ok('but does not turn it into a different plan', /they are the same training/.test(t));
+
+// One all-out effort a fortnight has to come out of the budget, not sit on it.
+const tRace = await p.textContent('#revRest');
+ok('time trials are capped too', /One all-out effort a fortnight/.test(tRace), (tRace.match(/One all-out[^.]{0,60}/) || [''])[0]);
+ok('and counted against the hard days', /out of the two-hard-day budget/.test(tRace));
 
 // ---- creatine, steps, and when to race -----------------------------------
 t = await p.textContent('#revRest');
