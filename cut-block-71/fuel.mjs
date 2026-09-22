@@ -41,29 +41,35 @@ await boot(st({ days: { [TODAY]: { runs: [{ k: 'reps', dm: 400, n: 4, secs: 250 
 let t = await p.textContent('#fuelCard');
 ok('fuel card renders', t.length > 200, String(t.length));
 ok('names what was logged', /Fuel for what you logged today/.test(t), t.slice(0, 120));
-ok('picks the hard-run block', /Hard run — reps/.test(t));
+ok('picks the hard-run block', /Hard run/.test(t));
 ok('and the gym block', /Gym at 18:30/.test(t));
 ok('does not show the rest-day block', !/Rest day/.test(t));
 ok('two sessions fires the lunch warning', /lunch is not optional/i.test(t), t.slice(0, 400));
-ok('gives the oats by weight', /70 g certified GF oats/.test(t));
-ok('and the carbohydrate behind them', /66 g of carbohydrate/.test(t));
-ok('names the bowl by its real number', /535 kcal/.test(t));
-ok('never adds to the total', /being <b>spent differently<\/b>, never being added to/.test(await p.innerHTML('#fuelCard')));
+// Today is a summary now, by his request — the weights, the reasoning and the
+// timings all live on Food. Today keeps the one-liner and the pointer.
+ok('gives the oats in the summary', /Oats 60–90 min before/.test(t));
+ok('and the post-run protein and carbs', /30 g protein \+ 60 g carbs/.test(t));
+ok('names the bowl timing', /bowl 20:30/.test(t));
+ok('never adds to the total', /Spending the 1,799 differently, never adding to it/.test(t));
+ok('and points at Food for the detail', /Full detail on the Food tab/.test(t));
 
 // ---- an easy run alone is not a hard day ---------------------------------
 await boot(st({ days: { [TODAY]: { runs: [{ type: 'easy', km: 8.01, secs: 2400 }] } } }));
 t = await p.textContent('#fuelCard');
 ok('easy run gets the easy block', /Easy run, or the five mile/.test(t));
-ok('and not the hard one', !/Hard run — reps/.test(t));
+ok('and not the hard one', !/Hard run/.test(t));
 ok('no lunch warning without a second session', !/lunch is not optional/i.test(t));
-ok('says it can be run fasted', /Run first, then lean fish/.test(t));
+ok('says it can be run fasted', /Fasted is fine at easy effort/.test(t));
 
 // ---- a sprint session ----------------------------------------------------
 await boot(st({ days: { [TODAY]: { runs: [{ k: 'reps', dm: 100, n: 8, secs: 120, up: true }] } } }));
 t = await p.textContent('#fuelCard');
 ok('sprints get their own block', /100m uphill sprints/.test(t));
-ok('warns about the morning after', /Expect the scale up/.test(t), t.slice(0, 200));
-ok('and says why', /holds water in the legs for 24–48 hours/.test(t));
+ok('warns about the morning after', /expect the scale up tomorrow/i.test(t), t.slice(0, 200));
+ok('and says it is water, not fat', /it is water not fat/.test(t));
+// the full reasoning is on Food
+await p.click('[data-t="food"]');
+ok('with the full explanation on Food', /holds water in the legs for 24–48 hours/.test(await p.textContent('#foodFuel')));
 
 // ---- nothing logged: it reads what the week still owes -------------------
 await boot(st({}));

@@ -457,6 +457,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= WINS ================= -->
 <section id="s-wins" class="stack" hidden>
   <div id="winTop"></div>
+  <div id="winBoard"></div>
+  <div id="winStudy"></div>
   <div id="winDeficit"></div>
   <div id="winRecords"></div>
   <div id="winGrid"></div>
@@ -1025,6 +1027,24 @@ function sleepBand(h){
   if(h<=9)return {k:'g',t:'in the range'};
   return {k:'a',t:'long, but not wrong'};
 }
+/* Study across the whole block rather than the rolling week, for Wins. */
+function studyBlock(){
+  var t=today(),c=cutTally(),tot=0,deep=0,n=0,best=null,since=0;
+  if(c.before)return {total:0,deep:0,days:0,avg:0,best:null,weeks:0,live:false};
+  for(var i=0;i<c.elapsed;i++){
+    var d=addD(CFG.cutStart,i);
+    if(d>t)break;
+    if(d>=CFG.study.term)since++;
+    var r=S.days[d]||{};
+    if(typeof r.study!=='number')continue;
+    tot+=r.study;n++;
+    if(typeof r.deep==='number')deep+=r.deep;
+    if(!best||r.study>best.h)best={d:d,h:r.study};
+  }
+  return {total:tot,deep:deep,days:n,avg:n?tot/n:0,best:best,
+          weeks:since/7,live:t>=CFG.study.term,
+          deepShare:tot>0?deep/tot:null,perWeek:since>=7?tot/(since/7):null};
+}
 function studyModel(){
   var t=today(),i,s=0,n=0,dp=0,pre=0,preN=0,preDeep=0;
   var live=t>=CFG.study.term;
@@ -1272,12 +1292,23 @@ function pbList(){
     if(!b||!b.t||!b.date||!inCut(b.date))return;
     var p=priorRef(dm);
     out.push({dm:dm,now:b,prior:p,gain:p?p.t-b.t:null,first:!p,
-              fresh:diffD(b.date,today())<=PB_FRESH});
+              fresh:!hardRunAfter(b.date)});
   });
   out.sort(function(x,y){return x.now.date<y.now.date?1:-1;});
   return out;
 }
-var PB_FRESH=2;
+/* A new best stays on the Today card until the NEXT hard run, rather than
+   fading on a timer. His call, and it is the right one: the thing that
+   supersedes a personal best is doing another session, not a day passing. */
+function hardRunAfter(iso){
+  var t=today(),found=false;
+  eachRun(function(r,d){
+    if(found||d<=iso||d>t)return;
+    var m=runMeta(r);
+    if(!m.empty&&m.hard)found=true;
+  });
+  return found;
+}
 function closeTo(dm,rec){
   var tg=TGT[dm],b=bestAt(dm,rec).best;
   if(!tg||!b||!b.t)return false;
@@ -1671,6 +1702,47 @@ function renderWins(){
     '</div></div>';
   E('winTop').innerHTML=h;
 
+  /* the board: what he has actually done this block, in one place */
+  var pbs=pbList(),sb=studyBlock(),sl=sleepModel(),ms=achList().filter(function(x){return x.g==='Weight';})[0];
+  var msHit=ms.items.filter(function(a){return a.got;});
+  var wins=[];
+  pbs.forEach(function(x){
+    wins.push({k:repLabel(x.dm)+' — '+secFmt(x.now.t),
+      m:x.first?'first effort at this distance':(secFmt(x.gain)+' faster than '+secFmt(x.prior.t)),
+      d:x.now.date,hot:x.fresh});
+  });
+  if(msHit.length)wins.push({k:'Through '+msHit[msHit.length-1].n.replace('Through ',''),
+    m:msHit.length+' weight milestone'+(msHit.length===1?'':'s')+' crossed',d:msHit[msHit.length-1].when,hot:false});
+  if(tr.hard.done)wins.push({k:tr.hard.done+' hard run'+(tr.hard.done===1?'':'s'),m:'of '+CFG.goals.hard+' this block',d:null,hot:false});
+  if(tr.gym.done)wins.push({k:tr.gym.done+' gym session'+(tr.gym.done===1?'':'s'),m:'of '+CFG.goals.gym+' this block',d:null,hot:false});
+  if(sl.streak>=3)wins.push({k:sl.streak+' nights phone-free',m:'and counting',d:null,hot:sl.streak>=7});
+  if(sb.total>=1)wins.push({k:f1(sb.total)+' hours of study',m:sb.days+' day'+(sb.days===1?'':'s')+' logged'+(sb.deep>0?' · '+f1(sb.deep)+' h deep':''),d:null,hot:false});
+
+  var bh='<div class="p lift"><h2>The board · what you have actually done</h2>';
+  if(wins.length){
+    bh+='<div class="ach">'+wins.map(function(x){
+      return '<div class="a '+(x.hot?'on':'')+'"><div class="n">'+(x.hot?'★ ':'')+esc(x.k)+'</div>'+
+        '<div class="m">'+esc(x.m)+(x.d?' · '+fmtS(x.d):'')+'</div></div>';
+    }).join('')+'</div>';
+  }else{
+    bh+='<p class="note">Nothing on it yet — it fills as you log. First run, first gym session, first milestone through.</p>';
+  }
+  bh+='</div>';
+  E('winBoard').innerHTML=bh;
+
+  /* study, for the whole block */
+  var stH='<div class="p"><h2>Study this block</h2><div class="tiles t4">'+
+    tile('hours',f1(sb.total)+' h',sb.days+' day'+(sb.days===1?'':'s')+' logged')+
+    tile('deep',f1(sb.deep)+' h',sb.deepShare===null?'':Math.round(sb.deepShare*100)+'% of them')+
+    tile('per day logged',f1(sb.avg)+' h','on the days you logged')+
+    tile(sb.live?'per week since term':'term starts',
+      sb.live?(sb.perWeek===null?'—':f1(sb.perWeek)+' h'):fmtS(CFG.study.term),
+      sb.live?'against the '+CFG.study.lo+'–'+CFG.study.hi+' band':'nothing judged until then')+
+    '</div>'+
+    (sb.best?'<p class="tiny" style="margin-top:10px">Biggest day: <b class="num">'+f1(sb.best.h)+' h</b> on '+fmtS(sb.best.d)+'.</p>':'')+
+    '<p class="tiny">Hours are counted for the whole block, not the rolling week — the Study tab has the week and the band.</p></div>';
+  E('winStudy').innerHTML=stH;
+
   /* the deficit as a running total for the whole block, day by day */
   var tb=tdeeBlock(),dh='';
   if(tb.n){
@@ -1794,6 +1866,7 @@ function restModel(w,tr){
 function fuelBook(){
   return {
   hard:{n:'Hard run — reps, or anything at or under the effort line',
+    s:'Oats 60–90 min before · 30 g protein + 60 g carbs within the hour after · dinner 16:30 · bowl 20:30',
     w:'The session that actually runs on glycogen, and the only one where being underfed shows up in the numbers on the day rather than a week later.',
     r:[['60–90 min before','70 g certified GF oats, 150 ml milk, 13 g raw honey.','~400 kcal and 66 g of carbohydrate. The proven one. Four eggs before a run felt terrible and the oats felt great — that is 20 g of carbohydrate against 66, not something about eggs.'],
        ['During','Water. Nothing to eat under an hour.','Nothing fizzy inside two hours of running — gastric distension, stitch.'],
@@ -1801,22 +1874,26 @@ function fuelBook(){
        ['16:30–17:00','Dinner, before the gym as always.',''],
        ['20:30','The bowl — '+CFG.kcal.bowl+' kcal.','Protein overnight, which is when the repair actually runs.']]},
   sprint:{n:'100m uphill sprints',
+    s:'Something small and carby an hour before · normal meals after · expect the scale up tomorrow, it is water not fat',
     w:'Ten to fifteen seconds at a time. This is a nervous-system session, limited by how fresh you are rather than by how much carbohydrate is in the muscle — but it is only worth doing at full power, and power is the first thing to go when you are empty.',
     r:[['About an hour before','Something small and mostly carbohydrate — a banana with honey, or half the oats.','Enough not to start flat. You do not need the full 66 g for a session this short.'],
        ['After','Normal meal timing. Nothing special.','The muscle damage is real but small; the protein across the day covers it.'],
        ['The morning after','Expect the scale up, and do not read anything into it.','Hard eccentric work holds water in the legs for 24–48 hours. That is repair. It is the single most common way a good session reads as a bad morning.']]},
   easy:{n:'Easy run, or the five mile',
+    s:'Fasted is fine at easy effort · or small and 90 min clear · no rush afterwards',
     w:'Under about seventy minutes at an easy effort, glycogen is not the limiter. This is the session you can genuinely run fasted, and you have.',
     r:[['Fasted','Run first, then lean fish and roots, or eggs.','Fine at easy effort. Not fine before a rep session.'],
        ['Or fed','Keep it small and leave it 90 minutes.','A full breakfast half an hour before an easy run buys nothing and costs a stitch.'],
        ['After','No rush. Normal meal.',''],
        ['If it came in under the effort line','Then it was not an easy run, and the app has already counted it as a hard one.','Fuel the next one like a hard session. The five-mile slot stays open when that happens, and the empty slot is information.']]},
   gym:{n:'Gym at 18:30',
+    s:'Dinner 16:30–17:00 is the pre-lift meal · bowl at 20:30 is the refuel · never dinner after',
     w:'The 16:30–17:00 dinner is the pre-lift meal. That is why it sits there and not after.',
     r:[['16:30–17:00','Dinner: a real protein and a real carbohydrate. Cod and potatoes is the cheapest version of both.','Ninety minutes clear of lifting, which is about right.'],
        ['20:30','The bowl.','Post-lifting refuel and the overnight protein in one. That is why moving it is a bad trade even at '+CFG.kcal.bowl+' kcal.'],
        ['Not after the gym','Dinner after lifting lands at 20:00 with the bowl at 20:30.','Two meals stacked, and the bowl stops doing the job it is there for.']]},
   rest:{n:'Rest day',
+    s:'Food does not come down — same '+ci(KCAL_DAY)+' · protein 130–140 g · carbs at or above the floor · steps can stay',
     w:'Rest is in the plan. It is never a missed target, and it is not a day to eat less.',
     r:[['The food does not come down','The same '+ci(KCAL_DAY)+' as every other day.','Eating less on a rest day is the most common way a cut turns into muscle loss. Rest is when the rebuilding gets paid for.'],
        ['Protein especially','130–140 g, same as any day.','Today is the day it actually gets used.'],
@@ -1881,15 +1958,20 @@ function renderFuel(tr){
       return '<b>'+o.n+' '+esc(o.label)+(o.n===1?'':'s')+'</b>';}).join(', ')+
       '. Whichever of those today turns out to be, here is how it gets fed.';
   }
-  h='<div class="p"><h2>'+head+'</h2><p class="lede">'+lead+'</p>';
+  /* Today gets one line per block. The full tables were the first thing on
+     the tab and he had to scroll past all of them to reach anything he could
+     act on — they live on Food, which is where you go when you want detail. */
+  h='<div class="p"><h2>'+head+'</h2><p class="note">'+lead+'</p>';
   if(f.two){
-    h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>Two sessions today — lunch is not optional.</b> '+
-       'A run in the morning and lifting at 18:30 is the combination that empties you, and it empties you through the meal in the middle. '+
-       'Everything that goes wrong in a cut — the flat fortnight, the session that feels twice as hard for no reason, the sleep going — tends to start with the lunch that got skipped because breakfast was big.</div>';
+    h+='<div class="p warn" style="margin:10px 0;box-shadow:none"><b>Two sessions today — lunch is not optional.</b> '+
+       'A run in the morning and lifting at 18:30 is what empties you, and it empties you through the meal in the middle.</div>';
   }
-  f.keys.forEach(function(k){h+=fuelBlockHTML(k,book);});
-  h+='<hr class="d"><p class="tiny">Every number here is the '+ci(KCAL_DAY)+' day being <b>spent differently</b>, never being added to. '+
-     'The only thing that raises the total is a refeed or the '+ci(KCAL_LIGHTUP)+' day, and those are sized on the Today card when they are earned.</p></div>';
+  h+='<table class="tbl"><tbody>'+f.keys.map(function(k){
+    var bl=book[k];if(!bl)return '';
+    return '<tr><td style="white-space:nowrap"><b>'+esc(bl.n.split(' — ')[0])+'</b></td><td class="note">'+bl.s+'</td></tr>';
+  }).join('')+'</tbody></table>'+
+    '<p class="tiny" style="margin-top:8px">Spending the '+ci(KCAL_DAY)+' differently, never adding to it. '+
+    '<b>Full detail on the Food tab</b> — the timings, the why, and every session type.</p></div>';
   E('fuelCard').innerHTML=h;
 
   var all='<div class="p"><h2>Fuelling, session by session</h2>'+
@@ -2465,29 +2547,21 @@ function renderToday(c,w,tr){
   E('lowLine').innerHTML=lw;
 
   /* personal bests of the block, newest first, the fresh ones shouted */
-  var pbs=pbList(),fresh=pbs.filter(function(x){return x.fresh;});
+  /* Today shows only a best that still stands — the full list lives on Wins. */
+  var fresh=pbList().filter(function(x){return x.fresh;});
   var pb='';
-  if(pbs.length){
-    var lead=fresh.length?fresh[0]:null;
-    pb='<div class="p '+(lead?'lift':'')+'"><h2>'+(lead?'New personal best':'Personal bests this block')+'</h2>';
-    if(lead){
-      pb+='<div class="big acc">'+repLabel(lead.dm)+' — '+secFmt(lead.now.t)+'</div>'+
-        '<p class="note">'+(lead.first
-          ? 'Your first '+repLabel(lead.dm)+' effort on record. There was nothing to beat, so this <b>is</b> the mark now.'
-          : '<b class="gd">'+secFmt(lead.gain)+' faster</b> than your previous best of '+secFmt(lead.prior.t)+
-            (lead.prior.date?', set '+fmtS(lead.prior.date):'')+'.')+
-        ' '+fmtL(lead.now.date)+'.</p>';
-    }
-    pb+='<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Now</th><th class="n">Before</th><th>Gain</th></tr></thead><tbody>'+
-      pbs.map(function(x){
-        return '<tr'+(x.fresh?' style="color:var(--accent)"':'')+'><td>'+repLabel(x.dm)+(x.fresh?' <span class="pill a">new</span>':'')+'</td>'+
-          '<td class="n">'+secFmt(x.now.t)+'</td>'+
-          '<td class="n">'+(x.prior?secFmt(x.prior.t):'—')+'</td>'+
-          '<td class="tiny">'+(x.first?'first at this distance':'<b class="gd">'+secFmt(x.gain)+' faster</b>')+
-          ' · '+fmtS(x.now.date)+'</td></tr>';
-      }).join('')+'</tbody></table></div>'+
-      '<p class="tiny" style="margin-top:8px">Anything you run or sync inside the block is checked against your 2026 record the moment it lands. '+
-      'A distance you had never run hard shows as a first rather than being quietly ignored.</p></div>';
+  if(fresh.length){
+    var lead=fresh[0];
+    pb='<div class="p lift"><h2>New personal best</h2>'+
+      '<div class="big acc">'+repLabel(lead.dm)+' — '+secFmt(lead.now.t)+'</div>'+
+      '<p class="note">'+(lead.first
+        ? 'Your first '+repLabel(lead.dm)+' effort on record. There was nothing to beat, so this <b>is</b> the mark now.'
+        : '<b class="gd">'+secFmt(lead.gain)+' faster</b> than your previous best of '+secFmt(lead.prior.t)+
+          (lead.prior.date?', set '+fmtS(lead.prior.date):'')+'.')+
+      ' '+fmtL(lead.now.date)+'.</p>'+
+      (fresh.length>1?'<p class="note">Also standing: '+fresh.slice(1).map(function(x){
+        return '<b>'+repLabel(x.dm)+' '+secFmt(x.now.t)+'</b>';}).join(', ')+'.</p>':'')+
+      '<p class="tiny">This stays here until your next hard run. Everything you have set this block is on <b>Wins</b>.</p></div>';
   }
   E('pbCard').innerHTML=pb;
 
