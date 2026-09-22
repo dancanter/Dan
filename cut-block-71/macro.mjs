@@ -16,13 +16,20 @@ const boot = async (s) => { await p.goto(FILE);
 await boot(st());
 
 // ===== 1. the protein number and what it leaves =========================
-const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, carb: CARB_AT,
-  floor: CARB_FLOOR, txt: PRO_TXT, kcal: KCAL_DAY }));
-ok('protein is raised to the top of what the budget allows', m.pro === 150, String(m.pro));
+// Dan's call: 135 g on the cut, and the reverse takes the higher number
+// because there the calories pay for it. The suite pins the SHAPE — cut
+// number, reverse number, headroom, derived strings — not the digits, so
+// moving the dial does not turn the suite red for no reason.
+const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev,
+  carb: CARB_AT, floor: CARB_FLOOR, max: PRO_MAX, txt: PRO_TXT, kcal: KCAL_DAY }));
+ok('the cut protein is the one Dan set', m.pro === 135, String(m.pro));
+ok('the reverse takes the higher number', m.proRev > m.pro, JSON.stringify(m));
 ok('the carbohydrate it leaves clears the hard-day floor', m.carb >= m.floor, JSON.stringify(m));
-ok('and one notch higher would breach it',
-  Math.round((m.kcal - (m.pro + 10) * 4 - m.fat * 9) / 4) < m.floor,
-  String(Math.round((m.kcal - (m.pro + 10) * 4 - m.fat * 9) / 4)));
+ok('PRO_MAX is the real headroom', Math.round((m.kcal - m.max * 4 - m.fat * 9) / 4) >= m.floor, String(m.max));
+ok('and one gram past PRO_MAX breaches it',
+  Math.round((m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4) < m.floor,
+  String(Math.round((m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4)));
+ok('the cut number sits under the headroom', m.pro < m.max, m.pro + ' vs ' + m.max);
 ok('the protein string is derived from the number', m.txt === (m.pro - 5) + '–' + (m.pro + 5) + ' g', m.txt);
 
 // ===== 2. nothing anywhere still says the old range =====================
@@ -32,9 +39,11 @@ await p.click('[data-t="food"]');
 await p.waitForTimeout(150);
 const foodTxt = await p.textContent('#s-food');
 ok('the Macros panel shows the derived range', foodTxt.includes(m.txt), foodTxt.slice(0, 200));
-const whole = await p.evaluate(() => document.body.innerText);
-ok('no stale 130–140 g anywhere on the page', !/130\s*[–-]\s*140/.test(whole),
-  (whole.match(/.{40}130\s*[–-]\s*140.{40}/) || [''])[0]);
+ok('the budget card states the headroom rather than a stale claim',
+  new RegExp('as high as\\s*' + m.max + ' g').test(foodTxt.replace(/\s+/g, ' ')),
+  (foodTxt.replace(/\s+/g, ' ').match(/could carry protein[^.]{0,80}/) || [''])[0]);
+ok('and says where it goes on the reverse',
+  new RegExp('goes to ' + m.proRev + ' g on the reverse').test(foodTxt.replace(/\s+/g, ' ')));
 // 1,719 survives in one place on purpose — the line explaining the cycle Dan
 // overruled. It must not survive in the protein panel, where it was describing
 // a day that no longer exists.
@@ -54,7 +63,10 @@ await p.waitForTimeout(150);
 const tr = await p.textContent('#s-training');
 ok('the sets card answers the growth question head on',
   /run the top of the left column/.test(tr), tr.slice(0, 200));
-ok('it names the raised protein', new RegExp('protein at ' + m.pro + ' g').test(tr));
+// The protein lever was withdrawn when Dan kept 135 g, so the card must not
+// still be selling it as part of the answer.
+ok('it no longer claims protein as a lever', !/protein at \d+ g instead/.test(tr),
+  (tr.match(/.{40}protein at \d+ g instead.{20}/) || [''])[0]);
 ok('it does not promise growth in the deficit',
   /will not add muscle/.test(tr) && /growth happens on the reverse/i.test(tr));
 // With nothing logged there is no measured deficit, so it must not invent one.

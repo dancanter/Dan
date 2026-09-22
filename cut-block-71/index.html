@@ -456,6 +456,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="revTop"></div>
   <div id="revLadder"></div>
   <div id="revWater"></div>
+  <div id="revTrain"></div>
   <div id="revRest"></div>
 </section>
 
@@ -586,7 +587,33 @@ var CFG={
   /* The reverse. step is the weekly rise in kcal; everything else about it —
      where it starts, how long it runs, how big the ladder is — is derived from
      the deficit his own weight actually measured over the block. */
-  rev:{step:100,creatine:5,holdOver:0.5,settleWeeks:2},
+  rev:{step:50,creatine:5,holdOver:0.5,settleWeeks:2},
+  /* The reverse week. Legs sits as far from both runs as seven days allow,
+     because the one thing that actually costs muscle is running hard into a
+     leg session. Upper-body days do not care about running at all, which is
+     why the second run is stacked onto the lightest of them. run:true marks
+     a day that carries one of the two quality sessions. */
+  revWeek:[
+    {d:0,n:'Rest',k:'rest',w:'A real one. Tomorrow is the only heavy leg day you get, and it is the session most likely to be wasted by turning up tired.'},
+    {d:1,n:'Legs',k:'legs',w:'The freshest day of the week, 48 hours clear of Saturday’s run and 48 hours before Wednesday’s. This is the whole reason the week is laid out this way.'},
+    {d:2,n:'Chest + triceps',k:'chest',w:'Upper body. Running has no quarrel with it.'},
+    {d:3,n:'Short reps',k:'run',run:'short',w:'Legs have had two clear days since Monday and get three more before the next hard lift for them.'},
+    {d:4,n:'Back + biceps',k:'back',w:'Upper body again. Pull the day after a running session if that suits you better — it changes nothing.'},
+    {d:5,n:'Second upper — your weak point',k:'other',w:'Chest or back for the second time this week. This is the day that turns a once-a-week split into something that actually grows, and it costs legs nothing.'},
+    {d:6,n:'Shoulders + forearms, then the threshold run',k:'delts',run:'thresh',w:'The lightest lift day, so it is the one that carries the double. Lift first, run after — never the other way round.'}
+  ],
+  /* Two sessions, both of them quality. Described by intent and by feel,
+     never by a pace or a stopwatch on the recoveries. */
+  revRuns:[
+    {k:'short',n:'Short reps',t:'Speed and VO2',
+     s:'Reps short enough that the last one is as quick as the first. Walk back, get your breath fully, go again — the recovery is however long that takes, not a number.',
+     y:'The least interfering running there is. Total volume is tiny, so there is almost nothing for the legs to recover from, and the return in top-end speed is the largest of any session you do. Your flat-out sprints live at the front of this one, while you are fresh.',
+     stop:'When a rep comes in slower than the one before it, the session is over. Chasing it is how this turns into a conditioning session, which is the thing you are trying to avoid.'},
+    {k:'thresh',n:'Threshold',t:'The engine behind the 3 km and 5 km',
+     s:'One sustained block, or a few long ones. Comfortably hard — you can speak, but only in short phrases. It should feel like something you could just about hold for an hour if you had to, and it should never feel like a race.',
+     y:'This is what actually moves a 3 km and a 5 km, and per minute of fitness it damages the legs far less than the same time spent plodding. Fewer total ground contacts for more adaptation is exactly the trade a growth block wants.',
+     stop:'If the effort starts creeping up to hold the same feel, end it there. Threshold done too hard is just a race you did not enter, and it takes the same two days back.'}
+  ],
   /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
      on the last day of the block. Height already lives in w.heightM. */
   body:{dob:'2000-11-28'},
@@ -627,7 +654,11 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
 var KCAL_DAY=CFG.kcal.avg;
 var KCAL_FREE=KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl;
 var KCAL_LIGHTUP=KCAL_DAY+100;
-var MACRO={pro:150,fat:42};
+/* pro is the cut number — Dan's call, and it is a fine one: 135 g at 58 kg is
+   2.33 g/kg, which is already past where the curve flattens. proRev is the
+   reverse number, where the calories are there to pay for it and the carb
+   floor is no longer the binding constraint. */
+var MACRO={pro:135,fat:42,proRev:150};
 var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
 /* One protein string, derived. It was typed out in four places and went
    stale the moment the number moved. */
@@ -635,6 +666,10 @@ var PRO_TXT=(MACRO.pro-5)+'–'+(MACRO.pro+5)+' g';
 /* The hard-day carbohydrate floor. Protein can only rise until CARB_AT
    would cross this — that is the whole constraint on the protein number. */
 var CARB_FLOOR=200;
+/* The most protein the budget can carry before carbohydrate drops through the
+   floor. Derived, so the sentence about headroom cannot go stale the next time
+   the protein number moves. */
+var PRO_MAX=Math.floor((KCAL_DAY-CARB_FLOOR*4-MACRO.fat*9)/4);
 var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
 
 function stepTarget(is){var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
@@ -3120,7 +3155,10 @@ function renderFood(c,tr){
     tile('three meals',ci(KCAL_FREE),'what is left to spend')+
     tile('carbs it leaves',CARB_AT+' g','at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat')+
     '</div>'+
-    '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, clear of the '+CARB_FLOOR+' g floor a hard day asks for. Protein sits at the top of what this budget allows: '+(MACRO.pro+10)+' g would put carbohydrate under that floor, which is why it stops here. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
+    '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, clear of the '+CARB_FLOOR+' g floor a hard day asks for. '+
+    'The budget could carry protein as high as <b>'+PRO_MAX+' g</b> before carbohydrate fell through that floor, and there is no strong reason to go there: '+MACRO.pro+
+    ' g is '+f1(MACRO.pro/(CFG.w.target*0.45359237))+' g per kg of goal bodyweight, which is already past the point where the curve flattens. It goes to '+MACRO.proRev+
+    ' g on the reverse, where the calories pay for it. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
     '<hr class="d"><div class="cols"><div>'+
     '<table class="tbl"><tbody>'+
     '<tr><td>300 ml semi-skimmed milk, across the day</td><td class="n">'+CFG.kcal.milk+'</td></tr>'+
@@ -3453,7 +3491,7 @@ function renderSplit(){
     'In a deficit it is the weight on the bar that tells the body to hold onto muscle. Cutting the volume is fine and sometimes necessary; going lighter because you feel tired is how people finish a cut smaller than they planned. '+
     'If a session has to shrink, lose the last set, not the plates.</p>'+
     (onRev?'':'<p><b>If you want the most growth this block can give you, run the top of the left column, not the bottom.</b> '+
-      'That is the whole lever — ten chest sets rather than six, twelve back rather than eight, and the protein at '+MACRO.pro+' g instead of '+(MACRO.pro-15)+' g. '+
+      'That is the whole lever — ten chest sets rather than six, twelve back rather than eight, every one of them within a few reps of failure. '+
       'It will not add muscle at '+defTxt+' with two hard runs, a sprint session and a five-mile in the same week — the running alone would cap it at maintenance. '+
       'What it does is decide how much you still have on 28 November, and every pound you keep now is a pound you are not spending December to February getting back. '+
       '<b>The growth happens on the reverse.</b> This block just protects the starting point for it.</p>')+
@@ -3808,10 +3846,16 @@ function renderReverse(){
       '<td>'+(now?'<span class="pill a">this week</span>':(past?'<span class="tiny">done</span>':(r.atTop?'<span class="pill g">maintenance</span>':'')))+'</td></tr>';
   });
   lg+='</tbody></table></div>'+
-    '<p class="tiny" style="margin-top:8px"><b>Protein stays at '+MACRO.pro+' g and fat stays at '+MACRO.fat+' g.</b> Every added calorie goes in as carbohydrate — '+
+    '<p class="tiny" style="margin-top:8px"><b>Protein goes to '+MACRO.proRev+' g and fat stays at '+MACRO.fat+' g.</b> '+
+    'On the cut it sits at '+MACRO.pro+' g because raising it would have pushed carbohydrate under the hard-day floor. Here there is room for both. Every calorie of the climb itself goes in as carbohydrate — '+
     Math.round(CFG.rev.step/4)+' g a week — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
-    '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing. Nothing is lost by taking twelve weeks instead of eight.</p></div>';
+    '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+
+    '<p class="note"><b>This is the very slow version, as asked — and it has a price worth naming.</b> At +'+ci(CFG.rev.step)+
+    ' a week it takes <b>'+R.weeks+' weeks</b> to reach '+ci(R.maint)+', so you are still under maintenance until <b>'+fmtL(R.top?R.top.to:R.start)+'</b>. '+
+    'Muscle is not built under maintenance, so a slow climb is also a late start on growing — roughly '+Math.max(0,R.weeks-Math.ceil(R.weeks/2))+' weeks later than a +'+ci(CFG.rev.step*2)+' climb would be. '+
+    'What you buy for it is the thing you actually asked for: almost no chance of putting fat back on, and a metabolism that comes up with the food rather than behind it. '+
+    'It is a fair trade and it is your call — but if by January you would rather be growing than protecting, doubling the step is the switch.</p></div>';
   E('revLadder').innerHTML=lg;
 
   /* the bit that will otherwise ruin his week */
@@ -3824,10 +3868,57 @@ function renderReverse(){
     '<tr><td><b>Cortisol coming down</b></td><td class="note">Ten weeks of deficit plus 12,800 steps keeps cortisol up, which holds water. It releases unevenly as you eat again, so the scale can do nothing for four days and then move.</td></tr>'+
     '</tbody></table>'+
     '<hr class="d"><p><b>The arithmetic that settles it:</b> a pound of fat is 3,500 kcal of surplus. At +'+ci(CFG.rev.step)+
-    ' a week you are adding '+ci(CFG.rev.step*7)+' kcal across a whole week — under a fifth of a pound even if every calorie of it were stored, which it is not. '+
+    ' a week you are adding '+ci(CFG.rev.step*7)+' kcal across a whole week — '+f1(CFG.rev.step*7/3500)+' lb even if every calorie of it were stored, which it is not. '+
     'Six pounds of fat in a fortnight would take eating 1,500 over maintenance every single day.</p>'+
     '<p class="note"><b>So do not judge anything for '+CFG.rev.settleWeeks+' weeks.</b> Keep weighing, keep logging, and read the 7-day average from week '+(CFG.rev.settleWeeks+1)+' onward. '+
-    'After it settles the number to watch is about <b>0.2–0.3 lb a week</b> of genuine rise. Flat while eating '+ci(CFG.rev.step*3)+'+ above the cut is your metabolism coming back up, and it is the best outcome there is.</p></div>';
+    'After it settles the number to watch is about <b>0.2–0.3 lb a week</b> of genuine rise. Flat while eating several hundred above the cut number is your metabolism coming back up, and it is the best outcome there is.</p></div>';
+
+  /* ---- how the running and the lifting share a week once growth is the point ----
+     The interference effect is real but it is not mystical: it is competition
+     for one recovery budget, and it is overwhelmingly about LEGS and about
+     running VOLUME. Upper body barely notices. So the week is built around one
+     rule — nothing hard runs into the leg session — and the mileage that buys
+     the least fitness is the mileage that gets cut. */
+  var dayName=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var tv='<div class="p flag"><h2>The week, once growth is the point</h2>'+
+    '<p class="lede">Five lifting days, <b>two runs, both of them quality</b>, one real rest day. '+
+    'The running does not stop — it stops being <b>volume</b>.</p>'+
+    '<p>The interference effect is not a mystery and it is not everywhere. It is competition for one recovery budget, it lands almost entirely on <b>legs</b>, and it scales with <b>how much</b> you run rather than how hard. '+
+    'Upper body barely notices running at all. That gives you one rule worth more than the rest of this page put together: <b>never run hard in the 24 hours before a leg session.</b> '+
+    'Everything below is just that rule turned into a timetable.</p>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th>Session</th><th class="tiny">Why there</th></tr></thead><tbody>';
+  CFG.revWeek.forEach(function(x){
+    tv+='<tr><td class="mono tiny">'+dayName[x.d]+'</td>'+
+      '<td><b'+(x.run?' style="color:var(--accent)"':'')+'>'+x.n+'</b></td>'+
+      '<td class="tiny">'+x.w+'</td></tr>';
+  });
+  tv+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px">Legs get <b>one</b> heavy day and that is deliberate — two quality runs a week is already a serious amount of leg work, and the gym only has to top it up. '+
+    'The second upper day is where the growth you are actually chasing comes from.</p>'+
+    '<hr class="d">'+
+    '<h2>The rules, if you want to shuffle it</h2>'+
+    '<table class="tbl"><tbody>'+
+    '<tr><td><b>No hard run in the 24 h before legs</b></td><td class="note">This is the one that costs muscle. Everything else on this list costs performance, which you can afford.</td></tr>'+
+    '<tr><td><b>About 48 h after legs before a hard run</b></td><td class="note">This protects the run, not the muscle. Break it if a week demands it.</td></tr>'+
+    '<tr><td><b>Same day? Lift first, and only on an upper day</b></td><td class="note">Running first blunts the load you can put on the bar, and load is what grows you. A run stacked onto a legs day is the worst combination available.</td></tr>'+
+    '<tr><td><b>Never run hard in the morning and train legs that night</b></td><td class="note">It reads like two separate sessions and behaves like one very bad one.</td></tr>'+
+    '<tr><td><b>Cut the miles, keep the intensity</b></td><td class="note">Long steady running is the worst thing on the menu for a growth block — most damage and most recovery for the least fitness. Short and fast is the least. The five-mile slot and the easy filler runs come out; the two quality sessions stay.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="note" style="margin-top:10px"><b>What this costs you, honestly:</b> dropping to two runs a week will not make you faster on its own, and somewhere around week six you may notice the top end of your endurance has gone quiet. '+
+    'That is the trade you are making on purpose. The speed comes back inside a fortnight of putting the sessions back; muscle you did not build takes months.</p>'+
+    '</div>';
+
+  /* the two sessions themselves */
+  tv+='<div class="p"><h2>The two sessions</h2>'+
+    '<p class="tiny">No paces and no stopwatch on the recoveries — both of these are run on feel, and that is not a cop-out, it is the only way they survive a day when you slept badly.</p>';
+  CFG.revRuns.forEach(function(r){
+    tv+='<hr class="d"><h2 style="font-size:15px">'+r.n+' <span class="tiny dim">· '+r.t+'</span></h2>'+
+      '<p>'+r.s+'</p>'+
+      '<p class="note"><b>Why it is in a growth block:</b> '+r.y+'</p>'+
+      '<p class="tiny"><b>When to stop:</b> '+r.stop+'</p>';
+  });
+  tv+='</div>';
+  E('revTrain').innerHTML=tv;
 
   /* what changes besides the food */
   E('revRest').innerHTML='<div class="cols">'+

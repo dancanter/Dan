@@ -55,18 +55,28 @@ ok('and warns the number will move', /more accurate every morning/.test(t));
 
 // ---- the ladder ----------------------------------------------------------
 t = await p.textContent('#revLadder');
-ok('the ladder climbs 100 a week', m.rungs[0].kcal === 1899 && m.rungs[1].kcal === 1999, JSON.stringify(m.rungs.slice(0, 2)));
+// Derived from CFG: the step is Dan's dial and the suite should follow it,
+// not pin it. It moved 100 -> 50 when he asked for a very slow reverse.
+const rev = await p.evaluate(() => ({ step: CFG.rev.step, kcal: KCAL_DAY }));
+ok('the ladder climbs by the configured step',
+  m.rungs[0].kcal === rev.kcal + rev.step && m.rungs[1].kcal === rev.kcal + rev.step * 2,
+  JSON.stringify(m.rungs.slice(0, 2)));
+ok('and the heading says so', new RegExp('\\+' + rev.step + ' a week').test(t), t.slice(0, 80));
 ok('it never overshoots maintenance', m.rungs.every(r => r.kcal <= m.maint), String(m.maint));
 ok('and the last rung is maintenance exactly', m.top.kcal === m.maint && m.top.atTop === true, JSON.stringify(m.top));
-ok('the number of rungs matches the climb', m.weeks === Math.ceil((m.maint - 1799) / 100), m.weeks + ' vs ' + Math.ceil((m.maint - 1799) / 100));
+// A slower ladder means longer under maintenance, and that cost must be on
+// the page rather than quietly absorbed.
+ok('the slow climb names its own price', /very slow version, as asked/.test(t) && /still under maintenance until/.test(t),
+  (t.match(/very slow version[^.]{0,120}/) || [''])[0]);
+ok('the number of rungs matches the climb', m.weeks === Math.ceil((m.maint - rev.kcal) / rev.step), m.weeks + ' vs ' + Math.ceil((m.maint - rev.kcal) / rev.step));
 ok('each week is seven days', m.rungs.every(r => r.from < r.to));
 ok('week 1 starts on the start date', m.rungs[0].from === '2026-11-29', m.rungs[0].from);
-ok('every step is carbohydrate', m.rungs.every(r => r.carb === 25), JSON.stringify(m.rungs.map(r => r.carb)));
+ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round(rev.step / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
 // Derived, not typed: protein moved 135 -> 150 g and this assertion was the
 // only thing that noticed. It should never need editing again when it moves.
-const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat }));
+const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev }));
 ok('protein and fat are pinned',
-  new RegExp('Protein stays at ' + mac.pro + ' g and fat stays at ' + mac.fat + ' g').test(t), t.slice(0, 200));
+  new RegExp('Protein goes to ' + mac.proRev + ' g and fat stays at ' + mac.fat + ' g').test(t), t.slice(0, 200));
 ok('the foods are his, not packets', /certified GF oats/.test(t) && /Potatoes, rice/.test(t));
 ok('and it says to hold a rung rather than push', /hold that rung a second week/.test(t));
 
@@ -76,9 +86,47 @@ ok('it warns about the first fortnight up front', /\+3 to \+6 lb/.test(t), t.sli
 ok('and says plainly none of it is fat', /None of it is fat/.test(t));
 ok('glycogen water is explained', /3 g of water/.test(t));
 ok('creatine water is called intracellular', /intracellular water/.test(t));
-ok('it does the surplus arithmetic', /3,500 kcal of surplus/.test(t) && /700 kcal across a whole week/.test(t), t.slice(-400));
+ok('it does the surplus arithmetic', /3,500 kcal of surplus/.test(t) &&
+  new RegExp((rev.step * 7).toLocaleString('en-GB') + ' kcal across a whole week').test(t), t.slice(-400));
 ok('and tells him not to judge it for two weeks', /do not judge anything for 2 weeks/i.test(t));
 ok('flat weight is named as the best outcome', /best outcome there is/.test(t));
+
+// ---- the training week, built so the running stops interfering -----------
+// The one rule that actually costs muscle is a hard run landing into a leg
+// session, so the week is checked as a schedule, not as prose.
+t = await p.textContent('#revTrain');
+const wk = await p.evaluate(() => CFG.revWeek.map(x => ({ d: x.d, n: x.n, run: x.run || null })));
+ok('the week covers all seven days', wk.length === 7 && wk.every((x, i) => x.d === i), JSON.stringify(wk.map(x => x.d)));
+ok('exactly two of them are runs', wk.filter(x => x.run).length === 2, JSON.stringify(wk.filter(x => x.run).map(x => x.n)));
+ok('and both runs are different sessions', new Set(wk.filter(x => x.run).map(x => x.run)).size === 2);
+ok('there is one rest day', wk.filter(x => /^Rest$/.test(x.n)).length === 1);
+ok('and exactly one heavy leg day', wk.filter(x => /^Legs$/.test(x.n)).length === 1);
+
+// The rule, checked as arithmetic on the cycle rather than taken on trust.
+const legD = wk.find(x => /^Legs$/.test(x.n)).d;
+const runDs = wk.filter(x => x.run).map(x => x.d);
+const before = runDs.map(r => (legD - r + 7) % 7);   // days from that run to legs
+const after = runDs.map(r => (r - legD + 7) % 7);    // days from legs to that run
+ok('no run lands in the 24 h before legs', before.every(g => g >= 2), JSON.stringify({ legD, runDs, before }));
+ok('and legs get about 48 h before the next run', after.every(g => g >= 2), JSON.stringify({ legD, runDs, after }));
+ok('neither run shares the leg day', !runDs.includes(legD), JSON.stringify({ legD, runDs }));
+
+ok('the rule is stated, not just implied', /never run hard in the 24 hours before a leg session/i.test(t), t.slice(0, 200));
+ok('it says where interference actually lands', /lands almost entirely on/.test(t) && /legs/i.test(t));
+ok('and that upper body is unaffected', /Upper body barely notices/.test(t));
+ok('lift first when a day carries both', /Lift first, run after/.test(t) || /lift first/i.test(t));
+ok('the mileage comes out, not the intensity', /Cut the miles, keep the intensity/.test(t));
+ok('the five-mile slot is named as going', /five-mile slot/.test(t), (t.match(/five-mile[^.]{0,60}/) || [''])[0]);
+ok('and the cost of two runs a week is admitted', /What this costs you, honestly/.test(t));
+
+// Both sessions described by feel, since prescribing paces and rest intervals
+// is a standing no.
+const runs = await p.evaluate(() => CFG.revRuns.map(r => r.n + ' ' + r.s + ' ' + r.y + ' ' + r.stop));
+ok('both quality sessions are written out', runs.length === 2 && runs.every(x => x.length > 200));
+ok('neither prescribes a pace', !runs.some(x => /\d+:\d\d\s*\/?\s*km|\d+:\d\d per/.test(x)), runs.join(' | ').slice(0, 200));
+ok('neither prescribes a rest interval', !runs.some(x => /\d+\s*(s|sec|seconds|min|minutes)\s+(rest|recovery)/i.test(x)));
+ok('the recovery is by feel', /the recovery is however long that takes, not a number/.test(t));
+ok('each says when to stop', /When to stop/.test(t) && (t.match(/When to stop/g) || []).length === 2);
 
 // ---- creatine, steps, and when to race -----------------------------------
 t = await p.textContent('#revRest');
