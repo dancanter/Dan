@@ -292,7 +292,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div class="cols">
     <div class="p"><h2>Macros</h2>
       <dl class="kv">
-        <dt>Protein</dt><dd>130–140 g</dd>
+        <dt>Protein</dt><dd id="macroPro">—</dd>
         <dt>Carbs, hard day</dt><dd>200–210 g</dd>
         <dt>Carbs, other</dt><dd>150–170 g</dd>
         <dt>Fat</dt><dd>40–45 g</dd>
@@ -323,7 +323,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   </div>
   <div class="cols">
     <div class="p"><h2>Protein — best is cod</h2>
-      <p class="tiny" style="margin-bottom:8px">27 g for 125 kcal. On a 1,719 day that gap is where dinner lives. Salmon or mackerel twice a week regardless, for the skin.</p>
+      <p class="tiny" style="margin-bottom:8px">27 g for 125 kcal — the cheapest protein on the list, and the reason the raised protein target fits inside the budget at all. Salmon or mackerel twice a week regardless, for the skin.</p>
       <div class="scroll"><table class="tbl"><thead><tr><th>Food</th><th class="n">Portion</th><th class="n">kcal</th><th class="n">Pro</th></tr></thead><tbody>
       <tr><td>Cod / haddock / pollock</td><td class="n">150 g</td><td class="n">125</td><td class="n">27</td></tr>
       <tr><td>Prawns</td><td class="n">150 g</td><td class="n">149</td><td class="n">36</td></tr>
@@ -627,8 +627,14 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
 var KCAL_DAY=CFG.kcal.avg;
 var KCAL_FREE=KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl;
 var KCAL_LIGHTUP=KCAL_DAY+100;
-var MACRO={pro:135,fat:42};
+var MACRO={pro:150,fat:42};
 var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
+/* One protein string, derived. It was typed out in four places and went
+   stale the moment the number moved. */
+var PRO_TXT=(MACRO.pro-5)+'–'+(MACRO.pro+5)+' g';
+/* The hard-day carbohydrate floor. Protein can only rise until CARB_AT
+   would cross this — that is the whole constraint on the protein number. */
+var CARB_FLOOR=200;
 var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
 
 function stepTarget(is){var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
@@ -1974,10 +1980,10 @@ function fuelBook(){
        ['20:30','The bowl.','Post-lifting refuel and the overnight protein in one. That is why moving it is a bad trade even at '+CFG.kcal.bowl+' kcal.'],
        ['Not after the gym','Dinner after lifting lands at 20:00 with the bowl at 20:30.','Two meals stacked, and the bowl stops doing the job it is there for.']]},
   rest:{n:'Rest day',
-    s:'Food does not come down — same '+ci(KCAL_DAY)+' · protein 130–140 g · carbs at or above the floor · steps can stay',
+    s:'Food does not come down — same '+ci(KCAL_DAY)+' · protein '+PRO_TXT+' · carbs at or above the floor · steps can stay',
     w:'Rest is in the plan. It is never a missed target, and it is not a day to eat less.',
     r:[['The food does not come down','The same '+ci(KCAL_DAY)+' as every other day.','Eating less on a rest day is the most common way a cut turns into muscle loss. Rest is when the rebuilding gets paid for.'],
-       ['Protein especially','130–140 g, same as any day.','Today is the day it actually gets used.'],
+       ['Protein especially',PRO_TXT+', same as any day.','Today is the day it actually gets used.'],
        ['Carbohydrate','At or above the floor — '+CARB_AT+' g is what '+ci(KCAL_DAY)+' leaves you at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat.','Going under the floor raises cortisol, which holds water and makes the face puffier at the same rate of loss.'],
        ['Steps can stay','A rest day is a rest from sessions, not from walking.','']]}
   };
@@ -3096,6 +3102,7 @@ function chartSVG(m){
 
 /* ---------- food ---------- */
 function renderFood(c,tr){
+  E('macroPro').textContent=PRO_TXT;
   var hard=hardRunOn(today());
   var kc=KCAL_DAY;
   var free=kc-CFG.kcal.milk-CFG.kcal.bowl;
@@ -3105,7 +3112,7 @@ function renderFood(c,tr){
     tile('three meals',ci(KCAL_FREE),'what is left to spend')+
     tile('carbs it leaves',CARB_AT+' g','at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat')+
     '</div>'+
-    '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, above the 200–210 g a hard day asks for. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
+    '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, clear of the '+CARB_FLOOR+' g floor a hard day asks for. Protein sits at the top of what this budget allows: '+(MACRO.pro+10)+' g would put carbohydrate under that floor, which is why it stops here. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
     '<hr class="d"><div class="cols"><div>'+
     '<table class="tbl"><tbody>'+
     '<tr><td>300 ml semi-skimmed milk, across the day</td><td class="n">'+CFG.kcal.milk+'</td></tr>'+
@@ -3410,6 +3417,11 @@ function renderSplit(){
 
   /* how many hard sets each muscle wants, and why the answer changes on 29 Nov */
   var onRev=today()>=REV_START;
+  /* The deficit named in the growth paragraph is the measured one, not a
+     figure typed in once. Before there is anything to measure it stays
+     qualitative rather than inventing a number. */
+  var blk=tdeeBlock();
+  var defTxt=(blk.n&&blk.perDay>0)?('a measured '+ci(Math.round(blk.perDay))+' kcal a day under'):'a deficit this size';
   h+='<div class="p flag"><h2>Hard sets per muscle, per week</h2>'+
     '<p class="lede">'+(onRev
       ? 'You are on the reverse now, so these are <b>growth</b> numbers — the right-hand column.'
@@ -3430,6 +3442,11 @@ function renderSplit(){
     '<p><b>The one rule that decides whether you keep your muscle: drop sets, never load.</b> '+
     'In a deficit it is the weight on the bar that tells the body to hold onto muscle. Cutting the volume is fine and sometimes necessary; going lighter because you feel tired is how people finish a cut smaller than they planned. '+
     'If a session has to shrink, lose the last set, not the plates.</p>'+
+    (onRev?'':'<p><b>If you want the most growth this block can give you, run the top of the left column, not the bottom.</b> '+
+      'That is the whole lever — ten chest sets rather than six, twelve back rather than eight, and the protein at '+MACRO.pro+' g instead of '+(MACRO.pro-15)+' g. '+
+      'It will not add muscle at '+defTxt+' with two hard runs, a sprint session and a five-mile in the same week — the running alone would cap it at maintenance. '+
+      'What it does is decide how much you still have on 28 November, and every pound you keep now is a pound you are not spending December to February getting back. '+
+      '<b>The growth happens on the reverse.</b> This block just protects the starting point for it.</p>')+
     '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and 12,800 steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
     'The trap is putting a heavy legs day next to a hard run day; they compete for the same recovery and both come out worse.</p>'+
     '<p class="note"><b>Do not add volume as the block runs.</b> Recovery falls as you get leaner and the deficit accumulates, so the sensible direction is the same or slightly less, not more. If anything starts feeling heavier than it should, that is the signal to drop a set rather than push through.</p>'+

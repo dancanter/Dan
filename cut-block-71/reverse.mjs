@@ -62,7 +62,11 @@ ok('the number of rungs matches the climb', m.weeks === Math.ceil((m.maint - 179
 ok('each week is seven days', m.rungs.every(r => r.from < r.to));
 ok('week 1 starts on the start date', m.rungs[0].from === '2026-11-29', m.rungs[0].from);
 ok('every step is carbohydrate', m.rungs.every(r => r.carb === 25), JSON.stringify(m.rungs.map(r => r.carb)));
-ok('protein and fat are pinned', /Protein stays at 135 g and fat stays at 42 g/.test(t), t.slice(0, 200));
+// Derived, not typed: protein moved 135 -> 150 g and this assertion was the
+// only thing that noticed. It should never need editing again when it moves.
+const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat }));
+ok('protein and fat are pinned',
+  new RegExp('Protein stays at ' + mac.pro + ' g and fat stays at ' + mac.fat + ' g').test(t), t.slice(0, 200));
 ok('the foods are his, not packets', /certified GF oats/.test(t) && /Potatoes, rice/.test(t));
 ok('and it says to hold a rung rather than push', /hold that rung a second week/.test(t));
 
