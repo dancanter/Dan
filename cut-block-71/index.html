@@ -187,6 +187,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TODAY ================= -->
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
+  <div id="pbCard"></div>
   <div id="lowLine"></div>
   <div id="revNudge"></div>
   <div id="callCard"></div>
@@ -456,6 +457,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= WINS ================= -->
 <section id="s-wins" class="stack" hidden>
   <div id="winTop"></div>
+  <div id="winDeficit"></div>
   <div id="winRecords"></div>
   <div id="winGrid"></div>
 </section>
@@ -730,6 +732,18 @@ function avgWindow(endIso,days){
   return {avg:rs.length?mean(rs.map(function(r){return r.lb;})):null,n:rs.length};
 }
 function bmiOf(lb){var kg=lb*0.45359237;return kg/(CFG.w.heightM*CFG.w.heightM);}
+/* Every morning logged before the scale opened, averaged. Shown while there
+   is nothing in-cut to show, and never used to seed the curve — the water
+   weekend sits in here and seeding a ten-week taper on it was the original
+   bug this whole model was built to avoid. */
+function preAvg(){
+  var rs=readings().filter(function(r){return r.d<WEIGH_START;});
+  if(!rs.length)return null;
+  return {avg:mean(rs.map(function(r){return r.lb;})),n:rs.length,
+          from:rs[0].d,to:rs[rs.length-1].d,
+          lo:Math.min.apply(null,rs.map(function(r){return r.lb;})),
+          hi:Math.max.apply(null,rs.map(function(r){return r.lb;}))};
+}
 
 function weightModel(){
   var t=today(), cr=cutReadings();
@@ -959,7 +973,7 @@ function trainingModel(){
   }
   var pre=isPreBlock(t);
   var wkStart=pre?CFG.cutStart:mondayOf(t),wkEnd=pre?PRE_END:addD(wkStart,6);
-  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0};
+  var wk={hard:0,fivemile:0,sprints:0,gym:0,runs:0,recl:0,easy5k:0};
   for(var dd in S.days){
     if(dd<wkStart||dd>wkEnd||dd>t)continue;
     if(S.days[dd].gym)wk.gym++;
@@ -970,9 +984,22 @@ function trainingModel(){
       wk.runs++;
       if(jd.hard)wk.hard++;
       if(jd.sprint)wk.sprints++;
+      /* an easy continuous run of about 5 km, whatever it was filed as */
+      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint&&jd.km>=4.5&&jd.km<=5.6)wk.easy5k++;
       if(rs[i].type==='fivemile'){if(jd.hard&&jd.judged){wk.recl++;}else{wk.fivemile++;}}
     }
   }
+  /* His call: the five-mile slot is there for easy aerobic volume, and there
+     is more than one way to get it. Two easy 5 km runs cover the same ground.
+     So does an easy 5 km alongside a sprint session and both hard runs — by
+     then the week has done its work and a five-miler is just more mileage on
+     tired legs. The slot stays in the template so the default is unchanged;
+     it just stops reading as owed when one of these is true. */
+  wk.fiveWhy=null;
+  if(wk.fivemile>=CFG.tmpl.fivemile)wk.fiveWhy='done';
+  else if(wk.easy5k>=2)wk.fiveWhy='two5k';
+  else if(wk.easy5k>=1&&wk.sprints>=CFG.tmpl.sprints&&wk.hard>=CFG.tmpl.hard)wk.fiveWhy='fullweek';
+  wk.fiveMet=!!wk.fiveWhy;
   return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),
           stepsTotal:stepsTotal,stepsDays:stepsDays,stepsAvg:stepsDays?stepsTotal/stepsDays:null,
           stepsUnlogged:c.elapsed-stepsDays,week:wk,wkStart:wkStart,wkEnd:wkEnd,pre:pre,
@@ -1226,6 +1253,31 @@ function bestAt(dm,rec){
   }
   return {best:a||b,other:null};
 }
+/* What he had at a distance BEFORE the block: the verified 2026 table and
+   Strava's own splits, both fixed and both pre-block by construction. */
+function priorRef(dm){
+  var a=BESTAVG[dm]?{t:BESTAVG[dm],date:BAKED_DATE[dm]||null,kind:'session average'}:null;
+  var s=SINGLE[dm]?{t:SINGLE[dm].t,date:SINGLE[dm].d,kind:'single effort'}:null;
+  if(a&&s)return (s.t<=a.t)?s:a;
+  return a||s;
+}
+/* Recording a time and saying nothing about it is the whole point missed. A
+   run that leads its distance AND happened inside the block is a personal
+   best of the block, and it gets said out loud on the day rather than left
+   for him to notice on a card three tabs away. */
+function pbList(){
+  var rec=records(),out=[];
+  BENCH.forEach(function(dm){
+    var b=bestAt(dm,rec[dm]).best;
+    if(!b||!b.t||!b.date||!inCut(b.date))return;
+    var p=priorRef(dm);
+    out.push({dm:dm,now:b,prior:p,gain:p?p.t-b.t:null,first:!p,
+              fresh:diffD(b.date,today())<=PB_FRESH});
+  });
+  out.sort(function(x,y){return x.now.date<y.now.date?1:-1;});
+  return out;
+}
+var PB_FRESH=2;
 function closeTo(dm,rec){
   var tg=TGT[dm],b=bestAt(dm,rec).best;
   if(!tg||!b||!b.t)return false;
@@ -1618,6 +1670,38 @@ function renderWins(){
     tile('at this rate',w.proj?fmtS(w.proj.date):'—',w.proj?w.proj.weeks+' weeks away':'needs a 7-day average')+
     '</div></div>';
   E('winTop').innerHTML=h;
+
+  /* the deficit as a running total for the whole block, day by day */
+  var tb=tdeeBlock(),dh='';
+  if(tb.n){
+    dh='<div class="p"><h2>Deficit, day by day · the whole block so far</h2><div class="tiles t4">'+
+      tile('total deficit',(tb.total>=0?'−':'+')+ci(Math.abs(tb.total)),'across '+tb.n+' day'+(tb.n===1?'':'s'))+
+      tile('that is',f2(Math.abs(tb.lb))+' lb','at 3,500 kcal a pound')+
+      tile('per day',(tb.perDay>=0?'−':'+')+ci(Math.abs(tb.perDay)),'average so far')+
+      tile('biggest day',tb.best?(tb.best.deficit>=0?'−':'+')+ci(Math.abs(tb.best.deficit)):'—',tb.best?fmtS(tb.best.date):'')+
+      '</div>'+
+      '<div class="scroll" style="margin-top:12px"><table class="tbl">'+
+      '<thead><tr><th>Day</th><th class="n">Steps</th><th class="n">Burn</th><th class="n">Ate</th><th class="n">Deficit</th><th class="n">Running total</th></tr></thead><tbody>';
+    tb.days.slice().reverse().forEach(function(d){
+      dh+='<tr'+(d.date===today()?' style="color:var(--accent)"':'')+'><td>'+DOWS[dow(d.date)]+' '+fmtS(d.date)+'</td>'+
+        '<td class="n">'+(d.stepsKnown?ci(d.steps):'<span class="tiny">—</span>')+'</td>'+
+        '<td class="n">'+ci(d.burn)+'</td>'+
+        '<td class="n">'+(d.intakeKnown?ci(d.ate):'<span class="tiny">'+ci(d.ate)+'*</span>')+'</td>'+
+        '<td class="n">'+(d.deficit>=0?'−':'+')+ci(Math.abs(d.deficit))+'</td>'+
+        '<td class="n"><b>'+(d.run>=0?'−':'+')+ci(Math.abs(d.run))+'</b></td></tr>';
+    });
+    dh+='</tbody></table></div>'+
+      '<p class="tiny" style="margin-top:8px">Newest first. <b>Running total</b> is every logged day of the block added up, so it only ever grows — that is the number that turns into pounds. '+
+      f2(Math.abs(tb.lb))+' lb of it so far.</p>'+
+      ((tb.intakeMissing||tb.stepsMissing)?'<p class="tiny">'+
+        (tb.intakeMissing?tb.intakeMissing+' day'+(tb.intakeMissing===1?'':'s')+' used the '+ci(KCAL_DAY)+' target rather than a logged number, marked *. ':'')+
+        (tb.stepsMissing?tb.stepsMissing+' day'+(tb.stepsMissing===1?'':'s')+' have no step count, so walking is missing from the burn and the total is understated. ':'')+
+        '</p>':'')+
+      (tb.unlogged?'<p class="tiny">'+tb.unlogged+' day'+(tb.unlogged===1?'':'s')+' with nothing logged at all '+(tb.unlogged===1?'is':'are')+
+        ' left out entirely rather than counted. A day with no steps and no calories would otherwise read as a small <i>surplus</i>, because resting and digesting alone come to less than the target — which is exactly what today looks like before you have logged it.</p>':'')+
+      '<p class="tiny">The scale is the judge of whether this is right — the Food tab puts the two side by side.</p></div>';
+  }
+  E('winDeficit').innerHTML=dh;
 
   renderRecords();
 
@@ -2028,6 +2112,36 @@ function tdeeWeek(){
   out.perDay=out.n?out.deficit/out.n:0;
   return out;
 }
+/* Every day of the block with a running total, so the deficit is a number
+   that accumulates rather than resetting every Monday. */
+function tdeeBlock(){
+  var t=today(),c=cutTally();
+  var out={days:[],total:0,burn:0,ate:0,lb:0,n:0,stepsMissing:0,intakeMissing:0,unlogged:0,best:null};
+  if(c.before)return out;
+  var run=0;
+  for(var i=0;i<c.elapsed;i++){
+    var d=addD(CFG.cutStart,i);
+    if(d>t)break;
+    var x=tdeeFor(d);
+    /* A day with neither a step count nor a logged intake carries no evidence
+       at all, and counting it produces a fake SURPLUS: resting plus digestion
+       comes to less than the target, so this morning — before anything is
+       logged — would read as +79 and drag the running total backwards. Blanks
+       are left out here exactly as they are everywhere else. */
+    if(!x.stepsKnown&&!x.intakeKnown){out.unlogged=(out.unlogged||0)+1;continue;}
+    run+=x.deficit;
+    out.days.push({date:d,burn:x.total,ate:x.against,deficit:x.deficit,run:run,
+                   stepsKnown:x.stepsKnown,intakeKnown:x.intakeKnown,steps:x.steps});
+    out.total+=x.deficit;out.burn+=x.total;out.ate+=x.against;out.n++;
+    if(!x.stepsKnown)out.stepsMissing++;
+    if(!x.intakeKnown)out.intakeMissing++;
+    if(!out.best||x.deficit>out.best.deficit)out.best={date:d,deficit:x.deficit};
+  }
+  out.lb=out.total/3500;
+  out.perDay=out.n?out.total/out.n:0;
+  return out;
+}
+
 /* The model against the scale. The scale is the one that is right — it is the
    only number here that is measured rather than estimated — so this reports
    the gap and says which way to trust it. */
@@ -2345,6 +2459,33 @@ function renderToday(c,w,tr){
   }
   E('lowLine').innerHTML=lw;
 
+  /* personal bests of the block, newest first, the fresh ones shouted */
+  var pbs=pbList(),fresh=pbs.filter(function(x){return x.fresh;});
+  var pb='';
+  if(pbs.length){
+    var lead=fresh.length?fresh[0]:null;
+    pb='<div class="p '+(lead?'lift':'')+'"><h2>'+(lead?'New personal best':'Personal bests this block')+'</h2>';
+    if(lead){
+      pb+='<div class="big acc">'+repLabel(lead.dm)+' — '+secFmt(lead.now.t)+'</div>'+
+        '<p class="note">'+(lead.first
+          ? 'Your first '+repLabel(lead.dm)+' effort on record. There was nothing to beat, so this <b>is</b> the mark now.'
+          : '<b class="gd">'+secFmt(lead.gain)+' faster</b> than your previous best of '+secFmt(lead.prior.t)+
+            (lead.prior.date?', set '+fmtS(lead.prior.date):'')+'.')+
+        ' '+fmtL(lead.now.date)+'.</p>';
+    }
+    pb+='<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Now</th><th class="n">Before</th><th>Gain</th></tr></thead><tbody>'+
+      pbs.map(function(x){
+        return '<tr'+(x.fresh?' style="color:var(--accent)"':'')+'><td>'+repLabel(x.dm)+(x.fresh?' <span class="pill a">new</span>':'')+'</td>'+
+          '<td class="n">'+secFmt(x.now.t)+'</td>'+
+          '<td class="n">'+(x.prior?secFmt(x.prior.t):'—')+'</td>'+
+          '<td class="tiny">'+(x.first?'first at this distance':'<b class="gd">'+secFmt(x.gain)+' faster</b>')+
+          ' · '+fmtS(x.now.date)+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<p class="tiny" style="margin-top:8px">Anything you run or sync inside the block is checked against your 2026 record the moment it lands. '+
+      'A distance you had never run hard shows as a first rather than being quietly ignored.</p></div>';
+  }
+  E('pbCard').innerHTML=pb;
+
   /* the week is up */
   var nud='',dw=dow(c.t),ws=reviewWeeks(),lastW=ws.length?ws[ws.length-1]:null;
   if(lastW&&!c.before&&!c.after){
@@ -2519,16 +2660,24 @@ function weekTemplateHTML(tr){
     p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard / 1 five-mile / 1 sprints / 5 gym. Everything logged still counts toward the block totals.</p>';
     return p;
   }
-  var rows=[['Hard runs',tr.week.hard,CFG.tmpl.hard],['5 mile',tr.week.fivemile,CFG.tmpl.fivemile],
-            ['100m sprints',tr.week.sprints,CFG.tmpl.sprints],['Gym',tr.week.gym,CFG.tmpl.gym]];
+  var w=tr.week;
+  var rows=[['Hard runs',w.hard,CFG.tmpl.hard,w.hard>=CFG.tmpl.hard],
+            ['5 mile',w.fivemile,CFG.tmpl.fivemile,w.fiveMet],
+            ['100m sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
+            ['Gym',w.gym,CFG.tmpl.gym,w.gym>=CFG.tmpl.gym]];
   var h='<table class="tbl"><tbody>';
   rows.forEach(function(r){
+    var covered=r[3]&&r[1]<r[2];
     h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+' / '+r[2]+'</td><td class="n">'+
-       (r[1]>=r[2]?'<span class="pill g">done</span>':'<span class="pill">'+(r[2]-r[1])+' to go</span>')+'</td></tr>';
+       (r[3]?'<span class="pill g">'+(covered?'covered':'done')+'</span>'
+            :'<span class="pill">'+(r[2]-r[1])+' to go</span>')+'</td></tr>';
   });
+  if(w.easy5k)h+='<tr class="dim"><td class="tiny">easy 5 km runs</td><td class="n tiny">'+w.easy5k+'</td><td class="tiny">counted toward the five-mile slot</td></tr>';
   h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
-  if(tr.week.recl)h+='<p class="tiny" style="margin-top:8px">'+tr.week.recl+' run filed as a 5 mile came in under the effort line, so it counts as a hard run and the five-mile slot stays open. You did not do an easy five-miler this week — the empty slot is information.</p>';
-  h+='<p class="tiny" style="margin-top:8px">The easy 5 km is deliberately off this template. It still counts as a run; it no longer owes you a slot. Days with nothing on them are rest, not misses.</p>';
+  if(w.fiveWhy==='two5k')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered by two easy 5 km runs.</b> Ten kilometres of easy aerobic running is the point of that slot, and you have done it — you do not owe a five-miler this week.</p>';
+  if(w.fiveWhy==='fullweek')h+='<p class="tiny gd" style="margin-top:8px"><b>Five-mile slot covered.</b> An easy 5 km plus the sprints plus both hard runs is a full week — a five-miler on top would be mileage on tired legs rather than training.</p>';
+  if(tr.week.recl)h+='<p class="tiny" style="margin-top:8px">'+tr.week.recl+' run filed as a 5 mile came in under the effort line, so it counts as a hard run rather than filling the slot.</p>';
+  h+='<p class="tiny" style="margin-top:8px">The five-mile slot is about easy aerobic volume, so there is more than one way to fill it: the five-miler itself, <b>two easy 5 km runs</b>, or <b>one easy 5 km once the sprints and both hard runs are done</b>. Days with nothing on them are rest, not misses.</p>';
   return h;
 }
 function paintForm(){
@@ -2574,7 +2723,14 @@ function paintForm(){
 function renderWeight(m,c){
   var hide=S.settings.hideDaily;
   var h='<div class="p"><h2>Weight — every number below reads in-cut mornings only</h2><div class="tiles t4">';
-  h+=tile('7-day average',m.a7===null?'—':f1(m.a7)+' lb',m.a7n?m.a7n+' reading'+(m.a7n===1?'':'s')+' in the window':'no in-cut readings yet');
+  /* Before the scale opens there are no in-cut mornings, and a dash tells him
+     nothing. Fall back to the average of the pre-cut mornings, clearly marked
+     as provisional — it is a number to look at, never the start line. */
+  var pa=preAvg();
+  h+=tile('7-day average',
+    m.a7!==null?f1(m.a7)+' lb':(pa?f1(pa.avg)+' lb':'—'),
+    m.a7!==null?(m.a7n+' reading'+(m.a7n===1?'':'s')+' in the window')
+      :(pa?'pre-cut average of '+pa.n+' mornings — provisional':'no readings yet'));
   h+=tile('rate',m.rateLb===null?'—':f1(m.rateLb)+' lb/wk',m.ratePct===null?'needs two 7-day windows':pct(m.ratePct)+' of bodyweight');
   h+=tile('taper asks',m.taperLb===null?pct(taperAt(Math.max(0,weekOf(c.t)-1))):f2(m.taperLb)+' lb/wk',
     'week '+Math.max(1,Math.min(W_WEEKS,weekOf(c.t)))+' · '+pct(m.taperNow));
@@ -2939,10 +3095,28 @@ function renderTimes(){
     '<p class="tiny"><b>The 1000m target.</b> You gave 800m sub-2:10 and 1000m sub-2:40. Sub-2:10 for 800 is 65.0 s per 400; 2:40 for 1000 is 64.0 s per 400 — a faster pace over a longer distance, which does not happen. <b>2:46</b> is the same fitness expressed over 1000 m. Overrule it if you want, but that is why it changed.</p>'+
     '<p class="tiny">100m, 300m, 500m, 600m, 3 km, 8 km and 10 km are benchmarks with no target set. Every distance you have run is on the Wins tab.</p>';
 
+  /* This table used to be a hand-typed array, which is why his 3 km still read
+     "no 3 km effort in 2026" two days after he ran one. Derived now, from the
+     same records() every other board reads, so a new best cannot fail to show
+     up here. */
+  var rec2=records();
   var b='<div class="scroll"><table class="tbl">'+
-    '<thead><tr><th>Distance</th><th class="n">Best session avg</th><th class="n">Single best</th><th>Date</th><th>Session</th></tr></thead><tbody>';
-  BESTS.forEach(function(r){b+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td><td class="n">'+r[2]+'</td><td class="tiny">'+r[3]+'</td><td class="tiny">'+r[4]+'</td></tr>';});
-  b+='</tbody></table></div>';
+    '<thead><tr><th>Distance</th><th class="n">Best</th><th>What it was</th><th>Date</th><th>Where it came from</th></tr></thead><tbody>';
+  BENCH.forEach(function(dm){
+    var pair=bestAt(dm,rec2[dm]),bst=pair.best,oth=pair.other;
+    var src=bst?({you:'you entered it',strava:'from Strava',logged:'logged here',
+                  table:'verified 2026 table',session:'2026 session record'}[bst.src]||''):'';
+    b+='<tr'+(bst&&bst.date&&inCut(bst.date)?' style="color:var(--accent)"':(bst?'':' class="dim"'))+'>'+
+      '<td>'+repLabel(dm)+(bst&&bst.date&&inCut(bst.date)?' <span class="pill a">this block</span>':'')+'</td>'+
+      '<td class="n">'+(bst&&bst.t?secFmt(bst.t):'—')+'</td>'+
+      '<td class="tiny">'+(bst?bst.kind:'nothing this year')+(oth?' · '+oth.kind+' '+secFmt(oth.t):'')+'</td>'+
+      '<td class="tiny">'+(bst&&bst.date?fmtS(bst.date):'—')+'</td>'+
+      '<td class="tiny">'+esc(String((bst&&bst.label)||'').slice(0,42))+(src?' · '+src:'')+'</td></tr>';
+  });
+  b+='</tbody></table></div>'+
+    (SINGLE[805]?'<p class="tiny" style="margin-top:8px">Also on file: <b>805 m in '+secFmt(SINGLE[805].t)+'</b> on '+fmtS(SINGLE[805].d)+
+      ' — Strava&rsquo;s half-mile split from inside the 5 × 1 km. Not an 800 m time, but the closest real evidence you have at that sort of distance.</p>':'')+
+    '<p class="tiny">Rows in <span class="acc">colour</span> were set inside this block. Every number here is read off your record rather than typed in, so a new best appears the moment it syncs or you log it.</p>';
   E('stravaBest').innerHTML=b;
 
   var line=effortLine();
