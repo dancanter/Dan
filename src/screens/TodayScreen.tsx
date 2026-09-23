@@ -207,17 +207,6 @@ export function TodayScreen() {
       <SectionHeading>Worth thinking about this week</SectionHeading>
       <FocusList items={focus} week={week} isTicked={isTicked} onToggle={toggleTick} />
 
-      {rest.length > 0 && (
-        <>
-          <SectionHeading>Also relevant now</SectionHeading>
-          <ReadingCard reads={rest} readGuideIds={readGuideIds} />
-        </>
-      )}
-
-      <Note tone={note.tone} title={note.title}>
-        {note.body}
-      </Note>
-
       {/* ── Tier three: things to do, rather than things to read ────────── */}
       <SectionHeading>Jump to</SectionHeading>
       <div className="grid grid-cols-2 gap-2">
@@ -237,18 +226,52 @@ export function TodayScreen() {
         ))}
       </div>
 
-      {/* Moved below the quick actions: a myth card and a question prompt are
-          the least urgent things here, and they were competing with the week's
-          guidance for attention purely by being the same size. */}
-      <SectionHeading>Myth check</SectionHeading>
-      <MythCard myth={myth} reduceMotionOverride={reduceMotion} onReveal={markMythRevealed} />
+      {/*
+        One fold, holding the four quietest things on the screen.
 
-      <SectionHeading>Ask your midwife</SectionHeading>
-      <MidwifeQuestionCard
-        onSave={(q) => {
-          addJournal('question', q, currentWeek);
-        }}
-      />
+        Home was 21 blocks and eight sections — the week, the lead read,
+        this week's focus, more reading, a fact, four actions, a myth game
+        and a question prompt. All of it is good; not all of it earns a
+        permanent place on the screen you open every day for nine months.
+        Furniture you scroll past daily stops being read at all.
+
+        What stays open is what the app says it is for: where you are, the
+        one thing worth knowing this week, anything with a live deadline,
+        this week's focus, and the things you came to *do*. What folds is
+        the second helping of reading, the fact, the game and the prompt.
+
+        Nothing is removed. Everything below is one tap away and still in
+        the DOM, so search and screen readers reach it unchanged.
+      */}
+      <details className="mt-6 border-t border-line pt-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <span className="label-mono text-mossd">More for week {week}</span>
+          <span className="font-mono text-meta text-soft underline">Open</span>
+        </summary>
+
+        <div className="mt-3">
+          {rest.length > 0 && (
+            <>
+              <SectionHeading>Also relevant now</SectionHeading>
+              <ReadingCard reads={rest} readGuideIds={readGuideIds} />
+            </>
+          )}
+
+          <Note tone={note.tone} title={note.title}>
+            {note.body}
+          </Note>
+
+          <SectionHeading>Myth check</SectionHeading>
+          <MythCard myth={myth} reduceMotionOverride={reduceMotion} onReveal={markMythRevealed} />
+
+          <SectionHeading>Ask your midwife</SectionHeading>
+          <MidwifeQuestionCard
+            onSave={(q) => {
+              addJournal('question', q, currentWeek);
+            }}
+          />
+        </div>
+      </details>
 
       {currentWeek >= 34 && <BabyArrivedCard />}
     </main>
