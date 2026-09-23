@@ -198,12 +198,47 @@ await boot(st({ days }));
 EF = await p.evaluate(() => effortWeek());
 ok('the normal week is two hard runs', EF.hardRuns === 2 && EF.hardGym === 1, JSON.stringify(EF));
 t = await p.textContent('#signalCard');
-ok('under the ceiling it just reports', /2 hard runs this week by your own score/.test(t), t.slice(0, 320));
+ok('under the ceiling it just reports', /2 hard runs this week/.test(t), t.slice(0, 320));
 ok('and does not warn', !/the exact thing you asked me to catch/.test(t));
 ok('the heavy lift is named as a hard day but not a hard run',
   /hard day but not a hard run/.test(t), (t.match(/heavy lift[^.]{0,70}/) || [''])[0]);
-ok('an unscored session is called invisible', /invisible to this count/.test(t),
-  (t.match(/without an effort[^.]{0,50}/) || [''])[0]);
+ok('an unscored easy run does not inflate the hard count', EF.hardRuns === 2 && EF.assumed === 0,
+  JSON.stringify({ hardRuns: EF.hardRuns, assumed: EF.assumed, unscored: EF.unscored }));
+ok('and nothing is claimed about it', !/judged on pace/.test(t), (t.match(/judged on pace[^.]{0,50}/) || [''])[0]);
+
+// ===== 6b. an unscored run is judged, not ignored ========================
+// The bug Dan found: the training panel called his 5 x 200 a hard run while
+// the Signals card said nought hard runs, because this count only looked at
+// RPE. Two numbers with the same name, disagreeing on the same screen.
+days = {};
+days[inWeek[inWeek.length - 1]] = { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150 }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+const wkHard = await p.evaluate(() => trainingModel().week.hard);
+ok('an unscored rep session still counts as a hard run', EF.hardRuns === 1, JSON.stringify(EF));
+ok('and the two counts agree', EF.hardRuns === wkHard, EF.hardRuns + ' vs ' + wkHard);
+ok('it is marked as judged rather than scored', EF.assumed === 1, String(EF.assumed));
+t = await p.textContent('#signalCard');
+ok('the card says it was judged on pace', /judged on pace rather than on your score/.test(t), t.slice(0, 300));
+ok('and that a score would override it', /add an effort and your word overrides mine/.test(t));
+
+// A score beats the pace in both directions.
+days = {};
+days[inWeek[inWeek.length - 1]] = { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, rpe: 4 }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('a rep session he scored a 4 is not a hard run', EF.hardRuns === 0, JSON.stringify(EF));
+ok('and nothing is assumed when he scored it', EF.assumed === 0, String(EF.assumed));
+
+// A lift has no pace to fall back on, so an unscored one stays uncounted and
+// the card says why rather than pretending.
+days = {};
+days[inWeek[0]] = { gym: true };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('an unscored lift is not guessed at', EF.hardGym === 0 && EF.gymUnscored === 1, JSON.stringify(EF));
+t = await p.textContent('#signalCard');
+ok('and the card explains that gap', /a lift has no pace to fall back on/.test(t), t.slice(0, 300));
 
 // ===== 7. the niggle: one day is information, three is an injury ========
 days = {}; days[back(0)] = { niggle: true, niggleWhat: 'left achilles' };

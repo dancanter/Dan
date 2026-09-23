@@ -2506,20 +2506,30 @@ function rhrModel(){
 var RPE_HARD=7;
 function effortWeek(){
   var tr=trainingModel(),t=today(),from=tr.wkStart,to=tr.wkEnd>t?t:tr.wkEnd;
-  var out={from:from,to:to,sessions:[],hard:0,hardRuns:0,hardGym:0,scored:0,unscored:0};
+  var out={from:from,to:to,sessions:[],hard:0,hardRuns:0,hardGym:0,scored:0,unscored:0,assumed:0,gymUnscored:0};
   for(var i=0;i<=diffD(from,to);i++){
     var d=addD(from,i);if(d>t)break;
     var rec=S.days[d]||{},j,rs=rec.runs||[];
     for(j=0;j<rs.length;j++){
       var m=runMeta(rs[j]);if(m.empty)continue;
-      if(typeof rs[j].rpe==='number'){out.sessions.push({d:d,what:m.label,rpe:rs[j].rpe,run:true});out.scored++;
-        if(rs[j].rpe>=RPE_HARD){out.hard++;out.hardRuns++;}}
-      else out.unscored++;
+      /* An unscored run is not invisible — it is judged the way the rest of
+         the page judges it, on pace. A SCORED one trusts the score either
+         way, because how it felt outranks how fast it was. Without this the
+         Signals card said nought hard runs in a week the training panel was
+         calling a hard run, which is two numbers with the same name
+         disagreeing on the same screen. */
+      var scored=typeof rs[j].rpe==='number';
+      var isHard=scored?(rs[j].rpe>=RPE_HARD):m.hard;
+      out.sessions.push({d:d,what:m.label,rpe:scored?rs[j].rpe:null,run:true,assumed:!scored});
+      if(scored)out.scored++;else{out.unscored++;if(m.hard)out.assumed++;}
+      if(isHard){out.hard++;out.hardRuns++;}
     }
     if(rec.gym){
+      /* A lift has no pace to fall back on, so an unscored one genuinely
+         cannot be judged. That one stays uncounted, and the card says so. */
       if(typeof rec.gymRpe==='number'){out.sessions.push({d:d,what:splitName(rec.split)||'gym',rpe:rec.gymRpe,run:false});out.scored++;
         if(rec.gymRpe>=RPE_HARD){out.hard++;out.hardGym++;}}
-      else out.unscored++;
+      else{out.unscored++;out.gymUnscored++;}
     }
   }
   return out;
@@ -2849,7 +2859,7 @@ function renderSignals(tr){
      a week he feels good in, four does not exist. The leg day is a hard day
      but it is not a hard run, so it is counted and reported separately. */
   var HR=CFG.hardRuns,over=EF.hardRuns>HR.cap,atCap=EF.hardRuns===HR.cap;
-  if(R.state==='none'&&!EF.scored&&!NG.n){
+  if(R.state==='none'&&!EF.scored&&!EF.unscored&&!NG.n){
     E('signalCard').innerHTML='<div class="p"><h2>Three new boxes on the log</h2>'+
       '<p class="note"><b>Resting HR</b> on waking, <b>effort 1–10</b> after a session, and <b>something hurts</b> when it does. '+
       'None of them mean anything on their own — they all get read against your own history, so the first fortnight is just collecting. '+
@@ -2885,9 +2895,11 @@ function renderSignals(tr){
     'Whatever running is left, make it genuinely easy, and if something has to go it is the speed session, not the easy one.</p>';
   else if(atCap)h+='<p class="tiny"><b>'+EF.hardRuns+' hard runs \u2014 that is your ceiling, not your target.</b> '+
     'Fine on a week you felt good. It is only a problem if it becomes the normal week, because then '+HR.cap+' stops being a ceiling and four becomes the new three.</p>';
-  else if(EF.scored)h+='<p class="tiny"><b>'+EF.hardRuns+' hard '+(EF.hardRuns===1?'run':'runs')+' this week by your own score</b>, against a target of '+HR.target+' and a ceiling of '+HR.cap+'. '+
+  else if(EF.scored||EF.unscored)h+='<p class="tiny"><b>'+EF.hardRuns+' hard '+(EF.hardRuns===1?'run':'runs')+' this week</b>, against a target of '+HR.target+' and a ceiling of '+HR.cap+'. '+
     (EF.hardGym?'The '+(EF.hardGym===1?'heavy lift is a hard day but not a hard run, so it is not in that count. ':'heavy lifts are hard days but not hard runs, so they are not in that count. '):'')+
-    (EF.unscored?'<b>'+EF.unscored+'</b> session'+(EF.unscored===1?'':'s')+' went in without an effort score \u2014 those are invisible to this count.':'Everything scored.')+'</p>';
+    (EF.assumed?'<b>'+EF.assumed+'</b> of them '+(EF.assumed===1?'was':'were')+' judged on pace rather than on your score — add an effort and your word overrides mine. ':'')+
+    (EF.gymUnscored?'<b>'+EF.gymUnscored+'</b> gym session'+(EF.gymUnscored===1?'':'s')+' went in without an effort, and a lift has no pace to fall back on, so '+(EF.gymUnscored===1?'it is':'they are')+' not counted.':'')+
+    (!EF.unscored?'Everything scored.':'')+'</p>';
 
   if(NG.persistent)h+='<p class="note"><b>Something has hurt on '+NG.n+' of the last '+NIG_WINDOW+' days'+(NG.top?' — '+NG.top:'')+'.</b> '+
     'That is not a niggle any more, it is an injury forming, and it is the one thing on this page that does not resolve by being ignored. '+
