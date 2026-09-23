@@ -307,18 +307,43 @@ export function HealthyScreen() {
                 </span>
               </summary>
               {phase.sections.map((section) => (
-                <section key={section.id} className="mb-7">
-                  <h3 className="mb-1 text-title text-mossd">{section.label}</h3>
-                  <p className="mb-3 text-small text-soft">{section.blurb}</p>
-                  {section.items.map((g) => (
-                    <GuideCard
-                      key={g.id}
-                      guide={g}
-                      onOpen={markGuideRead}
-                      defaultOpen={g.id === openId}
-                    />
-                  ))}
-                </section>
+                /* Sections fold too, and this is the second half of the fix.
+                   Opening one phase still left 83 entries stacked under it —
+                   about seven phone screens of card headers before the next
+                   phase heading. Closed, the same phase is 18 lines you can
+                   read at a glance.
+
+                   The trade is real and was made deliberately: you can no
+                   longer scroll and skim every entry title, which is
+                   sometimes how you find the thing you did not know to search
+                   for. What you get instead is a contents page you can
+                   actually hold in your head, and the search box above it
+                   still reaches every entry. */
+                <details
+                  key={section.id}
+                  open={section.items.some((g) => g.id === openId)}
+                  className="mb-3 border-b border-line pb-3"
+                >
+                  <summary className="flex min-h-11 cursor-pointer list-none items-baseline justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <span>
+                      <h3 className="mb-0.5 text-title text-mossd">{section.label}</h3>
+                      <span className="block text-small text-soft">{section.blurb}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-meta text-soft">
+                      {section.items.length}
+                    </span>
+                  </summary>
+                  <div className="mt-3">
+                    {section.items.map((g) => (
+                      <GuideCard
+                        key={g.id}
+                        guide={g}
+                        onOpen={markGuideRead}
+                        defaultOpen={g.id === openId}
+                      />
+                    ))}
+                  </div>
+                </details>
               ))}
             </details>
           );
