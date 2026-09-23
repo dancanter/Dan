@@ -33,6 +33,24 @@ export const sources: Source[] = [
     url: 'https://www.nhs.uk/pregnancy/trying-for-a-baby/planning-your-pregnancy/',
   },
   {
+    id: 'nhs-gdm-treatment',
+    label: 'Gestational diabetes — treatment',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/conditions/gestational-diabetes/treatment/',
+    reviewed: 'December 2022',
+    caveat:
+      'The page was last reviewed in December 2022 and its own next-review date, December 2025, has passed. Nothing in it conflicts with anything else here, but it is worth rechecking when the NHS updates it.',
+  },
+  {
+    id: 'nhs-dpp-gdm',
+    label: 'Healthier You: NHS Diabetes Prevention Programme — after gestational diabetes',
+    organisation: 'NHS England',
+    tier: 'nhs',
+    url: 'https://www.england.nhs.uk/diabetes/diabetes-prevention/healthier-you-nhs-diabetes-prevention-programme-gdm/',
+    caveat: 'An NHS England programme, so it applies in England.',
+  },
+  {
     id: 'nhs-caesarean-recovery',
     label: 'Caesarean section — recovery',
     organisation: 'NHS',
