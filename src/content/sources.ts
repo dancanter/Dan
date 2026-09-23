@@ -26,6 +26,22 @@ export const sources: Source[] = [
     reviewed: '2025',
   },
   {
+    id: 'nice-ng137',
+    label: 'NG137, Twin and triplet pregnancy',
+    organisation: 'NICE, 2019 (updated 2024)',
+    tier: 'gov',
+    url: 'https://www.nice.org.uk/guidance/ng137/chapter/recommendations',
+    caveat:
+      'The triplet birth timing is one NICE set from clinical experience rather than evidence — the committee found no trials on when to deliver triplets, and says so.',
+  },
+  {
+    id: 'twins-trust',
+    label: 'Twins Trust — support for families with multiples',
+    organisation: 'Twins Trust',
+    tier: 'charity',
+    url: 'https://twinstrust.org/',
+  },
+  {
     id: 'nice-ng126',
     label: 'NG126, Ectopic pregnancy and miscarriage — management of miscarriage',
     organisation: 'NICE',

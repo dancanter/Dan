@@ -107,6 +107,14 @@ const STOP = new Set([
  * the clinical term, and getting nothing back would be a failure.
  */
 const SYNONYMS: Record<string, string[]> = {
+  // Multiples. People are handed these as acronyms at a scan and type them
+  // back in exactly as they heard them.
+  ttts: ['transfusion', 'twin'],
+  dcda: ['dichorionic', 'twin'],
+  mcda: ['monochorionic', 'twin'],
+  mcma: ['monochorionic', 'monoamniotic', 'twin'],
+  multiples: ['twin', 'triplet'],
+  twin: ['twins', 'multiple'],
   booze: ['alcohol'],
   drink: ['alcohol'],
   drinking: ['alcohol'],

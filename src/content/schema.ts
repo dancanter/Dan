@@ -66,6 +66,7 @@ export type GuideSection =
   | 'skincare'
   | 'health-conditions'
   | 'work-rights'
+  | 'multiples'
   // Birth
   | 'birth-place'
   | 'labour'

@@ -16,6 +16,7 @@ import { everydaySafetyGuides, skincareGuides } from './everydaySafety';
 import { birthGuides } from './birth';
 import { postnatalGuides } from './postnatal';
 import { feedingGuides } from './feeding';
+import { multiplesGuides } from './multiples';
 
 export const guides: Guide[] = [
   ...nutritionGuides,
@@ -34,6 +35,7 @@ export const guides: Guide[] = [
   ...skincareGuides,
   ...healthConditionGuides,
   ...workRightsGuides,
+  ...multiplesGuides,
   ...birthGuides,
   ...postnatalGuides,
   ...feedingGuides,
@@ -104,6 +106,12 @@ export const GUIDE_SECTIONS: SectionMeta[] = [
     phase: 'pregnancy',
     label: 'Existing conditions',
     blurb: 'Asthma, diabetes, epilepsy, heart and blood pressure.',
+  },
+  {
+    id: 'multiples',
+    phase: 'pregnancy',
+    label: 'Twins & triplets',
+    blurb: 'Chorionicity, monitoring, and how birth is planned.',
   },
   {
     id: 'alcohol-smoking',
