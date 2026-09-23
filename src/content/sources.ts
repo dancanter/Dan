@@ -33,6 +33,13 @@ export const sources: Source[] = [
     url: 'https://www.nhs.uk/pregnancy/trying-for-a-baby/planning-your-pregnancy/',
   },
   {
+    id: 'nhs-healthy-diet-pregnancy',
+    label: 'Have a healthy diet in pregnancy',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/pregnancy/keeping-well/have-a-healthy-diet/',
+  },
+  {
     id: 'nhs-gdm-treatment',
     label: 'Gestational diabetes — treatment',
     organisation: 'NHS',

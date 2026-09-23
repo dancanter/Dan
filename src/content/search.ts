@@ -115,6 +115,11 @@ const SYNONYMS: Record<string, string[]> = {
   mcma: ['monochorionic', 'monoamniotic', 'twin'],
   multiples: ['twin', 'triplet'],
   gdm: ['gestational', 'diabetes'],
+  // "Healthy diet" and "nutrition" are how people ask for the best-foods
+  // list, and neither word is in it — it says "foods" and "eat".
+  diet: ['foods', 'eat'],
+  nutrition: ['foods', 'eat'],
+  superfoods: ['foods', 'eat'],
   metformin: ['gestational', 'diabetes'],
   insulin: ['diabetes'],
   twin: ['twins', 'multiple'],

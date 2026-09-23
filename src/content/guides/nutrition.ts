@@ -2,6 +2,84 @@ import type { Guide } from '../schema';
 
 export const nutritionGuides: Guide[] = [
   {
+    // First in the section on purpose. Everything else here explains or
+    // qualifies; this is the one entry that just answers "what should I
+    // actually eat". Foods are listed by what they give you, with UK examples,
+    // and without fat-level advice — that question has its own entry, which
+    // reports both the guidance and the evidence rather than a slogan.
+    id: 'best-foods',
+    section: 'nutrition',
+    title: 'The best foods to eat',
+    summary: 'What to put on the plate, grouped by what each one gives you and your baby.',
+    body: [
+      'You do not need special foods or an expensive diet. The foods below are ordinary, easy to find in any UK supermarket, and cover what matters most in pregnancy.',
+      '**If you only change three things:** eat more fibre, add oily fish, and get to five fruit and veg a day. Those are the biggest gaps in UK diets. Only 4% hit the fibre target, and in a four-day survey more than three in four women ate no oily fish at all.',
+      'Food alone will not cover two things, so keep taking them: **folic acid** (400 micrograms a day until 12 weeks) and **vitamin D** (10 micrograms a day). The details are in Supplements.',
+      'If you have gestational diabetes, the food advice changes a little. There is a separate entry on it under Existing conditions.',
+    ],
+    lists: [
+      {
+        title: 'For iron — your blood supply is growing fast',
+        items: [
+          'Red meat — beef, lamb, pork — cooked all the way through',
+          'Beans, lentils and chickpeas',
+          'Fortified breakfast cereals',
+          'Dark green veg like spinach, kale and broccoli',
+          'Tip: have something with vitamin C alongside, like fruit or a glass of orange juice, to help your body absorb it',
+        ],
+      },
+      {
+        title: 'For omega-3 — your baby’s brain and eyes',
+        items: [
+          'Salmon, mackerel, sardines, trout and herring',
+          'Aim for two portions of fish a week, at least one oily. No more than two portions of oily fish a week',
+        ],
+      },
+      {
+        title: 'For calcium and iodine — bones, and brain development',
+        items: [
+          'Milk, yoghurt and cheese — pasteurised',
+          'Hard cheeses like cheddar are fine. Some soft cheeses are not — see Food safety',
+        ],
+      },
+      {
+        title: 'For protein — eat some every day',
+        items: [
+          'Eggs — British Lion-stamped eggs are fine runny',
+          'Chicken, meat and fish',
+          'Beans, lentils, tofu, nuts and seeds',
+        ],
+      },
+      {
+        title: 'For fibre and steady energy',
+        items: [
+          'Wholemeal bread, oats and porridge',
+          'Brown rice and wholewheat pasta',
+          'Potatoes with their skins on',
+          'Beans and lentils, which count here too',
+        ],
+      },
+      {
+        title: 'Fruit and veg — at least five portions a day',
+        items: [
+          'Fresh, frozen, tinned and dried all count',
+          'Wash fruit, veg and salad well before eating',
+        ],
+      },
+      {
+        title: 'Worth avoiding',
+        items: [
+          'Liver and liver products like pâté — too much vitamin A',
+          'Shark, swordfish and marlin',
+          'Raw or undercooked meat, and unpasteurised milk',
+          'The full list, and what is actually fine, is in Food safety',
+        ],
+      },
+    ],
+    sourceIds: ['nhs-healthy-diet-pregnancy', 'sacn-2026', 'nhs-foods-to-avoid'],
+    emphasis: 'calm',
+  },
+  {
     id: 'eat-for-two',
     section: 'nutrition',
     title: 'You don’t need to "eat for two"',
