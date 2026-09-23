@@ -40,8 +40,18 @@ ok('and the per-day average', /a day across \d+ logged day/.test(t));
 // a blank day is excluded here too
 await boot(st({ days: { '2026-09-21': { kcal: 1799, steps: 15000 }, '2026-09-22': { sleep: 7 } } }));
 await p.click('[data-t="training"]');
-ok('and a blank day is left out', /1 not logged, left out/.test(await p.textContent('#tWeek')),
-  (await p.textContent('#tWeek')).slice(0, 400));
+// How many days of the week have gone by depends on which day it is, so the
+// count is derived rather than pinned to a Tuesday.
+const blanks = await p.evaluate(() => {
+  const tr = trainingModel(); let n = 0;
+  for (let i = 0; i <= diffD(tr.wkStart, today()); i++) {
+    const d = addD(tr.wkStart, i), r = S.days[d];
+    if (!r || (typeof r.steps !== 'number' && typeof r.kcal !== 'number')) n++;
+  }
+  return n;
+});
+ok('and a blank day is left out', new RegExp(blanks + ' not logged, left out').test(await p.textContent('#tWeek')),
+  blanks + ' | ' + (await p.textContent('#tWeek')).slice(0, 400));
 
 // ===== 3. the gym split ==================================================
 await boot(st({ days: {
@@ -52,8 +62,9 @@ await boot(st({ days: {
 const m = await p.evaluate(() => splitModel());
 ok('the four core days are tracked', m.core.length === 4, JSON.stringify(m.core.map(c => c.k)));
 ok('legs is recorded', m.core.filter(c => c.k === 'legs')[0].n === 1);
-ok('with how long since', m.core.filter(c => c.k === 'legs')[0].since === 3,
-  String(m.core.filter(c => c.k === 'legs')[0].since));
+const sinceLegs = await p.evaluate(() => diffD('2026-09-19', today()));
+ok('with how long since', m.core.filter(c => c.k === 'legs')[0].since === sinceLegs,
+  m.core.filter(c => c.k === 'legs')[0].since + ' vs ' + sinceLegs);
 ok('shoulders has never been done', m.core.filter(c => c.k === 'delts')[0].last === null);
 ok('so shoulders is what is due', m.due.k === 'delts', JSON.stringify(m.due));
 ok('calisthenics is an extra, not a core day', m.extra.some(e => e.k === 'calis') && SPLITCORE(m));
@@ -79,7 +90,7 @@ await p.click('[data-t="today"]');
 await p.selectOption('#inSplit', 'delts');
 await p.waitForTimeout(150);
 ok('picking a session saves it',
-  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days['2026-09-22'].split)) === 'delts');
+  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].split)) === 'delts');
 ok('the calisthenics boxes stay hidden for a weights day',
   await p.$eval('#s-today .f.calis', e => e.hidden));
 await p.selectOption('#inSplit', 'calis');
@@ -90,7 +101,7 @@ await p.fill('#inPush', '150');
 await p.dispatchEvent('#inPush', 'change');
 await p.waitForTimeout(150);
 ok('a push-up count is stored',
-  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days['2026-09-22'].push)) === 150);
+  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].push)) === 150);
 ok('and reaches the board', (await p.evaluate(() => splitModel().push.v)) === 150);
 
 // unlabelled sessions are chased, not guessed

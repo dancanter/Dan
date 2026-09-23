@@ -280,6 +280,28 @@ const tRace = await p.textContent('#revRest');
 ok('time trials are capped too', /One all-out effort a fortnight/.test(tRace), (tRace.match(/One all-out[^.]{0,60}/) || [''])[0]);
 ok('and counted against the hard days', /out of the two-hard-day budget/.test(tRace));
 
+// ---- simple and fun: the long prose folds away, the plan does not -------
+// Dan asked for the reverse to read like the plan he already has. The short
+// version is always visible; the reasoning is one tap away and closed by
+// default, so opening the tab is a plan rather than an essay.
+const folded = await p.$$eval('#s-reverse details', d => d.map(x => ({
+  open: x.hasAttribute('open'), sum: x.querySelector('summary').textContent.trim() })));
+ok('the long cards are collapsible', folded.length >= 3, JSON.stringify(folded.map(f => f.sum)));
+ok('and all start closed', folded.every(f => !f.open), JSON.stringify(folded));
+ok('each summary says what is inside', folded.every(f => f.sum.length > 20), JSON.stringify(folded.map(f => f.sum)));
+// The things he must not have to hunt for stay open: the one-screen card, the
+// ladder, the week, and the phase guide.
+const openIds = ['revCard', 'revLadder', 'revTrain', 'revPhase'];
+for (const id of openIds) {
+  ok(id + ' is not hidden behind a tap',
+    await p.$eval('#' + id, (e) => !e.firstElementChild || e.firstElementChild.tagName !== 'DETAILS'));
+}
+// Opening one still works and still has the substance in it.
+await p.click('#s-reverse details summary');
+await p.waitForTimeout(120);
+ok('opening a fold reveals the detail',
+  (await p.$eval('#s-reverse details', e => e.textContent.length)) > 600);
+
 // ---- creatine, steps, and when to race -----------------------------------
 t = await p.textContent('#revRest');
 ok('creatine is 5 g with no loading', /5 g of creatine monohydrate a day/.test(t) && /No loading phase/.test(t));

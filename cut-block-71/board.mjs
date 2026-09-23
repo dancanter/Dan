@@ -24,6 +24,12 @@ const REAL = st({
   weights: { '2026-09-15': 128.6, '2026-09-17': 127.8, '2026-09-18': 129.2,
              '2026-09-19': 131.6, '2026-09-20': 129.2, '2026-09-21': 128.6, '2026-09-22': 128.6 }
 });
+const dsB = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const backB = n => { const d = new Date(); d.setDate(d.getDate() - n); return dsB(d); };
+for (let i = 0; i < 3; i++) {
+  const d = backB(i);
+  REAL.days[d] = Object.assign({ sleep: 7.5, phoneOut: true }, REAL.days[d] || {}, { phoneOut: true });
+}
 await boot(REAL);
 
 // ===== 1. Today's fuel card is short now =================================

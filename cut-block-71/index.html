@@ -240,8 +240,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
         </select></div>
       <div class="f rep"><label for="inRepD">Rep distance</label>
         <select id="inRepD">
-          <option value="100u">100m uphill sprints</option>
-          <option value="100">100m sprints, flat</option>
+          <option value="100">100m sprints</option>
           <option value="200">200m</option>
           <option value="300">300m</option>
           <option value="400" selected>400m</option>
@@ -254,6 +253,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
           <option value="5000">5 km</option>
           <option value="ladder">Ladder — custom</option>
         </select></div>
+      <div class="f rep"><label for="inUp">Uphill</label>
+        <select id="inUp"><option value="">No</option><option value="some">Some of them</option><option value="all">All of them</option></select></div>
       <div class="f rep"><label for="inReps">Reps</label><input type="number" step="1" min="1" max="40" id="inReps" placeholder="4"></div>
       <div class="f rep" id="fLadder"><label for="inLadder">Ladder, metres in order</label><input type="text" id="inLadder" placeholder="200-400-600-400-200"></div>
       <div class="f cont"><label for="inContType">Filed as</label>
@@ -1085,7 +1086,7 @@ function runMeta(r){
     var sprint=(!laps&&r.dm===100);
     return {kind:'reps',km:km,secs:r.secs||null,pace:(km>0&&r.secs)?r.secs/km:null,
             repAvg:(n>0&&r.secs)?r.secs/n:null,n:n,dm:laps?null:(r.dm||null),laps:laps,
-            label:laps?(laps.join('-')+' ladder'):(n+' × '+repLabel(r.dm||0)+(r.up?' uphill':'')),
+            label:laps?(laps.join('-')+' ladder'):(n+' × '+repLabel(r.dm||0)+(r.up===true?' uphill':(r.up?' part uphill':''))),
             hard:!sprint,sprint:sprint,judged:true,empty:!(r.secs>0)};
   }
   var type=r.type||'easy';
@@ -4220,7 +4221,7 @@ function renderReverse(){
      actually drives facial leanness, in order, and what actually causes puff.
      Salt stays where it is — steady, once a day — because the problem is
      swings, never the level. ---- */
-  E('revFace').innerHTML='<div class="p flag"><h2>The face — staying sharp through the reverse</h2>'+
+  E('revFace').innerHTML='<details class="p flag"><summary>The face — you will not go puffy, and here is the maths</summary>'+
     '<p class="lede">This is the fear that would make you quit the reverse early, so it gets answered properly. '+
     '<b>The slow ladder is not a risk to your face. It is the thing that protects it.</b></p>'+
     '<p>Facial definition comes from four things, and they are not equally important:</p>'+
@@ -4241,7 +4242,7 @@ function renderReverse(){
     '<p><b>How to judge it, so you do not judge it wrongly.</b> A face in a bathroom mirror at 11pm after a hard session is not data. '+
     'Take one photo a week — same morning, same light, before food, same angle. Compare week to week, never day to day. The day-to-day signal is almost entirely sleep and water, and reading it that way is how people talk themselves into cutting again three weeks into a reverse.</p>'+
     '<p class="note"><b>And the honest limit:</b> leanness reveals bone structure, it does not add it. There is a point below which getting leaner stops sharpening the face and starts costing you sleep, mood and hormones — which then show up in the face as exactly the puffiness and flatness you are trying to avoid. '+
-    'You are heading to '+f1(CFG.w.target)+' lb, which is the sharp end of that range. Going further is where it turns on you.</p></div>';
+    'You are heading to '+f1(CFG.w.target)+' lb, which is the sharp end of that range. Going further is where it turns on you.</p></details>';
 
   /* ---- how the running and the lifting share a week once growth is the point ----
      The interference effect is real but it is not mystical: it is competition
@@ -4295,7 +4296,7 @@ function renderReverse(){
     '</div>';
 
   /* the health card: the honest version of what he asked for */
-  tv+='<div class="p flag"><h2>What “anti-ageing” actually means here</h2>'+
+  tv+='<details class="p flag"><summary>What “anti-ageing” actually means here — four things, and you do three</summary>'+
     '<p class="lede">Four things have real evidence behind them. You are already doing three.</p>'+
     '<table class="tbl"><tbody>';
   CFG.revHealth.forEach(function(x){
@@ -4309,10 +4310,10 @@ function renderReverse(){
     '<p class="note">The good news is that what you asked for is not a different plan. A week that improves your VO₂ max, keeps you lifting, protects your sleep and refuses a third hard day <b>is</b> the health plan. '+
     'You do not have to choose between the times and the healthspan — for the next few years they are the same training.</p>'+
     '<p class="tiny">Two things worth adding because they are cheap: <b>daylight early in the day</b>, which sets the sleep everything else depends on and costs you a walk; and the oily fish already on your food list, twice a week, which is the one dietary item in this area with evidence that has held up.</p>'+
-    '</div>';
+    '</details>';
 
   /* the two sessions themselves */
-  tv+='<div class="p"><h2>The sessions</h2>'+
+  tv+='<details class="p"><summary>The three sessions, spelled out</summary>'+
     '<p class="tiny">Three slots. <b>Pick one option from each, each week</b> — the options inside a slot are different ways of doing that slot’s job, not extra sessions to stack. '+
     'No paces and no stopwatch on the recoveries: all of these are run on feel, which is not a cop-out, it is the only way they survive a day when you slept badly.</p>';
   CFG.revRuns.forEach(function(r){
@@ -4326,7 +4327,7 @@ function renderReverse(){
       '<p class="note" style="margin-top:8px"><b>Why this slot exists:</b> '+r.y+'</p>'+
       '<p class="tiny"><b>When to stop:</b> '+r.stop+'</p>';
   });
-  tv+='</div>';
+  tv+='</details>';
   E('revTrain').innerHTML=tv;
 
   /* what changes besides the food */
@@ -4604,9 +4605,10 @@ function wire(){
       }else{
         var n=Math.round(Number(E('inReps').value)||0);
         if(!(n>0)){msg.textContent='How many reps?';return;}
-        r.dm=(dv==='100u')?100:Number(dv);
+        r.dm=Number(dv);
         r.n=n;
-        if(dv==='100u')r.up=true;
+        var upv=E('inUp').value;
+        if(upv)r.up=(upv==='all')?true:'some';
       }
     }else{
       var km=Number(E('inKm').value);
@@ -4628,7 +4630,7 @@ function wire(){
     var rec=S.days[d]?clone(S.days[d]):{};
     rec.runs=(rec.runs||[]).concat([r]);
     S.days[d]=rec;
-    E('inKm').value='';E('inTime').value='';E('inRunNote').value='';E('inReps').value='';E('inLadder').value='';E('inBest').value='';
+    E('inKm').value='';E('inTime').value='';E('inRunNote').value='';E('inReps').value='';E('inLadder').value='';E('inBest').value='';E('inUp').value='';
     touch();
   });
   E('runList').addEventListener('click',function(e){

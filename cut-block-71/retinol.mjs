@@ -16,14 +16,16 @@ const boot = async (s) => { await p.goto(FILE);
 await boot(st({}));
 const m = await p.evaluate(() => retinolModel());
 ok('it starts Thursday 24 September', m.start === '2026-09-24', m.start);
-ok('and has not started yet on the 22nd', m.started === false && m.toStart === 2, JSON.stringify({ s: m.started, t: m.toStart }));
+// Derived: this used to hardcode "2 days away" and broke the next morning.
+const toGo = await p.evaluate(() => diffD(today(), CFG.retinol.start));
+ok('and has not started yet', m.started === false && m.toStart === toGo, JSON.stringify({ s: m.started, t: m.toStart, toGo }));
 ok('phase one is once a week', m.phase.n === 1 && m.phase.days.length === 1, JSON.stringify(m.phase));
 ok('on a Thursday', m.phase.days[0] === 4, String(m.phase.days[0]));
 
 let t = await p.textContent('#skRetinol');
 ok('the panel names the product', /CeraVe Resurfacing Retinol Serum/.test(t), t.slice(0, 160));
 ok('and the start date', /Thursday 24 September/.test(t));
-ok('with the nights away', /2 nights away/.test(t));
+ok('with the nights away', new RegExp(toGo + ' nights? away').test(t), (t.match(/\d+ nights? away/) || [''])[0]);
 
 // the ramp has real dates and gets slower, not faster
 const ramp = await p.$$eval('#skRetinol tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).slice(0, 4));
@@ -71,7 +73,7 @@ await p.click('[data-t="today"]');
 await p.click('#tgRet');
 await p.waitForTimeout(150);
 ok('a retinol night can be ticked',
-  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days['2026-09-22'].retinol)) === true);
+  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].retinol)) === true);
 ok('and it counts', (await p.evaluate(() => retinolModel().done)) === 1);
 
 // once it has started, it knows whether tonight is one
