@@ -25,6 +25,7 @@ import { BabyArrivedCard } from '../components/today/BabyArrivedCard';
 import { AfterBirthScreen } from './AfterBirthScreen';
 import { AfterLossHomeScreen } from './AfterLossHomeScreen';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { NotYetNote } from '../components/today/NotYetNote';
 import { Note } from '../components/ui/Note';
 
 /**
@@ -250,6 +251,8 @@ export function TodayScreen() {
         </summary>
 
         <div className="mt-3">
+          <NotYetNote week={week} />
+
           {rest.length > 0 && (
             <>
               <SectionHeading>Also relevant now</SectionHeading>
