@@ -85,9 +85,17 @@ describe('accessibility', () => {
     setOnboarded();
   });
 
-  // Guidance renders all 111 entries at once, so an axe scan of it in jsdom
-  // takes several seconds. That is a scan-speed cost in the test environment,
-  // not a rendering cost in a browser — the real page is checked separately.
+  // Guidance renders every entry at once, so an axe scan of it in jsdom takes
+  // several seconds. That is a scan-speed cost in the test environment, not a
+  // rendering cost in a browser — the real page is checked separately.
+  //
+  // This budget was 20s and the Guidance scan came in at 20.8s once the
+  // library passed 117 entries. Raising it is not loosening the check: the
+  // assertion is still zero violations and still passes, and the number being
+  // raised is how long jsdom is allowed to take, which has nothing to do with
+  // the page. Folding the phases did not help here either — a closed
+  // <details> still renders its contents into the DOM, so axe scans all of it
+  // regardless of what a person would see.
   it.each(SCREENS)(
     '%s has no axe violations',
     async (_name, Screen) => {
@@ -95,7 +103,7 @@ describe('accessibility', () => {
       const results = await axe(container);
       expect(results.violations).toEqual([]);
     },
-    20_000,
+    45_000,
   );
 
   // The screen someone reaches while frightened was the one screen missing

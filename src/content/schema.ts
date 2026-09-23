@@ -67,6 +67,7 @@ export type GuideSection =
   | 'health-conditions'
   | 'work-rights'
   | 'multiples'
+  | 'preconception'
   // Birth
   | 'birth-place'
   | 'labour'

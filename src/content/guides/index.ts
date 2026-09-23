@@ -17,6 +17,7 @@ import { birthGuides } from './birth';
 import { postnatalGuides } from './postnatal';
 import { feedingGuides } from './feeding';
 import { multiplesGuides } from './multiples';
+import { preconceptionGuides } from './preconception';
 
 export const guides: Guide[] = [
   ...nutritionGuides,
@@ -36,6 +37,7 @@ export const guides: Guide[] = [
   ...healthConditionGuides,
   ...workRightsGuides,
   ...multiplesGuides,
+  ...preconceptionGuides,
   ...birthGuides,
   ...postnatalGuides,
   ...feedingGuides,
@@ -143,6 +145,12 @@ export const GUIDE_SECTIONS: SectionMeta[] = [
     phase: 'pregnancy',
     label: 'Infections',
     blurb: 'The precautions that actually help.',
+  },
+  {
+    id: 'preconception',
+    phase: 'pregnancy',
+    label: 'Planning a pregnancy',
+    blurb: 'For a next one, or a first — the things that work better done in advance.',
   },
 
   // ── Birth ──────────────────────────────────────────────────────────
