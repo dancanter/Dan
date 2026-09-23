@@ -1087,6 +1087,14 @@ function runMeta(r){
     return {kind:'reps',km:km,secs:r.secs||null,pace:(km>0&&r.secs)?r.secs/km:null,
             repAvg:(n>0&&r.secs)?r.secs/n:null,n:n,dm:laps?null:(r.dm||null),laps:laps,
             label:laps?(laps.join('-')+' ladder'):(n+' × '+repLabel(r.dm||0)+(r.up===true?' uphill':(r.up?' part uphill':''))),
+            /* Grade-adjusted pace, when the watch gave one. On a session with
+               hills in it the raw pace flatters the flat reps and punishes the
+               climbs; GAP is the only fair way to compare it to a flat one. */
+            gap:(r.gap>0?r.gap:null),
+            /* How long he actually stood around between reps. Reported, never
+               prescribed — the recovery is however long it takes, and that is
+               his rule, not a number I get to set. */
+            rest:(r.ela>0&&r.secs>0&&n>1)?(r.ela-r.secs)/(n-1):null,
             hard:!sprint,sprint:sprint,judged:true,empty:!(r.secs>0)};
   }
   var type=r.type||'easy';
@@ -3241,12 +3249,15 @@ function paintForm(){
       '<b>'+esc(j.label)+'</b>'+
       '<span class="mono">'+(j.km?f2(j.km)+' km':'—')+'</span><span class="mono">'+(j.secs?mmss(j.secs):'—')+'</span>'+
       '<span class="mono">'+pace(j.pace)+'</span>'+
+      (j.gap?'<span class="mono" title="grade-adjusted">GAP '+pace(j.gap)+'</span>':'')+
       (r.best>0?'<span class="mono">best '+secFmt(r.best)+'</span>':'')+
       (j.judged?'':'<span class="tiny">no pace, filed only</span>')+
       (r.note?'<span class="tiny">'+esc(r.note)+'</span>':'')+
       '<button class="btn ghost sm" data-del="'+i+'" type="button" style="margin-left:auto">remove</button></div>'+
       (j.empty?'<div class="tiny wn" style="margin-top:2px">No time on this one, so it counts toward nothing. Add a time, or remove it.</div>':'')+
-      (cmp?'<div class="tiny acc" style="margin-top:2px">'+cmp+'</div>':'')+'</div>';
+      (cmp?'<div class="tiny acc" style="margin-top:2px">'+cmp+'</div>':'')+
+      (j.rest?'<div class="tiny" style="margin-top:2px">About <b>'+mmss(Math.round(j.rest))+'</b> between reps — '+
+        f1(j.rest/j.repAvg)+'× the rep itself. No target, just what you took.</div>':'')+'</div>';
   }).join(''):'<span class="tiny">Nothing logged on this day. That is a rest day, not a miss.</span>';
   var kind=E('inKind').value;
   E('paceHint').innerHTML=kind==='reps'

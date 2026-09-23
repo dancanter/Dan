@@ -61,6 +61,38 @@ ok('100 m reps still count as sprints', (await p.evaluate(() => runMeta(S.days[t
 ok('and a 200 m set does not', (await p.evaluate(() => runMeta({ k: 'reps', dm: 200, n: 5, secs: 150 }).sprint)) === false);
 ok('a 200 m set is a hard run', (await p.evaluate(() => runMeta({ k: 'reps', dm: 200, n: 5, secs: 150 }).hard)) === true);
 
+// ===== GAP and the recovery he actually took =============================
+// A session with hills in it: raw pace flatters the flat reps and punishes
+// the climbs, so the watch's grade-adjusted figure is the fair comparison.
+// The recovery is REPORTED, never prescribed — "however long it takes" is
+// Dan's rule and a number here would quietly become a target.
+await boot(st({ days: { [await p.evaluate(() => today())]: { runs: [
+  { k: 'reps', dm: 200, n: 5, secs: 150, up: 'some', ela: 1441, gap: 147, note: '2 half uphill, 3 flat' } ] } } }));
+await p.click('[data-t="today"]');
+const j = await p.evaluate(() => runMeta(S.days[today()].runs[0]));
+ok('GAP is carried through', j.gap === 147, JSON.stringify(j.gap));
+ok('the rep average is right', j.repAvg === 30, String(j.repAvg));
+ok('and the recovery is derived from elapsed minus moving',
+  Math.abs(j.rest - (1441 - 150) / 4) < 0.01, String(j.rest));
+const row = (await p.textContent('#runList')).replace(/\s+/g, ' ');
+ok('the row shows the grade-adjusted pace', /GAP 2:27/.test(row), row.slice(0, 220));
+ok('and the raw pace beside it, off the nominal distance', /2:30\/km/.test(row), row.slice(0, 220));
+ok('the recovery is stated', /About 5:23 between reps/.test(row), row.slice(0, 300));
+ok('as a multiple of the rep', /10\.8. the rep itself/.test(row), row.slice(0, 320));
+ok('and explicitly without a target', /No target, just what you took/.test(row));
+ok('the label keeps the partial hill', /5 . 200m part uphill/.test(row), row.slice(0, 160));
+
+// A session with no elapsed time says nothing about recovery rather than
+// inventing one, and a flat session has no GAP to show.
+await boot(st({ days: { [await p.evaluate(() => today())]: { runs: [
+  { k: 'reps', dm: 400, n: 4, secs: 280 } ] } } }));
+await p.click('[data-t="today"]');
+const j2 = await p.evaluate(() => runMeta(S.days[today()].runs[0]));
+ok('no elapsed means no recovery figure', j2.rest === null, String(j2.rest));
+ok('and no GAP when the watch gave none', j2.gap === null, String(j2.gap));
+const row2 = (await p.textContent('#runList')).replace(/\s+/g, ' ');
+ok('so the row stays quiet about both', !/between reps/.test(row2) && !/GAP/.test(row2), row2.slice(0, 200));
+
 await p.click('[data-t="data"]');
 const checks = await p.$$eval('#dChecks tr', rs => rs.map(x => x.children[0].textContent.trim()));
 ok('every self-check passes', checks.every(x => x === 'ok'), checks.join(','));
