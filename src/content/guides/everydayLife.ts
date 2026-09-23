@@ -14,6 +14,20 @@ export const medicationGuides: Guide[] = [
     emphasis: 'calm',
   },
   {
+    id: 'progesterone-bleeding',
+    section: 'medications',
+    title: 'Progesterone, if you bleed and have miscarried before',
+    summary: 'NICE says you should be offered it. It is missed often enough to be worth asking.',
+    body: [
+      '**Bleeding in pregnancy always means calling your maternity unit first.** This is about what should happen afterwards, not instead.',
+      'If you bleed before 12 weeks and you have had a miscarriage before, **NICE guidance says you should be offered progesterone** — vaginal micronised progesterone, 400mg twice daily, as pessaries or capsules.',
+      'It is offered once a scan has confirmed the pregnancy is in the womb, so not before that scan and not while the location is still unknown. If a heartbeat is seen, it continues to 16 completed weeks. The first prescription usually comes from the Early Pregnancy Unit, and your GP carries it on.',
+      '**What the evidence actually shows.** In the trial NICE used, live births rose by roughly 5 in 100 for people with one or two previous miscarriages, and by roughly 15 in 100 for three or more. Read honestly: the trial’s overall result across everyone it enrolled did not reach statistical significance. The benefit sits in the group who had both bled and miscarried before, and that is the group the recommendation is written for.',
+      '**If it applies to you and nobody raises it, ask.** You can ask the clinician in front of you, ask to speak to someone else, or ask a different Early Pregnancy Unit. One person saying no is not the end of the question.',
+    ],
+    sourceIds: ['nice-ng126', 'nhs-medicines'],
+  },
+  {
     id: 'paracetamol',
     section: 'medications',
     title: 'Paracetamol — and the autism question',

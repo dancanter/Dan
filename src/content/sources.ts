@@ -26,6 +26,15 @@ export const sources: Source[] = [
     reviewed: '2025',
   },
   {
+    id: 'nice-ng126',
+    label: 'NG126, Ectopic pregnancy and miscarriage — management of miscarriage',
+    organisation: 'NICE',
+    tier: 'gov',
+    url: 'https://www.nice.org.uk/guidance/ng126/chapter/Management-of-miscarriage',
+    caveat:
+      'The trial behind this recommendation (PRISM, 4,153 women) did not reach statistical significance across everyone it enrolled — 76% live births on progesterone against 72% on placebo, p=0.08. The benefit NICE acted on is in the subgroup who had bled and miscarried before. That subgroup finding is real and it is why the recommendation exists, but it is a subgroup finding, and the ≥3 miscarriages analysis was planned while the 1-or-more one was done afterwards.',
+  },
+  {
     id: 'mhra-paracetamol',
     label: 'MHRA statement on paracetamol use in pregnancy',
     organisation: 'MHRA via GOV.UK, September 2025',
@@ -320,6 +329,31 @@ export const sources: Source[] = [
     organisation: 'NCT (reviewed February 2025)',
     tier: 'charity',
     reviewed: 'February 2025',
+  },
+  {
+    id: 'molenaar-2023',
+    label: 'Perinatal depression before, during and after pregnancy — Danish national registers',
+    organisation: 'Molenaar NM, et al. J Affect Disord 2023',
+    tier: 'research',
+    url: 'https://www.nimh.nih.gov/news/science-updates/2023/population-study-finds-depression-is-different-before-during-and-after-pregnancy',
+    caveat:
+      'Danish population registers, so it counts episodes that reached treatment rather than everyone who was unwell. The link is the NIMH summary; the paper itself is in the Journal of Affective Disorders.',
+  },
+  {
+    id: 'mcleish-2020',
+    label: 'First-time mothers’ expectations and information needs about postnatal care in England',
+    organisation: 'McLeish J, et al. Midwifery 2020;89:102813, PMID 32798075',
+    tier: 'research',
+    url: 'https://www.sciencedirect.com/science/article/pii/S0266613820301856',
+    caveat:
+      'Interviews with 40 women in the third trimester. Qualitative work describes what people said, and cannot rank one worry above another.',
+  },
+  {
+    id: 'nct-perinatal-depression-parents',
+    label: 'Perinatal depression in dads and co-parents',
+    organisation: 'NCT',
+    tier: 'charity',
+    url: 'https://www.nct.org.uk/information/life-parent/wellbeing-mental-health/postnatal-depression-dads-and-co-parents-10-things-you-should-know',
   },
   {
     id: 'nct-emotions',

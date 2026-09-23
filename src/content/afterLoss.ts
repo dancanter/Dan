@@ -77,8 +77,34 @@ export const afterLossSections: AfterLossSection[] = [
     sourceIds: ['miscarriage-association'],
     body: [
       'There is no universal right time, medically or emotionally, and the two do not always arrive together. Your team can advise on the physical side; the rest is yours.',
+      'After an early miscarriage there is no set waiting time if there is no medical reason to wait. After an ectopic pregnancy most people are advised to wait for two periods, or three to six months if the treatment was not surgical. After a molar pregnancy, until follow-up finishes, which can be up to six months.',
+      'Conceiving before your first period afterwards does not raise the risk. Some evidence points the other way — that conceiving within six months of a miscarriage may carry a lower risk next time, not a higher one.',
       'Pregnancy after loss is frequently anxious in a way that first pregnancies are not, and that anxiety is not a sign you are not ready. Tell your midwife about the previous loss — many areas have dedicated support, and some units offer additional early scans for reassurance.',
       'Wanting to try again quickly is not disloyal. Not wanting to at all is not a failure.',
+    ],
+  },
+  {
+    id: 'progesterone',
+    title: 'If you bleed in a pregnancy after this one',
+    guarded: true,
+    sourceIds: ['nice-ng126'],
+    body: [
+      'This is here because it is the one thing in this section that can change what happens, and it is missed often enough to be worth saying plainly.',
+      '**If you bleed before 12 weeks in a future pregnancy, and you have had a miscarriage before, NICE guidance says you should be offered progesterone.** Vaginal micronised progesterone, 400mg twice daily, as pessaries or capsules. It is offered once a scan has confirmed the pregnancy is in the womb, so it is not given before that scan or where the location is still unknown. If a heartbeat is seen, it continues to 16 completed weeks. The first prescription usually comes from the Early Pregnancy Unit and your GP continues it.',
+      'On the numbers: for one or two previous miscarriages it raised live births by around 5 in 100, and for three or more by around 15 in 100. Those are the figures from the trial NICE used, and they are worth reading as what they are — a real effect in the group who had bled and miscarried before, found inside a trial whose overall result did not reach significance. It is not a guarantee and it is not nothing.',
+      '**If this applies to you and nobody has mentioned it, you can ask for it directly.** You can also ask to speak to a different clinician, or to a different Early Pregnancy Unit. Being told no by one person is not the end of the question.',
+    ],
+  },
+  {
+    id: 'early-scans',
+    title: 'Early scans, and what they can and cannot tell you',
+    guarded: true,
+    sourceIds: ['miscarriage-association', 'nhs-early-days'],
+    body: [
+      'An extra scan at around 6 to 10 weeks is something some people choose in a pregnancy after loss. It is not automatically offered without a medical reason, but you can ask your GP or Early Pregnancy Unit.',
+      'What it can do is confirm a heartbeat and that the size matches the dates. Both are genuinely positive signs.',
+      'What it cannot do is tell you how the rest of the pregnancy will go. A scan is a snapshot of one morning, and it is worth knowing that before you go, because people sometimes expect to come out reassured for good and instead find the reassurance lasts a fortnight.',
+      'If a scan is unclear, being asked back in 7 to 14 days is ordinary and does not mean something is wrong. Early pregnancies are small, and sometimes the only way to tell is to look again when there is more to see.',
     ],
   },
 ];

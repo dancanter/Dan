@@ -116,6 +116,33 @@ export const postnatalGuides: Guide[] = [
     sourceIds: ['nhs-postnatal-depression', 'tommys-pnd'],
   },
   {
+    id: 'pnd-timing',
+    section: 'postnatal-mind',
+    title: 'The 6-week check comes before the risk peaks',
+    summary: 'First episodes peaked at 2 months after birth — after the check.',
+    body: [
+      'There is a common assumption that if you got through the first weeks and the 6-week check went fine, the risky part is behind you. The timing does not support that.',
+      'Using Danish national health registers, researchers tracked when first depressive episodes actually began. They rose after childbirth and **peaked at around 2 months** — which is after the 6-week check has happened, and the risk stays raised for months beyond that.',
+      'So if low mood or anxiety turns up, or gets worse, after your check, you have not missed the moment and you are not too late. You are near the point when it most commonly starts.',
+      'The check being fine is not a verdict on the rest of the year. You can go back to your GP or health visitor at any point, without a new appointment slot having been offered to you first.',
+      'One caveat on the numbers, because it matters: registers count episodes that reached treatment, not everyone who was unwell. The true shape is likely to include people who never got as far as being counted.',
+    ],
+    sourceIds: ['molenaar-2023', 'nhs-postnatal-depression'],
+  },
+  {
+    id: 'pnd-partners',
+    section: 'postnatal-mind',
+    title: 'Partners get this too, and are rarely asked',
+    summary: 'Around 1 in 10 fathers, in pregnancy and the first year.',
+    body: [
+      'Perinatal depression is not only something that happens to the person who gave birth. Pooled research puts it at roughly **1 in 10 fathers** — close to 10% during the pregnancy and just under 10% across the first postnatal year.',
+      'The NCT describes the rate as similar to mothers’. Other analyses put fathers somewhat lower. The comparison is genuinely unsettled, which is worth saying rather than picking whichever version sounds better — what is not in doubt is that it is common, and that almost nobody is asked about it.',
+      'That is the real gap. There is no routine check for partners, no appointment where someone asks, and no obvious moment to raise it. It is also common for both parents to be struggling at the same time.',
+      'If this is you: the same routes are open to you. Your GP, and NHS talking therapies, which you can refer yourself to. You do not need to be the one who gave birth to be entitled to help with this.',
+    ],
+    sourceIds: ['nct-perinatal-depression-parents', 'nhs-mental-health'],
+  },
+  {
     id: 'postpartum-psychosis',
     section: 'postnatal-mind',
     title: 'Postpartum psychosis — a medical emergency',
@@ -185,7 +212,8 @@ export const postnatalGuides: Guide[] = [
       '**Family Hubs** (in some areas) bring parenting classes, health visitors, feeding support and postnatal mental health support into one place.',
       '**If you’re parenting alone:** Gingerbread offers advice on benefits, housing and child maintenance, and can connect you with other single parents.',
       '**Other helplines:** Coram Family Lives 0808 800 2222 · Contact (disabled children) 0808 808 3555 · Parent Talk (WhatsApp) 0770 017 4470.',
+      '**On feeling silly for asking:** when researchers interviewed 40 first-time mothers in late pregnancy about what they expected from postnatal care, one of the things they described was worrying about being judged for seeking advice and reassurance. Not the advice being wrong — being thought incapable for needing it. Answering these questions is the job. However small it feels, it is not too small.',
     ],
-    sourceIds: ['nhs-parent-support', 'nhs-single-parents'],
+    sourceIds: ['nhs-parent-support', 'nhs-single-parents', 'mcleish-2020'],
   },
 ];
