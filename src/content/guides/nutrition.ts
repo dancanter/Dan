@@ -16,6 +16,7 @@ export const nutritionGuides: Guide[] = [
       '**If you only change three things:** eat more fibre, add oily fish, and get to five fruit and veg a day. Those are the biggest gaps in UK diets. Only 4% hit the fibre target, and in a four-day survey more than three in four women ate no oily fish at all.',
       'Food alone will not cover two things, so keep taking them: **folic acid** (400 micrograms a day until 12 weeks) and **vitamin D** (10 micrograms a day). The details are in Supplements.',
       'If you have gestational diabetes, the food advice changes a little. There is a separate entry on it under Existing conditions.',
+      'How you cook matters a little too. Gentler methods keep more of the goodness in, and the next entry explains why.',
     ],
     lists: [
       {
@@ -78,6 +79,42 @@ export const nutritionGuides: Guide[] = [
     ],
     sourceIds: ['nhs-healthy-diet-pregnancy', 'sacn-2026', 'nhs-foods-to-avoid'],
     emphasis: 'calm',
+  },
+  {
+    // The safety line leads, deliberately. "Don't overcook" is good advice for
+    // vegetables and bad advice for chicken, and in pregnancy undercooked meat
+    // is the real risk — toxoplasmosis and listeria are why Food safety says
+    // cook it through. Gentle cooking only ever means gentle *and* done.
+    //
+    // The AGE evidence is stated at the strength it has. That high dry heat
+    // raises the AGEs in food is well measured. Whether eating them harms
+    // health is still being studied and is not part of UK pregnancy advice, so
+    // this is offered as a sensible habit, never as a rule or a warning.
+    id: 'cooking-methods',
+    section: 'nutrition',
+    title: 'How you cook it — gentler is better, but always cook it through',
+    summary: 'Steam veg, go for gold not brown, and choose slow or moist cooking where you can.',
+    body: [
+      '**First, the part that is not optional.** In pregnancy, meat, poultry and eggs that are not British Lion-stamped must be cooked all the way through — no pink, and juices running clear. Gentle cooking means gentle *and* fully cooked, never less cooked. The details are in Food safety.',
+      '**Vegetables: steam or microwave rather than boil.** Folate and vitamin C dissolve into cooking water, so boiling pours some of them away. Cook veg until just tender rather than soft. If you do boil, use a little water and keep potato skins on.',
+      '**Starchy foods: go for gold.** When you fry, roast or toast potatoes, chips or bread, aim for golden yellow rather than dark brown or burnt. Browning at high heat creates a chemical called acrylamide, and UK food safety advice is to keep it low.',
+      '**Meat: slow and moist beats hot and dry.** Stewing, braising, casseroles, slow cookers and poaching are all good choices. Cooking meat at high, dry heat — grilling, frying hard, roasting until charred — creates more compounds called AGEs (advanced glycation end-products). One analysis found stewed meat had around half the AGEs of the same meat grilled.',
+      '**How strong is the AGE evidence?** That high heat creates more AGEs in food is well measured. Whether eating more of them affects health is still being researched, mostly in laboratory and small human studies. It is not part of UK pregnancy advice. So treat this as a sensible habit, not a rule.',
+      'None of this means fried food is dangerous. A fry-up or a roast now and then is fine. The point is to avoid charring and burning, and to lean towards gentler methods most of the time.',
+    ],
+    lists: [
+      {
+        title: 'Gentler ways to cook',
+        items: [
+          'Steaming or microwaving vegetables',
+          'Stews, casseroles and curries',
+          'Slow cookers — fine for meat, as long as it ends up cooked through',
+          'Poaching fish or eggs',
+          'Baking or roasting at a moderate heat, stopping at golden',
+        ],
+      },
+    ],
+    sourceIds: ['nhs-starchy-foods', 'uhcw-folate-diet', 'uribarri-2010', 'nhs-foods-to-avoid'],
   },
   {
     id: 'eat-for-two',

@@ -33,6 +33,32 @@ export const sources: Source[] = [
     url: 'https://www.nhs.uk/pregnancy/trying-for-a-baby/planning-your-pregnancy/',
   },
   {
+    id: 'nhs-starchy-foods',
+    label: 'Starchy foods and carbohydrates — including acrylamide and cooking potatoes',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/live-well/eat-well/food-types/starchy-foods-and-carbohydrates/',
+  },
+  {
+    id: 'uhcw-folate-diet',
+    label: 'Dietary advice for vitamin B12 and folate',
+    organisation: 'University Hospitals Coventry and Warwickshire NHS Trust',
+    tier: 'nhs',
+    url: 'https://www.uhcw.nhs.uk/download/clientfiles/files/Patient%20Information%20Leaflets/Medicine/Haematology/Dietary%20advice%20for%20Vitamin%20B12%20and%20folate%20deficiency.pdf',
+    caveat:
+      'An NHS trust leaflet rather than the national NHS website. Used for the point that folate is lost in cooking water, which it states directly.',
+  },
+  {
+    id: 'uribarri-2010',
+    label:
+      'Advanced glycation end products in foods and a practical guide to their reduction in the diet',
+    organisation: 'Uribarri J, et al. J Am Diet Assoc 2010;110(6):911–916',
+    tier: 'research',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0002822310002385',
+    caveat:
+      'Measures how much AGE is in foods cooked different ways, which is well established. It is not a pregnancy study, and whether dietary AGEs affect human health is still debated — the authors are more confident about that than the wider evidence is.',
+  },
+  {
     id: 'nhs-healthy-diet-pregnancy',
     label: 'Have a healthy diet in pregnancy',
     organisation: 'NHS',
