@@ -59,6 +59,48 @@ export const sources: Source[] = [
       'Measures how much AGE is in foods cooked different ways, which is well established. It is not a pregnancy study, and whether dietary AGEs affect human health is still debated — the authors are more confident about that than the wider evidence is.',
   },
   {
+    id: 'wastyk-2021',
+    label: 'Gut-microbiota-targeted diets modulate human immune status',
+    organisation: 'Wastyk HC, et al. Cell 2021;184:4137–4153, PMID 34256014',
+    tier: 'research',
+    url: 'https://doi.org/10.1016/j.cell.2021.06.019',
+    caveat:
+      'A randomised trial, but small — 18 healthy adults per group — and not in pregnancy. It shows fermented foods changed the gut microbiome over weeks; it does not show a benefit to pregnancy or to babies.',
+  },
+  {
+    id: 'kombucha-ethanol',
+    label:
+      'Determination of ethanol content in kombucha using headspace gas chromatography with mass spectrometry detection',
+    organisation: 'Single-laboratory validation study, PubMed Central PMC8372040',
+    tier: 'research',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8372040/',
+    caveat:
+      'A study of how to measure alcohol in kombucha, which exists because the amount varies and labels are not always accurate. Not a pregnancy study — the pregnancy point comes from the NHS alcohol advice.',
+  },
+  {
+    id: 'nhs-probiotics',
+    label: 'Probiotics',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/tests-and-treatments/probiotics/',
+  },
+  {
+    id: 'nhs-flatulence',
+    label: 'Farting (flatulence) — foods that can cause it, and what helps',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/symptoms/flatulence/',
+  },
+  {
+    id: 'worcs-high-fibre',
+    label: 'High fibre diet',
+    organisation: 'Worcestershire Acute Hospitals NHS Trust',
+    tier: 'nhs',
+    url: 'https://www.worcsacute.nhs.uk/leaflets/high-fibre-diet/',
+    caveat:
+      'An NHS trust dietetics leaflet rather than the national NHS site. Used for the advice to build fibre up gradually and drink plenty, which is standard across NHS dietetics.',
+  },
+  {
     id: 'nhs-healthy-diet-pregnancy',
     label: 'Have a healthy diet in pregnancy',
     organisation: 'NHS',

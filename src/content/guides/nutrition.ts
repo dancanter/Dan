@@ -13,7 +13,7 @@ export const nutritionGuides: Guide[] = [
     summary: 'What to put on the plate, grouped by what each one gives you and your baby.',
     body: [
       'You do not need special foods or an expensive diet. The foods below are ordinary, easy to find in any UK supermarket, and cover what matters most in pregnancy.',
-      '**If you only change three things:** eat more fibre, add oily fish, and get to five fruit and veg a day. Those are the biggest gaps in UK diets. Only 4% hit the fibre target, and in a four-day survey more than three in four women ate no oily fish at all.',
+      '**If you only change three things:** eat more fibre (build it up slowly — more on that under Gut health), add oily fish, and get to five fruit and veg a day. Those are the biggest gaps in UK diets. Only 4% hit the fibre target, and in a four-day survey more than three in four women ate no oily fish at all.',
       'Food alone will not cover two things, so keep taking them: **folic acid** (400 micrograms a day until 12 weeks) and **vitamin D** (10 micrograms a day). The details are in Supplements.',
       'If you have gestational diabetes, the food advice changes a little. There is a separate entry on it under Existing conditions.',
       'How you cook matters a little too. Gentler methods keep more of the goodness in, and the next entry explains why.',
@@ -115,6 +115,44 @@ export const nutritionGuides: Guide[] = [
       },
     ],
     sourceIds: ['nhs-starchy-foods', 'uhcw-folate-diet', 'uribarri-2010', 'nhs-foods-to-avoid'],
+  },
+  {
+    // Two things this entry refuses, both on purpose.
+    //
+    // It does not say fibre is wasted without fermented foods. Everyone has
+    // gut bacteria already, and fibre also softens stools on its own — which
+    // matters more in pregnancy than almost anywhere, because constipation is
+    // one of its commonest problems.
+    //
+    // And it does not tell anyone to cut out broccoli or beans. They cause
+    // wind, and they are also among the best folate and fibre foods there
+    // are. The fix for wind is building up slowly and smaller portions, not
+    // dropping the food.
+    id: 'gut-health',
+    section: 'nutrition',
+    title: 'Gut health — fibre, fermented foods, wind and bloating',
+    summary:
+      'Build fibre up slowly if it gives you wind, try pasteurised live yoghurt or kefir, and skip kombucha.',
+    body: [
+      '**Fibre feeds the bacteria already in your gut.** Everyone has them. Fibre also helps on its own, by softening poo and keeping things moving. That matters a lot in pregnancy, because hormones slow digestion and constipation is very common.',
+      '**Fermented foods may add variety.** In one small trial, 36 healthy adults (not pregnant) ate either lots of fermented foods or lots of fibre for several weeks. The fermented-food group ended up with a more varied mix of gut bacteria and lower signs of inflammation. In the fibre group, how people responded depended on how varied their gut bacteria were to begin with.',
+      'That is a promising finding, not a rule. It was small, it was not in pregnancy, and it is not part of UK pregnancy advice. So think of fermented foods as a good habit to add, not something you must have for fibre to work.',
+      '**Fermented foods that are fine in pregnancy:** live or "bio" yoghurt and kefir, **as long as they are made from pasteurised milk**. Most in UK shops are, but check the label. Avoid anything made with unpasteurised milk, including homemade kefir from raw milk.',
+      '**Kombucha is one to skip, or ask your midwife about first.** It is brewed from tea, so it contains caffeine. Fermenting also leaves some alcohol in it, and the amount varies — often more than the label says, and more again in home brews. The NHS says there is no known safe amount of alcohol in pregnancy.',
+      '**Probiotic supplements** are generally thought to be safe if your immune system is healthy. But they are sold as food, not medicine, so they are not tested the same way, and you cannot always be sure the bacteria on the label are in the tub. Ask your midwife or pharmacist if you want to try one.',
+      '**If fibre gives you wind or bloating**, you are not imagining it. Adding a lot of fibre suddenly is a common cause. Build it up gradually over a few days, and drink plenty — fibre needs water to work. Broccoli, cabbage, cauliflower, sprouts, beans, lentils, onions and dried fruit are the usual suspects.',
+      'Do not cut those foods out, though. They are some of the best sources of folate and fibre there are. Try smaller portions spread through the week, eat slowly, and chew well.',
+      'Wind can be uncomfortable, but it is not the same as severe or constant tummy pain. Pain like that needs a call to your maternity unit, not a change of diet.',
+    ],
+    sourceIds: [
+      'wastyk-2021',
+      'nhs-foods-to-avoid',
+      'kombucha-ethanol',
+      'nhs-alcohol',
+      'nhs-probiotics',
+      'worcs-high-fibre',
+      'nhs-flatulence',
+    ],
   },
   {
     id: 'eat-for-two',
