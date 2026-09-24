@@ -80,9 +80,15 @@ ok('it marks what is up next', /up next/.test(t));
 ok('and what was done this week', /this week/.test(t));
 ok('the fifth day is called free', /The fifth day is free/.test(t));
 ok('naming the three options', /a second go at any of the four, arms, or calisthenics/.test(t));
-ok('calisthenics has its own panel', /Calisthenics/.test(t) && /most push-ups/i.test(t));
+ok('calisthenics has its own panel', /Calisthenics/.test(t) && /40-minute test/.test(t));
 ok('showing the best', /180/.test(t) && /42/.test(t), t.slice(-400));
-ok('and why it suits a cut', /costs almost nothing to recover from/.test(t));
+// Corrected: a 40-minute max test is ~530 reps and Dan's own brief says big
+// calisthenics sessions count as hard days. The old line said the opposite.
+ok('a full test is called a hard day, not a free one', /is a hard day, not a free one/.test(t));
+ok('and the old free-recovery claim is gone', !/costs almost nothing to recover from/.test(t));
+// His record from before this block: 392 push-ups / 138 pull-ups in 40 min.
+const CR = await p.evaluate(() => CFG.calis);
+ok('the 40-minute record is stored', CR.mins === 40 && CR.push === 392 && CR.pull === 138, JSON.stringify(CR));
 
 // logging a split from Today
 await boot(st({ days: { '2026-09-22': {} } }));
@@ -103,6 +109,23 @@ await p.waitForTimeout(150);
 ok('a push-up count is stored',
   (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].push)) === 150);
 ok('and reaches the board', (await p.evaluate(() => splitModel().push.v)) === 150);
+
+// ---- the record to beat --------------------------------------------------
+// Nothing logged: the panel shows his 392 / 138 as the record and 393 / 139
+// as the target.
+await boot(st({}));
+await p.click('[data-t="training"]');
+let cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
+ok('with nothing logged the record is his 392', /record push-ups\s*392/.test(cz), (cz.match(/record push-ups.{0,40}/) || [''])[0]);
+ok('and 138 pull-ups', /record pull-ups\s*138/.test(cz));
+ok('the target is one more of each', /to beat it\s*393 \/ 139/.test(cz), (cz.match(/to beat it.{0,30}/) || [''])[0]);
+// A logged test under the record leaves it standing; one over it replaces it.
+await boot(st({ days: { [await p.evaluate(() => today())]: { gym: true, split: 'calis', push: 380, pull: 140 } } }));
+await p.click('[data-t="training"]');
+cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
+ok('380 push-ups does not beat 392', /record push-ups\s*392/.test(cz));
+ok('140 pull-ups does beat 138', /record pull-ups\s*140\s*new record/.test(cz), (cz.match(/record pull-ups.{0,40}/) || [''])[0]);
+ok('and the next target moves with it', /to beat it\s*393 \/ 141/.test(cz), (cz.match(/to beat it.{0,30}/) || [''])[0]);
 
 // unlabelled sessions are chased, not guessed
 await boot(st({ days: { '2026-09-21': { gym: true }, '2026-09-22': { gym: true } } }));

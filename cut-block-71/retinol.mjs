@@ -18,14 +18,22 @@ const m = await p.evaluate(() => retinolModel());
 ok('it starts Thursday 24 September', m.start === '2026-09-24', m.start);
 // Derived: this used to hardcode "2 days away" and broke the next morning.
 const toGo = await p.evaluate(() => diffD(today(), CFG.retinol.start));
-ok('and has not started yet', m.started === false && m.toStart === toGo, JSON.stringify({ s: m.started, t: m.toStart, toGo }));
+// Before 24 Sep it is counting down; from 24 Sep it has started. The suite has
+// to be true on either side of that line, since it runs on real dates.
+ok(toGo > 0 ? 'and has not started yet' : 'and it has started, on the day',
+  toGo > 0 ? (m.started === false && m.toStart === toGo) : (m.started === true),
+  JSON.stringify({ s: m.started, t: m.toStart, toGo }));
 ok('phase one is once a week', m.phase.n === 1 && m.phase.days.length === 1, JSON.stringify(m.phase));
 ok('on a Thursday', m.phase.days[0] === 4, String(m.phase.days[0]));
 
 let t = await p.textContent('#skRetinol');
 ok('the panel names the product', /CeraVe Resurfacing Retinol Serum/.test(t), t.slice(0, 160));
-ok('and the start date', /Thursday 24 September/.test(t));
-ok('with the nights away', new RegExp(toGo + ' nights? away').test(t), (t.match(/\d+ nights? away/) || [''])[0]);
+// The long date is the countdown's wording; once started, the date lives in
+// the schedule table as "24 Sep". Either way it must be on the panel.
+ok('and the start date', toGo > 0 ? /Thursday 24 September/.test(t) : /24 Sep/.test(t), t.slice(0, 200));
+ok(toGo > 0 ? 'with the nights away' : 'and says tonight is a retinol night on day one',
+  toGo > 0 ? new RegExp(toGo + ' nights? away').test(t) : (toGo === 0 ? /Tonight is a retinol night/.test(t) : true),
+  (t.match(/\d+ nights? away|Tonight is[^.]{0,30}/) || [''])[0]);
 
 // the ramp has real dates and gets slower, not faster
 const ramp = await p.$$eval('#skRetinol tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).slice(0, 4));

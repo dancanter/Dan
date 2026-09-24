@@ -607,6 +607,11 @@ var CFG={
      in, never the target, and there is no four. This counts hard RUNS — a
      heavy leg session is a hard day but it is not one of these. */
   hardRuns:{target:2,cap:3},
+  /* Dan's 40-minute test, done before this tracker existed — as many push-ups
+     and pull-ups as he can in 40 minutes. It is the number to beat, so it has
+     to be on the page rather than in a chat log. Undated because he never
+     gave the day. */
+  calis:{mins:40,push:392,pull:138,when:'before Cut Block 71'},
   /* What the two blocks are actually FOR, in Dan's words, plus the thing a
      list of goals never has and always needs: what wins when two of them
      fight. Without the tie-breaks this is a mood board, not a plan. */
@@ -3841,16 +3846,20 @@ function renderSplit(){
     (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
     '</div>';
 
-  /* calisthenics, because a max set is a number worth chasing */
-  h+='<div class="p flag"><h2>Calisthenics</h2>'+
+  /* calisthenics: the 40-minute test, and the record it has to beat */
+  var CR=CFG.calis;
+  var beatP=m.push&&m.push.v>CR.push, beatL=m.pull&&m.pull.v>CR.pull;
+  h+='<div class="p flag"><h2>Calisthenics — the '+CR.mins+'-minute test</h2>'+
     '<div class="tiles t4">'+
-    tile('most push-ups',m.push?ci(m.push.v):'—',m.push?fmtS(m.push.d):'log one on the Today tab')+
-    tile('most pull-ups',m.pull?ci(m.pull.v):'—',m.pull?fmtS(m.pull.d):'log one on the Today tab')+
+    tile('record push-ups',ci(beatP?m.push.v:CR.push),beatP?('new record, '+fmtS(m.push.d)):CR.when)+
+    tile('record pull-ups',ci(beatL?m.pull.v:CR.pull),beatL?('new record, '+fmtS(m.pull.d)):CR.when)+
+    tile('best this block',m.push?ci(m.push.v)+' / '+ci(m.pull?m.pull.v:0):'—',m.push?fmtS(m.push.d):'none logged yet')+
+    tile('to beat it',ci((beatP?m.push.v:CR.push)+1)+' / '+ci((beatL?m.pull.v:CR.pull)+1),'push / pull next time')+
     '</div>'+
-    '<p class="tiny" style="margin-top:10px">Pick <b>Calisthenics</b> as the session on the Today log and two boxes appear for the numbers. '+
-    'A 45-minute max set of push-ups or pull-ups is a real benchmark and it belongs on the board like a running time does — '+
-    'and unlike a run, it costs almost nothing to recover from, which makes it a good free-day option deep in a cut.</p>'+
-    '<p class="tiny">Both are recorded per day, so the best one stands and the rest are history.</p></div>';
+    '<p class="tiny" style="margin-top:10px">As many push-ups and pull-ups as you can in '+CR.mins+' minutes. '+
+    'Pick <b>Calisthenics</b> as the session on the Today log and two boxes appear for the numbers.</p>'+
+    '<p class="note"><b>A full '+CR.mins+'-minute test is a hard day, not a free one.</b> '+
+    '530 reps of pulling and pressing is real training load — count it as one of the week’s hard days and keep it away from a heavy chest or back session.</p></div>';
   E('tSplit').innerHTML=h;
 }
 
