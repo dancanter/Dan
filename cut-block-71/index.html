@@ -195,6 +195,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="closeCard"></div>
   <div id="restCard"></div>
   <div id="signalCard"></div>
+  <div id="gainCard"></div>
   <div id="pushCard"></div>
   <div id="loadCard"></div>
   <div id="tdeeCard"></div>
@@ -475,6 +476,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= WINS ================= -->
 <section id="s-wins" class="stack" hidden>
   <div id="winMission"></div>
+  <div id="winWeek"></div>
   <div id="winTop"></div>
   <div id="winBoard"></div>
   <div id="winStudy"></div>
@@ -2494,6 +2496,98 @@ function tdeeCheck(){
    known intake measure his deficit directly: whatever he ate, plus whatever
    the weight says he was short by, is what holds him level. That number only
    gets better as the block runs, and a table of estimates never would. */
+/* ===================== what the day and the week went toward =====================
+   Dan asked for a "you've likely improved on this" line at the end of the day
+   and the week. The rule that keeps it honest: it only credits what he logged,
+   it uses a real number wherever one exists, and where nothing can be measured
+   from a single day - the face, hormones - it names what the day went TOWARD
+   instead of printing a percentage that would only look measured. */
+var KCAL_PER_G_FAT=7.7;
+function onePctDay(is){
+  var r=S.days[is]||{};
+  return typeof r.kcal==='number'&&typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line&&
+         typeof r.steps==='number'&&r.steps>=stepTarget(is);
+}
+function dayGains(is){
+  var r=S.days[is]||{},out=[],x,i,m;
+  var logged=typeof r.kcal==='number'||typeof r.steps==='number';
+  if(logged){
+    x=tdeeFor(is);
+    if(x.deficit>50)out.push({c:'Shredded',t:'About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal</b> under today — roughly <b>'+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g</b> of fat.'});
+  }
+  var rs=r.runs||[];
+  for(i=0;i<rs.length;i++){
+    m=runMeta(rs[i]);if(m.empty)continue;
+    if(m.sprint)out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — top-end speed and power kept, the part of fitness that fades fastest in a cut.'});
+    else if(m.hard){
+      var cmp=repCompare(m);
+      out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — a hard session, the kind that moves VO₂ max and your times.'+(cmp?' <span class="tiny">'+cmp+'</span>':'')});
+    }else out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — aerobic base: more capillaries, more mitochondria, easier hard days.'});
+  }
+  if(r.gym)out.push({c:'Strength',t:(r.split?'<b>'+esc(splitName(r.split))+'</b>':'<b>Gym</b>')+' — muscle kept through the deficit. The weight on the bar is what tells your body to hold onto it.'+
+    (typeof r.push==='number'?' <span class="tiny">'+ci(r.push)+' push-ups'+(typeof r.pull==='number'?', '+ci(r.pull)+' pull-ups':'')+'.</span>':'')});
+  if(typeof r.study==='number'&&r.study>0)out.push({c:'Study',t:'<b>'+f1(r.study)+' h</b> studied'+(typeof r.deep==='number'&&r.deep>0?', <b>'+f1(r.deep)+' h</b> of it deep work':'')+'.'});
+  if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)out.push({c:'Health',t:'<b>'+f1(r.sleep)+' h</b> of sleep — at the line. Recovery, hormones and the face all get paid for here.'});
+  if(r.skinAM&&r.skinPM)out.push({c:'Looks',t:'Skin routine done morning and night'+(r.retinol?', and a retinol night on schedule':'')+'.'});
+  if(r.phoneOut)out.push({c:'Health',t:'Phone out of the room — better sleep than the hours alone say.'});
+  if(typeof r.steps==='number'&&r.steps>=stepTarget(is))out.push({c:'Shredded',t:'<b>'+ci(r.steps)+'</b> steps — target hit.'});
+  return out;
+}
+function weekGains(){
+  var tr=trainingModel(),t=today(),w=tr.week,out={days:0,onePct:0,def:0,defDays:0,study:0,deep:0,sleepOk:0,sleepN:0,skin:0,best:null};
+  for(var i=0;i<=diffD(tr.wkStart,tr.wkEnd);i++){
+    var d=addD(tr.wkStart,i);if(d>t)break;
+    out.days++;
+    var r=S.days[d]||{};
+    if(onePctDay(d))out.onePct++;
+    if(typeof r.kcal==='number'||typeof r.steps==='number'){var x=tdeeFor(d);out.def+=x.deficit;out.defDays++;}
+    if(typeof r.study==='number')out.study+=r.study;
+    if(typeof r.deep==='number')out.deep+=r.deep;
+    if(typeof r.sleep==='number'){out.sleepN++;if(r.sleep>=CFG.sleep.line)out.sleepOk++;}
+    if(r.skinAM&&r.skinPM)out.skin++;
+    (r.runs||[]).forEach(function(rr){
+      var m=runMeta(rr);
+      if(m.empty||m.kind!=='reps'||!m.dm||m.repAvg===null)return;
+      var ref=BESTAVG[m.dm]||null;if(!ref)return;
+      var gap=m.repAvg-ref;
+      if(!out.best||gap<out.best.gap)out.best={d:d,label:m.label,avg:m.repAvg,ref:ref,gap:gap};
+    });
+  }
+  out.w=w;
+  return out;
+}
+function renderGains(){
+  var t=today(),g=dayGains(t);
+  if(!g.length){E('gainCard').innerHTML='';}
+  else{
+    var pct=onePctDay(t);
+    E('gainCard').innerHTML='<div class="p good"><h2>What today went toward'+(pct?' <span class="pill g">1% day</span>':'')+'</h2>'+
+      '<table class="tbl"><tbody>'+g.map(function(x){return '<tr><td style="width:24%"><span class="pill">'+x.c+'</span></td><td class="note">'+x.t+'</td></tr>';}).join('')+
+      '</tbody></table>'+
+      (pct?'<p class="tiny" style="margin-top:8px">Food logged, sleep at the line, steps hit. That is a 1% day — not because anything measured 1%, but because these are the days that compound.</p>'
+          :'<p class="tiny" style="margin-top:8px">A <b>1% day</b> is food logged, sleep at '+f1(CFG.sleep.line)+' h and your steps target. Rest days count — there is no session in it on purpose.</p>')+
+      '</div>';
+  }
+  var W=weekGains(),w=W.w,lines=[];
+  if(W.defDays)lines.push(['Shredded','About <b>'+ci(Math.round(W.def/10)*10)+' kcal</b> under across '+W.defDays+' logged day'+(W.defDays===1?'':'s')+' — roughly <b>'+f1(W.def/3500)+' lb</b> of fat.']);
+  var ses=[];
+  if(w.hard)ses.push(w.hard+' hard');if(w.easy)ses.push(w.easy+' easy');if(w.sprints)ses.push(w.sprints+' sprint');
+  if(ses.length)lines.push(['Running','<b>'+ses.join(', ')+'</b> session'+(w.runs===1?'':'s')+'.'+
+    (W.best?' Best: <b>'+esc(W.best.label)+'</b> at '+secFmt(W.best.avg)+' a rep — '+(W.best.gap<0?'<b>under</b> your 2026 best':f1(W.best.gap)+' s off your 2026 best of '+secFmt(W.best.ref))+'.':'')]);
+  if(w.gym)lines.push(['Strength','<b>'+w.gym+'</b> gym session'+(w.gym===1?'':'s')+' — muscle held while the fat comes off.']);
+  if(W.study)lines.push(['Study','<b>'+f1(W.study)+' h</b>'+(W.deep?', '+f1(W.deep)+' h deep':'')+'.']);
+  if(W.sleepN)lines.push(['Health','<b>'+W.sleepOk+' of '+W.sleepN+'</b> nights at the sleep line.']);
+  if(W.defDays||W.sleepN)lines.push(['Looks','Leaner by the deficit above, '+W.sleepOk+' good nights, salt steady'+(W.skin?', skin done '+W.skin+' day'+(W.skin===1?'':'s'):'')+'. Those are the inputs that actually change the face — it shows over weeks, not days.']);
+  if(!lines.length){E('winWeek').innerHTML='';return;}
+  var comp=Math.pow(1.01,W.onePct);
+  E('winWeek').innerHTML='<div class="p lift"><h2>This week went toward</h2>'+
+    '<div class="tiles t4">'+
+    tile('1% days',W.onePct+' / '+W.days,'this week so far')+
+    tile('compounded',W.onePct?('×'+comp.toFixed(3)):'—','1.01 to the power of your 1% days')+
+    '</div>'+
+    '<table class="tbl" style="margin-top:10px"><tbody>'+lines.map(function(x){return '<tr><td style="width:24%"><span class="pill">'+x[0]+'</span></td><td class="note">'+x[1]+'</td></tr>';}).join('')+'</tbody></table>'+
+    '<p class="tiny" style="margin-top:8px">The compounding number is the idea, not a measurement — nothing on this page can weigh how much better you got in a week. What it can do is count the days you did the things that make you better.</p></div>';
+}
 /* ===================== the three new signals =====================
    Resting heart rate, how hard sessions actually felt, and whether anything
    hurts. None of them mean anything as a single number — they are all read
@@ -2819,6 +2913,7 @@ function render(){
   renderToday(c,w,tr);
   renderAlerts(w,tr,c);
   renderSignals(tr);
+  renderGains();
   renderWeight(w,c);
   renderFood(c,tr);
   renderFuel(tr);
