@@ -1089,7 +1089,12 @@ function runMeta(r){
     var n=laps?laps.length:(r.n||0);
     var km=tot/1000;
     var sprint=(!laps&&r.dm===100);
-    return {kind:'reps',km:km,secs:r.secs||null,pace:(km>0&&r.secs)?r.secs/km:null,
+    /* Dan does not time his 100 m sprints — they are explosive efforts, uphill
+       or flat, and he counts reps. So a sprint set with reps and no time is a
+       complete session, not an empty one. Everything else still needs a time,
+       because everything else is judged on it. */
+    var untimed=sprint&&n>0&&!(r.secs>0);
+    return {kind:'reps',km:km,secs:r.secs||null,pace:(km>0&&r.secs)?r.secs/km:null,untimed:untimed,
             repAvg:(n>0&&r.secs)?r.secs/n:null,n:n,dm:laps?null:(r.dm||null),laps:laps,
             label:laps?(laps.join('-')+' ladder'):(n+' × '+repLabel(r.dm||0)+(r.up===true?' uphill':(r.up?' part uphill':''))),
             /* Grade-adjusted pace, when the watch gave one. On a session with
@@ -1100,7 +1105,7 @@ function runMeta(r){
                prescribed — the recovery is however long it takes, and that is
                his rule, not a number I get to set. */
             rest:(r.ela>0&&r.secs>0&&n>1)?(r.ela-r.secs)/(n-1):null,
-            hard:!sprint,sprint:sprint,judged:true,empty:!(r.secs>0)};
+            hard:!sprint,sprint:sprint,judged:!untimed,empty:!(r.secs>0)&&!untimed};
   }
   var type=r.type||'easy';
   /* rows written before the rep logger existed */
@@ -3256,7 +3261,7 @@ function paintForm(){
       '<span class="mono">'+pace(j.pace)+'</span>'+
       (j.gap?'<span class="mono" title="grade-adjusted">GAP '+pace(j.gap)+'</span>':'')+
       (r.best>0?'<span class="mono">best '+secFmt(r.best)+'</span>':'')+
-      (j.judged?'':'<span class="tiny">no pace, filed only</span>')+
+      (j.untimed?'<span class="tiny">reps counted, not timed</span>':(j.judged?'':'<span class="tiny">no pace, filed only</span>'))+
       (r.note?'<span class="tiny">'+esc(r.note)+'</span>':'')+
       '<button class="btn ghost sm" data-del="'+i+'" type="button" style="margin-left:auto">remove</button></div>'+
       (j.empty?'<div class="tiny wn" style="margin-top:2px">No time on this one, so it counts toward nothing. Add a time, or remove it.</div>':'')+
@@ -4614,7 +4619,7 @@ function wire(){
     Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.cont'),function(x){x.hidden=reps;});
     E('fLadder').hidden=!(reps&&E('inRepD').value==='ladder');
     if(reps&&E('inRepD').value==='ladder')E('inReps').parentNode.hidden=true;
-    E('labTime').textContent=reps?'Total rep time (mm:ss)':'Time (mm:ss)';
+    E('labTime').textContent=reps?(E('inRepD').value==='100'?'Total rep time (optional for sprints)':'Total rep time (mm:ss)'):'Time (mm:ss)';
     E('inTime').placeholder=reps?'3:07':'32:38';
     paintForm();
   }
@@ -4649,7 +4654,8 @@ function wire(){
       if(!(km>0))msg.textContent='No distance, so no pace and no opinion — it still counts as a run.';
       if(!(km>0)&&!(secs>0)){msg.textContent='A run needs a distance or a time.';return;}
     }
-    if(!(secs>0)&&!(E('inKind').value==='cont'&&Number(E('inKm').value)>0)){
+    var sprintSet=(E('inKind').value==='reps'&&E('inRepD').value==='100');
+    if(!(secs>0)&&!sprintSet&&!(E('inKind').value==='cont'&&Number(E('inKm').value)>0)){
       msg.textContent='A session needs a time — without one there is nothing to log and nothing to judge.';
       return;
     }

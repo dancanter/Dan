@@ -93,6 +93,50 @@ ok('and no GAP when the watch gave none', j2.gap === null, String(j2.gap));
 const row2 = (await p.textContent('#runList')).replace(/\s+/g, ' ');
 ok('so the row stays quiet about both', !/between reps/.test(row2) && !/GAP/.test(row2), row2.slice(0, 200));
 
+// ===== 100 m sprints go in untimed ========================================
+// Dan does not time his 100 m sprints — explosive efforts, uphill or flat, and
+// he counts reps. The form used to refuse the session without a time, and a
+// timeless row was pruned on load even if it got in.
+await boot(st());
+await p.click('[data-t="today"]');
+await p.selectOption('#inKind', 'reps');
+await p.selectOption('#inRepD', '100');
+ok('the time box says it is optional for sprints', /optional for sprints/.test(await p.textContent('#labTime')));
+await p.fill('#inReps', '8');
+await p.selectOption('#inUp', 'all');
+await p.click('#btnAddRun');
+await p.waitForTimeout(200);
+let sr = await p.evaluate(() => (S.days[today()] || {}).runs || []);
+ok('an untimed sprint set is accepted', sr.length === 1 && sr[0].dm === 100 && sr[0].n === 8 && !sr[0].secs, JSON.stringify(sr));
+ok('and keeps its hill flag', sr[0] && sr[0].up === true);
+let sm = await p.evaluate(() => runMeta(S.days[today()].runs[0]));
+ok('it is complete, not empty', sm.empty === false && sm.untimed === true, JSON.stringify(sm));
+ok('it is a sprint session, not a hard run', sm.sprint === true && sm.hard === false);
+ok('and reads as 8 x 100m uphill', sm.label === '8 × 100m uphill', sm.label);
+const srow = (await p.textContent('#runList')).replace(/\s+/g, ' ');
+ok('the row says reps counted, not timed', /reps counted, not timed/.test(srow), srow.slice(0, 200));
+ok('and does not call it incomplete', !/incomplete/.test(srow) && !/No time on this one/.test(srow));
+// It survives a reload — pruneEmptyRuns must not strip it.
+await p.reload(); await p.waitForTimeout(250);
+ok('it survives a reload', (await p.evaluate(() => ((S.days[today()] || {}).runs || []).length)) === 1);
+// And it fills the week's sprint slot.
+const wks = await p.evaluate(() => trainingModel().week);
+ok('it fills the sprint slot', wks.sprints === 1 && wks.byKind.sprint === 1, JSON.stringify(wks.byKind));
+ok('and adds nothing to the hard count', wks.hard === 0, String(wks.hard));
+ok('the effort count agrees', (await p.evaluate(() => effortWeek().hardRuns)) === 0);
+
+// Only sprints get that pass: a 200 m set still needs a time.
+await p.click('[data-t="today"]');
+await p.selectOption('#inRepD', '200');
+await p.fill('#inReps', '5');
+await p.fill('#inTime', '');
+await p.click('#btnAddRun');
+await p.waitForTimeout(150);
+ok('a 200 m set without a time is still refused',
+  (await p.evaluate(() => S.days[today()].runs.length)) === 1 && /needs a time/.test(await p.textContent('#runMsg')),
+  await p.textContent('#runMsg'));
+ok('and the time label goes back to required', !/optional/.test(await p.textContent('#labTime')));
+
 await p.click('[data-t="data"]');
 const checks = await p.$$eval('#dChecks tr', rs => rs.map(x => x.children[0].textContent.trim()));
 ok('every self-check passes', checks.every(x => x === 'ok'), checks.join(','));
