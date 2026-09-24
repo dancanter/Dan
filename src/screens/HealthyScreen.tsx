@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useProgress } from '../hooks/useProgress';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
+import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
 import {
   GUIDE_SECTIONS,
   GUIDE_PHASES,
@@ -130,6 +131,7 @@ function phaseForStage(week: number | null, hasBaby: boolean): GuidePhase {
 export function HealthyScreen() {
   const { markGuideRead, readGuideIds } = useProgress();
   const { currentWeek, hasBaby } = usePregnancyProfile();
+  const { isAfterLoss } = usePregnancyStatus();
   const openPhase = phaseForStage(currentWeek, hasBaby);
   const [params] = useSearchParams();
   // `?q=` lets another screen hand its query over — the food lookup sends
@@ -174,12 +176,36 @@ export function HealthyScreen() {
 
   return (
     <Screen
-      title="Guidance"
+      title="Health & wellbeing"
       lede="Everything that helps, and nothing that doesn’t — pregnancy through to feeding."
     >
+      {/* The wellbeing tools that live in other tabs, linked rather than
+          moved. People come here looking for "health and wellness" and would
+          reasonably expect these to be part of it; moving them would break
+          the tabs they already live in, and linking costs one line. The
+          pregnancy-only two drop out after the birth or a loss, for the same
+          reason the tabs themselves do. */}
+      <nav aria-label="Other wellbeing tools" className="mb-5 flex flex-wrap gap-2">
+        {[
+          { to: '/minute', label: 'Need a minute', pregnancyOnly: false },
+          { to: '/body', label: 'Check a symptom', pregnancyOnly: true },
+          { to: '/movements', label: 'Movement journal', pregnancyOnly: true },
+        ]
+          .filter((t) => !(t.pregnancyOnly && (hasBaby || isAfterLoss)))
+          .map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              className="flex min-h-11 items-center rounded-full border border-line bg-card px-3.5 text-small font-medium text-ink no-underline"
+            >
+              {t.label}
+            </Link>
+          ))}
+      </nav>
+
       <div className="mb-5">
         <label htmlFor="guide-search" className="mb-1.5 block text-small font-semibold">
-          Search the guidance
+          Search health & wellbeing
         </label>
         <input
           id="guide-search"

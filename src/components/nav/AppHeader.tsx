@@ -10,13 +10,27 @@ interface Tab {
   pregnancyOnly?: boolean;
 }
 
+/*
+ * Get Help is second, and that is a safety decision, not a layout one.
+ *
+ * It used to be sixth. The tab bar scrolls sideways on a phone, and measured
+ * on arrival Get Help was 0% visible at 320px, 29% at 375px and 50% at 390px —
+ * on the widths most phones actually are, the one tab that must always be
+ * reachable was the one you had to know to scroll for. Nothing in the
+ * automated audit caught it, because the page itself never scrolled sideways;
+ * only the bar did. Second, it is fully on screen at every width.
+ *
+ * "Health" was "Guidance". It is the health and wellbeing library, and the
+ * old name did not say so. It is also two characters shorter, on a bar that
+ * is short of room.
+ */
 const TABS: Tab[] = [
   { to: '/today', label: 'Home' },
+  { to: '/help', label: 'Get Help', urgent: true },
   { to: '/baby', label: 'Baby', pregnancyOnly: true },
   { to: '/body', label: 'My Body', pregnancyOnly: true },
-  { to: '/healthy', label: 'Guidance' },
+  { to: '/healthy', label: 'Health' },
   { to: '/appointments', label: 'Appointments', pregnancyOnly: true },
-  { to: '/help', label: 'Get Help', urgent: true },
   { to: '/journal', label: 'Journal' },
   { to: '/sources', label: 'Sources' },
 ];

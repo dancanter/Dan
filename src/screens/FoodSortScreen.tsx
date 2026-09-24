@@ -94,7 +94,7 @@ export function FoodSortScreen() {
           different answers, and collapsing them is why the banned list feels far longer than it
           really is. All of it is in{' '}
           <Link to="/healthy" className="underline">
-            Guidance
+            Health
           </Link>
           .
         </>

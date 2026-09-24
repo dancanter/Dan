@@ -25,7 +25,7 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
     entries: [
       {
         to: '/healthy',
-        label: 'Guidance',
+        label: 'Health & wellbeing',
         blurb: `${guides.length} cited entries, pregnancy through to feeding.`,
       },
       {

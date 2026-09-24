@@ -93,7 +93,7 @@ describe('the urgent offer does not become a diagnosis', () => {
         <HealthyScreen />
       </MemoryRouter>,
     );
-    const box = screen.getByLabelText(/search the guidance/i);
+    const box = screen.getByLabelText(/search health/i);
     await user.type(box, 'bleeding');
 
     const panel = screen.getByText(/is this happening now/i).closest('div')!;
@@ -120,7 +120,7 @@ describe('the urgent offer does not become a diagnosis', () => {
         <HealthyScreen />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText(/search the guidance/i), 'bleeding');
+    await user.type(screen.getByLabelText(/search health/i), 'bleeding');
     expect(screen.getByText(/is this happening now/i)).toBeInTheDocument();
     // Someone reading ahead out of interest has not been locked out of the
     // library just because the word they typed is also an urgent one.
@@ -134,7 +134,7 @@ describe('the urgent offer does not become a diagnosis', () => {
         <HealthyScreen />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText(/search the guidance/i), 'reduced movement');
+    await user.type(screen.getByLabelText(/search health/i), 'reduced movement');
 
     const text = container.textContent ?? '';
     const offer = text.indexOf('Is this happening now');
@@ -154,7 +154,7 @@ describe('the urgent offer does not become a diagnosis', () => {
         <HealthyScreen />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText(/search the guidance/i), 'bleeding');
+    await user.type(screen.getByLabelText(/search health/i), 'bleeding');
     const text = (container.textContent ?? '').replace(/\s+/g, ' ');
     expect(text).not.toMatch(/\bi’m bleeding is\b/i);
     expect(text).toContain('“I’m bleeding”');
@@ -167,7 +167,7 @@ describe('the urgent offer does not become a diagnosis', () => {
         <HealthyScreen />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText(/search the guidance/i), 'chest pain');
+    await user.type(screen.getByLabelText(/search health/i), 'chest pain');
     const live = container.querySelector('[aria-live="polite"]')!;
     expect(live.textContent).toMatch(/happening now/i);
   });

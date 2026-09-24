@@ -98,7 +98,7 @@ export function TodayScreen() {
           </Link>
           {' · '}
           <Link to="/healthy" className="underline">
-            Guidance
+            Health
           </Link>
           {' · '}
           <Link to="/changed" className="underline">

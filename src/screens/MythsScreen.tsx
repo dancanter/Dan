@@ -120,7 +120,7 @@ export function MythsScreen() {
         Stop whenever you like — there’s nothing to finish. Everything here is explained in full
         under{' '}
         <Link to="/healthy" className="underline">
-          Guidance
+          Health
         </Link>
         , with the sources behind it.
       </p>
