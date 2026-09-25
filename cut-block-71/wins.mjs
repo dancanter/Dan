@@ -244,7 +244,11 @@ ok('the reverse lede is calories up with the leanness held',
   /hold the weight .{0,20}and.{0,20} the shreds/i.test(tM), (tM.match(/Get the calories[^.]{0,120}/) || [''])[0]);
 M.cut.goals.forEach(g => ok('cut goal listed: ' + g.slice(0, 28), tM.includes(g.replace(/<[^>]+>/g, ''))));
 M.rev.goals.forEach(g => ok('reverse goal listed: ' + g.slice(0, 28), tM.includes(g.replace(/<[^>]+>/g, ''))));
-ok('the goals are numbered, so there is an order', /1 Health held, not spent/.test(tM), tM.slice(0, 260));
+ok('the goals are numbered, so there is an order', /1 Sleep/.test(tM), tM.slice(0, 260));
+// Dan's own order for the cut, 25 Sep.
+ok('his top five, in his order', /1 Sleep.*2 Getting to 122–124 lb.*3 Skincare.*4 Two hard runs a week.*5 Gym goals/.test(tM), tM.slice(0, 400));
+ok('study is kept, after them', /6 Study hours protected/.test(tM));
+ok('the reverse holds 122–124 through Christmas', /Calories up, 122–124 lb held through Christmas/.test(tM));
 ok('the live block is flagged', /Cut Block 71 19 Sep [^ ]+ 28 Nov now/.test(tM), tM.slice(0, 160));
 
 ok('there is a tie-break table', /When two of them pull against each other/.test(tM));

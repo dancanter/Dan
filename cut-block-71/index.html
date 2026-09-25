@@ -188,6 +188,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
+  <div id="xmasCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
   <div id="revNudge"></div>
@@ -467,6 +468,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="revCard"></div>
   <div id="revTop"></div>
   <div id="revLadder"></div>
+  <div id="revXmas"></div>
   <div id="revPhase"></div>
   <div id="revWater"></div>
   <div id="revFace"></div>
@@ -610,6 +612,11 @@ var CFG={
      in, never the target, and there is no four. This counts hard RUNS — a
      heavy leg session is a hard day but it is not one of these. */
   hardRuns:{target:2,cap:3},
+  /* The band he wants to sit in after the cut, through Christmas. Separate
+     from the landing target on purpose: the cut still aims at 122.5, this is
+     where he stays once he is there. */
+  hold:{lo:122,hi:124,until:'2026-12-31'},
+  xmas:{day:'2026-12-25',from:'2026-12-18',to:'2027-01-02',free:2,judge:'2027-01-02'},
   /* Dan's 40-minute test, done before this tracker existed — as many push-ups
      and pull-ups as he can in 40 minutes. It is the number to beat, so it has
      to be on the page rather than in a chat log. Undated because he never
@@ -627,11 +634,14 @@ var CFG={
   mission:{
     cut:{n:'Cut Block 71',w:'19 Sep \u2013 28 Nov',
       lede:'Balance health while getting genuinely shredded \u2014 and keep the times and the study moving through it.',
-      goals:['Health held, not spent','Shredded by 28 November','Looks \u2014 which is downstream of the first two',
-             'Running times improving','Study hours protected']},
+      /* Dan's own order, 25 Sep: "the most important is sleep, getting to my
+         weight, skincare, 2 hard runs per week, and the gym goals". Study was
+         on the earlier list and was not taken off, so it stays, after them. */
+      goals:['Sleep \u2014 the one everything else runs on','Getting to 122\u2013124 lb','Skincare, morning and night',
+             'Two hard runs a week','Gym goals \u2014 the split and the records','Study hours protected']},
     rev:{n:'The reverse',w:'from 29 Nov',
       lede:'Get the calories back up so you hold the weight <i>and</i> the shreds \u2014 then use the energy that comes back to optimise everything else.',
-      goals:['Calories up, leanness held','Hormones and cellular health','Gym strength','Running times',
+      goals:['Calories up, 122\u2013124 lb held through Christmas','Hormones and cellular health','Gym strength','Running times',
              'Study','Looks, on a body that is finally fed']},
     ties:[
       ['Sleep vs anything','Sleep wins, every time. It is the input to the leanness, the hormones, the face, the times and the studying \u2014 nothing on either list survives without it.'],
@@ -3075,6 +3085,7 @@ function render(){
   renderStudy(tr);
   renderTdee();
   renderReverse();
+  renderXmas();
   renderSkin();
   renderRetinol();
   renderWins();
@@ -4393,6 +4404,52 @@ function renderTdee(){
 }
 
 /* ---------- the reverse ---------- */
+/* ===================== Christmas =====================
+   Dan is scared of Christmas: he knows he will eat rubbish and is afraid of
+   putting "a load of weight on". The honest answer is mostly arithmetic, and
+   the arithmetic is on his side — one enormous day is under a pound of fat.
+   What actually costs people is the ten-day drift, so the plan is built
+   against that. For him specifically, the bigger Christmas risk is gluten,
+   not calories, so that is said plainly too. */
+function xmasModel(){
+  var X=CFG.xmas,R=reverseModel(),t=today();
+  var rung=null;
+  for(var i=0;i<R.rungs.length;i++){if(R.rungs[i].from<=X.day&&R.rungs[i].to>=X.day)rung=R.rungs[i];}
+  var eat=rung?rung.kcal:(R.top?R.top.kcal:KCAL_DAY);
+  var big=5000,over=Math.max(0,big-R.maint);
+  return {day:X.day,eat:eat,maint:R.maint,big:big,over:over,fatLb:over/3500,
+          window:t>=X.from&&t<=X.to,daysTo:diffD(t,X.day),weekOf:rung?rung.wk:null};
+}
+function renderXmas(){
+  var M=xmasModel(),H=CFG.hold,X=CFG.xmas;
+  var html='<div class="p flag"><h2>Christmas — smaller than the scale will tell you</h2>'+
+    '<p class="lede">You will be '+(M.weekOf?'<b>week '+M.weekOf+'</b> of the reverse':'on the reverse')+', eating about <b class="num">'+ci(M.eat)+'</b> a day. '+
+    'That is the best position there is to walk into Christmas from.</p>'+
+    '<div class="tiles t4">'+
+    tile('the band',H.lo+'–'+H.hi+' lb','where you stay through Christmas')+
+    tile('a huge day',ci(M.big)+' kcal','about '+ci(M.over)+' over maintenance')+
+    tile('in fat','~'+f1(M.fatLb)+' lb','for that whole day')+
+    tile('free days',X.free,'pick them, enjoy them')+
+    '</div>'+
+    '<p style="margin-top:10px"><b>The maths is on your side.</b> A pound of fat is 3,500 kcal over maintenance. Even a massive Christmas Day is under a pound. '+
+    'The scale will say <b>+3 to +5 lb</b> on the 26th — that is food still in you, carbs and the water they hold, and salty dinners. Most of it is gone within 3–5 days of normal eating.</p>'+
+    '<p class="note"><b>The day is not the danger. The drift is.</b> What actually puts weight on people is 24 December to 1 January turning into ten days of “it’s Christmas”. That is where a real 4–6 lb comes from.</p>'+
+    '<table class="tbl" style="margin-top:8px"><tbody>'+
+    '<tr><td style="width:30%"><b>1. '+X.free+' free days</b></td><td class="note">Pick them — Christmas Day and one other. Eat what you want and do not log it with guilt.</td></tr>'+
+    '<tr><td><b>2. Every other day, the ladder number</b></td><td class="note">About '+ci(M.eat)+'. Same breakfast, same evening bowl, same routine. The routine is what stops one day becoming ten.</td></tr>'+
+    '<tr><td><b>3. Keep the three anchors</b></td><td class="note">Your steps, your two hard runs, and bed on time. Those are what send Christmas food into your muscles as fuel rather than onto you.</td></tr>'+
+    '<tr><td><b>4. Judge it on '+fmtS(X.judge)+'</b></td><td class="note">Not on the 26th. Read the 7-day average a week later. Anywhere back inside '+H.lo+'–'+H.hi+' and Christmas cost you nothing.</td></tr>'+
+    '</tbody></table>'+
+    '<p class="note" style="margin-top:10px"><b>Your real Christmas risk is gluten, not calories.</b> Stuffing, gravy, Yorkshire puddings, pigs in blankets (most sausages have rusk in them), Christmas pudding, mince pies, most crackers and biscuits. '+
+    'Ask, check the label, or bring your own. A gluten hit will do more to your gut, your skin and your face than a week of mince pies ever could.</p></div>';
+  E('revXmas').innerHTML=html;
+  /* on Today, only in the Christmas window, and short */
+  if(M.window){
+    E('xmasCard').innerHTML='<div class="p flag"><h2>Christmas plan</h2>'+
+      '<p class="note"><b>'+X.free+' free days, then the ladder number (~'+ci(M.eat)+').</b> Steps, two hard runs, bed on time. '+
+      'The scale will jump on the 26th — ignore it until '+fmtS(X.judge)+'. And check everything for gluten.</p></div>';
+  }else E('xmasCard').innerHTML='';
+}
 function renderReverse(){
   var R=reverseModel(),c=cutTally();
   var h='<div class="p '+(R.live?'lift':'flag')+'"><h2>The reverse'+(R.live?' · week '+R.cur+' of '+R.weeks:'')+'</h2>';
@@ -4464,6 +4521,7 @@ function renderReverse(){
     '<tr><td><b>The job</b></td><td class="note">Food back to normal without the scale running away. Health and sleep first. Times held, not chased. A bit of muscle if it turns up.</td></tr>'+
     '<tr><td><b>The one rule</b></td><td class="note">Never a hard run in the 24 hours before legs.</td></tr>'+
     '<tr><td><b>The one fear</b></td><td class="note">You will not go puffy. The first weeks usually make your face <b>sharper</b>, not softer — the card below does the maths.</td></tr>'+
+    '<tr><td><b>The band</b></td><td class="note">Stay between <b>'+CFG.hold.lo+' and '+CFG.hold.hi+' lb</b> through Christmas. Christmas has its own card below \u2014 it is smaller than you think.</td></tr>'+
     '<tr><td><b>When it ends</b></td><td class="note">Your call. Say the word and I will set it.</td></tr>'+
     '</tbody></table>'+
     '<p class="tiny" style="margin-top:10px">Everything under here is the detail behind those four lines. You do not need it on a normal day.</p></div>';
