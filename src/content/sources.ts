@@ -85,6 +85,13 @@ export const sources: Source[] = [
     url: 'https://www.nhs.uk/tests-and-treatments/probiotics/',
   },
   {
+    id: 'nhs-bloating',
+    label: 'Bloating — things you can do, and when to see a GP',
+    organisation: 'NHS',
+    tier: 'nhs',
+    url: 'https://www.nhs.uk/symptoms/bloating/',
+  },
+  {
     id: 'nhs-flatulence',
     label: 'Farting (flatulence) — foods that can cause it, and what helps',
     organisation: 'NHS',

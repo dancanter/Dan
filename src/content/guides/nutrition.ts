@@ -129,10 +129,16 @@ export const nutritionGuides: Guide[] = [
     // bacteria, the other feeds them. Only the fermented foods that are safe
     // in pregnancy are named, and kombucha is steered away from.
     //
-    // It does not tell anyone to cut out broccoli or beans. They cause
-    // wind, and they are also among the best folate and fibre foods there
-    // are. The fix for wind is building up slowly and smaller portions, not
-    // dropping the food.
+    // On foods that cause bloating, the order is deliberate: build up
+    // slowly and try smaller portions first, and if a food still disagrees
+    // with you, it is fine to leave it out — which is also what the NHS
+    // bloating advice says. The one condition is swapping it for something
+    // that does the same job, because broccoli and beans are among the best
+    // folate and fibre sources there are, and cutting a whole food group
+    // like dairy loses calcium and iodine that are hard to replace.
+    //
+    // "Listen to your body" is scoped to food tolerance only. It is never
+    // offered about symptoms — for those, the app's answer is always call.
     id: 'gut-health',
     section: 'nutrition',
     title: 'Gut health — fibre, fermented foods, wind and bloating',
@@ -147,7 +153,12 @@ export const nutritionGuides: Guide[] = [
       '**Kombucha is one to skip, or ask your midwife about first.** It is brewed from tea, so it contains caffeine. Fermenting also leaves some alcohol in it, and the amount varies — often more than the label says, and more again in home brews. The NHS says there is no known safe amount of alcohol in pregnancy.',
       '**Probiotic supplements** are generally thought to be safe if your immune system is healthy. But they are sold as food, not medicine, so they are not tested the same way, and you cannot always be sure the bacteria on the label are in the tub. Ask your midwife or pharmacist if you want to try one.',
       '**If fibre gives you wind or bloating**, you are not imagining it. Adding a lot of fibre suddenly is a common cause. Build it up gradually over a few days, and drink plenty — fibre needs water to work. Broccoli, cabbage, cauliflower, sprouts, beans, lentils, onions and dried fruit are the usual suspects.',
-      'Do not cut those foods out, though. They are some of the best sources of folate and fibre there are. Try smaller portions spread through the week, eat slowly, and chew well.',
+      'Try smaller portions spread through the week first, eat slowly, and chew well. That is often enough.',
+      '**Listen to your body.** If a food still gives you too much bloating or discomfort, it is okay to eat less of it or leave it out — even if everyone says it is healthy. It might just not suit you, and that is fine.',
+      'No single food is essential. Just swap it for something that does a similar job, so you still get what it gives you. If broccoli or cabbage disagree with you, try other vegetables. If beans do, get your fibre from oats, wholemeal bread and fruit instead.',
+      'The one exception is a whole food group. If dairy is the problem, talk to your midwife before cutting it out, because calcium and iodine are hard to replace from other foods.',
+      '**Not sure which food it is?** Keep a food and symptom diary for a week: what you ate, and how you felt afterwards. A pattern usually shows up.',
+      'If you are bloated often, very bloated, or it does not go away, tell your midwife or GP. They can refer you to an NHS dietitian.',
       'Wind can be uncomfortable, but it is not the same as severe or constant tummy pain. Pain like that needs a call to your maternity unit, not a change of diet.',
     ],
     sourceIds: [
@@ -158,6 +169,7 @@ export const nutritionGuides: Guide[] = [
       'nhs-probiotics',
       'worcs-high-fibre',
       'nhs-flatulence',
+      'nhs-bloating',
     ],
   },
   {
