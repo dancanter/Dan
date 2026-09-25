@@ -10,70 +10,98 @@ const st = (o = {}) => Object.assign({ weights: {}, days: {}, bests: {}, setting
 const boot = async (s) => { await p.goto(FILE);
   await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, s]);
   await p.reload(); await p.waitForTimeout(250); };
+const txt = async (sel) => (await p.textContent(sel)).replace(/\s+/g, ' ');
 await p.goto(FILE);
 const T = await p.evaluate(() => today());
+const Y = await p.evaluate(() => addD(today(), -1));
+const wkStart = await p.evaluate(() => trainingModel().wkStart);
+const rowOf = (rows, k) => rows.find(r => r[0] === k);
+const plain = s => s.replace(/<[^>]+>/g, '');
 
-// ===== nothing logged: no card, not an empty one ==========================
+// ===== nothing logged: no cards at all ====================================
 await boot(st());
 ok('with nothing logged the day card is absent', (await p.innerHTML('#gainCard')) === '');
 ok('and so is the week card', (await p.innerHTML('#winWeek')) === '');
 
-// ===== a full day ========================================================
-const full = { kcal: 1799, steps: 16000, sleep: 8, study: 2, deep: 1, skinAM: true, skinPM: true, retinol: true, phoneOut: true,
-  gym: true, split: 'back', runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, up: 'some' }, { k: 'reps', dm: 100, n: 8, up: true }] };
-await boot(st({ days: { [T]: full } }));
-let d = (await p.textContent('#gainCard')).replace(/\s+/g, ' ');
-ok('the day card appears', /What today went toward/.test(d), d.slice(0, 80));
-ok('it credits the deficit with a real number', /About [\d,]+ kcal under today/.test(d) && /g of fat/.test(d));
-const g = await p.evaluate(() => dayGains(today()));
-const def = await p.evaluate(() => tdeeFor(today()).deficit);
-ok('and the number is the model deficit, rounded', new RegExp('About ' + (Math.round(def / 10) * 10).toLocaleString('en-GB') + ' kcal').test(d), String(def));
-ok('the hard session is credited with its comparison', /a hard session/.test(d) && /1\.9 s off the 2026 best/.test(d));
-ok('the untimed sprints are credited too', /8 × 100m uphill/.test(d) && /top-end speed/.test(d));
-ok('the gym session names the split', /Back \+ biceps/.test(d) && /muscle kept/.test(d));
-ok('study hours are counted', /2\.0 h studied, 1\.0 h of it deep work/.test(d));
-ok('sleep at the line is credited', /8\.0 h of sleep/.test(d));
-ok('skin and retinol are credited', /retinol night on schedule/.test(d));
-ok('phone out is credited', /Phone out of the room/.test(d));
-ok('steps target is credited', /16,000 steps/.test(d));
-ok('it is a 1% day', /1% day/.test(d) && await p.evaluate(() => onePctDay(today())));
+// ===== every logged field gets its own feedback line =====================
+// Dan asked for a feedback column beside each thing he logs.
+const full = { kcal: 1799, steps: 16000, sleep: 8, rhr: 60, study: 2, deep: 1,
+  gym: true, split: 'back', gymRpe: 7,
+  runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, up: 'some', gap: 147, rpe: 8 }, { k: 'reps', dm: 100, n: 8, up: true }] };
+await boot(st({ weights: { [Y]: 129.0, [T]: 128.7 }, days: { [T]: full } }));
+let rows = await p.evaluate(() => dayFeedback(today()));
+const keys = rows.map(r => r[0]);
+for (const k of ['Weight', 'Resting HR', 'Food', 'Steps', 'Sleep', 'Run', 'Gym', 'Study'])
+  ok('there is a feedback row for ' + k, keys.includes(k), keys.join(','));
+ok('every row has something in the feedback column', rows.every(r => plain(r[2]).trim().length > 5), JSON.stringify(rows.map(r => r[2].length)));
 
-// No invented percentages anywhere — the one number with a % in it is the label.
+// 128.7 after 129.0 is also the lowest reading of the cut, and that wins.
+ok('the lowest reading of the cut is called out', /Lowest of the cut so far/.test(rowOf(rows, 'Weight')[2]), rowOf(rows, 'Weight')[2]);
+ok('a drop is marked as a win', rowOf(rows, 'Weight')[3] === 'g');
+ok('resting HR explains the baseline is still building', /building your baseline/.test(rowOf(rows, 'Resting HR')[2]));
+const def = await p.evaluate(() => tdeeFor(today()).deficit);
+ok('food gives the deficit as a real number', new RegExp((Math.round(def / 10) * 10).toLocaleString('en-GB') + ' kcal under maintenance').test(plain(rowOf(rows, 'Food')[2])), rowOf(rows, 'Food')[2]);
+ok('steps say target hit and by how much', /Target hit, 1,000 over/.test(plain(rowOf(rows, 'Steps')[2])), rowOf(rows, 'Steps')[2]);
+ok('steps say what the walking burned', /kcal of walking/.test(rowOf(rows, 'Steps')[2]));
+ok('sleep over the line is a win', rowOf(rows, 'Sleep')[3] === 'g' && /Over the line/.test(rowOf(rows, 'Sleep')[2]));
+const runs = rows.filter(r => r[1].includes('×'));
+ok('both runs get their own line', runs.length === 2, JSON.stringify(runs.map(r => r[1])));
+ok('the rep set is compared with the 2026 best', /1\.9 s off your 2026 best/.test(plain(runs[0][2])), runs[0][2]);
+ok('with its GAP', /GAP 2:27\/km/.test(runs[0][2]));
+ok('and how it felt', /Felt a 8/.test(runs[0][2]));
+ok('untimed sprints fill the sprint slot', /Sprint slot filled/.test(runs[1][2]));
+ok('the gym row names the split', rowOf(rows, 'Gym')[1] === 'Back + biceps');
+ok('and how long since it was last trained', /First time this block|Last trained \d+ days ago/.test(rowOf(rows, 'Gym')[2]));
+ok('study shows the week so far', /h this week so far/.test(plain(rowOf(rows, 'Study')[2])));
+
+let d = await txt('#gainCard');
+ok('the card is titled "Today, read back"', /Today, read back/.test(d), d.slice(0, 80));
+ok('it counts the wins', /\d+ wins?/.test(d));
+ok('and marks a 1% day', /1% day/.test(d) && await p.evaluate(() => onePctDay(today())));
 ok('no fabricated improvement percentages', !/\d+(\.\d+)?% (better|improv|leaner|stronger|faster)/i.test(d), d);
 
-// ===== a partial day: credited for what happened, never scolded ==========
-await boot(st({ days: { [T]: { sleep: 6, study: 3 } } }));
-d = (await p.textContent('#gainCard')).replace(/\s+/g, ' ');
-ok('a short-sleep day still gets its study credited', /3\.0 h studied/.test(d), d.slice(0, 200));
-ok('short sleep is simply not credited, not scolded', !/6\.0 h of sleep/.test(d) && !/missed|failed|short of/i.test(d));
-ok('and it is not a 1% day', !(await p.evaluate(() => onePctDay(today()))));
-ok('the card explains what a 1% day is', /A 1% day is food logged, sleep at 7\.5 h and your steps target/.test(d));
-ok('and that rest days count', /Rest days count/.test(d));
+// ===== bad days are described, never told off ============================
+await boot(st({ weights: { [Y]: 128.0, [T]: 128.9 }, days: { [T]: { sleep: 6, kcal: 2400, steps: 5000 } } }));
+rows = await p.evaluate(() => dayFeedback(today()));
+const all = rows.map(r => plain(r[2])).join(' ');
+ok('a gain on the scale is put against the normal swing', /\+0\.9 on /.test(plain(rowOf(rows, 'Weight')[2])), rowOf(rows, 'Weight')[2]);
+ok('short sleep gets a way back, not a telling-off', /early night tonight pays it back/.test(all));
+ok('over budget is one day moving nothing', /one day moves nothing/.test(all));
+ok('steps short is just the number', /short of/.test(all));
+ok('no scolding words anywhere', !/failed|missed|bad|too much|shouldn/i.test(all), all);
+ok('and none of those rows is marked a win', rows.filter(r => ['Sleep', 'Steps'].includes(r[0])).every(r => r[3] === ''));
 
-// A surplus day does not get a fat credit, and is not told off either.
-await boot(st({ days: { [T]: { kcal: 3200, steps: 3000 } } }));
-d = (await p.textContent('#gainCard')).replace(/\s+/g, ' ');
-ok('a day over maintenance claims no fat lost', !/g of fat/.test(d));
-ok('and is not scolded for it', !/over|too much|surplus/i.test(d));
+// ===== calisthenics days show the test and the record ====================
+await boot(st({ days: { [T]: { gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 } } }));
+rows = await p.evaluate(() => dayFeedback(today()));
+ok('the calisthenics row names the test', rowOf(rows, 'Gym')[1] === 'Push-ups + pull-ups, 40 min', rowOf(rows, 'Gym')[1]);
+ok('and calls a record a record', /New record: 430 \+ 135 = 565/.test(plain(rowOf(rows, 'Gym')[2])) && rowOf(rows, 'Gym')[3] === 'g');
+ok('with the next target', /Next time: 566/.test(plain(rowOf(rows, 'Gym')[2])));
 
-// ===== the week ==========================================================
-const wkStart = await p.evaluate(() => trainingModel().wkStart);
-await boot(st({ days: { [wkStart]: { kcal: 1799, steps: 16000, sleep: 8, gym: true, split: 'legs', study: 3 },
-                        [T]: full } }));
+// ===== the week, read back ===============================================
+await boot(st({ weights: { [wkStart]: 129.0, [T]: 128.4 },
+  days: { [wkStart]: { kcal: 1799, steps: 16000, sleep: 8, gym: true, split: 'legs', study: 3, rhr: 60 },
+          [T]: Object.assign({}, full, { gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 }) } }));
 await p.click('[data-t="wins"]');
-let w = (await p.textContent('#winWeek')).replace(/\s+/g, ' ');
+let w = await txt('#winWeek');
 const W = await p.evaluate(() => weekGains());
-ok('the week card appears on Wins', /This week went toward/.test(w), w.slice(0, 80));
-ok('1% days are counted', new RegExp('1% days\\s*' + W.onePct + ' / ' + W.days).test(w), w.slice(0, 160));
-ok('the compounding tile is 1.01 to that power', new RegExp('×' + Math.pow(1.01, W.onePct).toFixed(3)).test(w));
-ok('and it is labelled as the idea, not a measurement', /The compounding number is the idea, not a measurement/.test(w));
-ok('the week deficit converts to pounds', /lb of fat/.test(w) && Math.abs(W.def) > 0);
-ok('sessions are split by kind', /hard/.test(w) && /sprint/.test(w));
-ok('the best rep set is named against the 2026 best', /Best: 5 × 200m part uphill/.test(w));
-ok('gym sessions are counted', /2 gym sessions/.test(w), w);
-ok('study hours are summed', /5\.0 h, 1\.0 h deep/.test(w), w);
-ok('nights at the line are counted', /2 of 2 nights at the sleep line/.test(w));
-ok('looks is stated as inputs over weeks, not a score', /it shows over weeks, not days/.test(w) && !/\d+% (better|leaner)/i.test(w));
+ok('the week card is called Your week', /Your week/.test(w), w.slice(0, 60));
+ok('it opens with a highlight reel', /So far: /.test(w), w.slice(0, 200));
+ok('the reel names the calisthenics record', /565-rep calisthenics record/.test(w));
+ok('and the fat gone', /lb of fat gone/.test(w));
+ok('1% days are counted', new RegExp('1% days\\s*' + W.onePct + ' / ' + W.days).test(w), w.slice(0, 260));
+ok('there is a streak tile', /streak\s*\d+ days?/.test(w));
+ok('the compounding tile projects to 28 Nov', /at this rate ×[\d.]+ by 28 Nov/.test(w));
+ok('and says it is for fun', /The × number is for fun/.test(w));
+for (const k of ['Weight', 'Food', 'Steps', 'Sleep', 'Runs', 'Gym', 'Study'])
+  ok('the week has a row for ' + k, new RegExp(k).test(w));
+ok('gym lists the splits and the test', /Legs/.test(w) && /430 \+ 135 = 565, a record/.test(w));
+ok('a real new low makes the reel', /a new low of 128\.4 lb/.test(w), w.slice(0, 200));
+// But the very first reading of the cut is not a "new low" — there is nothing
+// before it to be lower than. That was the week-one bug.
+await boot(st({ weights: { [wkStart]: 127.0, [T]: 128.4 }, days: { [T]: { kcal: 1799 } } }));
+await p.click('[data-t="wins"]');
+ok('the first reading is never called a new low', !/new low/.test(await txt('#winWeek')), (await txt('#winWeek')).slice(0, 200));
 
 // ===== nothing broke =====================================================
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {

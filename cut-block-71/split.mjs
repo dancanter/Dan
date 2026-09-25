@@ -137,8 +137,8 @@ await p.click('[data-t="training"]');
 cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
 ok('the panel shows 565 as 430 + 135', /best session\s*565 reps\s*430 \+ 135/.test(cz), (cz.match(/best session.{0,50}/) || [''])[0]);
 ok('and the target moves to 566', /to beat it\s*566 reps/.test(cz));
-const g24 = await p.evaluate((d) => dayGains(d).filter(x => x.c === 'Strength').map(x => x.t).join(' '), yday);
-ok('the day card credits the whole session', /430 push-ups \+ 135 pull-ups = 565 reps/.test(g24), g24);
+const g24 = await p.evaluate((d) => dayFeedback(d).filter(x => x[0] === 'Gym').map(x => x[2].replace(/<[^>]+>/g, '')).join(' '), yday);
+ok('the day card credits the whole session', /430 \+ 135 = 565/.test(g24), g24);
 ok('and flags it as a record', /record/.test(g24));
 
 // A push-ups-only test must not touch the combined record, and vice versa.

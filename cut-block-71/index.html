@@ -2534,66 +2534,134 @@ function tdeeCheck(){
    known intake measure his deficit directly: whatever he ate, plus whatever
    the weight says he was short by, is what holds him level. That number only
    gets better as the block runs, and a table of estimates never would. */
-/* ===================== what the day and the week went toward =====================
-   Dan asked for a "you've likely improved on this" line at the end of the day
-   and the week. The rule that keeps it honest: it only credits what he logged,
-   it uses a real number wherever one exists, and where nothing can be measured
-   from a single day - the face, hormones - it names what the day went TOWARD
-   instead of printing a percentage that would only look measured. */
+/* ===================== feedback on what he logs =====================
+   Dan asked for a line of feedback beside everything he logs, and the week
+   read back as a whole, simple and interesting. Same rule as before: every
+   line is built from a logged number compared against something real — his
+   own average, his baseline, his target, his 2026 best. Nothing is scored
+   that was not measured, and a bad day is described, never told off. */
 var KCAL_PER_G_FAT=7.7;
 function onePctDay(is){
   var r=S.days[is]||{};
   return typeof r.kcal==='number'&&typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line&&
          typeof r.steps==='number'&&r.steps>=stepTarget(is);
 }
-function dayGains(is){
-  var r=S.days[is]||{},out=[],x,i,m;
-  var logged=typeof r.kcal==='number'||typeof r.steps==='number';
-  if(logged){
+function onePctStreak(){
+  var t=today(),n=0,d=t;
+  if(!onePctDay(d))d=addD(d,-1);            /* today may still be in progress */
+  while(onePctDay(d)&&d>=CFG.cutStart){n++;d=addD(d,-1);}
+  return n;
+}
+function prevReading(is){
+  var rs=readings().filter(function(r){return r.d<is;});
+  return rs.length?rs[rs.length-1]:null;
+}
+function lastSplitBefore(k,is){
+  var best=null;
+  for(var d in S.days){if(d<is&&S.days[d].gym&&S.days[d].split===k&&(!best||d>best))best=d;}
+  return best;
+}
+/* one row per thing logged: [what, logged, feedback, tone] — tone is 'g'
+   for a clear win and '' for everything else */
+function dayFeedback(is){
+  var r=S.days[is]||{},rows=[],x,i,m;
+  var W=S.weights[is];
+  if(typeof W==='number'){
+    var pv=prevReading(is),av=avgWindow(is,7),wm=weightModel(),fb,tone='';
+    var lowToday=wm.low&&wm.low.d===is&&cutReadings().length>1;
+    if(lowToday){fb='<b>Lowest of the cut so far.</b>';tone='g';}
+    else if(av.avg!==null&&av.n>=3&&W<=av.avg-0.2){fb='Under your 7-day average by <b>'+f1(av.avg-W)+' lb</b> — the trend is moving.';tone='g';}
+    else if(pv){
+      var dd=W-pv.lb;
+      var rs=readings().filter(function(q){return q.d<=is&&diffD(q.d,is)<14;}).map(function(q){return q.lb;});
+      var sw=rs.length>2?Math.max.apply(null,rs)-Math.min.apply(null,rs):null;
+      fb=(dd>0?'+':(dd<0?'−':'±'))+f1(Math.abs(dd))+' on '+fmtS(pv.d)+(sw!==null&&Math.abs(dd)<sw?' — inside your normal swing of '+f1(sw)+' lb. Only the average counts.':'.');
+      if(dd<0)tone='g';
+    }else fb='First reading — everything gets compared to this.';
+    rows.push(['Weight',f1(W)+' lb',fb,tone]);
+  }
+  if(typeof r.rhr==='number'){
+    var R=rhrModel(),fb2,t2='';
+    if(R.ready){
+      var dlt=r.rhr-R.baseAvg;
+      if(dlt>=RHR_BIG)fb2='<b>'+Math.round(dlt)+' over your baseline</b> — go easy today.';
+      else if(dlt<=-RHR_FLAG){fb2=Math.round(-dlt)+' under your baseline — fresh. Good day for a hard one.';t2='g';}
+      else fb2='Level with your baseline of '+Math.round(R.baseAvg)+'.';
+    }else fb2='Morning <b>'+R.n+'</b> of about 14 — building your baseline. The drift is what counts, not today’s number.';
+    rows.push(['Resting HR',r.rhr+' bpm',fb2,t2]);
+  }
+  if(typeof r.kcal==='number'){
     x=tdeeFor(is);
-    if(x.deficit>50)out.push({c:'Shredded',t:'About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal</b> under today — roughly <b>'+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g</b> of fat.'});
+    var fk=r.kcal<=KCAL_DAY+25?'On budget.':(ci(r.kcal-KCAL_DAY)+' over budget — one day moves nothing.');
+    if(x.deficit>50)fk+=' About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal under maintenance</b> — roughly '+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g of fat.';
+    rows.push(['Food',ci(r.kcal)+' kcal',fk,x.deficit>50?'g':'']);
   }
-  var rs=r.runs||[];
-  for(i=0;i<rs.length;i++){
-    m=runMeta(rs[i]);if(m.empty)continue;
-    if(m.sprint)out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — top-end speed and power kept, the part of fitness that fades fastest in a cut.'});
-    else if(m.hard){
-      var cmp=repCompare(m);
-      out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — a hard session, the kind that moves VO₂ max and your times.'+(cmp?' <span class="tiny">'+cmp+'</span>':'')});
-    }else out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — aerobic base: more capillaries, more mitochondria, easier hard days.'});
+  if(typeof r.steps==='number'){
+    x=tdeeFor(is);var tg=stepTarget(is),gap=r.steps-tg;
+    rows.push(['Steps',ci(r.steps),(gap>=0?'<b>Target hit</b>'+(gap>0?', '+ci(gap)+' over':''):ci(-gap)+' short of '+ci(tg))+
+      (x.walkKcal?' — about '+ci(Math.round(x.walkKcal/10)*10)+' kcal of walking.':'.'),gap>=0?'g':'']);
   }
-  var ct=calisType(r);
-  if(r.gym&&ct){
-    /* a calisthenics test is credited as the test it was, against the
-       record for that test only */
-    var CX=calisRecords(),tn=CFG.calis.types.filter(function(x){return x.k===ct;})[0].n,isRec=false,txt;
-    if(ct==='both'){
-      var tot=(r.push||0)+(r.pull||0);
-      isRec=!!(CX.both.best&&CX.both.best.d===is);
-      txt='<b>'+ci(r.push||0)+' push-ups + '+ci(r.pull||0)+' pull-ups = '+ci(tot)+' reps</b>';
-    }else if(ct==='push'){isRec=!!(CX.push.best&&CX.push.best.d===is);txt='<b>'+ci(r.push||0)+' push-ups</b>';}
-    else{isRec=!!(CX.pull.best&&CX.pull.best.d===is);txt='<b>'+ci(r.pull||0)+' pull-ups</b>';}
-    out.push({c:'Strength',t:tn+', '+CFG.calis.mins+' min — '+txt+(isRec?' <span class="pill g">record</span>':'')+'.'});
-  }else if(r.gym)out.push({c:'Strength',t:(r.split?'<b>'+esc(splitName(r.split))+'</b>':'<b>Gym</b>')+' — muscle kept through the deficit. The weight on the bar is what tells your body to hold onto it.'});
-  if(typeof r.study==='number'&&r.study>0)out.push({c:'Study',t:'<b>'+f1(r.study)+' h</b> studied'+(typeof r.deep==='number'&&r.deep>0?', <b>'+f1(r.deep)+' h</b> of it deep work':'')+'.'});
-  if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)out.push({c:'Health',t:'<b>'+f1(r.sleep)+' h</b> of sleep — at the line. Recovery, hormones and the face all get paid for here.'});
-  if(r.skinAM&&r.skinPM)out.push({c:'Looks',t:'Skin routine done morning and night'+(r.retinol?', and a retinol night on schedule':'')+'.'});
-  if(r.phoneOut)out.push({c:'Health',t:'Phone out of the room — better sleep than the hours alone say.'});
-  if(typeof r.steps==='number'&&r.steps>=stepTarget(is))out.push({c:'Shredded',t:'<b>'+ci(r.steps)+'</b> steps — target hit.'});
-  return out;
+  if(typeof r.sleep==='number'){
+    var ok=r.sleep>=CFG.sleep.line;
+    rows.push(['Sleep',f1(r.sleep)+' h',ok?'<b>Over the line.</b> Best recovery tool you have, and it is free.':
+      f1(CFG.sleep.line-r.sleep)+' h under the line — an early night tonight pays it back.',ok?'g':'']);
+  }
+  var rs2=r.runs||[],pbs=pbList().filter(function(p){return p.now.date===is;});
+  for(i=0;i<rs2.length;i++){
+    m=runMeta(rs2[i]);if(m.empty)continue;
+    var fr,tr2='';
+    if(m.untimed)fr='Sprint slot filled — top-end speed kept, the part that fades fastest in a cut.';
+    else if(m.kind==='reps'&&m.dm&&m.repAvg!==null&&BESTAVG[m.dm]){
+      var gp=m.repAvg-BESTAVG[m.dm];
+      fr=secFmt(m.repAvg)+' a rep — '+(gp<0?'<b>under your 2026 best</b>':f1(gp)+' s off your 2026 best of '+secFmt(BESTAVG[m.dm]))+
+        (m.gap?' (GAP '+pace(m.gap)+')':'')+'.';
+      if(gp<0)tr2='g';
+    }else if(m.hard)fr='Hard effort at '+pace(m.pace)+' — the kind that moves your times.';
+    else fr='Easy'+(m.pace?' at '+pace(m.pace):'')+' — aerobic base, the floor the hard days stand on.';
+    if(typeof rs2[i].rpe==='number')fr+=' Felt a '+rs2[i].rpe+'.';
+    if(pbs.length&&i===0){fr='<b>New best: '+pbs.map(function(p){return repLabel(p.dm)+' '+secFmt(p.now.t);}).join(', ')+'.</b> '+fr;tr2='g';}
+    rows.push([i===0?'Run':'',esc(m.label),fr,tr2]);
+  }
+  if(r.gym){
+    var ct=calisType(r);
+    if(ct){
+      var CX=calisRecords(),tn=CFG.calis.types.filter(function(q){return q.k===ct;})[0].n,got,rec=false,nxt;
+      if(ct==='both'){got=ci(r.push||0)+' + '+ci(r.pull||0)+' = '+ci((r.push||0)+(r.pull||0));rec=!!(CX.both.best&&CX.both.best.d===is);nxt=CX.both.best?CX.both.best.total+1:null;}
+      else if(ct==='push'){got=ci(r.push||0);rec=!!(CX.push.best&&CX.push.best.d===is);nxt=CX.push.best?CX.push.best.v+1:null;}
+      else{got=ci(r.pull||0);rec=!!(CX.pull.best&&CX.pull.best.d===is);nxt=CX.pull.best?CX.pull.best.v+1:null;}
+      rows.push(['Gym',tn+', '+CFG.calis.mins+' min',(rec?'<b>New record: '+got+'.</b> ':got+'. ')+(nxt?'Next time: '+ci(nxt)+'.':''),rec?'g':'']);
+    }else{
+      var prev=r.split?lastSplitBefore(r.split,is):null;
+      var fg=r.split?(prev?'Last trained '+diffD(prev,is)+' days ago.':'First time this block.'):'Pick which session on the log so it lands on the split.';
+      fg+=' Muscle held while the fat comes off.';
+      if(typeof r.gymRpe==='number')fg+=' Felt a '+r.gymRpe+'.';
+      rows.push(['Gym',r.split?esc(splitName(r.split)):'Gym',fg,'']);
+    }
+  }
+  if(typeof r.study==='number'&&r.study>0){
+    var wk=weekGains();
+    rows.push(['Study',f1(r.study)+' h'+(typeof r.deep==='number'&&r.deep>0?' ('+f1(r.deep)+' deep)':''),'<b>'+f1(wk.study)+' h</b> this week so far.','']);
+  }
+  return rows;
 }
 function weekGains(){
-  var tr=trainingModel(),t=today(),w=tr.week,out={days:0,onePct:0,def:0,defDays:0,study:0,deep:0,sleepOk:0,sleepN:0,skin:0,best:null};
+  var tr=trainingModel(),t=today(),w=tr.week;
+  var out={from:tr.wkStart,days:0,onePct:0,def:0,defDays:0,kcalN:0,study:0,deep:0,sleepSum:0,sleepOk:0,sleepN:0,
+           steps:0,stepsT:0,stepsN:0,rhr:[],skin:0,best:null,splits:[],calis:null,pbs:[],newLow:null};
   for(var i=0;i<=diffD(tr.wkStart,tr.wkEnd);i++){
     var d=addD(tr.wkStart,i);if(d>t)break;
     out.days++;
     var r=S.days[d]||{};
     if(onePctDay(d))out.onePct++;
+    if(typeof r.kcal==='number')out.kcalN++;
     if(typeof r.kcal==='number'||typeof r.steps==='number'){var x=tdeeFor(d);out.def+=x.deficit;out.defDays++;}
+    if(typeof r.steps==='number'){out.steps+=r.steps;out.stepsT+=stepTarget(d);out.stepsN++;}
     if(typeof r.study==='number')out.study+=r.study;
     if(typeof r.deep==='number')out.deep+=r.deep;
-    if(typeof r.sleep==='number'){out.sleepN++;if(r.sleep>=CFG.sleep.line)out.sleepOk++;}
+    if(typeof r.sleep==='number'){out.sleepN++;out.sleepSum+=r.sleep;if(r.sleep>=CFG.sleep.line)out.sleepOk++;}
+    if(typeof r.rhr==='number')out.rhr.push(r.rhr);
     if(r.skinAM&&r.skinPM)out.skin++;
+    if(r.gym&&r.split&&!calisType(r))out.splits.push(splitName(r.split));
     (r.runs||[]).forEach(function(rr){
       var m=runMeta(rr);
       if(m.empty||m.kind!=='reps'||!m.dm||m.repAvg===null)return;
@@ -2602,40 +2670,73 @@ function weekGains(){
       if(!out.best||gap<out.best.gap)out.best={d:d,label:m.label,avg:m.repAvg,ref:ref,gap:gap};
     });
   }
+  var CX=calisRecords();
+  ['both','push','pull'].forEach(function(k){
+    var b=CX[k].best;if(b&&b.d&&b.d>=out.from&&b.d<=t)out.calis={k:k,b:b};
+  });
+  out.pbs=pbList().filter(function(p){return p.now.date>=out.from&&p.now.date<=t;});
+  var wm=weightModel(),cr=cutReadings();
+  if(wm.low&&wm.low.d>=out.from&&cr.length&&cr[0].d<wm.low.d)out.newLow=wm.low;
   out.w=w;
   return out;
 }
 function renderGains(){
-  var t=today(),g=dayGains(t);
-  if(!g.length){E('gainCard').innerHTML='';}
+  var t=today(),rows=dayFeedback(t);
+  if(!rows.length){E('gainCard').innerHTML='';}
   else{
-    var pct=onePctDay(t);
-    E('gainCard').innerHTML='<div class="p good"><h2>What today went toward'+(pct?' <span class="pill g">1% day</span>':'')+'</h2>'+
-      '<table class="tbl"><tbody>'+g.map(function(x){return '<tr><td style="width:24%"><span class="pill">'+x.c+'</span></td><td class="note">'+x.t+'</td></tr>';}).join('')+
-      '</tbody></table>'+
-      (pct?'<p class="tiny" style="margin-top:8px">Food logged, sleep at the line, steps hit. That is a 1% day — not because anything measured 1%, but because these are the days that compound.</p>'
-          :'<p class="tiny" style="margin-top:8px">A <b>1% day</b> is food logged, sleep at '+f1(CFG.sleep.line)+' h and your steps target. Rest days count — there is no session in it on purpose.</p>')+
+    var pct=onePctDay(t),wins=rows.filter(function(r){return r[3]==='g';}).length;
+    E('gainCard').innerHTML='<div class="p good"><h2>Today, read back'+(pct?' <span class="pill g">1% day</span>':'')+
+      ' <span class="tiny dim">'+wins+' win'+(wins===1?'':'s')+'</span></h2>'+
+      '<div class="scroll"><table class="tbl"><tbody>'+rows.map(function(r){
+        return '<tr><td style="width:18%"><b>'+r[0]+'</b></td><td class="mono" style="width:24%">'+r[1]+'</td>'+
+          '<td class="note">'+(r[3]==='g'?'<span class="gd">▲</span> ':'')+r[2]+'</td></tr>';}).join('')+
+      '</tbody></table></div>'+
+      (pct?'':'<p class="tiny" style="margin-top:8px">A <b>1% day</b> is food logged, sleep at '+f1(CFG.sleep.line)+' h and your steps target. Rest days count.</p>')+
       '</div>';
   }
-  var W=weekGains(),w=W.w,lines=[];
-  if(W.defDays)lines.push(['Shredded','About <b>'+ci(Math.round(W.def/10)*10)+' kcal</b> under across '+W.defDays+' logged day'+(W.defDays===1?'':'s')+' — roughly <b>'+f1(W.def/3500)+' lb</b> of fat.']);
-  var ses=[];
-  if(w.hard)ses.push(w.hard+' hard');if(w.easy)ses.push(w.easy+' easy');if(w.sprints)ses.push(w.sprints+' sprint');
-  if(ses.length)lines.push(['Running','<b>'+ses.join(', ')+'</b> session'+(w.runs===1?'':'s')+'.'+
-    (W.best?' Best: <b>'+esc(W.best.label)+'</b> at '+secFmt(W.best.avg)+' a rep — '+(W.best.gap<0?'<b>under</b> your 2026 best':f1(W.best.gap)+' s off your 2026 best of '+secFmt(W.best.ref))+'.':'')]);
-  if(w.gym)lines.push(['Strength','<b>'+w.gym+'</b> gym session'+(w.gym===1?'':'s')+' — muscle held while the fat comes off.']);
-  if(W.study)lines.push(['Study','<b>'+f1(W.study)+' h</b>'+(W.deep?', '+f1(W.deep)+' h deep':'')+'.']);
-  if(W.sleepN)lines.push(['Health','<b>'+W.sleepOk+' of '+W.sleepN+'</b> nights at the sleep line.']);
-  if(W.defDays||W.sleepN)lines.push(['Looks','Leaner by the deficit above, '+W.sleepOk+' good nights, salt steady'+(W.skin?', skin done '+W.skin+' day'+(W.skin===1?'':'s'):'')+'. Those are the inputs that actually change the face — it shows over weeks, not days.']);
-  if(!lines.length){E('winWeek').innerHTML='';return;}
-  var comp=Math.pow(1.01,W.onePct);
-  E('winWeek').innerHTML='<div class="p lift"><h2>This week went toward</h2>'+
-    '<div class="tiles t4">'+
+  renderWeek();
+}
+function renderWeek(){
+  var W=weekGains(),w=W.w,rows=[],hi=[];
+  /* the highlight reel: the best things that happened, in one line */
+  if(W.calis){var cb=W.calis.b;hi.push(W.calis.k==='both'?'a '+ci(cb.total)+'-rep calisthenics record':(W.calis.k==='push'?'a push-up record':'a pull-up record'));}
+  W.pbs.forEach(function(p){hi.push('a '+repLabel(p.dm)+' best of '+secFmt(p.now.t));});
+  if(W.newLow)hi.push('a new low of '+f1(W.newLow.lb)+' lb');
+  if(W.defDays&&W.def>0)hi.push('about '+f1(W.def/3500)+' lb of fat gone');
+  if(W.onePct)hi.push(W.onePct+' one-percent day'+(W.onePct===1?'':'s'));
+  var streak=onePctStreak();
+  /* weight: this week's average against last week's */
+  var a=avgWindow(today(),7),b=avgWindow(addD(today(),-7),7);
+  if(a.avg!==null)rows.push(['Weight',f1(a.avg)+' lb avg',(b.avg!==null&&b.n>=2&&a.n>=2)?
+    ((a.avg<b.avg?'<span class="gd">▼</span> '+f1(b.avg-a.avg)+' lb on last week.':'▲ '+f1(a.avg-b.avg)+' lb on last week — read the fortnight, not the week.')):
+    a.n+' morning'+(a.n===1?'':'s')+' this week — the week-on-week comparison starts next week.']);
+  if(W.rhr.length){var R=rhrModel(),ra=mean(W.rhr);
+    rows.push(['Resting HR',Math.round(ra)+' bpm avg',R.ready?((ra-R.baseAvg>=RHR_FLAG)?'Up on your baseline — the week has cost something.':'Level with your baseline — recovering fine.'):W.rhr.length+' mornings logged — baseline still building.']);}
+  if(W.kcalN)rows.push(['Food',W.kcalN+' of '+W.days+' days',W.def>0?'About <b>'+ci(Math.round(W.def/10)*10)+' kcal</b> under maintenance — roughly <b>'+f1(W.def/3500)+' lb</b> of fat.':'Logged.']);
+  if(W.stepsN)rows.push(['Steps',ci(Math.round(W.steps/W.stepsN))+' a day',W.steps>=W.stepsT?'<b>On target</b> across '+W.stepsN+' days.':ci(W.stepsT-W.steps)+' short across '+W.stepsN+' days.']);
+  if(W.sleepN)rows.push(['Sleep',f1(W.sleepSum/W.sleepN)+' h avg',W.sleepOk+' of '+W.sleepN+' nights over the line.']);
+  var ses=[];if(w.hard)ses.push(w.hard+' hard');if(w.easy)ses.push(w.easy+' easy');if(w.sprints)ses.push(w.sprints+' sprint');
+  if(ses.length)rows.push(['Runs',w.runs+' run'+(w.runs===1?'':'s'),ses.join(', ')+'. '+
+    (w.hard>CFG.hardRuns.cap?'<b>Over your ceiling of '+CFG.hardRuns.cap+'.</b> ':(w.hard===CFG.hardRuns.cap?'At your ceiling — fine this week, not every week. ':''))+
+    (W.best?'Best: '+esc(W.best.label)+' at '+secFmt(W.best.avg)+' a rep, '+(W.best.gap<0?'<b>under</b> your 2026 best':f1(W.best.gap)+' s off your 2026 best')+'.':'')]);
+  if(w.gym)rows.push(['Gym',w.gym+' session'+(w.gym===1?'':'s'),(W.splits.length?W.splits.join(', '):'')+
+    (W.calis?(W.splits.length?', plus ':'')+'the calisthenics test'+(W.calis.k==='both'?' — '+ci(W.calis.b.push)+' + '+ci(W.calis.b.pull)+' = '+ci(W.calis.b.total)+', a record':' — a record'):'')+'.']);
+  if(W.study)rows.push(['Study',f1(W.study)+' h',W.deep?(Math.abs(W.deep-W.study)<0.05?'All of it deep work.':f1(W.deep)+' h of it deep work.'):'']);
+  if(!rows.length){E('winWeek').innerHTML='';return;}
+  var comp=Math.pow(1.01,W.onePct),weeksLeft=Math.max(0,diffD(today(),CFG.cutEnd)/7),perWk=W.days?W.onePct/W.days*7:0;
+  var proj=Math.pow(1.01,W.onePct+perWk*weeksLeft);
+  E('winWeek').innerHTML='<div class="p lift"><h2>Your week</h2>'+
+    (hi.length?'<p class="lede">So far: '+hi.slice(0,-1).join(', ')+(hi.length>1?' and ':'')+hi[hi.length-1]+'.</p>':'')+
+    '<div class="tiles t4" style="margin-top:10px">'+
     tile('1% days',W.onePct+' / '+W.days,'this week so far')+
-    tile('compounded',W.onePct?('×'+comp.toFixed(3)):'—','1.01 to the power of your 1% days')+
+    tile('streak',streak+' day'+(streak===1?'':'s'),streak?'1% days in a row':'starts with your next 1% day')+
+    tile('compounded','×'+comp.toFixed(2),'at this rate ×'+proj.toFixed(2)+' by 28 Nov')+
+    tile('fat gone',W.def>0?'~'+f1(W.def/3500)+' lb':'—','this week, from the deficit')+
     '</div>'+
-    '<table class="tbl" style="margin-top:10px"><tbody>'+lines.map(function(x){return '<tr><td style="width:24%"><span class="pill">'+x[0]+'</span></td><td class="note">'+x[1]+'</td></tr>';}).join('')+'</tbody></table>'+
-    '<p class="tiny" style="margin-top:8px">The compounding number is the idea, not a measurement — nothing on this page can weigh how much better you got in a week. What it can do is count the days you did the things that make you better.</p></div>';
+    '<div class="scroll" style="margin-top:10px"><table class="tbl"><tbody>'+rows.map(function(r){
+      return '<tr><td style="width:18%"><b>'+r[0]+'</b></td><td class="mono" style="width:24%">'+r[1]+'</td><td class="note">'+r[2]+'</td></tr>';}).join('')+
+    '</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px">The × number is for fun — 1% for every day you did the basics. The rest of this card is measured.</p></div>';
 }
 /* ===================== the three new signals =====================
    Resting heart rate, how hard sessions actually felt, and whether anything
