@@ -39,7 +39,7 @@ describe('what changed since last time', () => {
 
   it('counts weeks, and flags a new trimester', () => {
     show(11, 14);
-    expect(screen.getByText(/week 14 now — 3 weeks on/i)).toBeTruthy();
+    expect(screen.getByText(/week 14 now, 3 weeks on/i)).toBeTruthy();
     expect(screen.getByText(/new trimester/i)).toBeTruthy();
   });
 

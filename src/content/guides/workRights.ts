@@ -27,7 +27,7 @@ export const workRightsGuides: Guide[] = [
   {
     id: 'time-off',
     section: 'work-rights',
-    title: 'Time off for appointments — you’re paid for it',
+    title: 'Time off for appointments: you’re paid for it',
     summary: 'Your employer must give you paid time off at your normal rate.',
     body: [
       'Your employer must give you time off for antenatal care and **pay your normal rate for it**. Your partner has the right to unpaid time off for two antenatal appointments.',
@@ -41,7 +41,7 @@ export const workRightsGuides: Guide[] = [
     title: 'When to tell your employer',
     summary: 'At least 15 weeks before the week your baby is due.',
     body: [
-      'At least 15 weeks before the week your baby is due. If that’s not possible — for example if you didn’t know you were pregnant — tell them as soon as you can.',
+      'At least 15 weeks before the week your baby is due. If that’s not possible, for example if you didn’t know you were pregnant, tell them as soon as you can.',
       'You’ll also need to tell them when you want your maternity leave and pay to start.',
     ],
     sourceIds: ['govuk-employee-rights'],
@@ -49,11 +49,11 @@ export const workRightsGuides: Guide[] = [
   {
     id: 'workplace-risk',
     section: 'work-rights',
-    title: 'Health and safety at work — a legal duty, not a favour',
+    title: 'Health and safety at work: a legal duty, not a favour',
     summary: 'Your employer must assess risks and remove them, or suspend you on full pay.',
     body: [
       'Once you tell your employer you’re pregnant, they **must** assess risks to you and your baby. Risks include heavy lifting or carrying, standing or sitting for long periods without adequate breaks, exposure to toxic substances, and long working hours.',
-      'Where risks exist, your employer must take reasonable steps to remove them — offering different work or changing your hours. **If they can’t remove the risk, they must suspend you on full pay.**',
+      'Where risks exist, your employer must take reasonable steps to remove them: offering different work or changing your hours. **If they can’t remove the risk, they must suspend you on full pay.**',
       'They must also provide a suitable place for you to rest.',
       'If your employer disagrees there’s a risk: speak to your health and safety or trade union representative. If they still won’t act, talk to your doctor or contact the Health and Safety Executive directly.',
     ],
@@ -66,8 +66,8 @@ export const workRightsGuides: Guide[] = [
     summary: 'No minimum service needed. Redundancy protection lasts 18 months from birth.',
     body: [
       'It’s against the law to dismiss, discriminate against, or harass you because you’re pregnant, a new mother, or breastfeeding. **There’s no minimum length of service needed** for this protection, and it covers contract, agency and apprentice workers too.',
-      'If you’re selected for redundancy, you have the right to be offered a suitable alternative job if one exists — **even if colleagues are more suitable for the role**. This protection starts the day you tell your employer you’re pregnant and lasts up to 18 months from your child’s birth.',
-      'If you believe you’ve been discriminated against, you can complain to your employer, and they should investigate promptly. Do it as soon as possible — but a late complaint should still be taken seriously. Acas offers free, confidential, impartial advice on all of this.',
+      'If you’re selected for redundancy, you have the right to be offered a suitable alternative job if one exists, **even if colleagues are more suitable for the role**. This protection starts the day you tell your employer you’re pregnant and lasts up to 18 months from your child’s birth.',
+      'If you believe you’ve been discriminated against, you can complain to your employer, and they should investigate promptly. Do it as soon as possible, but a late complaint should still be taken seriously. Acas offers free, confidential, impartial advice on all of this.',
     ],
     sourceIds: ['govuk-employee-rights', 'acas-discrimination'],
   },

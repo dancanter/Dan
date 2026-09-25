@@ -10,7 +10,7 @@ interface Props {
 
 function shortSource(sourceIds: string[]): string {
   const first = sourceIds.map((id) => sourceById.get(id)).find((s) => s !== undefined);
-  return first ? first.organisation.split(',')[0].split('—')[0].trim() : '';
+  return first ? first.organisation.split(/[,:—]/)[0].trim() : '';
 }
 
 export function FocusList({ items, week, isTicked, onToggle }: Props) {

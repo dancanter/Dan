@@ -150,7 +150,7 @@ export const GUIDE_SECTIONS: SectionMeta[] = [
     id: 'preconception',
     phase: 'pregnancy',
     label: 'Planning a pregnancy',
-    blurb: 'For a next one, or a first — the things that work better done in advance.',
+    blurb: 'For a next one, or a first: the things that work better done in advance.',
   },
 
   // ── Birth ──────────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ export const GUIDE_SECTIONS: SectionMeta[] = [
     id: 'birth-place',
     phase: 'birth',
     label: 'Where and how',
-    blurb: 'Hospital, birth centre, home — and types of delivery.',
+    blurb: 'Hospital, birth centre, home, and types of delivery.',
   },
   {
     id: 'labour',

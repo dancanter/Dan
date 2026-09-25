@@ -44,7 +44,7 @@ export function UsualPattern() {
         </h2>
         <p className="m-0 whitespace-pre-wrap text-body leading-relaxed">{saved}</p>
         <p className="mt-3 border-l-2 border-alert pl-3 text-small leading-relaxed">
-          If today is different from this, that is a reason to call — not a reason to wait and see.
+          If today is different from this, that is a reason to call, not a reason to wait and see.
           This note cannot tell you your baby is well.{' '}
           <Link to="/help/movements" className="font-semibold underline">
             What to do
@@ -73,7 +73,7 @@ export function UsualPattern() {
         What’s usual for your baby?
       </h2>
       <p className="mb-3 text-small leading-relaxed text-soft">
-        There is no normal number of movements — only what is normal for yours. Writing it down now,
+        There is no normal number of movements, only what is normal for yours. Writing it down now,
         while you are not worried, gives you something to compare against when you are.
       </p>
 

@@ -36,7 +36,7 @@ function deadlineLine(t: EntitlementTiming): string | null {
     return entitlement.opensWeek === null ? null : `Opens at week ${entitlement.opensWeek}`;
   }
   if (weeksToDeadline < 0) return `Was week ${entitlement.deadlineWeek}`;
-  if (weeksToDeadline === 0) return `This week — week ${entitlement.deadlineWeek}`;
+  if (weeksToDeadline === 0) return `This week: week ${entitlement.deadlineWeek}`;
   if (weeksToDeadline === 1) return '1 week away';
   return `${weeksToDeadline} weeks away`;
 }
@@ -125,15 +125,15 @@ export function EntitlementsScreen() {
       title="Money, forms and deadlines"
       lede={
         currentWeek
-          ? `Where each of these stands at week ${currentWeek}. Nothing here is tracked or ticked off — it reads off the week you are in.`
+          ? `Where each of these stands at week ${currentWeek}. Nothing here is tracked or ticked off. It reads off the week you are in.`
           : 'Ordered as they come up in a pregnancy. Set a due date and this reorders around the week you are in.'
       }
       width="default"
     >
       <p className="mb-6 rounded-xl border border-line bg-card px-4 py-3 text-body leading-relaxed">
         No amounts are printed here. Payment rates change every April, and a figure sitting in an
-        app is a figure going quietly out of date — so each of these links to the body that
-        publishes the current one.
+        app is a figure going quietly out of date, so each of these links to the body that publishes
+        the current one.
       </p>
 
       {ORDER.map((status) => {
@@ -176,8 +176,8 @@ export function EntitlementsScreen() {
       })}
 
       <p className="mt-8 text-body leading-relaxed text-soft">
-        This covers the schemes with a timing attached. Your rights at work — appointments, health
-        and safety, and redundancy protection — are in{' '}
+        This covers the schemes with a timing attached. Your rights at work (appointments, health
+        and safety, and redundancy protection) are in{' '}
         <Link to="/healthy?q=work" className="font-semibold underline">
           the guidance library
         </Link>

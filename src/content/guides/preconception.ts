@@ -23,9 +23,9 @@ export const preconceptionGuides: Guide[] = [
     title: 'The things that work better done in advance',
     summary: 'Roughly three months ahead is the useful window.',
     body: [
-      'Plenty of pregnancies are not planned, so this is worth a read even if you are not actively trying — and if you are already pregnant, start where you are rather than counting what you missed.',
+      'Plenty of pregnancies are not planned, so this is worth a read even if you are not actively trying. If you are already pregnant, start where you are rather than counting what you missed.',
       'About three months before conceiving is the window where preparation actually changes something. Not because anything goes wrong otherwise, but because several of these take weeks to have an effect.',
-      '**Folic acid, 400 micrograms a day**, ideally from three months before and through the first 12 weeks. A prescription-only 5mg dose applies to some people — that, and who it applies to, is in Supplements.',
+      '**Folic acid, 400 micrograms a day**, ideally from three months before and through the first 12 weeks. A prescription-only 5mg dose applies to some people. That, and who it applies to, is in Supplements.',
       '**Check your MMR is up to date.** It cannot be given during pregnancy, so before is the only opportunity. If you need a dose, you are advised to avoid getting pregnant for a month afterwards, which means planning contraception around it rather than stopping immediately.',
       '**Stopping smoking and alcohol helps from the day you stop**, whenever that is. There is no point at which it is too late to be worth doing.',
     ],
@@ -37,7 +37,7 @@ export const preconceptionGuides: Guide[] = [
     title: 'Existing conditions, and medicines, before rather than after',
     summary: 'Getting a condition stable first is measurably different from adjusting later.',
     body: [
-      'If you have a long-term condition — asthma, diabetes, epilepsy, a thyroid problem, high blood pressure — the useful thing is to have it well controlled **before** conceiving, rather than adjusting once a test is positive.',
+      'If you have a long-term condition (asthma, diabetes, epilepsy, a thyroid problem, high blood pressure), the useful thing is to have it well controlled **before** conceiving, rather than adjusting once a test is positive.',
       'That is not the same advice as "manage your condition", which you are already doing. It is specifically about the sequence. Some medicines need switching to a different one, and a switch takes time to settle, which is time you have before and do not have after.',
       'Ask your specialist or GP for a conversation about this early. Some conditions have a dedicated pre-conception clinic.',
       '**Never stop a prescribed medicine on your own** because you are trying to conceive. Stopping suddenly is frequently more dangerous than carrying on, and the decision belongs with the person who prescribed it.',

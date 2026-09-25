@@ -34,7 +34,7 @@ interface PostnatalFocusRule {
 const RULES: PostnatalFocusRule[] = [
   {
     id: 'pn-skin-to-skin',
-    text: 'Skin-to-skin whenever you can — it settles them, and it helps feeding.',
+    text: 'Skin-to-skin whenever you can: it settles them, and it helps feeding.',
     sourceIds: ['nhs-early-days'],
     applies: (w) => w < 3,
   },
@@ -52,7 +52,7 @@ const RULES: PostnatalFocusRule[] = [
   },
   {
     id: 'pn-feed-on-demand',
-    text: 'Feed on demand — newborns feed often, and that is how it is meant to work.',
+    text: 'Feed on demand: newborns feed often, and that is how it is meant to work.',
     sourceIds: ['nhs-breastfeeding'],
     applies: (w) => w < 8,
   },
@@ -70,13 +70,13 @@ const RULES: PostnatalFocusRule[] = [
   },
   {
     id: 'pn-eat-drink',
-    text: 'Eat something and drink something. Genuinely — it gets skipped constantly.',
+    text: 'Eat something and drink something. Really. It gets skipped constantly.',
     sourceIds: ['nhs-breastfeeding'],
     applies: (w) => w < 12,
   },
   {
     id: 'pn-pelvic-floor',
-    text: 'Pelvic floor exercises — you can start these straight away, gently.',
+    text: 'Pelvic floor exercises: you can start these straight away, gently.',
     sourceIds: ['nhs-fit-with-baby'],
     applies: (w) => w >= 1,
   },
@@ -88,13 +88,13 @@ const RULES: PostnatalFocusRule[] = [
   },
   {
     id: 'pn-book-check',
-    text: 'Book or attend your 6-week check — yours, not just the baby’s.',
+    text: 'Book or attend your 6-week check: yours, not just the baby’s.',
     sourceIds: ['nhs-postnatal-check'],
     applies: (w) => w >= 4 && w <= 9,
   },
   {
     id: 'pn-contraception',
-    text: 'Worth sorting contraception — fertility can return from 21 days after birth.',
+    text: 'Worth sorting contraception: fertility can return from 21 days after birth.',
     sourceIds: ['nhs-sex-contraception-after'],
     applies: (w) => w >= 3 && w <= 12,
   },
@@ -139,7 +139,7 @@ const READ_RULES: PostnatalReadRule[] = [
   },
   {
     guideId: 'postnatal-bleeding',
-    title: 'Postnatal bleeding — and when it’s not normal',
+    title: 'Postnatal bleeding, and when it’s not normal',
     why: 'What is normal, and the point at which it is a 999 call.',
     from: 0,
     to: 6,
@@ -160,7 +160,7 @@ const READ_RULES: PostnatalReadRule[] = [
   },
   {
     guideId: 'tongue-tie',
-    title: 'Tongue-tie — common and fixable',
+    title: 'Tongue-tie: common and fixable',
     why: 'Around 1 in 6 babies. Worth asking about specifically if feeding hurts.',
     from: 1,
     to: 8,
@@ -168,7 +168,7 @@ const READ_RULES: PostnatalReadRule[] = [
   {
     guideId: 'breastfeeding-problems',
     title: 'Common problems and what actually helps',
-    why: 'Sore nipples, mastitis, thrush — most are fixable without stopping.',
+    why: 'Sore nipples, mastitis, thrush: most are fixable without stopping.',
     from: 1,
     to: 12,
   },
@@ -182,7 +182,7 @@ const READ_RULES: PostnatalReadRule[] = [
   {
     guideId: 'body-after-birth',
     title: 'Your body after birth',
-    why: 'Separated stomach muscles, pelvic floor and back pain — all common.',
+    why: 'Separated stomach muscles, pelvic floor and back pain: all common.',
     from: 2,
     to: 16,
   },
@@ -230,7 +230,7 @@ const READ_RULES: PostnatalReadRule[] = [
   },
   {
     guideId: 'lasting-problems',
-    title: 'Problems that last — the honest one',
+    title: 'Problems that last: the honest one',
     why: 'The honest picture on problems that last longer than people are told.',
     from: 8,
     to: 52,
@@ -238,7 +238,7 @@ const READ_RULES: PostnatalReadRule[] = [
   {
     guideId: 'feeding-vitamins-solids',
     title: 'Vitamin D, solids and allergenic foods',
-    why: 'Solids from around 6 months — worth reading a few weeks ahead.',
+    why: 'Solids from around 6 months: worth reading a few weeks ahead.',
     from: 18,
     to: 30,
   },

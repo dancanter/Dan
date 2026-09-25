@@ -67,7 +67,7 @@ export function PregnancyChangedScreen() {
   return (
     <Screen
       title="My pregnancy has changed"
-      lede="You don’t have to record anything about what happened — there is nowhere in this app to put it. Choose whichever of these is closest, and you can change your mind later."
+      lede="You don’t have to record anything about what happened. There is nowhere in this app to put it. Choose whichever of these is closest, and you can change your mind later."
       width="focus"
     >
       <div className="space-y-3">
@@ -131,7 +131,7 @@ export function PregnancyChangedScreen() {
           to="/today"
           className="block w-full rounded-xl border border-line px-4 py-4 text-center text-read font-medium text-soft no-underline"
         >
-          Nothing — go back
+          Nothing, go back
         </Link>
       </div>
 
@@ -149,7 +149,7 @@ export function PregnancyChangedScreen() {
           </h2>
           <p className="mb-3 text-body leading-relaxed">
             Some people want these later, even if they don’t want them now. You can save a copy to
-            your device first — nothing is sent anywhere.
+            your device first. Nothing is sent anywhere.
           </p>
 
           {/* Says what will go, rather than "everything" and hoping. */}
@@ -173,7 +173,7 @@ export function PregnancyChangedScreen() {
               copy" without this would be a promise the export does not keep. */}
           {stored && stored.photos > 0 && (
             <p className="mb-3 text-small leading-relaxed text-soft">
-              That file holds your written entries. Photos aren’t in it —{' '}
+              That file holds your written entries. Photos aren’t in it, so{' '}
               <Link to="/gallery" className="underline">
                 save them from the gallery
               </Link>{' '}

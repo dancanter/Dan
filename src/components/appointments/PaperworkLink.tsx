@@ -30,7 +30,7 @@ export function PaperworkLink({ week }: { week: number }) {
       <span className="label-mono text-mossd">Money, forms and deadlines</span>
       <p className="mt-1 mb-0 text-body font-semibold leading-snug text-ink underline">
         {live.length > 0
-          ? `${live[0].entitlement.title} — and the rest of the dates`
+          ? `${live[0].entitlement.title}, and the rest of the dates`
           : 'Maternity pay, free prescriptions, the grants'}
       </p>
       <p className="m-0 mt-1 text-small leading-relaxed text-soft">

@@ -117,7 +117,7 @@ export function MythsScreen() {
       {/* No score, no streak, no "4 of 16". Stopping after one is a complete
           use of this, and a progress fraction would quietly say otherwise. */}
       <p className="mt-6 text-body leading-relaxed text-soft">
-        Stop whenever you like — there’s nothing to finish. Everything here is explained in full
+        Stop whenever you like: there’s nothing to finish. Everything here is explained in full
         under{' '}
         <Link to="/healthy" className="underline">
           Health

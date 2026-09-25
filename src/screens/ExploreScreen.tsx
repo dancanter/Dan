@@ -52,7 +52,7 @@ const GROUPS: { heading: string; entries: Entry[] }[] = [
       {
         to: '/body',
         label: 'My body',
-        blurb: 'Symptoms — why they happen, and when to check.',
+        blurb: 'Symptoms: why they happen, and when to check.',
         pregnancyOnly: true,
       },
       {

@@ -54,7 +54,7 @@ export function BodyScreen() {
 
       {shown.length === 0 && (
         <p className="mb-4 text-body leading-relaxed text-soft">
-          Nothing here matches that. This section covers the everyday symptoms — if what you’re
+          Nothing here matches that. This section covers the everyday symptoms. If what you’re
           feeling is sudden or severe,{' '}
           <Link to="/help" className="font-semibold text-alert underline">
             Get help
@@ -136,7 +136,7 @@ export function BodyScreen() {
           the list itself is not the authority. */}
       <Note tone="warn" title="Trust your instinct over any list">
         Everything here describes the ordinary version of a thing. If yours feels sudden, severe or
-        simply not right, that is reason enough —{' '}
+        simply not right, that is reason enough.{' '}
         <Link to="/help" className="font-semibold text-alert underline">
           Get help
         </Link>{' '}

@@ -28,7 +28,7 @@ export function DeadlinesNote({ week }: { week: number }) {
         {raising.length === 1 ? 'One thing with a deadline' : 'Two things with deadlines'}
       </h2>
       <p className="mt-1 text-small text-soft">
-        Paperwork rather than pregnancy — but these ones have money or legal rights attached.
+        Paperwork rather than pregnancy, but these ones have money or legal rights attached.
       </p>
 
       <ul className="mt-3 flex list-none flex-col gap-3 p-0">

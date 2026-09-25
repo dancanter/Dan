@@ -127,15 +127,15 @@ export function MovementsScreen() {
 
       {strength === 'faint' && (
         <p className="mt-2 rounded-r-lg border-l-[3px] border-l-alert bg-alertp px-4 py-3 text-body">
-          You’ve noted this felt fainter than usual. That is worth a phone call, not a wait — use
-          the button at the top of this screen.
+          You’ve noted this felt fainter than usual. That is worth a phone call, not a wait. Use the
+          button at the top of this screen.
         </p>
       )}
 
       <SectionHeading>When your baby tends to be active</SectionHeading>
       {hours.size === 0 ? (
         <p className="text-body italic text-soft">
-          Nothing logged in the last week yet. There’s no right amount to log — a few entries at
+          Nothing logged in the last week yet. There’s no right amount to log: a few entries at
           different times of day is enough to start seeing a shape.
         </p>
       ) : (
@@ -160,7 +160,7 @@ export function MovementsScreen() {
           </ul>
           <p className="mt-2 text-small italic text-soft">
             Hours you’ve logged something in the last 7 days. This is a memory aid, not an
-            assessment — a quiet hour here means nothing on its own.
+            assessment: a quiet hour here means nothing on its own.
           </p>
         </>
       )}
@@ -168,7 +168,7 @@ export function MovementsScreen() {
       <SectionHeading>Recent entries</SectionHeading>
       {recent.length === 0 ? (
         <p className="text-body leading-relaxed text-soft">
-          Nothing noted yet. Add one whenever you happen to notice — there’s no schedule to keep to,
+          Nothing noted yet. Add one whenever you happen to notice. There’s no schedule to keep to,
           and gaps here don’t mean anything.
         </p>
       ) : (
@@ -186,7 +186,7 @@ export function MovementsScreen() {
                     minute: '2-digit',
                   })}
                 </strong>
-                {' — '}
+                {' · '}
                 {MOVEMENT_KINDS.find((k) => k.value === e.kind)?.label}
                 {', '}
                 {MOVEMENT_STRENGTHS.find((s) => s.value === e.strength)?.label?.toLowerCase()}
@@ -205,8 +205,8 @@ export function MovementsScreen() {
       )}
 
       <p className="mt-8 border-t border-line pt-4 text-small leading-relaxed text-soft">
-        There is no target number of movements and no need to count kicks — NHS and RCOG guidance
-        are explicit about this.{' '}
+        There is no target number of movements and no need to count kicks. NHS and RCOG guidance are
+        explicit about this.{' '}
         <Link to="/help/movements" className="underline">
           What to do if the pattern changes
         </Link>

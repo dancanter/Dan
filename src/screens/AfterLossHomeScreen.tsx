@@ -63,7 +63,7 @@ export function AfterLossHomeScreen() {
             onClick={() => setOpenGuarded(true)}
             className="mb-8 min-h-11 w-full rounded-lg border border-line px-4 py-3 text-body text-soft"
           >
-            {section.title} — tap if you want to read this
+            {section.title}: tap if you want to read this
           </button>
         ),
       )}

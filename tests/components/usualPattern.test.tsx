@@ -52,7 +52,7 @@ describe('the usual-pattern note', () => {
 
     expect(screen.getByText('Busy late evening.')).toBeInTheDocument();
     // Never shown without this. The note must not read as reassurance.
-    expect(screen.getByText(/reason to call — not a reason to wait and see/i)).toBeInTheDocument();
+    expect(screen.getByText(/reason to call, not a reason to wait and see/i)).toBeInTheDocument();
     expect(screen.getByText(/cannot tell you your baby is well/i)).toBeInTheDocument();
   });
 

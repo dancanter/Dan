@@ -24,14 +24,14 @@ export const multiplesGuides: Guide[] = [
   {
     id: 'chorionicity',
     section: 'multiples',
-    title: 'Chorionicity — the thing your first scan is really establishing',
+    title: 'Chorionicity: the thing your first scan is really establishing',
     summary: 'Whether they share a placenta matters more than whether they are identical.',
     body: [
       'At the scan between 11 and 14 weeks, alongside dating and screening, your team works out whether your babies each have their own placenta or share one. This is called chorionicity, and it is the single fact that shapes the rest of your care.',
       'It matters more than whether the babies are identical, which is the thing everyone else will ask about. Sharing a placenta means sharing a blood supply, and that is what determines how closely you are monitored.',
-      '**Dichorionic diamniotic (DCDA)** — separate placenta, separate sac each. All non-identical twins are this, and some identical ones.',
-      '**Monochorionic diamniotic (MCDA)** — one shared placenta, separate sacs. Closer monitoring, because of the risks that come with a shared blood supply.',
-      '**Monochorionic monoamniotic (MCMA)** — one placenta and one sac between them. Rare, and monitored the most closely of all.',
+      '**Dichorionic diamniotic (DCDA)**: separate placenta, separate sac each. All non-identical twins are this, and some identical ones.',
+      '**Monochorionic diamniotic (MCDA)**: one shared placenta, separate sacs. Closer monitoring, because of the risks that come with a shared blood supply.',
+      '**Monochorionic monoamniotic (MCMA)**: one placenta and one sac between them. Rare, and monitored the most closely of all.',
       'If nobody has told you which you are, ask. It determines your scan schedule and your planned birth date, so it is not a technicality.',
     ],
     sourceIds: ['nice-ng137'],
@@ -58,7 +58,7 @@ export const multiplesGuides: Guide[] = [
       'In monochorionic twins, the blood vessels the babies share in the placenta can connect unevenly, so one baby passes more blood to the other than it receives back. This is twin-to-twin transfusion syndrome, and it affects around **15% of monochorionic diamniotic pregnancies**.',
       'It is picked up on the routine fortnightly scans. You would not notice it yourself, which is the whole point of scanning that often.',
       'If it is found, you are referred to a specialist fetal medicine team. There are treatments, and being referred quickly is what the monitoring schedule exists to make possible.',
-      'The same scans also watch for one baby growing more slowly than the other, and for twin anaemia polycythaemia sequence — a related problem with how blood is shared.',
+      'The same scans also watch for one baby growing more slowly than the other, and for twin anaemia polycythaemia sequence: a related problem with how blood is shared.',
     ],
     sourceIds: ['nice-ng137'],
   },
@@ -69,7 +69,7 @@ export const multiplesGuides: Guide[] = [
     summary: 'DCDA 37 weeks · MCDA 36 · MCMA 32–34 · triplets 35.',
     body: [
       'Multiple pregnancies are planned to end earlier than singleton ones, because the risk of stillbirth rises sooner. NICE sets these timings:',
-      '**Dichorionic diamniotic twins — 37 weeks.** **Monochorionic diamniotic twins — 36 weeks**, earlier because the fetal death rate is consistently higher when a placenta is shared. **Monochorionic monoamniotic twins — between 32 and 34 weeks.** **Triplets with separate sacs — 35 weeks.**',
+      '**Dichorionic diamniotic twins: 37 weeks.** **Monochorionic diamniotic twins: 36 weeks**, earlier because the fetal death rate is consistently higher when a placenta is shared. **Monochorionic monoamniotic twins: between 32 and 34 weeks.** **Triplets with separate sacs: 35 weeks.**',
       'Triplets who share an amnion are not given a standard date. NICE says that timing should be decided with you individually, because there was no evidence to set a general rule from.',
       'If you would rather not have a planned birth at that point, that is a decision you are allowed to make. What changes is the monitoring: weekly appointments with an obstetrician, and a growth scan every fortnight instead.',
     ],
@@ -78,7 +78,7 @@ export const multiplesGuides: Guide[] = [
   {
     id: 'multiples-mode-of-birth',
     section: 'multiples',
-    title: 'Vaginal birth or caesarean — often genuinely your choice',
+    title: 'Vaginal birth or caesarean: often genuinely your choice',
     summary: 'Both safe if four conditions are met. More than a third change route.',
     body: [
       'People often assume twins mean an automatic caesarean. NICE says that where all of these hold, planned vaginal birth and planned caesarean are both safe choices, and which one you have is yours to decide.',

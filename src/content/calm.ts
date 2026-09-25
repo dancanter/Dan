@@ -60,8 +60,8 @@ export const calmExercises: CalmExercise[] = [
     kind: 'noticing',
     steps: [
       'Put your feet flat on the floor, or lie on your side.',
-      'Pick one thing to notice — the weight of your hands, the sound of the room, the air on your face.',
-      'When your attention wanders off to the appointment, the list, the worry — that is not failing. Noticing it wandered is the whole exercise.',
+      'Pick one thing to notice: the weight of your hands, the sound of the room, the air on your face.',
+      'When your attention wanders off to the appointment, the list, the worry. That is not failing. Noticing it wandered is the whole exercise.',
       'Bring it back. Then do that again for a minute or so.',
     ],
     sourceIds: ['babbar-2021', 'abera-2024'],
@@ -89,7 +89,7 @@ export const calmFacts: CalmFact[] = [
     sourceIds: ['nct-emotions'],
   },
   {
-    text: 'Pooling 32 trials of nearly 4,000 women, relaxation reduced stress, worry and low mood on proper scales. You do not need an app or a class — five minutes of slow breathing counts.',
+    text: 'Pooling 32 trials of nearly 4,000 women, relaxation reduced stress, worry and low mood on proper scales. You do not need an app or a class: five minutes of slow breathing counts.',
     sourceIds: ['abera-2024'],
   },
 ];

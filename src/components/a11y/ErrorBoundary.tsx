@@ -57,10 +57,10 @@ export class ErrorBoundary extends Component<Props, State> {
           href="tel:999"
           className="mb-6 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-lead font-semibold text-alert no-underline"
         >
-          Call 999 — emergency
+          Call 999 (emergency)
         </a>
         <p className="mb-6 text-body leading-relaxed text-soft">
-          If you have your maternity unit’s number saved on your phone, call that first — they would
+          If you have your maternity unit’s number saved on your phone, call that first. They would
           always rather hear from you.
         </p>
 

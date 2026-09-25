@@ -29,7 +29,7 @@ export function SettingsScreen() {
   async function handleReset() {
     if (
       window.confirm(
-        'This clears everything Field Notes has saved on this device — your due date, journal, notes, movements, saved maternity number and any bump photos. Continue?',
+        'This clears everything Field Notes has saved on this device. Your due date, journal, notes, movements, saved maternity number and any bump photos. Continue?',
       )
     ) {
       await wipeAllLocalData();

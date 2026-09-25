@@ -69,7 +69,7 @@ export function AppHeader() {
           <div>
             <span className="font-display text-title font-bold">Field Notes</span>
             <small className="label-mono mt-0.5 block font-normal text-mossd">
-              A pregnancy guide — by Dan Canter
+              A pregnancy guide by Dan Canter
             </small>
           </div>
           <span className="label-mono rounded-full border border-line bg-mossp px-2.5 py-1 font-normal text-mossd">

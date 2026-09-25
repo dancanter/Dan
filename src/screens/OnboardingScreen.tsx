@@ -81,10 +81,10 @@ export function OnboardingScreen() {
         >
           Field Notes
         </h1>
-        <p className="label-mono text-mossd">A pregnancy guide — by Dan Canter</p>
+        <p className="label-mono text-mossd">A pregnancy guide by Dan Canter</p>
         <p className="mt-4 text-body text-soft">
           Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
-          account, no tracking — everything stays on your device.
+          account, no tracking: everything stays on your device.
         </p>
         <p className="mt-2 text-small text-soft">
           Your due date is the only thing needed to start. Anything else is asked later, and only

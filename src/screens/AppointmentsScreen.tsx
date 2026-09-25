@@ -28,7 +28,7 @@ export function AppointmentsScreen() {
   return (
     <Screen title="Appointments" lede="What’s coming up, and how to get the most from it.">
       <Note tone="calm" title="Starting your care">
-        You don’t need a GP referral — self-refer for NHS pregnancy care as soon as you know you’re
+        You don’t need a GP referral: self-refer for NHS pregnancy care as soon as you know you’re
         pregnant. Search “self-refer maternity” plus your area, or ask your GP surgery.
         <br />
         <br />
@@ -86,8 +86,8 @@ export function AppointmentsScreen() {
             <p className="m-0 text-body text-soft">
               Around week {next.week}
               {next.week > currentWeek
-                ? ` — about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
-                : ' — around now'}
+                ? `, about ${next.week - currentWeek} week${next.week - currentWeek === 1 ? '' : 's'} away`
+                : ', around now'}
             </p>
 
             {toAsk.length > 0 && (
@@ -201,9 +201,9 @@ export function AppointmentsScreen() {
         <div className="px-4 pb-3.5">
           <RichText
             paragraphs={[
-              'It’s the longest one — around an hour. Your midwife takes a full history: your health, mental health, home situation, work, and lifestyle. Blood pressure, urine test, and a blood test for your blood group and iron.',
-              'You’ll also be asked routine questions about domestic abuse and FGM. These are asked of *everyone*, not because anything is suspected — it’s how support gets offered to people who need it.',
-              'You’ll be given your maternity notes (app, book, or folder). Keep them with you at all times — if you need urgent care anywhere, staff can read your full pregnancy history.',
+              'It’s the longest one, around an hour. Your midwife takes a full history: your health, mental health, home situation, work, and lifestyle. Blood pressure, urine test, and a blood test for your blood group and iron.',
+              'You’ll also be asked routine questions about domestic abuse and FGM. These are asked of *everyone*, not because anything is suspected. It’s how support gets offered to people who need it.',
+              'You’ll be given your maternity notes (app, book, or folder). Keep them with you at all times. If you need urgent care anywhere, staff can read your full pregnancy history.',
             ]}
           />
           <EvidenceNote sourceIds={['nhs-antenatal-care']} />

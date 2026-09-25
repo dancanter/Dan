@@ -36,7 +36,7 @@ export const MOODS = [
   {
     value: 'Tired',
     emoji: '😴',
-    message: 'Tiredness in pregnancy is real, physical and expected — not a failing.',
+    message: 'Tiredness in pregnancy is real, physical and expected, not a failing.',
   },
   {
     value: 'Anxious',

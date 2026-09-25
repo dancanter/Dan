@@ -89,7 +89,7 @@ export function PromptCard({
 export function NothingToFinish({ children }: { children: ReactNode }) {
   return (
     <p className="mt-6 text-body leading-relaxed text-soft">
-      Stop whenever you like — there’s nothing to finish. {children}
+      Stop whenever you like: there’s nothing to finish. {children}
     </p>
   );
 }

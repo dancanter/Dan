@@ -11,7 +11,7 @@ export const appointments: Appointment[] = [
     week: 12,
     title: 'Dating scan',
     detail:
-      "Confirms your due date and checks development. Screening for Down's, Edwards' and Patau's syndromes is offered — entirely your choice.",
+      "Confirms your due date and checks development. Screening for Down's, Edwards' and Patau's syndromes is offered. It is entirely your choice.",
   },
   {
     week: 16,
@@ -21,7 +21,7 @@ export const appointments: Appointment[] = [
   {
     week: 16,
     title: 'Whooping cough vaccine',
-    detail: 'Offered from 16 weeks — protects your baby in their first weeks of life.',
+    detail: 'Offered from 16 weeks: protects your baby in their first weeks of life.',
   },
   {
     week: 20,

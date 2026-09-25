@@ -177,7 +177,7 @@ export function HealthyScreen() {
   return (
     <Screen
       title="Health & wellbeing"
-      lede="Everything that helps, and nothing that doesn’t — pregnancy through to feeding."
+      lede="Everything that helps, and nothing that doesn’t: pregnancy through to feeding."
     >
       {/* The wellbeing tools that live in other tabs, linked rather than
           moved. People come here looking for "health and wellness" and would
@@ -211,7 +211,7 @@ export function HealthyScreen() {
           id="guide-search"
           type="search"
           value={query}
-          placeholder="Ask it however you'd say it — “can I eat brie?”"
+          placeholder="Ask it however you'd say it: “can I eat brie?”"
           onChange={(e) => setQuery(e.target.value)}
           className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
         />
@@ -276,7 +276,7 @@ export function HealthyScreen() {
 
       {q && results.length === 0 && symptomHits.length === 0 && (
         <p className="text-body italic text-soft">
-          Nothing matches that yet. Try fewer words — or check{' '}
+          Nothing matches that yet. Try fewer words, or check{' '}
           <Link to="/body" className="underline">
             My Body
           </Link>{' '}

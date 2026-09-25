@@ -13,14 +13,14 @@ export const extendedSources: Source[] = [
   // that publishes the current rate instead of trusting a number in an app.
   {
     id: 'gov-maternity-leave',
-    label: 'Maternity pay and leave — notice periods and eligibility',
+    label: 'Maternity pay and leave: notice periods and eligibility',
     organisation: 'GOV.UK',
     tier: 'gov',
     url: 'https://www.gov.uk/maternity-pay-leave',
   },
   {
     id: 'gov-maternity-pay',
-    label: 'Statutory Maternity Pay — qualifying week, MatB1 and evidence',
+    label: 'Statutory Maternity Pay: qualifying week, MatB1 and evidence',
     organisation: 'GOV.UK',
     tier: 'gov',
     // The employee-facing overview. The equivalent employer guidance at
@@ -30,14 +30,14 @@ export const extendedSources: Source[] = [
   },
   {
     id: 'gov-maternity-allowance',
-    label: 'Maternity Allowance — eligibility and form MA1',
+    label: 'Maternity Allowance: eligibility and form MA1',
     organisation: 'GOV.UK / DWP',
     tier: 'gov',
     url: 'https://www.gov.uk/maternity-allowance',
   },
   {
     id: 'gov-sure-start-grant',
-    label: 'Sure Start Maternity Grant — claim window and form SF100',
+    label: 'Sure Start Maternity Grant: claim window and form SF100',
     organisation: 'GOV.UK / DWP',
     tier: 'gov',
     url: 'https://www.gov.uk/sure-start-maternity-grant',
@@ -45,7 +45,7 @@ export const extendedSources: Source[] = [
   },
   {
     id: 'gov-best-start-grant',
-    label: 'Best Start Grant — Pregnancy and Baby Payment',
+    label: 'Best Start Grant: Pregnancy and Baby Payment',
     organisation: 'Social Security Scotland / mygov.scot',
     tier: 'gov',
     url: 'https://www.mygov.scot/best-start-grant-best-start-foods',
@@ -69,14 +69,14 @@ export const extendedSources: Source[] = [
   },
   {
     id: 'gov-register-birth',
-    label: 'Register a birth — 42-day requirement',
+    label: 'Register a birth: 42-day requirement',
     organisation: 'GOV.UK',
     tier: 'gov',
     url: 'https://www.gov.uk/register-birth',
   },
   {
     id: 'gov-child-benefit',
-    label: 'Child Benefit — claiming and backdating',
+    label: 'Child Benefit: claiming and backdating',
     organisation: 'GOV.UK / HMRC',
     tier: 'gov',
     url: 'https://www.gov.uk/child-benefit',
@@ -108,7 +108,7 @@ export const extendedSources: Source[] = [
     id: 'hse-pregnant-workers',
     label: 'Protecting pregnant workers and new mothers',
     organisation:
-      'HSE — Management of Health and Safety at Work Regulations 1999 (regs 16–18); Workplace Regulations 1992 (reg 25)',
+      'HSE: Management of Health and Safety at Work Regulations 1999 (regs 16–18); Workplace Regulations 1992 (reg 25)',
     tier: 'gov',
     url: 'https://www.hse.gov.uk/mothers/',
   },
@@ -178,7 +178,7 @@ export const extendedSources: Source[] = [
   },
   {
     id: 'nhs-overdue',
-    label: 'Overdue — have you gone past your due date?',
+    label: 'Overdue: have you gone past your due date?',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/overdue-have-you-gone-past-your-due-date/',
@@ -370,7 +370,7 @@ export const extendedSources: Source[] = [
     organisation: 'NICE',
     tier: 'gov',
     caveat:
-      'Used only to confirm that multidisciplinary care planning is standard NHS practice — not cited for clinical detail.',
+      'Used only to confirm that multidisciplinary care planning is standard NHS practice, not cited for clinical detail.',
   },
 
   // ── Vaccinations ───────────────────────────────────────────────────
@@ -500,6 +500,6 @@ export const extendedSources: Source[] = [
     organisation: 'Kesikburun S, et al. 2018 (PMC6262502)',
     tier: 'research',
     caveat:
-      'Small, non-UK study. Used only as background context for why aches increase later in pregnancy — not for specific advice.',
+      'Small, non-UK study. Used only as background context for why aches increase later in pregnancy, not for specific advice.',
   },
 ];

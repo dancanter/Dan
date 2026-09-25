@@ -64,7 +64,7 @@ export function GlossaryTerm({ entry, children }: { entry: GlossaryEntry; childr
         className="cursor-help border-b border-dashed border-moss bg-transparent p-0 text-left font-[inherit] text-[inherit] text-ink"
       >
         {children}
-        <span className="sr-only"> — tap for a plain-English definition</span>
+        <span className="sr-only">, tap for a plain-English definition</span>
       </button>
       {open && (
         <span

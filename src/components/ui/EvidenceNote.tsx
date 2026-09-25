@@ -84,7 +84,7 @@ export function EvidenceNote({ sourceIds }: { sourceIds: string[] }) {
               ) : (
                 s.label
               )}
-              {' — '}
+              {' · '}
               {s.organisation}
               {s.reviewed ? (
                 <span className="text-mossd"> · reviewed {s.reviewed}</span>

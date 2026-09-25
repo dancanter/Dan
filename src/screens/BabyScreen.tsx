@@ -70,7 +70,7 @@ export function BabyScreen() {
               />
               <span className="label-mono block font-normal text-mossd">Week {m.week}</span>
               <span className="font-display text-read font-semibold">{m.title}</span>
-              {now && <span className="sr-only"> — around now</span>}
+              {now && <span className="sr-only">, around now</span>}
             </li>
           );
         })}
@@ -79,7 +79,7 @@ export function BabyScreen() {
       <SectionHeading>Give them a name</SectionHeading>
       <div className="rounded-xl border border-line bg-card p-4">
         <label htmlFor="baby-name" className="mb-2 block text-body">
-          Lots of people use a nickname before the real one is decided. Entirely optional — it just
+          Lots of people use a nickname before the real one is decided. Entirely optional: it just
           makes this page a little warmer.
         </label>
         <div className="flex flex-wrap gap-2">
@@ -98,7 +98,7 @@ export function BabyScreen() {
       </div>
 
       <Note tone="calm" title="A note on sizes">
-        The fruit-and-veg comparisons are a rough, friendly guide — babies vary enormously and {who}{' '}
+        The fruit-and-veg comparisons are a rough, friendly guide: babies vary enormously and {who}{' '}
         being bigger or smaller than “a mango” this week means nothing on its own. Your midwife
         measuring your bump is the measurement that matters.
       </Note>

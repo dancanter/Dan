@@ -32,7 +32,7 @@ export function MethodologyScreen() {
       {withCaveats > 0 && (
         <Note tone="plain" title="Flagged, not filtered">
           {withCaveats} source{withCaveats === 1 ? '' : 's'} currently carr
-          {withCaveats === 1 ? 'ies' : 'y'} a funding or framing caveat — see{' '}
+          {withCaveats === 1 ? 'ies' : 'y'} a funding or framing caveat. See{' '}
           <Link to="/sources" className="font-semibold underline">
             Sources
           </Link>{' '}

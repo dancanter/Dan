@@ -90,7 +90,7 @@ export function FoodSortScreen() {
 
       <NothingToFinish>
         <>
-          The useful bit isn’t getting them right — it’s that “cook it first” and “avoid” are
+          The useful bit isn’t getting them right. It’s that “cook it first” and “avoid” are
           different answers, and collapsing them is why the banned list feels far longer than it
           really is. All of it is in{' '}
           <Link to="/healthy" className="underline">

@@ -38,7 +38,7 @@ export function FirstVisitNote() {
         <strong className="text-ink">
           This app cannot tell you whether you or your baby are well.
         </strong>{' '}
-        Nothing here replaces your midwife. If something feels wrong —{' '}
+        Nothing here replaces your midwife. If something feels wrong,{' '}
         <Link to="/help" className="font-semibold text-alert underline">
           Get help
         </Link>{' '}

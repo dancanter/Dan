@@ -38,10 +38,10 @@ export const accessibilitySections: AccessibilitySection[] = [
     id: 'what-you-can-change',
     title: 'What you can change',
     body: [
-      '**Text size** — three sizes in Settings. Extra large makes everything about a third bigger, including the urgent screens.',
-      '**Higher contrast** — a Settings toggle that darkens text and strengthens borders.',
-      '**Less motion** — a Settings toggle, and the app also follows the reduced-motion setting on your phone or computer without being asked. Nothing on any screen loops or moves on its own.',
-      '**Read this to me** — the urgent screens and the loss screens can be read aloud. Phone numbers are read one digit at a time, so you can write them down.',
+      '**Text size**: three sizes in Settings. Extra large makes everything about a third bigger, including the urgent screens.',
+      '**Higher contrast**: a Settings toggle that darkens text and strengthens borders.',
+      '**Less motion**: a Settings toggle, and the app also follows the reduced-motion setting on your phone or computer without being asked. Nothing on any screen loops or moves on its own.',
+      '**Read this to me**: the urgent screens and the loss screens can be read aloud. Phone numbers are read one digit at a time, so you can write them down.',
       'Your device settings work too. The app is built so that browser zoom and system text size both take effect.',
     ],
   },
@@ -85,7 +85,7 @@ export const accessibilitySections: AccessibilitySection[] = [
     title: 'If something does not work for you',
     body: [
       'Please report it. A problem nobody mentions is a problem that stays.',
-      'The code and its issue tracker are public at **github.com/dancanter/Dan** — an issue there is the quickest route, and you do not need to describe it in technical terms.',
+      'The code and its issue tracker are public at **github.com/dancanter/Dan**: an issue there is the quickest route, and you do not need to describe it in technical terms.',
       'Tell us what you were trying to do, what happened, and what you were using if you know it. That is enough.',
     ],
   },

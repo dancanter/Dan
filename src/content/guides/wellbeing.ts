@@ -8,7 +8,7 @@ export const wellbeingGuides: Guide[] = [
     summary: 'Only 6% were classified as highly stressed in a study of 1,500+ women.',
     body: [
       'In a study of over 1,500 pregnant women, only 6% were classified as highly stressed. 78% reported low-to-moderate stress and 16% reported none at all.',
-      'Some worry is completely normal — you’re not unusual.',
+      'Some worry is completely normal. You’re not unusual.',
     ],
     sourceIds: ['alves-2021'],
     emphasis: 'calm',
@@ -39,7 +39,7 @@ export const wellbeingGuides: Guide[] = [
     id: 'other-coping',
     section: 'wellbeing',
     title: 'Other things that help',
-    summary: 'Talking, writing, music — all free, all evidence-reasonable.',
+    summary: 'Talking, writing, music: all free, all evidence-reasonable.',
     body: [
       'Talking to someone you trust helps because it makes you notice and name what you’re feeling. Writing freely, with no worry about anyone reading it, works alone or alongside other support. Music and singing calm emotions and are a nice way to bond with your baby.',
       'Up to 1 in 4 people experience anxiety symptoms during pregnancy. You are very much not unusual.',
@@ -52,7 +52,7 @@ export const wellbeingGuides: Guide[] = [
     title: 'If it feels like more than you can manage',
     summary: 'Tell your midwife or GP. You won’t be judged.',
     body: [
-      'Tell your midwife or GP. Many people worry about being judged, or fear that admitting to struggling could cause problems — in reality, professionals work hard to keep families together, and being honest is what gets you the right support.',
+      'Tell your midwife or GP. Many people worry about being judged, or fear that admitting to struggling could cause problems. In reality, professionals work hard to keep families together, and being honest is what gets you the right support.',
       '**More help:** Tommy’s (wellbeing plan) · PANDAS Foundation (perinatal mental illness) · Family Hubs via gov.uk',
     ],
     sourceIds: ['nhs-mental-health', 'nct-emotions'],
@@ -61,11 +61,11 @@ export const wellbeingGuides: Guide[] = [
     id: 'baby-brain',
     section: 'wellbeing',
     title: 'Forgetting things, and losing your thread',
-    summary: 'Measured, real, small — and it goes.',
+    summary: 'Measured, real, small, and it goes.',
     body: [
       'Losing words, walking into rooms, reading the same line four times. It is one of the most common things people say nobody warned them about, and it is usually met with a joke rather than an answer.',
-      'It has actually been measured. Researchers pooled 20 studies covering more than 1,200 pregnant women and around 1,000 who were not. On tests of general thinking, memory and planning, the pregnant groups scored slightly lower — mostly in the third trimester, and the difference between the first and second trimesters showed up too.',
-      '**Three things that measurement is not.** It is not large: the effects were small, and the researchers say they are not usually noticeable without a specific test. It is not permanent — it settles in the months after birth. And it is an average across a group, which says nothing about what you personally can do.',
+      'It has actually been measured. Researchers pooled 20 studies covering more than 1,200 pregnant women and around 1,000 who were not. On tests of general thinking, memory and planning, the pregnant groups scored slightly lower, mostly in the third trimester, and the difference between the first and second trimesters showed up too.',
+      '**Three things that measurement is not.** It is not large: the effects were small, and the researchers say they are not usually noticeable without a specific test. It is not permanent: it settles in the months after birth. And it is an average across a group, which says nothing about what you personally can do.',
       'There is also a gap worth knowing about: in one study, mothers rated their own memory as clearly worse while the tests showed no difference at all. Feeling foggy is real whether or not a test can find it, and it does not mean anything is wrong with you.',
       'Lists, alarms and writing things down are not a sign of losing your grip. They are what everyone does when they are carrying too much at once.',
     ],
@@ -78,7 +78,7 @@ export const wellbeingGuides: Guide[] = [
     title: 'Not feeling pregnant yet',
     summary: 'The NHS says it plainly: not everyone gets the symptoms.',
     body: [
-      'Everyone talks about the sickness and the exhaustion. So when your body feels much as it always did, the quiet can be louder than any symptom — and it is one of the most common things people go looking for reassurance about in the early weeks.',
+      'Everyone talks about the sickness and the exhaustion. So when your body feels much as it always did, the quiet can be louder than any symptom, and it is one of the most common things people go looking for reassurance about in the early weeks.',
       'The NHS puts it plainly: not everyone has all of these symptoms, and if you think you might be pregnant but have not noticed any, you still might be. Nobody else will have a pregnancy quite like yours.',
       'Symptoms also come and go rather than building in a straight line. A day of feeling almost normal after a rough week is ordinary.',
       '**What symptoms cannot do is tell you how a pregnancy is going.** That cuts both ways, and it is the honest version of the reassurance. Feeling nothing is not evidence that something is wrong. Feeling everything is not evidence that all is well. It is not information your body can give you, which is exactly why the scan exists.',
@@ -94,10 +94,10 @@ export const wellbeingGuides: Guide[] = [
     summary: 'Tommy’s: do not feel guilty for not feeling excited.',
     body: [
       'You might feel thrilled. You might feel oddly flat, or frightened, or as though it has not landed as real yet. You might feel several of those in one afternoon.',
-      'Tommy’s addresses this directly: pregnancy is a huge life change, mixed emotions are natural, and you should not feel guilty for not feeling excited and happy. That holds even — sometimes especially — if this pregnancy took a long time to happen, and you expected to feel more pleased than you do.',
+      'Tommy’s addresses this directly: pregnancy is a huge life change, mixed emotions are natural, and you should not feel guilty for not feeling excited and happy. That holds even, sometimes especially, if this pregnancy took a long time to happen, and you expected to feel more pleased than you do.',
       'Hormones genuinely affect mood in the first three months, so happy one minute and worried the next is not you being unreasonable about it.',
       'None of this has to be earned or explained. You are allowed to not love being pregnant, to skip the announcement people expect, to keep the bump photos to yourself, and to look forward to your baby at the same time.',
-      'It is also fine to lean on someone before anything is official. The early weeks can be lonely if you have not told people yet, and your midwife counts as someone you can tell — you do not need a reason beyond wanting to say it out loud.',
+      'It is also fine to lean on someone before anything is official. The early weeks can be lonely if you have not told people yet, and your midwife counts as someone you can tell. You do not need a reason beyond wanting to say it out loud.',
     ],
     sourceIds: ['tommys-emotional-changes', 'nhs-mental-health'],
     emphasis: 'calm',
@@ -134,9 +134,9 @@ export const weightGuides: Guide[] = [
     id: 'both-directions',
     section: 'weight',
     title: 'Both directions carry risk',
-    summary: 'Gaining less than your body needs has its own risks — and it’s common.',
+    summary: 'Gaining less than your body needs has its own risks, and it’s common.',
     body: [
-      'It’s not just about avoiding gaining "too much". Gaining less than your body needs carries its own risks — and it’s common: in a six-country study including the UK, more than half of women didn’t gain enough by current standards, linked to double the risk of low birthweight.',
+      'It’s not just about avoiding gaining "too much". Gaining less than your body needs carries its own risks, and it’s common: in a six-country study including the UK, more than half of women didn’t gain enough by current standards, linked to double the risk of low birthweight.',
       'Not a reason to watch a number. A reason not to restrict.',
     ],
     sourceIds: ['teede-2025', 'jabin-2025'],
@@ -147,7 +147,7 @@ export const weightGuides: Guide[] = [
     title: 'If you’re underweight',
     summary: 'Worth a conversation with your midwife, not something to self-manage.',
     body: [
-      'Being underweight has its own considerations for how your baby grows, just as being overweight does — a cohort of 16,000 women found notably higher rates of small-for-gestational-age babies.',
+      'Being underweight has its own considerations for how your baby grows, just as being overweight does: a cohort of 16,000 women found notably higher rates of small-for-gestational-age babies.',
       'Worth a conversation with your midwife, not something to self-manage.',
     ],
     sourceIds: ['chahal-2024'],
@@ -169,7 +169,7 @@ export const weightGuides: Guide[] = [
     title: 'Body image often improves in pregnancy',
     summary: 'Dissatisfaction was lower during pregnancy than before it.',
     body: [
-      'This surprises people. A longitudinal study found body image dissatisfaction was actually *lower* during pregnancy than before it — attention shifts from how your body looks to what it’s doing.',
+      'This surprises people. A longitudinal study found body image dissatisfaction was actually *lower* during pregnancy than before it: attention shifts from how your body looks to what it’s doing.',
       'Concerns are more common in the months after birth, so that’s when to be gentle with yourself.',
     ],
     sourceIds: ['linde-body-image'],
@@ -180,7 +180,7 @@ export const weightGuides: Guide[] = [
     title: 'If nobody’s talked to you about this',
     summary: 'Most women report little or no discussion of weight with their doctor.',
     body: [
-      'You’re not alone. A 2025 study found most women reported little or no discussion of weight or body image with their doctor — often weighed without comment, left to work it out alone.',
+      'You’re not alone. A 2025 study found most women reported little or no discussion of weight or body image with their doctor: often weighed without comment, left to work it out alone.',
       'Midwives tend to be a supportive place to start that conversation.',
       'If you have a current or past experience of disordered eating, pregnancy can stir up a lot. Worth raising with your midwife early so support can be tailored to you.',
     ],
@@ -193,7 +193,7 @@ export const weightGuides: Guide[] = [
     summary: 'Strangers start doing it, and you are allowed to shut it down.',
     body: [
       'Something changes when you are visibly pregnant: people who would never remark on your body suddenly do. You are huge, you are tiny, are you sure it is not twins, you must be due any day. Some of it is meant warmly. It lands on you either way, several times a week, from people you cannot avoid.',
-      'The comments about size are the ones that stick, and they contradict each other — the same bump gets called enormous and worryingly small in the same afternoon. Neither is an assessment of anything. Your midwife measures growth for a reason, and a colleague’s eye is not that.',
+      'The comments about size are the ones that stick, and they contradict each other: the same bump gets called enormous and worryingly small in the same afternoon. Neither is an assessment of anything. Your midwife measures growth for a reason, and a colleague’s eye is not that.',
       'Touching without asking is the other one. You do not owe anyone access to your bump, and "I’d rather you didn’t" is a complete sentence. So is changing the subject.',
       'If this is wearing you down more than it seems like it should, that is worth mentioning rather than filing under things to put up with. In a survey of 501 pregnant and postpartum women, those who reported more experiences of weight stigma also reported more symptoms of low mood and stress. The two travel together, which is reason enough to say it out loud rather than absorb it.',
     ],

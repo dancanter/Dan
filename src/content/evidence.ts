@@ -39,7 +39,7 @@ const MEANING: Record<EvidenceStrength, { label: string; meaning: string }> = {
   'uk-guidance': {
     label: 'UK guidance',
     meaning:
-      'This is what the NHS, NICE or a royal college actually recommends — the same line your midwife is working from.',
+      'This is what the NHS, NICE or a royal college actually recommends: the same line your midwife is working from.',
   },
   'guidance-and-research': {
     label: 'Guidance + research',
@@ -49,7 +49,7 @@ const MEANING: Record<EvidenceStrength, { label: string; meaning: string }> = {
   'research-only': {
     label: 'Research, not guidance',
     meaning:
-      'This comes from published research rather than official UK guidance. Useful to know, but not settled — where UK guidance exists on a topic, that is what gets cited instead.',
+      'This comes from published research rather than official UK guidance. Useful to know, but not settled. Where UK guidance exists on a topic, that is what gets cited instead.',
   },
   charity: {
     label: 'Charity guidance',

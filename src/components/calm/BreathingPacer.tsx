@@ -112,8 +112,8 @@ export function BreathingPacer({ inhale, exhale, reduceMotionOverride }: Props) 
           after one breath is a complete use of this. */}
       {cycles > 0 && (
         <p className="mt-3 font-mono text-meta text-soft">
-          {cycles} {cycles === 1 ? 'breath' : 'breaths'} so far. Stop whenever you like — there is
-          no target, and this isn’t saved.
+          {cycles} {cycles === 1 ? 'breath' : 'breaths'} so far. Stop whenever you like: there is no
+          target, and this isn’t saved.
         </p>
       )}
     </div>

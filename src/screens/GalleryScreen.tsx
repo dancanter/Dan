@@ -98,12 +98,12 @@ export function GalleryScreen() {
   return (
     <Screen
       title="Bump gallery"
-      lede="Entirely optional, and there’s no schedule to keep. Photos stay on this device — they are never uploaded anywhere."
+      lede="Entirely optional, and there’s no schedule to keep. Photos stay on this device. They are never uploaded anywhere."
       width="reading"
     >
       {unavailable && (
         <p className="mb-5 rounded-xl border border-clay bg-clayp px-4 py-3 text-body leading-relaxed">
-          This browser won’t let the app store photos on your device — usually a private window, or
+          This browser won’t let the app store photos on your device, usually a private window, or
           storage turned off in your settings. Nothing has been lost. Everything else in the app
           works as normal.
         </p>
@@ -135,8 +135,8 @@ export function GalleryScreen() {
 
       {photos.length === 0 ? (
         <p className="mt-6 text-body italic text-soft">
-          Nothing here yet. If you’d rather not do this at all, that’s a perfectly normal choice —
-          nothing else in the app depends on it.
+          Nothing here yet. If you’d rather not do this at all, that’s a perfectly normal choice.
+          Nothing else in the app depends on it.
         </p>
       ) : (
         <>

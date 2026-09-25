@@ -58,7 +58,7 @@ export function JournalScreen() {
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'mood' && (
           <>
-            <p className="text-body">How are you today? No scores, no streaks — just noticing.</p>
+            <p className="text-body">How are you today? No scores, no streaks, just noticing.</p>
             <div className="my-4 flex flex-wrap justify-center gap-2">
               {MOODS.map((m) => (
                 <button
@@ -103,7 +103,7 @@ export function JournalScreen() {
                   {moodHistory.map((e) => (
                     <li
                       key={e.id}
-                      title={`${e.text} — ${formatDate(e.date)}`}
+                      title={`${e.text}, ${formatDate(e.date)}`}
                       className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-card text-title"
                     >
                       <span aria-hidden="true">{MOOD_EMOJI.get(e.text) ?? '·'}</span>
@@ -114,7 +114,7 @@ export function JournalScreen() {
                   ))}
                 </ol>
                 <p className="mt-2 font-mono text-meta text-soft">
-                  A picture of how the last couple of weeks have felt — useful to show your midwife.
+                  A picture of how the last couple of weeks have felt: useful to show your midwife.
                 </p>
               </>
             )}
@@ -129,10 +129,10 @@ export function JournalScreen() {
           <>
             <p className="text-body">
               {tab === 'note'
-                ? 'Anything you want to remember — how you felt, what happened, what you’re looking forward to.'
+                ? 'Anything you want to remember: how you felt, what happened, what you’re looking forward to.'
                 : tab === 'question'
                   ? 'Questions build up between appointments and vanish the moment you’re in the room. Park them here.'
-                  : 'A record of how you’ve been feeling — useful to show your midwife rather than trying to recall it.'}
+                  : 'A record of how you’ve been feeling: useful to show your midwife rather than trying to recall it.'}
             </p>
             <label htmlFor="journal-input" className="sr-only">
               {JOURNAL_LABEL[tab]}
@@ -170,7 +170,7 @@ export function JournalScreen() {
       <SectionHeading>Your entries</SectionHeading>
       {entries.length === 0 ? (
         <p className="text-body italic text-soft">
-          Nothing saved yet. Anything you add appears here — and stays on this device.
+          Nothing saved yet. Anything you add appears here, and stays on this device.
         </p>
       ) : (
         <ul className="m-0 list-none p-0">

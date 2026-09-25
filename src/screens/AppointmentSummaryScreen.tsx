@@ -73,8 +73,8 @@ export function AppointmentSummaryScreen() {
           A sheet for your appointment
         </h1>
         <p className="mb-4 text-body leading-relaxed text-soft">
-          Everything you have saved, on one page you can take in with you. Nothing is sent anywhere
-          — this is printed by your phone or computer, from what is already on it.
+          Everything you have saved, on one page you can take in with you. Nothing is sent anywhere.
+          This is printed by your phone or computer, from what is already on it.
         </p>
 
         {nothingSaved ? (

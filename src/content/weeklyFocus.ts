@@ -27,37 +27,37 @@ interface FocusRule {
 const RULES: FocusRule[] = [
   {
     id: 'early-dating',
-    text: 'Weeks 1 and 2 come before conception — there was nothing here you could have missed.',
+    text: 'Weeks 1 and 2 come before conception. There was nothing here you could have missed.',
     sourceIds: ['nhs-week-by-week'],
     applies: (w) => w <= 2,
   },
   {
     id: 'test-timing',
-    text: 'A test is most reliable from the day your period is due — around week 4.',
+    text: 'A test is most reliable from the day your period is due, around week 4.',
     sourceIds: ['nhs-week-by-week'],
     applies: (w) => w === 3,
   },
   {
     id: 'book-midwife',
-    text: 'Contact your GP or midwife to book in — your first appointment is by 10 weeks.',
+    text: 'Contact your GP or midwife to book in. Your first appointment is by 10 weeks.',
     sourceIds: ['nhs-antenatal-care'],
     applies: (w) => w >= 4 && w <= 9,
   },
   {
     id: 'folic-acid',
-    text: 'Take your 400mcg folic acid — most important in these first 12 weeks.',
+    text: 'Take your 400mcg folic acid. Most important in these first 12 weeks.',
     sourceIds: ['nhs-vitamins', 'rcog-healthy-eating'],
     applies: (w) => w <= 12,
   },
   {
     id: 'folic-acid-stop',
-    text: 'You can stop folic acid now if you like — continuing does no harm either.',
+    text: 'You can stop folic acid now if you like: continuing does no harm either.',
     sourceIds: ['nhs-vitamins'],
     applies: (w) => w >= 13 && w <= 14,
   },
   {
     id: 'vitamin-d',
-    text: 'Take your 10mcg vitamin D — October to March, or year-round for some.',
+    text: 'Take your 10mcg vitamin D: October to March, or year-round for some.',
     sourceIds: ['nhs-vitamins'],
     applies: () => true,
   },
@@ -71,7 +71,7 @@ const RULES: FocusRule[] = [
   },
   {
     id: 'iron',
-    text: 'Include an iron-rich food today — meat, pulses, fortified cereal or dark greens.',
+    text: 'Include an iron-rich food today: meat, pulses, fortified cereal or dark greens.',
     sourceIds: ['iannotti-2024'],
     applies: (w) => w >= 8,
   },
@@ -83,19 +83,19 @@ const RULES: FocusRule[] = [
   },
   {
     id: 'veg',
-    text: 'Add one extra portion of veg or fruit today — only 27% of UK women hit five a day.',
+    text: 'Add one extra portion of veg or fruit today. Only 27% of UK women hit five a day.',
     sourceIds: ['sacn-2026'],
     applies: (w) => w % 2 === 1,
   },
   {
     id: 'dairy',
-    text: 'Some dairy today — calcium plus iodine, which your baby needs for brain development.',
+    text: 'Some dairy today: calcium plus iodine, which your baby needs for brain development.',
     sourceIds: ['razmpoosh-2025'],
     applies: (w) => w >= 14 && w <= 27,
   },
   {
     id: 'whooping-cough',
-    text: 'Whooping cough vaccine is offered from 16 weeks — worth asking about.',
+    text: 'Whooping cough vaccine is offered from 16 weeks: worth asking about.',
     sourceIds: ['nhs-antenatal-care'],
     applies: (w) => w >= 16 && w <= 20,
   },
@@ -107,31 +107,31 @@ const RULES: FocusRule[] = [
   },
   {
     id: 'extra-calories',
-    text: 'About 200 extra calories a day now — roughly two slices of bread.',
+    text: 'About 200 extra calories a day now, roughly two slices of bread.',
     sourceIds: ['sacn-2026'],
     applies: (w) => w >= 28,
   },
   {
     id: 'side-sleeping',
-    text: 'Go to sleep on your side tonight, not your back — including naps.',
+    text: 'Go to sleep on your side tonight, not your back, including naps.',
     sourceIds: ['nice-ng201-sleep', 'tommys-sleep-on-side'],
     applies: (w) => w >= 28,
   },
   {
     id: 'movements',
-    text: "Notice your baby's movement pattern today — you're learning what's normal for them.",
+    text: "Notice your baby's movement pattern today: you're learning what's normal for them.",
     sourceIds: ['nhs-baby-movements'],
     applies: (w) => w >= 28,
   },
   {
     id: 'pelvic-floor',
-    text: 'Pelvic floor exercises — 3 sets of 8. One set at each meal is easy to remember.',
+    text: 'Pelvic floor exercises: 3 sets of 8. One set at each meal is easy to remember.',
     sourceIds: ['nhs-exercise'],
     applies: (w) => w >= 32,
   },
   {
     id: 'walk',
-    text: 'A walk, a swim, or anything that gets you moving — the talk test is the only gauge you need.',
+    text: 'A walk, a swim, or anything that gets you moving: the talk test is the only gauge you need.',
     sourceIds: ['nhs-exercise', 'allotey-2026'],
     applies: (w) => w >= 12,
   },
@@ -156,14 +156,14 @@ export function noteForWeek(week: number): WeekNote {
     return {
       tone: 'plain',
       title: 'Why you can be "3 weeks pregnant" with no baby',
-      body: 'Pregnancy is dated from the first day of your last period, not from conception — so the first two weeks are before there is anything there. Everyone is measured this way, including your due date and every scan. You have not missed anything.',
+      body: 'Pregnancy is dated from the first day of your last period, not from conception, so the first two weeks are before there is anything there. Everyone is measured this way, including your due date and every scan. You have not missed anything.',
     };
   }
   if (week <= 12) {
     return {
       tone: 'calm',
       title: 'Early days',
-      body: "Folic acid matters most right now. Beyond that, a normal varied diet is genuinely enough — you don't need to eat for two and you don't need to change much.",
+      body: "Folic acid matters most right now. Beyond that, a normal varied diet is genuinely enough. You don't need to eat for two and you don't need to change much.",
     };
   }
   if (week <= 19) {
@@ -184,7 +184,7 @@ export function noteForWeek(week: number): WeekNote {
     return {
       tone: 'warn',
       title: 'Two things that matter now',
-      body: "Sleep on your side, not your back — including naps. And sudden swelling with headache or vision changes needs urgent attention. Don't wait either out.",
+      body: "Sleep on your side, not your back, including naps. And sudden swelling with headache or vision changes needs urgent attention. Don't wait either out.",
     };
   }
   return {

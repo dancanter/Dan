@@ -42,7 +42,7 @@ export function LossSupportScreen() {
       ))}
 
       <p className="mt-10 border-t border-line pt-5 text-center text-body italic text-soft">
-        However early, however long ago — what you’re feeling is real, and there is support for it.
+        However early, however long ago. What you’re feeling is real, and there is support for it.
       </p>
     </Screen>
   );

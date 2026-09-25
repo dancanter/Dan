@@ -6,7 +6,7 @@ export const myths: Myth[] = [
     claim: 'You need to eat for two',
     verdict: 'myth',
     explanation:
-      "Not until the third trimester, and even then it's only about 200 extra calories a day — roughly two slices of bread.",
+      "Not until the third trimester, and even then it's only about 200 extra calories a day, roughly two slices of bread.",
     sourceIds: ['sacn-2026'],
   },
   {
@@ -54,7 +54,7 @@ export const myths: Myth[] = [
     claim: 'You should avoid all cheese',
     verdict: 'myth',
     explanation:
-      'Only ripened soft cheeses with a white rind and blue-veined ones — and even those are fine cooked until steaming. Cheddar, feta, mozzarella, cream cheese and paneer are all fine.',
+      'Only ripened soft cheeses with a white rind and blue-veined ones, and even those are fine cooked until steaming. Cheddar, feta, mozzarella, cream cheese and paneer are all fine.',
     sourceIds: ['nhs-foods-to-avoid'],
   },
   {
@@ -62,7 +62,7 @@ export const myths: Myth[] = [
     claim: 'Liver is a good iron source in pregnancy',
     verdict: 'myth',
     explanation:
-      "Liver is iron-rich but should be avoided — it's very high in vitamin A, which can harm your baby's development.",
+      "Liver is iron-rich but should be avoided. It's very high in vitamin A, which can harm your baby's development.",
     sourceIds: ['nhs-vitamins', 'rcog-healthy-eating'],
   },
   {

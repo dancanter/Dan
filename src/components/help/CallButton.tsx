@@ -39,13 +39,13 @@ export function CallButton({ action }: { action: UrgentAction }) {
           href="tel:111"
           className="flex min-h-[60px] w-full items-center justify-center rounded-xl border-2 border-ink bg-ink px-4 text-title font-semibold text-paper no-underline"
         >
-          Call 111 — mental health option
+          Call 111: mental health option
         </a>
         <a
           href="tel:116123"
           className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-4 text-body font-semibold text-ink no-underline"
         >
-          Samaritans — 116 123, free, 24/7
+          Samaritans: 116 123, free, 24/7
         </a>
       </div>
     );
@@ -73,8 +73,8 @@ export function CallButton({ action }: { action: UrgentAction }) {
             Your maternity unit is the better number to call.{' '}
             <Link to="/help/number" className="underline">
               Save it for next time
-            </Link>{' '}
-            — it’s on your handheld notes.
+            </Link>
+            . It’s on your handheld notes.
           </p>
         </>
       )}

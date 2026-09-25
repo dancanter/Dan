@@ -38,7 +38,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'intrahepatic cholestasis of pregnancy',
     aliases: ['cholestasis', 'icp'],
     definition:
-      'A liver condition in pregnancy. Bile does not flow out of the liver properly, which makes you itch — often on your hands and feet, and worse at night. A blood test finds it.',
+      'A liver condition in pregnancy. Bile does not flow out of the liver properly, which makes you itch, often on your hands and feet, and worse at night. A blood test finds it.',
   },
   {
     term: 'antenatal',
@@ -52,7 +52,7 @@ export const glossary: GlossaryEntry[] = [
   {
     term: 'perinatal',
     definition:
-      'The whole stretch around having a baby — pregnancy, the birth, and the first year after.',
+      'The whole stretch around having a baby: pregnancy, the birth, and the first year after.',
   },
   {
     term: 'caesarean',
@@ -119,7 +119,7 @@ export const glossary: GlossaryEntry[] = [
   {
     term: 'colostrum',
     definition:
-      'The thick, yellowish first milk your body makes. There is not much of it, and that is fine — it is exactly what a newborn needs.',
+      'The thick, yellowish first milk your body makes. There is not much of it, and that is fine. It is exactly what a newborn needs.',
   },
   {
     term: 'toxoplasmosis',
@@ -151,7 +151,7 @@ export const glossary: GlossaryEntry[] = [
   {
     term: 'deprivation',
     definition:
-      'A measure of disadvantage in an area — not just income, but also housing, environment, health and how easily people can reach services.',
+      'A measure of disadvantage in an area: not just income, but also housing, environment, health and how easily people can reach services.',
   },
   {
     term: 'mbrrace-uk',

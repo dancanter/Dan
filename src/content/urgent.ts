@@ -42,10 +42,10 @@ export const urgentSymptoms: UrgentSymptom[] = [
     now: 'Call your maternity unit now. Any hour, day or night.',
     dont: [
       'Don’t wait until morning.',
-      'Don’t try to make your baby move first — no cold drinks, no lying down, no sugary food.',
+      'Don’t try to make your baby move first: no cold drinks, no lying down, no sugary food.',
       'Don’t use a home doppler. Hearing a heartbeat does not mean your baby is well, and it can falsely reassure you.',
     ],
-    why: 'A change in your baby’s pattern can be the earliest sign that something needs checking. There is no target number of movements and no need to count kicks — what matters is that this feels different from your baby’s normal.',
+    why: 'A change in your baby’s pattern can be the earliest sign that something needs checking. There is no target number of movements and no need to count kicks. What matters is that this feels different from your baby’s normal.',
     reassurance:
       'Most people who report one episode of reduced movements go on to have a straightforward pregnancy and a healthy baby. Checking early is exactly the right thing to do, and there is no limit on how many times you can go in.',
     sourceIds: ['nhs-baby-movements', 'tommys-movements', 'rcog-gtg57'],
@@ -54,7 +54,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     id: 'bleeding',
     title: 'I’m bleeding',
     action: 'maternity-unit',
-    now: 'Call your maternity unit now — however light the bleeding is.',
+    now: 'Call your maternity unit now, however light the bleeding is.',
     dont: ['Use a pad rather than a tampon, so the bleeding can be assessed properly.'],
     why: 'Bleeding has many causes in pregnancy, some completely harmless and some that need treating quickly. It is not something to judge for yourself at home.',
     reassurance:
@@ -65,7 +65,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     id: 'severe-pain',
     title: 'I have severe or sudden pain',
     action: 'emergency',
-    now: 'Call 999 if the pain is severe, constant, or you can’t focus through it — especially with bleeding, shoulder-tip pain, or feeling faint. Otherwise call your maternity unit now.',
+    now: 'Call 999 if the pain is severe, constant, or you can’t focus through it, especially with bleeding, shoulder-tip pain, or feeling faint. Otherwise call your maternity unit now.',
     why: 'Sudden severe pain can signal an ectopic pregnancy in early pregnancy, or a problem with the placenta later on. Shoulder-tip pain alongside tummy pain is a specific warning sign of internal bleeding.',
     sourceIds: ['nhs-get-help', 'miscarriage-uk'],
   },
@@ -73,8 +73,8 @@ export const urgentSymptoms: UrgentSymptom[] = [
     id: 'headache',
     title: 'I have a bad headache or my vision has changed',
     action: 'maternity-unit',
-    now: 'Call your maternity unit now — don’t wait to see if it passes.',
-    why: 'A severe headache, blurring, flashing lights or blind spots — especially with pain under your ribs — can be a sign of pre-eclampsia, which needs treating quickly and cannot be diagnosed at home.',
+    now: 'Call your maternity unit now. Don’t wait to see if it passes.',
+    why: 'A severe headache, blurring, flashing lights or blind spots, especially with pain under your ribs, can be a sign of pre-eclampsia, which needs treating quickly and cannot be diagnosed at home.',
     sourceIds: ['nhs-headaches', 'nhs-get-help'],
   },
   {
@@ -82,7 +82,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'I have sudden swelling',
     action: 'maternity-unit',
     now: 'Call your maternity unit now if swelling comes on suddenly, or with a headache or vision changes.',
-    why: 'Gradual swelling of ankles and feet is normal in pregnancy. A sudden increase — particularly in your face or hands, or alongside a headache — is one of the signs of pre-eclampsia.',
+    why: 'Gradual swelling of ankles and feet is normal in pregnancy. A sudden increase (particularly in your face or hands, or alongside a headache) is one of the signs of pre-eclampsia.',
     reassurance:
       'Mild swelling that builds through the day and settles overnight is extremely common and not what this is about.',
     sourceIds: ['nhs-common-problems', 'nhs-get-help'],
@@ -92,7 +92,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'Fluid is leaking',
     action: 'maternity-unit',
     now: 'Call your maternity unit now. Tell them the colour and the smell.',
-    why: 'This could be your waters breaking. It is usually a small pop and a trickle rather than a dramatic gush. Waters should be clear — if the fluid is smelly or coloured, say so, as that changes how quickly you need to be seen.',
+    why: 'This could be your waters breaking. It is usually a small pop and a trickle rather than a dramatic gush. Waters should be clear. If the fluid is smelly or coloured, say so, as that changes how quickly you need to be seen.',
     sourceIds: ['nhs-labour-signs', 'nhs-get-help'],
   },
   {
@@ -100,7 +100,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'My skin is itching, especially my hands and feet',
     action: 'maternity-unit',
     now: 'Call your maternity unit and ask for a liver function blood test.',
-    why: 'Itching with no rash, on your palms and soles, and worse at night, can mean a liver condition. Its full name is intrahepatic cholestasis of pregnancy, usually shortened to ICP. It needs monitoring and treatment. A blood test finds it — looking at your skin does not.',
+    why: 'Itching with no rash, on your palms and soles, and worse at night, can mean a liver condition. Its full name is intrahepatic cholestasis of pregnancy, usually shortened to ICP. It needs monitoring and treatment. A blood test finds it. Looking at your skin does not.',
     sourceIds: ['nhs-get-help'],
   },
   {
@@ -116,9 +116,9 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'I’m having regular painful contractions',
     action: 'maternity-unit',
     now: 'Call your maternity unit now if you are under 37 weeks. At any stage, call if contractions come every 5 minutes, if one lasts more than 2 minutes, or if you have 6 or more in 10 minutes.',
-    why: 'Before 37 weeks this may be premature labour, which is treatable and much better managed early. After 37 weeks it may simply be labour starting — but your unit would rather hear from you than not.',
+    why: 'Before 37 weeks this may be premature labour, which is treatable and much better managed early. After 37 weeks it may simply be labour starting, but your unit would rather hear from you than not.',
     reassurance:
-      'Irregular tightenings that come and go without a pattern are usually Braxton Hicks — practice contractions — which are normal and not labour.',
+      'Irregular tightenings that come and go without a pattern are usually Braxton Hicks (practice contractions), which are normal and not labour.',
     sourceIds: ['nhs-labour-signs'],
   },
   {
@@ -126,7 +126,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'I’m breathless or have chest pain',
     action: 'emergency',
     now: 'Call 999.',
-    why: 'Sudden breathlessness, chest pain that is worse when you breathe in, or coughing up blood can signal a clot on the lung. Pregnancy raises clot risk, and this is treatable — but only quickly.',
+    why: 'Sudden breathlessness, chest pain that is worse when you breathe in, or coughing up blood can signal a clot on the lung. Pregnancy raises clot risk, and this is treatable, but only quickly.',
     sourceIds: ['nhs-dvt', 'nhs-get-help'],
   },
   {
@@ -134,7 +134,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'One leg is painful or swollen',
     action: 'maternity-unit',
     now: 'Call your maternity unit, GP or 111 today.',
-    why: 'Pain, swelling and tenderness in one leg — usually the calf, often worse walking — can be a deep vein thrombosis. Some swelling in both legs is normal in pregnancy; new pain or swelling in just one leg is different.',
+    why: 'Pain, swelling and tenderness in one leg (usually the calf, often worse walking) can be a deep vein thrombosis. Some swelling in both legs is normal in pregnancy; new pain or swelling in just one leg is different.',
     sourceIds: ['nhs-dvt'],
   },
   {
@@ -142,7 +142,7 @@ export const urgentSymptoms: UrgentSymptom[] = [
     title: 'I’m having thoughts of harming myself or my baby',
     action: 'mental-health',
     now: 'Call 111 and choose the mental health option, or tell your GP, midwife or health visitor today. If you or anyone else is in immediate danger, call 999.',
-    why: 'These thoughts are far more common than people realise. They are a sign you need support quickly — not a reflection of you as a parent, and not something that will be held against you.',
+    why: 'These thoughts are far more common than people realise. They are a sign you need support quickly, not a reflection of you as a parent, and not something that will be held against you.',
     reassurance:
       'Many people worry their baby will be taken away if they admit to this. That is very rare. Your team’s job is to support you to care for your baby. Samaritans 116 123, free, 24/7. Text SHOUT to 85258. PANDAS 0808 1961 776.',
     sourceIds: ['nhs-urgent-mental-health', 'nhs-mental-health', 'tommys-pnd'],

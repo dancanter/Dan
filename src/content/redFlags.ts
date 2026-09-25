@@ -11,7 +11,7 @@ export const redFlags: RedFlag[] = [
     level: 'maternity-unit',
     title: "Your baby's movements",
     detail:
-      "Moving less than usual, movements feel weaker, or stopped altogether. Don't wait until morning. Don't try to make your baby move first. Don't use a home doppler — hearing a heartbeat doesn't mean your baby is well.",
+      "Moving less than usual, movements feel weaker, or stopped altogether. Don't wait until morning. Don't try to make your baby move first. Don't use a home doppler. Hearing a heartbeat doesn't mean your baby is well.",
   },
   {
     id: 'bleeding',
@@ -111,20 +111,20 @@ export interface HelpTopic {
 export const helpTopics: HelpTopic[] = [
   {
     id: 'dvt',
-    title: 'Blood clots (DVT) — what to look for',
+    title: 'Blood clots (DVT): what to look for',
     body: [
-      'Pregnancy raises clot risk. Watch for pain, swelling and tenderness in **one** leg — usually the calf, often worse when walking, sometimes with red or darkened skin.',
+      'Pregnancy raises clot risk. Watch for pain, swelling and tenderness in **one** leg, usually the calf, often worse when walking, sometimes with red or darkened skin.',
       'Some swelling in both legs is normal in pregnancy. New pain or swelling in just one leg is different.',
-      'Also urgent: sudden breathlessness, chest pain that is worse when you breathe in, or coughing up blood — these can signal a clot on the lung.',
+      'Also urgent: sudden breathlessness, chest pain that is worse when you breathe in, or coughing up blood. These can signal a clot on the lung.',
     ],
     sourceIds: ['nhs-dvt'],
   },
   {
     id: 'mental-health-urgent',
-    title: 'Mental health — urgent support',
+    title: 'Mental health: urgent support',
     body: [
       'If you are having thoughts of harming yourself or your baby, tell your GP, midwife or health visitor urgently, or call **111** and choose the mental health option.',
-      "These thoughts are more common than people realise, and they're a sign you need support quickly — not a reflection of you as a parent.",
+      "These thoughts are more common than people realise, and they're a sign you need support quickly, not a reflection of you as a parent.",
       'If you or anyone else is in immediate danger, call **999** or go to A&E. A mental health emergency should be taken as seriously as a physical one. **You will not be wasting anyone’s time.**',
       'Also: Samaritans 116 123 (free, 24/7) · text SHOUT to 85258 · PANDAS 0808 1961 776 (11am–10pm).',
     ],
@@ -142,7 +142,7 @@ export const helpTopics: HelpTopic[] = [
   },
   {
     id: 'movements-why',
-    title: 'Why movements matter — the honest version',
+    title: 'Why movements matter: the honest version',
     body: [
       'In about half of stillbirths, the mother had noticed her baby moving less first. That sounds frightening. But it does not mean reduced movements usually lead to loss. Most women who report it once go on to have a normal pregnancy and a healthy baby.',
       "It also does not mean it is ever a parent's fault for not spotting it sooner. Checking early matters for one reason: problems found early can usually be treated.",
@@ -153,20 +153,20 @@ export const helpTopics: HelpTopic[] = [
     id: 'movements-pattern',
     title: "Getting to know your baby's pattern",
     body: [
-      'Most people feel movements from 16–24 weeks (often after 20 in a first pregnancy). Movements increase up to about 32 weeks, then stay roughly the same right up to and during labour — they *do not* reduce toward the end, whatever you may have heard.',
+      'Most people feel movements from 16–24 weeks (often after 20 in a first pregnancy). Movements increase up to about 32 weeks, then stay roughly the same right up to and during labour. They *do not* reduce toward the end, whatever you may have heard.',
       "There's no set number to aim for and no need to count kicks. What matters is knowing what's normal for *your* baby, so you'd notice a change.",
-      'If your placenta is at the front of your womb (anterior placenta), movements can feel fainter — normal, but the same rule applies if your pattern changes.',
+      'If your placenta is at the front of your womb (anterior placenta), movements can feel fainter. That’s normal, but the same rule applies if your pattern changes.',
     ],
     sourceIds: ['nhs-baby-movements', 'tommys-movements', 'rcog-gtg57'],
   },
   {
     id: 'where-to-go',
-    title: 'Where to go, when — by stage',
+    title: 'Where to go, when: by stage',
     body: [
       '**First 12 weeks:** GP surgery or early pregnancy unit (EPU).',
       '**12–19 weeks:** midwife or EPU.',
       '**20 weeks onwards:** midwife or maternity unit.',
-      'Call **999** for anything life-threatening at any stage. **111** if you are unsure or out of hours. Check your local NHS trust website — this varies by area.',
+      'Call **999** for anything life-threatening at any stage. **111** if you are unsure or out of hours. Check your local NHS trust website. This varies by area.',
     ],
     sourceIds: ['nhs-get-help'],
   },

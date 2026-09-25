@@ -81,8 +81,8 @@ export function AfterBirthScreen() {
       </div>
 
       <Note tone="warn" title="If something feels wrong" urgent>
-        Heavy bleeding, a severe headache, chest pain, breathlessness or a temperature — for you or{' '}
-        {who} — needs checking now, not tomorrow.{' '}
+        Heavy bleeding, a severe headache, chest pain, breathlessness or a temperature (for you or{' '}
+        {who}) needs checking now, not tomorrow.{' '}
         <Link to="/help" className="underline">
           When to get help →
         </Link>
@@ -121,7 +121,7 @@ export function AfterBirthScreen() {
             ? 'Worth knowing: more than 1 in 10 women get postnatal depression, and it responds well to treatment. If this has been most days for two weeks, tell your health visitor or GP.'
             : mood
               ? MOODS.find((m) => m.value === mood)?.message
-              : 'Logged to your journal — useful to look back on at your 6-week check.'}
+              : 'Logged to your journal: useful to look back on at your 6-week check.'}
         </p>
         {lowMood && (
           <Link

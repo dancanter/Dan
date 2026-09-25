@@ -42,7 +42,7 @@ export function GetHelpScreen() {
         href="tel:999"
         className="mb-4 flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-alert px-4 text-lead font-semibold text-alert no-underline"
       >
-        Call 999 — emergency
+        Call 999 (emergency)
       </a>
 
       <ul className="m-0 list-none p-0">
@@ -73,8 +73,8 @@ export function GetHelpScreen() {
           <p className="m-0 text-small">
             <Link to="/help/number" className="font-semibold underline">
               Save your maternity unit’s number
-            </Link>{' '}
-            — it’s on your handheld notes, and it means one tap instead of hunting for it later.
+            </Link>
+            . It’s on your handheld notes, and it means one tap instead of hunting for it later.
           </p>
         )}
       </div>
@@ -248,7 +248,7 @@ export function MaternityNumberScreen() {
 
       {unitPhone && (
         <p aria-live="polite" className="mt-4 text-small text-mossd">
-          Saved: {unitName ?? 'your unit'} — {unitPhone}
+          Saved: {unitName ?? 'your unit'}, {unitPhone}
         </p>
       )}
 

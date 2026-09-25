@@ -79,7 +79,7 @@ export function CalmScreen() {
 
       <p className="mt-8 border-t border-line pt-5 text-body leading-relaxed text-soft">
         If this is most days rather than today, that is worth saying out loud to your midwife or GP.
-        Perinatal mental health support exists and is part of ordinary maternity care — read{' '}
+        Perinatal mental health support exists and is part of ordinary maternity care: read{' '}
         <Link to="/healthy?open=asking-for-help" className="underline">
           how to raise it
         </Link>

@@ -58,7 +58,7 @@ export function WeekBar({ week, onChange, currentWeek, daysToGo }: WeekBarProps)
         >
           {Array.from({ length: MAX_WEEK - MIN_WEEK + 1 }, (_, i) => i + MIN_WEEK).map((w) => (
             <option key={w} value={w}>
-              Week {w} — {trimesterLabel(w).split(' ')[0]} trimester
+              Week {w}, {trimesterLabel(w).split(' ')[0]} trimester
             </option>
           ))}
         </select>

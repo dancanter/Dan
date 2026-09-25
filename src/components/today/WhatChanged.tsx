@@ -46,7 +46,7 @@ export function WhatChanged({ previousWeek, currentWeek, excludeGuideId }: Props
       <p className="m-0 text-body leading-relaxed">
         {weeksOn === 1
           ? `You’ve moved into week ${currentWeek}.`
-          : `You’re in week ${currentWeek} now — ${weeksOn} weeks on from last time.`}
+          : `You’re in week ${currentWeek} now, ${weeksOn} weeks on from last time.`}
         {newTrimester && ' That’s a new trimester.'}
       </p>
 

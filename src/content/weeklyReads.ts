@@ -40,8 +40,8 @@ const RULES: ReadRule[] = [
   // ── Early pregnancy ────────────────────────────────────────────────
   {
     guideId: 'folic-acid',
-    title: 'Folic acid — take this',
-    why: 'The window for this is now — it matters most before 12 weeks.',
+    title: 'Folic acid: take this',
+    why: 'The window for this is now. It matters most before 12 weeks.',
     from: 1,
     to: 12,
   },
@@ -68,7 +68,7 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'dental',
-    title: 'Dental care — and it’s free',
+    title: 'Dental care (and it’s free)',
     why: 'Free NHS dental care starts now and runs to 12 months after birth.',
     from: 8,
     to: 20,
@@ -76,7 +76,7 @@ const RULES: ReadRule[] = [
   {
     guideId: 'telling-employer',
     title: 'When to tell your employer',
-    why: 'The legal deadline is 15 weeks before your due date — worth knowing early.',
+    why: 'The legal deadline is 15 weeks before your due date: worth knowing early.',
     from: 10,
     to: 24,
   },
@@ -84,7 +84,7 @@ const RULES: ReadRule[] = [
   // ── Mid pregnancy ──────────────────────────────────────────────────
   {
     guideId: 'exercise-safe',
-    title: 'Exercise is safe — the guidelines all agree',
+    title: 'Exercise is safe: the guidelines all agree',
     why: 'Often the most comfortable stretch to build a habit in.',
     from: 13,
     to: 26,
@@ -112,7 +112,7 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'workplace-risk',
-    title: 'Health and safety at work — a legal duty, not a favour',
+    title: 'Health and safety at work: a legal duty, not a favour',
     why: 'If work is uncomfortable or unsafe, this is the duty your employer has.',
     from: 16,
     to: 32,
@@ -149,8 +149,8 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'sleep-position',
-    title: 'Sleep position — from 28 weeks',
-    why: 'From 28 weeks, side-sleeping matters — including naps.',
+    title: 'Sleep position: from 28 weeks',
+    why: 'From 28 weeks, side-sleeping matters, including naps.',
     from: 27,
     to: 34,
   },
@@ -201,7 +201,7 @@ const RULES: ReadRule[] = [
   {
     guideId: 'hospital-bag',
     title: 'Hospital bag checklist',
-    why: 'Packed from around 37 weeks — this week is a sensible time.',
+    why: 'Packed from around 37 weeks. This week is a sensible time.',
     from: 33,
     to: 40,
   },
@@ -221,7 +221,7 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'when-to-call-labour',
-    title: 'When to call — don’t wait it out',
+    title: 'When to call: don’t wait it out',
     why: 'The one to read now, so nobody is deciding under pressure.',
     from: 36,
     to: 42,
@@ -235,7 +235,7 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'feeding-what-helps',
-    title: 'What actually helps — from mothers who’ve been there',
+    title: 'What actually helps: from mothers who’ve been there',
     why: 'Latch support is the most common fix. Knowing to ask early matters.',
     from: 36,
     to: 42,
@@ -256,7 +256,7 @@ const RULES: ReadRule[] = [
   },
   {
     guideId: 'postnatal-bleeding',
-    title: 'Postnatal bleeding — and when it’s not normal',
+    title: 'Postnatal bleeding, and when it’s not normal',
     why: 'Knowing the 999 threshold in advance is worth a few minutes now.',
     from: 38,
     to: 42,

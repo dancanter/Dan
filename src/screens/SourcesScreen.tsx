@@ -121,7 +121,7 @@ export function SourcesScreen() {
       <Note tone="calm" title="How this is built">
         Every recommendation is checked against a named source before it goes in. Where evidence is
         uncertain, that’s stated rather than smoothed over. Where a study has a funding conflict,
-        that’s flagged — see the dairy and iodine entries, or read the{' '}
+        that’s flagged. See the dairy and iodine entries, or read the{' '}
         <Link to="/methodology" className="font-semibold underline">
           full process
         </Link>
@@ -152,7 +152,7 @@ export function SourcesScreen() {
           </p>
           {matches.length === 0 ? (
             <p className="text-body leading-relaxed text-soft">
-              Try the organisation instead — most entries are listed under NHS, NICE, SACN, RCOG or
+              Try the organisation instead: most entries are listed under NHS, NICE, SACN, RCOG or
               the name of a study’s first author.
             </p>
           ) : (
@@ -197,13 +197,13 @@ export function SourcesScreen() {
             . Research papers resolve from the reference number in the citation; the guidance pages
             are matched to the publisher’s own page and then opened automatically every week, so a
             link that stops working is found rather than left sitting there. The rest are named in
-            full but not yet linked — a link that goes to the wrong page is worse than no link.
+            full but not yet linked: a link that goes to the wrong page is worse than no link.
           </p>
           <p className="mt-2 text-small leading-relaxed text-soft">
             {dated} state a date. The others are standing NHS and charity pages that don’t publish
             one in the citation, and a date is never guessed to fill the gap. An old date isn’t the
-            same as out of date — the oldest thing here is a 1999 set of workplace regulations,
-            which is exactly as current as the day it was written.
+            same as out of date: the oldest thing here is a 1999 set of workplace regulations, which
+            is exactly as current as the day it was written.
           </p>
         </>
       )}

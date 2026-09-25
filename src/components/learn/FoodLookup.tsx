@@ -101,7 +101,7 @@ export function FoodLookup() {
           // Never a dead end. This list is short by design, and "not in my
           // list" must not read as "not allowed".
           <p className="mt-3 text-body leading-relaxed text-soft">
-            Not one of the ones people ask about most. That doesn’t mean it’s a problem — try{' '}
+            Not one of the ones people ask about most. That doesn’t mean it’s a problem. Try{' '}
             <Link to={`/healthy?q=${encodeURIComponent(q)}`} className="font-semibold underline">
               searching the guidance
             </Link>

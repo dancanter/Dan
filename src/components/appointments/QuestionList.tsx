@@ -62,7 +62,7 @@ export function QuestionList() {
       {questions.length === 0 ? (
         <p className="text-body italic text-soft">
           Nothing saved yet. Things worth asking tend to occur to you at 2am and vanish by the
-          appointment — this is somewhere to put them.
+          appointment. This is somewhere to put them.
         </p>
       ) : (
         <ul className="m-0 list-none p-0">

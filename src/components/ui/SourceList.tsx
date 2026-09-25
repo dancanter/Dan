@@ -40,7 +40,7 @@ export function SourceList({ sourceIds }: { sourceIds: string[] }) {
               ) : (
                 s.label
               )}
-              {' — '}
+              {' · '}
               {s.organisation}
               {s.reviewed && <span className="text-mossd"> · reviewed {s.reviewed}</span>}
               {s.caveat && <em className="mt-0.5 block opacity-90">{s.caveat}</em>}

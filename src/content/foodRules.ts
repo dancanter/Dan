@@ -50,7 +50,7 @@ export const foodRules: FoodRule[] = [
     id: 'brie',
     name: 'Brie',
     verdict: 'cook-first',
-    note: 'White-rind cheeses need cooking until steaming hot — then they’re fine.',
+    note: 'White-rind cheeses need cooking until steaming hot, then they’re fine.',
     guideId: 'cheese',
   },
   {
@@ -88,7 +88,7 @@ export const foodRules: FoodRule[] = [
     id: 'salami',
     name: 'Salami',
     verdict: 'cook-first',
-    note: 'Cured meats need cooking until steaming — on a pizza is fine.',
+    note: 'Cured meats need cooking until steaming (on a pizza is fine).',
     guideId: 'meat-eggs-fish',
   },
   {
@@ -102,7 +102,7 @@ export const foodRules: FoodRule[] = [
     id: 'runny-egg',
     name: 'A runny British Lion egg',
     verdict: 'fine',
-    note: 'Fine. Best with the white cooked and the yolk runny — easier to digest. Safe even raw if British Lion-stamped. Others cook firm.',
+    note: 'Fine. Best with the white cooked and the yolk runny: easier to digest. Safe even raw if British Lion-stamped. Others cook firm.',
     guideId: 'meat-eggs-fish',
     mentions: 'British Lion',
   },
@@ -117,7 +117,7 @@ export const foodRules: FoodRule[] = [
     id: 'tuna',
     name: 'Tinned tuna',
     verdict: 'limit',
-    note: 'Up to 4 cans or 2 steaks a week — a limit, not a ban.',
+    note: 'Up to 4 cans or 2 steaks a week: a limit, not a ban.',
     guideId: 'meat-eggs-fish',
     // The guide says "limit tuna to 4 cans", not "tinned tuna". Caught by the
     // check on its first run, which is the entire reason the check exists.
@@ -160,7 +160,7 @@ export const foodRules: FoodRule[] = [
     id: 'coffee',
     name: 'Coffee',
     verdict: 'limit',
-    note: '200mg a day is the ceiling — one mug of filter coffee is most of it.',
+    note: '200mg a day is the ceiling. One mug of filter coffee is most of it.',
     guideId: 'caffeine-and-rest',
     mentions: 'coffee',
   },

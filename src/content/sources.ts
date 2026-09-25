@@ -5,7 +5,7 @@ export const sources: Source[] = [
   {
     id: 'sacn-2026',
     label: 'Nutrition and maternal weight outcomes',
-    organisation: 'SACN — UK Department of Health & Social Care, 2026',
+    organisation: 'SACN: UK Department of Health & Social Care, 2026',
     tier: 'gov',
     reviewed: '2026',
   },
@@ -34,7 +34,7 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-starchy-foods',
-    label: 'Starchy foods and carbohydrates — including acrylamide and cooking potatoes',
+    label: 'Starchy foods and carbohydrates: including acrylamide and cooking potatoes',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/live-well/eat-well/food-types/starchy-foods-and-carbohydrates/',
@@ -56,7 +56,7 @@ export const sources: Source[] = [
     tier: 'research',
     url: 'https://www.sciencedirect.com/science/article/abs/pii/S0002822310002385',
     caveat:
-      'Measures how much AGE is in foods cooked different ways, which is well established. It is not a pregnancy study, and whether dietary AGEs affect human health is still debated — the authors are more confident about that than the wider evidence is.',
+      'Measures how much AGE is in foods cooked different ways, which is well established. It is not a pregnancy study, and whether dietary AGEs affect human health is still debated: the authors are more confident about that than the wider evidence is.',
   },
   {
     id: 'evenepoel-1998',
@@ -70,7 +70,7 @@ export const sources: Source[] = [
   },
   {
     id: 'nih-ods-biotin',
-    label: 'Biotin — fact sheet for health professionals',
+    label: 'Biotin: fact sheet for health professionals',
     organisation: 'US National Institutes of Health, Office of Dietary Supplements',
     tier: 'gov',
     url: 'https://ods.od.nih.gov/factsheets/Biotin-HealthProfessional/',
@@ -84,7 +84,7 @@ export const sources: Source[] = [
     tier: 'research',
     url: 'https://doi.org/10.1016/j.cell.2021.06.019',
     caveat:
-      'A randomised trial, but small — 18 healthy adults per group — and not in pregnancy. It shows fermented foods changed the gut microbiome over weeks; it does not show a benefit to pregnancy or to babies.',
+      'A randomised trial, but small, 18 healthy adults per group, and not in pregnancy. It shows fermented foods changed the gut microbiome over weeks; it does not show a benefit to pregnancy or to babies.',
   },
   {
     id: 'kombucha-ethanol',
@@ -94,7 +94,7 @@ export const sources: Source[] = [
     tier: 'research',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8372040/',
     caveat:
-      'A study of how to measure alcohol in kombucha, which exists because the amount varies and labels are not always accurate. Not a pregnancy study — the pregnancy point comes from the NHS alcohol advice.',
+      'A study of how to measure alcohol in kombucha, which exists because the amount varies and labels are not always accurate. Not a pregnancy study: the pregnancy point comes from the NHS alcohol advice.',
   },
   {
     id: 'nhs-probiotics',
@@ -105,14 +105,14 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-bloating',
-    label: 'Bloating — things you can do, and when to see a GP',
+    label: 'Bloating: things you can do, and when to see a GP',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/symptoms/bloating/',
   },
   {
     id: 'nhs-flatulence',
-    label: 'Farting (flatulence) — foods that can cause it, and what helps',
+    label: 'Farting (flatulence): foods that can cause it, and what helps',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/symptoms/flatulence/',
@@ -135,7 +135,7 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-gdm-treatment',
-    label: 'Gestational diabetes — treatment',
+    label: 'Gestational diabetes: treatment',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/conditions/gestational-diabetes/treatment/',
@@ -145,7 +145,7 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-dpp-gdm',
-    label: 'Healthier You: NHS Diabetes Prevention Programme — after gestational diabetes',
+    label: 'Healthier You: NHS Diabetes Prevention Programme: after gestational diabetes',
     organisation: 'NHS England',
     tier: 'nhs',
     url: 'https://www.england.nhs.uk/diabetes/diabetes-prevention/healthier-you-nhs-diabetes-prevention-programme-gdm/',
@@ -153,21 +153,21 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-caesarean-recovery',
-    label: 'Caesarean section — recovery',
+    label: 'Caesarean section: recovery',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/tests-and-treatments/caesarean-section/recovery/',
   },
   {
     id: 'nhs-caesarean-risks',
-    label: 'Caesarean section — risks',
+    label: 'Caesarean section: risks',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/tests-and-treatments/caesarean-section/risks/',
   },
   {
     id: 'nhs-co-codamol-breastfeeding',
-    label: 'Co-codamol — pregnancy, breastfeeding and fertility',
+    label: 'Co-codamol: pregnancy, breastfeeding and fertility',
     organisation: 'NHS',
     tier: 'nhs',
     url: 'https://www.nhs.uk/medicines/co-codamol-for-adults/pregnancy-breastfeeding-and-fertility-while-taking-co-codamol-for-adults/',
@@ -193,23 +193,23 @@ export const sources: Source[] = [
     tier: 'gov',
     url: 'https://www.nice.org.uk/guidance/ng137/chapter/recommendations',
     caveat:
-      'The triplet birth timing is one NICE set from clinical experience rather than evidence — the committee found no trials on when to deliver triplets, and says so.',
+      'The triplet birth timing is one NICE set from clinical experience rather than evidence: the committee found no trials on when to deliver triplets, and says so.',
   },
   {
     id: 'twins-trust',
-    label: 'Twins Trust — support for families with multiples',
+    label: 'Twins Trust: support for families with multiples',
     organisation: 'Twins Trust',
     tier: 'charity',
     url: 'https://twinstrust.org/',
   },
   {
     id: 'nice-ng126',
-    label: 'NG126, Ectopic pregnancy and miscarriage — management of miscarriage',
+    label: 'NG126, Ectopic pregnancy and miscarriage: management of miscarriage',
     organisation: 'NICE',
     tier: 'gov',
     url: 'https://www.nice.org.uk/guidance/ng126/chapter/Management-of-miscarriage',
     caveat:
-      'The trial behind this recommendation (PRISM, 4,153 women) did not reach statistical significance across everyone it enrolled — 76% live births on progesterone against 72% on placebo, p=0.08. The benefit NICE acted on is in the subgroup who had bled and miscarried before. That subgroup finding is real and it is why the recommendation exists, but it is a subgroup finding, and the ≥3 miscarriages analysis was planned while the 1-or-more one was done afterwards.',
+      'The trial behind this recommendation (PRISM, 4,153 women) did not reach statistical significance across everyone it enrolled: 76% live births on progesterone against 72% on placebo, p=0.08. The benefit NICE acted on is in the subgroup who had bled and miscarried before. That subgroup finding is real and it is why the recommendation exists, but it is a subgroup finding, and the ≥3 miscarriages analysis was planned while the 1-or-more one was done afterwards.',
   },
   {
     id: 'mhra-paracetamol',
@@ -250,7 +250,7 @@ export const sources: Source[] = [
   },
   {
     id: 'nhs-dairy',
-    label: 'Milk and dairy foods — Eatwell Guide',
+    label: 'Milk and dairy foods: Eatwell Guide',
     organisation: 'NHS',
     tier: 'nhs',
   },
@@ -275,13 +275,13 @@ export const sources: Source[] = [
   },
   {
     id: 'app-network',
-    label: 'Action on Postpartum Psychosis — support and peer network',
+    label: 'Action on Postpartum Psychosis: support and peer network',
     organisation: 'APP',
     tier: 'charity',
   },
   {
     id: 'mbrrace-2026',
-    label: 'Saving Lives, Improving Mothers’ Care — UK confidential enquiry into maternal deaths',
+    label: 'Saving Lives, Improving Mothers’ Care: UK confidential enquiry into maternal deaths',
     // Corrected against MBRRACE-UK's own report index. The citation used to
     // read "2021–2023 report (Jan 2025) and 2022–2024 report (Jan 2026)":
     // the 2021–23 report was published in September 2025, not January, and no
@@ -292,7 +292,7 @@ export const sources: Source[] = [
     url: 'https://www.npeu.ox.ac.uk/mbrrace-uk/reports/maternal-reports',
     reviewed: 'September 2025',
     caveat:
-      'The published ratios move between annual reports as the rolling three-year window shifts. Figures here are stated as ranges for that reason — check the latest report for the current numbers.',
+      'The published ratios move between annual reports as the rolling three-year window shifts. Figures here are stated as ranges for that reason. Check the latest report for the current numbers.',
   },
   {
     id: 'rcog-mbrrace',
@@ -302,7 +302,7 @@ export const sources: Source[] = [
   },
   {
     id: 'weq-black-maternal-health',
-    label: 'Black maternal health — Third Report of Session 2022–23',
+    label: 'Black maternal health: Third Report of Session 2022–23',
     organisation: 'Women and Equalities Committee, House of Commons, 2023',
     tier: 'gov',
     reviewed: '2023',
@@ -332,7 +332,7 @@ export const sources: Source[] = [
     tier: 'charity',
     reviewed: 'August 2024',
     caveat:
-      'Observational, so it cannot fully separate caffeine from sugar in cola or taurine in energy drinks. The dose-response pattern tracks caffeine amount closely, which is why the practical advice — treat 200mg as a ceiling, not a target — holds regardless.',
+      'Observational, so it cannot fully separate caffeine from sugar in cola or taurine in energy drinks. The dose-response pattern tracks caffeine amount closely, which is why the practical advice (treat 200mg as a ceiling, not a target) holds regardless.',
   },
   {
     id: 'daley-2010-grassfed',
@@ -340,7 +340,7 @@ export const sources: Source[] = [
     organisation: 'Daley CA, et al. Nutrition Journal 2010;9:10',
     tier: 'research',
     caveat:
-      'A comparison of what is in the meat, not a study of what it does to anyone. No trial has shown better outcomes for a mother or baby from grass-fed over grain-fed — the differences are real but small in absolute terms.',
+      'A comparison of what is in the meat, not a study of what it does to anyone. No trial has shown better outcomes for a mother or baby from grass-fed over grain-fed: the differences are real but small in absolute terms.',
   },
   {
     id: 'thorning-2017-matrix',
@@ -348,11 +348,11 @@ export const sources: Source[] = [
     organisation: 'Thorning TK, et al. Am J Clin Nutr 2017;105(5):1033–45',
     tier: 'research',
     caveat:
-      'A narrative review rather than a trial, and dairy-industry research funding is common across this field. The "matrix" idea is widely discussed but not settled — treat it as an open question, not a reversal of UK guidance.',
+      'A narrative review rather than a trial, and dairy-industry research funding is common across this field. The "matrix" idea is widely discussed but not settled: treat it as an open question, not a reversal of UK guidance.',
   },
   {
     id: 'anderson-2026-dairy',
-    label: 'Full-fat dairy and cardiometabolic risk factors — 12-week randomised controlled trial',
+    label: 'Full-fat dairy and cardiometabolic risk factors: 12-week randomised controlled trial',
     organisation: 'Anderson GH, et al. University of Toronto, 2026',
     tier: 'research',
     // No url, no DOI, no PMID — deliberately. The formal reference has not been
@@ -388,7 +388,7 @@ export const sources: Source[] = [
   {
     id: 'nhs-mental-health',
     label: 'Mental health and pregnancy',
-    organisation: 'NHS — Best Start in Life',
+    organisation: 'NHS: Best Start in Life',
     tier: 'nhs',
     url: 'https://www.nhs.uk/best-start-in-life/pregnancy/mental-health-and-pregnancy/',
   },
@@ -509,7 +509,7 @@ export const sources: Source[] = [
   },
   {
     id: 'molenaar-2023',
-    label: 'Perinatal depression before, during and after pregnancy — Danish national registers',
+    label: 'Perinatal depression before, during and after pregnancy: Danish national registers',
     organisation: 'Molenaar NM, et al. J Affect Disord 2023',
     tier: 'research',
     url: 'https://www.nimh.nih.gov/news/science-updates/2023/population-study-finds-depression-is-different-before-during-and-after-pregnancy',
@@ -567,7 +567,7 @@ export const sources: Source[] = [
     organisation: 'Iannotti L, et al. Nutrients 2024;16(19):3231',
     tier: 'research',
     caveat:
-      'Narrative review in a special issue on animal-derived foods, with FAO-affiliated authors — the underlying meta-analysis figures are checkable, but read the framing with some caution.',
+      'Narrative review in a special issue on animal-derived foods, with FAO-affiliated authors: the underlying meta-analysis figures are checkable, but read the framing with some caution.',
   },
   {
     id: 'dairy-dose-response',
@@ -620,7 +620,7 @@ export const sources: Source[] = [
     tier: 'research',
     url: 'https://www.sciencedirect.com/science/article/abs/pii/S0277953619303879',
     caveat:
-      'A US survey of 501 pregnant and postpartum women, measured at one point in time — it shows the experiences travel together, not that one causes the other. It is about weight stigma specifically rather than every remark a stranger makes.',
+      'A US survey of 501 pregnant and postpartum women, measured at one point in time. It shows the experiences travel together, not that one causes the other. It is about weight stigma specifically rather than every remark a stranger makes.',
   },
   {
     id: 'davies-2018',
