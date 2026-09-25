@@ -102,7 +102,7 @@ export const foodRules: FoodRule[] = [
     id: 'runny-egg',
     name: 'A runny British Lion egg',
     verdict: 'fine',
-    note: 'British Lion-stamped eggs are fine raw or runny. Others cook firm.',
+    note: 'Fine. Best with the white cooked and the yolk runny — easier to digest. Safe even raw if British Lion-stamped. Others cook firm.',
     guideId: 'meat-eggs-fish',
     mentions: 'British Lion',
   },

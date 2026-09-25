@@ -28,13 +28,14 @@ export const foodSafetyGuides: Guide[] = [
     id: 'meat-eggs-fish',
     section: 'food-safety',
     title: 'Meat, eggs & fish',
-    summary: 'Cook meat through, British Lion eggs are fine runny, limit tuna and oily fish.',
+    summary:
+      'Cook meat through, eggs best with a set white and runny yolk, limit tuna and oily fish.',
     body: [
       '**Meat:** cook thoroughly, no pink or blood. Cook cured meats (salami, chorizo, prosciutto) until steaming. Avoid liver and liver products (vitamin A) and game meat (lead).',
-      '**Eggs:** British Lion-stamped or Laid in Britain eggs are fine raw or runny. Others cook firm. Duck, goose and quail eggs always well-cooked.',
+      '**Eggs:** the best way is a **cooked white with a runny yolk** — a soft-boiled, poached or fried egg. British Lion-stamped and Laid in Britain eggs are safe even raw, so this is not about safety. It is because cooked egg white is much easier to digest, and raw egg white stops your body absorbing biotin, a B vitamin. Eat eggs before their use-by date. Eggs without the lion stamp: cook until the white and yolk are both solid. Duck, goose and quail eggs always well-cooked.',
       '**Fish:** cooked fish and shellfish are fine. Avoid raw fish, raw shellfish, shark, swordfish and marlin. Limit tuna to 4 cans or 2 steaks a week, and oily fish to 2 portions a week.',
     ],
-    sourceIds: ['nhs-foods-to-avoid'],
+    sourceIds: ['nhs-foods-to-avoid', 'evenepoel-1998', 'nih-ods-biotin'],
   },
   {
     id: 'caffeine-and-rest',

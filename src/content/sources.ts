@@ -59,6 +59,25 @@ export const sources: Source[] = [
       'Measures how much AGE is in foods cooked different ways, which is well established. It is not a pregnancy study, and whether dietary AGEs affect human health is still debated — the authors are more confident about that than the wider evidence is.',
   },
   {
+    id: 'evenepoel-1998',
+    label:
+      'Digestibility of cooked and raw egg protein in humans as assessed by stable isotope techniques',
+    organisation: 'Evenepoel P, et al. J Nutr 1998;128(10):1716–1722, PMID 9772141',
+    tier: 'research',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/9772141/',
+    caveat:
+      'About 91% of cooked egg protein was absorbed against 51% of raw. A careful method, but only five people, all with an ileostomy. It supports cooking the white for digestion; it says nothing about safety, which is a separate question the NHS answers.',
+  },
+  {
+    id: 'nih-ods-biotin',
+    label: 'Biotin — fact sheet for health professionals',
+    organisation: 'US National Institutes of Health, Office of Dietary Supplements',
+    tier: 'gov',
+    url: 'https://ods.od.nih.gov/factsheets/Biotin-HealthProfessional/',
+    caveat:
+      'A US government source. Avidin in raw egg white binds biotin and cooking deactivates it; the deficiency it can cause is reported with diets high in raw egg white, not with the odd runny egg.',
+  },
+  {
     id: 'wastyk-2021',
     label: 'Gut-microbiota-targeted diets modulate human immune status',
     organisation: 'Wastyk HC, et al. Cell 2021;184:4137–4153, PMID 34256014',

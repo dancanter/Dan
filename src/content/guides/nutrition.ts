@@ -46,7 +46,7 @@ export const nutritionGuides: Guide[] = [
       {
         title: 'For protein — eat some every day',
         items: [
-          'Eggs — British Lion-stamped eggs are fine runny',
+          'Eggs — best with the white cooked and the yolk runny, like a soft-boiled egg',
           'Chicken, meat and fish',
           'Beans, lentils, tofu, nuts and seeds',
         ],
