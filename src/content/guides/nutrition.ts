@@ -61,6 +61,14 @@ export const nutritionGuides: Guide[] = [
         ],
       },
       {
+        title: 'For your gut — good bacteria',
+        items: [
+          'Live or "bio" yoghurt and kefir, made from pasteurised milk — check the label',
+          'Have them alongside fibre, which is what the good bacteria feed on',
+          'Skip kombucha — the Gut health entry explains why',
+        ],
+      },
+      {
         title: 'Fruit and veg — at least five portions a day',
         items: [
           'Fresh, frozen, tinned and dried all count',
@@ -117,14 +125,11 @@ export const nutritionGuides: Guide[] = [
     sourceIds: ['nhs-starchy-foods', 'uhcw-folate-diet', 'uribarri-2010', 'nhs-foods-to-avoid'],
   },
   {
-    // Two things this entry refuses, both on purpose.
+    // Fermented foods and fibre are presented as a pair: one brings in live
+    // bacteria, the other feeds them. Only the fermented foods that are safe
+    // in pregnancy are named, and kombucha is steered away from.
     //
-    // It does not say fibre is wasted without fermented foods. Everyone has
-    // gut bacteria already, and fibre also softens stools on its own — which
-    // matters more in pregnancy than almost anywhere, because constipation is
-    // one of its commonest problems.
-    //
-    // And it does not tell anyone to cut out broccoli or beans. They cause
+    // It does not tell anyone to cut out broccoli or beans. They cause
     // wind, and they are also among the best folate and fibre foods there
     // are. The fix for wind is building up slowly and smaller portions, not
     // dropping the food.
@@ -132,11 +137,12 @@ export const nutritionGuides: Guide[] = [
     section: 'nutrition',
     title: 'Gut health — fibre, fermented foods, wind and bloating',
     summary:
-      'Build fibre up slowly if it gives you wind, try pasteurised live yoghurt or kefir, and skip kombucha.',
+      'Add good bacteria with pasteurised live yoghurt or kefir, feed them with fibre, and skip kombucha.',
     body: [
-      '**Fibre feeds the bacteria already in your gut.** Everyone has them. Fibre also helps on its own, by softening poo and keeping things moving. That matters a lot in pregnancy, because hormones slow digestion and constipation is very common.',
-      '**Fermented foods may add variety.** In one small trial, 36 healthy adults (not pregnant) ate either lots of fermented foods or lots of fibre for several weeks. The fermented-food group ended up with a more varied mix of gut bacteria and lower signs of inflammation. In the fibre group, how people responded depended on how varied their gut bacteria were to begin with.',
-      'That is a promising finding, not a rule. It was small, it was not in pregnancy, and it is not part of UK pregnancy advice. So think of fermented foods as a good habit to add, not something you must have for fibre to work.',
+      '**Fermented foods add good bacteria; fibre feeds them.** Live yoghurt and kefir contain live bacteria. Fibre is what gut bacteria live on. So it makes sense to have both.',
+      'There is some evidence for this. In one small trial, 36 healthy adults (not pregnant) ate either lots of fermented foods or lots of fibre for several weeks. The fermented-food group ended up with a more varied mix of gut bacteria and lower signs of inflammation. In the fibre group, how people responded depended on how varied their gut bacteria were to begin with.',
+      'It is a promising finding rather than settled advice: the trial was small, it was not in pregnancy, and fermented foods are not part of UK pregnancy guidance yet. But the ones below are safe, cheap and easy to add.',
+      'Fibre also helps on its own, by softening poo and keeping things moving. That matters a lot in pregnancy, because hormones slow digestion and constipation is very common.',
       '**Fermented foods that are fine in pregnancy:** live or "bio" yoghurt and kefir, **as long as they are made from pasteurised milk**. Most in UK shops are, but check the label. Avoid anything made with unpasteurised milk, including homemade kefir from raw milk.',
       '**Kombucha is one to skip, or ask your midwife about first.** It is brewed from tea, so it contains caffeine. Fermenting also leaves some alcohol in it, and the amount varies — often more than the label says, and more again in home brews. The NHS says there is no known safe amount of alcohol in pregnancy.',
       '**Probiotic supplements** are generally thought to be safe if your immune system is healthy. But they are sold as food, not medicine, so they are not tested the same way, and you cannot always be sure the bacteria on the label are in the tub. Ask your midwife or pharmacist if you want to try one.',
