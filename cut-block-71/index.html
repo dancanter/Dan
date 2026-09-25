@@ -218,6 +218,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row" style="margin-top:12px">
       <button class="tog" id="tgGym" aria-pressed="false" type="button"><span class="chk"></span>Gym</button>
       <div class="f" style="max-width:190px"><label for="inSplit">Which session</label><select id="inSplit"></select></div>
+      <div class="f calis" style="max-width:190px"><label for="inCalisType">Which test</label><select id="inCalisType"></select></div>
       <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
       <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
       <div class="f" style="max-width:130px"><label for="inGymRpe">Gym: how hard it <i>felt</i></label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
@@ -613,7 +614,13 @@ var CFG={
      and pull-ups as he can in 40 minutes. It is the number to beat, so it has
      to be on the page rather than in a chat log. Undated because he never
      gave the day. */
-  calis:{mins:40,push:392,pull:138,when:'before Cut Block 71'},
+  /* Three different 40-minute tests, each with its own records, because a
+     push-ups-only session and a push-ups-and-pull-ups session are not the
+     same test: the combined one splits 40 minutes between two movements.
+     The prior record is from the combined test. */
+  calis:{mins:40,when:'before Cut Block 71',
+    types:[{k:'both',n:'Push-ups + pull-ups'},{k:'push',n:'Push-ups only'},{k:'pull',n:'Pull-ups only'}],
+    prior:{both:{push:392,pull:138}}},
   /* What the two blocks are actually FOR, in Dan's words, plus the thing a
      list of goals never has and always needs: what wins when two of them
      fight. Without the tie-breaks this is a mood board, not a plan. */
@@ -1191,6 +1198,37 @@ function sessionsNeeded(hi){return Math.max(1,Math.ceil(hi/SESSION_CAP));}
 function splitName(k){
   for(var i=0;i<CFG.split.length;i++)if(CFG.split[i].k===k)return CFG.split[i].n;
   return k||'';
+}
+/* Which 40-minute test a day was. Explicit when logged since this existed;
+   older days are read off which numbers are there. */
+function calisType(r){
+  if(!r)return null;
+  if(r.calisType)return r.calisType;
+  var hp=typeof r.push==='number',hl=typeof r.pull==='number';
+  return hp&&hl?'both':(hp?'push':(hl?'pull':null));
+}
+function calisRecords(){
+  var P=CFG.calis.prior||{},d,r,t;
+  var out={both:{best:null,push:null,pull:null,n:0},push:{best:null,n:0},pull:{best:null,n:0}};
+  if(P.both){
+    out.both.best={push:P.both.push,pull:P.both.pull,total:P.both.push+P.both.pull,d:null};
+    out.both.push={v:P.both.push,d:null};out.both.pull={v:P.both.pull,d:null};
+  }
+  for(d in S.days){
+    r=S.days[d];t=calisType(r);if(!t)continue;
+    if(t==='both'){
+      var ps=typeof r.push==='number'?r.push:0,pl=typeof r.pull==='number'?r.pull:0,tot=ps+pl;
+      out.both.n++;
+      if(!out.both.best||tot>out.both.best.total)out.both.best={push:ps,pull:pl,total:tot,d:d};
+      if(!out.both.push||ps>out.both.push.v)out.both.push={v:ps,d:d};
+      if(!out.both.pull||pl>out.both.pull.v)out.both.pull={v:pl,d:d};
+    }else if(t==='push'&&typeof r.push==='number'){
+      out.push.n++;if(!out.push.best||r.push>out.push.best.v)out.push.best={v:r.push,d:d};
+    }else if(t==='pull'&&typeof r.pull==='number'){
+      out.pull.n++;if(!out.pull.best||r.pull>out.pull.best.v)out.pull.best={v:r.pull,d:d};
+    }
+  }
+  return out;
 }
 function splitModel(){
   var t=today(),c=cutTally(),tr=trainingModel();
@@ -2524,8 +2562,19 @@ function dayGains(is){
       out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — a hard session, the kind that moves VO₂ max and your times.'+(cmp?' <span class="tiny">'+cmp+'</span>':'')});
     }else out.push({c:'Running',t:'<b>'+esc(m.label)+'</b> — aerobic base: more capillaries, more mitochondria, easier hard days.'});
   }
-  if(r.gym)out.push({c:'Strength',t:(r.split?'<b>'+esc(splitName(r.split))+'</b>':'<b>Gym</b>')+' — muscle kept through the deficit. The weight on the bar is what tells your body to hold onto it.'+
-    (typeof r.push==='number'?' <span class="tiny">'+ci(r.push)+' push-ups'+(typeof r.pull==='number'?', '+ci(r.pull)+' pull-ups':'')+'.</span>':'')});
+  var ct=calisType(r);
+  if(r.gym&&ct){
+    /* a calisthenics test is credited as the test it was, against the
+       record for that test only */
+    var CX=calisRecords(),tn=CFG.calis.types.filter(function(x){return x.k===ct;})[0].n,isRec=false,txt;
+    if(ct==='both'){
+      var tot=(r.push||0)+(r.pull||0);
+      isRec=!!(CX.both.best&&CX.both.best.d===is);
+      txt='<b>'+ci(r.push||0)+' push-ups + '+ci(r.pull||0)+' pull-ups = '+ci(tot)+' reps</b>';
+    }else if(ct==='push'){isRec=!!(CX.push.best&&CX.push.best.d===is);txt='<b>'+ci(r.push||0)+' push-ups</b>';}
+    else{isRec=!!(CX.pull.best&&CX.pull.best.d===is);txt='<b>'+ci(r.pull||0)+' pull-ups</b>';}
+    out.push({c:'Strength',t:tn+', '+CFG.calis.mins+' min — '+txt+(isRec?' <span class="pill g">record</span>':'')+'.'});
+  }else if(r.gym)out.push({c:'Strength',t:(r.split?'<b>'+esc(splitName(r.split))+'</b>':'<b>Gym</b>')+' — muscle kept through the deficit. The weight on the bar is what tells your body to hold onto it.'});
   if(typeof r.study==='number'&&r.study>0)out.push({c:'Study',t:'<b>'+f1(r.study)+' h</b> studied'+(typeof r.deep==='number'&&r.deep>0?', <b>'+f1(r.deep)+' h</b> of it deep work':'')+'.'});
   if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)out.push({c:'Health',t:'<b>'+f1(r.sleep)+' h</b> of sleep — at the line. Recovery, hormones and the face all get paid for here.'});
   if(r.skinAM&&r.skinPM)out.push({c:'Looks',t:'Skin routine done morning and night'+(r.retinol?', and a retinol night on schedule':'')+'.'});
@@ -3333,6 +3382,13 @@ function paintForm(){
   Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.calis'),function(x){
     x.hidden=(rec.split!=='calis');
   });
+  var ctype=calisType(rec)||'both';
+  E('inCalisType').innerHTML=CFG.calis.types.map(function(t){
+    return '<option value="'+t.k+'"'+(t.k===ctype?' selected':'')+'>'+t.n+'</option>';}).join('');
+  if(rec.split==='calis'){
+    E('inPush').parentNode.hidden=(ctype==='pull');
+    E('inPull').parentNode.hidden=(ctype==='push');
+  }
   /* the "where" box only appears once something actually hurts, so the form
      does not grow a permanent empty field for a day that is fine */
   Array.prototype.forEach.call(document.querySelectorAll('#s-today .f.niggle'),function(x){
@@ -3946,20 +4002,25 @@ function renderSplit(){
     (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
     '</div>';
 
-  /* calisthenics: the 40-minute test, and the record it has to beat */
-  var CR=CFG.calis;
-  var beatP=m.push&&m.push.v>CR.push, beatL=m.pull&&m.pull.v>CR.pull;
-  h+='<div class="p flag"><h2>Calisthenics — the '+CR.mins+'-minute test</h2>'+
+  /* calisthenics: three 40-minute tests, each with its own record */
+  var CR=CFG.calis,CX=calisRecords(),when=function(d){return d?fmtS(d):CR.when;};
+  var B=CX.both.best;
+  h+='<div class="p flag"><h2>Calisthenics \u2014 '+CR.mins+'-minute tests</h2>'+
+    '<h2 style="font-size:15px;margin-top:4px">Push-ups + pull-ups</h2>'+
     '<div class="tiles t4">'+
-    tile('record push-ups',ci(beatP?m.push.v:CR.push),beatP?('new record, '+fmtS(m.push.d)):CR.when)+
-    tile('record pull-ups',ci(beatL?m.pull.v:CR.pull),beatL?('new record, '+fmtS(m.pull.d)):CR.when)+
-    tile('best this block',m.push?ci(m.push.v)+' / '+ci(m.pull?m.pull.v:0):'—',m.push?fmtS(m.push.d):'none logged yet')+
-    tile('to beat it',ci((beatP?m.push.v:CR.push)+1)+' / '+ci((beatL?m.pull.v:CR.pull)+1),'push / pull next time')+
+    tile('best session',B?ci(B.total)+' reps':'\u2014',B?(ci(B.push)+' + '+ci(B.pull)+' \u00b7 '+when(B.d)):'')+
+    tile('most push-ups',CX.both.push?ci(CX.both.push.v):'\u2014',CX.both.push?when(CX.both.push.d):'')+
+    tile('most pull-ups',CX.both.pull?ci(CX.both.pull.v):'\u2014',CX.both.pull?when(CX.both.pull.d):'')+
+    tile('to beat it',B?ci(B.total+1)+' reps':'\u2014','in one session')+
     '</div>'+
-    '<p class="tiny" style="margin-top:10px">As many push-ups and pull-ups as you can in '+CR.mins+' minutes. '+
-    'Pick <b>Calisthenics</b> as the session on the Today log and two boxes appear for the numbers.</p>'+
+    '<div class="tiles t4" style="margin-top:10px">'+
+    tile('push-ups only',CX.push.best?ci(CX.push.best.v):'not done yet',CX.push.best?('best, '+fmtS(CX.push.best.d)):(CR.mins+' min, push-ups alone'))+
+    tile('pull-ups only',CX.pull.best?ci(CX.pull.best.v):'not done yet',CX.pull.best?('best, '+fmtS(CX.pull.best.d)):(CR.mins+' min, pull-ups alone'))+
+    '</div>'+
+    '<p class="tiny" style="margin-top:10px">Three tests, kept apart on purpose: '+CR.mins+' minutes of push-ups alone is a different test from '+CR.mins+' minutes split between both, so each has its own record. '+
+    'Pick <b>Calisthenics</b> on the Today log, choose <b>which test</b>, and the right boxes appear.</p>'+
     '<p class="note"><b>A full '+CR.mins+'-minute test is a hard day, not a free one.</b> '+
-    '530 reps of pulling and pressing is real training load — count it as one of the week’s hard days and keep it away from a heavy chest or back session.</p></div>';
+    (B?ci(B.total)+' reps':'Hundreds of reps')+' of pulling and pressing is real training load \u2014 count it as one of the week\u2019s hard days and keep it away from a heavy chest or back session.</p></div>';
   E('tSplit').innerHTML=h;
 }
 
@@ -4690,8 +4751,15 @@ function wire(){
     touch();
   });
   E('inSplit').addEventListener('change',function(){
+    var d=E('logDate').value||today(),o={split:this.value||null};
+    /* make the test type explicit the moment calisthenics is picked, so a day
+       is never left to be guessed from which boxes happen to be filled */
+    if(this.value==='calis'&&!(S.days[d]||{}).calisType)o.calisType='both';
+    setDay(d,o);
+  });
+  E('inCalisType').addEventListener('change',function(){
     var d=E('logDate').value||today();
-    setDay(d,{split:this.value||null});
+    setDay(d,{calisType:this.value});
   });
   E('inNiggle').addEventListener('change',function(){
     var d=E('logDate').value||today();

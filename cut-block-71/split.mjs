@@ -81,14 +81,16 @@ ok('and what was done this week', /this week/.test(t));
 ok('the fifth day is called free', /The fifth day is free/.test(t));
 ok('naming the three options', /a second go at any of the four, arms, or calisthenics/.test(t));
 ok('calisthenics has its own panel', /Calisthenics/.test(t) && /40-minute test/.test(t));
-ok('showing the best', /180/.test(t) && /42/.test(t), t.slice(-400));
+// 180 + 42 = 222 does not beat the 392 + 138 = 530 combined record, so the
+// record shown is still the prior one.
+ok('a weaker session leaves the record standing', /best session\s*530 reps/.test(t.replace(/\s+/g, ' ')), t.slice(-400));
 // Corrected: a 40-minute max test is ~530 reps and Dan's own brief says big
 // calisthenics sessions count as hard days. The old line said the opposite.
 ok('a full test is called a hard day, not a free one', /is a hard day, not a free one/.test(t));
 ok('and the old free-recovery claim is gone', !/costs almost nothing to recover from/.test(t));
 // His record from before this block: 392 push-ups / 138 pull-ups in 40 min.
 const CR = await p.evaluate(() => CFG.calis);
-ok('the 40-minute record is stored', CR.mins === 40 && CR.push === 392 && CR.pull === 138, JSON.stringify(CR));
+ok('the 40-minute record is stored against the combined test', CR.mins === 40 && CR.prior.both.push === 392 && CR.prior.both.pull === 138, JSON.stringify(CR));
 
 // logging a split from Today
 await boot(st({ days: { '2026-09-22': {} } }));
@@ -110,22 +112,66 @@ ok('a push-up count is stored',
   (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].push)) === 150);
 ok('and reaches the board', (await p.evaluate(() => splitModel().push.v)) === 150);
 
-// ---- the record to beat --------------------------------------------------
-// Nothing logged: the panel shows his 392 / 138 as the record and 393 / 139
-// as the target.
+// ---- three tests, three records ----------------------------------------
+// Push-ups + pull-ups, push-ups only and pull-ups only are different tests,
+// so each keeps its own record. The combined one is scored on total reps,
+// with the best push-up and pull-up counts inside it kept alongside.
+const TD = await p.evaluate(() => today());
+const yday = await p.evaluate(() => addD(today(), -1));
 await boot(st({}));
 await p.click('[data-t="training"]');
 let cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
-ok('with nothing logged the record is his 392', /record push-ups\s*392/.test(cz), (cz.match(/record push-ups.{0,40}/) || [''])[0]);
-ok('and 138 pull-ups', /record pull-ups\s*138/.test(cz));
-ok('the target is one more of each', /to beat it\s*393 \/ 139/.test(cz), (cz.match(/to beat it.{0,30}/) || [''])[0]);
-// A logged test under the record leaves it standing; one over it replaces it.
-await boot(st({ days: { [await p.evaluate(() => today())]: { gym: true, split: 'calis', push: 380, pull: 140 } } }));
+ok('with nothing logged the combined record is 392 + 138 = 530', /best session\s*530 reps\s*392 \+ 138/.test(cz), (cz.match(/best session.{0,50}/) || [''])[0]);
+ok('and the target is 531 reps', /to beat it\s*531 reps/.test(cz));
+ok('push-ups only has no record yet', /push-ups only\s*not done yet/.test(cz));
+ok('pull-ups only has no record yet', /pull-ups only\s*not done yet/.test(cz));
+
+// Dan's real 24 Sep session: 430 + 135 = 565, a combined record by total
+// even though pull-ups were 3 short of 138.
+await boot(st({ days: { [yday]: { gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 } } }));
+let CX = await p.evaluate(() => calisRecords());
+ok('565 beats 530 as a session', CX.both.best.total === 565 && CX.both.best.d === yday, JSON.stringify(CX.both.best));
+ok('the most push-ups moves to 430', CX.both.push.v === 430);
+ok('the most pull-ups stays at the prior 138', CX.both.pull.v === 138 && CX.both.pull.d === null, JSON.stringify(CX.both.pull));
 await p.click('[data-t="training"]');
 cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
-ok('380 push-ups does not beat 392', /record push-ups\s*392/.test(cz));
-ok('140 pull-ups does beat 138', /record pull-ups\s*140\s*new record/.test(cz), (cz.match(/record pull-ups.{0,40}/) || [''])[0]);
-ok('and the next target moves with it', /to beat it\s*393 \/ 141/.test(cz), (cz.match(/to beat it.{0,30}/) || [''])[0]);
+ok('the panel shows 565 as 430 + 135', /best session\s*565 reps\s*430 \+ 135/.test(cz), (cz.match(/best session.{0,50}/) || [''])[0]);
+ok('and the target moves to 566', /to beat it\s*566 reps/.test(cz));
+const g24 = await p.evaluate((d) => dayGains(d).filter(x => x.c === 'Strength').map(x => x.t).join(' '), yday);
+ok('the day card credits the whole session', /430 push-ups \+ 135 pull-ups = 565 reps/.test(g24), g24);
+ok('and flags it as a record', /record/.test(g24));
+
+// A push-ups-only test must not touch the combined record, and vice versa.
+await boot(st({ days: {
+  [yday]: { gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 },
+  [TD]:   { gym: true, split: 'calis', calisType: 'push', push: 700 } } }));
+CX = await p.evaluate(() => calisRecords());
+ok('700 push-ups alone is a push-only record', CX.push.best.v === 700, JSON.stringify(CX.push));
+ok('and does not become the combined record', CX.both.best.total === 565 && CX.both.push.v === 430, JSON.stringify(CX.both));
+ok('pull-only is still empty', CX.pull.best === null);
+await p.click('[data-t="training"]');
+cz = (await p.textContent('#tSplit')).replace(/\s+/g, ' ');
+ok('the panel shows it in its own place', /push-ups only\s*700/.test(cz), (cz.match(/push-ups only.{0,30}/) || [''])[0]);
+
+// Older days with no explicit type are read off which boxes are filled.
+ok('a day with both numbers reads as the combined test', await p.evaluate(() => calisType({ push: 1, pull: 1 })) === 'both');
+ok('push alone reads as push-only', await p.evaluate(() => calisType({ push: 1 })) === 'push');
+ok('pull alone reads as pull-only', await p.evaluate(() => calisType({ pull: 1 })) === 'pull');
+
+// The form: picking calisthenics sets the type, and each type shows only its boxes.
+await boot(st({ days: { [TD]: {} } }));
+await p.click('[data-t="today"]');
+await p.selectOption('#inSplit', 'calis');
+await p.waitForTimeout(150);
+ok('picking calisthenics defaults the test to both', (await p.evaluate(() => S.days[today()].calisType)) === 'both');
+ok('and shows both boxes', !(await p.$eval('#inPush', e => e.parentNode.hidden)) && !(await p.$eval('#inPull', e => e.parentNode.hidden)));
+await p.selectOption('#inCalisType', 'push');
+await p.waitForTimeout(150);
+ok('push-only saves its type', (await p.evaluate(() => S.days[today()].calisType)) === 'push');
+ok('and hides the pull-up box', await p.$eval('#inPull', e => e.parentNode.hidden));
+await p.selectOption('#inCalisType', 'pull');
+await p.waitForTimeout(150);
+ok('pull-only hides the push-up box', await p.$eval('#inPush', e => e.parentNode.hidden));
 
 // unlabelled sessions are chased, not guessed
 await boot(st({ days: { '2026-09-21': { gym: true }, '2026-09-22': { gym: true } } }));
