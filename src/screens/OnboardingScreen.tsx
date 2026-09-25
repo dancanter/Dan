@@ -57,6 +57,19 @@ export function OnboardingScreen() {
 
   return (
     <main id="main" className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-5 py-10">
+      {/* First thing on the screen, above the title. This is the one page with
+          no header, so the pinned Get Help tab is not here — and it is exactly
+          where someone frightened lands before they have set anything up. It
+          used to sit below the Start button, 564px down, which on a small
+          phone is below the fold. */}
+      <p className="mb-6 rounded-lg border border-alert/30 bg-alertp px-3 py-2 text-center text-small">
+        Worried about something right now?{' '}
+        <Link to="/help" className="font-semibold text-alert underline">
+          Get help
+        </Link>{' '}
+        — no setup needed.
+      </p>
+
       <div className="mb-7 text-center">
         <h1
           ref={headingRef}
@@ -140,14 +153,6 @@ export function OnboardingScreen() {
         <Button intent="primary" full type="submit">
           Start
         </Button>
-
-        <p className="text-center text-small text-soft">
-          Worried about something right now?{' '}
-          <Link to="/help" className="font-semibold underline">
-            Get help
-          </Link>{' '}
-          — no setup needed.
-        </p>
 
         {/* Below the fold of the real task, and quieter than it. Someone who
             is pregnant came here to start; this is for everyone else, and it
