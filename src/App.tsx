@@ -196,8 +196,8 @@ function App() {
               ))}
             </ul>
             <p className="mt-3">
-              © 2026 Dan Canter. Field Notes is an independent, evidence-based pregnancy guide — not
-              a substitute for medical advice, and not clinically reviewed.{' '}
+              © 2026 Dan Canter. All rights reserved. Field Notes is an independent, evidence-based
+              pregnancy guide — not a substitute for medical advice, and not clinically reviewed.{' '}
               <strong>It cannot check whether you or your baby are well.</strong> Always contact
               your maternity unit if something feels wrong.
             </p>
