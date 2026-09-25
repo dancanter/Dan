@@ -10,7 +10,7 @@ export const nutritionGuides: Guide[] = [
     id: 'best-foods',
     section: 'nutrition',
     title: 'Key foods to eat',
-    summary: 'What to put on your plate and how they benefit you and your baby.',
+    summary: 'What to put on your plate and how each food benefits you and your baby.',
     body: [
       'You do not need special foods or an expensive diet. The foods below are ordinary, easy to find in any UK supermarket, and cover what matters most in pregnancy.',
       '**If you only change three things:** eat more fibre (build it up slowly, more on that under Gut health), add oily fish, and get to five fruit and veg a day. Those are the biggest gaps in UK diets. Only 4% hit the fibre target, and in a four-day survey more than three in four women ate no oily fish at all.',
