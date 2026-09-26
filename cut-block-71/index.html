@@ -1811,7 +1811,9 @@ function renderReview(){
 
   /* how it went, and what to do next */
   var FB=reviewFeedback(R,wk);
+  var curWk=(wk.start<=today()&&wk.end>=addD(today(),-6));
   h+='<div class="p lift"><h2>'+(R.done?'How it went':'How it is going')+'</h2>'+
+    (curWk?(function(){var BM2=betterModel();return (BM2.overall!==null?'<p style="margin:0 0 6px">'+overallBig(BM2.overall)+'</p>':'')+statusHTML(weekStatus(),BM2);})():'')+
     (FB.win.length?FB.win.map(function(x){return '<p style="margin:4px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'<p class="tiny">Nothing logged enough to credit yet.</p>')+
     '<h3 style="margin-top:12px">'+(R.done?'Next week':'For the rest of the week')+'</h3>'+
     (FB.next.length?FB.next.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):
@@ -2879,7 +2881,7 @@ function betterWindow(end){
 function betterModel(){
   var t=today(),A=betterWindow(t),B=betterWindow(addD(t,-7)),rows=[],i;
   var pctTxt=function(x){return (x>0?'+':'')+(Math.abs(x)<0.1?(x*100).toFixed(1):Math.round(x*100))+'%';};
-  var add=function(area,now,change,tone){rows.push({area:area,now:now,change:change,tone:tone});};
+  var add=function(area,now,change,tone,pc){rows.push({area:area,now:now,change:change,tone:tone,pc:(tone==='base'?null:(tone==='same'?0:pc))});};
   /* running: the latest timed session against the last one at the same
      distance on the same kind of ground; untimed sprints on reps */
   var sess=[];
@@ -2895,7 +2897,7 @@ function betterModel(){
       add('Running',secFmt(lastT.m.repAvg)+' a rep',
         Math.abs(gain)<0.005?'level with last time at '+repLabel(lastT.m.dm):
         (gain>0?pctTxt(gain)+' quicker than last time at '+repLabel(lastT.m.dm):pctTxt(gain).replace('-','')+' slower than last time — one session, not a trend'),
-        Math.abs(gain)<0.005?'same':(gain>0?'up':'down'));
+        Math.abs(gain)<0.005?'same':(gain>0?'up':'down'),gain);
     }else{
       var ref=BESTAVG[lastT.m.dm];
       add('Running',secFmt(lastT.m.repAvg)+' a rep',
@@ -2909,26 +2911,26 @@ function betterModel(){
     var sL=spr[spr.length-1],sP=spr.length>1?spr[spr.length-2]:null;
     add('Sprints',sL.m.n+' reps',
       sP?(sL.m.n>sP.m.n?'+'+(sL.m.n-sP.m.n)+' reps on last time':(sL.m.n===sP.m.n?'same reps as last time':(sP.m.n-sL.m.n)+' fewer than last time — fine on a tired day')):'first set of the cut — the number to beat',
-      sP?(sL.m.n>sP.m.n?'up':(sL.m.n===sP.m.n?'same':'down')):'base');
+      sP?(sL.m.n>sP.m.n?'up':(sL.m.n===sP.m.n?'same':'down')):'base',sP?(sL.m.n-sP.m.n)/sP.m.n:null);
   }
   /* strength: the 40-minute test against the record before it */
   var cr=calisRecords(),P=CFG.calis.prior&&CFG.calis.prior.both;
   if(cr.both.best&&cr.both.best.d&&diffD(cr.both.best.d,t)<=14){
     var bd=cr.both.best.d,prevBest=P?P.push+P.pull:null;
     for(var dd in S.days){var rr=S.days[dd];if(dd<bd&&calisType(rr)==='both'){var tt=(rr.push||0)+(rr.pull||0);if(prevBest===null||tt>prevBest)prevBest=tt;}}
-    if(prevBest)add('Strength',ci(cr.both.best.total)+' reps','+'+Math.round((cr.both.best.total-prevBest)/prevBest*100)+'% on your 40-minute record ('+ci(prevBest)+' before)','up');
+    if(prevBest)add('Strength',ci(cr.both.best.total)+' reps','+'+Math.round((cr.both.best.total-prevBest)/prevBest*100)+'% on your 40-minute record ('+ci(prevBest)+' before)','up',(cr.both.best.total-prevBest)/prevBest);
   }
   /* resting heart rate: lower is fitter, once the baseline means something */
   var R=rhrModel();
   if(R.ready&&R.recentAvg!==null){
     var dl=R.recentAvg-R.baseAvg;
     add('Resting HR',Math.round(R.recentAvg)+' bpm',Math.abs(dl)<1?'level with your baseline':(dl<0?Math.round(-dl)+' bpm under your baseline — fitter or fresher':Math.round(dl)+' bpm over your baseline — the week is costing something'),
-      Math.abs(dl)<1?'same':(dl<0?'up':'down'));
+      Math.abs(dl)<1?'same':(dl<0?'up':'down'),-dl/R.baseAvg);
   }else if(A.rhr.length)add('Resting HR',Math.round(mean(A.rhr))+' bpm','baseline — morning '+R.n+' of about 14 before it compares','base');
   /* the body */
   if(A.w.n>=3&&B.w.n>=3){
     var dw=B.w.avg-A.w.avg;
-    add('Weight',f1(A.w.avg)+' lb avg',Math.abs(dw)<0.1?'level with last week':(dw>0?'−'+f1(dw)+' lb on last week ('+pct(dw/B.w.avg,1)+')':'+'+f1(-dw)+' lb on last week — read the fortnight'),Math.abs(dw)<0.1?'same':(dw>0?'up':'down'));
+    add('Weight',f1(A.w.avg)+' lb avg',Math.abs(dw)<0.1?'level with last week':(dw>0?'−'+f1(dw)+' lb on last week ('+pct(dw/B.w.avg,1)+')':'+'+f1(-dw)+' lb on last week — read the fortnight'),Math.abs(dw)<0.1?'same':(dw>0?'up':'down'),dw/B.w.avg);
   }else if(A.w.n){
     var cr2=cutReadings(),first=cr2.length?cr2[0]:null,low=weightModel().low;
     add('Weight',f1(A.w.avg)+' lb avg',(first&&low&&low.lb<first.lb)?'low of '+f1(low.lb)+' — '+f1(first.lb-low.lb)+' lb down since the cut began':'baseline — compares from next week','base');
@@ -2936,22 +2938,75 @@ function betterModel(){
   /* recovery */
   if(A.sl.length>=3&&B.sl.length>=3){
     var sa=mean(A.sl),sb=mean(B.sl),ds=sa-sb;
-    add('Sleep',f1(sa)+' h a night',Math.abs(ds)<0.1?'level with last week':(ds>0?'+'+f1(ds)+' h a night on last week':'−'+f1(-ds)+' h a night on last week'),Math.abs(ds)<0.1?'same':(ds>0?'up':'down'));
+    add('Sleep',f1(sa)+' h a night',Math.abs(ds)<0.1?'level with last week':(ds>0?'+'+f1(ds)+' h a night on last week':'−'+f1(-ds)+' h a night on last week'),Math.abs(ds)<0.1?'same':(ds>0?'up':'down'),ds/sb);
   }else if(A.sl.length)add('Sleep',f1(mean(A.sl))+' h a night','baseline — '+A.sl.filter(function(x){return x>=CFG.sleep.line;}).length+' of '+A.sl.length+' nights over the line','base');
   if(A.st.length>=3&&B.st.length>=3){
     var ta=mean(A.st),tb=mean(B.st),dt2=(ta-tb)/tb;
-    add('Steps',ci(Math.round(ta/100)*100)+' a day',Math.abs(dt2)<0.02?'level with last week':pctTxt(dt2)+' on last week',Math.abs(dt2)<0.02?'same':(dt2>0?'up':'down'));
+    add('Steps',ci(Math.round(ta/100)*100)+' a day',Math.abs(dt2)<0.02?'level with last week':pctTxt(dt2)+' on last week',Math.abs(dt2)<0.02?'same':(dt2>0?'up':'down'),dt2);
   }else if(A.st.length)add('Steps',ci(Math.round(mean(A.st)/100)*100)+' a day','baseline — compares from next week','base');
   /* skin: consistency is the whole game */
   if(A.days>=3&&(A.skin>0||B.skin>0))add('Skin',A.skin+' of '+A.days+' days',B.days>=3?(A.skin>B.skin?'+'+(A.skin-B.skin)+' days on last week':(A.skin===B.skin?'same as last week':(B.skin-A.skin)+' fewer than last week')):(A.skin===A.days?'morning and night, every day':'baseline'),
-    B.days>=3?(A.skin>B.skin?'up':(A.skin===B.skin?(A.skin===A.days?'up':'same'):'down')):(A.skin===A.days?'up':'base'));
+    B.days>=3?(A.skin>B.skin?'up':(A.skin===B.skin?(A.skin===A.days?'up':'same'):'down')):(A.skin===A.days?'up':'base'),
+    B.days>=3?(A.skin-B.skin)/7:null);
   if(A.syN){
     var dsy=A.sy-B.sy;
     add('Study',f1(A.sy)+' h',B.syN?(Math.abs(dsy)<0.25?'level with last week':(dsy>0?'+'+f1(dsy)+' h on last week':'−'+f1(-dsy)+' h on last week')):'baseline — term starts '+fmtS(CFG.study.term),
-      B.syN?(Math.abs(dsy)<0.25?'same':(dsy>0?'up':'down')):'base');
+      B.syN?(Math.abs(dsy)<0.25?'same':(dsy>0?'up':'down')):'base',B.sy>0?dsy/B.sy:null);
   }
   var cmp=rows.filter(function(r){return r.tone!=='base';});
-  return {rows:rows,up:cmp.filter(function(r){return r.tone==='up';}).length,n:cmp.length};
+  /* the overall figure: the average of every line that has a real number,
+     each capped at 10% so one record cannot swamp the week. Only given
+     once there are three lines to average — fewer than that is a guess. */
+  var nums=rows.filter(function(r){return typeof r.pc==='number'&&isFinite(r.pc);}).map(function(r){return Math.max(-0.1,Math.min(0.1,r.pc));});
+  return {rows:rows,up:cmp.filter(function(r){return r.tone==='up';}).length,n:cmp.length,
+          overall:nums.length>=3?mean(nums):null,nNums:nums.length};
+}
+/* How the week is treating him, in plain words. Warnings first — they are
+   the reason this exists — then the good news. Each one is read off
+   something he logged, never off a hunch. */
+function weekStatus(){
+  var t=today(),R=rhrModel(),NG=niggleModel(),i,d,rec;
+  var hardRuns=0,legsLoad=0,trainedRun=0,sl=[],study=0;
+  for(i=0;i<7;i++){
+    d=addD(t,-i);rec=S.days[d]||{};
+    var hardHere=false,anyRun=false;
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;anyRun=true;if(m.hard){hardRuns++;hardHere=true;}});
+    if(i<3){if(rec.split==='legs')legsLoad++;if(hardHere)legsLoad++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.sprint&&!m.empty)legsLoad++;});}
+    if(i<3&&typeof rec.sleep==='number')sl.push(rec.sleep);
+    if(typeof rec.study==='number')study+=rec.study;
+  }
+  /* days in a row with a session in them, counting back from today (or
+     from yesterday, if today has nothing on it yet) */
+  var start=(S.days[t]&&(S.days[t].gym||(S.days[t].runs||[]).length))?0:1;
+  for(i=start;i<30;i++){rec=S.days[addD(t,-i)]||{};if(rec.gym||(rec.runs||[]).some(function(r){return !runMeta(r).empty;}))trainedRun++;else break;}
+  var sleep3=sl.length>=2?mean(sl):null;
+  if(NG.n&&(NG.today||NG.persistent))return {k:'rest',t:'Rest what hurts',w:'Something has hurt'+(NG.top?' — '+NG.top:'')+'. Easy running only until it has been quiet for a few days. A week off beats a month off.'};
+  if(R.state==='high')return {k:'warn',t:'You might be overtraining',w:'Resting HR is up '+f1(R.delta)+' beats on your baseline — fatigue shows there before you feel it. Take a rest day, then keep it easy for three days.'};
+  if(hardRuns>CFG.hardRuns.target)return {k:'rest',t:'You’ve done loads — time for a rest',w:hardRuns+' hard runs in 7 days is your ceiling. Next one waits until you’ve had a proper rest day.'};
+  if(trainedRun>=6)return start===1
+    ? {k:'good',t:'Rest day today — well timed',w:'You had '+trainedRun+' days in a row with a session before it, so keep today fully off. The next hard session will be better for it.'}
+    : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
+  if(legsLoad>=3)return {k:'legs',t:'Time to rest your legs',w:'Legs, hard running and sprints stacked into the last three days. Upper body or a walk next, not another leg session or hard run.'};
+  if(sleep3!==null&&sleep3<7&&R.state==='up')return {k:'warn',t:'You might be overstressing',w:'Sleep is down to '+f1(sleep3)+' h and your resting HR is creeping up. Early night, and keep tomorrow easy.'};
+  if(study>CFG.study.hi&&sleep3!==null&&sleep3<CFG.sleep.line)return {k:'warn',t:'You might be overworking',w:f1(study)+' h of study this week and sleep has slipped to '+f1(sleep3)+' h. The hours after 20 are costing more than they give.'};
+  if(sleep3!==null&&sleep3<6.5)return {k:'warn',t:'Short on sleep',w:'Last few nights averaged '+f1(sleep3)+' h. Keep the next hard session until you’ve had a proper night.'};
+  if(R.state==='up')return {k:'warn',t:'Keep the next day easy',w:'Resting HR is a little up on your baseline. Not a warning yet — just don’t stack a hard day on it.'};
+  return null;
+}
+function overallTxt(o){
+  if(o===null)return null;
+  var p=Math.round(o*100);
+  return p>0?'About '+p+'% better this week':(p<0?'About '+(-p)+'% down on last week':'About level with last week');
+}
+function overallBig(o){
+  var p=Math.round(o*100);
+  return '<b class="num" style="font-size:1.6em">'+(p>0?'+'+p+'%':(p<0?'−'+(-p)+'%':'±0%'))+'</b> <span class="note">'+
+    (p>0?'better than last week':(p<0?'down on last week — one week, not a trend':'level with last week'))+'</span>';
+}
+function statusHTML(ST,B){
+  if(ST)return '<p class="lede" style="margin:0 0 6px"><b>'+ST.t+'.</b> <span class="note">'+ST.w+'</span></p>';
+  if(B.overall!==null&&B.overall>0)return '<p class="lede" style="margin:0 0 6px"><b>You’re getting better.</b> <span class="note">Keep the week exactly as it is.</span></p>';
+  return '';
 }
 function improveNext(){
   var ws=reviewWeeks();if(!ws.length)return [];
@@ -2962,15 +3017,19 @@ function renderBetter(){
   var B=betterModel(),nx=improveNext();
   if(!B.rows.length){E('betterCard').innerHTML='';return;}
   var mark={up:'<span class="pill g">▲ better</span>',same:'<span class="pill">level</span>',down:'<span class="pill">▼ down</span>',base:'<span class="tiny dim">baseline</span>'};
-  E('betterCard').innerHTML='<div class="p lift"><h2>Better than last week</h2>'+
-    '<p class="lede">'+(B.n?'<b>Better in '+B.up+' of '+B.n+'</b> thing'+(B.n===1?'':'s')+' you can compare yet.':'<b>Week one is your baseline.</b> From next week every line says how much better you are.')+'</p>'+
+  var ST=weekStatus(),OV=overallTxt(B.overall);
+  E('betterCard').innerHTML='<div class="p '+(ST&&ST.k!=='good'?(ST.k==='warn'?'warn':'flag'):'lift')+'"><h2>Better than last week</h2>'+
+    (OV?'<p style="margin:0 0 6px">'+overallBig(B.overall)+'</p>':'')+
+    statusHTML(ST,B)+
+    '<p class="'+(OV||ST?'note':'lede')+'">'+(B.n?'<b>Better in '+B.up+' of '+B.n+'</b> thing'+(B.n===1?'':'s')+' you can compare yet.':'<b>Week one is your baseline.</b> From next week every line says how much better you are.')+
+      (B.overall===null&&B.nNums?' The overall % starts once three lines can be compared.':'')+'</p>'+
     B.rows.map(function(r){
       return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)">'+
         '<div class="row" style="gap:10px;align-items:baseline"><b>'+r.area+'</b><span class="mono">'+r.now+'</span><span style="margin-left:auto">'+mark[r.tone]+'</span></div>'+
         '<div class="note" style="margin-top:2px">'+r.change+'</div></div>';}).join('')+
     '<h3 style="margin-top:12px">Improve next</h3>'+
     (nx.length?nx.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:4px 0"><b>Nothing to fix — keep the week exactly as it is.</b></p>')+
-    '<p class="tiny" style="margin-top:8px">Your last 7 days against the 7 before, or a session against the last one like it. Only what you logged counts.</p></div>';
+    '<p class="tiny" style="margin-top:8px">Your last 7 days against the 7 before, or a session against the last one like it. Only what you logged counts. The overall % is the average of the lines with a number, each capped at 10% so one record cannot swamp the week.</p></div>';
 }
 function renderGains(){
   renderBetter();
@@ -3018,9 +3077,10 @@ function renderWeek(){
   if(W.study)rows.push(['Study',f1(W.study)+' h',W.deep?(Math.abs(W.deep-W.study)<0.05?'All of it deep work.':f1(W.deep)+' h of it deep work.'):'']);
   if(!rows.length){E('winWeek').innerHTML='';return;}
   var BM=betterModel();
-  E('winWeek').innerHTML='<div class="p lift"><h2>Your week</h2>'+
+  E('winWeek').innerHTML='<div class="p lift"><h2>Your week</h2>'+statusHTML(weekStatus(),BM)+
     (hi.length?'<p class="lede">So far: '+hi.slice(0,-1).join(', ')+(hi.length>1?' and ':'')+hi[hi.length-1]+'.</p>':'')+
     '<div class="tiles t4" style="margin-top:10px">'+
+    tile('this week',BM.overall!==null?(Math.round(BM.overall*100)>0?'+':'')+Math.round(BM.overall*100)+'%':'—',BM.overall!==null?'overall vs last week':'first % needs 3 lines to compare')+
     tile('better in',BM.n?BM.up+' of '+BM.n:'—',BM.n?'things vs last week':'baseline week')+
     tile('fat gone',W.def>0?'~'+f1(W.def/3500)+' lb':'—','this week, from the deficit')+
     '</div>'+

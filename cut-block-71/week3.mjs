@@ -141,6 +141,10 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   await p.click('[data-t="today"]');
   const bt = sq(await p.innerText('#betterCard'));
   ok('the card says how many things got better', /Better in \d+ of \d+/.test(bt), bt.slice(0, 200));
+  ok('the overall figure is the capped average: +7%', Math.round(BM.overall * 100) === 7, String(BM.overall));
+  ok('and the card leads with it', /\+7% better than last week/.test(bt), bt.slice(0, 200));
+  ok('with nothing wrong, it says you are getting better', /You’re getting better\./.test(bt));
+  ok('and says how the % is worked out', /capped at 10%/.test(bt));
   ok('and has an Improve next list', /Improve next/.test(bt));
   // a slower session is said plainly, and not made into a trend
   days[d2].runs = [{ k: 'reps', dm: 400, n: 6, secs: 384 }];
@@ -154,6 +158,39 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   await p.click('[data-t="today"]');
   ok('and the card says week one is the baseline', /Week one is your baseline/.test(await p.innerText('#betterCard')));
   await ctxB.close();
+}
+
+// ===== the week's status: rest, legs, overtraining, overworking ==========
+{
+  const ago = async k => p.evaluate(n => addD(today(), -n), k);
+  const status = async () => p.evaluate(() => weekStatus());
+  let days = {};
+  for (let i = 0; i < 6; i++) days[await ago(i)] = { gym: true, split: 'chest' };
+  await boot(st({ days }));
+  ok('six days straight: time for a rest day', /Time for a rest day/.test((await status() || {}).t), JSON.stringify(await status()));
+  days = {};
+  for (let i = 1; i < 8; i++) days[await ago(i)] = { gym: true, split: 'chest' };
+  await boot(st({ days }));
+  ok('seven straight and nothing today: the rest day is well timed', /Rest day today — well timed/.test((await status() || {}).t) && /7 days in a row/.test((await status() || {}).w), JSON.stringify(await status()));
+  days = { [await ago(0)]: { runs: [{ k: 'reps', dm: 400, n: 6, secs: 372 }] }, [await ago(2)]: { runs: [{ k: 'reps', dm: 200, n: 6, secs: 180 }] },
+           [await ago(4)]: { runs: [{ k: 'reps', dm: 800, n: 4, secs: 600 }] } };
+  await boot(st({ days }));
+  ok('three hard runs in a week: you have done loads', /done loads/.test((await status() || {}).t), JSON.stringify(await status()));
+  days = { [await ago(0)]: { runs: [{ k: 'reps', dm: 100, n: 8, up: true }] }, [await ago(1)]: { gym: true, split: 'legs' },
+           [await ago(2)]: { runs: [{ k: 'reps', dm: 400, n: 6, secs: 372 }] } };
+  await boot(st({ days }));
+  ok('legs, a hard run and sprints in three days: rest your legs', /rest your legs/.test((await status() || {}).t), JSON.stringify(await status()));
+  await boot(st({ days: { [await ago(0)]: { niggle: true, niggleWhat: 'calf' } } }));
+  const ng = await status();
+  ok('something hurts: rest it, and it names it', /Rest what hurts/.test(ng.t) && /calf/.test(ng.w), JSON.stringify(ng));
+  days = {};
+  for (let i = 0; i < 7; i++) days[await ago(i)] = { study: 3.2, sleep: 7.0 };
+  await boot(st({ days }));
+  ok('lots of study and sleep slipping: overworking', /overworking/.test((await status() || {}).t), JSON.stringify(await status()));
+  await boot(st({ days: { [await ago(1)]: { gym: true, split: 'back' } } }));
+  ok('an ordinary week raises nothing', (await status()) === null);
+  await p.click('[data-t="today"]');
+  ok('no warning shows when there is nothing to warn about', !/(rest|overtrain|overwork|overstress)/i.test((await p.innerText('#betterCard')).split('Improve next')[0]));
 }
 
 // ===== the week review: deficit, study, how it went, next week ==========
