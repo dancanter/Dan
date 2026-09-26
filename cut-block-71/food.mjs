@@ -21,11 +21,14 @@ const STUB = (mode) => `(() => {
       if (MODE === 'denied') return Promise.reject({ code: 'not_granted', message: 'no' });
       if (MODE === 'busy') return Promise.reject({ code: 'rate_limited', message: 'slow' });
       const m = /food: "([^"]+)"/.exec(input); const q = m ? m[1].toLowerCase() : '';
-      if (q === 'halloumi') return Promise.resolve({ name: 'Halloumi', unit: 'g', kcal: 316, protein: 21, carbs: 2, fat: 25, gluten: 'free' });
+      if (q === 'halloumi') return Promise.resolve({ name: 'Halloumi', unit: 'g', kcal: 316, protein: 21, carbs: 2, fat: 25, fibre: 0, sugars: 2,
+        micros: { calcium_mg: 720, zinc_mg: 2.9 }, gluten: 'free' });
       if (q === 'couscous') return Promise.resolve({ name: 'Couscous, dry', unit: 'g', kcal: 376, protein: 13, carbs: 77, fat: 1, gluten: 'contains' });
       return Promise.resolve({ error: 'not a food' });
     }
     if (MODE === 'fage') return Promise.resolve({ name: 'Fage Total 2%', unit: 'g', kcal: 73, protein: 10, carbs: 3, fat: 2,
+      fibre: 0, sugars: 3, micros: { calcium_mg: 110, iron_mg: 0, zinc_mg: 0.5, magnesium_mg: 11, potassium_mg: 141, selenium_ug: 9.7,
+        vitamin_c_mg: 0, b12_ug: 0.75, folate_ug: 7, omega3_epa_dha_mg: 'n/a' },
       serving: { amount: 170, unit: 'g' }, gluten: 'free', note: '' });
     if (MODE === 'wheat') return Promise.resolve({ name: 'Granola bites', unit: 'g', kcal: 450, protein: 9, carbs: 60, fat: 18,
       serving: null, gluten: 'contains', note: 'ingredients list wheat flour' });
@@ -238,6 +241,61 @@ await ctx.close();
 ({ ctx, p } = await open('denied'));
 await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(250);
 ok('if Claude is refused, look-ups say so and stop', /Look-ups are not available here/.test(await p.textContent('#lookupMsg')));
+await ctx.close();
+
+// ===== fibre, vitamins and minerals, food groups =========================
+({ ctx, p } = await open(null));
+const add = async (id, amt, meal) => { await p.selectOption('#inFood', id); await p.fill('#inAmt', String(amt));
+  if (meal) await p.selectOption('#inMeal', meal); await p.click('#btnAddFood'); await p.waitForTimeout(120); };
+await add('x:salmonraw', 150, 'tea');
+await add('x:spinach', 50, 'lunch');
+await add('x:egg', 2, 'breakfast');
+await add('x:oats', 60, 'breakfast');
+let E1 = await p.evaluate(() => S.days[today()].eaten);
+const salmon = E1.find(e => e.id === 'x:salmonraw');
+ok('an entry carries its micronutrients, scaled', salmon.mic && salmon.mic.o3 === 3225 && Math.abs(salmon.mic.b12 - 4.8) < 0.01, JSON.stringify(salmon.mic));
+ok('fresh-food values are not marked as estimates', !salmon.me);
+const oatsE = E1.find(e => e.id === 'x:oats');
+ok('and its fibre', oatsE.fib === 6, String(oatsE.fib));
+fl = await txt(p, '#foodList');
+ok('the day shows fibre against 30 g', /\d+ g fibre of 30/.test(fl), fl.slice(0, 400));
+ok('the food groups light up from what was eaten', await p.evaluate(() => { const g = dayGroups(S.days[today()]); return g.oily && g.green && g.egg && !g.red; }));
+ok('and show as ticks', /✓ Oily fish/.test(fl) && /✓ Leafy greens/.test(fl) && /✓ Eggs/.test(fl) && !/✓ Red meat/.test(fl));
+ok('vitamins and minerals open as a fold', /Vitamins and minerals — typical values/.test(fl) && /\(4 of 4 items counted\)/.test(fl), fl.slice(fl.indexOf('Vitamins'), fl.indexOf('Vitamins') + 90));
+ok('omega-3 is shown against 450 mg (salmon plus two eggs)', /Omega-3 \(EPA\+DHA\)\s*3,285 mg\s*730%/.test(fl), (fl.match(/Omega-3[^%]*%/) || [''])[0]);
+ok('the ten nutrients are there and vitamins A and D are not', await p.evaluate(() => NUTRI.length === 10 && !NUTRI.some(n => /vitamin (a|d)\b/i.test(n.n))));
+ok('it says one day is noise', /One day is noise/.test(fl));
+// a hand-added food has no micros and the day says so instead of pretending
+await p.click('#btnNewFood');
+await p.fill('#rvName', 'Lentil cakes'); await p.fill('#rvKcal', '370'); await p.fill('#rvPro', '25'); await p.fill('#rvCarb', '60'); await p.fill('#rvFat', '2');
+await p.fill('#rvFib', '7'); await p.fill('#rvAmt', '30');
+await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
+const lc = await p.evaluate(() => Object.values(S.foods).find(f => f.name === 'Lentil cakes'));
+ok('a typed-in food keeps its fibre', lc.fib === 7 && !lc.mic, JSON.stringify(lc));
+fl = await txt(p, '#foodList');
+ok('and the micronutrient fold admits the gap', /\(4 of 5 items counted\)/.test(fl) && /1 item has no vitamin or mineral data/.test(fl) && /real totals are higher/.test(fl), fl.slice(fl.indexOf('Vitamins'), fl.indexOf('Vitamins') + 400));
+// the week reads food groups back as a whole
+await p.click('[data-t="wins"]');
+const wk2 = await txt(p, '#winWeek');
+ok('the week card has a food-groups row', /Food groups\s*1 day logged/.test(wk2) && /Oily fish 1\/3/.test(wk2) && /Red meat 0\/2/.test(wk2), wk2.slice(wk2.indexOf('Food groups'), wk2.indexOf('Food groups') + 260));
+await ctx.close();
+
+// scanned food: fibre from the label, micros as Claude's estimate, flagged
+({ ctx, p } = await open('fage'));
+await p.setInputFiles('#inScan', JPG); await p.waitForTimeout(300);
+calls = await p.evaluate(() => window.__calls);
+ok('the scan asks for fibre, sugars and the ten micros', /"fibre": number/.test(calls[0].input) && /omega3_epa_dha_mg/.test(calls[0].input) && /best typical estimate/.test(calls[0].input));
+ok('sugars prefill from the label', (await p.$eval('#rvSug', e => e.value)) === '3');
+ok('the review says micros are rough estimates', /estimate of its vitamins and minerals/.test(await p.textContent('#scanBox')));
+await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
+const fg = await p.evaluate(() => Object.values(S.foods).find(f => /Fage/.test(f.name)));
+ok('the saved food keeps the estimate, flagged', fg.micEst === 1 && fg.mic.ca === 110, JSON.stringify(fg.mic));
+ok('a nonsense value is dropped, not stored as zero', !('o3' in fg.mic));
+const fe = await p.evaluate(() => S.days[today()].eaten[0]);
+ok('the diary entry is flagged as estimated', fe.me === 1 && Math.abs(fe.mic.ca - 187) < 0.01, JSON.stringify(fe));
+fl = await txt(p, '#foodList');
+ok('and the fold says partly estimated', /Vitamins and minerals — partly estimated/.test(fl) && /Claude’s estimates/.test(fl));
+ok('Fage counts as dairy', /✓ Dairy or kefir/.test(fl));
 await ctx.close();
 
 // ===== foods survive a sync merge ========================================

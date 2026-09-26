@@ -2765,6 +2765,10 @@ function renderWeek(){
     (W.best?'Best: '+esc(W.best.label)+' at '+secFmt(W.best.avg)+' a rep, '+(W.best.gap<0?'<b>under</b> your 2026 best':f1(W.best.gap)+' s off your 2026 best')+'.':'')]);
   if(w.gym)rows.push(['Gym',w.gym+' session'+(w.gym===1?'':'s'),(W.splits.length?W.splits.join(', '):'')+
     (W.calis?(W.splits.length?', plus ':'')+'the calisthenics test'+(W.calis.k==='both'?' — '+ci(W.calis.b.push)+' + '+ci(W.calis.b.pull)+' = '+ci(W.calis.b.total)+', a record':' — a record'):'')+'.']);
+  var WG=weekGroups();
+  if(WG.logged)rows.push(['Food groups',WG.logged+' day'+(WG.logged===1?'':'s')+' logged',
+    GROUPS.map(function(g){var c=WG.c[g.k],tgt=Math.min(g.wk,WG.days);
+      return (c>=tgt?'<span class="gd">\u2713</span> ':'')+g.n+' '+c+'/'+g.wk;}).join(' · ')+'.']);
   if(W.study)rows.push(['Study',f1(W.study)+' h',W.deep?(Math.abs(W.deep-W.study)<0.05?'All of it deep work.':f1(W.deep)+' h of it deep work.'):'']);
   if(!rows.length){E('winWeek').innerHTML='';return;}
   var comp=Math.pow(1.01,W.onePct),weeksLeft=Math.max(0,diffD(today(),CFG.cutEnd)/7),perWk=W.days?W.onePct/W.days*7:0;
@@ -3555,6 +3559,117 @@ var FRESH=[
   {id:'x:avocado',name:'Avocado',unit:'g',per:100,kcal:160,pro:2,carb:8.5,fat:14.7}
 ];
 var MEALS=[{k:'breakfast',n:'Breakfast'},{k:'lunch',n:'Lunch'},{k:'tea',n:'Tea'},{k:'evening',n:'Evening'},{k:'snack',n:'Snack'}];
+/* ===================== fibre, micronutrients, food groups =====================
+   Fresh foods carry reference values (UK composition tables / USDA, rounded).
+   Scanned and looked-up foods carry Claude's estimates, flagged as such,
+   because packets almost never print vitamins and minerals. The day shows how
+   many of its items it actually has numbers for, so a low figure is never
+   just missing data dressed up as a deficiency. Vitamin A and vitamin D are
+   left out on purpose: he does not take beta-carotene or vitamin D tablets,
+   and a "low" line for either would only nudge toward them. */
+var NUTRI=[
+  {k:'fe',n:'Iron',u:'mg',ref:8.7},{k:'zn',n:'Zinc',u:'mg',ref:9.5},{k:'ca',n:'Calcium',u:'mg',ref:700},
+  {k:'mg',n:'Magnesium',u:'mg',ref:300},{k:'k',n:'Potassium',u:'mg',ref:3500},{k:'se',n:'Selenium',u:'µg',ref:75},
+  {k:'vc',n:'Vitamin C',u:'mg',ref:40},{k:'b12',n:'Vitamin B12',u:'µg',ref:1.5},{k:'fol',n:'Folate',u:'µg',ref:200},
+  {k:'o3',n:'Omega-3 (EPA+DHA)',u:'mg',ref:450}
+];
+var FIBRE_REF=30;
+/* per 100 g (or each): fibre, sugars, then fe zn ca mg k se vc b12 fol o3 */
+var MICRO_FRESH={
+  'x:oats':[10,1,4.3,3.6,52,138,362,29,0,0,32,0],
+  'x:potatoraw':[2.1,0.8,0.8,0.3,12,23,425,0.4,19.7,0,15,0],
+  'x:potato':[1.8,0.9,0.3,0.3,8,20,328,0.3,7.4,0,10,0],
+  'x:riceraw':[1.3,0.1,0.8,1.1,28,25,115,15,0,0,8,0],
+  'x:rice':[0.4,0.1,0.2,0.5,10,12,35,7.5,0,0,3,0],
+  'x:egg':[0,0.2,0.9,0.6,28,6,69,15.4,0,0.45,24,30],
+  'x:eggwhite':[0,0.2,0,0,2,4,54,6.6,0,0.03,1,0],
+  'x:chickenraw':[0,0,0.4,0.7,5,28,334,22,0,0.2,4,20],
+  'x:chicken':[0,0,0.5,1,15,29,256,27.6,0,0.3,4,20],
+  'x:turkey':[0,0,0.7,1.7,10,28,250,32,0,0.4,7,20],
+  'x:beef5raw':[0,0,2.2,5,12,22,350,18,0,2.1,7,20],
+  'x:beef5':[0,0,2.9,6.5,7,23,380,22,0,2.5,8,30],
+  'x:codraw':[0,0,0.4,0.5,16,32,413,33,1,0.9,7,160],
+  'x:cod':[0,0,0.5,0.6,14,42,244,38,1,1,8,200],
+  'x:salmonraw':[0,0,0.3,0.4,9,27,363,24,0,3.2,26,2150],
+  'x:salmon':[0,0,0.3,0.4,15,30,384,41,0,2.8,34,2300],
+  'x:mackerelraw':[0,0,1.6,0.6,12,76,314,44,0.4,8.7,1,2300],
+  'x:mackerel':[0,0,1.6,0.9,15,97,401,52,0.4,19,2,1200],
+  'x:tuna':[0,0,1,0.7,11,27,237,80,0,2.5,4,230],
+  'x:prawns':[0,0,0.3,1.6,91,39,170,50,0,1.5,18,300],
+  'x:milk':[0,4.8,0.03,0.4,120,11,150,1,1,0.9,5,0],
+  'x:banana':[2.6,12,0.3,0.2,5,27,358,1,8.7,0,20,0],
+  'x:straw':[2,4.9,0.4,0.1,16,13,153,0.4,59,0,24,0],
+  'x:berries':[3.5,7,0.5,0.2,20,16,130,0.2,20,0,15,0],
+  'x:kiwi':[2.3,6.7,0.2,0.1,26,13,234,0.2,69,0,19,0],
+  'x:spinach':[2.2,0.4,2.7,0.5,99,79,558,1,28,0,194,0],
+  'x:tomato':[1.2,2.6,0.3,0.2,10,11,237,0,14,0,15,0],
+  'x:greenveg':[3,2.5,0.9,0.5,30,22,250,0.3,15,0,40,0],
+  'x:honey':[0.2,82,0.4,0.2,6,2,52,0.8,0.5,0,2,0],
+  'x:evoo':[0,0,0.6,0,1,0,1,0,0,0,0,0],
+  'x:pumpkin':[6,1.4,8.8,7.8,46,592,809,9.4,1.9,0,58,0],
+  'x:avocado':[6.7,0.7,0.6,0.6,12,29,485,0.4,10,0,81,0]
+};
+FRESH.forEach(function(f){
+  var m=MICRO_FRESH[f.id];if(!m)return;
+  f.fib=m[0];f.sug=m[1];f.mic={};
+  NUTRI.forEach(function(n,i){f.mic[n.k]=m[2+i];});
+});
+/* the groups that actually decide micronutrient status for him, with how
+   many days a week each wants. Matched on names, so scanned foods count too. */
+var GROUPS=[
+  {k:'oily',n:'Oily fish',wk:3,re:/salmon|mackerel|sardine|trout|herring|anchov|kipper/},
+  {k:'red',n:'Red meat',wk:2,re:/\bbeef|lamb|steak|venison|mince/},
+  {k:'egg',n:'Eggs',wk:5,re:/\begg/},
+  {k:'dairy',n:'Dairy or kefir',wk:7,re:/fage|yog|kefir|skyr|milk|cheese|halloumi|cottage|quark/},
+  {k:'berry',n:'Berries or kiwi',wk:7,re:/berr|kiwi/},
+  {k:'green',n:'Leafy greens',wk:7,re:/spinach|rocket|lettuce|watercress|chard|leaves|salad/},
+  {k:'veg',n:'Other veg',wk:7,re:/tomato|green bean|courgette|\bpeas?\b|asparagus|mushroom|beetroot|cucumber|onion|leek/},
+  {k:'olive',n:'Olive oil',wk:7,re:/olive oil/},
+  {k:'nuts',n:'Nuts or seeds',wk:3,re:/\bnut|seed|walnut|almond|hazelnut|pumpkin|chia|flax/}
+];
+function groupsOf(name){
+  var n=String(name||'').toLowerCase(),out=[];
+  GROUPS.forEach(function(g){if(g.re.test(n))out.push(g.k);});
+  return out;
+}
+function dayGroups(rec){
+  var set={};
+  (rec&&rec.eaten||[]).forEach(function(e){groupsOf(e.n).forEach(function(k){set[k]=true;});});
+  return set;
+}
+function weekGroups(){
+  var tr=trainingModel(),t=today(),out={},days=0,logged=0;
+  GROUPS.forEach(function(g){out[g.k]=0;});
+  for(var i=0;i<=diffD(tr.wkStart,tr.wkEnd);i++){
+    var d=addD(tr.wkStart,i);if(d>t)break;days++;
+    var r=S.days[d];if(!r||!r.eaten||!r.eaten.length)continue;logged++;
+    var g=dayGroups(r);for(var k in g)out[k]++;
+  }
+  return {c:out,days:days,logged:logged};
+}
+function microHTML(t){
+  if(!t.n)return '';
+  var est=t.micEstN>0;
+  var h='<details class="p" style="margin-top:10px"><summary>Vitamins and minerals — '+(est?'partly estimated':'typical values')+
+    ' <span class="tiny dim">('+t.micN+' of '+t.n+' items counted)</span></summary>'+
+    '<div class="scroll"><table class="tbl"><tbody>';
+  NUTRI.forEach(function(n){
+    var v=t.mic[n.k]||0,pc=Math.round(v/n.ref*100);
+    h+='<tr><td style="width:36%">'+n.n+'</td><td class="mono" style="width:22%">'+(v<10?f1(v):ci(Math.round(v)))+' '+n.u+'</td>'+
+      '<td><span class="mono'+(pc>=100?' gd':'')+'">'+pc+'%</span> <span class="tiny dim">of '+(n.ref<10?f1(n.ref):ci(n.ref))+'</span></td></tr>';
+  });
+  h+='</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:6px">Against the UK reference for a man your age. '+
+    (t.micN<t.n?'<b>'+(t.n-t.micN)+' item'+(t.n-t.micN===1?' has':'s have')+' no vitamin or mineral data</b>, so the real totals are higher than this. ':'')+
+    (est?'Scanned and looked-up foods use Claude’s estimates — treat those as rough. ':'')+
+    'Omega-3 counts fish EPA and DHA only. One day is noise: read it across the week.</p></details>';
+  return h;
+}
+function groupsHTML(rec){
+  var g=dayGroups(rec);
+  return '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+GROUPS.map(function(x){
+    return '<span class="pill'+(g[x.k]?' g':'')+'">'+(g[x.k]?'✓ ':'')+x.n+'</span>';}).join('')+'</div>';
+}
 var SAMPLE=null,SAMPLE_IMG=false,SCAN_CTL=null,REVIEW=null;
 function foodById(id){
   if(S.foods&&S.foods[id])return S.foods[id];
@@ -3566,11 +3681,20 @@ function perWord(f){return f.unit==='each'?'each':'per 100'+(f.unit==='ml'?' ml'
 function r1(x){return Math.round(x*10)/10;}
 function entryFor(f,amt,meal){
   var k=amt/f.per;
-  return {id:f.id,n:f.name,a:amt,u:f.unit,m:meal,kcal:Math.round(f.kcal*k),pro:r1(f.pro*k),carb:r1(f.carb*k),fat:r1(f.fat*k)};
+  var e={id:f.id,n:f.name,a:amt,u:f.unit,m:meal,kcal:Math.round(f.kcal*k),pro:r1(f.pro*k),carb:r1(f.carb*k),fat:r1(f.fat*k)};
+  if(typeof f.fib==='number')e.fib=r1(f.fib*k);
+  if(typeof f.sug==='number')e.sug=r1(f.sug*k);
+  if(f.mic){e.mic={};NUTRI.forEach(function(n){if(typeof f.mic[n.k]==='number')e.mic[n.k]=Math.round(f.mic[n.k]*k*100)/100;});if(f.micEst)e.me=1;}
+  return e;
 }
 function eatenTotals(rec){
-  var t={kcal:0,pro:0,carb:0,fat:0,n:0};
-  (rec&&rec.eaten||[]).forEach(function(e){t.kcal+=e.kcal;t.pro+=e.pro;t.carb+=e.carb;t.fat+=e.fat;t.n++;});
+  var t={kcal:0,pro:0,carb:0,fat:0,n:0,fib:0,fibN:0,sug:0,mic:{},micN:0,micEstN:0};
+  (rec&&rec.eaten||[]).forEach(function(e){
+    t.kcal+=e.kcal;t.pro+=e.pro;t.carb+=e.carb;t.fat+=e.fat;t.n++;
+    if(typeof e.fib==='number'){t.fib+=e.fib;t.fibN++;}
+    if(typeof e.sug==='number')t.sug+=e.sug;
+    if(e.mic){t.micN++;if(e.me)t.micEstN++;for(var k in e.mic)t.mic[k]=(t.mic[k]||0)+e.mic[k];}
+  });
   return t;
 }
 function setEaten(d,list){
@@ -3601,8 +3725,11 @@ function renderFoodLog(){
     });
     h+='<p style="margin-top:8px"><b class="num">'+ci(Math.round(t.kcal))+'</b> kcal of your '+ci(KCAL_DAY)+' · <b class="num">'+ci(Math.round(t.pro))+' g</b> protein'+
       (t.pro>=MACRO.pro?' <span class="pill g">protein hit</span>':' <span class="tiny">('+ci(Math.round(MACRO.pro-t.pro))+' g to '+MACRO.pro+')</span>')+
-      ' · '+ci(Math.round(t.carb))+' g carbs · '+ci(Math.round(t.fat))+' g fat</p>'+
-      '<p class="tiny">The kcal box above now comes from this diary.</p>';
+      ' · '+ci(Math.round(t.carb))+' g carbs · '+ci(Math.round(t.fat))+' g fat'+
+      (t.fibN?' · <b class="num">'+ci(Math.round(t.fib))+' g</b> fibre <span class="tiny">of '+FIBRE_REF+'</span>':'')+
+      (t.sug?' · '+ci(Math.round(t.sug))+' g sugars':'')+'</p>'+
+      '<p class="tiny">The kcal box above now comes from this diary.</p>'+
+      groupsHTML(rec)+microHTML(t);
   }
   E('foodList').innerHTML=h;
   var cur=E('inFood').value;
@@ -3646,12 +3773,15 @@ function openReview(v,note){
     '<div class="f"><label for="rvPro">Protein per 100</label><input type="number" step="0.1" min="0" max="100" id="rvPro" value="'+(v.pro!=null?v.pro:'')+'"></div>'+
     '<div class="f"><label for="rvCarb">Carbs per 100</label><input type="number" step="0.1" min="0" max="100" id="rvCarb" value="'+(v.carb!=null?v.carb:'')+'"></div>'+
     '<div class="f"><label for="rvFat">Fat per 100</label><input type="number" step="0.1" min="0" max="100" id="rvFat" value="'+(v.fat!=null?v.fat:'')+'"></div>'+
+    '<div class="f"><label for="rvFib">Fibre per 100</label><input type="number" step="0.1" min="0" max="100" id="rvFib" value="'+(v.fib!=null?v.fib:'')+'"></div>'+
+    '<div class="f"><label for="rvSug">Sugars per 100</label><input type="number" step="0.1" min="0" max="100" id="rvSug" value="'+(v.sug!=null?v.sug:'')+'"></div>'+
     '<div class="f"><label for="rvAmt">You ate (g or ml)</label><input type="number" step="1" min="0" max="3000" id="rvAmt" value="'+(v.amt!=null?v.amt:'')+'"></div>'+
     '<div class="f"><label for="rvMeal">Meal</label><select id="rvMeal">'+ms+'</select></div>'+
     '</div>'+
     (note?'<p class="tiny" style="margin-top:6px">'+esc(note)+'</p>':'')+
     (v.fromScan?'<p class="tiny">Read from your photo by Claude — check the numbers against the packet before saving.</p>':'')+
     (v.fromLookup?'<p class="tiny">Typical values from Claude, not from a packet — if you have the packet, scanning it is more exact.</p>':'')+
+    (v.mic?'<p class="tiny">Includes Claude\u2019s estimate of its vitamins and minerals \u2014 packets rarely print them, so treat them as rough.</p>':'')+
     '<p class="tiny wn" id="rvWarn"></p>'+
     '<div class="row" style="margin-top:8px">'+
     '<button class="btn" data-rv="add" type="button">Save and add to today</button>'+
@@ -3661,7 +3791,7 @@ function openReview(v,note){
 function readReview(){
   var num=function(id){var v=Number(E(id).value);return isFinite(v)&&E(id).value!==''?v:null;};
   return {name:E('rvName').value.trim().slice(0,60),unit:E('rvUnit').value==='ml'?'ml':'g',
-    kcal:num('rvKcal'),pro:num('rvPro'),carb:num('rvCarb'),fat:num('rvFat'),amt:num('rvAmt'),meal:E('rvMeal').value};
+    kcal:num('rvKcal'),pro:num('rvPro'),carb:num('rvCarb'),fat:num('rvFat'),fib:num('rvFib'),sug:num('rvSug'),amt:num('rvAmt'),meal:E('rvMeal').value};
 }
 function checkReview(v,needAmt){
   if(!v.name)return 'Give it a name.';
@@ -3681,6 +3811,12 @@ function saveReview(andAdd){
   var id=REVIEW&&REVIEW.id&&S.foods&&S.foods[REVIEW.id]?REVIEW.id:('f:'+Date.now().toString(36));
   var f={id:id,name:v.name,unit:v.unit,per:100,kcal:v.kcal,pro:v.pro,carb:v.carb,fat:v.fat,
          gluten:(REVIEW&&REVIEW.gluten)||'unknown',src:(REVIEW&&REVIEW.fromScan)?'label':((REVIEW&&REVIEW.id&&S.foods&&S.foods[REVIEW.id])?S.foods[REVIEW.id].src:'you'),added:today()};
+  if(v.fib!==null)f.fib=v.fib;
+  if(v.sug!==null)f.sug=v.sug;
+  /* micronutrients come only from Claude's estimate (a scan or a look-up) or
+     from the food being edited; typed-in foods have none rather than zeros */
+  var mic=(REVIEW&&REVIEW.mic)||((REVIEW&&REVIEW.id&&S.foods&&S.foods[REVIEW.id])?S.foods[REVIEW.id].mic:null);
+  if(mic){f.mic=mic;f.micEst=1;}
   S.foods=S.foods||{};S.foods[id]=f;
   var d=E('logDate').value||today();
   E('scanBox').innerHTML='';REVIEW=null;
@@ -3690,6 +3826,15 @@ function saveReview(andAdd){
     setEaten(d,list);
   }else touch();
   E('inFood').value=id;
+}
+/* Claude's micronutrient estimate, mapped to our keys. Anything missing or
+   not a sane number is left out rather than guessed as zero. */
+function micFrom(m){
+  if(!m||typeof m!=='object')return null;
+  var map={fe:'iron_mg',zn:'zinc_mg',ca:'calcium_mg',mg:'magnesium_mg',k:'potassium_mg',se:'selenium_ug',vc:'vitamin_c_mg',b12:'b12_ug',fol:'folate_ug',o3:'omega3_epa_dha_mg'};
+  var out={},n=0;
+  for(var k in map){var v=Number(m[map[k]]);if(isFinite(v)&&v>=0&&v<100000){out[k]=Math.round(v*100)/100;n++;}}
+  return n?out:null;
 }
 function scanLabel(file){
   if(!SAMPLE||!file)return;
@@ -3701,9 +3846,11 @@ function scanLabel(file){
     'If only per-serving values are shown, convert them to per 100 using the serving size. Use kcal, not kJ. '+
     'Reply with only one JSON object, no other text:\n'+
     '{"name": "short product name including brand", "unit": "g" or "ml", "kcal": number, "protein": number, "carbs": number, "fat": number, '+
+    '"fibre": number, "sugars": number, "micros": {"iron_mg": number, "zinc_mg": number, "calcium_mg": number, "magnesium_mg": number, "potassium_mg": number, "selenium_ug": number, "vitamin_c_mg": number, "b12_ug": number, "folate_ug": number, "omega3_epa_dha_mg": number}, '+
     '"serving": {"amount": number, "unit": "g" or "ml"} or null, "gluten": "free" | "contains" | "may_contain" | "unknown", "note": "anything unclear, or empty"}\n'+
     'For gluten: "free" if the packet says gluten free; "contains" if the ingredients include wheat, barley, rye, spelt or malt, or it says contains gluten; '+
     '"may_contain" for a may-contain warning; otherwise "unknown". '+
+    'Fibre and sugars: read them off the label if shown, else your best estimate. Micros: per 100 g, from the label if printed, otherwise your best typical estimate for this product. '+
     'If the photo is not a nutrition label, reply {"error": "what the photo shows instead"}.';
   SAMPLE.json(prompt,{images:[file],signal:SCAN_CTL.signal}).then(function(r){
     SCAN_CTL=null;
@@ -3714,6 +3861,7 @@ function scanLabel(file){
     var n=function(x){x=Number(x);return isFinite(x)&&x>=0?r1(x):null;};
     var v={fromScan:true,name:String(r.name||'').slice(0,60),unit:r.unit==='ml'?'ml':'g',kcal:n(r.kcal)!==null?Math.round(n(r.kcal)):null,
       pro:n(r.protein),carb:n(r.carbs),fat:n(r.fat),
+      fib:n(r.fibre),sug:n(r.sugars),mic:micFrom(r.micros),
       amt:r.serving&&n(r.serving.amount)?Math.round(n(r.serving.amount)):null,
       gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
     openReview(v,r.note?String(r.note).slice(0,160):'');
@@ -3775,6 +3923,7 @@ function lookupFood(){
   var prompt='Give typical nutrition values per 100 g for this food: "'+q.slice(0,60)+'". '+
     'If the name does not say raw or cooked, give raw (or dry) weight and say so in the name, e.g. "Lentils, dry". Use kcal, not kJ. '+
     'Reply with only one JSON object: {"name": "clear food name with raw/dry/cooked", "unit": "g" or "ml", "kcal": number, "protein": number, "carbs": number, "fat": number, '+
+    '"fibre": number, "sugars": number, "micros": {"iron_mg": number, "zinc_mg": number, "calcium_mg": number, "magnesium_mg": number, "potassium_mg": number, "selenium_ug": number, "vitamin_c_mg": number, "b12_ug": number, "folate_ug": number, "omega3_epa_dha_mg": number}, '+
     '"gluten": "free" | "contains" | "may_contain" | "unknown"}. '+
     'Gluten: "contains" if the food normally contains wheat, barley, rye, spelt or malt; "may_contain" for oats or anything commonly cross-contaminated; '+
     '"free" only if naturally gluten free; otherwise "unknown". If it is not a food, reply {"error": "why"}.';
@@ -3784,6 +3933,7 @@ function lookupFood(){
     msg.textContent='';
     var v={fromLookup:true,name:String(r.name||q).slice(0,60),unit:r.unit==='ml'?'ml':'g',kcal:n(r.kcal)!==null?Math.round(n(r.kcal)):null,
       pro:n(r.protein),carb:n(r.carbs),fat:n(r.fat),amt:null,
+      fib:n(r.fibre),sug:n(r.sugars),mic:micFrom(r.micros),
       gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
     openReview(v,'');
     if(v.kcal!==null&&v.pro!==null&&v.carb!==null&&v.fat!==null&&macroMismatch(v))
@@ -3824,7 +3974,7 @@ function wireFood(){
     var del=ev.target.closest('button[data-delfood]'),ed=ev.target.closest('button[data-editfood]');
     if(del&&S.foods){delete S.foods[del.dataset.delfood];touch();return;}
     if(ed&&S.foods&&S.foods[ed.dataset.editfood]){var f=S.foods[ed.dataset.editfood];
-      openReview({id:f.id,name:f.name,unit:f.unit,kcal:f.kcal,pro:f.pro,carb:f.carb,fat:f.fat,gluten:f.gluten},'');}
+      openReview({id:f.id,name:f.name,unit:f.unit,kcal:f.kcal,pro:f.pro,carb:f.carb,fat:f.fat,fib:f.fib,sug:f.sug,gluten:f.gluten},'');}
   });
   E('btnNewFood').addEventListener('click',function(){openReview({unit:'g'},'Type the per-100 g numbers off the packet.');});
   E('btnScan').addEventListener('click',function(){E('inScan').value='';E('inScan').click();});
