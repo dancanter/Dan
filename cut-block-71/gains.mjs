@@ -59,8 +59,7 @@ ok('study shows the week so far', /h this week so far/.test(plain(rowOf(rows, 'S
 let d = await txt('#gainCard');
 ok('the card is titled "Today, read back"', /Today, read back/.test(d), d.slice(0, 80));
 ok('it counts the wins', /\d+ wins?/.test(d));
-ok('and marks a 1% day', /1% day/.test(d) && await p.evaluate(() => onePctDay(today())));
-ok('the three basics are spelt out as ticks', /✓ Food logged/.test(d) && /✓ Sleep 7\.5 h\+/.test(d) && /✓ Steps/.test(d) && /All three basics done/.test(d), d.slice(0, 300));
+ok('the read-back no longer carries the 1% badge', !/1% day/.test(d));
 ok('no fabricated improvement percentages', !/\d+(\.\d+)?% (better|improv|leaner|stronger|faster)/i.test(d), d);
 
 // ===== bad days are described, never told off ============================
@@ -92,11 +91,11 @@ ok('the week card is called Your week', /Your week/.test(w), w.slice(0, 60));
 ok('it opens with a highlight reel', /So far: /.test(w), w.slice(0, 200));
 ok('the reel names the calisthenics record', /565-rep calisthenics record/.test(w));
 ok('and the fat gone', /lb of fat gone/.test(w));
-ok('1% days are counted', new RegExp('1% days\\s*' + W.onePct + ' / ' + W.days + '\\s*all 3 basics hit').test(w), w.slice(0, 260));
-ok('there is a streak tile', /streak\s*\d+ days?/.test(w));
+ok('the week has a better-in tile', /better in\s*(\d+ of \d+|—)/i.test(w), w.slice(0, 260));
+ok('the streak tile is gone with the 1% days', !/streak/i.test(w));
 ok('the made-up compounding number is gone', !/compounded|×[\d.]+ by 28 Nov/.test(w));
-ok('and it says in plain words what 1% better means', /What “1% better” means: a 1% day is a day you hit the three basics/.test(w));
-ok('the week shows as dots', (w.match(/[●○]/g) || []).length === W.days, String((w.match(/[●○]/g) || []).length));
+ok('and points to the Better than last week card', /Better than last week/.test(w));
+ok('no 1% leftovers in the week card', !/1%|one-percent|[●○]/.test(w));
 for (const k of ['Weight', 'Food', 'Steps', 'Sleep', 'Runs', 'Gym', 'Study'])
   ok('the week has a row for ' + k, new RegExp(k).test(w));
 ok('gym lists the splits and the test', /Legs/.test(w) && /430 \+ 135 = 565, a record/.test(w));

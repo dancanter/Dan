@@ -101,6 +101,61 @@ await boot(st({ days: { [D.t]: { kcal: 1799 } } }));
 await p.click('[data-t="today"]');
 ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim() === '');
 
+// ===== better than last week: his numbers against his numbers ==========
+// The week-on-week lines need two weeks of cut behind them, so this block runs
+// on a page whose clock is pinned mid-block rather than on the real date.
+{
+  const ctxB = await b.newContext({ viewport: { width: 430, height: 2400 } });
+  await ctxB.clock.setFixedTime(new Date('2026-10-14T12:00:00'));
+  const pB = await ctxB.newPage();
+  pB.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  const p = pB;
+  const boot = async (s) => { await p.goto(FILE);
+    await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, s]);
+    await p.reload(); await p.waitForTimeout(220); };
+  await boot(st());
+  ok('the pinned clock took', await p.evaluate(() => today()) === '2026-10-14');
+  const D = { t: '2026-10-14' };
+  const days = {}, weights = {};
+  for (let i = 0; i < 14; i++) {
+    const d = await p.evaluate(k => addD(today(), -k), i);
+    const thisWk = i < 7;
+    days[d] = { sleep: thisWk ? 8 : 7, steps: thisWk ? 16000 : 14000, skinAM: true, skinPM: thisWk || i % 2 === 0, study: thisWk ? 2 : 1 };
+    weights[d] = thisWk ? 127.5 : 128.3;
+  }
+  const d9 = await p.evaluate(() => addD(today(), -9)), d2 = await p.evaluate(() => addD(today(), -2));
+  days[d9].runs = [{ k: 'reps', dm: 400, n: 6, secs: 372 }];     // 62.0 a rep
+  days[d2].runs = [{ k: 'reps', dm: 400, n: 6, secs: 360 }];     // 60.0 a rep
+  await boot(st({ weights, days }));
+  const BM = await p.evaluate(() => betterModel());
+  const row = a => BM.rows.find(r => r.area === a) || {};
+  const cutOK = true;
+  ok('running: quicker than the last 400s, as a real percentage', row('Running').tone === 'up' && /\+3\.2% quicker than last time at 400m/.test(row('Running').change), JSON.stringify(row('Running')));
+  if (cutOK) {
+    ok('sleep: +1.0 h a night on last week', row('Sleep').tone === 'up' && /\+1\.0 h a night on last week/.test(row('Sleep').change), JSON.stringify(row('Sleep')));
+    ok('steps: +14% on last week', row('Steps').tone === 'up' && /\+14% on last week/.test(row('Steps').change), JSON.stringify(row('Steps')));
+    ok('weight: −0.8 lb on last week', row('Weight').tone === 'up' && /−0\.8 lb on last week/.test(row('Weight').change), JSON.stringify(row('Weight')));
+    ok('skin: more full days than last week', row('Skin').tone === 'up', JSON.stringify(row('Skin')));
+    ok('study: +7 h on last week', row('Study').tone === 'up' && /\+7\.0 h on last week/.test(row('Study').change), JSON.stringify(row('Study')));
+  }
+  await p.click('[data-t="today"]');
+  const bt = sq(await p.innerText('#betterCard'));
+  ok('the card says how many things got better', /Better in \d+ of \d+/.test(bt), bt.slice(0, 200));
+  ok('and has an Improve next list', /Improve next/.test(bt));
+  // a slower session is said plainly, and not made into a trend
+  days[d2].runs = [{ k: 'reps', dm: 400, n: 6, secs: 384 }];
+  await boot(st({ weights, days }));
+  const R2 = (await p.evaluate(() => betterModel())).rows.find(r => r.area === 'Running');
+  ok('a slower session says so, as one session', R2.tone === 'down' && /slower than last time — one session, not a trend/.test(R2.change), JSON.stringify(R2));
+  // nothing to compare: baseline, never an invented percentage
+  await boot(st({ days: { [D.t]: { sleep: 8, steps: 15000 } } }));
+  const B0 = await p.evaluate(() => betterModel());
+  ok('with nothing to compare, lines say baseline', B0.n === 0 && B0.rows.every(r => r.tone === 'base') && !B0.rows.some(r => r.area === 'Skin'), JSON.stringify(B0.rows));
+  await p.click('[data-t="today"]');
+  ok('and the card says week one is the baseline', /Week one is your baseline/.test(await p.innerText('#betterCard')));
+  await ctxB.close();
+}
+
 // ===== the week review: deficit, study, how it went, next week ==========
 {
   const ws = await p.evaluate(() => reviewWeeks().filter(w => typeof w.k === 'number'));
