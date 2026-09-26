@@ -623,7 +623,9 @@ function mondayOf(is){return addD(is,-fmod(dow(is)-1,7));}
 var CFG={
   cutStart:'2026-09-19', cutEnd:'2026-11-28',
   deloadWeeks:[4,8],
-  goals:{gym:48,hard:21,runs:43,steps:12800,weightLo:122,weightHi:123},
+  /* runs was 43 with an easy run in every week; Dan made the easy run a bonus
+     (26 Sep), so the block total drops by one run a week: 43 - 10 = 33. */
+  goals:{gym:48,hard:21,runs:33,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
@@ -782,7 +784,10 @@ var CFG={
      no separate five-mile slot any more — there are easy runs. What splits a
      run is the EFFORT, not the distance: a five-mile threshold is a hard run,
      a five-mile plod is an easy one, exactly like a 5 km. */
-  tmpl:{hard:2,easy:1,sprints:1,gym:5}
+  /* Dan's call, 26 Sep: the week is 2 hard runs + 1 set of short uphill
+     sprints = 3 runs. The easy run is a bonus — counted and praised when it
+     happens, never owed, never "to go". */
+  tmpl:{hard:2,easy:0,sprints:1,runs:3,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
 var WEIGH_START=mondayOnOrAfter(CFG.cutStart);
@@ -1737,16 +1742,17 @@ function renderReview(){
 
   /* sessions */
   var tmplRow=function(name,got,want){
-    return '<tr><td>'+name+'</td><td class="n">'+got+(want!==null?' / '+want:'')+'</td><td>'+
-      (want===null?'<span class="tiny">no target this week</span>':(got>=want?'<span class="pill g">met</span>':'<span class="pill">'+(want-got)+' short</span>'))+'</td></tr>';
+    return '<tr><td>'+name+'</td><td class="n">'+got+(want?' / '+want:'')+'</td><td>'+
+      (want===0?(got?'<span class="pill g">bonus</span>':'<span class="tiny">bonus — optional</span>'):'')+
+      (want===null?'<span class="tiny">no target this week</span>':want===0?'':(got>=want?'<span class="pill g">met</span>':'<span class="pill">'+(want-got)+' short</span>'))+'</td></tr>';
   };
   var pre=(wk.k==='pre');
   h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
     tmplRow('Hard runs',R.s.hard,pre?null:CFG.tmpl.hard)+
     tmplRow('Easy runs',R.s.easy,pre?null:CFG.tmpl.easy)+
     tmplRow('100m sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
+    tmplRow('Runs, all in',R.s.runs,pre?null:CFG.tmpl.runs)+
     tmplRow('Gym',R.s.gym,pre?null:CFG.tmpl.gym)+
-    '<tr><td>Runs, all in</td><td class="n">'+R.s.runs+'</td><td></td></tr>'+
     '</tbody></table>'+
 
     (R.s.best?'<p class="tiny" style="margin-top:8px">Best session: <b>'+esc(R.s.best.label)+'</b> on '+fmtS(R.s.best.d)+' at <b class="num">'+secFmt(R.s.best.avg)+'</b> rep average'+
@@ -1958,7 +1964,7 @@ function achList(){
   ];
   return [
     {g:'Weight',items:weight},
-    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,15,CFG.goals.hard])).concat(tiers('runs',runs,[11,22,33,CFG.goals.runs]))},
+    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,15,CFG.goals.hard])).concat(tiers('runs',runs,[8,16,25,CFG.goals.runs]))},
     {g:'Speed',items:speed},
     {g:'Steps',items:steps},
     {g:'Sleep',items:sleep},
@@ -2607,6 +2613,11 @@ function lastSplitBefore(k,is){
 }
 /* one row per thing logged: [what, logged, feedback, tone] — tone is 'g'
    for a clear win and '' for everything else */
+/* a refeed on either of the two days before, if there was one */
+function refeedBefore(is){
+  for(var k=1;k<=2;k++){var d=addD(is,-k);if(S.days[d]&&S.days[d].refeed)return d;}
+  return null;
+}
 function dayFeedback(is){
   var r=S.days[is]||{},rows=[],x,i,m;
   var W=S.weights[is];
@@ -2615,6 +2626,12 @@ function dayFeedback(is){
     var lowToday=wm.low&&wm.low.d===is&&cutReadings().length>1;
     if(lowToday){fb='<b>Lowest of the cut so far.</b>';tone='g';}
     else if(av.avg!==null&&av.n>=3&&W<=av.avg-0.2){fb='Under your 7-day average by <b>'+f1(av.avg-W)+' lb</b> — the trend is moving.';tone='g';}
+    else if(pv&&W>pv.lb&&refeedBefore(is)){
+      /* the morning or two after a refeed: the jump is stored carbohydrate
+         and the water it holds, and saying so first stops a panic */
+      var rfd=refeedBefore(is);
+      fb='+'+f1(W-pv.lb)+' after the refeed on '+DOWS[dow(rfd)]+' — <b>that is glycogen and water, not fat.</b> Every gram of carbohydrate you store holds about 3 g of water. It drains in 2–3 days; do not react to it.';
+    }
     else if(pv){
       var dd=W-pv.lb;
       var rs=readings().filter(function(q){return q.d<=is&&diffD(q.d,is)<14;}).map(function(q){return q.lb;});
@@ -2637,11 +2654,13 @@ function dayFeedback(is){
   if(typeof r.kcal==='number'){
     x=tdeeFor(is);
     var fk=r.kcal<=KCAL_DAY+25?'On budget.':(ci(r.kcal-KCAL_DAY)+' over budget — one day moves nothing.');
+    if(r.refeed)fk='<b>Refeed day — planned, not a slip.</b>'+(r.kcal>KCAL_DAY?' The extra '+ci(r.kcal-KCAL_DAY)+' kcal is about '+f1((r.kcal-KCAL_DAY)/3500)+' lb of the week’s fat loss, and it buys back glycogen for the runs and the lifting.':'')+
+      ' Carbs are the point of it. Back to '+ci(KCAL_DAY)+' tomorrow, and expect the scale to jump for a couple of mornings.';
     if(x.deficit>50)fk+=' About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal under maintenance</b> — roughly '+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g of fat.';
     /* with the diary in use, protein is measured too, not just assumed */
     var et=eatenTotals(r);
     if(et.n)fk+=' <b>'+ci(Math.round(et.pro))+' g protein</b>'+(et.pro>=MACRO.pro?' \u2014 target hit.':' \u2014 '+ci(Math.round(MACRO.pro-et.pro))+' g under '+MACRO.pro+'.');
-    rows.push(['Food',ci(r.kcal)+' kcal'+(et.n?' \u00b7 '+et.n+' item'+(et.n===1?'':'s'):''),fk,(x.deficit>50||(et.n&&et.pro>=MACRO.pro))?'g':'']);
+    rows.push(['Food',ci(r.kcal)+' kcal'+(et.n?' \u00b7 '+et.n+' item'+(et.n===1?'':'s'):''),fk,(r.refeed||x.deficit>50||(et.n&&et.pro>=MACRO.pro))?'g':'']);
   }
   if(typeof r.steps==='number'){
     x=tdeeFor(is);var tg=stepTarget(is),gap=r.steps-tg;
@@ -3369,7 +3388,7 @@ function renderToday(c,w,tr){
   var kc=kcalToday();
   var s='<div class="cols"><div class="p"><h2>Today · '+fmtL(t)+'</h2><div class="tiles t4">'+
     tile('kcal target',ci(kc),'every day, hard or not')+
-    tile('eaten',typeof rec.kcal==='number'?ci(rec.kcal):'—',typeof rec.kcal==='number'?signed(rec.kcal-kc,0).replace('.0','')+' vs target':'not logged')+
+    tile('eaten',typeof rec.kcal==='number'?ci(rec.kcal):'—',typeof rec.kcal==='number'?signed(rec.kcal-kc,0).replace('.0','')+(rec.refeed?' · refeed day':' vs target'):'not logged')+
     tile('steps target',ci(stepTarget(t)),dow(t)===6?'Saturday is a ceiling, not a floor':DOWS[dow(t)])+
     tile('steps',typeof rec.steps==='number'?ci(rec.steps):'—',typeof rec.steps==='number'?(rec.steps>=stepTarget(t)?'target met':ci(stepTarget(t)-rec.steps)+' to go'):'not logged')+
     '</div>';
@@ -3480,13 +3499,14 @@ function weekTemplateHTML(tr){
       '<tr><td>Gym</td><td class="n">'+tr.week.gym+'</td></tr>'+
       '</tbody></table>';
     p+=weekExtrasHTML(tr.wkStart,tr.wkEnd);
-    p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard / 1 easy / 1 sprints / 5 gym. Everything logged still counts toward the block totals.</p>';
+    p+='<p class="tiny" style="margin-top:8px"><b>This is the pre-block — '+PRE_DAYS+' days, '+DOWS[dow(CFG.cutStart)]+' and '+DOWS[dow(PRE_END)]+'.</b> The Monday-to-Sunday template starts on '+fmtL(WEIGH_START)+', so nothing here is measured against 2 hard + 1 uphill sprints = 3 runs, and 5 gym. Everything logged still counts toward the block totals.</p>';
     return p;
   }
   var w=tr.week;
   var rows=[['Hard runs',w.hard,CFG.tmpl.hard,w.hard>=CFG.tmpl.hard],
-            ['Easy runs',w.easy,CFG.tmpl.easy,w.easy>=CFG.tmpl.easy],
-            ['100m sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
+            ['Uphill sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
+            ['Runs, all in',w.runs,CFG.tmpl.runs,w.runs>=CFG.tmpl.runs],
+            ['Easy runs',w.easy,0,true],
             ['Gym',w.gym,CFG.tmpl.gym,w.gym>=CFG.tmpl.gym]];
   var bk=w.byKind||{easy:0,hard:0,sprint:0};
   var parts=[['easy',bk.easy],['hard',bk.hard],['sprints',bk.sprint]].filter(function(x){return x[1]>0;});
@@ -3502,6 +3522,11 @@ function weekTemplateHTML(tr){
   }
   h+='<table class="tbl"><tbody>';
   rows.forEach(function(r){
+    if(r[2]===0){
+      h+='<tr><td>'+r[0]+' <span class="tiny">optional</span></td><td class="n">'+r[1]+'</td><td class="n">'+
+        (r[1]?'<span class="pill g">bonus'+(r[1]>1?' ×'+r[1]:'')+'</span>':'<span class="tiny">if you fancy it</span>')+'</td></tr>';
+      return;
+    }
     var covered=r[3]&&r[1]<r[2];
     h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+' / '+r[2]+'</td><td class="n">'+
        (r[3]?'<span class="pill g">'+(covered?'covered':'done')+'</span>'
@@ -3511,7 +3536,8 @@ function weekTemplateHTML(tr){
   h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
 
 
-  h+='<p class="tiny" style="margin-top:8px"><b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
+  h+='<p class="tiny" style="margin-top:8px"><b>The week is 3 runs: your 2 hard runs and the short uphill sprints.</b> An easy run on top is a bonus — it counts toward the runs total, but nothing is owed if you skip it. '+
+     '<b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
   return h;
 }
 /* ===================== the food diary =====================
