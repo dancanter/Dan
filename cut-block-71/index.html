@@ -279,8 +279,15 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div class="p">
     <h2>Food diary</h2>
     <div id="foodList" class="note" style="margin-bottom:10px"></div>
-    <div class="row" style="gap:8px;margin-bottom:8px;align-items:flex-end">
-      <div class="f" style="min-width:220px;flex:1"><label for="inLookup">Type a food</label><input type="text" id="inLookup" placeholder="oats, raw potatoes, halloumi…" maxlength="60"></div>
+    <div class="row" style="gap:8px;margin-bottom:4px">
+      <button class="btn" id="btnScan" type="button">📷 Scan a packet</button>
+      <span class="tiny">Snap the nutrition label, put in the grams, done.</span>
+    </div>
+    <input type="file" id="inScan" accept="image/*" hidden>
+    <p class="tiny" id="scanNote" style="margin:4px 0 0"></p>
+    <div id="scanBox"></div>
+    <div class="row" style="gap:8px;margin:10px 0 8px;align-items:flex-end">
+      <div class="f" style="min-width:220px;flex:1"><label for="inLookup">Or type it</label><input type="text" id="inLookup" placeholder="oats, raw potatoes, Fage Total 2%…" maxlength="60"></div>
       <button class="btn ghost" id="btnLookup" type="button">Find it</button>
     </div>
     <div class="tiny" id="lookupMsg" style="margin-bottom:8px"></div>
@@ -291,13 +298,9 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     </div>
     <div class="row" style="margin-top:10px">
       <button class="btn" id="btnAddFood" type="button">Add</button>
-      <button class="btn ghost" id="btnScan" type="button" hidden>Scan a label</button>
-      <button class="btn ghost" id="btnNewFood" type="button">Add a food by hand</button>
       <span class="tiny bd" id="foodMsg"></span>
+      <button class="btn ghost sm" id="btnNewFood" type="button" style="margin-left:auto">Type the numbers in yourself</button>
     </div>
-    <input type="file" id="inScan" accept="image/*" hidden>
-    <p class="tiny" id="scanNote" style="margin-top:6px"></p>
-    <div id="scanBox"></div>
     <div id="myFoods"></div>
   </div>
   <div id="goalsPanel"></div>
@@ -3671,6 +3674,21 @@ function groupsHTML(rec){
     return '<span class="pill'+(g[x.k]?' g':'')+'">'+(g[x.k]?'✓ ':'')+x.n+'</span>';}).join('')+'</div>';
 }
 var SAMPLE=null,SAMPLE_IMG=false,SCAN_CTL=null,REVIEW=null;
+/* why scanning is or is not on: wait (still connecting), ok, noclaude (not
+   opened inside Claude), none (this view gives pages no Claude), noimg (Claude
+   yes, photos no), denied (he tapped Don't allow), off (account/org). */
+var SAMPLE_STATE=(window.claude&&window.claude.use)?'wait':'noclaude';
+function scanWhy(){
+  var type='Type the product name under “Or type it” instead — e.g. <i>Fage Total 2%</i> — and Claude fills in every number; you only put in the grams.';
+  return {
+    wait:'Still connecting to Claude — tap again in a few seconds.',
+    noclaude:'Scanning works when the tracker is open inside Claude — the Claude app or claude.ai.',
+    none:'This view does not let the tracker use Claude, so it cannot read photos. Open the tracker on claude.ai in your phone’s browser (Safari or Chrome) and scanning works there.',
+    noimg:'Your Claude app cannot send photos to the tracker yet. '+type+' Or scan from claude.ai in your phone’s browser.',
+    denied:'You tapped <b>Don’t allow</b> when the tracker asked to use Claude. Reload the page, scan again and tap <b>Allow</b>.',
+    off:'Claude is not available for scans on this account right now. '+type
+  }[SAMPLE_STATE]||'';
+}
 function foodById(id){
   if(S.foods&&S.foods[id])return S.foods[id];
   for(var i=0;i<FRESH.length;i++)if(FRESH[i].id===id)return FRESH[i];
@@ -3752,9 +3770,14 @@ function paintAmtLabel(){
   E('labAmt').textContent=f?(f.unit==='each'?'How many':(f.unit==='ml'?'How much (ml)':'How much (g)')):'How much';
 }
 function paintFoodTools(){
-  E('btnScan').hidden=!(SAMPLE&&SAMPLE_IMG);
-  E('scanNote').textContent=(SAMPLE&&SAMPLE_IMG)?'':'Label scanning needs this page open in Claude. You can still add a food by hand.';
+  E('scanNote').innerHTML=(SAMPLE_STATE==='ok'||SAMPLE_STATE==='wait')?'':'<span class="wn">Scanning is off here.</span> '+scanWhy();
 }
+function sampleOff(c){
+  SAMPLE_STATE=c==='not_granted'?'denied':(c==='images_unavailable'?'noimg':'off');
+  if(c!=='images_unavailable')SAMPLE=null;
+  SAMPLE_IMG=false;paintFoodTools();
+}
+function g1(x){return x%1?f1(x):ci(x);}
 function openReview(v,note){
   REVIEW=v;
   var g=v.fromLookup?
@@ -3765,7 +3788,18 @@ function openReview(v,note){
        (v.gluten==='may_contain'?'<p class="note wn"><b>May contain gluten</b> according to the label. Your call, but for you that is a no.</p>':
        (v.gluten==='free'?'<p class="tiny gd">Label says gluten free.</p>':'')));
   var ms=MEALS.map(function(m){return '<option value="'+m.k+'"'+(m.k===(v.meal||mealNow())?' selected':'')+'>'+m.n+'</option>';}).join('');
-  E('scanBox').innerHTML='<div class="p flag" style="margin-top:10px"><h2>'+((v.fromScan||v.fromLookup)?'Check it before you save':(v.id?'Edit food':'Add a food'))+'</h2>'+g+
+  var auto=v.fromScan||v.fromLookup;
+  var whole=v.name&&v.kcal!=null&&v.pro!=null&&v.carb!=null&&v.fat!=null;
+  var quick=auto&&whole&&!macroMismatch(v);
+  var per=' per 100'+(v.unit==='ml'?' ml':' g');
+  var amtBox='<div class="fgrid" style="margin-top:8px">'+
+    '<div class="f" style="max-width:170px"><label for="rvAmt">How much you ate ('+(v.unit==='ml'?'ml':'g')+')</label><input type="number" step="1" min="0" max="3000" id="rvAmt" inputmode="numeric" value="'+(v.amt!=null?v.amt:'')+'"></div>'+
+    '<div class="f" style="max-width:150px"><label for="rvMeal">Meal</label><select id="rvMeal">'+ms+'</select></div></div>';
+  E('scanBox').innerHTML='<div class="p flag" style="margin-top:10px"><h2>'+(auto?(whole?esc(v.name):'Nearly there'):(v.id?'Edit food':'Add a food'))+'</h2>'+
+    (auto&&whole?'<p><b class="num">'+ci(v.kcal)+'</b> kcal · <b class="num">'+g1(v.pro)+' g</b> protein · '+g1(v.carb)+' g carbs · '+g1(v.fat)+' g fat<span class="tiny">'+per+'</span></p>':'')+
+    (auto&&!whole?'<p class="note">Claude could not read every number — fill in the gaps below.</p>':'')+g+
+    (auto?amtBox:'')+
+    (auto?'<details'+(quick?'':' open')+' style="margin-top:8px"><summary class="tiny">'+(quick?'Something look wrong? Fix a number':'The numbers')+'</summary>':'')+
     '<div class="fgrid">'+
     '<div class="f"><label for="rvName">Name</label><input type="text" id="rvName" value="'+esc(v.name||'')+'"></div>'+
     '<div class="f"><label for="rvUnit">Measured in</label><select id="rvUnit"><option value="g"'+(v.unit!=='ml'?' selected':'')+'>grams</option><option value="ml"'+(v.unit==='ml'?' selected':'')+'>ml</option></select></div>'+
@@ -3775,17 +3809,17 @@ function openReview(v,note){
     '<div class="f"><label for="rvFat">Fat per 100</label><input type="number" step="0.1" min="0" max="100" id="rvFat" value="'+(v.fat!=null?v.fat:'')+'"></div>'+
     '<div class="f"><label for="rvFib">Fibre per 100</label><input type="number" step="0.1" min="0" max="100" id="rvFib" value="'+(v.fib!=null?v.fib:'')+'"></div>'+
     '<div class="f"><label for="rvSug">Sugars per 100</label><input type="number" step="0.1" min="0" max="100" id="rvSug" value="'+(v.sug!=null?v.sug:'')+'"></div>'+
-    '<div class="f"><label for="rvAmt">You ate (g or ml)</label><input type="number" step="1" min="0" max="3000" id="rvAmt" value="'+(v.amt!=null?v.amt:'')+'"></div>'+
-    '<div class="f"><label for="rvMeal">Meal</label><select id="rvMeal">'+ms+'</select></div>'+
-    '</div>'+
+    (auto?'':'<div class="f"><label for="rvAmt">You ate (g or ml)</label><input type="number" step="1" min="0" max="3000" id="rvAmt" value="'+(v.amt!=null?v.amt:'')+'"></div>'+
+    '<div class="f"><label for="rvMeal">Meal</label><select id="rvMeal">'+ms+'</select></div>')+
+    '</div>'+(auto?'</details>':'')+
     (note?'<p class="tiny" style="margin-top:6px">'+esc(note)+'</p>':'')+
-    (v.fromScan?'<p class="tiny">Read from your photo by Claude — check the numbers against the packet before saving.</p>':'')+
-    (v.fromLookup?'<p class="tiny">Typical values from Claude, not from a packet — if you have the packet, scanning it is more exact.</p>':'')+
+    (v.fromScan?'<p class="tiny">Read from your photo by Claude — a quick glance against the packet is worth it.</p>':'')+
+    (v.fromLookup?'<p class="tiny">Typical values from Claude, not from your packet — scanning the packet is more exact.</p>':'')+
     (v.mic?'<p class="tiny">Includes Claude\u2019s estimate of its vitamins and minerals \u2014 packets rarely print them, so treat them as rough.</p>':'')+
     '<p class="tiny wn" id="rvWarn"></p>'+
     '<div class="row" style="margin-top:8px">'+
-    '<button class="btn" data-rv="add" type="button">Save and add to today</button>'+
-    '<button class="btn ghost" data-rv="save" type="button">Save to my foods only</button>'+
+    '<button class="btn" data-rv="add" type="button">Add to today</button>'+
+    '<button class="btn ghost" data-rv="save" type="button">Just save it for later</button>'+
     '<button class="btn ghost" data-rv="cancel" type="button">Cancel</button></div></div>';
 }
 function readReview(){
@@ -3865,6 +3899,7 @@ function scanLabel(file){
       amt:r.serving&&n(r.serving.amount)?Math.round(n(r.serving.amount)):null,
       gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
     openReview(v,r.note?String(r.note).slice(0,160):'');
+    if(E('rvAmt'))try{E('rvAmt').focus();E('rvAmt').select();}catch(_){}
     if(v.kcal!==null&&v.pro!==null&&v.carb!==null&&v.fat!==null&&macroMismatch(v))
       E('rvWarn').textContent='The kcal does not match the protein, carbs and fat very well — check the kcal line on the packet.';
   },function(e){
@@ -3872,8 +3907,8 @@ function scanLabel(file){
     var c=e&&e.code;
     if(c==='cancelled'){E('scanBox').innerHTML='';return;}
     if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'].indexOf(c)>=0){
-      SAMPLE_IMG=false;paintFoodTools();
-      E('scanBox').innerHTML='<p class="note" style="margin-top:10px">Label scanning is not available here. You can still add a food by hand.</p>';return;
+      sampleOff(c);
+      E('scanBox').innerHTML='<p class="note" style="margin-top:10px">'+scanWhy()+'</p>';return;
     }
     var msg=c==='rate_limited'?'Too many scans just now — give it a minute and try again.':
       (c==='image_rejected'?'That photo could not be used. Try a JPEG or PNG, not too huge.':
@@ -3904,7 +3939,7 @@ function findFood(q){
 function lookupErrMsg(c){
   return c==='rate_limited'?'Too many look-ups just now — give it a minute and try again.':
     (c==='session_expired'?'You need to sign in to Claude again.':
-    (['invalid_json','refused','empty_completion'].indexOf(c)>=0?'Could not work that one out. Try a plainer name, or add it by hand.':
+    (['invalid_json','refused','empty_completion'].indexOf(c)>=0?'Could not work that one out. Try a plainer name, or type the numbers in yourself.':
      'Something went wrong. Try again.'));
 }
 function lookupFood(){
@@ -3918,9 +3953,10 @@ function lookupFood(){
       (hits.length>1?' Not that one? '+hits.slice(1,4).map(function(h){return '<button class="btn ghost sm" data-pick="'+esc(h.id)+'" type="button">'+esc(h.name)+'</button>';}).join(' '):'');
     return;
   }
-  if(!SAMPLE){msg.textContent='Not in the list. Use “Add a food by hand” with the numbers off the packet.';return;}
+  if(!SAMPLE){msg.innerHTML='Not in the list. '+(SAMPLE_STATE==='wait'?'Still connecting to Claude — try again in a few seconds.':'Look-ups need Claude, which is not on here. Use “Type the numbers in yourself”.');return;}
   msg.textContent='Not in your list — looking up typical values…';
-  var prompt='Give typical nutrition values per 100 g for this food: "'+q.slice(0,60)+'". '+
+  var prompt='Give nutrition values per 100 g for this food: "'+q.slice(0,60)+'". '+
+    'If it names a brand or product, give that product\'s values as printed on its packet if you know them; otherwise typical values. '+
     'If the name does not say raw or cooked, give raw (or dry) weight and say so in the name, e.g. "Lentils, dry". Use kcal, not kJ. '+
     'Reply with only one JSON object: {"name": "clear food name with raw/dry/cooked", "unit": "g" or "ml", "kcal": number, "protein": number, "carbs": number, "fat": number, '+
     '"fibre": number, "sugars": number, "micros": {"iron_mg": number, "zinc_mg": number, "calcium_mg": number, "magnesium_mg": number, "potassium_mg": number, "selenium_ug": number, "vitamin_c_mg": number, "b12_ug": number, "folate_ug": number, "omega3_epa_dha_mg": number}, '+
@@ -3928,7 +3964,7 @@ function lookupFood(){
     'Gluten: "contains" if the food normally contains wheat, barley, rye, spelt or malt; "may_contain" for oats or anything commonly cross-contaminated; '+
     '"free" only if naturally gluten free; otherwise "unknown". If it is not a food, reply {"error": "why"}.';
   SAMPLE.json(prompt,{modelTier:'quick'}).then(function(r){
-    if(!r||typeof r!=='object'||r.error){msg.textContent='That did not come back as a food. Try a plainer name, or add it by hand.';return;}
+    if(!r||typeof r!=='object'||r.error){msg.textContent='That did not come back as a food. Try a plainer name, or type the numbers in yourself.';return;}
     var n=function(x){x=Number(x);return isFinite(x)&&x>=0?r1(x):null;};
     msg.textContent='';
     var v={fromLookup:true,name:String(r.name||q).slice(0,60),unit:r.unit==='ml'?'ml':'g',kcal:n(r.kcal)!==null?Math.round(n(r.kcal)):null,
@@ -3936,12 +3972,13 @@ function lookupFood(){
       fib:n(r.fibre),sug:n(r.sugars),mic:micFrom(r.micros),
       gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
     openReview(v,'');
+    if(E('rvAmt'))try{E('rvAmt').focus();}catch(_){}
     if(v.kcal!==null&&v.pro!==null&&v.carb!==null&&v.fat!==null&&macroMismatch(v))
       E('rvWarn').textContent='The kcal does not match the protein, carbs and fat very well — worth a second look.';
   },function(e){
     var c=e&&e.code;
     if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].indexOf(c)>=0){
-      SAMPLE=null;paintFoodTools();msg.textContent='Look-ups are not available here. Use “Add a food by hand”.';return;}
+      sampleOff(c);msg.innerHTML='Look-ups are off here. '+(SAMPLE_STATE==='denied'?scanWhy():'Use “Type the numbers in yourself”.');return;}
     msg.textContent=lookupErrMsg(c);
   });
 }
@@ -3977,7 +4014,11 @@ function wireFood(){
       openReview({id:f.id,name:f.name,unit:f.unit,kcal:f.kcal,pro:f.pro,carb:f.carb,fat:f.fat,fib:f.fib,sug:f.sug,gluten:f.gluten},'');}
   });
   E('btnNewFood').addEventListener('click',function(){openReview({unit:'g'},'Type the per-100 g numbers off the packet.');});
-  E('btnScan').addEventListener('click',function(){E('inScan').value='';E('inScan').click();});
+  E('btnScan').addEventListener('click',function(){
+    if(SAMPLE&&SAMPLE_IMG){E('inScan').value='';E('inScan').click();return;}
+    E('scanBox').innerHTML='<p class="note" style="margin-top:10px">'+scanWhy()+'</p>';
+    if(SAMPLE_STATE==='noimg'||SAMPLE_STATE==='off')E('inLookup').focus();
+  });
   E('inScan').addEventListener('change',function(){if(this.files&&this.files[0])scanLabel(this.files[0]);});
   E('scanBox').addEventListener('click',function(ev){
     if(ev.target.id==='btnScanStop'&&SCAN_CTL){SCAN_CTL.abort();return;}
@@ -3987,15 +4028,15 @@ function wireFood(){
   });
   if(window.claude&&window.claude.use){
     window.claude.use('sample').then(function(s){
-      if(!s){paintFoodTools();return;}
+      if(!s){SAMPLE_STATE='none';paintFoodTools();return;}
       SAMPLE=s;
       var lim=(typeof s.limits==='function')?s.limits():Promise.reject();
       lim.then(function(l){
-        SAMPLE_IMG=!!(l&&l.images);
+        SAMPLE_IMG=!!(l&&l.images);SAMPLE_STATE=SAMPLE_IMG?'ok':'noimg';
         if(SAMPLE_IMG&&l.images.mediaTypes)E('inScan').accept=l.images.mediaTypes.join(',');
         paintFoodTools();
-      },function(){SAMPLE_IMG=false;paintFoodTools();});
-    },function(){paintFoodTools();});
+      },function(){SAMPLE_IMG=false;SAMPLE_STATE='noimg';paintFoodTools();});
+    },function(){SAMPLE_STATE='none';paintFoodTools();});
   }
 }
 function paintForm(){

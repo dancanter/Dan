@@ -95,9 +95,11 @@ await p.click('#foodList button[data-eat="0"]');
 await p.waitForTimeout(150);
 rec = await p.evaluate(() => S.days[today()] || {});
 ok('an emptied diary takes its kcal with it', !rec.eaten && rec.kcal === undefined, JSON.stringify(rec));
-// with no Claude, the scan button stays hidden and says why
-ok('no scan button without Claude', await p.$eval('#btnScan', e => e.hidden));
-ok('and it says you can still add by hand', /add a food by hand/.test(await p.textContent('#scanNote')));
+// with no Claude, the scan button is still there and says exactly why it cannot scan
+ok('the scan button is always on show', !(await p.$eval('#btnScan', e => e.hidden)));
+ok('without Claude it says scanning is off and why', /Scanning is off here/.test(await p.textContent('#scanNote')) && /open inside Claude/.test(await p.textContent('#scanNote')));
+await p.click('#btnScan');
+ok('tapping it explains instead of doing nothing', /open inside Claude/.test(await p.textContent('#scanBox')));
 
 // ===== adding a food by hand =============================================
 await p.click('#btnNewFood');
@@ -129,17 +131,20 @@ await ctx.close();
 // ===== scanning a label ==================================================
 ({ ctx, p } = await open('fage'));
 ok('with Claude and images, the scan button shows', !(await p.$eval('#btnScan', e => e.hidden)));
+ok('and no "off" note', (await p.textContent('#scanNote')).trim() === '');
 await p.setInputFiles('#inScan', JPG);
 await p.waitForTimeout(300);
 let calls = await p.evaluate(() => window.__calls);
 ok('the photo is sent with the prompt', calls.length === 1 && calls[0].hasImage, JSON.stringify(calls));
 ok('the prompt asks for per 100 g and gluten', /per 100 g/.test(calls[0].input) && /gluten/.test(calls[0].input) && /kcal, not kJ/.test(calls[0].input));
 let sb = await txt(p, '#scanBox');
-ok('a review form opens', /Check it before you save/.test(sb), sb.slice(0, 120));
+ok('a one-line confirm opens, not a form', /Fage Total 2%/.test(sb) && /73 kcal · 10 g protein · 3 g carbs · 2 g fat per 100 g/.test(sb), sb.slice(0, 160));
+ok('the numbers are folded away', await p.$eval('#scanBox details', d => !d.open) && !(await p.isVisible('#rvKcal')));
+ok('the grams box is on show and focused', await p.isVisible('#rvAmt') && await p.evaluate(() => document.activeElement && document.activeElement.id === 'rvAmt'));
 ok('prefilled from the label', (await p.$eval('#rvName', e => e.value)) === 'Fage Total 2%' && (await p.$eval('#rvKcal', e => e.value)) === '73' && (await p.$eval('#rvPro', e => e.value)) === '10');
 ok('the amount prefilled from the serving', (await p.$eval('#rvAmt', e => e.value)) === '170');
 ok('it says the label is gluten free', /Label says gluten free/.test(sb));
-ok('and to check it against the packet', /check the numbers against the packet/.test(sb));
+ok('and to glance at the packet', /a quick glance against the packet/.test(sb));
 await p.click('#scanBox button[data-rv="add"]');
 await p.waitForTimeout(150);
 const fage = await p.evaluate(() => Object.values(S.foods).find(f => /Fage/.test(f.name)));
@@ -164,6 +169,7 @@ await ctx.close();
 ({ ctx, p } = await open('mismatch'));
 await p.setInputFiles('#inScan', JPG); await p.waitForTimeout(300);
 ok('kcal that does not match the macros is flagged', /does not match the protein, carbs and fat/.test(await p.textContent('#rvWarn')));
+ok('and then the numbers open for checking', await p.$eval('#scanBox details', d => d.open));
 await ctx.close();
 
 // not a label, a bad read, a refusal, a limit — each said plainly, none retried
@@ -171,17 +177,25 @@ for (const [mode, re, hidesScan] of [
   ['notlabel', /did not look like a nutrition label \(a photo of a cat\)/, false],
   ['badjson', /Could not read that label/, false],
   ['busy', /Too many scans just now/, false],
-  ['denied', /Label scanning is not available here/, true]]) {
+  ['denied', /You tapped Don’t allow/, false]]) {
   ({ ctx, p } = await open(mode));
   await p.setInputFiles('#inScan', JPG); await p.waitForTimeout(300);
   ok(mode + ': said plainly', re.test(await p.textContent('#scanBox')), await p.textContent('#scanBox'));
   ok(mode + ': one call, no retry', (await p.evaluate(() => window.__calls.length)) === 1);
-  ok(mode + (hidesScan ? ': scan button hidden after' : ': scan button stays'), (await p.$eval('#btnScan', e => e.hidden)) === hidesScan);
+  ok(mode + ': scan button stays', (await p.$eval('#btnScan', e => e.hidden)) === hidesScan);
   await ctx.close();
 }
 // a view that cannot send images never offers the scan
 ({ ctx, p } = await open('noimg'));
-ok('no images, no scan button', await p.$eval('#btnScan', e => e.hidden));
+ok('no images: says the app cannot send photos', /cannot send photos/.test(await p.textContent('#scanNote')));
+ok('and points to typing the product name', /Fage Total 2%/.test(await p.textContent('#scanNote')));
+await p.click('#btnScan');
+ok('tapping scan does not open a picker that cannot work', (await p.evaluate(() => window.__calls.length)) === 0 && /cannot send photos/.test(await p.textContent('#scanBox')));
+ok('it puts you in the type box', await p.evaluate(() => document.activeElement.id === 'inLookup'));
+await ctx.close();
+// a view where pages get no Claude at all
+({ ctx, p } = await open('nosample'));
+ok('no Claude in this view: says to use claude.ai in the browser', /claude\.ai in your phone’s browser/.test(await p.textContent('#scanNote')));
 await ctx.close();
 
 // ===== "type a food": the list first, Claude only if it is not there =====
@@ -207,7 +221,7 @@ L = await look('egg');
 ok('"egg" finds eggs', L.sel === 'x:egg' || L.sel === 'x:eggwhite', JSON.stringify(L));
 ok('the amount label follows the found food', /How many/.test(await p.textContent('#labAmt')));
 L = await look('halloumi');
-ok('not in the list, no Claude: says add it by hand', /Not in the list/.test(L.msg) && /Add a food by hand/.test(L.msg), L.msg);
+ok('not in the list, no Claude: says type the numbers', /Not in the list/.test(L.msg) && /Type the numbers in yourself/.test(L.msg), L.msg);
 ok('and nothing got selected by accident', L.sel === 'x:egg' || L.sel === 'x:eggwhite');
 // the fish values that were raw numbers labelled cooked are corrected
 const fish = await p.evaluate(() => ({ cod: foodById('x:cod'), codraw: foodById('x:codraw'), salmon: foodById('x:salmon'), mack: foodById('x:mackerel') }));
@@ -222,8 +236,9 @@ calls = await p.evaluate(() => window.__calls);
 ok('the look-up goes to Claude as text, on the quick tier', calls.length === 1 && !calls[0].hasImage && calls[0].tier === 'quick', JSON.stringify(calls));
 ok('it asks for raw weight when the name does not say', /give raw \(or dry\) weight/.test(calls[0].input));
 sb = await txt(p, '#scanBox');
-ok('it opens the review with typical values', /Check it before you save/.test(sb) && (await p.$eval('#rvKcal', e => e.value)) === '316', sb.slice(0, 120));
-ok('labelled as typical values, not a packet', /Typical values from Claude, not from a packet/.test(sb));
+ok('it opens the confirm with typical values', /Halloumi/.test(sb) && /316 kcal/.test(sb) && (await p.$eval('#rvKcal', e => e.value)) === '316', sb.slice(0, 120));
+ok('a brand name asks for that product’s values', /as printed on its packet/.test(calls[0].input));
+ok('labelled as typical values, not a packet', /Typical values from Claude, not from your packet/.test(sb));
 ok('naturally gluten free is said as such', /Naturally gluten free/.test(sb));
 await p.fill('#rvAmt', '50');
 await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
@@ -240,7 +255,8 @@ ok('a non-food is said plainly', /did not come back as a food/.test(await p.text
 await ctx.close();
 ({ ctx, p } = await open('denied'));
 await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(250);
-ok('if Claude is refused, look-ups say so and stop', /Look-ups are not available here/.test(await p.textContent('#lookupMsg')));
+ok('if Claude is refused, look-ups say so and how to fix it', /Look-ups are off here/.test(await p.textContent('#lookupMsg')) && /Reload the page/.test(await p.textContent('#lookupMsg')));
+ok('and the scan note says the same', /Don’t allow/.test(await p.textContent('#scanNote')));
 await ctx.close();
 
 // ===== fibre, vitamins and minerals, food groups =========================
