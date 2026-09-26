@@ -41,7 +41,9 @@ ok('a drop is marked as a win', rowOf(rows, 'Weight')[3] === 'g');
 ok('resting HR explains the baseline is still building', /building your baseline/.test(rowOf(rows, 'Resting HR')[2]));
 const def = await p.evaluate(() => tdeeFor(today()).deficit);
 ok('food gives the deficit as a real number', new RegExp((Math.round(def / 10) * 10).toLocaleString('en-GB') + ' kcal under maintenance').test(plain(rowOf(rows, 'Food')[2])), rowOf(rows, 'Food')[2]);
-ok('steps say target hit and by how much', /Target hit, 1,000 over/.test(plain(rowOf(rows, 'Steps')[2])), rowOf(rows, 'Steps')[2]);
+// The target depends on the day of the week, so the "over" figure is derived.
+const stT = await p.evaluate(() => stepTarget(today()));
+ok('steps say target hit and by how much', new RegExp('Target hit, ' + (16000 - stT).toLocaleString('en-GB') + ' over').test(plain(rowOf(rows, 'Steps')[2])), rowOf(rows, 'Steps')[2]);
 ok('steps say what the walking burned', /kcal of walking/.test(rowOf(rows, 'Steps')[2]));
 ok('sleep over the line is a win', rowOf(rows, 'Sleep')[3] === 'g' && /Over the line/.test(rowOf(rows, 'Sleep')[2]));
 const runs = rows.filter(r => r[1].includes('×'));
@@ -61,7 +63,7 @@ ok('and marks a 1% day', /1% day/.test(d) && await p.evaluate(() => onePctDay(to
 ok('no fabricated improvement percentages', !/\d+(\.\d+)?% (better|improv|leaner|stronger|faster)/i.test(d), d);
 
 // ===== bad days are described, never told off ============================
-await boot(st({ weights: { [Y]: 128.0, [T]: 128.9 }, days: { [T]: { sleep: 6, kcal: 2400, steps: 5000 } } }));
+await boot(st({ weights: { [Y]: 128.0, [T]: 128.9 }, days: { [T]: { sleep: 6, kcal: 2400, steps: 2000 } } }));
 rows = await p.evaluate(() => dayFeedback(today()));
 const all = rows.map(r => plain(r[2])).join(' ');
 ok('a gain on the scale is put against the normal swing', /\+0\.9 on /.test(plain(rowOf(rows, 'Weight')[2])), rowOf(rows, 'Weight')[2]);

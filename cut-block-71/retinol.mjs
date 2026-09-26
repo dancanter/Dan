@@ -35,8 +35,29 @@ ok(toGo > 0 ? 'with the nights away' : 'and says tonight is a retinol night on d
   toGo > 0 ? new RegExp(toGo + ' nights? away').test(t) : (toGo === 0 ? /Tonight is a retinol night/.test(t) : true),
   (t.match(/\d+ nights? away|Tonight is[^.]{0,30}/) || [''])[0]);
 
+// ---- paused: his skin reacted after the first night (26 Sep) ------------
+// Red, stinging and puffy — his second reaction to a retinoid. While paused,
+// nothing may tell him to apply it, and the panel carries the calm-skin
+// routine and the reasons to see someone.
+const RP = await p.evaluate(() => retinolModel());
+ok('retinol is paused', !!RP.paused && RP.paused.on === '2026-09-26', JSON.stringify(RP.paused));
+ok('and while paused it is never "tonight"', RP.tonight === false);
+ok('the panel says paused and do not apply', /Paused since/.test(t) && /Do not apply it/.test(t), t.slice(0, 200));
+ok('it never says tonight is a retinol night', !/Tonight is a retinol night/.test(t));
+ok('it gives the calm-skin routine', /fragrance-free cleanser/.test(t) && /thick moisturiser/.test(t) && /cool water/.test(t) && /No acids/.test(t));
+ok('with SPF for his outdoor runs', /SPF 30\+ and a cap on runs/.test(t));
+ok('it says when it should settle', /clearly better within 2–3 days and gone within a week/.test(t));
+ok('and when to get help, including 999', /pharmacist or GP/.test(t) && /999/.test(t));
+ok('it recommends a dermatologist before any retry', /see a dermatologist/.test(t));
+// Unpausing brings the schedule back exactly as it was.
+await p.evaluate(() => { window.__rp = CFG.retinol.paused; CFG.retinol.paused = null; render(); });
+t = await p.textContent('#skRetinol');
+ok('with the pause lifted the schedule behaves as before', !/Paused since/.test(t) && await p.evaluate(() => retinolModel().paused === null));
+await p.evaluate(() => { CFG.retinol.paused = window.__rp; render(); });
+t = await p.textContent('#skRetinol');
+
 // the ramp has real dates and gets slower, not faster
-const ramp = await p.$$eval('#skRetinol tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).slice(0, 4));
+const ramp = await p.$$eval('#skRetinol table:has(thead) tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).slice(0, 4));
 ok('four phases with dates', ramp.length === 4, JSON.stringify(ramp));
 ok('starting 24 Sep at 1x', /24 Sep/.test(ramp[0]) && /1× a week/.test(ramp[0]), ramp[0]);
 ok('2x from 8 Oct', /8 Oct/.test(ramp[1]) && /2× a week/.test(ramp[1]), ramp[1]);
