@@ -276,6 +276,25 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
+  <div class="p">
+    <h2>Food diary</h2>
+    <div id="foodList" class="note" style="margin-bottom:10px"></div>
+    <div class="fgrid">
+      <div class="f" style="min-width:220px"><label for="inFood">Food</label><select id="inFood"></select></div>
+      <div class="f" style="max-width:130px"><label for="inAmt" id="labAmt">How much</label><input type="number" step="1" min="0" max="3000" id="inAmt" placeholder="—"></div>
+      <div class="f" style="max-width:150px"><label for="inMeal">Meal</label><select id="inMeal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="tea">Tea</option><option value="evening">Evening</option><option value="snack">Snack</option></select></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnAddFood" type="button">Add</button>
+      <button class="btn ghost" id="btnScan" type="button" hidden>Scan a label</button>
+      <button class="btn ghost" id="btnNewFood" type="button">Add a food by hand</button>
+      <span class="tiny bd" id="foodMsg"></span>
+    </div>
+    <input type="file" id="inScan" accept="image/*" hidden>
+    <p class="tiny" id="scanNote" style="margin-top:6px"></p>
+    <div id="scanBox"></div>
+    <div id="myFoods"></div>
+  </div>
   <div id="goalsPanel"></div>
   <div id="todaySummary"></div>
 </section>
@@ -836,6 +855,7 @@ function normalise(x){
   if(typeof s.settings.fiveK!=='number')s.settings.fiveK=1085;
   if(typeof s.settings.fiveKManual!=='boolean')s.settings.fiveKManual=false;
   if(!s.bests||typeof s.bests!=='object')s.bests={};
+  if(!s.foods||typeof s.foods!=='object')s.foods={};
   if(typeof s.updatedAt!=='number')s.updatedAt=0;
   return s;
 }
@@ -892,6 +912,8 @@ function mergeByDate(older,newer){
     var mine=older.bests[k];
     if(mine&&mine.t>0&&(!out.bests[k]||mine.t<out.bests[k].t))out.bests[k]=clone(mine);
   }
+  /* foods are keyed by id: a food saved on either side survives the merge */
+  for(k in (older.foods||{})){if(!(k in out.foods)){out.foods[k]=clone(older.foods[k]);added++;}}
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }
@@ -2608,7 +2630,10 @@ function dayFeedback(is){
     x=tdeeFor(is);
     var fk=r.kcal<=KCAL_DAY+25?'On budget.':(ci(r.kcal-KCAL_DAY)+' over budget — one day moves nothing.');
     if(x.deficit>50)fk+=' About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal under maintenance</b> — roughly '+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g of fat.';
-    rows.push(['Food',ci(r.kcal)+' kcal',fk,x.deficit>50?'g':'']);
+    /* with the diary in use, protein is measured too, not just assumed */
+    var et=eatenTotals(r);
+    if(et.n)fk+=' <b>'+ci(Math.round(et.pro))+' g protein</b>'+(et.pro>=MACRO.pro?' \u2014 target hit.':' \u2014 '+ci(Math.round(MACRO.pro-et.pro))+' g under '+MACRO.pro+'.');
+    rows.push(['Food',ci(r.kcal)+' kcal'+(et.n?' \u00b7 '+et.n+' item'+(et.n===1?'':'s'):''),fk,(x.deficit>50||(et.n&&et.pro>=MACRO.pro))?'g':'']);
   }
   if(typeof r.steps==='number'){
     x=tdeeFor(is);var tg=stepTarget(is),gap=r.steps-tg;
@@ -3477,6 +3502,262 @@ function weekTemplateHTML(tr){
   h+='<p class="tiny" style="margin-top:8px"><b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
   return h;
 }
+/* ===================== the food diary =====================
+   Dan wanted MyFitnessPal on this: photograph the packet, say how much he
+   ate, done. A photo of the nutrition label goes to Claude through the
+   page's `sample` capability, which reads the per-100 g column back as
+   data; he checks it, says how much he had, and it is saved to his own
+   foods so next time is one tap. Fresh food with no packet uses typical
+   values. Every diary entry keeps its own numbers, so editing or deleting
+   a food never rewrites a day already logged. While a day has entries, its
+   kcal comes from them. */
+var FRESH=[
+  {id:'x:egg',name:'Egg, large',unit:'each',per:1,kcal:78,pro:7.3,carb:0.1,fat:5.3},
+  {id:'x:eggwhite',name:'Egg white, large',unit:'each',per:1,kcal:17,pro:3.6,carb:0.2,fat:0.1},
+  {id:'x:potato',name:'Potatoes, boiled',unit:'g',per:100,kcal:85,pro:1.9,carb:19,fat:0.1},
+  {id:'x:rice',name:'White rice, cooked',unit:'g',per:100,kcal:130,pro:2.7,carb:28,fat:0.3},
+  {id:'x:chicken',name:'Chicken breast, cooked',unit:'g',per:100,kcal:165,pro:31,carb:0,fat:3.6},
+  {id:'x:turkey',name:'Turkey breast, cooked',unit:'g',per:100,kcal:158,pro:29,carb:0,fat:3.2},
+  {id:'x:beef5',name:'Beef mince 5%, cooked',unit:'g',per:100,kcal:137,pro:21,carb:0,fat:5.8},
+  {id:'x:cod',name:'Cod or haddock, cooked',unit:'g',per:100,kcal:83,pro:18,carb:0,fat:0.7},
+  {id:'x:salmon',name:'Salmon, cooked',unit:'g',per:100,kcal:208,pro:20,carb:0,fat:13},
+  {id:'x:mackerel',name:'Mackerel, cooked',unit:'g',per:100,kcal:205,pro:19,carb:0,fat:14},
+  {id:'x:tuna',name:'Tuna in spring water, drained',unit:'g',per:100,kcal:109,pro:25,carb:0,fat:1},
+  {id:'x:prawns',name:'Prawns, cooked',unit:'g',per:100,kcal:99,pro:24,carb:0,fat:0.3},
+  {id:'x:milk',name:'Semi-skimmed milk',unit:'ml',per:100,kcal:47,pro:3.5,carb:4.8,fat:1.7},
+  {id:'x:banana',name:'Banana',unit:'g',per:100,kcal:95,pro:1.2,carb:23,fat:0.3},
+  {id:'x:straw',name:'Strawberries',unit:'g',per:100,kcal:32,pro:0.7,carb:7.7,fat:0.3},
+  {id:'x:berries',name:'Mixed berries',unit:'g',per:100,kcal:45,pro:1,carb:9,fat:0.3},
+  {id:'x:kiwi',name:'Kiwi',unit:'each',per:1,kcal:42,pro:0.8,carb:10,fat:0.4},
+  {id:'x:spinach',name:'Spinach',unit:'g',per:100,kcal:23,pro:2.9,carb:3.6,fat:0.4},
+  {id:'x:tomato',name:'Tomatoes',unit:'g',per:100,kcal:18,pro:0.9,carb:3.9,fat:0.2},
+  {id:'x:greenveg',name:'Green beans, courgette or peas',unit:'g',per:100,kcal:35,pro:2.2,carb:5.5,fat:0.3},
+  {id:'x:honey',name:'Honey',unit:'g',per:100,kcal:304,pro:0.3,carb:82,fat:0},
+  {id:'x:evoo',name:'Extra virgin olive oil',unit:'g',per:100,kcal:884,pro:0,carb:0,fat:100},
+  {id:'x:pumpkin',name:'Pumpkin seeds',unit:'g',per:100,kcal:559,pro:30,carb:11,fat:49},
+  {id:'x:avocado',name:'Avocado',unit:'g',per:100,kcal:160,pro:2,carb:8.5,fat:14.7}
+];
+var MEALS=[{k:'breakfast',n:'Breakfast'},{k:'lunch',n:'Lunch'},{k:'tea',n:'Tea'},{k:'evening',n:'Evening'},{k:'snack',n:'Snack'}];
+var SAMPLE=null,SAMPLE_IMG=false,SCAN_CTL=null,REVIEW=null;
+function foodById(id){
+  if(S.foods&&S.foods[id])return S.foods[id];
+  for(var i=0;i<FRESH.length;i++)if(FRESH[i].id===id)return FRESH[i];
+  return null;
+}
+function unitWord(u){return u==='each'?'':(u==='ml'?' ml':' g');}
+function perWord(f){return f.unit==='each'?'each':'per 100'+(f.unit==='ml'?' ml':' g');}
+function r1(x){return Math.round(x*10)/10;}
+function entryFor(f,amt,meal){
+  var k=amt/f.per;
+  return {id:f.id,n:f.name,a:amt,u:f.unit,m:meal,kcal:Math.round(f.kcal*k),pro:r1(f.pro*k),carb:r1(f.carb*k),fat:r1(f.fat*k)};
+}
+function eatenTotals(rec){
+  var t={kcal:0,pro:0,carb:0,fat:0,n:0};
+  (rec&&rec.eaten||[]).forEach(function(e){t.kcal+=e.kcal;t.pro+=e.pro;t.carb+=e.carb;t.fat+=e.fat;t.n++;});
+  return t;
+}
+function setEaten(d,list){
+  var patch={eaten:list.length?list:null};
+  /* while the diary has entries it IS the day's kcal; emptied, it takes
+     the number it wrote with it rather than leaving a stale one behind */
+  patch.kcal=list.length?Math.round(eatenTotals({eaten:list}).kcal):null;
+  setDay(d,patch);
+}
+function mealNow(){var h=new Date().getHours(),m=new Date().getMinutes();
+  return h<11?'breakfast':(h<15?'lunch':(h<18||(h===18&&m<30)?'tea':'evening'));}
+function renderFoodLog(){
+  var d=E('logDate').value||today(),rec=S.days[d]||{},list=rec.eaten||[],t=eatenTotals(rec);
+  var h='';
+  if(!list.length)h='<span class="tiny">Nothing in the diary for this day. Your kcal box still works on its own if you would rather type one number.</span>';
+  else{
+    MEALS.forEach(function(ml){
+      var rows=list.map(function(e,i){return {e:e,i:i};}).filter(function(x){return x.e.m===ml.k;});
+      if(!rows.length)return;
+      h+='<div class="tiny dim" style="margin-top:6px">'+ml.n+'</div>';
+      rows.forEach(function(x){
+        var e=x.e;
+        h+='<div class="row" style="gap:8px;border-bottom:1px solid var(--rule-2);padding:4px 0">'+
+          '<b>'+esc(e.n)+'</b><span class="mono">'+(e.u==='each'?ci(e.a)+' ×':ci(e.a)+unitWord(e.u))+'</span>'+
+          '<span class="mono">'+ci(e.kcal)+' kcal</span><span class="mono">'+f1(e.pro)+' g P</span>'+
+          '<button class="btn ghost sm" data-eat="'+x.i+'" type="button" style="margin-left:auto">remove</button></div>';
+      });
+    });
+    h+='<p style="margin-top:8px"><b class="num">'+ci(Math.round(t.kcal))+'</b> kcal of your '+ci(KCAL_DAY)+' · <b class="num">'+ci(Math.round(t.pro))+' g</b> protein'+
+      (t.pro>=MACRO.pro?' <span class="pill g">protein hit</span>':' <span class="tiny">('+ci(Math.round(MACRO.pro-t.pro))+' g to '+MACRO.pro+')</span>')+
+      ' · '+ci(Math.round(t.carb))+' g carbs · '+ci(Math.round(t.fat))+' g fat</p>'+
+      '<p class="tiny">The kcal box above now comes from this diary.</p>';
+  }
+  E('foodList').innerHTML=h;
+  var cur=E('inFood').value;
+  var mine=Object.keys(S.foods||{}).map(function(k){return S.foods[k];}).sort(function(a,b){return a.name<b.name?-1:1;});
+  var opt=function(f){return '<option value="'+esc(f.id)+'"'+(f.id===cur?' selected':'')+'>'+esc(f.name)+' — '+ci(f.kcal)+' kcal '+perWord(f)+'</option>';};
+  E('inFood').innerHTML='<option value="">Pick a food…</option>'+
+    (mine.length?'<optgroup label="Your foods">'+mine.map(opt).join('')+'</optgroup>':'')+
+    '<optgroup label="Fresh food — typical values">'+FRESH.map(opt).join('')+'</optgroup>';
+  if(!E('inMeal').value)E('inMeal').value=mealNow();
+  paintAmtLabel();
+  E('myFoods').innerHTML=mine.length?('<details class="p" style="margin-top:10px"><summary>Your foods ('+mine.length+')</summary>'+
+    mine.map(function(f){return '<div class="row" style="gap:8px;padding:3px 0"><b>'+esc(f.name)+'</b><span class="tiny">'+ci(f.kcal)+' kcal · '+f1(f.pro)+' g P '+perWord(f)+
+      (f.gluten==='contains'||f.gluten==='may_contain'?' · <span class="wn">gluten warning</span>':'')+'</span>'+
+      '<button class="btn ghost sm" data-editfood="'+esc(f.id)+'" type="button" style="margin-left:auto">edit</button>'+
+      '<button class="btn ghost sm" data-delfood="'+esc(f.id)+'" type="button">remove</button></div>';}).join('')+'</details>'):'';
+  paintFoodTools();
+}
+function paintAmtLabel(){
+  var f=foodById(E('inFood').value);
+  E('labAmt').textContent=f?(f.unit==='each'?'How many':(f.unit==='ml'?'How much (ml)':'How much (g)')):'How much';
+}
+function paintFoodTools(){
+  E('btnScan').hidden=!(SAMPLE&&SAMPLE_IMG);
+  E('scanNote').textContent=(SAMPLE&&SAMPLE_IMG)?'':'Label scanning needs this page open in Claude. You can still add a food by hand.';
+}
+function openReview(v,note){
+  REVIEW=v;
+  var g=v.gluten==='contains'?'<p class="note wn"><b>Gluten warning:</b> the label looks like it lists gluten (wheat, barley, rye, spelt or malt). Do not eat this.</p>':
+       (v.gluten==='may_contain'?'<p class="note wn"><b>May contain gluten</b> according to the label. Your call, but for you that is a no.</p>':
+       (v.gluten==='free'?'<p class="tiny gd">Label says gluten free.</p>':''));
+  var ms=MEALS.map(function(m){return '<option value="'+m.k+'"'+(m.k===(v.meal||mealNow())?' selected':'')+'>'+m.n+'</option>';}).join('');
+  E('scanBox').innerHTML='<div class="p flag" style="margin-top:10px"><h2>'+(v.fromScan?'Check it before you save':(v.id?'Edit food':'Add a food'))+'</h2>'+g+
+    '<div class="fgrid">'+
+    '<div class="f"><label for="rvName">Name</label><input type="text" id="rvName" value="'+esc(v.name||'')+'"></div>'+
+    '<div class="f"><label for="rvUnit">Measured in</label><select id="rvUnit"><option value="g"'+(v.unit!=='ml'?' selected':'')+'>grams</option><option value="ml"'+(v.unit==='ml'?' selected':'')+'>ml</option></select></div>'+
+    '<div class="f"><label for="rvKcal">kcal per 100</label><input type="number" step="1" min="0" max="900" id="rvKcal" value="'+(v.kcal!=null?v.kcal:'')+'"></div>'+
+    '<div class="f"><label for="rvPro">Protein per 100</label><input type="number" step="0.1" min="0" max="100" id="rvPro" value="'+(v.pro!=null?v.pro:'')+'"></div>'+
+    '<div class="f"><label for="rvCarb">Carbs per 100</label><input type="number" step="0.1" min="0" max="100" id="rvCarb" value="'+(v.carb!=null?v.carb:'')+'"></div>'+
+    '<div class="f"><label for="rvFat">Fat per 100</label><input type="number" step="0.1" min="0" max="100" id="rvFat" value="'+(v.fat!=null?v.fat:'')+'"></div>'+
+    '<div class="f"><label for="rvAmt">You ate (g or ml)</label><input type="number" step="1" min="0" max="3000" id="rvAmt" value="'+(v.amt!=null?v.amt:'')+'"></div>'+
+    '<div class="f"><label for="rvMeal">Meal</label><select id="rvMeal">'+ms+'</select></div>'+
+    '</div>'+
+    (note?'<p class="tiny" style="margin-top:6px">'+esc(note)+'</p>':'')+
+    (v.fromScan?'<p class="tiny">Read from your photo by Claude — check the numbers against the packet before saving.</p>':'')+
+    '<p class="tiny wn" id="rvWarn"></p>'+
+    '<div class="row" style="margin-top:8px">'+
+    '<button class="btn" data-rv="add" type="button">Save and add to today</button>'+
+    '<button class="btn ghost" data-rv="save" type="button">Save to my foods only</button>'+
+    '<button class="btn ghost" data-rv="cancel" type="button">Cancel</button></div></div>';
+}
+function readReview(){
+  var num=function(id){var v=Number(E(id).value);return isFinite(v)&&E(id).value!==''?v:null;};
+  return {name:E('rvName').value.trim().slice(0,60),unit:E('rvUnit').value==='ml'?'ml':'g',
+    kcal:num('rvKcal'),pro:num('rvPro'),carb:num('rvCarb'),fat:num('rvFat'),amt:num('rvAmt'),meal:E('rvMeal').value};
+}
+function checkReview(v,needAmt){
+  if(!v.name)return 'Give it a name.';
+  if(v.kcal===null||v.kcal<0||v.kcal>900)return 'kcal per 100 needs to be a number between 0 and 900.';
+  if(v.pro===null||v.carb===null||v.fat===null)return 'Fill in protein, carbs and fat per 100 (0 is fine).';
+  if(v.pro+v.carb+v.fat>105)return 'Protein, carbs and fat add up to more than 100 per 100 — one of them is misread.';
+  if(needAmt&&!(v.amt>0))return 'How much did you eat?';
+  return '';
+}
+function macroMismatch(v){
+  var est=4*v.pro+4*v.carb+9*v.fat;
+  return v.kcal>40&&Math.abs(est-v.kcal)/v.kcal>0.25;
+}
+function saveReview(andAdd){
+  var v=readReview(),err=checkReview(v,andAdd);
+  if(err){E('rvWarn').textContent=err;return;}
+  var id=REVIEW&&REVIEW.id&&S.foods&&S.foods[REVIEW.id]?REVIEW.id:('f:'+Date.now().toString(36));
+  var f={id:id,name:v.name,unit:v.unit,per:100,kcal:v.kcal,pro:v.pro,carb:v.carb,fat:v.fat,
+         gluten:(REVIEW&&REVIEW.gluten)||'unknown',src:(REVIEW&&REVIEW.fromScan)?'label':((REVIEW&&REVIEW.id&&S.foods&&S.foods[REVIEW.id])?S.foods[REVIEW.id].src:'you'),added:today()};
+  S.foods=S.foods||{};S.foods[id]=f;
+  var d=E('logDate').value||today();
+  E('scanBox').innerHTML='';REVIEW=null;
+  if(andAdd){
+    var rec=S.days[d]||{},list=(rec.eaten||[]).slice();
+    list.push(entryFor(f,v.amt,v.meal));
+    setEaten(d,list);
+  }else touch();
+  E('inFood').value=id;
+}
+function scanLabel(file){
+  if(!SAMPLE||!file)return;
+  if(SCAN_CTL)SCAN_CTL.abort();
+  SCAN_CTL=new AbortController();
+  E('scanBox').innerHTML='<div class="p" style="margin-top:10px"><p class="note">Reading the label… this usually takes a few seconds.</p>'+
+    '<button class="btn ghost sm" id="btnScanStop" type="button">Stop</button></div>';
+  var prompt='This photo shows the nutrition information on a food packet. Read the per 100 g (or per 100 ml) column. '+
+    'If only per-serving values are shown, convert them to per 100 using the serving size. Use kcal, not kJ. '+
+    'Reply with only one JSON object, no other text:\n'+
+    '{"name": "short product name including brand", "unit": "g" or "ml", "kcal": number, "protein": number, "carbs": number, "fat": number, '+
+    '"serving": {"amount": number, "unit": "g" or "ml"} or null, "gluten": "free" | "contains" | "may_contain" | "unknown", "note": "anything unclear, or empty"}\n'+
+    'For gluten: "free" if the packet says gluten free; "contains" if the ingredients include wheat, barley, rye, spelt or malt, or it says contains gluten; '+
+    '"may_contain" for a may-contain warning; otherwise "unknown". '+
+    'If the photo is not a nutrition label, reply {"error": "what the photo shows instead"}.';
+  SAMPLE.json(prompt,{images:[file],signal:SCAN_CTL.signal}).then(function(r){
+    SCAN_CTL=null;
+    if(!r||typeof r!=='object'||r.error){
+      E('scanBox').innerHTML='<p class="note wn" style="margin-top:10px">That did not look like a nutrition label'+(r&&r.error?' ('+esc(String(r.error).slice(0,80))+')':'')+'. Try a closer, straighter photo of the nutrition table.</p>';
+      return;
+    }
+    var n=function(x){x=Number(x);return isFinite(x)&&x>=0?r1(x):null;};
+    var v={fromScan:true,name:String(r.name||'').slice(0,60),unit:r.unit==='ml'?'ml':'g',kcal:n(r.kcal)!==null?Math.round(n(r.kcal)):null,
+      pro:n(r.protein),carb:n(r.carbs),fat:n(r.fat),
+      amt:r.serving&&n(r.serving.amount)?Math.round(n(r.serving.amount)):null,
+      gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
+    openReview(v,r.note?String(r.note).slice(0,160):'');
+    if(v.kcal!==null&&v.pro!==null&&v.carb!==null&&v.fat!==null&&macroMismatch(v))
+      E('rvWarn').textContent='The kcal does not match the protein, carbs and fat very well — check the kcal line on the packet.';
+  },function(e){
+    SCAN_CTL=null;
+    var c=e&&e.code;
+    if(c==='cancelled'){E('scanBox').innerHTML='';return;}
+    if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'].indexOf(c)>=0){
+      SAMPLE_IMG=false;paintFoodTools();
+      E('scanBox').innerHTML='<p class="note" style="margin-top:10px">Label scanning is not available here. You can still add a food by hand.</p>';return;
+    }
+    var msg=c==='rate_limited'?'Too many scans just now — give it a minute and try again.':
+      (c==='image_rejected'?'That photo could not be used. Try a JPEG or PNG, not too huge.':
+      (c==='session_expired'?'You need to sign in to Claude again.':
+      (['invalid_json','refused','empty_completion'].indexOf(c)>=0?'Could not read that label. Try a closer, straighter photo of the nutrition table.':
+       'Something went wrong reading it. Try again.')));
+    E('scanBox').innerHTML='<p class="note wn" style="margin-top:10px">'+msg+'</p>';
+  });
+}
+function wireFood(){
+  E('inFood').addEventListener('change',paintAmtLabel);
+  E('btnAddFood').addEventListener('click',function(){
+    var f=foodById(E('inFood').value),a=Number(E('inAmt').value),msg=E('foodMsg');
+    msg.textContent='';
+    if(!f){msg.textContent='Pick a food first.';return;}
+    if(!(a>0)){msg.textContent=f.unit==='each'?'How many?':'How much did you have?';return;}
+    var d=E('logDate').value||today(),rec=S.days[d]||{},list=(rec.eaten||[]).slice();
+    list.push(entryFor(f,a,E('inMeal').value||mealNow()));
+    E('inAmt').value='';
+    setEaten(d,list);
+  });
+  E('foodList').addEventListener('click',function(ev){
+    var b=ev.target.closest('button[data-eat]');if(!b)return;
+    var d=E('logDate').value||today(),rec=S.days[d]||{},list=(rec.eaten||[]).slice();
+    list.splice(+b.dataset.eat,1);setEaten(d,list);
+  });
+  E('myFoods').addEventListener('click',function(ev){
+    var del=ev.target.closest('button[data-delfood]'),ed=ev.target.closest('button[data-editfood]');
+    if(del&&S.foods){delete S.foods[del.dataset.delfood];touch();return;}
+    if(ed&&S.foods&&S.foods[ed.dataset.editfood]){var f=S.foods[ed.dataset.editfood];
+      openReview({id:f.id,name:f.name,unit:f.unit,kcal:f.kcal,pro:f.pro,carb:f.carb,fat:f.fat,gluten:f.gluten},'');}
+  });
+  E('btnNewFood').addEventListener('click',function(){openReview({unit:'g'},'Type the per-100 g numbers off the packet.');});
+  E('btnScan').addEventListener('click',function(){E('inScan').value='';E('inScan').click();});
+  E('inScan').addEventListener('change',function(){if(this.files&&this.files[0])scanLabel(this.files[0]);});
+  E('scanBox').addEventListener('click',function(ev){
+    if(ev.target.id==='btnScanStop'&&SCAN_CTL){SCAN_CTL.abort();return;}
+    var b=ev.target.closest('button[data-rv]');if(!b)return;
+    if(b.dataset.rv==='cancel'){E('scanBox').innerHTML='';REVIEW=null;return;}
+    saveReview(b.dataset.rv==='add');
+  });
+  if(window.claude&&window.claude.use){
+    window.claude.use('sample').then(function(s){
+      if(!s){paintFoodTools();return;}
+      SAMPLE=s;
+      var lim=(typeof s.limits==='function')?s.limits():Promise.reject();
+      lim.then(function(l){
+        SAMPLE_IMG=!!(l&&l.images);
+        if(SAMPLE_IMG&&l.images.mediaTypes)E('inScan').accept=l.images.mediaTypes.join(',');
+        paintFoodTools();
+      },function(){SAMPLE_IMG=false;paintFoodTools();});
+    },function(){paintFoodTools();});
+  }
+}
 function paintForm(){
   var d=E('logDate').value||today();
   var rec=S.days[d]||{};
@@ -3540,6 +3821,7 @@ function paintForm(){
   E('paceHint').innerHTML=kind==='reps'
     ? 'Total rep time is the reps, not the recoveries; the best single rep is the one that beats a record. A rep session at 200m and up counts as a <b>hard run</b>; 100s count as the <b>sprints</b> slot and toward runs all-in, not toward the 21 hard runs.'
     : 'Effort line today: <b class="num">'+pace(effortLine())+'</b>. Anything at or under it counts as a hard run whatever distance it was and whatever you filed it as.';
+  renderFoodLog();
 }
 
 /* ---------- weight ---------- */
@@ -5123,6 +5405,7 @@ function boot(){
   if(!local||PRUNED)saveLocal();
   E('logDate').value=today();
   wire();
+  wireFood();
   try{var tb=localStorage.getItem(LS+'.tab');if(tb)tab(tb);}catch(e){}
   render();
   if(window.claude&&window.claude.use){
