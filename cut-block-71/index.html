@@ -188,6 +188,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
+  <div id="refeedCard"></div>
   <div id="xmasCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
@@ -946,7 +947,11 @@ function readings(){
   var out=[];for(var k in S.weights){if(typeof S.weights[k]==='number')out.push({d:k,lb:S.weights[k]});}
   out.sort(function(a,b){return a.d<b.d?-1:1;});return out;
 }
-function cutReadings(){var t=today();return readings().filter(function(r){return r.d>=WEIGH_START&&r.d<=t;});}
+/* The morning after a refeed is glycogen and water, not fat — Dan's own
+   Sundays run about 2 lb heavy. It stays in the log and is left out of every
+   average, verdict and low, exactly like the pre-cut weekend. */
+function postRefeed(is){var y=S.days[addD(is,-1)];return !!(y&&y.refeed);}
+function cutReadings(){var t=today();return readings().filter(function(r){return r.d>=WEIGH_START&&r.d<=t&&!postRefeed(r.d);});}
 function mean(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i];return a.length?s/a.length:null;}
 function avgWindow(endIso,days){
   var start=addD(endIso,-(days-1));
@@ -2732,7 +2737,8 @@ function dayFeedback(is){
       /* the morning or two after a refeed: the jump is stored carbohydrate
          and the water it holds, and saying so first stops a panic */
       var rfd=refeedBefore(is);
-      fb='+'+f1(W-pv.lb)+' after the refeed on '+DOWS[dow(rfd)]+' — <b>that is glycogen and water, not fat.</b> Every gram of carbohydrate you store holds about 3 g of water. It drains in 2–3 days; do not react to it.';
+      fb='+'+f1(W-pv.lb)+' after the refeed on '+DOWS[dow(rfd)]+' — <b>that is glycogen and water, not fat.</b> Every gram of carbohydrate you store holds about 3 g of water. It drains in 2–3 days; do not react to it.'+
+        (postRefeed(is)?' <b>Left out of your averages</b>, so it cannot drag the week.':'');
     }
     else if(pv){
       var dd=W-pv.lb;
@@ -3282,7 +3288,28 @@ function alertsNow(w,tr,c){
     w:'That is an injury forming. Easy running only until it has been quiet for a week.'});
   return out;
 }
+/* Refeed day and the morning after, at the top of Today where he looks —
+   not buried in the read-back further down. */
+function renderRefeedCard(){
+  var t=today(),r=S.days[t]||{},h='';
+  if(r.refeed){
+    var x=tdeeFor(t),over=typeof r.kcal==='number'?-x.deficit:null;
+    h='<div class="p good"><h2>Refeed day <span class="pill g">planned</span></h2>'+
+      (typeof r.kcal==='number'?'<p><b class="num">'+ci(r.kcal)+'</b> kcal'+(over!==null&&over>0?' — about <b>'+ci(Math.round(over/10)*10)+' over what you burned today</b>, so close to maintenance. A bit above, not a binge — exactly right.':(over!==null?' — still under what you burned today.':''))+'</p>':
+        '<p>Put today’s kcal in when you have it and this says how close to maintenance it was.</p>')+
+      '<p class="note">Carbs are the point: they refill the glycogen your runs and lifting burn through, which is why the day after is a good day for a hard run. Back to '+ci(KCAL_DAY)+' tomorrow — nothing to make up.</p>'+
+      '<p><b>Tomorrow: skip the scale.</b> It would show glycogen and water, not fat — usually around 2 lb. Weigh again the day after. If you do weigh, it is kept but left out of your averages.</p></div>';
+  }else if(postRefeed(t)){
+    var W=S.weights[t];
+    h='<div class="p flag"><h2>Day after the refeed</h2>'+
+      (typeof W==='number'?'<p>You weighed <b class="num">'+(S.settings.hideDaily?'in':f1(W)+' lb')+'</b> — kept in the log, <b>left out of your averages</b>. Glycogen and water, not fat.</p>':
+        '<p><b>No weigh-in today.</b> The scale would show glycogen and water, not fat. Back on it tomorrow.</p>')+
+      '<p class="note">Back to '+ci(KCAL_DAY)+' today, and the tank is full — a good day for a hard run.</p></div>';
+  }
+  E('refeedCard').innerHTML=h;
+}
 function renderAlerts(w,tr,c){
+  renderRefeedCard();
   var a=alertsNow(w,tr,c);
   if(!a.length){E('alertCard').innerHTML='';return;}
   var bad=a.some(function(x){return x.k!=='REFEED';});
@@ -4361,10 +4388,11 @@ function renderWeight(m,c){
   all.forEach(function(r){
     var pre=r.d<WEIGH_START;
     var a=pre?null:avgWindow(r.d,7);
-    lg+='<tr'+(pre?' class="dim"':'')+'><td>'+fmtS(r.d)+' <span class="tiny">'+DOWS[dow(r.d)]+'</span></td>'+
+    var pr=!pre&&postRefeed(r.d);
+    lg+='<tr'+(pre||pr?' class="dim"':'')+'><td>'+fmtS(r.d)+' <span class="tiny">'+DOWS[dow(r.d)]+'</span></td>'+
       '<td class="n">'+(hide?'logged':f1(r.lb))+'</td>'+
       '<td class="n">'+(a&&a.n>=2?f1(a.avg):'—')+'</td>'+
-      '<td class="tiny">'+(pre?'pre-cut — kept, not read':(r.d===(m.low&&m.low.d)?'lowest of the cut':''))+'</td></tr>';
+      '<td class="tiny">'+(pre?'pre-cut — kept, not read':(pr?'day after a refeed — kept, not counted':(r.d===(m.low&&m.low.d)?'lowest of the cut':'')))+'</td></tr>';
   });
   lg+='</tbody></table></div>';
   lg+='<div class="milestones" style="margin-top:10px">'+MILESTONES.map(function(ms){

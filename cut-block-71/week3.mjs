@@ -75,6 +75,32 @@ await boot(st({ days: { [D.t]: { kcal: 2400, refeed: true } } }));
 await p.click('[data-t="today"]');
 ok('Today says refeed day on the eaten tile', /\+601 · refeed day/.test(sq(await p.textContent('#s-today'))));
 
+// ===== the refeed card sits at the top of Today, and the morning after is not counted =====
+await boot(st({ days: { [D.t]: { kcal: 2400, refeed: true, steps: 11000 } } }));
+await p.click('[data-t="today"]');
+let rc = sq(await p.innerText('#refeedCard'));
+ok('a refeed day gets its own card at the top of Today', /REFEED DAY/i.test(rc) && /2,400 kcal/.test(rc), rc);
+ok('it says a bit above, not a binge', /A bit above, not a binge/.test(rc));
+ok('and to skip the scale tomorrow', /Tomorrow: skip the scale/.test(rc));
+ok('the card comes before the read-back', await p.evaluate(() => {
+  const a = document.getElementById('refeedCard'), b = document.getElementById('gainCard');
+  return !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING); }));
+await boot(st({ weights: { [y2]: 128.4, [D.t]: 130.4 }, days: { [yday]: { kcal: 2400, refeed: true } } }));
+await p.click('[data-t="today"]');
+rc = sq(await p.innerText('#refeedCard'));
+ok('the morning after gets its own card', /DAY AFTER THE REFEED/i.test(rc) && /left out of your averages/.test(rc), rc);
+const cr = await p.evaluate(() => cutReadings().map(r => r.d));
+ok('the morning-after reading is left out of the averages', !cr.includes(D.t), JSON.stringify(cr));
+ok('but kept in the log', await p.evaluate(d => S.weights[d] === 130.4, D.t));
+wt = (await p.evaluate(d => dayFeedback(d), D.t)).find(r => r[0] === 'Weight');
+ok('and the read-back says so', /Left out of your averages/.test(wt[2]), wt[2]);
+await boot(st({ weights: { [y2]: 128.4 }, days: { [yday]: { kcal: 2400, refeed: true } } }));
+await p.click('[data-t="today"]');
+ok('not weighed the morning after: says no weigh-in today', /No weigh-in today/.test(await p.innerText('#refeedCard')));
+await boot(st({ days: { [D.t]: { kcal: 1799 } } }));
+await p.click('[data-t="today"]');
+ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim() === '');
+
 // ===== the week review: deficit, study, how it went, next week ==========
 {
   const ws = await p.evaluate(() => reviewWeeks().filter(w => typeof w.k === 'number'));
