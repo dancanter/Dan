@@ -1703,7 +1703,81 @@ function buildReview(wk){
   R.sleep={avg:slN?sl/slN:null,n:slN,blank:(diffD(wk.start,cut)+1)-slN,phone:ph};
   R.study={total:sy,deep:dp,n:syN,live:wk.end>=CFG.study.term};
   R.food={avg:kcN?kc/kcN:null,n:kcN,blank:(diffD(wk.start,cut)+1)-kcN};
+  /* the deficit for the same days, from the same estimate Today uses; days
+     with neither steps nor food logged are left out rather than guessed */
+  var df=0,dfN=0,dfBlank=0,refeeds=[],skAM=0,skPM=0,slLine=0,pro=0,proN=0;
+  for(i=0;i<=diffD(wk.start,cut);i++){
+    d=addD(wk.start,i);rec=S.days[d]||{};
+    var dx=tdeeFor(d);
+    if(!dx.stepsKnown&&!dx.intakeKnown)dfBlank++;else{df+=dx.deficit;dfN++;}
+    if(rec.refeed)refeeds.push(d);
+    if(rec.skinAM)skAM++;
+    if(rec.skinPM)skPM++;
+    if(typeof rec.sleep==='number'&&rec.sleep>=CFG.sleep.line)slLine++;
+    var et=eatenTotals(rec);if(et.n){pro+=et.pro;proN++;}
+  }
+  R.def={total:df,n:dfN,blank:dfBlank,perDay:dfN?df/dfN:null,lb:df/3500,refeeds:refeeds};
+  R.skin={am:skAM,pm:skPM};
+  R.sleep.line=slLine;
+  R.pro={avg:proN?pro/proN:null,n:proN};
+  R.pbs=pbList().filter(function(q){return q.now.date>=wk.start&&q.now.date<=cut;});
   return R;
+}
+/* What went well and what to do next, in Dan's order of importance: sleep,
+   the weight, skin, the two hard runs, the gym — then steps and study.
+   Only what was logged is credited or flagged, rest days are never a miss,
+   and nothing here ever says eat less. */
+function reviewFeedback(R,wk){
+  var win=[],next=[],pre=(wk.k==='pre'),live=!R.done,days=R.days;
+  var dmName=function(dm){return dm===1609?'mile':(dm>=1000?(dm/1000)+' km':dm+' m');};
+  if(R.newLow!==null)win.push('New low for the cut: <b>'+(S.settings.hideDaily?'yes':f1(R.newLow)+' lb')+'</b>.');
+  R.pbs.forEach(function(q){win.push('New best at '+dmName(q.dm)+': <b>'+secFmt(q.now.t)+'</b>'+(q.gain>0?', '+f1(q.gain)+' s quicker':'')+'.');});
+  /* sleep */
+  if(R.sleep.n>=3){
+    if(R.sleep.avg>=CFG.sleep.line)win.push('Sleep averaged <b>'+f1(R.sleep.avg)+' h</b> — over the line on '+R.sleep.line+' of '+R.sleep.n+' nights.');
+    else next.push('<b>Sleep first.</b> '+f1(R.sleep.avg)+' h a night is '+f1(CFG.sleep.line-R.sleep.avg)+' h under the line. Pick one lights-out time and keep it, and the phone out of the room'+(R.sleep.phone?' — you managed that '+R.sleep.phone+' night'+(R.sleep.phone===1?'':'s')+' this week':'')+'.');
+  }
+  /* weight */
+  if(R.w.verdict==='in')win.push('Weight is coming off inside the band'+(R.w.dLb!==undefined?' — <b>'+f1(R.w.dLb)+' lb</b> off the average':'')+'. Keep everything as it is.');
+  else if(R.w.verdict==='over')next.push('<b>Weight is coming off faster than the band</b>, which costs muscle. Eat a little more, carbs first — the Today tab sizes it.');
+  else if(R.w.verdict==='under')next.push('<b>Weight moved slower than the band.</b> One week means nothing — change nothing yet. If it happens two weeks running, steps and sleep get looked at first, not food.');
+  /* deficit */
+  if(R.def.n>=3&&R.def.total>0)win.push('About <b>'+ci(Math.round(R.def.total/10)*10)+' kcal</b> of deficit — roughly '+f2(R.def.lb)+' lb of fat'+(R.def.refeeds.length?', refeed included':'')+'.');
+  /* skin */
+  if(days>=3){
+    if(R.skin.am>=days&&R.skin.pm>=days)win.push('Skincare morning and night, every day.');
+    else if(!live||days>=5)next.push('<b>Skincare:</b> morning '+R.skin.am+' of '+days+', night '+R.skin.pm+' of '+days+'. The SPF in the morning is the one that matters most.');
+  }
+  /* runs and gym — the week's targets, never a "miss" for a rest day */
+  if(!pre){
+    if(R.s.hard>CFG.tmpl.hard)next.push('<b>'+R.s.hard+' hard runs is the ceiling.</b> Fine once — aim for 2 next week.');
+    else if(R.s.hard>=CFG.tmpl.hard)win.push('Both hard runs done.');
+    else next.push('<b>'+(live?'Still to fit in: ':'Get both hard runs in: ')+(CFG.tmpl.hard-R.s.hard)+' hard run'+(CFG.tmpl.hard-R.s.hard===1?'':'s')+'.</b> '+(CFG.tmpl.hard-R.s.hard>1?'Leave a day between them, and neither the day after legs.':'Not the day after legs or the day after another hard run.'));
+    if(R.s.sprints>=CFG.tmpl.sprints)win.push('Uphill sprints done'+(R.s.easy?', plus '+R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' as a bonus':'')+'.');
+    else next.push('<b>Uphill sprints'+(live?' still to do':'')+'.</b> Short and explosive, count the reps — it is the speed that fades first on a cut.');
+    if(R.s.gym>=CFG.tmpl.gym)win.push('All '+CFG.tmpl.gym+' gym sessions.');
+    else if(!live)next.push('<b>Gym '+R.s.gym+' of '+CFG.tmpl.gym+'.</b> Put the sessions in the diary at the start of the week so they are decided before the week gets busy.');
+  }
+  /* steps */
+  if(R.steps.days>=3){
+    var perD=R.steps.target/days,got=R.steps.total/Math.max(1,R.steps.days);
+    if(R.steps.total>=R.steps.target)win.push('Steps on target — '+ci(R.steps.total)+'.');
+    else if(got<perD*0.95)next.push('<b>Steps:</b> about '+ci(Math.round(got/100)*100)+' a day against '+ci(Math.round(perD/100)*100)+'. A 20-minute walk after tea is roughly 2,500.');
+  }
+  /* protein, only when the diary measured it */
+  if(R.pro.n>=3){
+    if(R.pro.avg>=MACRO.pro)win.push('Protein averaged <b>'+ci(Math.round(R.pro.avg))+' g</b> on the days you logged food.');
+    else next.push('<b>Protein:</b> '+ci(Math.round(R.pro.avg))+' g a day against '+MACRO.pro+'. The Fage after lunch is the easiest place to find it.');
+  }
+  /* study */
+  if(R.study.live&&R.study.n){
+    if(R.study.total>=CFG.study.lo)win.push('<b>'+f1(R.study.total)+' h</b> of study — inside the band.');
+    else if(!live)next.push('<b>Study:</b> '+f1(R.study.total)+' h, '+f1(CFG.study.lo-R.study.total)+' h under 16. Two fixed deep blocks early in the week make it easy.');
+  }else if(R.study.total>0)win.push('<b>'+f1(R.study.total)+' h</b> of study before term has even started.');
+  /* next week's shape */
+  var nx=typeof wk.k==='number'?wk.k+1:1;
+  if(!live&&isDeload(nx))next.push('<b>Week '+nx+' is a deload:</b> sessions come down, the food does not.');
+  return {win:win,next:next.slice(0,4)};
 }
 function renderReview(){
   var ws=reviewWeeks();
@@ -1729,6 +1803,15 @@ function renderReview(){
      (R.ms.length?'<p><b>Through '+R.ms.join(', ')+' for the first time.</b></p>':'')+
      '</div>';
 
+  /* how it went, and what to do next */
+  var FB=reviewFeedback(R,wk);
+  h+='<div class="p lift"><h2>'+(R.done?'How it went':'How it is going')+'</h2>'+
+    (FB.win.length?FB.win.map(function(x){return '<p style="margin:4px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'<p class="tiny">Nothing logged enough to credit yet.</p>')+
+    '<h3 style="margin-top:12px">'+(R.done?'Next week':'For the rest of the week')+'</h3>'+
+    (FB.next.length?FB.next.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):
+      '<p style="margin:4px 0"><b>Nothing to fix. Run the same week again.</b></p>')+
+    '</div>';
+
   /* the numbers */
   h+='<div class="p"><h2>Weight</h2><div class="tiles t4">'+
     tile('average',R.w.avg===null?'—':f1(R.w.avg)+' lb',R.w.n+' morning'+(R.w.n===1?'':'s')+' logged')+
@@ -1749,9 +1832,9 @@ function renderReview(){
   var pre=(wk.k==='pre');
   h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
     tmplRow('Hard runs',R.s.hard,pre?null:CFG.tmpl.hard)+
-    tmplRow('Easy runs',R.s.easy,pre?null:CFG.tmpl.easy)+
-    tmplRow('100m sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
+    tmplRow('Uphill sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
     tmplRow('Runs, all in',R.s.runs,pre?null:CFG.tmpl.runs)+
+    tmplRow('Easy runs <span class="tiny">optional</span>',R.s.easy,pre?null:CFG.tmpl.easy)+
     tmplRow('Gym',R.s.gym,pre?null:CFG.tmpl.gym)+
     '</tbody></table>'+
 
@@ -1775,15 +1858,21 @@ function renderReview(){
      (R.sleep.avg!==null?'<p class="tiny" style="margin-top:8px">'+(R.sleep.avg>=CFG.sleep.line?'At or over the 7.5 h line.':f1(CFG.sleep.line-R.sleep.avg)+' h a night under the 7.5 line — the single biggest lever in the block.')+'</p>':''))+
     '</div></div>';
 
-  h+='<div class="cols"><div class="p"><h2>Food</h2><div class="tiles t4">'+
+  var DF=R.def,dsign=function(x){return (x>=0?'−':'+')+ci(Math.abs(Math.round(x)));};
+  h+='<div class="cols"><div class="p"><h2>Food and deficit</h2><div class="tiles t4">'+
     tile('average logged',R.food.avg===null?'—':ci(R.food.avg),R.food.n+' day'+(R.food.n===1?'':'s')+' logged')+
     tile('against target',R.food.avg===null?'—':signed(R.food.avg-KCAL_DAY,0),'target '+ci(KCAL_DAY)+' flat')+
-    '</div></div>'+
+    tile('deficit, the week',DF.n?dsign(DF.total):'—',DF.n?(DF.total>=0?f2(DF.lb)+' lb of fat':'a surplus'):'nothing logged')+
+    tile('per day',DF.n?dsign(DF.perDay):'—',DF.n?DF.n+' day'+(DF.n===1?'':'s')+' counted':'')+
+    '</div>'+
+    (DF.refeeds.length?'<p class="tiny" style="margin-top:8px">Includes the refeed on '+DF.refeeds.map(function(d){return DOWS[dow(d)];}).join(' and ')+' — planned, and already in the total.</p>':'')+
+    (DF.blank?'<p class="tiny">'+DF.blank+' day'+(DF.blank===1?'':'s')+' with nothing logged, left out rather than guessed.</p>':'')+
+    '<p class="tiny">An estimate from your steps, runs, gym and food. The weight average is the real judge — if the two disagree for a fortnight, the weight wins.</p></div>'+
     '<div class="p"><h2>Study</h2>'+
-    (R.study.live?('<div class="tiles t4">'+tile('hours',f1(R.study.total)+' h',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
+    '<div class="tiles t4">'+tile('hours',f1(R.study.total)+' h',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
       tile('deep',f1(R.study.deep)+' h',R.study.total>0?Math.round(R.study.deep/R.study.total*100)+'% of them':'')+'</div>'+
-      '<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(f1(CFG.study.lo-R.study.total)+' h under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>')
-     :'<p class="note">Term starts '+fmtL(CFG.study.term)+'. Nothing judged before then.</p>')+
+    (R.study.live?'<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(f1(CFG.study.lo-R.study.total)+' h under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>'
+     :'<p class="tiny" style="margin-top:8px">Term starts '+fmtL(CFG.study.term)+', so nothing is judged yet — but every hour counts.</p>')+
     '</div></div>';
 
   /* next week */

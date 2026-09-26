@@ -74,6 +74,34 @@ await boot(st({ days: { [D.t]: { kcal: 2400, refeed: true } } }));
 await p.click('[data-t="today"]');
 ok('Today says refeed day on the eaten tile', /\+601 · refeed day/.test(sq(await p.textContent('#s-today'))));
 
+// ===== the week review: deficit, study, how it went, next week ==========
+{
+  const ws = await p.evaluate(() => reviewWeeks().filter(w => typeof w.k === 'number'));
+  const wk = ws[ws.length - 1];
+  const dd = i => new Date(Date.parse(wk.start + 'T12:00:00Z') + i * 864e5).toISOString().slice(0, 10);
+  const days = {};
+  for (let i = 0; i < 7; i++) days[dd(i)] = { kcal: 1799, steps: 15000, sleep: 6.5, skinAM: true, skinPM: i < 3 };
+  days[dd(0)].study = 3; days[dd(0)].deep = 2; days[dd(1)].study = 1.5;
+  days[dd(5)].kcal = 2400; days[dd(5)].refeed = true;
+  days[dd(1)].runs = [{ k: 'reps', dm: 200, n: 6, secs: 29 }];
+  await boot(st({ days }));
+  const R = await p.evaluate(k => buildReview(reviewWeeks().find(w => w.k === k)), wk.k);
+  const logged = Object.keys(days).filter(d => d <= D.t).length;
+  ok('the review carries the week deficit', R.def.n === logged && R.def.total !== 0, JSON.stringify(R.def));
+  ok('and the refeed in it', R.def.refeeds.length === (dd(5) <= D.t ? 1 : 0));
+  await p.click('[data-t="review"]'); await p.selectOption('#revPick', String(wk.k)); await p.waitForTimeout(150);
+  const t = sq(await p.innerText('#revBody'));
+  ok('Food and deficit card with the week total and per day', /FOOD AND DEFICIT/i.test(t) && /DEFICIT, THE WEEK/i.test(t) && /PER DAY/i.test(t), t.slice(0, 300));
+  ok('it says it is an estimate and the weight is the judge', /The weight average is the real judge/.test(t));
+  ok('study hours show even before term', /STUDY HOURS 4\.5 h/i.test(t), (t.match(/STUDY.{0,80}/i) || [''])[0]);
+  ok('a feedback card', /(HOW IT WENT|HOW IT IS GOING)/i.test(t));
+  ok('sleep under the line comes first in what to do', /1 Sleep first\. 6\.5 h a night is 1\.0 h under the line/i.test(t), (t.match(/(NEXT WEEK|REST OF THE WEEK).{0,200}/i) || [''])[0]);
+  ok('never tells him to eat less', !/eat less|cut (your )?calories|lower your calories/i.test(t));
+  const FB = await p.evaluate(k => { const w = reviewWeeks().find(x => x.k === k); return reviewFeedback(buildReview(w), w); }, wk.k);
+  ok('at most four things to work on', FB.next.length <= 4, FB.next.length);
+  ok('a hard run left is named', FB.next.some(x => /hard run/.test(x)));
+  ok('the sprints are asked for when missing', FB.next.some(x => /Uphill sprints/.test(x)));
+}
 await b.close();
 if (errs.length) fails.push(...errs);
 console.log(fails.length ? 'FAIL (' + fails.length + ')\n - ' + fails.join('\n - ') : 'all passed');
