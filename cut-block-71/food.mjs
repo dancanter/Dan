@@ -17,6 +17,14 @@ const STUB = (mode) => `(() => {
     : Promise.resolve({ maxPromptBytes: 65536, images: { maxCount: 5, maxInputBytes: 20e6, mediaTypes: ['image/jpeg', 'image/png', 'image/webp'] } });
   fn.json = (input, opts) => {
     window.__calls.push({ input, hasImage: !!(opts && opts.images && opts.images.length), tier: opts && opts.modelTier });
+    if (!(opts && opts.images)) {
+      if (MODE === 'denied') return Promise.reject({ code: 'not_granted', message: 'no' });
+      if (MODE === 'busy') return Promise.reject({ code: 'rate_limited', message: 'slow' });
+      const m = /food: "([^"]+)"/.exec(input); const q = m ? m[1].toLowerCase() : '';
+      if (q === 'halloumi') return Promise.resolve({ name: 'Halloumi', unit: 'g', kcal: 316, protein: 21, carbs: 2, fat: 25, gluten: 'free' });
+      if (q === 'couscous') return Promise.resolve({ name: 'Couscous, dry', unit: 'g', kcal: 376, protein: 13, carbs: 77, fat: 1, gluten: 'contains' });
+      return Promise.resolve({ error: 'not a food' });
+    }
     if (MODE === 'fage') return Promise.resolve({ name: 'Fage Total 2%', unit: 'g', kcal: 73, protein: 10, carbs: 3, fat: 2,
       serving: { amount: 170, unit: 'g' }, gluten: 'free', note: '' });
     if (MODE === 'wheat') return Promise.resolve({ name: 'Granola bites', unit: 'g', kcal: 450, protein: 9, carbs: 60, fat: 18,
@@ -171,6 +179,65 @@ for (const [mode, re, hidesScan] of [
 // a view that cannot send images never offers the scan
 ({ ctx, p } = await open('noimg'));
 ok('no images, no scan button', await p.$eval('#btnScan', e => e.hidden));
+await ctx.close();
+
+// ===== "type a food": the list first, Claude only if it is not there =====
+({ ctx, p } = await open(null));
+const look = async (q) => { await p.fill('#inLookup', q); await p.click('#btnLookup'); await p.waitForTimeout(150);
+  return { sel: await p.$eval('#inFood', e => e.value), msg: (await p.textContent('#lookupMsg')).replace(/\s+/g, ' ') }; };
+let L = await look('oats');
+ok('"oats" finds dry oats', L.sel === 'x:oats' && /Found Oats, dry/.test(L.msg), JSON.stringify(L));
+L = await look('raw potatoes');
+ok('"raw potatoes" finds raw weight', L.sel === 'x:potatoraw', JSON.stringify(L));
+L = await look('potatoes');
+ok('plain "potatoes" defaults to raw weight', L.sel === 'x:potatoraw', JSON.stringify(L));
+ok('and offers the boiled one as well', /Not that one\?/.test(L.msg) && /Potatoes, boiled weight/.test(L.msg), L.msg);
+await p.click('#lookupMsg button[data-pick="x:potato"]');
+ok('tapping the alternative picks it', (await p.$eval('#inFood', e => e.value)) === 'x:potato');
+L = await look('boiled potatoes');
+ok('"boiled potatoes" finds boiled weight', L.sel === 'x:potato', JSON.stringify(L));
+L = await look('chicken');
+ok('"chicken" defaults to raw', L.sel === 'x:chickenraw', JSON.stringify(L));
+L = await look('cooked chicken');
+ok('"cooked chicken" finds cooked', L.sel === 'x:chicken', JSON.stringify(L));
+L = await look('egg');
+ok('"egg" finds eggs', L.sel === 'x:egg' || L.sel === 'x:eggwhite', JSON.stringify(L));
+ok('the amount label follows the found food', /How many/.test(await p.textContent('#labAmt')));
+L = await look('halloumi');
+ok('not in the list, no Claude: says add it by hand', /Not in the list/.test(L.msg) && /Add a food by hand/.test(L.msg), L.msg);
+ok('and nothing got selected by accident', L.sel === 'x:egg' || L.sel === 'x:eggwhite');
+// the fish values that were raw numbers labelled cooked are corrected
+const fish = await p.evaluate(() => ({ cod: foodById('x:cod'), codraw: foodById('x:codraw'), salmon: foodById('x:salmon'), mack: foodById('x:mackerel') }));
+ok('cooked cod is 105 kcal, not the raw 82', fish.cod.kcal === 105 && fish.codraw.kcal === 82, JSON.stringify(fish));
+ok('cooked mackerel is 262, not the raw 205', fish.mack.kcal === 262);
+await ctx.close();
+
+// with Claude: a food that is not in the list gets typical values to check
+({ ctx, p } = await open('fage'));
+await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(250);
+calls = await p.evaluate(() => window.__calls);
+ok('the look-up goes to Claude as text, on the quick tier', calls.length === 1 && !calls[0].hasImage && calls[0].tier === 'quick', JSON.stringify(calls));
+ok('it asks for raw weight when the name does not say', /give raw \(or dry\) weight/.test(calls[0].input));
+sb = await txt(p, '#scanBox');
+ok('it opens the review with typical values', /Check it before you save/.test(sb) && (await p.$eval('#rvKcal', e => e.value)) === '316', sb.slice(0, 120));
+ok('labelled as typical values, not a packet', /Typical values from Claude, not from a packet/.test(sb));
+ok('naturally gluten free is said as such', /Naturally gluten free/.test(sb));
+await p.fill('#rvAmt', '50');
+await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
+rec = await p.evaluate(() => S.days[today()]);
+ok('50 g of halloumi lands in the diary', rec.eaten && rec.eaten[0].kcal === 158, JSON.stringify(rec.eaten));
+L = { msg: '' };
+await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(150);
+ok('next time it is found in his own foods, no second look-up', (await p.evaluate(() => window.__calls.length)) === 1 && /Found Halloumi/.test(await p.textContent('#lookupMsg')));
+await p.fill('#inLookup', 'couscous'); await p.click('#btnLookup'); await p.waitForTimeout(250);
+ok('a food that normally contains gluten gets the warning', /this food normally contains gluten/.test(await p.textContent('#scanBox')));
+await p.click('#scanBox button[data-rv="cancel"]');
+await p.fill('#inLookup', 'xyzzy'); await p.click('#btnLookup'); await p.waitForTimeout(250);
+ok('a non-food is said plainly', /did not come back as a food/.test(await p.textContent('#lookupMsg')));
+await ctx.close();
+({ ctx, p } = await open('denied'));
+await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(250);
+ok('if Claude is refused, look-ups say so and stop', /Look-ups are not available here/.test(await p.textContent('#lookupMsg')));
 await ctx.close();
 
 // ===== foods survive a sync merge ========================================

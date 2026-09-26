@@ -279,6 +279,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div class="p">
     <h2>Food diary</h2>
     <div id="foodList" class="note" style="margin-bottom:10px"></div>
+    <div class="row" style="gap:8px;margin-bottom:8px;align-items:flex-end">
+      <div class="f" style="min-width:220px;flex:1"><label for="inLookup">Type a food</label><input type="text" id="inLookup" placeholder="oats, raw potatoes, halloumi…" maxlength="60"></div>
+      <button class="btn ghost" id="btnLookup" type="button">Find it</button>
+    </div>
+    <div class="tiny" id="lookupMsg" style="margin-bottom:8px"></div>
     <div class="fgrid">
       <div class="f" style="min-width:220px"><label for="inFood">Food</label><select id="inFood"></select></div>
       <div class="f" style="max-width:130px"><label for="inAmt" id="labAmt">How much</label><input type="number" step="1" min="0" max="3000" id="inAmt" placeholder="—"></div>
@@ -3511,21 +3516,33 @@ function weekTemplateHTML(tr){
    values. Every diary entry keeps its own numbers, so editing or deleting
    a food never rewrites a day already logged. While a day has entries, its
    kcal comes from them. */
+/* Typical values per 100 g (or each). Raw and cooked are listed separately
+   for anything that changes weight when cooked, because weighing raw is the
+   accurate way and mixing the two is the commonest logging error there is.
+   Sources: UK composition tables and USDA, rounded. */
 var FRESH=[
+  {id:'x:oats',name:'Oats, dry (porridge oats)',unit:'g',per:100,kcal:374,pro:11,carb:60,fat:8},
+  {id:'x:potatoraw',name:'Potatoes, raw weight',unit:'g',per:100,kcal:77,pro:2,carb:17.5,fat:0.1},
+  {id:'x:potato',name:'Potatoes, boiled weight',unit:'g',per:100,kcal:85,pro:1.9,carb:19,fat:0.1},
+  {id:'x:riceraw',name:'White rice, dry weight',unit:'g',per:100,kcal:360,pro:7,carb:79,fat:0.6},
+  {id:'x:rice',name:'White rice, cooked weight',unit:'g',per:100,kcal:130,pro:2.7,carb:28,fat:0.3},
   {id:'x:egg',name:'Egg, large',unit:'each',per:1,kcal:78,pro:7.3,carb:0.1,fat:5.3},
   {id:'x:eggwhite',name:'Egg white, large',unit:'each',per:1,kcal:17,pro:3.6,carb:0.2,fat:0.1},
-  {id:'x:potato',name:'Potatoes, boiled',unit:'g',per:100,kcal:85,pro:1.9,carb:19,fat:0.1},
-  {id:'x:rice',name:'White rice, cooked',unit:'g',per:100,kcal:130,pro:2.7,carb:28,fat:0.3},
+  {id:'x:chickenraw',name:'Chicken breast, raw',unit:'g',per:100,kcal:106,pro:24,carb:0,fat:1.1},
   {id:'x:chicken',name:'Chicken breast, cooked',unit:'g',per:100,kcal:165,pro:31,carb:0,fat:3.6},
   {id:'x:turkey',name:'Turkey breast, cooked',unit:'g',per:100,kcal:158,pro:29,carb:0,fat:3.2},
-  {id:'x:beef5',name:'Beef mince 5%, cooked',unit:'g',per:100,kcal:137,pro:21,carb:0,fat:5.8},
-  {id:'x:cod',name:'Cod or haddock, cooked',unit:'g',per:100,kcal:83,pro:18,carb:0,fat:0.7},
-  {id:'x:salmon',name:'Salmon, cooked',unit:'g',per:100,kcal:208,pro:20,carb:0,fat:13},
-  {id:'x:mackerel',name:'Mackerel, cooked',unit:'g',per:100,kcal:205,pro:19,carb:0,fat:14},
+  {id:'x:beef5raw',name:'Beef mince 5%, raw',unit:'g',per:100,kcal:124,pro:21,carb:0,fat:4.5},
+  {id:'x:beef5',name:'Beef mince 5%, cooked',unit:'g',per:100,kcal:164,pro:26,carb:0,fat:6.5},
+  {id:'x:codraw',name:'Cod or haddock, raw',unit:'g',per:100,kcal:82,pro:18,carb:0,fat:0.7},
+  {id:'x:cod',name:'Cod or haddock, cooked',unit:'g',per:100,kcal:105,pro:23,carb:0,fat:0.9},
+  {id:'x:salmonraw',name:'Salmon, raw',unit:'g',per:100,kcal:208,pro:20,carb:0,fat:13.4},
+  {id:'x:salmon',name:'Salmon, cooked',unit:'g',per:100,kcal:206,pro:22,carb:0,fat:12.4},
+  {id:'x:mackerelraw',name:'Mackerel, raw',unit:'g',per:100,kcal:205,pro:18.6,carb:0,fat:13.9},
+  {id:'x:mackerel',name:'Mackerel, cooked',unit:'g',per:100,kcal:262,pro:23.9,carb:0,fat:17.8},
   {id:'x:tuna',name:'Tuna in spring water, drained',unit:'g',per:100,kcal:109,pro:25,carb:0,fat:1},
   {id:'x:prawns',name:'Prawns, cooked',unit:'g',per:100,kcal:99,pro:24,carb:0,fat:0.3},
   {id:'x:milk',name:'Semi-skimmed milk',unit:'ml',per:100,kcal:47,pro:3.5,carb:4.8,fat:1.7},
-  {id:'x:banana',name:'Banana',unit:'g',per:100,kcal:95,pro:1.2,carb:23,fat:0.3},
+  {id:'x:banana',name:'Banana, peeled',unit:'g',per:100,kcal:95,pro:1.2,carb:23,fat:0.3},
   {id:'x:straw',name:'Strawberries',unit:'g',per:100,kcal:32,pro:0.7,carb:7.7,fat:0.3},
   {id:'x:berries',name:'Mixed berries',unit:'g',per:100,kcal:45,pro:1,carb:9,fat:0.3},
   {id:'x:kiwi',name:'Kiwi',unit:'each',per:1,kcal:42,pro:0.8,carb:10,fat:0.4},
@@ -3613,11 +3630,15 @@ function paintFoodTools(){
 }
 function openReview(v,note){
   REVIEW=v;
-  var g=v.gluten==='contains'?'<p class="note wn"><b>Gluten warning:</b> the label looks like it lists gluten (wheat, barley, rye, spelt or malt). Do not eat this.</p>':
+  var g=v.fromLookup?
+       (v.gluten==='contains'?'<p class="note wn"><b>Gluten warning:</b> this food normally contains gluten. Do not eat it.</p>':
+       (v.gluten==='may_contain'?'<p class="note wn"><b>Often cross-contaminated with gluten.</b> Only safe for you if the packet says certified gluten free.</p>':
+       (v.gluten==='free'?'<p class="tiny gd">Naturally gluten free.</p>':''))):
+       (v.gluten==='contains'?'<p class="note wn"><b>Gluten warning:</b> the label looks like it lists gluten (wheat, barley, rye, spelt or malt). Do not eat this.</p>':
        (v.gluten==='may_contain'?'<p class="note wn"><b>May contain gluten</b> according to the label. Your call, but for you that is a no.</p>':
-       (v.gluten==='free'?'<p class="tiny gd">Label says gluten free.</p>':''));
+       (v.gluten==='free'?'<p class="tiny gd">Label says gluten free.</p>':'')));
   var ms=MEALS.map(function(m){return '<option value="'+m.k+'"'+(m.k===(v.meal||mealNow())?' selected':'')+'>'+m.n+'</option>';}).join('');
-  E('scanBox').innerHTML='<div class="p flag" style="margin-top:10px"><h2>'+(v.fromScan?'Check it before you save':(v.id?'Edit food':'Add a food'))+'</h2>'+g+
+  E('scanBox').innerHTML='<div class="p flag" style="margin-top:10px"><h2>'+((v.fromScan||v.fromLookup)?'Check it before you save':(v.id?'Edit food':'Add a food'))+'</h2>'+g+
     '<div class="fgrid">'+
     '<div class="f"><label for="rvName">Name</label><input type="text" id="rvName" value="'+esc(v.name||'')+'"></div>'+
     '<div class="f"><label for="rvUnit">Measured in</label><select id="rvUnit"><option value="g"'+(v.unit!=='ml'?' selected':'')+'>grams</option><option value="ml"'+(v.unit==='ml'?' selected':'')+'>ml</option></select></div>'+
@@ -3630,6 +3651,7 @@ function openReview(v,note){
     '</div>'+
     (note?'<p class="tiny" style="margin-top:6px">'+esc(note)+'</p>':'')+
     (v.fromScan?'<p class="tiny">Read from your photo by Claude — check the numbers against the packet before saving.</p>':'')+
+    (v.fromLookup?'<p class="tiny">Typical values from Claude, not from a packet — if you have the packet, scanning it is more exact.</p>':'')+
     '<p class="tiny wn" id="rvWarn"></p>'+
     '<div class="row" style="margin-top:8px">'+
     '<button class="btn" data-rv="add" type="button">Save and add to today</button>'+
@@ -3713,7 +3735,75 @@ function scanLabel(file){
     E('scanBox').innerHTML='<p class="note wn" style="margin-top:10px">'+msg+'</p>';
   });
 }
+/* "Type a food": find it in the list first, since that is free, instant and
+   exact; only if nothing matches, ask Claude for typical values. */
+function findFood(q){
+  var stop=['a','of','the','and','weight','weighed','some'];
+  var words=q.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(function(w){return w&&stop.indexOf(w)<0;});
+  if(!words.length)return [];
+  var stem=function(w){return w.replace(/(es|s)$/,'');};
+  var pool=Object.keys(S.foods||{}).map(function(k){return S.foods[k];}).concat(FRESH),out=[];
+  pool.forEach(function(f){
+    var nm=f.name.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean),hit=0;
+    words.forEach(function(w){if(nm.some(function(n){return n.indexOf(stem(w))===0||stem(n)===stem(w);}))hit++;});
+    if(hit===words.length)out.push({f:f,raw:/\b(raw|dry)\b/.test(f.name.toLowerCase())?1:0});
+  });
+  /* when he did not say, raw/dry weight first: weighing raw is the accurate way */
+  var saysCooked=/cooked|boiled|baked|roast|grilled/.test(q.toLowerCase());
+  out.sort(function(a,b){return saysCooked?(a.raw-b.raw):(b.raw-a.raw);});
+  return out.map(function(x){return x.f;});
+}
+function lookupErrMsg(c){
+  return c==='rate_limited'?'Too many look-ups just now — give it a minute and try again.':
+    (c==='session_expired'?'You need to sign in to Claude again.':
+    (['invalid_json','refused','empty_completion'].indexOf(c)>=0?'Could not work that one out. Try a plainer name, or add it by hand.':
+     'Something went wrong. Try again.'));
+}
+function lookupFood(){
+  var q=E('inLookup').value.trim(),msg=E('lookupMsg');
+  if(!q){msg.textContent='Type a food first.';return;}
+  var hits=findFood(q);
+  if(hits.length){
+    var f=hits[0];
+    E('inFood').value=f.id;paintAmtLabel();
+    msg.innerHTML='Found <b>'+esc(f.name)+'</b> ('+ci(f.kcal)+' kcal '+perWord(f)+') — put in how much and tap Add.'+
+      (hits.length>1?' Not that one? '+hits.slice(1,4).map(function(h){return '<button class="btn ghost sm" data-pick="'+esc(h.id)+'" type="button">'+esc(h.name)+'</button>';}).join(' '):'');
+    return;
+  }
+  if(!SAMPLE){msg.textContent='Not in the list. Use “Add a food by hand” with the numbers off the packet.';return;}
+  msg.textContent='Not in your list — looking up typical values…';
+  var prompt='Give typical nutrition values per 100 g for this food: "'+q.slice(0,60)+'". '+
+    'If the name does not say raw or cooked, give raw (or dry) weight and say so in the name, e.g. "Lentils, dry". Use kcal, not kJ. '+
+    'Reply with only one JSON object: {"name": "clear food name with raw/dry/cooked", "unit": "g" or "ml", "kcal": number, "protein": number, "carbs": number, "fat": number, '+
+    '"gluten": "free" | "contains" | "may_contain" | "unknown"}. '+
+    'Gluten: "contains" if the food normally contains wheat, barley, rye, spelt or malt; "may_contain" for oats or anything commonly cross-contaminated; '+
+    '"free" only if naturally gluten free; otherwise "unknown". If it is not a food, reply {"error": "why"}.';
+  SAMPLE.json(prompt,{modelTier:'quick'}).then(function(r){
+    if(!r||typeof r!=='object'||r.error){msg.textContent='That did not come back as a food. Try a plainer name, or add it by hand.';return;}
+    var n=function(x){x=Number(x);return isFinite(x)&&x>=0?r1(x):null;};
+    msg.textContent='';
+    var v={fromLookup:true,name:String(r.name||q).slice(0,60),unit:r.unit==='ml'?'ml':'g',kcal:n(r.kcal)!==null?Math.round(n(r.kcal)):null,
+      pro:n(r.protein),carb:n(r.carbs),fat:n(r.fat),amt:null,
+      gluten:['free','contains','may_contain'].indexOf(r.gluten)>=0?r.gluten:'unknown',meal:E('inMeal').value||mealNow()};
+    openReview(v,'');
+    if(v.kcal!==null&&v.pro!==null&&v.carb!==null&&v.fat!==null&&macroMismatch(v))
+      E('rvWarn').textContent='The kcal does not match the protein, carbs and fat very well — worth a second look.';
+  },function(e){
+    var c=e&&e.code;
+    if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].indexOf(c)>=0){
+      SAMPLE=null;paintFoodTools();msg.textContent='Look-ups are not available here. Use “Add a food by hand”.';return;}
+    msg.textContent=lookupErrMsg(c);
+  });
+}
 function wireFood(){
+  E('btnLookup').addEventListener('click',lookupFood);
+  E('inLookup').addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();lookupFood();}});
+  E('lookupMsg').addEventListener('click',function(ev){
+    var b=ev.target.closest('button[data-pick]');if(!b)return;
+    E('inFood').value=b.dataset.pick;paintAmtLabel();
+    var f=foodById(b.dataset.pick);
+    E('lookupMsg').innerHTML='Picked <b>'+esc(f.name)+'</b> ('+ci(f.kcal)+' kcal '+perWord(f)+').';
+  });
   E('inFood').addEventListener('change',paintAmtLabel);
   E('btnAddFood').addEventListener('click',function(){
     var f=foodById(E('inFood').value),a=Number(E('inAmt').value),msg=E('foodMsg');
