@@ -2744,6 +2744,7 @@ function dayFeedback(is){
     x=tdeeFor(is);
     var fk=r.kcal<=KCAL_DAY+25?'On budget.':(ci(r.kcal-KCAL_DAY)+' over budget — one day moves nothing.');
     if(r.refeed)fk='<b>Refeed day — planned, not a slip.</b>'+(r.kcal>KCAL_DAY?' The extra '+ci(r.kcal-KCAL_DAY)+' kcal is about '+f1((r.kcal-KCAL_DAY)/3500)+' lb of the week’s fat loss, and it buys back glycogen for the runs and the lifting.':'')+
+      (x.deficit<0?' That is only about <b>'+ci(Math.round(-x.deficit/10)*10)+' over what you burned today</b> — close to maintenance, which is exactly what a refeed should be.':'')+
       ' Carbs are the point of it. Back to '+ci(KCAL_DAY)+' tomorrow, and expect the scale to jump for a couple of mornings.';
     if(x.deficit>50)fk+=' About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal under maintenance</b> — roughly '+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g of fat.';
     /* with the diary in use, protein is measured too, not just assumed */
