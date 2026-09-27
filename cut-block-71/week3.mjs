@@ -206,8 +206,9 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
     '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }], steps: 15000, kcal: 1799, sleep: 8 },
     '2026-09-23': { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, up: 'some', gap: 147 }] },
     '2026-09-24': { runs: [{ k: 'reps', dm: 100, n: 7, up: true }], gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 },
-    '2026-09-25': { gym: true, split: 'legs', gymRpe: 6 },
-    '2026-09-26': { refeed: true, kcal: 2400, steps: 11000 } } })]);
+    '2026-09-25': { gym: true, split: 'legs', gymRpe: 6, sets: { Legs: 8 }, mb: ['people', 'green'], medMin: 10, mood: 4 },
+    '2026-09-22': { gym: true, split: 'delts', sets: { Shoulders: 11, Forearms: 3 }, medMin: 15, mood: 5, good: 'new shoulder PB' },
+    '2026-09-26': { refeed: true, kcal: 2400, steps: 11000, mb: ['people'], phoneOut: true } } })]);
   await p.reload(); await p.waitForTimeout(300);
   const ws = await p.evaluate(() => reviewWeeks().map(w => ({ k: w.k, label: w.label, start: w.start, end: w.end })));
   ok('week 1 takes in the pre-block: a 9-day week from 19 Sep', ws[0].k === 1 && ws[0].start === '2026-09-19' && ws[0].end === '2026-09-27' && /9-day week/.test(ws[0].label), JSON.stringify(ws));
@@ -226,6 +227,9 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   ok('everything else: deficit, refeed, steps, sleep', /Deficit [−+][\d,]+ kcal/.test(t) && /Refeed Sat/.test(t) && /kcal of walking/.test(t) && /Sleep 8\.0 h a night/.test(t));
   ok('no step targets in the review', !/on target|ceiling|rest day went missing|against target/.test(t));
   ok('no overall % in the review', !/better than last week|±0%|level with last week/.test(t));
+  ok('the review lists the week’s sets with verdicts', /SETS THIS WEEK/i.test(t) && /Shoulders 11 sets/.test(t) && /Legs 8 sets/.test(t) && /Forearms 3 sets Light/i.test(t), (t.match(/SETS THIS WEEK.{0,300}/i) || [''])[0]);
+  ok('and the mind section, only what was done', /Mind Mood/.test(t) && /Time with people 2 days/.test(t) && /Meditation 25 min/.test(t) && /Outside somewhere green 1 day/.test(t) && /Phone out of the room 1 night/.test(t) && !/Daylight early/.test(t) && !/Just for fun/.test(t), (t.match(/MIND.{0,500}/) || [''])[0]);
+  ok('with mood and the good things', /Mood 😄 on average|Mood 🙂 on average/.test(t) && /Tue — new shoulder PB/.test(t));
   await ctxR.close();
 }
 

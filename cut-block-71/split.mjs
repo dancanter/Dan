@@ -185,7 +185,7 @@ await boot(st({}));
 await p.click('[data-t="training"]');
 t = await p.textContent('#tSplit');
 ok('there is a sets-per-week table', /Hard sets per muscle, per week/.test(t), t.slice(0, 200));
-ok('it leads with the honest point', /You cannot build muscle in a real deficit/.test(t));
+ok('it leads with the honest point', /Building muscle in a deficit is limited, not impossible/.test(t));
 const splitHtml = await p.innerHTML('#tSplit');
 ['Chest', 'Back', 'Shoulders', 'Legs', 'Biceps', 'Triceps', 'Forearms'].forEach(k =>
   ok('covers ' + k, new RegExp('<b>' + k + '</b>').test(splitHtml)));
@@ -222,12 +222,12 @@ const perDay = await p.$$eval('#tSplit table', ts => {
 });
 ok('a per-session table exists for the four core days', perDay.length === 4, JSON.stringify(perDay));
 const chestRow = perDay.filter(r => /Chest/.test(r[0]))[0];
-ok('chest day totals chest plus triceps', chestRow && chestRow[1] === '10–18', JSON.stringify(chestRow));
-ok('and shows what it is made of', /chest 6–10/.test(chestRow[2]) && /triceps 4–8/.test(chestRow[2]), chestRow[2]);
+ok('chest day totals chest plus triceps', chestRow && chestRow[1] === '14–22', JSON.stringify(chestRow));
+ok('and shows what it is made of', /chest 8–12/.test(chestRow[2]) && /triceps 6–10/.test(chestRow[2]), chestRow[2]);
 const backRow = perDay.filter(r => /Back/.test(r[0]))[0];
-ok('back day totals back plus biceps', backRow && backRow[1] === '12–20', JSON.stringify(backRow));
+ok('back day totals back plus biceps', backRow && backRow[1] === '15–22', JSON.stringify(backRow));
 const legRow = perDay.filter(r => /Legs/.test(r[0]))[0];
-ok('legs day is just legs', legRow && legRow[1] === '4–8', JSON.stringify(legRow));
+ok('legs day is just legs', legRow && legRow[1] === '6–10', JSON.stringify(legRow));
 ok('a second session beats more sets', /a second session beats adding sets to the first/.test(t));
 
 // on the reverse the growth column is the live one

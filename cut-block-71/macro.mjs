@@ -68,7 +68,7 @@ ok('the sets card answers the growth question head on',
 ok('it no longer claims protein as a lever', !/protein at \d+ g instead/.test(tr),
   (tr.match(/.{40}protein at \d+ g instead.{20}/) || [''])[0]);
 ok('it does not promise growth in the deficit',
-  /will not add muscle/.test(tr) && /growth happens on the reverse/i.test(tr));
+  /do not expect much new muscle/.test(tr) && /a little is realistic/.test(tr) && /growth happens on the reverse/i.test(tr));
 // With nothing logged there is no measured deficit, so it must not invent one.
 ok('with no data logged it stays qualitative', /a deficit this size/.test(tr),
   (tr.match(/It will not add muscle at [^.]{0,60}/) || [''])[0]);

@@ -21,11 +21,16 @@ const at = async (when) => {
 let { ctx, p, boot } = await at('2026-09-30');
 await boot(st());
 let t = sq(await p.innerText('#dayCard'));
-ok('your day, in order, no alarm', /YOUR DAY/i.test(t) && /No alarm — the order matters, not the clock/.test(t) && t.indexOf('Deep study') < t.indexOf('Run or walk') && t.indexOf('Run or walk') < t.indexOf('Meditate') && t.indexOf('Gym, 18:00') < t.indexOf('Film night with your yog bowl'), t.slice(0, 500));
+await p.click('[data-t="study"]');
+t = sq(await p.innerText('#dayCard'));
+ok('the study-day routine lives on Study, in order, no alarm', /STUDY-DAY ROUTINE/i.test(t) && /No alarm: the order matters, not the clock/.test(t) && await p.evaluate(() => !!document.querySelector('#s-study #dayCard')) && t.indexOf('Deep study') < t.indexOf('Run or walk') && t.indexOf('Run or walk') < t.indexOf('Meditate') && t.indexOf('Gym, 18:00') < t.indexOf('Film night with your yog bowl'), t.slice(0, 500));
 await p.click('#dayCard button[data-rt="1"]'); await p.waitForTimeout(100);
 ok('tapping a step ticks it for today', await p.evaluate(() => JSON.stringify(S.days[today()].rt) === '[1]'));
 await p.click('#dayCard button[data-rt="1"]'); await p.waitForTimeout(100);
 ok('tapping again unticks it', await p.evaluate(() => !(S.days[today()] || {}).rt));
+await p.click('#dayCard button[data-rt="0"]'); await p.waitForTimeout(100);
+ok('it counts study days this week', /1 study day this week/.test(sq(await p.innerText('#dayCard'))));
+await p.click('[data-t="mind"]');
 t = sq(await p.innerText('#filmCard'));
 ok('Wednesday is a film night by default', /TONIGHT IS FILM NIGHT/i.test(t), t.slice(0, 200));
 const pick = await p.evaluate(() => filmPick());
@@ -41,7 +46,7 @@ await p.evaluate(() => { E('filmCard').querySelector('details').open = true; });
 await p.click('#filmCard button[data-fn="3"]'); await p.waitForTimeout(120);
 t = sq(await p.innerText('#filmCard'));
 ok('film nights can be changed, and Wednesday off shows the next one', await p.evaluate(() => S.settings.film.nights.indexOf(3) < 0) && /next: Friday/i.test(t), t.slice(0, 200));
-ok('the day card follows: no film step tonight', /Yog bowl and relax/.test(sq(await p.innerText('#dayCard'))));
+ok('the day card follows: no film step tonight', /Yog bowl and relax/.test(await p.evaluate(() => routineHTML())));
 t = sq(await p.innerText('#spotCard'));
 ok('get out of Bassingham, with a place', /GET OUT OF BASSINGHAM/i.test(t) && /Somewhere else/.test(t));
 await p.click('#spotCard button[data-sk="hills"]'); await p.waitForTimeout(80);
@@ -52,7 +57,7 @@ await p.click('#spotCard button[data-spot="next"]'); await p.waitForTimeout(80);
 ok('🔄 somewhere else changes it', await p.evaluate(s => SPOT_UI.pick !== s, s1));
 await p.click('[data-t="today"]');
 ok('the testosterone card is on Today', /TESTOSTERONE SUPPORT/i.test(await p.innerText('#tCard')));
-ok('the routine, films and places live on the Mind tab, not Today', await p.evaluate(() => !!document.querySelector('#s-mind #dayCard') && !!document.querySelector('#s-mind #filmCard') && !!document.querySelector('#s-mind #spotCard') && !document.querySelector('#s-today #dayCard')));
+ok('films and places live on the Mind tab, the routine on Study, none on Today', await p.evaluate(() => !!document.querySelector('#s-study #dayCard') && !!document.querySelector('#s-mind #filmCard') && !!document.querySelector('#s-mind #spotCard') && !document.querySelector('#s-today #dayCard')));
 await p.click('[data-t="mind"]');
 // mood, one good thing, boosters, phone out
 await p.click('#mindCard button[data-mood="4"]'); await p.waitForTimeout(100);
@@ -67,16 +72,15 @@ ok('a booster ticks', await p.evaluate(() => S.days[today()].mb.indexOf('people'
 await p.click('#mindCard button[data-phone="1"]'); await p.waitForTimeout(100);
 ok('phone out tonight sets the same toggle as the log', await p.evaluate(() => S.days[today()].phoneOut === true));
 ok('it points to help if mood stays low', /Samaritans on 116 123/.test(await p.innerText('#mindCard')));
+await p.fill('#inMed', '12'); await p.press('#inMed', 'Tab'); await p.waitForTimeout(100);
+ok('meditation minutes are saved', await p.evaluate(() => S.days[today()].medMin === 12));
 ok('no film is listed twice', await p.evaluate(() => new Set(FILMS.map(f => f[0])).size === FILMS.length));
 await ctx.close();
 
-// ===== a Saturday: rest day routine, film night =====
+// ===== a Saturday: still a film night by default =====
 ({ ctx, p, boot } = await at('2026-10-03'));
 await boot(st());
-t = sq(await p.innerText('#dayCard'));
-ok('Saturday is a rest day: a walk somewhere new, refeed, film', /rest day/i.test(t) && /A walk somewhere new/.test(t) && /Refeed meals/.test(t) && /Film night with the popcorn/.test(t) && !/Gym, 18:00/.test(t), t.slice(0, 300));
-const wkend = await p.evaluate(() => filmPick());
-ok('a weekend night can pick a long film', !!wkend);
+ok('Saturday is a film night by default', /TONIGHT IS FILM NIGHT/i.test(await p.innerText('#filmCard')));
 await ctx.close();
 
 // ===== sets per muscle on the gym log =====
@@ -87,12 +91,15 @@ const put = async (m, v) => { await p.fill(`#setsBox input[data-sets="${m}"]`, S
 ok('a chest day asks for chest and triceps sets', await p.evaluate(() => [...document.querySelectorAll('#setsBox input[data-sets]')].map(i => i.dataset.sets).join() === 'Chest,Triceps'));
 await put('Chest', 8); await put('Triceps', 3);
 let sb = sq(await p.innerText('#setsBox'));
-ok('8 chest sets on a cut: just right', /CHEST · JUST RIGHT/i.test(sb) && /inside 6–10/.test(sb), sb);
+ok('8 chest sets on a cut: just right, with room to push', /CHEST · JUST RIGHT/i.test(sb) && /inside 8–12/.test(sb) && /more gains/.test(sb), sb);
+ok('it says it is judged on the week', /Judged on the week/.test(sb));
 ok('3 triceps: light, with a nudge not a telling-off', /TRICEPS · LIGHT/i.test(sb) && /1–2 more hard sets/.test(sb));
-await put('Chest', 11);
-ok('11 chest: on the high side — recovery and running pay', /CHEST · ON THE HIGH SIDE/i.test(sq(await p.innerText('#setsBox'))) && /your running pays/.test(sq(await p.innerText('#setsBox'))));
+await put('Chest', 12);
+ok('12 chest: right at the top — where the gains come from', /CHEST · RIGHT AT THE TOP/i.test(sq(await p.innerText('#setsBox'))) && /where the gains come from/.test(sq(await p.innerText('#setsBox'))));
+await put('Chest', 13);
+ok('13 chest: on the high side — recovery and running pay', /CHEST · ON THE HIGH SIDE/i.test(sq(await p.innerText('#setsBox'))) && /your running pays/.test(sq(await p.innerText('#setsBox'))));
 await put('Chest', 14);
-ok('14 in one session: too much for one session', /CHEST · TOO MUCH FOR ONE SESSION/i.test(sq(await p.innerText('#setsBox'))));
+ok('14 in one session: judged weekly, with a tip not a verdict', !/TOO MUCH FOR ONE SESSION/i.test(sq(await p.innerText('#setsBox'))) && /Tip: past about 12 in one go/.test(sq(await p.innerText('#setsBox'))));
 ok('sets are saved on the day', await p.evaluate(() => S.days['2026-09-28'].sets.Chest === 14 && S.days['2026-09-28'].sets.Triceps === 3));
 // a second session in the same week adds up
 await boot(st({ days: { '2026-09-28': { gym: true, split: 'chest', sets: { Chest: 6 } }, '2026-09-26': { gym: true, split: 'chest', sets: { Chest: 6 } } } }));
@@ -101,7 +108,8 @@ await boot(st({ days: { '2026-09-28': { gym: true, split: 'chest', sets: { Chest
 ok('a second go in the same week adds up', await p.evaluate(() => weekSets('2026-10-01').Chest === 12));
 await p.click('[data-t="training"]');
 const tt = sq(await p.innerText('#s-training'));
-ok('the Training tab shows this week’s sets with a verdict', /THIS WEEK/i.test(tt) && /Chest 6–10 12–18 12 on the high side/i.test(tt), (tt.match(/Chest 6.{0,80}/) || [''])[0]);
+ok('the Training tab shows this week’s sets with a verdict', /THIS WEEK/i.test(tt) && /Chest 8–12 12–18 12 right at the top/i.test(tt), (tt.match(/Chest 8.{0,80}/) || [''])[0]);
+ok('and keeps a sets log by week', /YOUR SETS LOG/i.test(tt) && /Week 2/.test(tt), (tt.match(/SETS LOG.{0,200}/i) || [''])[0]);
 ok('calisthenics days do not ask for sets', await p.evaluate(() => setsBoxHTML('2026-09-28') !== '' && (S.days['2026-09-29'] = { gym: true, split: 'calis' }, setsBoxHTML('2026-09-29') === '')));
 await ctx.close();
 

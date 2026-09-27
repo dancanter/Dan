@@ -493,6 +493,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= STUDY ================= -->
 <section id="s-study" class="stack" hidden>
+  <div id="dayCard"></div>
   <div id="stTop"></div>
   <div class="p"><h2>Why study is in a cut app at all</h2>
     <p>SK297 and SK298 — two 30-credit modules, 8–10 hours each, so a 16–20 hour week. Term starts <b>Monday 28 September</b>.</p>
@@ -537,7 +538,6 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= MIND ================= -->
 <section id="s-mind" class="stack" hidden>
   <div id="mindCard"></div>
-  <div id="dayCard"></div>
   <div id="filmCard"></div>
   <div id="spotCard"></div>
 </section>
@@ -797,13 +797,17 @@ var CFG={
      volume comes down; growth volume belongs on the reverse. Legs sit low in
      both because his running already supplies an enormous leg stimulus and the
      app would otherwise recommend recovery he does not have. */
-  sets:[{m:'Chest',cut:[6,10],rev:[12,18],day:'chest'},
-        {m:'Back',cut:[8,12],rev:[14,20],day:'back'},
-        {m:'Shoulders',cut:[8,12],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
-        {m:'Legs',cut:[4,8],rev:[8,14],day:'legs'},
-        {m:'Biceps',cut:[4,8],rev:[8,14],day:'back'},
-        {m:'Triceps',cut:[4,8],rev:[8,14],day:'chest'},
-        {m:'Forearms',cut:[2,6],rev:[6,10],day:'delts'}],
+  /* 28 Sep: Dan wants the most muscle the cut allows, not just to keep it.
+     With a gentle deficit (~340/day), high protein and hard sets a little
+     growth is possible, so the cut column moved up from "keep" to "the most
+     a cut allows" — still under the reverse numbers. */
+  sets:[{m:'Chest',cut:[8,12],rev:[12,18],day:'chest'},
+        {m:'Back',cut:[9,12],rev:[14,20],day:'back'},
+        {m:'Shoulders',cut:[9,12],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
+        {m:'Legs',cut:[6,10],rev:[8,14],day:'legs'},
+        {m:'Biceps',cut:[6,10],rev:[8,14],day:'back'},
+        {m:'Triceps',cut:[6,10],rev:[8,14],day:'chest'},
+        {m:'Forearms',cut:[4,8],rev:[6,10],day:'delts'}],
   /* Dan's call: a 5 km and a 5 mile easy run are the same thing, so there is
      no separate five-mile slot any more — there are easy runs. What splits a
      run is the EFFORT, not the distance: a five-mile threshold is a hard run,
@@ -3245,7 +3249,6 @@ var BOOSTS=[
  {k:'green',e:'🌳',n:'Outside somewhere green',w:'Twenty minutes in nature measurably lowers stress hormone.'},
  {k:'people',e:'👥',n:'Time with someone',w:'In person or a call. The strongest mood booster there is, and the one a busy cut squeezes out first.'},
  {k:'fun',e:'🎨',n:'Something just for fun',w:'Not training, not study — something that is only for you.'},
- {k:'breathe',e:'🧘',n:'Meditated or just breathed',w:'Ten minutes after lunch resets the afternoon and makes falling asleep easier.'}
 ];
 function mindHTML(){
   var d=today(),r=S.days[d]||{},mb=r.mb||[];
@@ -3258,6 +3261,7 @@ function mindHTML(){
       return '<button type="button" data-mood="'+(i+1)+'" style="font-size:28px;background:'+(on?'var(--rule-2)':'none')+';border:'+(on?'2px solid var(--accent)':'1px solid var(--rule-2)')+';border-radius:10px;padding:4px 8px;cursor:pointer">'+e+'</button>';}).join('')+'</div>'+
     '<div style="margin:6px 0">'+strip+'</div>'+
     '<div class="f" style="margin-top:8px"><label for="inGood">One good thing today</label><input type="text" id="inGood" maxlength="120" placeholder="a great session, a film, a laugh with a mate…" value="'+esc(r.good||'')+'"></div>'+
+    '<div class="f" style="margin-top:8px;max-width:200px"><label for="inMed">🧘 Meditated today (min)</label><input type="number" id="inMed" inputmode="numeric" min="0" max="240" step="1" placeholder="0" value="'+(r.medMin||'')+'"></div>'+
     '<h3 style="margin-top:12px">Boosters today</h3>'+
     BOOSTS.map(function(b){var on=mb.indexOf(b.k)>=0;
       return '<button type="button" data-boost="'+b.k+'" style="display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;color:inherit;cursor:pointer;align-items:flex-start;font:inherit">'+
@@ -3279,6 +3283,7 @@ function wireMind(){
   });
   E('mindCard').addEventListener('change',function(ev){
     if(ev.target.id==='inGood')setDay(today(),{good:ev.target.value.trim().slice(0,120)||null});
+    if(ev.target.id==='inMed'){var v=Math.round(Number(ev.target.value));setDay(today(),{medMin:isFinite(v)&&v>0?Math.min(240,v):null});}
   });
 }
 /* ===================== your day, film nights, getting out =====================
@@ -3336,25 +3341,15 @@ function filmPick(){
   var use=fit.length?fit:pool,x=use[hashStr(d+(FILM_UI.g||''))%use.length];
   FILM_UI.pick=x[0];return x;
 }
-function dayType(d){
-  var r=S.days[d]||{};
-  if(r.refeed||dow(d)===6)return 'rest';
-  var planned=(r.runs||[]).length>0;
-  return planned?'run':'day';
-}
 function routineHTML(){
-  var d=today(),r=S.days[d]||{},tick=r.rt||[],type=dayType(d),film=filmNight(d);
-  var steps=type==='rest'?[
-    ['🍳','Breakfast, whenever you wake'],
-    ['🚶','A walk somewhere new — see below'],
-    ['📚','Study, if you fancy it'],
-    ['🍝','Refeed meals — the extra is carbs'],
-    ['🎬','Film night with the popcorn'],
-    ['📵','Phone out, bed']
-  ]:[
+  /* the study-day routine: Dan runs it at least three days a week; work
+     days differ, so it lives on Study rather than as today's plan */
+  var d=today(),r=S.days[d]||{},tick=r.rt||[],film=filmNight(d);
+  var studyDays=0;for(var q=0;q<7;q++){var qd=addD(mondayOf(d),q);if(qd>d)break;if(((S.days[qd]||{}).rt||[]).length)studyDays++;}
+  var steps=[
     ['🍳','Breakfast — oats on a run day, eggs otherwise'],
     ['🧠','Deep study, 1.5–2 h — phone in another room'],
-    ['🏃','Run or walk — somewhere good below'],
+    ['🏃','Run or walk — ideas on the Mind tab'],
     ['🚿','Shower → lunch: meat, then Fage, honey and milk'],
     ['🧘','Meditate, 10 min'],
     ['📚','Study, 1.5–2 h — the lighter stuff'],
@@ -3364,8 +3359,8 @@ function routineHTML(){
     [film?'🎬':'🥣',film?'Film night with your yog bowl':'Yog bowl and relax'],
     ['📵','Phone out, bed when you are sleepy']
   ];
-  return '<div class="p"><h2>Your day'+(type==='rest'?' · rest day':'')+'</h2>'+
-    '<p class="tiny" style="margin:0 0 6px">No alarm — the order matters, not the clock. Tap a step when it is done.</p>'+
+  return '<div class="p"><h2>Study-day routine</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">For the days you study — work days differ. No alarm: the order matters, not the clock. Tap a step when it is done.'+(studyDays?' <b>'+studyDays+' study day'+(studyDays===1?'':'s')+' this week.</b>':'')+'</p>'+
     steps.map(function(s,i){var on=tick.indexOf(i)>=0;
       return '<button type="button" data-rt="'+i+'" style="display:flex;flex-wrap:nowrap;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;color:inherit;cursor:pointer;align-items:center;font:inherit">'+
         '<span style="font-size:18px;flex:0 0 26px">'+(on?'✅':s[0])+'</span><span style="flex:1 1 auto;'+(on?'opacity:.55;text-decoration:line-through':'')+'">'+s[1]+'</span></button>';}).join('')+
@@ -3454,7 +3449,7 @@ function tSupport(from,to){
   rows.push({n:'Sleep',v:slAvg===null?'—':f1(slAvg)+' h',ok:slAvg===null?null:slAvg>=CFG.sleep.line,
     w:slAvg===null?'Log your sleep and this reads it.':(slAvg>=CFG.sleep.line?'Most of your testosterone is made while you sleep — this is the big one, and it is covered.':'Under '+f1(CFG.sleep.line)+' h. The biggest lever there is: a week of short nights costs young men 10–15%. An earlier night beats anything you can eat.')});
   var perDay=defN?def/defN:null,steep=(perDay!==null&&perDay>650)||w.band==='fast';
-  rows.push({n:'Deficit',v:perDay===null?'—':'−'+ci(Math.round(Math.max(0,perDay)/10)*10)+'/day',ok:perDay===null?null:!steep,
+  rows.push({n:'Deficit',v:perDay===null?'—':(perDay>=0?'−':'+')+ci(Math.round(Math.abs(perDay)/10)*10)+'/day',ok:perDay===null?null:!steep,
     w:perDay===null?'Log food and steps and this reads it.':(steep?'Steep. A hard deficit is what drags testosterone down — the refeed and the rate band are there to stop that.':'Gentle — the size of deficit your hormones barely notice.')});
   rows.push({n:'Carbs and fat',v:CARB_AT+' g · '+MACRO.fat+' g',ok:refeed?true:null,
     w:'Your day at '+ci(KCAL_DAY)+' keeps carbs over '+CARB_FLOOR+' g and fat at '+MACRO.fat+' g — under about 20% fat and low carbs with hard training both lower testosterone.'+(refeed?' And a refeed this week — a break from the deficit your hormones like.':'')});
@@ -3570,6 +3565,7 @@ function reviewDidHTML(R,wk){
     return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><span class="tiny dim">'+dayName(g.d)+'</span> <b>'+(rec.split?splitName(k):'Gym session')+'</b>'+(rec.gymRpe?' <span class="tiny">· felt '+rec.gymRpe+'/10</span>':'')+
       '<p class="note" style="margin:2px 0">'+GYM_WHY[k]+extra+'</p></div>';}).join(''):
     '<p class="note">No gym sessions logged this week.</p>';
+  h+=reviewSetsHTML(wk);
   /* everything else */
   var ev=[];
   if(R.def.n)ev.push(['Deficit',(R.def.total>=0?'−':'+')+ci(Math.round(Math.abs(R.def.total)/10)*10)+' kcal',
@@ -3589,6 +3585,7 @@ function reviewDidHTML(R,wk){
   if(hfBits.length)ev.push(['Healthy foods',Object.keys(HFW.tot).length+' kinds',hfBits.join(', ')+'. What each did is on the Today tab.']);
   h+='<h3 style="margin-top:12px">Everything else</h3>'+ev.map(function(e){
     return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+e[0]+'</b><span class="mono">'+e[1]+'</span></div><p class="note" style="margin:2px 0">'+e[2]+'</p></div>';}).join('');
+  h+=reviewMindHTML(wk);
   return h+'</div>';
 }
 /* Today: just the weight and the deficit (28 Sep), plus a warning only when
@@ -5707,10 +5704,9 @@ function weekSets(d){
 function setsVerdict(m,week,session){
   var R=setsRange(m);if(!R||!week)return null;
   var cut=today()<REV_START;
-  if(session>SESSION_CAP)return {k:'w',t:'Too much for one session',w:'Past about '+SESSION_CAP+' hard sets for one muscle in a session, the extra ones stop paying and just cost recovery. Trim it, or split it across two days.'};
   if(week<R[0])return {k:'',t:'Light',w:week+' of '+R[0]+'–'+R[1]+' for the week. '+(cut?'On a cut, heavy weights keep muscle more than sets do — but 1–2 more hard sets next time would make sure.':'Room for 1–2 more hard sets to grow it.')};
-  if(week<=R[1])return {k:'g',t:'Just right',w:week+' sets — inside '+R[0]+'–'+R[1]+'. '+(cut?'Enough to keep every bit of it in a deficit, without eating into your recovery or your running.':'The growth range — keep adding load.')};
-  return {k:'w',t:'On the high side',w:week+' sets, over '+R[1]+'. '+(cut?'More sets will not build much in a deficit; they cost recovery — and your running pays. '+R[1]+' is plenty.':'Past the useful range — more is not better; push the load instead.')};
+  if(week<=R[1])return {k:'g',t:(week>=R[1]-1?'Right at the top':'Just right'),w:week+' sets this week — inside '+R[0]+'–'+R[1]+'. '+(cut?(week>=R[1]-1?'The most a cut can use — this is where the gains come from.':'Plenty to keep it, and some room to push toward '+R[1]+' for more gains.'):'The growth range — keep adding load.')};
+  return {k:'w',t:'On the high side',w:week+' sets this week, over '+R[1]+'. '+(cut?'In a deficit, sets past this stop adding muscle and start taking recovery — and your running pays. Put the effort into load instead.':'Past the useful range — more is not better; push the load instead.')};
 }
 function setsBoxHTML(d){
   var r=S.days[d]||{};if(!r.gym||!r.split||r.split==='calis')return '';
@@ -5720,8 +5716,62 @@ function setsBoxHTML(d){
     '<div class="row" style="gap:8px;flex-wrap:wrap">'+ms.map(function(m){
       return '<div class="f" style="max-width:110px"><label>'+m+'</label><input type="number" inputmode="numeric" min="0" max="40" step="1" data-sets="'+m+'" value="'+(cur[m]||'')+'" placeholder="0"></div>';}).join('')+'</div>'+
     ms.map(function(m){var v=setsVerdict(m,wk[m]||0,cur[m]||0);if(!v)return '';
-      return '<p class="note" style="margin:6px 0 0"><span class="pill'+(v.k?' '+v.k:'')+'">'+m+' · '+v.t+'</span> '+v.w+'</p>';}).join('')+
+      return '<p class="note" style="margin:6px 0 0"><span class="pill'+(v.k?' '+v.k:'')+'">'+m+' · '+v.t+'</span> '+v.w+
+        ((cur[m]||0)>SESSION_CAP?' <span class="tiny">Tip: past about '+SESSION_CAP+' in one go the extra sets pay less — a few on your free day would work harder.</span>':'')+'</p>';}).join('')+
+    '<p class="tiny" style="margin:6px 0 0">Judged on the <b>week</b> — Monday to Sunday, every session added up.</p>'+
     '</div>';
+}
+/* the sets log: every week's totals, kept for the block */
+function setsBetween(a,b){
+  var out={},n=0;
+  for(var i=0;i<=diffD(a,b);i++){var r=S.days[addD(a,i)];if(!r||!r.sets)continue;for(var k in r.sets){out[k]=(out[k]||0)+r.sets[k];n++;}}
+  return n?out:null;
+}
+function setsLogHTML(){
+  var ws=reviewWeeks(),rows=[];
+  ws.forEach(function(w){var s=setsBetween(w.start,w.end>today()?today():w.end);if(s)rows.push({w:w,s:s});});
+  if(!rows.length)return '<div class="p"><h2>Your sets log</h2><p class="tiny">Log sets on a gym day and every week lands here.</p></div>';
+  var ms=CFG.sets.map(function(x){return x.m;});
+  return '<div class="p"><h2>Your sets log</h2><div class="scroll"><table class="tbl"><thead><tr><th>Week</th>'+
+    ms.map(function(m){return '<th class="n">'+m+'</th>';}).join('')+'</tr></thead><tbody>'+
+    rows.reverse().map(function(r){return '<tr><td>'+r.w.label.replace(/ · .*/,'')+'</td>'+ms.map(function(m){var v=r.s[m]||0,vd=v?setsVerdict(m,v,0):null;
+      return '<td class="n'+(vd&&vd.k==='g'?' gd':'')+'">'+(v||'<span class="dim">—</span>')+'</td>';}).join('')+'</tr>';}).join('')+
+    '</tbody></table></div><p class="tiny" style="margin-top:6px">Green is inside the range for the week.</p></div>';
+}
+function reviewSetsHTML(wk){
+  var s=setsBetween(wk.start,wk.end>today()?today():wk.end);
+  if(!s)return '';
+  return '<h3 style="margin-top:12px">Sets this week</h3>'+CFG.sets.filter(function(x){return s[x.m];}).map(function(x){
+    var v=setsVerdict(x.m,s[x.m],0);
+    return '<div style="padding:4px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+x.m+'</b><span class="mono">'+s[x.m]+' sets</span>'+
+      (v?'<span class="pill'+(v.k?' '+v.k:'')+'" style="margin-left:auto">'+v.t+'</span>':'')+'</div>'+(v?'<p class="note" style="margin:2px 0">'+v.w+'</p>':'')+'</div>';}).join('');
+}
+/* the week's wellbeing, only what he did */
+function reviewMindHTML(wk){
+  var to=wk.end>today()?today():wk.end,moods=[],med=0,medN=0,b={},good=[],phone=0,films=[],i,d,r;
+  for(i=0;i<=diffD(wk.start,to);i++){
+    d=addD(wk.start,i);r=S.days[d]||{};
+    if(r.mood)moods.push(r.mood);
+    if(r.medMin>0){med+=r.medMin;medN++;}
+    (r.mb||[]).forEach(function(k){b[k]=(b[k]||0)+1;});
+    if(r.good)good.push({d:d,t:r.good});
+    if(r.phoneOut)phone++;
+  }
+  var seen=(S.settings.film||{}).seen||{};
+  for(var f in seen){if(seen[f]>=wk.start&&seen[f]<=to)films.push(f);}
+  var rows=[];
+  if(moods.length){var a=mean(moods);rows.push(['Mood',MOODS[Math.round(a)-1]+' on average',moods.length+' day'+(moods.length===1?'':'s')+' logged.']);}
+  if(b.people)rows.push(['👥 Time with people',b.people+' day'+(b.people===1?'':'s'),'The strongest mood booster there is — and the one a busy cut squeezes out first.']);
+  if(med)rows.push(['🧘 Meditation',med+' min',medN+' session'+(medN===1?'':'s')+'. It trains the same skill as falling asleep: letting a thought go.']);
+  if(b.green)rows.push(['🌳 Outside somewhere green',b.green+' day'+(b.green===1?'':'s'),'Lower stress hormone, every time.']);
+  if(b.sun)rows.push(['☀️ Daylight early',b.sun+' day'+(b.sun===1?'':'s'),'Sets your body clock — better sleep, better mood.']);
+  if(b.fun)rows.push(['🎨 Just for fun',b.fun+' day'+(b.fun===1?'':'s'),'Something only for you.']);
+  if(phone)rows.push(['📵 Phone out of the room',phone+' night'+(phone===1?'':'s'),'The single best thing you can do for your sleep.']);
+  if(films.length)rows.push(['🎬 Films',films.length+'',films.join(', ')+'.']);
+  if(!rows.length&&!good.length)return '';
+  return '<h3 style="margin-top:12px">Mind</h3>'+rows.map(function(x){
+    return '<div style="padding:4px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+x[0]+'</b><span class="mono">'+x[1]+'</span></div><p class="note" style="margin:2px 0">'+x[2]+'</p></div>';}).join('')+
+    (good.length?'<p style="margin:6px 0 2px"><b>Good things</b></p>'+good.map(function(g){return '<p class="note" style="margin:1px 0">'+DOWS[dow(g.d)]+' — '+esc(g.t)+'</p>';}).join(''):'');
 }
 function renderSplit(){
   var m=splitModel();
@@ -5759,9 +5809,9 @@ function renderSplit(){
   h+='<div class="p flag"><h2>Hard sets per muscle, per week</h2>'+
     '<p class="lede">'+(onRev
       ? 'You are on the reverse now, so these are <b>growth</b> numbers — the right-hand column.'
-      : '<b>You cannot build muscle in a real deficit</b>, so the job until 28 November is keeping what you have. That is the left-hand column, and it is deliberately lower.')+'</p>'+
+      : '<b>Building muscle in a deficit is limited, not impossible.</b> With a gentle deficit like yours, high protein and hard sets, a little growth is possible — most in the muscles you have trained least. The left-hand column is set to get the most the cut allows; the big growth still comes on the reverse.')+'</p>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Muscle</th>'+
-    '<th class="n">Now · keeping it</th><th class="n">Reverse · growing it</th><th class="n">This week</th><th>Where it lands</th></tr></thead><tbody>';
+    '<th class="n">Now · the most a cut allows</th><th class="n">Reverse · growing it</th><th class="n">This week</th><th>Where it lands</th></tr></thead><tbody>';
   var WS=weekSets(today());
   CFG.sets.forEach(function(x){
     var cutN=x.cut[0]+'–'+x.cut[1],revN=x.rev[0]+'–'+x.rev[1];
@@ -5782,8 +5832,7 @@ function renderSplit(){
     'If a session has to shrink, lose the last set, not the plates.</p>'+
     (onRev?'':'<p><b>If you want the most growth this block can give you, run the top of the left column, not the bottom.</b> '+
       'That is the whole lever — ten chest sets rather than six, twelve back rather than eight, every one of them within a few reps of failure. '+
-      'It will not add muscle at '+defTxt+' with two hard runs, a sprint session and a five-mile in the same week — the running alone would cap it at maintenance. '+
-      'What it does is decide how much you still have on 28 November, and every pound you keep now is a pound you are not spending December to February getting back. '+
+      'At '+defTxt+', with your running in the same week, do not expect much new muscle — but a little is realistic, and what matters more is how much you still have on 28 November: every pound you keep now is a pound you are not spending December to February getting back. '+
       '<b>The growth happens on the reverse.</b> This block just protects the starting point for it.</p>')+
     '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and 12,800 steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
     'The trap is putting a heavy legs day next to a hard run day; they compete for the same recovery and both come out worse.</p>'+
@@ -5838,6 +5887,7 @@ function renderSplit(){
     'Pick <b>Calisthenics</b> on the Today log, choose <b>which test</b>, and the right boxes appear.</p>'+
     '<p class="note"><b>A full '+CR.mins+'-minute test is a hard day, not a free one.</b> '+
     (B?ci(B.total)+' reps':'Hundreds of reps')+' of pulling and pressing is real training load \u2014 count it as one of the week\u2019s hard days and keep it away from a heavy chest or back session.</p></div>';
+  h+=setsLogHTML();
   E('tSplit').innerHTML=h;
 }
 
