@@ -250,7 +250,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   ok('it says it is an estimate and the weight is the judge', /The weight average is the real judge/.test(t));
   ok('study hours show even before term', /STUDY HOURS 4\.5 h/i.test(t), (t.match(/STUDY.{0,80}/i) || [''])[0]);
   ok('a feedback card', /(HOW IT WENT|HOW IT IS GOING)/i.test(t));
-  ok('sleep under the line comes first in what to do', /1 Sleep first\. 6\.5 h a night is 1\.0 h under the line/i.test(t), (t.match(/(NEXT WEEK|REST OF THE WEEK).{0,200}/i) || [''])[0]);
+  ok('sleep under the line comes first in what to do', /1 Sleep first\. 6\.5 h a night is 1\.5 h under the line/i.test(t), (t.match(/(NEXT WEEK|REST OF THE WEEK).{0,200}/i) || [''])[0]);
   ok('never tells him to eat less', !/eat less|cut (your )?calories|lower your calories/i.test(t));
   const FB = await p.evaluate(k => { const w = reviewWeeks().find(x => x.k === k); return reviewFeedback(buildReview(w), w); }, wk.k);
   ok('at most four things to work on', FB.next.length <= 4, FB.next.length);

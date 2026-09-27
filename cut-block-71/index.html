@@ -191,6 +191,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="refeedCard"></div>
   <div id="runsCard"></div>
   <div id="betterCard"></div>
+  <div id="tCard"></div>
   <div id="xmasCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
@@ -312,7 +313,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
         <dt>Protein</dt><dd id="macroPro">—</dd>
         <dt>Carbs, hard day</dt><dd>200–210 g</dd>
         <dt>Carbs, other</dt><dd>150–170 g</dd>
-        <dt>Fat</dt><dd>40–45 g</dd>
+        <dt>Fat</dt><dd>45–50 g</dd>
       </dl>
       <hr class="d">
       <p class="note">The carb number is a <b>floor, not a ceiling</b>. Going under it raises cortisol, holds water, and makes you puffier and hungrier at the same rate of loss. Fat does not go under 40 g — testosterone and skin barrier.</p>
@@ -641,7 +642,8 @@ var CFG={
   kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
   study:{term:'2026-09-28',lo:16,hi:20},
-  sleep:{line:7.5},
+  /* 8 h from 28 Sep: optimal testosterone on the cut, and sleep is the biggest lever */
+  sleep:{line:8},
   /* The reverse. step is the weekly rise in kcal; everything else about it —
      where it starts, how long it runs, how big the ladder is — is derived from
      the deficit his own weight actually measured over the block. */
@@ -786,7 +788,7 @@ var CFG={
      app would otherwise recommend recovery he does not have. */
   sets:[{m:'Chest',cut:[6,10],rev:[12,18],day:'chest'},
         {m:'Back',cut:[8,12],rev:[14,20],day:'back'},
-        {m:'Shoulders',cut:[6,10],rev:[12,18],day:'delts'},
+        {m:'Shoulders',cut:[8,12],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
         {m:'Legs',cut:[4,8],rev:[8,14],day:'legs'},
         {m:'Biceps',cut:[4,8],rev:[8,14],day:'back'},
         {m:'Triceps',cut:[4,8],rev:[8,14],day:'chest'},
@@ -815,7 +817,8 @@ var KCAL_LIGHTUP=KCAL_DAY+100;
    2.33 g/kg, which is already past where the curve flattens. proRev is the
    reverse number, where the calories are there to pay for it and the carb
    floor is no longer the binding constraint. */
-var MACRO={pro:135,fat:42,proRev:150};
+/* fat 48 g (was 42) from 28 Sep: about 24% of the day, clear of the ~20% under which testosterone drops */
+var MACRO={pro:135,fat:48,proRev:150};
 var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
 /* One protein string, derived. It was typed out in four places and went
    stale the moment the number moved. */
@@ -1358,7 +1361,7 @@ function sleepBand(h){
   if(h===null)return {k:'unknown',t:'not logged'};
   if(h<6)return {k:'b',t:'severely short'};
   if(h<7)return {k:'w',t:'short'};
-  if(h<7.5)return {k:'w',t:'just under'};
+  if(h<CFG.sleep.line)return {k:'w',t:'just under'};
   if(h<=9)return {k:'g',t:'in the range'};
   return {k:'a',t:'long, but not wrong'};
 }
@@ -1828,6 +1831,7 @@ function renderReview(){
 
   if(wk.len&&wk.len!==7)h+='<p class="tiny" style="margin:-4px 0 10px">A '+wk.len+'-day week, lol — the Saturday and Sunday before the first Monday are in here too.</p>';
   h+=reviewDidHTML(R,wk);
+  h+=tSupportHTML(wk.start,wk.end,'Testosterone support · this week');
   /* how it went, and what to do next */
   var FB=reviewFeedback(R,wk);
   var curWk=(wk.start<=today()&&wk.end>=addD(today(),-6));
@@ -1884,7 +1888,7 @@ function renderReview(){
     tile('phone out',R.sleep.phone+' night'+(R.sleep.phone===1?'':'s'),'of '+R.days)+
     '</div>'+
     (R.sleep.blank>=3?'<p class="tiny" style="margin-top:8px">'+R.sleep.blank+' nights unlogged. They are ignored, not judged.</p>':
-     (R.sleep.avg!==null?'<p class="tiny" style="margin-top:8px">'+(R.sleep.avg>=CFG.sleep.line?'At or over the 7.5 h line.':f1(CFG.sleep.line-R.sleep.avg)+' h a night under the 7.5 line — the single biggest lever in the block.')+'</p>':''))+
+     (R.sleep.avg!==null?'<p class="tiny" style="margin-top:8px">'+(R.sleep.avg>=CFG.sleep.line?'At or over the '+f1(CFG.sleep.line)+' h line.':f1(CFG.sleep.line-R.sleep.avg)+' h a night under the '+f1(CFG.sleep.line)+' line — the single biggest lever in the block.')+'</p>':''))+
     '</div></div>';
 
   var DF=R.def,dsign=function(x){return (x>=0?'−':'+')+ci(Math.abs(Math.round(x)));};
@@ -2051,7 +2055,7 @@ function achList(){
   var sleep=[
     {n:'7 nights phone-free',got:sl.streak>=7,when:null,close:sl.streak>=5&&sl.streak<7,m:sl.streak>=7?(sl.streak+' nights and counting'):((7-sl.streak)+' more nights')},
     {n:'21 nights phone-free',got:sl.streak>=21,when:null,m:sl.streak>=21?(sl.streak+' nights and counting'):((21-sl.streak)+' more nights')},
-    {n:'A week averaging 7.5 h',got:(sl.a7.avg!==null&&sl.a7.n>=4&&sl.a7.avg>=CFG.sleep.line),when:null,
+    {n:'A week averaging '+f1(CFG.sleep.line)+' h',got:(sl.a7.avg!==null&&sl.a7.n>=4&&sl.a7.avg>=CFG.sleep.line),when:null,
      m:sl.a7.avg===null?'no nights logged yet':(sl.a7.n<4?(sl.a7.n+' of 7 nights logged — not enough to say'):(f1(sl.a7.avg)+' h over '+sl.a7.n+' nights'))}
   ];
   var study=[
@@ -3218,6 +3222,53 @@ function improveNext(){
   var wk=ws[ws.length-1];
   return reviewFeedback(buildReview(wk),wk).next.slice(0,2);
 }
+/* ===================== testosterone support =====================
+   Dan, 28 Sep: optimal, healthy testosterone on the cut, over everything
+   else. The levers in the order the evidence ranks them — sleep, how hard
+   the deficit is, enough carbs and fat, not over-training, then zinc and
+   vitamin D from food — each read off what he logged. Shown as what is
+   supporting it, not as targets: a line with nothing logged just says so. */
+function tSupport(from,to){
+  var t=today();if(to>t)to=t;
+  var sl=[],def=0,defN=0,refeed=false,hard=0,oily=0,eggs=0,zincG=0,zincFoods=[],hfAny=false,i,d,rec;
+  for(i=0;i<=diffD(from,to);i++){
+    d=addD(from,i);rec=S.days[d]||{};
+    if(typeof rec.sleep==='number')sl.push(rec.sleep);
+    var x=tdeeFor(d);if(x.stepsKnown||x.intakeKnown){def+=x.deficit;defN++;}
+    if(rec.refeed)refeed=true;
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty&&m.hard)hard++;});
+    var h=rec.hf||{};
+    for(var k in h){hfAny=true;var f=hfById(k);if(!f)continue;
+      if((f.p||[]).indexOf('oily')>=0)oily+=h[k];
+      if((f.p||[]).indexOf('eggs')>=0)eggs+=h[k];
+      if(['beef','lamb','venison','oysters','mussels','prawns','pumpkin','hazel','walnut','cheese'].indexOf(k)>=0){zincG+=f.m[1]*h[k]*hfFactor(f);if(zincFoods.indexOf(f.n)<0)zincFoods.push(f.n);}
+    }
+  }
+  var rows=[],w=weightModel(),ST=weekStatus();
+  var slAvg=sl.length?mean(sl):null;
+  rows.push({n:'Sleep',v:slAvg===null?'—':f1(slAvg)+' h',ok:slAvg===null?null:slAvg>=CFG.sleep.line,
+    w:slAvg===null?'Log your sleep and this reads it.':(slAvg>=CFG.sleep.line?'Most of your testosterone is made while you sleep — this is the big one, and it is covered.':'Under '+f1(CFG.sleep.line)+' h. The biggest lever there is: a week of short nights costs young men 10–15%. An earlier night beats anything you can eat.')});
+  var perDay=defN?def/defN:null,steep=(perDay!==null&&perDay>650)||w.band==='fast';
+  rows.push({n:'Deficit',v:perDay===null?'—':'−'+ci(Math.round(Math.max(0,perDay)/10)*10)+'/day',ok:perDay===null?null:!steep,
+    w:perDay===null?'Log food and steps and this reads it.':(steep?'Steep. A hard deficit is what drags testosterone down — the refeed and the rate band are there to stop that.':'Gentle — the size of deficit your hormones barely notice.')});
+  rows.push({n:'Carbs and fat',v:CARB_AT+' g · '+MACRO.fat+' g',ok:refeed?true:null,
+    w:'Your day at '+ci(KCAL_DAY)+' keeps carbs over '+CARB_FLOOR+' g and fat at '+MACRO.fat+' g — under about 20% fat and low carbs with hard training both lower testosterone.'+(refeed?' And a refeed this week — a break from the deficit your hormones like.':'')});
+  rows.push({n:'Training load',v:hard+' hard run'+(hard===1?'':'s'),ok:!(ST&&ST.k!=='good')&&hard<=CFG.hardRuns.target,
+    w:(ST&&ST.k!=='good')?ST.t+' — too much hard endurance work in a deficit is what suppresses it.':(hard<=CFG.hardRuns.target?'Balanced — lifting supports testosterone, and the running is not piling on.':'More than '+CFG.hardRuns.target+' hard runs — fine once, but a heavy endurance load in a deficit suppresses it.')});
+  rows.push({n:'Vitamin D foods',v:hfAny?hfAmt(oily,'g')+' oily fish · '+eggs+' egg'+(eggs===1?'':'s'):'—',ok:hfAny?(oily>=300||eggs>=7):null,
+    w:hfAny?'From October to March the UK sun is too weak to make vitamin D, so oily fish and egg yolks are your main source this winter.':'Log healthy foods and this reads your oily fish and eggs.'});
+  rows.push({n:'Zinc foods',v:hfAny?f1(zincG)+' mg':'—',ok:hfAny?zincG>=12:null,   /* about two red-meat portions' worth from the zinc foods a week */
+    w:hfAny?(zincFoods.length?'From '+zincFoods.join(', ')+'. ':'')+'Zinc is the mineral testosterone leans on hardest; a cut makes running low more likely. Oysters, red meat and pumpkin seeds carry the most.':'Log healthy foods and this reads your zinc.'});
+  return rows;
+}
+function tSupportHTML(from,to,title){
+  var rows=tSupport(from,to);
+  return '<div class="p"><h2>'+title+'</h2>'+
+    rows.map(function(r){return '<div style="padding:6px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
+      (r.ok===true?'<span class="pill g">✓</span>':(r.ok===false?'<span class="pill w">!</span>':'<span class="pill">·</span>'))+
+      '<b>'+r.n+'</b><span class="mono" style="margin-left:auto">'+r.v+'</span></div><p class="note" style="margin:2px 0">'+r.w+'</p></div>';}).join('')+
+    '<p class="tiny" style="margin-top:6px">What is supporting your testosterone, read off what you logged — not targets. A ✓ is helping; a ! is worth a look; a dot has nothing logged yet.</p></div>';
+}
 /* ===================== what you did, and what it did for you =====================
    Dan, 28 Sep: the week review should say everything he did and how it
    helps — and for the runs, properly in depth, because that is the fun part.
@@ -3321,7 +3372,7 @@ function reviewDidHTML(R,wk){
   if(R.w.avg!==null)ev.push(['Weight',f1(R.w.avg)+' lb avg',R.w.dLb!==undefined?(R.w.dLb>0?'−'+f1(R.w.dLb)+' lb on the week before — ':'+'+f1(-R.w.dLb)+' lb on the week before — ')+'the average is the only number that counts.':R.w.n+' mornings — your first comparison is next week.']);
   if(refeeds.length)ev.push(['Refeed',refeeds.map(function(d){return DOWS[dow(d)];}).join(', '),'Refilled the glycogen your next hard session runs on, and gave your hormones a break from the deficit — planned, not a slip.']);
   if(R.steps.days)ev.push(['Steps',ci(Math.round(R.steps.total/R.steps.days/100)*100)+' a day',ci(R.steps.total)+' all in — about <b>'+ci(Math.round(walk/10)*10)+' kcal</b> of walking. The quiet engine of a cut: it burns fat without costing recovery, and lowers stress hormone.']);
-  if(R.sleep.n)ev.push(['Sleep',f1(R.sleep.avg)+' h a night',R.sleep.line+' of '+R.sleep.n+' nights over 7.5 h. Sleep is when testosterone is made and muscle repaired, and it keeps your hunger hormones in check.']);
+  if(R.sleep.n)ev.push(['Sleep',f1(R.sleep.avg)+' h a night',R.sleep.line+' of '+R.sleep.n+' nights at '+f1(CFG.sleep.line)+' h or more. Sleep is when testosterone is made and muscle repaired, and it keeps your hunger hormones in check.']);
   if(rhr.length)ev.push(['Resting HR',Math.round(mean(rhr))+' bpm avg',rhr.length+' mornings. Lower over the weeks means fitter and recovering well.']);
   if(R.skin.am||R.skin.pm)ev.push(['Skin','AM '+R.skin.am+' · PM '+R.skin.pm,'The morning SPF is the best anti-ageing thing you do; the night routine repairs the barrier.']);
   if(R.study.total)ev.push(['Study',f1(R.study.total)+' h',(R.study.deep?f1(R.study.deep)+' h of it deep work. ':'')+'Protected hours, and a sharper brain on a cut is sleep and omega-3 as much as effort.']);
@@ -3356,6 +3407,7 @@ function renderBetter(){
 }
 function renderGains(){
   renderBetter();
+  E('tCard').innerHTML=(today()>=CFG.cutStart&&today()<=CFG.cutEnd)?tSupportHTML(addD(today(),-6),today(),'Testosterone support · last 7 days'):'';
   E('runsCard').innerHTML=weekRunsHTML();
   var t=today(),rows=dayFeedback(t);
   if(!rows.length){E('gainCard').innerHTML='';}
@@ -5379,7 +5431,7 @@ function renderSleep(){
   if(m.blank7>=3){
     h+='<div class="p" style="margin-top:12px;box-shadow:none;border-left:3px solid var(--ink-3)"><b>'+m.blank7+' of the last 7 nights are not logged.</b> They are being ignored, not judged. Nothing here reads a blank as a bad night — that is how fatigue warnings get fired on evidence that does not exist.</div>';
   }
-  h+='<p class="tiny" style="margin-top:10px">The line is <b class="num">7.5 h</b> — roughly where the evidence sits, not a bedtime. Bands, not pass/fail: under 6 severely short · 6–7 short · 7–7.5 just under · 7.5–9 the range · over 9 long, but not wrong.</p></div>';
+  h+='<p class="tiny" style="margin-top:10px">The line is <b class="num">'+f1(CFG.sleep.line)+' h</b> — set for testosterone, where the evidence sits for young men, not a bedtime. Bands, not pass/fail: under 6 severely short · 6–7 short · 7–8 just under · 8–9 the range · over 9 long, but not wrong.</p></div>';
   E('slTop').innerHTML=h;
 
   var maxH=10;
@@ -5387,12 +5439,12 @@ function renderSleep(){
   m.bars.forEach(function(b){
     if(b.h===null){bars+='<div class="b u" style="height:14%" title="'+fmtS(b.d)+' — not logged"></div>';}
     else{
-      var cls=b.h<6?' vlo':(b.h<7.5?' lo':'');
+      var cls=b.h<6?' vlo':(b.h<CFG.sleep.line?' lo':'');
       bars+='<div class="b'+cls+'" style="height:'+Math.max(4,Math.min(100,(b.h/maxH)*100))+'%" title="'+fmtS(b.d)+' — '+f1(b.h)+' h"></div>';
     }
   });
   bars+='</div><div class="barlab">'+m.bars.map(function(b){return '<span>'+(dow(b.d)===1?fmtS(b.d).split(' ')[0]:DOWS[dow(b.d)].slice(0,1))+'</span>';}).join('')+'</div>';
-  bars+='<div class="row" style="margin-top:10px"><span class="pill g">7.5 h and over</span><span class="pill w">under the line</span><span class="pill b">under 6</span><span class="pill">hatched = not logged, not judged</span></div></div>';
+  bars+='<div class="row" style="margin-top:10px"><span class="pill g">'+f1(CFG.sleep.line)+' h and over</span><span class="pill w">under the line</span><span class="pill b">under 6</span><span class="pill">hatched = not logged, not judged</span></div></div>';
   E('slChart').innerHTML=bars;
 }
 

@@ -170,6 +170,38 @@ await put('beef', 125);
 ok('the counter follows the log date', await p.evaluate(() => S.days[addD(today(), -1)].hf.beef === 125 && !S.days[today()].hf.beef));
 await ctx.close();
 
+// ===== testosterone support =====
+({ ctx, p, boot } = await at(null));
+{
+  await boot(st());
+  const ago = async k => p.evaluate(n => addD(today(), -n), k);
+  const days = {};
+  for (let i = 0; i < 7; i++) days[await ago(i)] = { sleep: 8.3, steps: 15000, kcal: 1799 };
+  days[await ago(1)].refeed = true;
+  days[await ago(2)].hf = { salmon: 150, mackerel: 180, egg: 4, beef: 250, pumpkin: 30 };
+  await boot(st({ days }));
+  const R = await p.evaluate(() => tSupport(addD(today(), -6), today()));
+  const row = n => R.find(r => r.n === n) || {};
+  ok('sleep at 8.3 h supports it', row('Sleep').ok === true, JSON.stringify(row('Sleep')));
+  ok('the sleep line is now 8 h', await p.evaluate(() => CFG.sleep.line === 8));
+  ok('fat is 48 g, carbs still over the floor', await p.evaluate(() => MACRO.fat === 48 && CARB_AT >= CARB_FLOOR));
+  ok('the refeed is credited under carbs and fat', row('Carbs and fat').ok === true && /refeed this week/.test(row('Carbs and fat').w));
+  ok('vitamin D foods read the oily fish and eggs', row('Vitamin D foods').ok === true && /330 g oily fish · 4 eggs/.test(row('Vitamin D foods').v), JSON.stringify(row('Vitamin D foods')));
+  ok('zinc foods: 14.8 mg from beef and pumpkin seeds supports it', row('Zinc foods').ok === true && /14\.8 mg/.test(row('Zinc foods').v) && /Beef, lean/.test(row('Zinc foods').w) && /Pumpkin seeds/.test(row('Zinc foods').w), JSON.stringify(row('Zinc foods')));
+  ok('the winter vitamin D point is made honestly', /too weak to make vitamin D/.test(row('Vitamin D foods').w));
+  await p.click('[data-t="today"]');
+  const tc = sq(await p.innerText('#tCard'));
+  ok('Today shows the card', /TESTOSTERONE SUPPORT · LAST 7 DAYS/i.test(tc) && /not targets/.test(tc), tc.slice(0, 200));
+  // short sleep and nothing logged
+  const d2 = {};
+  for (let i = 0; i < 7; i++) d2[await ago(i)] = { sleep: 6.8 };
+  await boot(st({ days: d2 }));
+  const R2 = await p.evaluate(() => tSupport(addD(today(), -6), today()));
+  ok('short sleep is flagged, with why', R2[0].ok === false && /10–15%/.test(R2[0].w), JSON.stringify(R2[0]));
+  ok('with no healthy foods logged, those lines just say so', R2.find(r => r.n === 'Zinc foods').ok === null && /Log healthy foods/.test(R2.find(r => r.n === 'Zinc foods').w));
+}
+await ctx.close();
+
 await b.close();
 if (errs.length) fails.push(...errs);
 console.log(fails.length ? 'FAIL (' + fails.length + ')\n - ' + fails.join('\n - ') : 'all passed');

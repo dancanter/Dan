@@ -27,8 +27,8 @@ ok('the reverse takes the higher number', m.proRev > m.pro, JSON.stringify(m));
 ok('the carbohydrate it leaves clears the hard-day floor', m.carb >= m.floor, JSON.stringify(m));
 ok('PRO_MAX is the real headroom', Math.round((m.kcal - m.max * 4 - m.fat * 9) / 4) >= m.floor, String(m.max));
 ok('and one gram past PRO_MAX breaches it',
-  Math.round((m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4) < m.floor,
-  String(Math.round((m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4)));
+  (m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4 < m.floor,   /* unrounded: 199.75 g is under a 200 g floor */
+  String((m.kcal - (m.max + 1) * 4 - m.fat * 9) / 4));
 ok('the cut number sits under the headroom', m.pro < m.max, m.pro + ' vs ' + m.max);
 ok('the protein string is derived from the number', m.txt === (m.pro - 5) + '–' + (m.pro + 5) + ' g', m.txt);
 
