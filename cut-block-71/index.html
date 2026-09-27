@@ -189,6 +189,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
   <div id="refeedCard"></div>
+  <div id="runsCard"></div>
   <div id="betterCard"></div>
   <div id="xmasCard"></div>
   <div id="pbCard"></div>
@@ -305,6 +306,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     </div>
     <div id="myFoods"></div>
   </div>
+  <div id="hfPanel"></div>
   <div id="goalsPanel"></div>
   <div id="todaySummary"></div>
 </section>
@@ -430,6 +432,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= TRAINING ================= -->
 <section id="s-training" class="stack" hidden>
+  <div id="tRuns"></div>
   <div id="tWeek"></div>
   <div id="tSplit"></div>
   <div id="tPlan"></div>
@@ -627,7 +630,11 @@ var CFG={
   deloadWeeks:[4,8],
   /* runs was 43 with an easy run in every week; Dan made the easy run a bonus
      (26 Sep), so the block total drops by one run a week: 43 - 10 = 33. */
-  goals:{gym:48,hard:21,runs:33,steps:12800,weightLo:122,weightHi:123},
+  /* 27 Sep, Dan's block targets, from the weekly template: 2 hard runs a
+     week and 1 in each deload week (4 and 8) = 18, plus the pre-block's one
+     = 19; 1 uphill sprint session every week = 10; runs = the two together =
+     29, about 3 a week. Easy runs are a bonus on top and count toward runs. */
+  goals:{gym:48,hard:19,sprints:10,runs:29,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
@@ -824,6 +831,13 @@ function stepTarget(is){var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return 
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
 function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
+/* The week's targets. A deload week keeps the sprints and the gym (fewer
+   sets, same sessions) and drops to one hard run. */
+function tmplFor(start){
+  var T={hard:CFG.tmpl.hard,sprints:CFG.tmpl.sprints,runs:CFG.tmpl.runs,gym:CFG.tmpl.gym,easy:CFG.tmpl.easy,deload:false};
+  if(start>=WEIGH_START&&isDeload(weekOf(start))){T.hard=1;T.runs=T.hard+T.sprints;T.deload=true;}
+  return T;
+}
 function inCut(is){return is>=CFG.cutStart&&is<=CFG.cutEnd;}
 function isPreBlock(is){return is>=CFG.cutStart&&is<WEIGH_START;}
 
@@ -1203,9 +1217,9 @@ function eachRun(fn){
   }
 }
 function trainingModel(){
-  var gym=0,runs=0,hard=0,t=today();
+  var gym=0,runs=0,hard=0,spr=0,t=today();
   for(var d in S.days){if(inCut(d)&&d<=t&&S.days[d].gym)gym++;}
-  eachRun(function(r){var q=runMeta(r);if(q.empty)return;runs++;if(q.hard)hard++;});
+  eachRun(function(r){var q=runMeta(r);if(q.empty)return;runs++;if(q.hard)hard++;if(q.sprint)spr++;});
   var stepsTotal=0,stepsDays=0,stepsDue=0;
   var c=cutTally();
   for(var k in S.days){
@@ -1234,7 +1248,7 @@ function trainingModel(){
       if(jd.kind==='cont'&&!jd.hard&&!jd.sprint)wk.easy++;
     }
   }
-  return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),
+  return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),sprints:goalPace(spr,CFG.goals.sprints),
           stepsTotal:stepsTotal,stepsDays:stepsDays,stepsAvg:stepsDays?stepsTotal/stepsDays:null,
           stepsUnlogged:c.elapsed-stepsDays,week:wk,wkStart:wkStart,wkEnd:wkEnd,pre:pre,
           effortSessions:wk.hard};
@@ -1756,13 +1770,14 @@ function reviewFeedback(R,wk){
   }
   /* runs and gym — the week's targets, never a "miss" for a rest day */
   if(!pre){
-    if(R.s.hard>CFG.tmpl.hard)next.push('<b>'+R.s.hard+' hard runs is the ceiling.</b> Fine once — aim for 2 next week.');
-    else if(R.s.hard>=CFG.tmpl.hard)win.push('Both hard runs done.');
-    else next.push('<b>'+(live?'Still to fit in: ':'Get both hard runs in: ')+(CFG.tmpl.hard-R.s.hard)+' hard run'+(CFG.tmpl.hard-R.s.hard===1?'':'s')+'.</b> '+(CFG.tmpl.hard-R.s.hard>1?'Leave a day between them, and neither the day after legs.':'Not the day after legs or the day after another hard run.'));
-    if(R.s.sprints>=CFG.tmpl.sprints)win.push('Uphill sprints done'+(R.s.easy?', plus '+R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' as a bonus':'')+'.');
+    var TT=tmplFor(wk.start);
+    if(R.s.hard>=CFG.hardRuns.cap)next.push('<b>'+R.s.hard+' hard runs is the ceiling.</b> Fine once — aim for '+CFG.tmpl.hard+' next week.');
+    else if(R.s.hard>=TT.hard)win.push(TT.hard===1?'The deload’s one hard run done.':'Both hard runs done.');
+    else next.push('<b>'+(live?'Still to fit in: ':(TT.hard===1?'Get the hard run in: ':'Get both hard runs in: '))+(TT.hard-R.s.hard)+' hard run'+(TT.hard-R.s.hard===1?'':'s')+'.</b> '+(TT.hard-R.s.hard>1?'Leave a day between them, and neither the day after legs.':'Not the day after legs or the day after another hard run.'));
+    if(R.s.sprints>=TT.sprints)win.push('Uphill sprints done'+(R.s.easy?', plus '+R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' as a bonus':'')+'.');
     else next.push('<b>Uphill sprints'+(live?' still to do':'')+'.</b> Short and explosive, count the reps — it is the speed that fades first on a cut.');
-    if(R.s.gym>=CFG.tmpl.gym)win.push('All '+CFG.tmpl.gym+' gym sessions.');
-    else if(!live)next.push('<b>Gym '+R.s.gym+' of '+CFG.tmpl.gym+'.</b> Put the sessions in the diary at the start of the week so they are decided before the week gets busy.');
+    if(R.s.gym>=TT.gym)win.push('All '+TT.gym+' gym sessions.');
+    else if(!live)next.push('<b>Gym '+R.s.gym+' of '+TT.gym+'.</b> Put the sessions in the diary at the start of the week so they are decided before the week gets busy.');
   }
   /* steps */
   if(R.steps.days>=3){
@@ -1837,13 +1852,13 @@ function renderReview(){
       (want===0?(got?'<span class="pill g">bonus</span>':'<span class="tiny">bonus — optional</span>'):'')+
       (want===null?'<span class="tiny">no target this week</span>':want===0?'':(got>=want?'<span class="pill g">met</span>':'<span class="pill">'+(want-got)+' short</span>'))+'</td></tr>';
   };
-  var pre=(wk.k==='pre');
+  var pre=(wk.k==='pre'),TW=tmplFor(wk.start);
   h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
-    tmplRow('Hard runs',R.s.hard,pre?null:CFG.tmpl.hard)+
-    tmplRow('Uphill sprints',R.s.sprints,pre?null:CFG.tmpl.sprints)+
-    tmplRow('Runs, all in',R.s.runs,pre?null:CFG.tmpl.runs)+
-    tmplRow('Easy runs <span class="tiny">optional</span>',R.s.easy,pre?null:CFG.tmpl.easy)+
-    tmplRow('Gym',R.s.gym,pre?null:CFG.tmpl.gym)+
+    tmplRow('Hard runs',R.s.hard,pre?null:TW.hard)+
+    tmplRow('Uphill sprints',R.s.sprints,pre?null:TW.sprints)+
+    tmplRow('Runs, all in',R.s.runs,pre?null:TW.runs)+
+    tmplRow('Easy runs <span class="tiny">optional</span>',R.s.easy,pre?null:TW.easy)+
+    tmplRow('Gym',R.s.gym,pre?null:TW.gym)+
     '</tbody></table>'+
 
     (R.s.best?'<p class="tiny" style="margin-top:8px">Best session: <b>'+esc(R.s.best.label)+'</b> on '+fmtS(R.s.best.d)+' at <b class="num">'+secFmt(R.s.best.avg)+'</b> rep average'+
@@ -2061,7 +2076,7 @@ function achList(){
   ];
   return [
     {g:'Weight',items:weight},
-    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,15,CFG.goals.hard])).concat(tiers('runs',runs,[8,16,25,CFG.goals.runs]))},
+    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,14,CFG.goals.hard])).concat(tiers('runs',runs,[7,15,22,CFG.goals.runs]))},
     {g:'Speed',items:speed},
     {g:'Steps',items:steps},
     {g:'Sleep',items:sleep},
@@ -2097,7 +2112,7 @@ function renderMission(){
 function renderWins(){
   renderMission();
   var tr=trainingModel(),w=weightModel(),c=cutTally();
-  var rows=[['Gym sessions',tr.gym],['Hard runs',tr.hard],['Runs, all in',tr.runs]];
+  var rows=[['Gym sessions',tr.gym],['Hard runs',tr.hard],['Sprint sessions',tr.sprints],['Runs, all in',tr.runs]];
   var h='<div class="p"><h2>This camp · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+
     ' · '+c.remaining+' day'+(c.remaining===1?'':'s')+' left</h2>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>&nbsp;</th><th class="n">Done</th><th class="n">Left</th><th class="n">Target</th><th>Against pace</th></tr></thead><tbody>';
@@ -2346,10 +2361,10 @@ function fuelShapes(is){
 function weekOwes(tr){
   if(tr.pre)return [];
   var o=[];
-  if(tr.week.hard<CFG.tmpl.hard)o.push({k:'hard',n:CFG.tmpl.hard-tr.week.hard,label:'hard run'});
-  if(tr.week.easy<CFG.tmpl.easy)o.push({k:'easy',n:CFG.tmpl.easy-tr.week.easy,label:'easy run'});
-  if(tr.week.sprints<CFG.tmpl.sprints)o.push({k:'sprint',n:CFG.tmpl.sprints-tr.week.sprints,label:'sprint session'});
-  if(tr.week.gym<CFG.tmpl.gym)o.push({k:'gym',n:CFG.tmpl.gym-tr.week.gym,label:'gym session'});
+  var T=tmplFor(tr.wkStart);
+  if(tr.week.hard<T.hard)o.push({k:'hard',n:T.hard-tr.week.hard,label:'hard run'});
+  if(tr.week.sprints<T.sprints)o.push({k:'sprint',n:T.sprints-tr.week.sprints,label:'sprint session'});
+  if(tr.week.gym<T.gym)o.push({k:'gym',n:T.gym-tr.week.gym,label:'gym session'});
   return o;
 }
 function fuelToday(tr){
@@ -2858,6 +2873,63 @@ function weekGains(){
   out.w=w;
   return out;
 }
+/* ===================== this week's runs =====================
+   Dan's ask: at the start of each week, which runs and how many — never
+   which day. Two hard runs (one long-rep session for 800 m to 5 km, one
+   short-speed session for 200 m to 600 m), one set of uphill sprints, and
+   an easy run if his legs are fresh. Sessions build a little each week,
+   drop in the deloads (4 and 8) and test in weeks 5 and 10. By feel only:
+   no paces and no rest intervals, which are his to judge on the day. */
+var CUT_RUNS=[null,
+  {long:'5 × 800 m',short:'5 × 200 m',spr:7,note:'Week one: find your level — controlled, not all-out.'},
+  {long:'5 × 1 km',short:'6 × 300 m',spr:8},
+  {long:'6 × 800 m',short:'6 × 400 m',spr:9},
+  {deload:true,long:null,short:'6 × 200 m, fast but relaxed',spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
+  {long:'Time trial — 1 km or a mile',short:'Time trial — 400 m',spr:8,tt:true,note:'Test week. Proper warm-up, and at least 48 h between the two trials.'},
+  {long:'5 × 1 km',short:'4 × 600 m',spr:9},
+  {long:'6 × 800 m',short:'8 × 200 m',spr:10},
+  {deload:true,long:null,short:'5 × 300 m, fast but relaxed',spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
+  {long:'4 × 1 km — quicker than week 6 at the same feel',short:'5 × 400 m',spr:10},
+  {long:'Time trial — a mile or 1 km',short:'Time trial — 400 m or 200 m',spr:8,tt:true,note:'Last week of the cut: test, then the reverse starts and the real PB chase with it.'}
+];
+function weekRunsModel(){
+  var t=today();if(t<WEIGH_START||t>CFG.cutEnd)return null;
+  var wk=weekOf(t),P=CUT_RUNS[wk];if(!P)return null;
+  var tr=trainingModel(),w=tr.week,T=tmplFor(tr.wkStart);
+  /* don't get ahead: if last week's hard runs felt 9 or 10, repeat them */
+  var prevStart=addD(tr.wkStart,-7),heavy=false,i,d;
+  for(i=0;i<7;i++){d=addD(prevStart,i);(S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.hard&&!m.empty&&r.rpe>=9)heavy=true;});}
+  var repeat=heavy&&wk>1&&!P.deload&&!P.tt&&CUT_RUNS[wk-1]&&!CUT_RUNS[wk-1].deload&&!CUT_RUNS[wk-1].tt;
+  var use=repeat?CUT_RUNS[wk-1]:P;
+  /* which slot each hard run filled: reps of 400 m or less are the short
+     speed session, anything longer (or a hard continuous run) the long one */
+  var lng=0,sht=0;
+  for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;
+    (S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty||!m.hard)return;
+      if(m.kind==='reps'&&m.dm&&m.dm<=400)sht++;else lng++;});}
+  /* a second session of the same kind still counts, toward the other slot */
+  var longDone=lng>=1||(sht>=2&&!!use.long),shortDone=sht>=1||(lng>=2);
+  if(!use.long)shortDone=lng+sht>=1;
+  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone};
+}
+function weekRunsHTML(){
+  var M=weekRunsModel();if(!M)return '';
+  var P=M.P,T=M.T,w=M.w,hardDone=w.hard,rows=[];
+  var tick=function(ok){return ok?'<span class="pill g">✓</span>':'<span class="pill">○</span>';};
+  if(P.long)rows.push([M.longDone,'Hard · long reps',P.long+(P.tt?'':' — or a threshold run, comfortably hard for 20–25 min'),'Builds your 800 m, 1 km, mile and 5 km.']);
+  rows.push([M.shortDone,'Hard · short speed',P.short,'Builds your 200, 400 and 600.']);
+  rows.push([w.sprints>=1,'Uphill sprints',P.spr+' × about 100 m uphill — explosive, walk back down, count the reps','Top-end speed and power, for very little fatigue.']);
+  var h='<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
+    '<p class="lede"><b>'+T.runs+' runs: '+T.hard+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Any order, any days — just never a hard run the day after legs or after another hard run.</p>'+
+    (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>repeat last week’s sessions</b> rather than moving up. Getting ahead of yourself is how cuts go wrong.</p>':'')+
+    rows.map(function(r){return '<div style="padding:6px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(r[0])+'<b>'+r[1]+'</b></div>'+
+      '<div style="margin-top:2px">'+r[2]+'</div><div class="tiny">'+r[3]+'</div></div>';}).join('')+
+    '<div style="padding:6px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
+      '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>'+
+    (P.note?'<p class="note" style="margin-top:6px">'+P.note+'</p>':'')+
+    '<p class="tiny" style="margin-top:6px"><b>How it builds without getting ahead of you:</b> move up only if last week’s version felt controlled — about a 7 by the end. If it felt like a 9 or 10, repeat it. Add reps or go quicker, never both in the same week.</p></div>';
+  return h;
+}
 /* ===================== better than last week =====================
    Dan asked for "you are this much better today" and then what to work on.
    Every line is his own number against his own number: the last 7 days
@@ -3033,6 +3105,7 @@ function renderBetter(){
 }
 function renderGains(){
   renderBetter();
+  E('runsCard').innerHTML=weekRunsHTML();
   var t=today(),rows=dayFeedback(t);
   if(!rows.length){E('gainCard').innerHTML='';}
   else{
@@ -3234,7 +3307,7 @@ function pushCall(w,tr,c,rest){
   if(c.before||c.after||rest.fire)return '';
   if(c.elapsed<7)return '';
   var behind=[];
-  [['Gym sessions',tr.gym],['Hard runs',tr.hard],['Runs, all in',tr.runs]].forEach(function(p){
+  [['Gym sessions',tr.gym],['Hard runs',tr.hard],['Sprint sessions',tr.sprints],['Runs, all in',tr.runs]].forEach(function(p){
     if(p[1].diff<=-PUSH_BEHIND)behind.push({n:p[0],p:p[1]});
   });
   var dw=dow(c.t),late=(dw===0||dw>=4);          /* Thu, Fri, Sat, Sun */
@@ -3676,7 +3749,7 @@ function renderToday(c,w,tr){
   /* goals — how many left, and whether that is on pace */
   var g='<div class="p"><h2>Goals — '+fmtS(CFG.cutStart)+' to '+fmtS(CFG.cutEnd)+' · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+'</h2>'+
     '<div class="cols3">'+
-    goalCard('Gym sessions',tr.gym)+goalCard('Hard runs',tr.hard)+goalCard('Runs, all in',tr.runs)+
+    goalCard('Gym sessions',tr.gym)+goalCard('Hard runs',tr.hard)+goalCard('Sprint sessions',tr.sprints)+goalCard('Runs, all in',tr.runs)+
     stepsCard(tr)+
     weightCard(w)+
     daysCard(c)+
@@ -3805,11 +3878,12 @@ function weekTemplateHTML(tr){
     return p;
   }
   var w=tr.week;
-  var rows=[['Hard runs',w.hard,CFG.tmpl.hard,w.hard>=CFG.tmpl.hard],
-            ['Uphill sprints',w.sprints,CFG.tmpl.sprints,w.sprints>=CFG.tmpl.sprints],
-            ['Runs, all in',w.runs,CFG.tmpl.runs,w.runs>=CFG.tmpl.runs],
+  var T=tmplFor(tr.wkStart);
+  var rows=[['Hard runs',w.hard,T.hard,w.hard>=T.hard],
+            ['Uphill sprints',w.sprints,T.sprints,w.sprints>=T.sprints],
+            ['Runs, all in',w.runs,T.runs,w.runs>=T.runs],
             ['Easy runs',w.easy,0,true],
-            ['Gym',w.gym,CFG.tmpl.gym,w.gym>=CFG.tmpl.gym]];
+            ['Gym',w.gym,T.gym,w.gym>=T.gym]];
   var bk=w.byKind||{easy:0,hard:0,sprint:0};
   var parts=[['easy',bk.easy],['hard',bk.hard],['sprints',bk.sprint]].filter(function(x){return x[1]>0;});
   var h='';
@@ -4052,7 +4126,129 @@ function setEaten(d,list){
 }
 function mealNow(){var h=new Date().getHours(),m=new Date().getMinutes();
   return h<11?'breakfast':(h<15?'lunch':(h<18||(h===18&&m<30)?'tea':'evening'));}
+/* ===================== healthy foods =====================
+   Dan: "give me the whole list of the healthiest foods, I'll say how many I
+   had, add it up for the week and tell me what it did for me". A tap
+   counter, separate from the kcal: portions of the foods that carry the
+   most, with typical micronutrients per portion (UK composition tables /
+   USDA, rounded) and what each is for. All gluten free as listed (oats,
+   chocolate and nuts must be certified GF), no brassicas, no liver (vitamin
+   A and biotin), nothing processed. Values are per portion and typical —
+   the week totals count these foods only, so the real totals are higher. */
+var HF=[
+ {k:'egg',n:'Eggs',u:'1 large egg',wk:10,m:[0.9,0.6,28,6,69,15,0,0.45,24,30],g:['hor','brain','skin'],
+  why:'Choline for your brain, B12, selenium, and lutein that the yolk makes easy to absorb. The yolk’s fat and cholesterol are raw material for testosterone.'},
+ {k:'oily',n:'Oily fish',u:'1 portion (~120 g) — salmon, mackerel, sardines, trout',wk:3,m:[0.6,0.6,30,36,440,45,0,5,20,2500],g:['skin','hor','brain','heart'],
+  why:'The best single glow food: EPA and DHA calm redness and build the skin barrier. Also vitamin D from food and selenium, for testosterone and thyroid.'},
+ {k:'red',n:'Lean beef or lamb',u:'1 portion (~125 g)',wk:2,m:[3.2,7.5,10,28,450,25,0,3,10,40],g:['hor','run'],
+  why:'The best-absorbed iron and zinc there is, plus B12 and creatine. Low iron and zinc are what make a cut look pale and tired.'},
+ {k:'shell',n:'Mussels, oysters or prawns',u:'1 portion (~100 g)',wk:1,m:[6.7,2.7,33,37,268,90,13,24,76,780],g:['hor','skin','run'],
+  why:'Mussels: iron, B12, selenium and omega-3, cheap. Oysters have about ten times the zinc — the mineral testosterone and skin repair lean on hardest.'},
+ {k:'fage',n:'Greek yoghurt (Fage)',u:'1 pot / 170 g',wk:7,m:[0,0.9,187,19,240,16,0,1.3,12,0],g:['sleep','hor'],
+  why:'Slow protein that keeps you full, calcium, and iodine for your thyroid.'},
+ {k:'kefir',n:'Kefir',u:'1 glass / 200 ml',wk:5,m:[0,0.8,240,24,310,4,2,0.8,10,0],g:['gut','sleep'],
+  why:'Live cultures for your gut — and a calm gut shows in your skin — plus calcium.'},
+ {k:'berry',n:'Berries',u:'1 handful / 80 g — blueberries, raspberries, blackcurrants',wk:7,m:[0.4,0.2,16,13,104,0.2,16,0,12,0],g:['skin','brain','gut'],
+  why:'Anthocyanins protect blood vessels and brain, and vitamin C builds collagen. Blackcurrants carry the most.'},
+ {k:'kiwi',n:'Kiwi',u:'1 kiwi',wk:7,m:[0.2,0.1,26,13,234,0.2,64,0,19,0],g:['skin','sleep'],
+  why:'A whole day’s vitamin C for collagen, from food. Two before bed have some evidence for falling asleep faster and sleeping longer.'},
+ {k:'citrus',n:'Orange or clementines',u:'1 orange (or 2 clementines)',wk:4,m:[0.1,0.1,52,13,237,0.5,70,0,39,0],g:['skin'],
+  why:'Vitamin C and folate. Eaten with a meal it helps you absorb the iron in spinach and lentils.'},
+ {k:'tomato',n:'Tomatoes cooked in olive oil',u:'1 serving — ~150 g cooked, or 2 tbsp purée',wk:5,m:[0.8,0.2,15,16,350,0.5,20,0,20,0],g:['skin','heart'],
+  why:'Lycopene, absorbed far better cooked with oil. There is real evidence it gives your skin some sun protection from the inside.'},
+ {k:'green',n:'Spinach, chard or lettuce leaves',u:'1 handful / 80 g',wk:7,m:[2.2,0.4,79,63,446,0.8,22,0,155,0],g:['run','heart','brain'],
+  why:'Nitrates widen blood vessels — better running economy and a better pump. Plus folate and magnesium.'},
+ {k:'beet',n:'Beetroot',u:'80 g, or a shot of beetroot juice',wk:3,m:[0.6,0.3,13,18,250,0.5,3,0,64,0],g:['run','heart'],
+  why:'The richest nitrate food — the one with real evidence for running faster at the same effort. Best 2–3 hours before a hard run.'},
+ {k:'potato',n:'Potatoes, skin on',u:'1 portion / 200 g',wk:5,m:[1.2,0.6,16,44,760,0.6,15,0,20,0],g:['run','heart'],
+  why:'Potassium balances sodium, so less puffiness. Clean carbs to refill for hard runs.'},
+ {k:'evoo',n:'Extra virgin olive oil',u:'1 tbsp',wk:10,m:[0.1,0,0,0,0,0,0,0,0,0],g:['heart','skin'],
+  why:'Polyphenols and vitamin E, the best-studied fat for heart and long-term health, and skin that looks fed.'},
+ {k:'avo',n:'Avocado',u:'½ avocado',wk:3,m:[0.4,0.5,9,22,365,0.3,7.5,0,61,0],g:['skin','heart'],
+  why:'Potassium, folate and healthy fats that help you absorb the carotenoids in the rest of the meal.'},
+ {k:'pumpkin',n:'Pumpkin seeds',u:'1 handful / 30 g',wk:5,m:[2.6,2.3,14,178,243,2.8,0.6,0,17,0],g:['hor','sleep'],
+  why:'Among the richest magnesium foods, for sleep and muscle, plus zinc for hormones.'},
+ {k:'walnut',n:'Walnuts',u:'1 handful / 30 g',wk:3,m:[0.9,0.9,29,47,131,1.4,0.4,0,29,0],g:['brain','heart'],
+  why:'Plant omega-3 and polyphenols — the nut with the most evidence for brain and heart.'},
+ {k:'brazil',n:'Brazil nuts',u:'1 nut — max 2 a day',wk:10,m:[0.1,0.2,8,19,33,70,0,0,1,0],g:['hor'],
+  why:'One or two cover your selenium — for thyroid, testosterone and antioxidant defence. More than 2 a day is too much.'},
+ {k:'choc',n:'Dark chocolate 85%',u:'20 g — certified GF',wk:7,m:[2.4,0.7,14,46,143,1.4,0,0,0,0],g:['skin','brain','heart'],
+  why:'Cocoa flavanols improve blood flow to your skin and brain. Iron and magnesium too.'},
+ {k:'tea',n:'Green tea or matcha',u:'1 cup — before midday',wk:7,m:[0,0,0,2,20,0,0,0,4,0],g:['brain','heart'],
+  why:'EGCG and L-theanine: calm focus without the jitter, and antioxidants.'},
+ {k:'oats',n:'Oats',u:'50 g — certified GF',wk:5,m:[2.2,1.8,26,69,181,14,0,0,16,0],g:['run','gut','heart'],
+  why:'Beta-glucan fibre lowers cholesterol and steadies your energy. Good fuel before hard runs.'},
+ {k:'lentil',n:'Lentils',u:'100 g cooked, or 2 GF lentil cakes',wk:3,m:[3.3,1.3,19,36,369,2.8,1.5,0,181,0],g:['gut','heart'],
+  why:'Fibre for your gut bacteria, folate, and plant iron. Eat them with vitamin C to absorb more.'},
+ {k:'banana',n:'Banana',u:'1 banana',wk:4,m:[0.3,0.2,5,27,358,1,8.7,0,20,0],g:['run'],
+  why:'Potassium and fast carbs: easy fuel before a hard run or sprints.'},
+ {k:'mush',n:'Mushrooms',u:'80 g',wk:3,m:[0.4,0.4,3,7,255,7,2,0,13,0],g:['gut','brain'],
+  why:'Ergothioneine, an antioxidant researchers call a longevity vitamin, plus selenium. UV-grown ones add vitamin D.'}
+];
+var HF_GROUPS=[
+ {k:'hor',n:'Hormones',w:'testosterone and thyroid lean on zinc, selenium, vitamin D and enough dietary fat'},
+ {k:'skin',n:'Skin and glow',w:'omega-3, vitamin C for collagen, lycopene and flavanols'},
+ {k:'run',n:'Running and energy',w:'iron and B12 carry oxygen, nitrates improve economy, carbs refill'},
+ {k:'brain',n:'Brain and mood',w:'choline, omega-3 and polyphenols — for study as much as training'},
+ {k:'sleep',n:'Sleep and recovery',w:'magnesium, slow protein and kiwi'},
+ {k:'gut',n:'Gut',w:'fibre and live cultures'},
+ {k:'heart',n:'Heart and long-term health',w:'polyphenols, nitrates, potassium and good fats'}
+];
+var HF_WHY={fe:'energy and running — iron carries the oxygen',zn:'testosterone, skin repair, immunity',ca:'bones and muscle contraction',
+  mg:'sleep, muscle and stress',k:'less puffiness, blood pressure',se:'thyroid and testosterone, antioxidant defence',
+  vc:'collagen — firm, glowing skin',b12:'energy and nerves',fol:'cell repair and new cells',o3:'skin barrier, brain, heart, calmer inflammation'};
+function hfById(k){for(var i=0;i<HF.length;i++)if(HF[i].k===k)return HF[i];return null;}
+function hfWeek(){
+  var tr=trainingModel(),t=today(),tot={},mic={},days=0,i,d;
+  NUTRI.forEach(function(n){mic[n.k]=0;});
+  for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;days++;
+    var h=(S.days[d]&&S.days[d].hf)||{};
+    for(var k in h){var f=hfById(k);if(!f||!(h[k]>0))continue;tot[k]=(tot[k]||0)+h[k];
+      NUTRI.forEach(function(n,j){mic[n.k]+=f.m[j]*h[k];});}
+  }
+  return {tot:tot,mic:mic,days:days,from:tr.wkStart};
+}
+function renderHF(){
+  var el=E('hfPanel');if(!el)return;
+  var d=E('logDate').value||today(),h=(S.days[d]&&S.days[d].hf)||{},W=hfWeek();
+  var todayN=Object.keys(h).filter(function(k){return h[k]>0;}).length;
+  var grid=HF.map(function(f){var c=h[f.k]||0;
+    return '<div style="border:1px solid var(--rule-2);border-radius:8px;padding:6px 8px'+(c?';border-color:var(--accent)':'')+'">'+
+      '<div style="font-weight:600;font-size:14px">'+f.n+'</div><div class="tiny dim" style="min-height:2.4em">'+f.u+'</div>'+
+      '<div class="row" style="gap:6px;align-items:center;margin-top:4px">'+
+      '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="-1" aria-label="one less '+f.n+'">−</button>'+
+      '<b class="num" style="min-width:1.6em;text-align:center">'+c+'</b>'+
+      '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="1" aria-label="one more '+f.n+'">+</button>'+
+      '<span class="tiny dim" style="margin-left:auto">'+(W.tot[f.k]||0)+'/'+f.wk+' wk</span></div></div>';}).join('');
+  /* the week: totals, then what they did */
+  var rows=HF.filter(function(f){return W.tot[f.k];}).map(function(f){var c=W.tot[f.k];
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+f.n+'</b><span class="mono">'+c+' / '+f.wk+'</span>'+
+      (c>=f.wk?'<span class="pill g" style="margin-left:auto">✓ target</span>':'')+
+      (f.k==='brazil'&&c>14?'<span class="pill w" style="margin-left:auto">over 2 a day</span>':'')+'</div><div class="note">'+f.why+'</div></div>';}).join('');
+  var sys=HF_GROUPS.map(function(g){var from=HF.filter(function(f){return W.tot[f.k]&&f.g.indexOf(g.k)>=0;});
+    return from.length?'<p style="margin:4px 0"><b>'+g.n+'</b> <span class="tiny">— '+g.w+'.</span><br><span class="note">From '+from.map(function(f){return f.n.toLowerCase()+' ×'+W.tot[f.k];}).join(', ')+'.</span></p>':
+      '<p style="margin:4px 0" class="dim"><b>'+g.n+'</b> <span class="tiny">— nothing from the list yet this week.</span></p>';}).join('');
+  var mic=NUTRI.map(function(n){var v=W.mic[n.k],ref=n.ref*7,pc=Math.round(v/ref*100);
+    return '<tr><td>'+n.n+'</td><td class="mono">'+(v<10?f1(v):ci(Math.round(v)))+' '+n.u+'</td><td><span class="mono'+(pc>=100?' gd':'')+'">'+pc+'%</span></td><td class="tiny">'+HF_WHY[n.k]+'</td></tr>';}).join('');
+  var any=Object.keys(W.tot).length;
+  el.innerHTML='<div class="p"><h2>Healthy foods '+(d===today()?'today':'· '+fmtS(d))+'</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Tap + for each portion. '+(todayN?'<b>'+todayN+' different healthy foods</b> '+(d===today()?'today':'that day')+'.':'Nothing ticked yet.')+' This is separate from your kcal — it counts what the food does for you.</p>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">'+grid+'</div>'+
+    '<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+
+    (any?rows+'<h3 style="margin-top:12px">What it did for you</h3>'+sys+
+      '<details style="margin-top:8px"><summary>Vitamins and minerals from these foods</summary><div class="scroll"><table class="tbl"><tbody>'+mic+'</tbody></table></div>'+
+      '<p class="tiny" style="margin-top:6px">Against the week’s UK reference (7 days). Typical values per portion, and only these foods are counted — your real totals are higher.</p></details>'
+      :'<p class="tiny">Nothing counted this week yet. Tick what you eat and this fills in with what it is doing for your hormones, skin, running, brain and sleep.</p>')+
+    '</div>';
+}
+function hfBump(k,by){
+  var d=E('logDate').value||today(),h=clone((S.days[d]&&S.days[d].hf)||{});
+  var c=Math.max(0,Math.min(20,(h[k]||0)+by));
+  if(c)h[k]=c;else delete h[k];
+  setDay(d,{hf:Object.keys(h).length?h:null});
+}
 function renderFoodLog(){
+  renderHF();
   var d=E('logDate').value||today(),rec=S.days[d]||{},list=rec.eaten||[],t=eatenTotals(rec);
   var h='';
   if(!list.length)h='<span class="tiny">Nothing in the diary for this day. Your kcal box still works on its own if you would rather type one number.</span>';
@@ -4311,6 +4507,10 @@ function lookupFood(){
   });
 }
 function wireFood(){
+  E('hfPanel').addEventListener('click',function(ev){
+    var b=ev.target.closest('button[data-hf]');if(!b)return;
+    hfBump(b.dataset.hf,Number(b.dataset.by));
+  });
   E('btnLookup').addEventListener('click',lookupFood);
   E('inLookup').addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();lookupFood();}});
   E('lookupMsg').addEventListener('click',function(ev){
@@ -4657,6 +4857,7 @@ function renderTraining(tr,c){
   var t=today();
   var h='<div class="p"><h2>'+(tr.pre?'Pre-block':'This week')+' · '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd)+(tr.pre?'':(isDeload(weekOf(t))?' · deload week':''))+'</h2>'+weekTemplateHTML(tr)+'</div>';
   E('tWeek').innerHTML=h;
+  E('tRuns').innerHTML=weekRunsHTML();
 
   var thr=thresholdPace(),line=effortLine();
   var e='<div class="p"><h2>Judge an effort by pace, not by what it was filed as</h2><div class="tiles t4">'+

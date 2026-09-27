@@ -17,10 +17,10 @@ await boot(st());
 const D = await p.evaluate(() => { const m = mondayOf(today()); return { t: today(), mon: m, tue: addD(m, 1), wed: addD(m, 2), pre: isPreBlock(today()) }; });
 
 // ===== the week is 2 hard + 1 uphill sprints = 3; the easy run is a bonus =====
-const cfg = await p.evaluate(() => ({ tmpl: CFG.tmpl, runs: CFG.goals.runs, hard: CFG.goals.hard }));
+const cfg = await p.evaluate(() => ({ tmpl: CFG.tmpl, runs: CFG.goals.runs, hard: CFG.goals.hard, sprints: CFG.goals.sprints }));
 ok('the weekly run target is 3', cfg.tmpl.runs === 3 && cfg.tmpl.hard + cfg.tmpl.sprints === 3, JSON.stringify(cfg.tmpl));
 ok('the easy run owes nothing', cfg.tmpl.easy === 0);
-ok('the block runs goal lost one easy run a week: 33', cfg.runs === 33 && cfg.hard === 21, JSON.stringify(cfg));
+ok('block targets: 19 hard, 10 sprints, 29 runs', cfg.runs === 29 && cfg.hard === 19 && cfg.sprints === 10, JSON.stringify(cfg));
 
 if (!D.pre) {
   // hard + hard + sprints, no easy run: the week is done

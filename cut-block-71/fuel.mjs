@@ -108,7 +108,7 @@ ok('the block start moved and the dates were re-read', shifted.elapsed === 29, J
 let push = await p.textContent('#pushCard');
 ok('step-it-up fires when the sessions are miles behind', push.length > 100, String(push.length));
 ok('it is headed as a push', /Step it up/.test(push), push.slice(0, 80));
-ok('names the counts against the targets', /of 48/.test(push) && /of 21/.test(push), push.slice(0, 500));
+ok('names the counts against the targets', /of 48/.test(push) && /of 19/.test(push) && /Sprint sessions/.test(push), push.slice(0, 500));
 ok('and the rate that closes it', /a week from here closes it/.test(push));
 ok('it is never a reason to eat less', /Nothing here says eat less/.test(push));
 ok('and a rest day is not one of the misses', /a rest day is never one of the misses/.test(push));
