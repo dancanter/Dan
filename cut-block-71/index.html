@@ -2906,13 +2906,14 @@ function repRef(dm){
   return ref;
 }
 function tRange(lo,hi){
-  var f=function(x){return x<40?x.toFixed(1):(x<100?String(Math.round(x)):mmss(Math.round(x)));};
-  return f(lo)+'–'+f(hi)+(hi<100?' s':'');
+  var big=hi>=100;
+  var f=function(x){return big?mmss(Math.round(x)):(x<40?x.toFixed(1):String(Math.round(x)));};
+  return f(lo)+'–'+f(hi)+(big?'':' s');
 }
 function guideFor(dms,kind){
   var out=dms.map(function(dm){
     if(kind==='tt'){var b=bestAt(dm,records()[dm]).best;if(!b||!b.t)return null;
-      return repLabel(dm)+' '+tRange(b.t*0.98,b.t*1.02)+' <span class="tiny">(best '+secFmt(b.t)+')</span>';}
+      return (dms.length>1?repLabel(dm)+' ':'')+tRange(b.t*0.98,b.t*1.02)+' <span class="tiny">(best '+secFmt(b.t)+')</span>';}
     var r=repRef(dm);if(!r)return null;
     var lo=kind==='relaxed'?r*1.04:r,hi=kind==='relaxed'?r*1.10:r*1.06;
     return tRange(lo,hi)+' a rep <span class="tiny">(best '+repLabel(dm)+' session '+secFmt(r)+')</span>';
@@ -2943,27 +2944,72 @@ function weekRunsModel(){
   if(!use.long)shortDone=lng+sht>=1;
   return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST};
 }
+/* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
+   week's pick marked. He loves time trials and feels they are what makes
+   him improve, so they are on the menu most weeks — at most one a week, in
+   place of a hard run and never on top, never in a deload, never when the
+   status flags anything, and the long ones (800 m and up) every other week.
+   The cut is for the look and the weight; the runs serve that. */
+var LONG_OPTS=[{t:'4 × 1 km',d:[1000]},{t:'5 × 800 m',d:[800]},{t:'Threshold run — comfortably hard for 20–25 min, by feel',d:null}];
+var SHORT_OPTS=[{t:'6 × 300 m',d:[300]},{t:'5 × 400 m',d:[400]},{t:'8 × 200 m',d:[200]},{t:'4 × 600 m',d:[600]}];
+var RELAXED_OPTS=[{t:'5 × 200 m, fast but relaxed',d:[200]},{t:'4 × 300 m, fast but relaxed',d:[300]}];
+function isTrial(r){
+  var m=runMeta(r);if(m.empty)return null;
+  if(r.tt===true||(m.kind==='reps'&&m.n===1&&!m.sprint))return {dm:m.dm||Math.round((m.km||0)*1000)};
+  if(m.kind==='cont'&&/all.?out|time.?trial|\btt\b/i.test(r.note||''))return {dm:Math.round((m.km||0)*1000)};
+  return null;
+}
+function trialsBetween(a,b){
+  var out=[];
+  for(var d in S.days){if(d<a||d>b)continue;(S.days[d].runs||[]).forEach(function(r){var x=isTrial(r);if(x)out.push({d:d,dm:x.dm});});}
+  return out;
+}
+function optLine(o,kind,pick){
+  var g=o.d?guideFor(o.d,kind):'';
+  return '<div style="margin:3px 0">'+(pick?'<span class="pill g">★ this week</span> ':'• ')+(pick?'<b>'+o.t+'</b>':o.t)+
+    (g?' <span class="tiny">— '+g.replace(/^Guide: /,'')+'</span>':'')+'</div>';
+}
 function weekRunsHTML(){
   var M=weekRunsModel();if(!M)return '';
-  var P=M.P,T=M.T,w=M.w,hardDone=w.hard,rows=[];
+  var P=M.P,T=M.T,w=M.w,t=today(),tr=trainingModel();
   var tick=function(ok){return ok?'<span class="pill g">✓</span>':'<span class="pill">○</span>';};
-  var gl=P.ld?guideFor(P.ld,P.tt?'tt':'reps'):'',gs=P.sd?guideFor(P.sd,P.tt?'tt':(P.deload?'relaxed':'reps')):'';
-  if(P.long)rows.push([M.longDone,'Hard · long reps',P.long+(P.tt?'':' — or a threshold run, comfortably hard for 20–25 min (no time on that one)'),(gl?'<b>'+gl+'</b><br>':'')+'Builds your 800 m, 1 km, mile and 5 km.']);
-  rows.push([M.shortDone,'Hard · short speed',P.short,(gs?'<b>'+gs+'</b><br>':'')+'Builds your 200, 400 and 600.']);
-  rows.push([w.sprints>=1,'Uphill sprints',P.spr+' × about 100 m uphill — explosive, walk back down, count the reps','Top-end speed and power, for very little fatigue.']);
-  var h='<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede"><b>'+(M.easeOff?2:T.runs)+' runs: '+(M.easeOff?1:T.hard)+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Any order, any days — just never a hard run the day after legs or after another hard run.</p>'+
-    (M.easeOff?'<p class="note wn"><b>'+M.ST.t+'</b>, so this week is <b>one hard run</b> — the short one. The long reps wait until the flag clears. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
-    (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>repeat last week’s sessions</b> rather than moving up. Getting ahead of yourself is how cuts go wrong.</p>':'')+
-    rows.map(function(r){return '<div style="padding:6px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(r[0])+'<b>'+r[1]+'</b></div>'+
-      '<div style="margin-top:2px">'+r[2]+'</div><div class="tiny">'+r[3]+'</div></div>';}).join('')+
-    '<div style="padding:6px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
-      '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>'+
-    (P.note?'<p class="note" style="margin-top:6px">'+P.note+'</p>':'')+
-    '<p class="tiny" style="margin-top:6px"><b>The guide times</b> are wide on purpose: the fast end is your best session at that distance, which on a cut is a great day; the slow end is still a good, controlled session. Effort overrides the watch — if the range feels like a 9, run slower than it. They move as soon as you log a faster session. No rest times: recover until you are ready.</p>'+
-    '<p class="tiny" style="margin-top:6px"><b>Faster without the stress, on a deficit:</b> finish every session feeling you had one or two more reps in you. Stop the session when a rep feels clearly worse than the first ones — that is the fatigue a deficit cannot pay back. '+
-    'Move up only if last week’s version felt controlled — about a 7 by the end; if it felt like a 9 or 10, repeat it. Add reps or go quicker, never both in the same week.</p></div>';
-  return h;
+  /* the time-trial allowance for this week */
+  var thisWk=trialsBetween(tr.wkStart,t),lastTwo=trialsBetween(addD(tr.wkStart,-7),addD(tr.wkStart,-1));
+  var ttOK=!P.deload&&!M.easeOff,ttUsed=thisWk.length>0&&!P.tt;
+  var longTTok=ttOK&&!ttUsed&&(P.tt||!lastTwo.some(function(x){return x.dm>=800;}));
+  var shortTTok=ttOK&&!ttUsed;
+  var slot=function(title,done,pickO,opts,kind,ttDms,ttAllowed,builds){
+    var others=opts.filter(function(o){return o.t!==pickO.t&&!(o.d&&pickO.d&&o.d[0]===pickO.d[0]&&!P.tt);});
+    var tts=ttAllowed?ttDms.filter(function(dm){return !(P.tt&&pickO.d&&pickO.d.indexOf(dm)>=0);}).map(function(dm){return {t:'Time trial — '+(dm===1609?'a mile':(dm>=1000?(dm/1000)+' km':dm+' m')),d:[dm]};}):[];
+    return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(done)+'<b>'+title+'</b> <span class="tiny">pick one</span></div>'+
+      optLine(pickO,P.tt?'tt':kind,true)+others.map(function(o){return optLine(o,kind,false);}).join('')+
+      tts.map(function(o){return optLine(o,'tt',false);}).join('')+
+      '<div class="tiny" style="margin-top:2px">'+builds+'</div></div>';
+  };
+  var rows='';
+  if(P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
+  rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
+  rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(w.sprints>=1)+'<b>Uphill sprints</b></div>'+
+    '<div style="margin-top:2px">'+P.spr+' × about 100 m uphill — explosive, walk back down, count the reps. No hill? Flat strides of about 80 m, same idea.</div>'+
+    '<div class="tiny">Top-end speed and power, for very little fatigue.</div></div>';
+  rows+='<div style="padding:7px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
+    '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>';
+  var ttNote=P.deload?'No time trials in a deload — that is the point of it.':
+    (P.tt&&!M.easeOff?'<b>Test week:</b> both hard runs can be time trials — at least 48 h apart, proper warm-up.':
+    (M.easeOff?'No time trials while something is flagged.':
+    (ttUsed?'<b>You have had your time trial this week</b> — one a week is the limit, so the rest are sessions.':
+    (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
+     'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
+  return '<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
+    '<p class="lede"><b>'+(M.easeOff?2:T.runs)+' runs: '+(M.easeOff?1:T.hard)+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Pick from each — any order, any days, just never a hard run the day after legs or after another hard run.</p>'+
+    (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
+    (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
+    rows+
+    '<p class="note" style="margin-top:6px">⏱ '+ttNote+(ttOK?' They are all-out, so they cost more than a session — which is why they are rationed on a cut, not banned.':'')+'</p>'+
+    (P.note?'<p class="note">'+P.note+'</p>':'')+
+    '<p class="tiny" style="margin-top:6px"><b>The cut comes first:</b> this block is for the look, shredded, and 122–124 lb. The runs keep you fast and help the deficit; they never get to cost you sleep, a session in the gym, or the weight.</p>'+
+    '<p class="tiny" style="margin-top:6px"><b>The guide times</b> are wide on purpose: for reps, the fast end is your best session at that distance — a great day on a cut — and the slow end is still a good session; for time trials, within 2% of your best either way. Effort overrides the watch. They move as soon as you log something faster. No rest times: recover until you are ready.</p>'+
+    '<p class="tiny" style="margin-top:6px"><b>Faster without the stress:</b> finish sessions with a rep or two in hand, and stop when a rep feels clearly worse than the first ones. Move up only if last week felt controlled — about a 7 by the end.</p></div>';
 }
 /* ===================== better than last week =====================
    Dan asked for "you are this much better today" and then what to work on.
@@ -4164,129 +4210,156 @@ function setEaten(d,list){
 function mealNow(){var h=new Date().getHours(),m=new Date().getMinutes();
   return h<11?'breakfast':(h<15?'lunch':(h<18||(h===18&&m<30)?'tea':'evening'));}
 /* ===================== healthy foods =====================
-   Dan: "give me the whole list of the healthiest foods, I'll say how many I
-   had, add it up for the week and tell me what it did for me". A tap
-   counter, separate from the kcal: portions of the foods that carry the
-   most, with typical micronutrients per portion (UK composition tables /
-   USDA, rounded) and what each is for. All gluten free as listed (oats,
-   chocolate and nuts must be certified GF), no brassicas, no liver (vitamin
-   A and biotin), nothing processed. Values are per portion and typical —
-   the week totals count these foods only, so the real totals are higher. */
+   Dan: log the healthiest foods by weight and get told what the week did for
+   him. Grams, raw weight for meat and fish (eggs are counted), mainly animal
+   foods and fruit — his call, 28 Sep — plus raw honey and the few other foods
+   he actually eats. Separate from the kcal. Values per 100 g (per egg for
+   eggs), typical UK/USDA figures, rounded: fe zn ca mg k se vc b12 fol o3.
+   No liver (vitamin A and biotin), no brassicas, nothing processed; tinned
+   sardines are the whole fish. Oats and chocolate must be certified GF. */
+var HF_SECS=[
+ {k:'meat',n:'Meat',note:'raw weight'},
+ {k:'fish',n:'Fish and seafood',note:'raw weight'},
+ {k:'dairy',n:'Eggs and dairy'},
+ {k:'fruit',n:'Fruit'},
+ {k:'also',n:'Also'}
+];
+/* pools share a weekly target across several foods */
+var HF_POOLS={
+ eggs:{n:'Eggs',wk:10,u:'eggs'},
+ red:{n:'Red meat',wk:300,u:'g',w:'the best-absorbed iron and zinc, plus B12 and creatine'},
+ oily:{n:'Oily fish',wk:400,u:'g',w:'EPA and DHA — the glow food'},
+ shell:{n:'Shellfish',wk:100,u:'g',w:'zinc, selenium, B12'},
+ berry:{n:'Berries',wk:560,u:'g',w:'anthocyanins and vitamin C'},
+ fruit:{n:'All fruit',wk:1600,u:'g',w:'about three portions a day'}
+};
 var HF=[
- {k:'egg',n:'Eggs, large',u:'1 large egg',wk:10,pool:'eggs',m:[0.9,0.6,28,6,69,15,0,0.45,24,30],g:['hor','brain','skin'],
-  why:'Choline for your brain, B12, selenium, and lutein that the yolk makes easy to absorb. The yolk’s fat and cholesterol are raw material for testosterone.'},
- {k:'eggm',n:'Eggs, medium',u:'1 medium egg — counts toward the same 10',wk:10,pool:'eggs',m:[0.8,0.5,24,5,59,13,0,0.38,20,26],g:['hor','brain','skin'],
-  why:'The same as a large egg, about 15% smaller.'},
- {k:'oily',n:'Oily fish',u:'1 portion (~120 g) — salmon, mackerel, sardines, trout',wk:3,m:[0.6,0.6,30,36,440,45,0,5,20,2500],g:['skin','hor','brain','heart'],
-  why:'The best single glow food: EPA and DHA calm redness and build the skin barrier. Also vitamin D from food and selenium, for testosterone and thyroid.'},
- {k:'red',n:'Lean beef or lamb',u:'1 portion (~125 g)',wk:2,m:[3.2,7.5,10,28,450,25,0,3,10,40],g:['hor','run'],
-  why:'The best-absorbed iron and zinc there is, plus B12 and creatine. Low iron and zinc are what make a cut look pale and tired.'},
- {k:'shell',n:'Mussels, oysters or prawns',u:'1 portion (~100 g)',wk:1,m:[6.7,2.7,33,37,268,90,13,24,76,780],g:['hor','skin','run'],
-  why:'Mussels: iron, B12, selenium and omega-3, cheap. Oysters have about ten times the zinc — the mineral testosterone and skin repair lean on hardest.'},
- {k:'fage',n:'Greek yoghurt (Fage)',u:'1 pot / 170 g',wk:7,m:[0,0.9,187,19,240,16,0,1.3,12,0],g:['sleep','hor'],
-  why:'Slow protein that keeps you full, calcium, and iodine for your thyroid.'},
- {k:'kefir',n:'Kefir',u:'1 glass / 200 ml',wk:5,m:[0,0.8,240,24,310,4,2,0.8,10,0],g:['gut','sleep'],
-  why:'Live cultures for your gut — and a calm gut shows in your skin — plus calcium.'},
- {k:'berry',n:'Berries',u:'1 handful / 80 g — blueberries, raspberries, blackcurrants',wk:7,m:[0.4,0.2,16,13,104,0.2,16,0,12,0],g:['skin','brain','gut'],
-  why:'Anthocyanins protect blood vessels and brain, and vitamin C builds collagen. Blackcurrants carry the most.'},
- {k:'kiwi',n:'Kiwi',u:'1 kiwi',wk:7,m:[0.2,0.1,26,13,234,0.2,64,0,19,0],g:['skin','sleep'],
-  why:'A whole day’s vitamin C for collagen, from food. Two before bed have some evidence for falling asleep faster and sleeping longer.'},
- {k:'citrus',n:'Orange or clementines',u:'1 orange (or 2 clementines)',wk:4,m:[0.1,0.1,52,13,237,0.5,70,0,39,0],g:['skin'],
-  why:'Vitamin C and folate. Eaten with a meal it helps you absorb the iron in spinach and lentils.'},
- {k:'tomato',n:'Tomatoes cooked in olive oil',u:'1 serving — ~150 g cooked, or 2 tbsp purée',wk:5,m:[0.8,0.2,15,16,350,0.5,20,0,20,0],g:['skin','heart'],
-  why:'Lycopene, absorbed far better cooked with oil. There is real evidence it gives your skin some sun protection from the inside.'},
- {k:'green',n:'Spinach, chard or lettuce leaves',u:'1 handful / 80 g',wk:7,m:[2.2,0.4,79,63,446,0.8,22,0,155,0],g:['run','heart','brain'],
-  why:'Nitrates widen blood vessels — better running economy and a better pump. Plus folate and magnesium.'},
- {k:'beet',n:'Beetroot',u:'80 g, or a shot of beetroot juice',wk:3,m:[0.6,0.3,13,18,250,0.5,3,0,64,0],g:['run','heart'],
-  why:'The richest nitrate food — the one with real evidence for running faster at the same effort. Best 2–3 hours before a hard run.'},
- {k:'potato',n:'Potatoes, skin on',u:'1 portion / 200 g',wk:5,m:[1.2,0.6,16,44,760,0.6,15,0,20,0],g:['run','heart'],
-  why:'Potassium balances sodium, so less puffiness. Clean carbs to refill for hard runs.'},
- {k:'evoo',n:'Extra virgin olive oil',u:'1 tbsp',wk:10,m:[0.1,0,0,0,0,0,0,0,0,0],g:['heart','skin'],
-  why:'Polyphenols and vitamin E, the best-studied fat for heart and long-term health, and skin that looks fed.'},
- {k:'avo',n:'Avocado',u:'½ avocado',wk:3,m:[0.4,0.5,9,22,365,0.3,7.5,0,61,0],g:['skin','heart'],
-  why:'Potassium, folate and healthy fats that help you absorb the carotenoids in the rest of the meal.'},
- {k:'pumpkin',n:'Pumpkin seeds',u:'1 handful / 30 g',wk:5,m:[2.6,2.3,14,178,243,2.8,0.6,0,17,0],g:['hor','sleep'],
-  why:'Among the richest magnesium foods, for sleep and muscle, plus zinc for hormones.'},
- {k:'walnut',n:'Walnuts',u:'1 handful / 30 g',wk:3,m:[0.9,0.9,29,47,131,1.4,0.4,0,29,0],g:['brain','heart'],
-  why:'Plant omega-3 and polyphenols — the nut with the most evidence for brain and heart.'},
- {k:'brazil',n:'Brazil nuts',u:'1 nut — max 2 a day',wk:10,m:[0.1,0.2,8,19,33,70,0,0,1,0],g:['hor'],
-  why:'One or two cover your selenium — for thyroid, testosterone and antioxidant defence. More than 2 a day is too much.'},
- {k:'choc',n:'Dark chocolate 85%',u:'20 g — certified GF',wk:7,m:[2.4,0.7,14,46,143,1.4,0,0,0,0],g:['skin','brain','heart'],
-  why:'Cocoa flavanols improve blood flow to your skin and brain. Iron and magnesium too.'},
- {k:'tea',n:'Green tea or matcha',u:'1 cup — before midday',wk:7,m:[0,0,0,2,20,0,0,0,4,0],g:['brain','heart'],
-  why:'EGCG and L-theanine: calm focus without the jitter, and antioxidants.'},
- {k:'oats',n:'Oats',u:'50 g — certified GF',wk:5,m:[2.2,1.8,26,69,181,14,0,0,16,0],g:['run','gut','heart'],
-  why:'Beta-glucan fibre lowers cholesterol and steadies your energy. Good fuel before hard runs.'},
- {k:'lentil',n:'Lentils',u:'100 g cooked, or 2 GF lentil cakes',wk:3,m:[3.3,1.3,19,36,369,2.8,1.5,0,181,0],g:['gut','heart'],
-  why:'Fibre for your gut bacteria, folate, and plant iron. Eat them with vitamin C to absorb more.'},
- {k:'banana',n:'Banana',u:'1 banana',wk:4,m:[0.3,0.2,5,27,358,1,8.7,0,20,0],g:['run'],
-  why:'Potassium and fast carbs: easy fuel before a hard run or sprints.'},
- {k:'mush',n:'Mushrooms',u:'80 g',wk:3,m:[0.4,0.4,3,7,255,7,2,0,13,0],g:['gut','brain'],
-  why:'Ergothioneine, an antioxidant researchers call a longevity vitamin, plus selenium. UV-grown ones add vitamin D.'}
+ {k:'beef',s:'meat',n:'Beef, lean',p:['red'],m:[2.2,5,12,22,350,18,0,2.1,7,20],g:['hor','run'],why:'Haem iron and zinc your body absorbs best, B12 and creatine. Low iron and zinc are what make a cut look pale and tired.'},
+ {k:'lamb',s:'meat',n:'Lamb, lean',p:['red'],m:[1.8,4,10,23,310,20,0,2.5,20,60],g:['hor','run'],why:'Like beef, with a little more omega-3 when grass-fed.'},
+ {k:'venison',s:'meat',n:'Venison',p:['red'],m:[3.4,2.1,5,23,318,10,0,6.3,4,50],g:['hor','run'],why:'The leanest red meat, with more iron and B12 than beef.'},
+ {k:'pork',s:'meat',n:'Pork tenderloin',m:[1,1.9,5,27,399,31,0,0.5,0,20],g:['hor','brain'],why:'Very lean, rich in thiamine (B1) for energy, and selenium.'},
+ {k:'chicken',s:'meat',n:'Chicken breast',m:[0.4,0.7,5,28,334,22,0,0.2,4,20],g:['run'],why:'The leanest protein per gram, plus niacin and B6.'},
+ {k:'turkey',s:'meat',n:'Turkey breast',m:[0.6,1.2,8,28,300,25,0,0.5,7,20],g:['sleep','run'],why:'Lean protein, selenium, and tryptophan.'},
+ {k:'salmon',s:'fish',n:'Salmon',p:['oily'],m:[0.3,0.4,9,27,363,24,0,3.2,26,2150],g:['skin','hor','brain','heart'],why:'EPA and DHA calm redness and build the skin barrier; vitamin D and selenium for hormones.'},
+ {k:'mackerel',s:'fish',n:'Mackerel',p:['oily'],m:[1.6,0.6,12,76,314,44,0.4,8.7,1,2300],g:['skin','hor','brain','heart'],why:'Among the richest omega-3 fish, with loads of B12 and selenium, and cheap.'},
+ {k:'sardines',s:'fish',n:'Sardines (with bones)',u:'g drained',p:['oily'],m:[2.9,1.3,382,39,397,53,0,8.9,10,1480],g:['skin','hor','brain','heart'],why:'Omega-3 plus the calcium from the soft bones, and B12. Tinned counts — it is the whole fish.'},
+ {k:'trout',s:'fish',n:'Trout',p:['oily'],m:[0.4,0.5,43,27,480,13,2.4,4.5,13,1000],g:['skin','brain','heart'],why:'Milder oily fish: omega-3, B12 and potassium.'},
+ {k:'herring',s:'fish',n:'Herring',p:['oily'],m:[1.1,1,57,32,327,37,0.7,13.7,10,1700],g:['skin','hor','brain','heart'],why:'Omega-3 and the most B12 of any fish, plus vitamin D.'},
+ {k:'cod',s:'fish',n:'Cod or white fish',m:[0.4,0.5,16,32,413,33,1,0.9,7,160],g:['hor','run'],why:'Very lean protein with iodine and selenium for your thyroid.'},
+ {k:'tuna',s:'fish',n:'Tuna, fresh',m:[0.8,0.4,4,35,440,90,0,2.1,2,200],g:['hor'],why:'Lean protein and a lot of selenium. Fresh has more omega-3 than tinned.'},
+ {k:'prawns',s:'fish',n:'Prawns',p:['shell'],m:[0.2,1.1,64,22,113,38,0,1.1,19,300],g:['hor','skin'],why:'Almost pure protein, with selenium, iodine and astaxanthin (what makes them pink).'},
+ {k:'mussels',s:'fish',n:'Mussels',p:['shell'],m:[4,1.6,26,34,320,45,8,12,42,440],g:['hor','run','skin'],why:'Iron, B12, selenium and omega-3, for very little money.'},
+ {k:'oysters',s:'fish',n:'Oysters',p:['shell'],m:[5.1,16.6,8,22,168,77,8,16,10,700],g:['hor','skin'],why:'The richest zinc food on earth — the mineral testosterone and skin repair lean on hardest.'},
+ {k:'egg',s:'dairy',n:'Eggs, large',u:'eggs',each:1,p:['eggs'],m:[0.9,0.6,28,6,69,15,0,0.45,24,30],g:['hor','brain','skin'],why:'Choline for your brain, B12, selenium, and lutein the yolk makes easy to absorb. The yolk’s fat and cholesterol are raw material for testosterone.'},
+ {k:'eggm',s:'dairy',n:'Eggs, medium',u:'eggs',each:1,p:['eggs'],m:[0.8,0.5,24,5,59,13,0,0.38,20,26],g:['hor','brain','skin'],why:'The same as a large egg, about 15% smaller.'},
+ {k:'fage0',s:'dairy',n:'Fage 0%',m:[0.1,0.5,110,11,141,9.7,0,0.75,7,0],g:['sleep','hor','gut'],why:'The most protein per calorie of any yoghurt — slow protein that keeps you full, calcium, and iodine for your thyroid.'},
+ {k:'fage2',s:'dairy',n:'Fage 2%',m:[0.1,0.5,115,11,141,9.7,0,0.75,7,0],g:['sleep','hor','gut'],why:'Slow protein, calcium and iodine, with a little fat to help you absorb the vitamins in whatever it goes with.'},
+ {k:'fage5',s:'dairy',n:'Fage 5%',m:[0.1,0.5,100,11,135,9.5,0,0.7,7,0],g:['sleep','hor','gut','skin'],why:'The creamiest: protein and calcium, and the fat carries fat-soluble vitamins and keeps you full longest.'},
+ {k:'skyr',s:'dairy',n:'Skyr or other Greek yoghurt',m:[0,0.5,110,11,141,9.7,0,0.75,7,0],g:['sleep','hor','gut'],why:'Like Fage 0%: slow protein, calcium and iodine.'},
+ {k:'kefir',s:'dairy',n:'Kefir',u:'ml',m:[0,0.4,120,12,155,2,1,0.4,5,0],g:['gut','sleep'],why:'Live cultures for your gut — a calm gut shows in your skin — and calcium.'},
+ {k:'milk',s:'dairy',n:'Milk',u:'ml',m:[0.03,0.4,120,11,150,1,1,0.9,5,0],g:['sleep','run'],why:'Calcium, iodine, B12 and B2. Protein and carbs together, a good recovery drink.'},
+ {k:'cottage',s:'dairy',n:'Cottage cheese',m:[0.1,0.4,83,8,104,9.7,0,0.43,12,0],g:['sleep'],why:'Casein, the slow protein, which makes it a good one before bed.'},
+ {k:'cheese',s:'dairy',n:'Hard cheese (cheddar)',m:[0.3,4.1,739,29,77,11,0,1.1,33,0],g:['hor'],why:'A lot of calcium and zinc in a small amount. It is calorie-dense, so keep it to small amounts.'},
+ {k:'blueberry',s:'fruit',n:'Blueberries',p:['berry','fruit'],m:[0.3,0.2,6,6,77,0.1,10,0,6,0],g:['brain','skin'],why:'Anthocyanins with the best evidence for memory and blood vessels.'},
+ {k:'raspberry',s:'fruit',n:'Raspberries',p:['berry','fruit'],m:[0.7,0.4,25,22,151,0.2,26,0,21,0],g:['skin','gut'],why:'The most fibre of any berry, and vitamin C.'},
+ {k:'strawberry',s:'fruit',n:'Strawberries',p:['berry','fruit'],m:[0.4,0.1,16,13,153,0.4,59,0,24,0],g:['skin'],why:'More vitamin C than an orange, gram for gram — for collagen.'},
+ {k:'blackberry',s:'fruit',n:'Blackberries',p:['berry','fruit'],m:[0.6,0.5,29,20,162,0.4,21,0,25,0],g:['skin','gut'],why:'Anthocyanins, fibre and vitamin C.'},
+ {k:'blackcurrant',s:'fruit',n:'Blackcurrants',p:['berry','fruit'],m:[1.5,0.3,55,24,322,0,181,0,0,0],g:['skin'],why:'The vitamin C champion: 100 g is about four days’ worth, from food.'},
+ {k:'cherry',s:'fruit',n:'Cherries',p:['berry','fruit'],m:[0.4,0.1,13,11,222,0,7,0,4,0],g:['sleep','run'],why:'Evidence for less muscle soreness after hard sessions, and a little melatonin.'},
+ {k:'kiwi',s:'fruit',n:'Kiwi',p:['fruit'],m:[0.3,0.1,34,17,312,0.2,93,0,25,0],g:['skin','sleep'],why:'Vitamin C for collagen. Two before bed have some evidence for better sleep.'},
+ {k:'orange',s:'fruit',n:'Oranges or clementines',p:['fruit'],m:[0.1,0.1,40,10,181,0.5,53,0,30,0],g:['skin'],why:'Vitamin C and folate, and it helps you absorb iron from the same meal.'},
+ {k:'banana',s:'fruit',n:'Banana',p:['fruit'],m:[0.3,0.2,5,27,358,1,8.7,0,20,0],g:['run'],why:'Potassium and fast carbs — easy fuel before a hard run.'},
+ {k:'apple',s:'fruit',n:'Apple',p:['fruit'],m:[0.1,0,6,5,107,0,4.6,0,3,0],g:['gut'],why:'Pectin fibre for your gut bacteria, and very filling for the calories.'},
+ {k:'pear',s:'fruit',n:'Pear',p:['fruit'],m:[0.2,0.1,9,7,116,0.1,4.3,0,7,0],g:['gut'],why:'High in fibre and gentle on your gut.'},
+ {k:'grapes',s:'fruit',n:'Grapes (red)',p:['fruit'],m:[0.4,0.1,10,7,191,0.1,3.2,0,2,0],g:['heart'],why:'Polyphenols in the skins, for your blood vessels.'},
+ {k:'pomegranate',s:'fruit',n:'Pomegranate',p:['fruit'],m:[0.3,0.4,10,12,236,0.5,10,0,38,0],g:['heart','skin'],why:'Punicalagins with some evidence for blood flow and skin.'},
+ {k:'mango',s:'fruit',n:'Mango',p:['fruit'],m:[0.2,0.1,11,10,168,0.6,36,0,43,0],g:['skin'],why:'Vitamin C and folate.'},
+ {k:'pineapple',s:'fruit',n:'Pineapple',p:['fruit'],m:[0.3,0.1,13,12,109,0.1,48,0,18,0],g:['gut','skin'],why:'Vitamin C, and bromelain, which helps you digest protein.'},
+ {k:'watermelon',s:'fruit',n:'Watermelon',p:['fruit'],m:[0.2,0.1,7,10,112,0.4,8,0,3,0],g:['run','heart'],why:'Water, and citrulline for blood flow. Very light on calories.'},
+ {k:'avocado',s:'fruit',n:'Avocado',p:['fruit'],m:[0.6,0.6,12,29,485,0.4,10,0,81,0],g:['skin','heart'],why:'Potassium, folate and good fats that help you absorb the rest of the meal.'},
+ {k:'figs',s:'fruit',n:'Figs, fresh',p:['fruit'],m:[0.4,0.2,35,17,232,0.2,2,0,6,0],g:['gut'],why:'Fibre, and more calcium than most fruit.'},
+ {k:'tomato',s:'fruit',n:'Tomatoes',p:['fruit'],m:[0.3,0.2,10,11,237,0,14,0,15,0],g:['skin','heart'],why:'Lycopene, absorbed best cooked with a little fat. Some evidence it protects your skin from the sun from the inside.'},
+ {k:'honey',s:'also',n:'Raw honey',m:[0.4,0.2,6,2,52,0.8,0.5,0,2,0],g:['run'],why:'Carbs for fuel, with small amounts of antioxidants when it is raw. Still sugar — around 20 g a day is plenty.'},
+ {k:'oats',s:'also',n:'Oats (certified GF)',m:[4.3,3.6,52,138,362,29,0,0,32,0],g:['run','gut','heart'],why:'Beta-glucan fibre lowers cholesterol and steadies your energy. Good fuel before hard runs.'},
+ {k:'potato',s:'also',n:'Potatoes',m:[0.8,0.3,12,23,425,0.4,19.7,0,15,0],g:['run','heart'],why:'Potassium balances sodium, so less puffiness, and clean carbs to refill.'},
+ {k:'beet',s:'also',n:'Beetroot',m:[0.8,0.4,16,23,325,0.7,4.9,0,109,0],g:['run','heart'],why:'The richest source of nitrates — real evidence for running faster at the same effort. Best 2–3 h before a hard run.'},
+ {k:'pumpkin',s:'also',n:'Pumpkin seeds',m:[8.8,7.8,46,592,809,9.4,1.9,0,58,0],g:['hor','sleep'],why:'Among the richest magnesium foods (sleep, muscle), plus zinc.'},
+ {k:'choc',s:'also',n:'Dark chocolate 85% (certified GF)',m:[11.9,3.3,73,228,715,6.8,0,0,0,0],g:['skin','brain','heart'],why:'Cocoa flavanols improve blood flow to your skin and brain. About 20 g a day.'}
 ];
 var HF_GROUPS=[
- {k:'hor',n:'Hormones',w:'testosterone and thyroid lean on zinc, selenium, vitamin D and enough dietary fat'},
+ {k:'hor',n:'Hormones',w:'testosterone and thyroid lean on zinc, selenium, iodine, vitamin D and enough dietary fat'},
  {k:'skin',n:'Skin and glow',w:'omega-3, vitamin C for collagen, lycopene and flavanols'},
  {k:'run',n:'Running and energy',w:'iron and B12 carry oxygen, nitrates improve economy, carbs refill'},
  {k:'brain',n:'Brain and mood',w:'choline, omega-3 and polyphenols — for study as much as training'},
- {k:'sleep',n:'Sleep and recovery',w:'magnesium, slow protein and kiwi'},
+ {k:'sleep',n:'Sleep and recovery',w:'slow protein, magnesium and kiwi'},
  {k:'gut',n:'Gut',w:'fibre and live cultures'},
- {k:'heart',n:'Heart and long-term health',w:'polyphenols, nitrates, potassium and good fats'}
+ {k:'heart',n:'Heart and long-term health',w:'omega-3, polyphenols, nitrates and potassium'}
 ];
 var HF_WHY={fe:'energy and running — iron carries the oxygen',zn:'testosterone, skin repair, immunity',ca:'bones and muscle contraction',
   mg:'sleep, muscle and stress',k:'less puffiness, blood pressure',se:'thyroid and testosterone, antioxidant defence',
   vc:'collagen — firm, glowing skin',b12:'energy and nerves',fol:'cell repair and new cells',o3:'skin barrier, brain, heart, calmer inflammation'};
+var HF_OPEN={};
 function hfById(k){for(var i=0;i<HF.length;i++)if(HF[i].k===k)return HF[i];return null;}
+function hfUnit(f){return f.u||'g';}
+/* how much one logged unit is worth: an egg is one egg, everything else 1 g */
+function hfFactor(f){return f.each?1:0.01;}
 function hfWeek(){
   var tr=trainingModel(),t=today(),tot={},mic={},days=0,i,d;
   NUTRI.forEach(function(n){mic[n.k]=0;});
   for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;days++;
     var h=(S.days[d]&&S.days[d].hf)||{};
     for(var k in h){var f=hfById(k);if(!f||!(h[k]>0))continue;tot[k]=(tot[k]||0)+h[k];
-      NUTRI.forEach(function(n,j){mic[n.k]+=f.m[j]*h[k];});}
+      NUTRI.forEach(function(n,j){mic[n.k]+=f.m[j]*h[k]*hfFactor(f);});}
   }
-  return {tot:tot,mic:mic,days:days,from:tr.wkStart};
+  var pools={};
+  for(var pk in HF_POOLS){pools[pk]=0;}
+  HF.forEach(function(f){(f.p||[]).forEach(function(pk){pools[pk]+=tot[f.k]||0;});});
+  return {tot:tot,mic:mic,days:days,from:tr.wkStart,pools:pools};
 }
+function hfAmt(v,u){return ci(Math.round(v))+(u==='eggs'?' egg'+(Math.round(v)===1?'':'s'):(u==='ml'?' ml':' g'));}
 function renderHF(){
   var el=E('hfPanel');if(!el)return;
   var d=E('logDate').value||today(),h=(S.days[d]&&S.days[d].hf)||{},W=hfWeek();
   var todayN=Object.keys(h).filter(function(k){return h[k]>0;}).length;
-  var poolN=function(f){return f.pool?HF.filter(function(x){return x.pool===f.pool;}).reduce(function(a,x){return a+(W.tot[x.k]||0);},0):(W.tot[f.k]||0);};
-  var grid=HF.map(function(f){var c=h[f.k]||0;
-    return '<div style="border:1px solid var(--rule-2);border-radius:8px;padding:6px 8px'+(c?';border-color:var(--accent)':'')+'">'+
-      '<div style="font-weight:600;font-size:14px">'+f.n+'</div><div class="tiny dim" style="min-height:2.4em">'+f.u+'</div>'+
-      '<div class="row" style="gap:6px;align-items:center;margin-top:4px">'+
-      '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="-1" aria-label="one less '+f.n+'">−</button>'+
-      '<b class="num" style="min-width:1.6em;text-align:center">'+c+'</b>'+
-      '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="1" aria-label="one more '+f.n+'">+</button>'+
-      '<span class="tiny dim" style="margin-left:auto">'+poolN(f)+'/'+f.wk+' wk</span></div></div>';}).join('');
-  /* the week: totals, then what they did */
-  var seenPool={};
-  var rows=HF.filter(function(f){if(f.pool){if(seenPool[f.pool]||!poolN(f))return false;seenPool[f.pool]=1;return true;}return W.tot[f.k];}).map(function(f){var c=poolN(f);
-    var nm=f.pool?'Eggs':f.n,split=f.pool?HF.filter(function(x){return x.pool===f.pool&&W.tot[x.k];}).map(function(x){return W.tot[x.k]+' '+x.n.split(', ')[1];}).join(', '):'';
-    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+nm+'</b><span class="mono">'+c+' / '+f.wk+'</span>'+(split?'<span class="tiny">'+split+'</span>':'')+
-      (c>=f.wk?'<span class="pill g" style="margin-left:auto">✓ target</span>':'')+
-      (f.k==='brazil'&&c>14?'<span class="pill w" style="margin-left:auto">over 2 a day</span>':'')+'</div><div class="note">'+f.why+'</div></div>';}).join('');
-  var sys=HF_GROUPS.map(function(g){var from=HF.filter(function(f){return W.tot[f.k]&&f.g.indexOf(g.k)>=0;});
-    return from.length?'<p style="margin:4px 0"><b>'+g.n+'</b> <span class="tiny">— '+g.w+'.</span><br><span class="note">From '+from.map(function(f){return (f.pool?f.n.replace(', ',' (')+')':f.n).toLowerCase()+' ×'+W.tot[f.k];}).join(', ')+'.</span></p>':
+  var secs=HF_SECS.map(function(sc){
+    var items=HF.filter(function(f){return f.s===sc.k;}),n=items.filter(function(f){return h[f.k]>0;}).length;
+    var open=HF_OPEN[sc.k]!==undefined?HF_OPEN[sc.k]:n>0;
+    return '<details data-hfsec="'+sc.k+'"'+(open?' open':'')+' style="margin-top:6px"><summary><b>'+sc.n+'</b>'+(sc.note?' <span class="tiny">· '+sc.note+'</span>':'')+
+      (n?' <span class="pill g">'+n+' today</span>':'')+'</summary>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:6px">'+items.map(function(f){
+        var v=h[f.k]||'',u=hfUnit(f);
+        return '<label style="display:block;border:1px solid var(--rule-2);border-radius:8px;padding:5px 8px'+(v?';border-color:var(--accent)':'')+'">'+
+          '<span style="font-size:14px;font-weight:600">'+f.n+'</span>'+
+          '<span class="row" style="gap:6px;align-items:center;margin-top:3px"><input type="number" inputmode="numeric" min="0" max="'+(f.each?20:3000)+'" step="1" data-hfin="'+f.k+'" value="'+v+'" placeholder="0" style="width:78px">'+
+          '<span class="tiny">'+(u==='eggs'?'eggs':u)+'</span></span></label>';}).join('')+'</div></details>';
+  }).join('');
+  /* the week */
+  var poolRows=Object.keys(HF_POOLS).map(function(pk){var P=HF_POOLS[pk],v=W.pools[pk];
+    return '<div class="row" style="gap:8px;align-items:baseline;padding:3px 0"><b>'+P.n+'</b><span class="mono">'+hfAmt(v,P.u)+' / '+hfAmt(P.wk,P.u)+'</span>'+
+      (v>=P.wk?'<span class="pill g" style="margin-left:auto">✓ target</span>':'<span class="tiny" style="margin-left:auto">'+Math.round(v/P.wk*100)+'%</span>')+'</div>';}).join('');
+  var ate=HF.filter(function(f){return W.tot[f.k];});
+  var rows=ate.map(function(f){
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+f.n+'</b><span class="mono">'+hfAmt(W.tot[f.k],hfUnit(f))+'</span></div><div class="note">'+f.why+'</div></div>';}).join('');
+  var sys=HF_GROUPS.map(function(g){var from=ate.filter(function(f){return f.g.indexOf(g.k)>=0;});
+    return from.length?'<p style="margin:4px 0"><b>'+g.n+'</b> <span class="tiny">— '+g.w+'.</span><br><span class="note">From '+from.map(function(f){return f.n+' '+hfAmt(W.tot[f.k],hfUnit(f));}).join(', ')+'.</span></p>':
       '<p style="margin:4px 0" class="dim"><b>'+g.n+'</b> <span class="tiny">— nothing from the list yet this week.</span></p>';}).join('');
   var mic=NUTRI.map(function(n){var v=W.mic[n.k],ref=n.ref*7,pc=Math.round(v/ref*100);
     return '<tr><td>'+n.n+'</td><td class="mono">'+(v<10?f1(v):ci(Math.round(v)))+' '+n.u+'</td><td><span class="mono'+(pc>=100?' gd':'')+'">'+pc+'%</span></td><td class="tiny">'+HF_WHY[n.k]+'</td></tr>';}).join('');
-  var any=Object.keys(W.tot).length;
   el.innerHTML='<div class="p"><h2>Healthy foods '+(d===today()?'today':'· '+fmtS(d))+'</h2>'+
-    '<p class="tiny" style="margin:0 0 8px">Tap + for each portion. '+(todayN?'<b>'+todayN+' different healthy foods</b> '+(d===today()?'today':'that day')+'.':'Nothing ticked yet.')+' This is separate from your kcal — it counts what the food does for you.</p>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">'+grid+'</div>'+
-    '<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+
-    (any?rows+'<h3 style="margin-top:12px">What it did for you</h3>'+sys+
+    '<p class="tiny" style="margin:0 0 4px">Put in the grams — raw weight for meat and fish, ml for milk and kefir, a count for eggs. '+(todayN?'<b>'+todayN+' healthy food'+(todayN===1?'':'s')+'</b> '+(d===today()?'today':'that day')+'.':'')+' Separate from your kcal.</p>'+
+    secs+
+    '<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+poolRows+
+    (ate.length?'<div style="margin-top:8px">'+rows+'</div><h3 style="margin-top:12px">What it did for you</h3>'+sys+
       '<details style="margin-top:8px"><summary>Vitamins and minerals from these foods</summary><div class="scroll"><table class="tbl"><tbody>'+mic+'</tbody></table></div>'+
-      '<p class="tiny" style="margin-top:6px">Against the week’s UK reference (7 days). Typical values per portion, and only these foods are counted — your real totals are higher.</p></details>'
-      :'<p class="tiny">Nothing counted this week yet. Tick what you eat and this fills in with what it is doing for your hormones, skin, running, brain and sleep.</p>')+
+      '<p class="tiny" style="margin-top:6px">Against the week’s UK reference (7 days). Typical values, and only these foods are counted — your real totals are higher.</p></details>'
+      :'<p class="tiny">Nothing logged this week yet. Put in what you eat and this fills in with what it is doing for your hormones, skin, running, brain and sleep.</p>')+
     '</div>';
 }
-function hfBump(k,by){
+function hfSet(k,v){
+  var f=hfById(k);if(!f)return;
   var d=E('logDate').value||today(),h=clone((S.days[d]&&S.days[d].hf)||{});
-  var c=Math.max(0,Math.min(20,(h[k]||0)+by));
-  if(c)h[k]=c;else delete h[k];
+  v=Math.round(Number(v));
+  if(isFinite(v)&&v>0)h[k]=Math.min(f.each?20:3000,v);else delete h[k];
   setDay(d,{hf:Object.keys(h).length?h:null});
 }
 function renderFoodLog(){
@@ -4549,10 +4622,14 @@ function lookupFood(){
   });
 }
 function wireFood(){
-  E('hfPanel').addEventListener('click',function(ev){
-    var b=ev.target.closest('button[data-hf]');if(!b)return;
-    hfBump(b.dataset.hf,Number(b.dataset.by));
+  E('hfPanel').addEventListener('change',function(ev){
+    var i=ev.target.closest('input[data-hfin]');if(!i)return;
+    hfSet(i.dataset.hfin,i.value);
   });
+  /* remember which sections are open, so saving a number does not fold them */
+  E('hfPanel').addEventListener('toggle',function(ev){
+    var dd=ev.target;if(dd&&dd.dataset&&dd.dataset.hfsec)HF_OPEN[dd.dataset.hfsec]=dd.open;
+  },true);
   E('btnLookup').addEventListener('click',lookupFood);
   E('inLookup').addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();lookupFood();}});
   E('lookupMsg').addEventListener('click',function(ev){
