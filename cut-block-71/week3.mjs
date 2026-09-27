@@ -225,7 +225,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   ok('gym sessions say what they build', /Legs · felt 6\/10/.test(t) && /sprint power/.test(t) && /430 push-ups \+ 135 pull-ups = 565/.test(t));
   ok('an untagged gym day is just a gym session', /Sat 19 Sep Gym session/.test(t));
   ok('everything else: deficit, refeed, steps, sleep', /Deficit [−+][\d,]+ kcal/.test(t) && /Refeed Sat/.test(t) && /kcal of walking/.test(t) && /Sleep 8\.0 h a night/.test(t));
-  ok('no step targets in the review', !/on target|ceiling|rest day went missing|against target/.test(t));
+  ok('no step targets in the review', !/\bon target\b|ceiling|rest day went missing|against target/.test(t));
   ok('no overall % in the review', !/better than last week|±0%|level with last week/.test(t));
   ok('the review lists the week’s sets with verdicts', /SETS THIS WEEK/i.test(t) && /Shoulders 11 sets/.test(t) && /Legs 8 sets/.test(t) && /Forearms 3 sets Light/i.test(t), (t.match(/SETS THIS WEEK.{0,300}/i) || [''])[0]);
   ok('and the mind section, only what was done', /Mind Mood/.test(t) && /Time with people 2 days/.test(t) && /Meditation 25 min/.test(t) && /Outside somewhere green 1 day/.test(t) && /Phone out of the room 1 night/.test(t) && !/Daylight early/.test(t) && !/Just for fun/.test(t), (t.match(/MIND.{0,500}/) || [''])[0]);

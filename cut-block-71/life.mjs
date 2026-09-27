@@ -70,7 +70,7 @@ ok('one good thing is saved', await p.evaluate(() => S.days[today()].good === 'p
 await p.click('#mindCard button[data-boost="people"]'); await p.waitForTimeout(100);
 ok('a booster ticks', await p.evaluate(() => S.days[today()].mb.indexOf('people') >= 0));
 await p.click('#mindCard button[data-phone="1"]'); await p.waitForTimeout(100);
-ok('phone out tonight sets the same toggle as the log', await p.evaluate(() => S.days[today()].phoneOut === true));
+ok('phone out tonight lands on tomorrow’s log — the night it belongs to', await p.evaluate(() => S.days[addD(today(), 1)].phoneOut === true && !S.days[today()].phoneOut));
 ok('it points to help if mood stays low', /Samaritans on 116 123/.test(await p.innerText('#mindCard')));
 // the week's notes
 await p.click('#notesCard button[data-ntag="👥"]'); await p.waitForTimeout(60);
@@ -157,6 +157,25 @@ ok('Show less folds it again', /Read more ▾/.test(await tsup()));
 ok('a card that would fold to nothing keeps its first line', await p.evaluate(() => [...document.querySelectorAll('#s-today .p')].filter(c => c.offsetParent).every(c => { const h = c.querySelector('h2'); const txt = (c.innerText || '').replace(h ? h.innerText : '', '').replace(/Read more ▾|Show less ▴/, '').trim(); return txt.length >= 3; })));
 await p.click('[data-t="mind"]');
 ok('the help line in Mind is never folded', await p.evaluate(() => { const x = [...E('mindCard').querySelectorAll('p')].find(q => /Samaritans/.test(q.textContent)); return x && x.offsetParent !== null; }));
+await ctx.close();
+
+// ===== sleep: bed and wake times, phone-free =====
+({ ctx, p, boot } = await at('2026-09-30'));
+await boot(st());
+await p.click('[data-t="today"]');
+await p.fill('#inBed', '23:10'); await p.press('#inBed', 'Tab');
+await p.fill('#inWake', '07:25'); await p.press('#inWake', 'Tab'); await p.waitForTimeout(150);
+let sd = await p.evaluate(() => S.days[today()]);
+ok('bed 23:10 and up 07:25 is about 8.0 h asleep (in bed 8 h 15, minus 15 to drop off)', sd.bed === '23:10' && sd.wake === '07:25' && sd.sleep === 8, JSON.stringify(sd));
+ok('it says so under the times', /≈ 8\.0 h asleep · in bed 8 h 15 min/.test(sq(await p.innerText('#sleepCalc'))));
+await p.click('#tgPhone'); await p.waitForTimeout(120);
+ok('📵 no phone in bed is logged with it', await p.evaluate(() => S.days[today()].phoneOut === true) && /phone-free ✓/.test(sq(await p.innerText('#sleepCalc'))));
+await p.fill('#inBed', '00:40'); await p.press('#inBed', 'Tab'); await p.waitForTimeout(150);
+ok('a bedtime after midnight works', await p.evaluate(() => S.days[today()].sleep === 6.5));
+ok('the read-back shows the times and phone-free', await p.evaluate(() => { const r = dayFeedback(today()).find(x => x[0] === 'Sleep'); return /00:40→07:25/.test(r[1]) && /Phone-free/.test(r[2]); }));
+ok('the sleep number still feeds everything else', await p.evaluate(() => sleepFromTimes('22:30', '06:45').h === 8 && sleepFromTimes('07:00', '07:10') === null));
+await p.click('[data-t="review"]'); await p.waitForTimeout(150);
+ok('every week review ends with the whole-cut totals', /YOUR BLOCK SO FAR/i.test(sq(await p.innerText('#revBody')).slice(-1500)));
 await ctx.close();
 
 await b.close();

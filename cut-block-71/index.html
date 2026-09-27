@@ -207,8 +207,14 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f"><label for="inWeight">Weight (lb)</label><input type="number" step="0.1" min="90" max="200" id="inWeight" placeholder="—"></div>
       <div class="f"><label for="inSteps">Steps</label><input type="number" step="100" min="0" max="80000" id="inSteps" placeholder="—"></div>
       <div class="f"><label for="inKcal">kcal eaten</label><input type="number" step="10" min="0" max="6000" id="inKcal" placeholder="—"></div>
-      <div class="f"><label for="inSleep">Sleep (h)</label><input type="number" step="0.25" min="0" max="14" id="inSleep" placeholder="—"></div>
       <div class="f"><label for="inRhr">Resting HR, on waking</label><input type="number" step="1" min="25" max="120" id="inRhr" placeholder="—"></div>
+      <!-- 29 Sep: sleep is logged as bed and wake times, phone-free or not; the hours are worked out -->
+      <div class="f"><label for="inBed">😴 Bed last night</label><input type="time" id="inBed"></div>
+      <div class="f"><label for="inWake">☀️ Woke up</label><input type="time" id="inWake"></div>
+      <div class="f" style="grid-column:1/-1;flex-basis:100%"><div class="row" style="gap:10px;align-items:center">
+        <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>📵 No phone in bed</button>
+        <span class="tiny" id="sleepCalc"></span></div></div>
+      <input type="hidden" id="inSleep">
       <div class="f"><label for="inStudy">Study (h)</label><input type="number" step="0.25" min="0" max="16" id="inStudy" placeholder="—"></div>
       <div class="f"><label for="inDeep">Of which deep (h)</label><input type="number" step="0.25" min="0" max="16" id="inDeep" placeholder="—"></div>
     </div>
@@ -221,7 +227,6 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f" style="max-width:130px"><label for="inGymRpe">Gym: how hard it <i>felt</i></label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
       <div id="setsBox" style="flex-basis:100%"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
-      <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
       <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
       <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
@@ -1956,6 +1961,8 @@ function renderReview(){
       (isDeload(nx)?'<p class="note">It is a deload: sessions come down, the food does not move.</p>':'')+
       '<p class="tiny">Smaller numbers later are the plan working. The leaner you get, the more of each pound comes out of muscle, so the same percentage costs more in week nine than in week one.</p></div>';
   }
+  /* the whole cut so far, under every week (29 Sep) */
+  h+=blockProgressHTML();
   E('revBody').innerHTML=h;
 }
 
@@ -2874,8 +2881,8 @@ function dayFeedback(is){
   }
   if(typeof r.sleep==='number'){
     var ok=r.sleep>=CFG.sleep.line;
-    rows.push(['Sleep',f1(r.sleep)+' h',ok?'<b>Over the line.</b> Best recovery tool you have, and it is free.':
-      f1(CFG.sleep.line-r.sleep)+' h under the line — an early night tonight pays it back.',ok?'g':'']);
+    rows.push(['Sleep',f1(r.sleep)+' h'+(r.bed&&r.wake?' <span class="tiny">'+r.bed+'→'+r.wake+'</span>':''),(ok?'<b>Over the line.</b> Best recovery tool you have, and it is free.':
+      f1(CFG.sleep.line-r.sleep)+' h under the line — an early night tonight pays it back.')+(r.phoneOut?' 📵 Phone-free — that is the one that counts.':''),ok?'g':'']);
   }
   var rs2=r.runs||[],pbs=pbList().filter(function(p){return p.now.date===is;});
   for(i=0;i<rs2.length;i++){
@@ -3291,8 +3298,8 @@ function mindHTML(){
     BOOSTS.map(function(b){var on=mb.indexOf(b.k)>=0;
       return '<button type="button" data-boost="'+b.k+'" style="display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;color:inherit;cursor:pointer;align-items:flex-start;font:inherit">'+
         '<span style="font-size:18px;flex:0 0 26px">'+(on?'✅':b.e)+'</span><span style="flex:1 1 auto"><b>'+b.n+'</b><br><span class="tiny">'+b.w+'</span></span></button>';}).join('')+
-    '<div class="row" style="gap:8px;margin-top:10px;align-items:center"><span class="tiny">Sleep last night: <b>'+(slT!==null?f1(slT)+' h':'not logged')+'</b> — the biggest mood lever of all.</span>'+
-    '<button type="button" class="pill'+(r.phoneOut?' g':'')+'" data-phone="1" style="cursor:pointer;border:0;margin-left:auto">📵 '+(r.phoneOut?'Phone out tonight ✓':'Phone out tonight?')+'</button></div>'+
+    '<div class="row" style="gap:8px;margin-top:10px;align-items:center"><span class="tiny">Last night: <b>'+(slT!==null?f1(slT)+' h':'not logged')+'</b>'+(r.phoneOut?' · 📵 phone-free':'')+' — the biggest mood lever of all.</span>'+
+    (function(){var tn=(S.days[addD(d,1)]||{}).phoneOut;return '<button type="button" class="pill'+(tn?' g':'')+'" data-phone="1" style="cursor:pointer;border:0;margin-left:auto">📵 '+(tn?'Phone out tonight ✓':'Phone out tonight?')+'</button>';})()+'</div>'+
     '<p class="tiny keep" style="margin-top:10px">If your mood has been low for a couple of weeks, talk to someone — a mate, your GP, or Samaritans on 116 123 (free, any time).</p></div>';
 }
 function renderMind(){
@@ -3304,7 +3311,7 @@ function wireMind(){
     var d=today(),r=S.days[d]||{};
     if(b.dataset.mood){var v=Number(b.dataset.mood);setDay(d,{mood:r.mood===v?null:v});return;}
     if(b.dataset.boost){var mb=(r.mb||[]).slice(),k=mb.indexOf(b.dataset.boost);if(k>=0)mb.splice(k,1);else mb.push(b.dataset.boost);setDay(d,{mb:mb.length?mb:null});return;}
-    if(b.dataset.phone){setDay(d,{phoneOut:r.phoneOut?null:true});return;}
+    if(b.dataset.phone){var tm=addD(d,1),tr2=S.days[tm]||{};setDay(tm,{phoneOut:tr2.phoneOut?null:true});return;}
   });
   E('mindCard').addEventListener('change',function(ev){
     if(ev.target.id==='inGood')setDay(today(),{good:ev.target.value.trim().slice(0,120)||null});
@@ -5345,6 +5352,22 @@ function wireFood(){
     },function(){SAMPLE_STATE='none';paintFoodTools();});
   }
 }
+/* bed and wake times to hours asleep: time in bed minus about 15 minutes
+   to fall asleep. Past midnight bedtimes and naps the wrong way round are
+   handled; anything outside 1–14 h is treated as a typo and not saved. */
+function sleepFromTimes(bed,wake){
+  if(!bed||!wake)return null;
+  var m=function(t){var q=t.split(':');return Number(q[0])*60+Number(q[1]);};
+  var inBed=m(wake)-m(bed);if(inBed<=0)inBed+=1440;
+  var h=Math.round((inBed-15)/6)/10;
+  return (h>=1&&h<=14)?{h:h,inBed:inBed}:null;
+}
+function sleepCalcText(rec){
+  var c=sleepFromTimes(rec.bed,rec.wake);
+  if(c)return '≈ <b>'+f1(c.h)+' h asleep</b> · in bed '+Math.floor(c.inBed/60)+' h '+(c.inBed%60)+' min'+(rec.phoneOut?' · 📵 phone-free ✓':' · phone in the room?');
+  if(typeof rec.sleep==='number')return f1(rec.sleep)+' h logged';
+  return 'Put in when you went to bed and woke — the hours work themselves out.';
+}
 function paintForm(){
   var d=E('logDate').value||today();
   var rec=S.days[d]||{};
@@ -5354,6 +5377,8 @@ function paintForm(){
   E('inSteps').value=typeof rec.steps==='number'?rec.steps:'';
   E('inKcal').value=typeof rec.kcal==='number'?rec.kcal:'';
   E('inSleep').value=typeof rec.sleep==='number'?rec.sleep:'';
+  E('inBed').value=rec.bed||'';E('inWake').value=rec.wake||'';
+  E('sleepCalc').innerHTML=sleepCalcText(rec);
   E('inStudy').value=typeof rec.study==='number'?rec.study:'';
   E('inDeep').value=typeof rec.deep==='number'?rec.deep:'';
   E('inPush').value=typeof rec.push==='number'?rec.push:'';
@@ -6902,6 +6927,11 @@ function wire(){
     if(isFinite(v)&&v>0)cur[i.dataset.sets]=Math.min(40,v);else delete cur[i.dataset.sets];
     setDay(d,{sets:Object.keys(cur).length?cur:null});
   });
+  ['inBed','inWake'].forEach(function(id){E(id).addEventListener('change',function(){
+    var d=E('logDate').value||today(),bed=E('inBed').value||null,wake=E('inWake').value||null,c=sleepFromTimes(bed,wake);
+    var o={bed:bed,wake:wake};if(c)o.sleep=c.h;
+    setDay(d,o);
+  });});
   E('inCalisType').addEventListener('change',function(){
     var d=E('logDate').value||today();
     setDay(d,{calisType:this.value});
