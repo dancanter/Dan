@@ -72,6 +72,20 @@ ok('a booster ticks', await p.evaluate(() => S.days[today()].mb.indexOf('people'
 await p.click('#mindCard button[data-phone="1"]'); await p.waitForTimeout(100);
 ok('phone out tonight sets the same toggle as the log', await p.evaluate(() => S.days[today()].phoneOut === true));
 ok('it points to help if mood stays low', /Samaritans on 116 123/.test(await p.innerText('#mindCard')));
+// the week's notes
+await p.click('#notesCard button[data-ntag="👥"]'); await p.waitForTimeout(60);
+await p.fill('#inNote', 'pub quiz with Tom'); await p.click('#btnNote'); await p.waitForTimeout(120);
+ok('a note is saved with its tag', await p.evaluate(() => S.days[today()].notes.some(n => n.e === '👥' && n.t === 'pub quiz with Tom')));
+ok('the earlier Seen it already left a film note', await p.evaluate(() => S.days[today()].notes.some(n => n.e === '🎬')));
+await p.fill('#inNote', 'walk round Whisby'); await p.press('#inNote', 'Enter'); await p.waitForTimeout(120);
+let nt = sq(await p.innerText('#notesCard'));
+ok('Enter adds one too, and the week lists them by day', /THIS WEEK’S NOTES/i.test(nt) && /pub quiz with Tom/.test(nt) && /walk round Whisby/.test(nt), nt.slice(0, 300));
+const before = await p.evaluate(() => S.days[today()].notes.length);
+await p.click(`#notesCard button[data-nrm$="|${before - 1}"]`); await p.waitForTimeout(120);
+ok('× removes a note (the last one, the walk)', await p.evaluate(b => S.days[today()].notes.length === b - 1 && !S.days[today()].notes.some(n => /Whisby/.test(n.t)), before));
+await p.click('#filmCard button[data-film="seen"]'); await p.waitForTimeout(150);
+ok('marking a film seen adds a 🎬 note', await p.evaluate(() => S.days[today()].notes.some(n => n.e === '🎬' && /^Watched /.test(n.t))));
+ok('and the week review shows what you got up to', await p.evaluate(() => { const w = reviewWeeks().find(x => x.start <= today() && x.end >= today()); return /What you got up to/.test(reviewMindHTML(w)) && /pub quiz with Tom/.test(reviewMindHTML(w)); }));
 await p.fill('#inMed', '12'); await p.press('#inMed', 'Tab'); await p.waitForTimeout(100);
 ok('meditation minutes are saved', await p.evaluate(() => S.days[today()].medMin === 12));
 ok('no film is listed twice', await p.evaluate(() => new Set(FILMS.map(f => f[0])).size === FILMS.length));
