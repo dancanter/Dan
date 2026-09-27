@@ -189,9 +189,12 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
   <div id="refeedCard"></div>
+  <div id="dayCard"></div>
+  <div id="filmCard"></div>
   <div id="runsCard"></div>
   <div id="betterCard"></div>
   <div id="tCard"></div>
+  <div id="spotCard"></div>
   <div id="xmasCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
@@ -3222,6 +3225,152 @@ function improveNext(){
   var wk=ws[ws.length-1];
   return reviewFeedback(buildReview(wk),wk).next.slice(0,2);
 }
+/* ===================== your day, film nights, getting out =====================
+   Dan, 28 Sep: a routine that fits how he likes to live (no alarm — the
+   order matters, not the clock), film or series nights 2–3 times a week with
+   his yog bowl, and places around Bassingham to run and walk that are not
+   the fen. Light and tappable: nothing here is a target. Letterboxd could
+   not be read from here (the network blocks it), so the list is a starter
+   one; films he marks watched drop out of the picks. */
+var FILMS=[
+ ['Rocky',1976,'sport',120],['Creed',2015,'sport',133],['Warrior',2011,'sport',140],['Ford v Ferrari',2019,'sport',152],['Rush',2013,'sport',123],
+ ['Chariots of Fire',1981,'sport',124],['The Iron Claw',2023,'sport',132],['Challengers',2024,'sport',131],['Moneyball',2011,'sport',133],['The Fighter',2010,'sport',116],['F1',2025,'sport',155],
+ ['Dune: Part One',2021,'epic',155],['Dune: Part Two',2024,'epic',166],['Top Gun: Maverick',2022,'epic',130],['Mad Max: Fury Road',2015,'epic',120],['Gladiator',2000,'epic',155],
+ ['Oppenheimer',2023,'epic',180],['Interstellar',2014,'epic',169],['Inception',2010,'epic',148],['The Dark Knight',2008,'epic',152],['Mission: Impossible – Fallout',2018,'epic',147],['John Wick',2014,'epic',101],
+ ['Prisoners',2013,'thriller',153],['Se7en',1995,'thriller',127],['Heat',1995,'thriller',170],['Sicario',2015,'thriller',121],['Nightcrawler',2014,'thriller',117],['Gone Girl',2014,'thriller',149],
+ ['Zodiac',2007,'thriller',157],['The Prestige',2006,'thriller',130],['Parasite',2019,'thriller',132],['Knives Out',2019,'thriller',130],
+ ['Arrival',2016,'mind',116],['Blade Runner 2049',2017,'mind',164],['Ex Machina',2014,'mind',108],['Everything Everywhere All at Once',2022,'mind',139],['Edge of Tomorrow',2014,'mind',113],['The Matrix',1999,'mind',136],
+ ['Hot Fuzz',2007,'feel',121],['The Nice Guys',2016,'feel',116],['21 Jump Street',2012,'feel',109],['Game Night',2018,'feel',100],['Superbad',2007,'feel',113],['The Grand Budapest Hotel',2014,'feel',99],
+ ['Paddington 2',2017,'feel',103],['About Time',2013,'feel',123],['The Intouchables',2011,'feel',112],
+ ['Whiplash',2014,'deep',106],['Good Will Hunting',1997,'deep',126],['The Shawshank Redemption',1994,'deep',142],['The Social Network',2010,'deep',120],['Dead Poets Society',1989,'deep',128],
+ ['Into the Wild',2007,'deep',148],['Aftersun',2022,'deep',101],['Past Lives',2023,'deep',106],
+ ['Slow Horses',0,'series',45],['Shōgun',0,'series',60],['The Bear',0,'series',30],['Severance',0,'series',50],['Chernobyl',0,'series',65],['Band of Brothers',0,'series',60],
+ ['Peaky Blinders',0,'series',55],['Adolescence',0,'series',60],['Mindhunter',0,'series',55],['True Detective (season 1)',0,'series',58],['Breaking Bad',0,'series',47]
+];
+var FILM_G={sport:'🥊 Sport and grit',epic:'🚀 Big-screen epics',thriller:'🔪 Thrillers',mind:'🌀 Mind-benders',feel:'😂 Feel-good',deep:'💭 Stays with you',series:'📺 Series'};
+var SPOTS=[
+ {n:'River Witham, from the door',k:'easy',w:'An out-and-back along the river — the easiest way to make a normal easy run feel different.'},
+ {n:'Whisby Nature Park',k:'easy',w:'Lakes and woodland trails about 15 minutes away. Soft ground for easy runs, and a proper change of scene for walks.'},
+ {n:'Hartsholme Country Park and Swanholme Lakes, Lincoln',k:'easy',w:'Woodland and lake loops — join them up for a longer easy run.'},
+ {n:'The Lincoln Edge around Navenby',k:'hills',w:'Real hills, which the fens do not have — the place for your uphill sprints. The Viking Way runs along the ridge for a walk after.'},
+ {n:'parkrun',k:'trial',w:'A free timed 5 km every Saturday morning — a weekly time trial with people. Find your nearest on the parkrun site; move the rest and refeed day to Sunday that week, and count it as the week’s trial.'},
+ {n:'Doddington Hall gardens and estate',k:'walk',w:'Gardens and estate walks nearby — a slow, pretty one for a rest day.'},
+ {n:'Newark riverside and castle',k:'walk',w:'Trent-side paths and the castle — a walk, then a coffee.'},
+ {n:'Lincoln Cathedral, Bailgate and Steep Hill',k:'walk',w:'Walk up Steep Hill to the cathedral quarter — a proper climb, and cafés at the top.'},
+ {n:'Sherwood Forest',k:'trip',w:'A day trip: forest trails for a long easy run or a big walk.'},
+ {n:'The Lincolnshire Wolds, around Tealby',k:'trip',w:'Rolling hills — a day trip for hilly runs and walks with views.'},
+ {n:'A café in Lincoln’s Bailgate',k:'study',w:'Your morning deep block somewhere new — coffee before noon, phone in the bag.'},
+ {n:'Lincoln Central Library',k:'study',w:'Quiet, free, and away from home distractions — good for a long deep block.'},
+ {n:'Newark library',k:'study',w:'A change of scene for the afternoon block.'},
+ {n:'The cinema at Lincoln’s Brayford',k:'film',w:'Make one film night a trip out — the best way to turn a film into a memory.'}
+];
+var SPOT_K={easy:'🏃 Easy runs',hills:'⛰️ Hills',trial:'⏱ Time trial',walk:'🚶 Walks',trip:'🗺️ Day trips',study:'📚 Study spots',film:'🎬 Out to the cinema'};
+var FILM_UI={g:null,pick:null},SPOT_UI={k:null,pick:null};
+function filmCfg(){var f=S.settings.film||{};if(!f.nights)f.nights=[3,5,6];if(!f.seen)f.seen={};return f;}
+function filmNight(d){return filmCfg().nights.indexOf(dow(d))>=0;}
+function filmPool(){var f=filmCfg(),g=FILM_UI.g;
+  return FILMS.filter(function(x){return !f.seen[x[0]]&&(!g||x[2]===g);});}
+function hashStr(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h);}
+function filmPick(){
+  var pool=filmPool();if(!pool.length)return null;
+  if(FILM_UI.pick&&pool.some(function(x){return x[0]===FILM_UI.pick;}))return pool.filter(function(x){return x[0]===FILM_UI.pick;})[0];
+  /* a weeknight leans to a series or a film under two hours, so bed is not late */
+  var d=today(),wk=dow(d)>=1&&dow(d)<=4;
+  var fit=pool.filter(function(x){return !wk||x[2]==='series'||x[3]<=125;});
+  var use=fit.length?fit:pool,x=use[hashStr(d+(FILM_UI.g||''))%use.length];
+  FILM_UI.pick=x[0];return x;
+}
+function dayType(d){
+  var r=S.days[d]||{};
+  if(r.refeed||dow(d)===6)return 'rest';
+  var planned=(r.runs||[]).length>0;
+  return planned?'run':'day';
+}
+function routineHTML(){
+  var d=today(),r=S.days[d]||{},tick=r.rt||[],type=dayType(d),film=filmNight(d);
+  var steps=type==='rest'?[
+    ['🍳','Breakfast, whenever you wake'],
+    ['🚶','A walk somewhere new — see below'],
+    ['📚','Study, if you fancy it'],
+    ['🍝','Refeed meals — the extra is carbs'],
+    ['🎬','Film night with the popcorn'],
+    ['📵','Phone out, bed']
+  ]:[
+    ['🍳','Breakfast — oats on a run day, eggs otherwise'],
+    ['🧠','Deep study, 1.5–2 h — phone in another room'],
+    ['🏃','Run or walk — somewhere good below'],
+    ['🚿','Shower → lunch: meat, then Fage, honey and milk'],
+    ['🧘','Meditate, 10 min'],
+    ['📚','Study, 1.5–2 h — the lighter stuff'],
+    ['😌','Chill'],
+    ['🥔','Tea about 16:30 — meat or fish and potatoes'],
+    ['🏋️','Gym, 18:00'],
+    [film?'🎬':'🥣',film?'Film night with your yog bowl':'Yog bowl and relax'],
+    ['📵','Phone out, bed when you are sleepy']
+  ];
+  return '<div class="p"><h2>Your day'+(type==='rest'?' · rest day':'')+'</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">No alarm — the order matters, not the clock. Tap a step when it is done.</p>'+
+    steps.map(function(s,i){var on=tick.indexOf(i)>=0;
+      return '<button type="button" data-rt="'+i+'" style="display:flex;flex-wrap:nowrap;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;color:inherit;cursor:pointer;align-items:center;font:inherit">'+
+        '<span style="font-size:18px;flex:0 0 26px">'+(on?'✅':s[0])+'</span><span style="flex:1 1 auto;'+(on?'opacity:.55;text-decoration:line-through':'')+'">'+s[1]+'</span></button>';}).join('')+
+    '</div>';
+}
+function filmHTML(){
+  var d=today(),f=filmCfg(),on=filmNight(d),x=filmPick(),seenN=Object.keys(f.seen).length;
+  var nights=[1,2,3,4,5,6,0].map(function(n){var sel=f.nights.indexOf(n)>=0;
+    return '<button type="button" class="pill'+(sel?' g':'')+'" data-fn="'+n+'" style="cursor:pointer;border:0">'+DOWS[n]+'</button>';}).join(' ');
+  var next='';
+  if(!on){for(var i=1;i<=7;i++){var nd=addD(d,i);if(filmNight(nd)){next=DOWL[dow(nd)];break;}}}
+  var chips='<button type="button" class="pill'+(!FILM_UI.g?' g':'')+'" data-fg="" style="cursor:pointer;border:0">🎲 Anything</button> '+
+    Object.keys(FILM_G).map(function(k){return '<button type="button" class="pill'+(FILM_UI.g===k?' g':'')+'" data-fg="'+k+'" style="cursor:pointer;border:0">'+FILM_G[k]+'</button>';}).join(' ');
+  return '<div class="p'+(on?' lift':'')+'"><h2>'+(on?'🎬 Tonight is film night':'🎬 Film nights'+(next?' · next: '+next:''))+'</h2>'+
+    (x?'<div style="margin:6px 0 8px"><div style="font-size:1.3em;font-weight:700">'+esc(x[0])+(x[1]?' <span class="tiny dim">'+x[1]+'</span>':'')+'</div>'+
+      '<div class="tiny">'+FILM_G[x[2]]+' · '+(x[2]==='series'?'about '+x[3]+' min an episode':Math.floor(x[3]/60)+' h '+(x[3]%60)+' min')+'</div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" type="button" data-film="next">🔄 Another</button>'+
+      '<button class="btn ghost sm" type="button" data-film="seen">✓ Seen it</button></div>':
+      '<p class="note">You have seen everything on the list'+(FILM_UI.g?' in this genre':'')+' — send me your Letterboxd export and I will load more.</p>')+
+    '<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div>'+
+    '<details style="margin-top:8px"><summary class="tiny">Film nights: '+f.nights.map(function(n){return DOWS[n];}).join(' · ')+' — change</summary><div style="margin-top:6px">'+nights+'</div>'+
+    '<p class="tiny" style="margin-top:6px">2–3 a week. Weeknights lean to a series or a film under two hours so bed is not late. '+seenN+' crossed off so far.</p></details></div>';
+}
+function spotsHTML(){
+  var pool=SPOTS.filter(function(s){return !SPOT_UI.k||s.k===SPOT_UI.k;});
+  if(!SPOT_UI.pick||!pool.some(function(s){return s.n===SPOT_UI.pick;}))SPOT_UI.pick=pool[hashStr(today()+(SPOT_UI.k||''))%pool.length].n;
+  var s=pool.filter(function(x){return x.n===SPOT_UI.pick;})[0];
+  var chips='<button type="button" class="pill'+(!SPOT_UI.k?' g':'')+'" data-sk="" style="cursor:pointer;border:0">🎲 Anything</button> '+
+    Object.keys(SPOT_K).map(function(k){return '<button type="button" class="pill'+(SPOT_UI.k===k?' g':'')+'" data-sk="'+k+'" style="cursor:pointer;border:0">'+SPOT_K[k]+'</button>';}).join(' ');
+  return '<div class="p"><h2>🧭 Get out of Bassingham</h2>'+
+    '<div style="margin:4px 0 8px"><div style="font-size:1.15em;font-weight:700">'+esc(s.n)+'</div><div class="tiny">'+SPOT_K[s.k]+'</div><p class="note" style="margin:4px 0">'+s.w+'</p></div>'+
+    '<button class="btn sm" type="button" data-spot="next">🔄 Somewhere else</button>'+
+    '<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div>'+
+    '<p class="tiny" style="margin-top:6px">Check the route on a map first — I cannot see live paths or conditions from here.</p></div>';
+}
+function renderLife(){
+  if(E('dayCard'))E('dayCard').innerHTML=routineHTML();
+  if(E('filmCard'))E('filmCard').innerHTML=filmHTML();
+  if(E('spotCard'))E('spotCard').innerHTML=spotsHTML();
+}
+function wireLife(){
+  E('dayCard').addEventListener('click',function(ev){
+    var b=ev.target.closest('button[data-rt]');if(!b)return;
+    var d=today(),i=Number(b.dataset.rt),t=((S.days[d]||{}).rt||[]).slice(),k=t.indexOf(i);
+    if(k>=0)t.splice(k,1);else t.push(i);
+    setDay(d,{rt:t.length?t:null});
+  });
+  E('filmCard').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b)return;
+    var f=filmCfg();
+    if(b.dataset.film==='next'){var pool=filmPool();if(pool.length>1){var cur=FILM_UI.pick,x;do{x=pool[Math.floor(Math.random()*pool.length)][0];}while(x===cur);FILM_UI.pick=x;}renderLife();return;}
+    if(b.dataset.film==='seen'&&FILM_UI.pick){f.seen[FILM_UI.pick]=today();FILM_UI.pick=null;S.settings.film=f;touch();return;}
+    if(b.dataset.fg!==undefined){FILM_UI.g=b.dataset.fg||null;FILM_UI.pick=null;renderLife();return;}
+    if(b.dataset.fn!==undefined){var n=Number(b.dataset.fn),at=f.nights.indexOf(n);if(at>=0)f.nights.splice(at,1);else f.nights.push(n);S.settings.film=f;touch();return;}
+  });
+  E('spotCard').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b)return;
+    if(b.dataset.spot==='next'){var pool=SPOTS.filter(function(s){return !SPOT_UI.k||s.k===SPOT_UI.k;});if(pool.length>1){var cur=SPOT_UI.pick,x;do{x=pool[Math.floor(Math.random()*pool.length)].n;}while(x===cur);SPOT_UI.pick=x;}renderLife();return;}
+    if(b.dataset.sk!==undefined){SPOT_UI.k=b.dataset.sk||null;SPOT_UI.pick=null;renderLife();}
+  });
+}
 /* ===================== testosterone support =====================
    Dan, 28 Sep: optimal, healthy testosterone on the cut, over everything
    else. The levers in the order the evidence ranks them — sleep, how hard
@@ -3406,6 +3555,7 @@ function renderBetter(){
     '</div></div>';
 }
 function renderGains(){
+  renderLife();
   renderBetter();
   E('tCard').innerHTML=(today()>=CFG.cutStart&&today()<=CFG.cutEnd)?tSupportHTML(addD(today(),-6),today(),'Testosterone support · last 7 days'):'';
   E('runsCard').innerHTML=weekRunsHTML();
@@ -4860,6 +5010,7 @@ function lookupFood(){
   });
 }
 function wireFood(){
+  wireLife();
   ['hfPanel','hfFood'].forEach(function(id){
   E(id).addEventListener('change',function(ev){
     var i=ev.target.closest('input[data-hfin]');if(!i)return;
