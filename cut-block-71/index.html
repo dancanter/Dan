@@ -279,33 +279,6 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
-  <div class="p">
-    <h2>Food diary</h2>
-    <div id="foodList" class="note" style="margin-bottom:10px"></div>
-    <div class="row" style="gap:8px;margin-bottom:4px">
-      <button class="btn" id="btnScan" type="button">📷 Scan a packet</button>
-      <span class="tiny">Snap the nutrition label, put in the grams, done.</span>
-    </div>
-    <input type="file" id="inScan" accept="image/*" hidden>
-    <p class="tiny" id="scanNote" style="margin:4px 0 0"></p>
-    <div id="scanBox"></div>
-    <div class="row" style="gap:8px;margin:10px 0 8px;align-items:flex-end">
-      <div class="f" style="min-width:220px;flex:1"><label for="inLookup">Or type it</label><input type="text" id="inLookup" placeholder="oats, raw potatoes, Fage Total 2%…" maxlength="60"></div>
-      <button class="btn ghost" id="btnLookup" type="button">Find it</button>
-    </div>
-    <div class="tiny" id="lookupMsg" style="margin-bottom:8px"></div>
-    <div class="fgrid">
-      <div class="f" style="min-width:220px"><label for="inFood">Food</label><select id="inFood"></select></div>
-      <div class="f" style="max-width:130px"><label for="inAmt" id="labAmt">How much</label><input type="number" step="1" min="0" max="3000" id="inAmt" placeholder="—"></div>
-      <div class="f" style="max-width:150px"><label for="inMeal">Meal</label><select id="inMeal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="tea">Tea</option><option value="evening">Evening</option><option value="snack">Snack</option></select></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <button class="btn" id="btnAddFood" type="button">Add</button>
-      <span class="tiny bd" id="foodMsg"></span>
-      <button class="btn ghost sm" id="btnNewFood" type="button" style="margin-left:auto">Type the numbers in yourself</button>
-    </div>
-    <div id="myFoods"></div>
-  </div>
   <div id="hfPanel"></div>
   <div id="goalsPanel"></div>
   <div id="todaySummary"></div>
@@ -329,6 +302,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
+  <div id="hfFood"></div>
   <div id="foodBudget"></div>
   <div id="foodTdee"></div>
   <div id="foodFuel"></div>
@@ -428,6 +402,34 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <li>Salt stays where it is — once a day. The lever is potassium, not sodium.</li>
     </ul>
   </div>
+  <!-- the diary moved off Today (28 Sep): optional, folded, still feeds the kcal -->
+  <details class="p" id="diaryWrap"><summary><b>Food diary — scan or look up</b> <span class="tiny">optional · feeds your kcal</span></summary>
+    <div style="margin-top:8px"></div>
+    <div id="foodList" class="note" style="margin-bottom:10px"></div>
+    <div class="row" style="gap:8px;margin-bottom:4px">
+      <button class="btn" id="btnScan" type="button">📷 Scan a packet</button>
+      <span class="tiny">Snap the nutrition label, put in the grams, done.</span>
+    </div>
+    <input type="file" id="inScan" accept="image/*" hidden>
+    <p class="tiny" id="scanNote" style="margin:4px 0 0"></p>
+    <div id="scanBox"></div>
+    <div class="row" style="gap:8px;margin:10px 0 8px;align-items:flex-end">
+      <div class="f" style="min-width:220px;flex:1"><label for="inLookup">Or type it</label><input type="text" id="inLookup" placeholder="oats, raw potatoes, Fage Total 2%…" maxlength="60"></div>
+      <button class="btn ghost" id="btnLookup" type="button">Find it</button>
+    </div>
+    <div class="tiny" id="lookupMsg" style="margin-bottom:8px"></div>
+    <div class="fgrid">
+      <div class="f" style="min-width:220px"><label for="inFood">Food</label><select id="inFood"></select></div>
+      <div class="f" style="max-width:130px"><label for="inAmt" id="labAmt">How much</label><input type="number" step="1" min="0" max="3000" id="inAmt" placeholder="—"></div>
+      <div class="f" style="max-width:150px"><label for="inMeal">Meal</label><select id="inMeal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="tea">Tea</option><option value="evening">Evening</option><option value="snack">Snack</option></select></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnAddFood" type="button">Add</button>
+      <span class="tiny bd" id="foodMsg"></span>
+      <button class="btn ghost sm" id="btnNewFood" type="button" style="margin-left:auto">Type the numbers in yourself</button>
+    </div>
+    <div id="myFoods"></div>
+  </details>
 </section>
 
 <!-- ================= TRAINING ================= -->
@@ -1652,11 +1654,13 @@ function closeTo(dm,rec){
 var REVWK=null;
 function reviewWeeks(){
   var t=today(),out=[],i;
-  if(PRE_DAYS>0&&t>=CFG.cutStart)out.push({k:'pre',label:'Pre-block',start:CFG.cutStart,end:PRE_END,deload:false});
+  /* Week 1 takes in the Saturday and Sunday before the first Monday — Dan's
+     call (28 Sep): a 9-day week rather than a 2-day stub on its own. */
   for(i=1;i<=W_WEEKS;i++){
-    var st=addD(WEIGH_START,(i-1)*7);
-    if(st>t)break;
-    out.push({k:i,label:'Week '+i,start:st,end:addD(st,6),deload:isDeload(i)});
+    var st=addD(WEIGH_START,(i-1)*7),start=(i===1&&PRE_DAYS>0)?CFG.cutStart:st;
+    if(start>t)break;
+    var len=diffD(start,addD(st,6))+1;
+    out.push({k:i,label:'Week '+i+(len!==7?' · '+len+'-day week':''),start:start,end:addD(st,6),deload:isDeload(i),len:len});
   }
   return out;
 }
@@ -1781,8 +1785,7 @@ function reviewFeedback(R,wk){
   /* steps */
   if(R.steps.days>=3){
     var perD=R.steps.target/days,got=R.steps.total/Math.max(1,R.steps.days);
-    if(R.steps.total>=R.steps.target)win.push('Steps on target — '+ci(R.steps.total)+'.');
-    else if(got<perD*0.95)next.push('<b>Steps:</b> about '+ci(Math.round(got/100)*100)+' a day against '+ci(Math.round(perD/100)*100)+'. A 20-minute walk after tea is roughly 2,500.');
+    win.push('Steps averaged '+ci(Math.round(got/100)*100)+' a day — '+ci(R.steps.total)+' all in.');
   }
   /* protein, only when the diary measured it */
   if(R.pro.n>=3){
@@ -1823,11 +1826,13 @@ function renderReview(){
      (R.ms.length?'<p><b>Through '+R.ms.join(', ')+' for the first time.</b></p>':'')+
      '</div>';
 
+  if(wk.len&&wk.len!==7)h+='<p class="tiny" style="margin:-4px 0 10px">A '+wk.len+'-day week, lol — the Saturday and Sunday before the first Monday are in here too.</p>';
+  h+=reviewDidHTML(R,wk);
   /* how it went, and what to do next */
   var FB=reviewFeedback(R,wk);
   var curWk=(wk.start<=today()&&wk.end>=addD(today(),-6));
   h+='<div class="p lift"><h2>'+(R.done?'How it went':'How it is going')+'</h2>'+
-    (curWk?(function(){var BM2=betterModel();return (BM2.overall!==null?'<p style="margin:0 0 6px">'+overallBig(BM2.overall)+'</p>':'')+statusHTML(weekStatus(),BM2);})():'')+
+    (curWk?(function(){var ST2=weekStatus();return ST2&&ST2.k!=='good'?'<p class="lede" style="margin:0 0 6px"><b>'+ST2.t+'.</b> <span class="note">'+ST2.w+'</span></p>':'';})():'')+
     (FB.win.length?FB.win.map(function(x){return '<p style="margin:4px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'<p class="tiny">Nothing logged enough to credit yet.</p>')+
     '<h3 style="margin-top:12px">'+(R.done?'Next week':'For the rest of the week')+'</h3>'+
     (FB.next.length?FB.next.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):
@@ -1871,7 +1876,7 @@ function renderReview(){
     tile('total',ci(R.steps.total),R.steps.days+' day'+(R.steps.days===1?'':'s')+' logged')+
     tile('a day on average',R.steps.days?ci(Math.round(R.steps.total/R.steps.days/100)*100):'—',R.steps.days?'across '+R.steps.days+' logged day'+(R.steps.days===1?'':'s'):'')+
     '</div>'+
-    (R.steps.sat!==null?'<p class="tiny" style="margin-top:8px">Saturday: '+ci(R.steps.sat)+' against a ceiling of '+ci(STEPS_SAT)+' — '+(R.steps.sat<=STEPS_SAT?'under it, which is the point':'over it, which means the rest day went missing')+'.</p>':'')+
+
     (R.steps.blank?'<p class="tiny">'+R.steps.blank+' day'+(R.steps.blank===1?'':'s')+' unlogged, left out rather than counted as zero.</p>':'')+
     '</div>'+
     '<div class="p"><h2>Sleep</h2><div class="tiles t4">'+
@@ -3213,23 +3218,141 @@ function improveNext(){
   var wk=ws[ws.length-1];
   return reviewFeedback(buildReview(wk),wk).next.slice(0,2);
 }
+/* ===================== what you did, and what it did for you =====================
+   Dan, 28 Sep: the week review should say everything he did and how it
+   helps — and for the runs, properly in depth, because that is the fun part.
+   Everything here is read off what he logged; nothing is credited that was
+   not. The run explanations are physiology, not hype, and each one ends on
+   what the session did for HIS distances. */
+function repRefBefore(dm,before){
+  var ref=BESTAVG[dm]||null;
+  for(var d in S.days){if(d>=before)continue;(S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);
+    if(m.kind==='reps'&&m.dm===dm&&m.repAvg!==null&&!r.up&&(ref===null||m.repAvg<ref))ref=m.repAvg;});}
+  return ref;
+}
+function runExplain(r,m,d){
+  var kg=lbOn(d)*0.45359237,kcal=m.km>0?Math.round(m.km*RUN_KCAL_PER_KG_KM*kg/10)*10:null;
+  var trial=isTrial(r),title,what,why,how='';
+  if(m.untimed||m.sprint){
+    title=(m.n||'')+' × 100 m '+(r.up?'uphill ':'')+'sprints';
+    what='<b>What it trained:</b> maximal force. Your hips, glutes and hamstrings drive against the slope while your nervous system recruits every fast-twitch fibre it has — and gets better at firing them together.';
+    why='<b>Why it helps you:</b> the 200 and the 400 start with how much force you put into the ground each stride. Hills build that force with far less braking than flat sprinting, so it is the kindest speed work there is for hamstrings. On a cut, sprinting is also one of the strongest “keep this muscle” signals you can send.';
+    how='<b>Cost:</b> low — short reps with full recovery barely touch your glycogen, which is why these fit in any week.';
+  }else if(trial){
+    var td=trial.dm||0;
+    title='Time trial'+(td?' — '+(td>=1000?(Math.round(td/100)/10)+' km':td+' m'):'')+(m.secs?' in '+secFmt(m.secs):'');
+    what='<b>What it trained:</b> everything at once — the most race-specific session there is. Pacing, how much hurt you can tolerate, and the finish when it all tightens.';
+    why='<b>Why it helps you:</b> it tells you exactly where you are, so every guide time can move. And racing is a skill: the more you do it, the better you judge the first half and the harder you can close.';
+    how='<b>Cost:</b> high — an all-out effort takes more recovering from than a session, which is why the next hard run waits a couple of days.';
+  }else if(m.kind==='reps'&&m.dm&&m.dm<=300){
+    title=m.label+(m.repAvg?' · '+secFmt(m.repAvg)+' a rep':'');
+    what='<b>What it trained:</b> speed, and speed you can repeat — stride power, turnover and staying relaxed at the top end. The gains are mostly in your nervous system, which is why they show within a week or two.';
+    why='<b>Why it helps you:</b> the 200 is almost pure speed. For the 400 and 800 it builds your “speed reserve”: the faster your top speed, the more comfortable race pace feels, so you can hold it longer.';
+  }else if(m.kind==='reps'&&m.dm&&m.dm<=600){
+    title=m.label+(m.repAvg?' · '+secFmt(m.repAvg)+' a rep':'');
+    what='<b>What it trained:</b> speed endurance — holding speed while acid builds. Your muscles get better at buffering it and clearing it, and you learn exactly how the last 100 m feels.';
+    why='<b>Why it helps you:</b> this is the 400, and the first half of the 800. Your 59 came out of a 4 × 600 — this is the session family that makes the back straight hurt less.';
+  }else if(m.kind==='reps'&&m.dm){
+    title=m.label+(m.repAvg?' · '+secFmt(m.repAvg)+' a rep':'');
+    what='<b>What it trained:</b> your aerobic ceiling (VO₂max) and critical speed. Your heart pumps more blood per beat and your muscles pull more oxygen out of it.';
+    why='<b>Why it helps you:</b> this moves the 800, 1 km, mile and 5 km together. It builds over 3–6 weeks of steady sessions, which is why the plan repeats these rather than jumping around.';
+  }else if(m.hard){
+    title=(m.km?f1(m.km)+' km ':'')+'hard continuous'+(m.pace?' · '+mmss(Math.round(m.pace))+'/km':'');
+    what='<b>What it trained:</b> your threshold — the pace you can hold before lactate runs away from you. Muscles clear it faster and your body learns to run hard without tying up.';
+    why='<b>Why it helps you:</b> the single biggest lever for the 5 km and the middle of the mile, at a lower cost than reps.';
+  }else{
+    title=(m.km?f1(m.km)+' km ':'')+'easy'+(m.pace?' · '+mmss(Math.round(m.pace))+'/km':'');
+    what='<b>What it trained:</b> your aerobic base — more mitochondria (the engines in your muscle cells) and more capillaries feeding them, plus better fat-burning.';
+    why='<b>Why it helps you:</b> it is the base under every distance, especially the 5 km and the mile, and moving blood through tired legs speeds your recovery from the hard days. It costs almost nothing, so it never competes with the quality sessions.';
+  }
+  /* how it went, against his own numbers */
+  if(m.kind==='reps'&&m.dm&&m.repAvg!==null&&!trial&&!m.sprint){
+    var ref=repRefBefore(m.dm,d);
+    if(ref){
+      var gap=m.repAvg-ref;
+      how=(r.up?'Part uphill, so slower than a flat session is expected'+(m.gap?' — grade-adjusted it was '+mmss(Math.round(m.gap))+'/km':'')+'. ':'')+
+        (gap<=0?'<b>Quicker than your best '+repLabel(m.dm)+' session ('+secFmt(ref)+')</b> — a new best session.':
+          (gap<=ref*0.06?'Inside your guide range ('+tRange(ref,ref*1.06)+') — '+f1(gap)+' s off your best session. A good session.':
+            f1(gap)+' s off your best session of '+secFmt(ref)+(r.up?'':'. A controlled day — they count too.')));
+    }
+  }
+  if(r.rpe)how+=(how?' ':'')+'You rated it '+r.rpe+'/10.';
+  return {title:title,body:'<p class="note" style="margin:2px 0">'+what+'</p><p class="note" style="margin:2px 0">'+why+'</p>'+
+    (how?'<p class="note" style="margin:2px 0">'+how+'</p>':'')+(kcal?'<p class="tiny" style="margin:2px 0">About '+ci(kcal)+' kcal.</p>':'')};
+}
+var GYM_WHY={
+  delts:'Shoulders are the other half of the V-taper — width that makes your waist look smaller. The single biggest “model look” muscle.',
+  back:'Back width is half the V-taper, and pulling strength balances all the pushing — posture and shoulder health too.',
+  chest:'Upper-body mass and pressing strength — fills out a T-shirt.',
+  legs:'Leg strength is sprint power, and heavy legs are the strongest muscle-keeping signal on a cut.',
+  arms:'Detail and shape — arms are what people notice first.',
+  calis:'A 40-minute test of muscular endurance and grit. Records are real progress, but it is a big session — every 3–4 weeks, not weekly.',
+  other:'Strength kept is muscle kept — the whole point of lifting on a cut.'
+};
+function reviewDidHTML(R,wk){
+  var t=today(),cut=wk.end>t?t:wk.end,i,d,rec,runs=[],gym=[],walk=0,rhr=[],refeeds=[];
+  for(i=0;i<=diffD(wk.start,cut);i++){
+    d=addD(wk.start,i);rec=S.days[d]||{};
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty)runs.push({d:d,r:r,m:m});});
+    if(rec.gym)gym.push({d:d,rec:rec});
+    var x=tdeeFor(d);if(x.walkKcal)walk+=x.walkKcal;
+    if(typeof rec.rhr==='number')rhr.push(rec.rhr);
+    if(rec.refeed)refeeds.push(d);
+  }
+  var dayName=function(d){return DOWS[dow(d)]+' '+fmtS(d);};
+  var h='<div class="p lift"><h2>What you did — and what it did for you</h2>';
+  /* runs, in depth */
+  h+='<h3>Runs'+(runs.length?' · '+runs.length:'')+'</h3>';
+  h+=runs.length?runs.map(function(x){var E2=runExplain(x.r,x.m,x.d);
+    return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div><span class="tiny dim">'+dayName(x.d)+'</span> <b>'+E2.title+'</b></div>'+E2.body+'</div>';}).join(''):
+    '<p class="note">No runs this week — rest is in the plan.</p>';
+  /* gym */
+  var cr=calisRecords().both.best;
+  h+='<h3 style="margin-top:12px">Gym'+(gym.length?' · '+gym.length:'')+'</h3>';
+  h+=gym.length?gym.map(function(g){var k=g.rec.split||'other',rec=g.rec;
+    var extra=(k==='calis'&&typeof rec.push==='number')?' '+ci(rec.push)+' push-ups + '+ci(rec.pull||0)+' pull-ups = '+ci(rec.push+(rec.pull||0))+(cr&&cr.d===g.d?' — <b>a record</b>':'')+'.':'';
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><span class="tiny dim">'+dayName(g.d)+'</span> <b>'+(rec.split?splitName(k):'Gym session')+'</b>'+(rec.gymRpe?' <span class="tiny">· felt '+rec.gymRpe+'/10</span>':'')+
+      '<p class="note" style="margin:2px 0">'+GYM_WHY[k]+extra+'</p></div>';}).join(''):
+    '<p class="note">No gym sessions logged this week.</p>';
+  /* everything else */
+  var ev=[];
+  if(R.def.n)ev.push(['Deficit',(R.def.total>=0?'−':'+')+ci(Math.round(Math.abs(R.def.total)/10)*10)+' kcal',
+    R.def.total>0?'About <b>'+f2(R.def.lb)+' lb of fat</b> — the whole point of the cut, done at a rate that keeps your muscle and your hormones.':'A surplus this week — one week is noise.']);
+  if(R.w.avg!==null)ev.push(['Weight',f1(R.w.avg)+' lb avg',R.w.dLb!==undefined?(R.w.dLb>0?'−'+f1(R.w.dLb)+' lb on the week before — ':'+'+f1(-R.w.dLb)+' lb on the week before — ')+'the average is the only number that counts.':R.w.n+' mornings — your first comparison is next week.']);
+  if(refeeds.length)ev.push(['Refeed',refeeds.map(function(d){return DOWS[dow(d)];}).join(', '),'Refilled the glycogen your next hard session runs on, and gave your hormones a break from the deficit — planned, not a slip.']);
+  if(R.steps.days)ev.push(['Steps',ci(Math.round(R.steps.total/R.steps.days/100)*100)+' a day',ci(R.steps.total)+' all in — about <b>'+ci(Math.round(walk/10)*10)+' kcal</b> of walking. The quiet engine of a cut: it burns fat without costing recovery, and lowers stress hormone.']);
+  if(R.sleep.n)ev.push(['Sleep',f1(R.sleep.avg)+' h a night',R.sleep.line+' of '+R.sleep.n+' nights over 7.5 h. Sleep is when testosterone is made and muscle repaired, and it keeps your hunger hormones in check.']);
+  if(rhr.length)ev.push(['Resting HR',Math.round(mean(rhr))+' bpm avg',rhr.length+' mornings. Lower over the weeks means fitter and recovering well.']);
+  if(R.skin.am||R.skin.pm)ev.push(['Skin','AM '+R.skin.am+' · PM '+R.skin.pm,'The morning SPF is the best anti-ageing thing you do; the night routine repairs the barrier.']);
+  if(R.study.total)ev.push(['Study',f1(R.study.total)+' h',(R.study.deep?f1(R.study.deep)+' h of it deep work. ':'')+'Protected hours, and a sharper brain on a cut is sleep and omega-3 as much as effort.']);
+  if(R.pro.n)ev.push(['Protein',ci(Math.round(R.pro.avg))+' g a day','On the days you logged food — the number that keeps your muscle while the fat comes off.']);
+  var HFW=(function(){var tot={},p={};for(var pk in HF_POOLS)p[pk]=0;
+    for(var j=0;j<=diffD(wk.start,cut);j++){var hh=(S.days[addD(wk.start,j)]||{}).hf||{};for(var k in hh){var f=hfById(k);if(!f)continue;tot[k]=(tot[k]||0)+hh[k];(f.p||[]).forEach(function(q){p[q]+=hh[k];});}}
+    return {tot:tot,p:p};})();
+  var hfBits=Object.keys(HF_POOLS).filter(function(pk){return HFW.p[pk]>0;}).map(function(pk){return HF_POOLS[pk].n.toLowerCase()+' '+hfAmt(HFW.p[pk],HF_POOLS[pk].u);});
+  if(hfBits.length)ev.push(['Healthy foods',Object.keys(HFW.tot).length+' kinds',hfBits.join(', ')+'. What each did is on the Today tab.']);
+  h+='<h3 style="margin-top:12px">Everything else</h3>'+ev.map(function(e){
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+e[0]+'</b><span class="mono">'+e[1]+'</span></div><p class="note" style="margin:2px 0">'+e[2]+'</p></div>';}).join('');
+  return h+'</div>';
+}
+/* Today: just the weight and the deficit (28 Sep), plus a warning only when
+   one fires — the back-off calls protect him, so they stay. */
 function renderBetter(){
-  var B=betterModel(),nx=improveNext();
-  if(!B.rows.length){E('betterCard').innerHTML='';return;}
-  var mark={up:'<span class="pill g">▲ better</span>',same:'<span class="pill">level</span>',down:'<span class="pill">▼ down</span>',base:'<span class="tiny dim">baseline</span>'};
-  var ST=weekStatus(),OV=overallTxt(B.overall);
-  E('betterCard').innerHTML='<div class="p '+(ST&&ST.k!=='good'?(ST.k==='warn'?'warn':'flag'):'lift')+'"><h2>Better than last week</h2>'+
-    (OV?'<p style="margin:0 0 6px">'+overallBig(B.overall)+'</p>':'')+
-    statusHTML(ST,B)+
-    '<p class="'+(OV||ST?'note':'lede')+'">'+(B.n?'<b>Better in '+B.up+' of '+B.n+'</b> thing'+(B.n===1?'':'s')+' you can compare yet.':'<b>Week one is your baseline.</b> From next week every line says how much better you are.')+
-      (B.overall===null&&B.nNums?' The overall % starts once three lines can be compared.':'')+'</p>'+
-    B.rows.map(function(r){
-      return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)">'+
-        '<div class="row" style="gap:10px;align-items:baseline"><b>'+r.area+'</b><span class="mono">'+r.now+'</span><span style="margin-left:auto">'+mark[r.tone]+'</span></div>'+
-        '<div class="note" style="margin-top:2px">'+r.change+'</div></div>';}).join('')+
-    '<h3 style="margin-top:12px">Improve next</h3>'+
-    (nx.length?nx.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:4px 0"><b>Nothing to fix — keep the week exactly as it is.</b></p>')+
-    '<p class="tiny" style="margin-top:8px">Your last 7 days against the 7 before, or a session against the last one like it. Only what you logged counts. The overall % is the average of the lines with a number, each capped at 10% so one record cannot swamp the week.</p></div>';
+  var t=today(),A=avgWindow(t,7),B=avgWindow(addD(t,-7),7),ST=weekStatus(),tr=trainingModel(),o=blockModel();
+  var wd=0,wn=0;
+  for(var i=0;i<7;i++){var d=addD(tr.wkStart,i);if(d>t)break;var x=tdeeFor(d);if(x.stepsKnown||x.intakeKnown){wd+=x.deficit;wn++;}}
+  var cr=cutReadings(),first=cr.length?cr[0]:null,hide=S.settings.hideDaily;
+  var wSub=(A.n>=3&&B.n>=3)?((B.avg-A.avg>=0.05?'−'+f1(B.avg-A.avg):(A.avg-B.avg>=0.05?'+'+f1(A.avg-B.avg):'level'))+(Math.abs(B.avg-A.avg)>=0.05?' lb on last week':' with last week')):
+    (first&&A.avg!==null?(Math.abs(first.lb-A.avg)<0.05?'level with '+fmtS(first.d):(first.lb>A.avg?'−':'+')+f1(Math.abs(first.lb-A.avg))+' lb since '+fmtS(first.d)):'7-day average');
+  if(A.avg===null&&!o.defN){E('betterCard').innerHTML='';return;}
+  E('betterCard').innerHTML='<div class="p lift"><h2>Weight and deficit</h2>'+
+    (ST&&ST.k!=='good'?'<p class="note wn" style="margin:0 0 8px"><b>'+ST.t+'.</b> '+ST.w+'</p>':'')+
+    '<div class="tiles t4">'+
+    tile('weight',A.avg===null?'—':(hide?'logged':f1(A.avg)+' lb'),A.avg===null?'no mornings yet':wSub+(o.low&&!hide?' · low '+f1(o.low.lb):''))+
+    tile('deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10):'—',wn?'~'+f2(Math.abs(wd)/3500)+' lb of fat · '+wn+' day'+(wn===1?'':'s'):'nothing logged')+
+    tile('deficit, whole block',o.defN?(o.def>=0?'−':'+')+ci(Math.round(Math.abs(o.def)/10)*10):'—',o.defN?'~'+f1(Math.abs(o.def)/3500)+' lb of fat since '+fmtS(CFG.cutStart):'')+
+    tile('to 122–124',A.avg===null?'—':(A.avg<=CFG.goals.weightHi+1?'there':f1(A.avg-(CFG.goals.weightHi+1))+' lb'),'to the top of the range')+
+    '</div></div>';
 }
 function renderGains(){
   renderBetter();
@@ -4328,6 +4451,8 @@ var HF=[
  {k:'oats',s:'also',n:'Oats (certified GF)',m:[4.3,3.6,52,138,362,29,0,0,32,0],g:['run','gut','heart'],why:'Beta-glucan fibre lowers cholesterol and steadies your energy. Good fuel before hard runs.'},
  {k:'potato',s:'also',n:'Potatoes',m:[0.8,0.3,12,23,425,0.4,19.7,0,15,0],g:['run','heart'],why:'Potassium balances sodium, so less puffiness, and clean carbs to refill.'},
  {k:'beet',s:'also',n:'Beetroot',m:[0.8,0.4,16,23,325,0.7,4.9,0,109,0],g:['run','heart'],why:'The richest source of nitrates — real evidence for running faster at the same effort. Best 2–3 h before a hard run.'},
+ {k:'walnut',s:'also',n:'Walnuts',m:[2.9,3.1,98,158,441,4.9,1.3,0,98,0],g:['brain','heart'],why:'Plant omega-3 (ALA) and polyphenols — the nut with the most evidence for brain and heart. About 30 g is a handful. Buy ones marked gluten free.'},
+ {k:'hazel',s:'also',n:'Hazelnuts',m:[4.7,2.5,114,163,680,2.4,6.3,0,113,0],g:['skin','heart','hor'],why:'The richest vitamin E nut — it protects your skin’s fats from sun and oxidation — plus magnesium and good fats for hormones. Buy ones marked gluten free.'},
  {k:'pumpkin',s:'also',n:'Pumpkin seeds',m:[8.8,7.8,46,592,809,9.4,1.9,0,58,0],g:['hor','sleep'],why:'Among the richest magnesium foods (sleep, muscle), plus zinc.'},
  {k:'choc',s:'also',n:'Dark chocolate 85% (certified GF)',m:[11.9,3.3,73,228,715,6.8,0,0,0,0],g:['skin','brain','heart'],why:'Cocoa flavanols improve blood flow to your skin and brain. About 20 g a day.'}
 ];
@@ -4363,7 +4488,12 @@ function hfWeek(){
 }
 function hfAmt(v,u){return ci(Math.round(v))+(u==='eggs'?' egg'+(Math.round(v)===1?'':'s'):(u==='ml'?' ml':' g'));}
 function renderHF(){
-  var el=E('hfPanel');if(!el)return;
+  if(E('hfPanel'))E('hfPanel').innerHTML=hfHTML(false);
+  if(E('hfFood'))E('hfFood').innerHTML=hfHTML(true);
+}
+/* Today: put the numbers in. Food tab (full): the same inputs, and the week
+   as a report — everything logged, what it did, the vitamins and minerals. */
+function hfHTML(full){
   var d=E('logDate').value||today(),h=(S.days[d]&&S.days[d].hf)||{},W=hfWeek();
   var todayN=Object.keys(h).filter(function(k){return h[k]>0;}).length;
   var secs=HF_SECS.map(function(sc){
@@ -4390,12 +4520,23 @@ function renderHF(){
       '<p style="margin:4px 0" class="dim"><b>'+g.n+'</b> <span class="tiny">— nothing from the list yet this week.</span></p>';}).join('');
   var mic=NUTRI.map(function(n){var v=W.mic[n.k],ref=n.ref*7,pc=Math.round(v/ref*100);
     return '<tr><td>'+n.n+'</td><td class="mono">'+(v<10?f1(v):ci(Math.round(v)))+' '+n.u+'</td><td><span class="mono'+(pc>=100?' gd':'')+'">'+pc+'%</span></td><td class="tiny">'+HF_WHY[n.k]+'</td></tr>';}).join('');
-  el.innerHTML='<div class="p"><h2>Healthy foods '+(d===today()?'today':'· '+fmtS(d))+'</h2>'+
+  /* the week in numbers, for the Food tab */
+  var secTot=function(k){return HF.filter(function(f){return f.s===k&&!f.each;}).reduce(function(a,f){return a+(W.tot[f.k]||0);},0);};
+  var inNums=full&&ate.length?'<div class="tiles t4" style="margin:8px 0">'+
+    tile('foods',ate.length+'','different healthy foods')+
+    tile('meat',hfAmt(secTot('meat'),'g'),'raw weight')+
+    tile('fish and seafood',hfAmt(secTot('fish'),'g'),'raw weight')+
+    tile('eggs',W.pools.eggs+'','large and medium')+
+    tile('fruit',hfAmt(W.pools.fruit,'g'),'about '+ci(Math.round(W.pools.fruit/Math.max(1,W.days)))+' g a day')+
+    tile('dairy',hfAmt(secTot('dairy'),'g'),'yoghurt, kefir, milk, cheese')+'</div>':'';
+  return (full?'<div class="p lift"><h2>Your healthy foods · this week</h2>'+
+      (ate.length?'<p class="lede">What everything you logged this week is doing for you — and the vitamins and minerals it added up to.</p>':'')+inNums+
+      '<details style="margin-top:6px"><summary>Put in '+(d===today()?'today’s':fmtS(d)+'’s')+' foods here</summary>':'<div class="p"><h2>Healthy foods '+(d===today()?'today':'· '+fmtS(d))+'</h2>')+
     '<p class="tiny" style="margin:0 0 4px">Put in the grams — raw weight for meat and fish, ml for milk and kefir, a count for eggs. '+(todayN?'<b>'+todayN+' healthy food'+(todayN===1?'':'s')+'</b> '+(d===today()?'today':'that day')+'.':'')+' Separate from your kcal.</p>'+
-    secs+
+    secs+(full?'</details>':'')+
     '<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+poolRows+
     (ate.length?'<div style="margin-top:8px">'+rows+'</div><h3 style="margin-top:12px">What it did for you</h3>'+sys+
-      '<details style="margin-top:8px"><summary>Vitamins and minerals from these foods</summary><div class="scroll"><table class="tbl"><tbody>'+mic+'</tbody></table></div>'+
+      '<details style="margin-top:8px"'+(full?' open':'')+'><summary>Vitamins and minerals from these foods</summary><div class="scroll"><table class="tbl"><tbody>'+mic+'</tbody></table></div>'+
       '<p class="tiny" style="margin-top:6px">Against the week’s UK reference (7 days). Typical values, and only these foods are counted — your real totals are higher.</p></details>'
       :'<p class="tiny">Nothing logged this week yet. Put in what you eat and this fills in with what it is doing for your hormones, skin, running, brain and sleep.</p>')+
     '</div>';
@@ -4667,14 +4808,16 @@ function lookupFood(){
   });
 }
 function wireFood(){
-  E('hfPanel').addEventListener('change',function(ev){
+  ['hfPanel','hfFood'].forEach(function(id){
+  E(id).addEventListener('change',function(ev){
     var i=ev.target.closest('input[data-hfin]');if(!i)return;
     hfSet(i.dataset.hfin,i.value);
   });
   /* remember which sections are open, so saving a number does not fold them */
-  E('hfPanel').addEventListener('toggle',function(ev){
+  E(id).addEventListener('toggle',function(ev){
     var dd=ev.target;if(dd&&dd.dataset&&dd.dataset.hfsec)HF_OPEN[dd.dataset.hfsec]=dd.open;
   },true);
+  });
   E('btnLookup').addEventListener('click',lookupFood);
   E('inLookup').addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();lookupFood();}});
   E('lookupMsg').addEventListener('click',function(ev){

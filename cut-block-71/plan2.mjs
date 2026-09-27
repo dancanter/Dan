@@ -144,12 +144,26 @@ const names = await p.evaluate(() => HF.map(f => f.n).join(' | '));
 ok('the list is his: no oil, spinach, green tea, Brazil nuts or lentils', !/olive oil|spinach|green tea|brazil|lentil/i.test(names), names);
 ok('no brassicas or liver', !/broccoli|sprout|cabbage|kale|rocket|watercress|liver/i.test(names));
 ok('raw honey is on it', /Raw honey/.test(names));
+ok('his nuts are on it: walnuts and hazelnuts', /Walnuts/.test(names) && /Hazelnuts/.test(names));
 ok('Fage 0%, 2% and 5% are each on it, with kefir', /Fage 0%/.test(names) && /Fage 2%/.test(names) && /Fage 5%/.test(names) && /Kefir/.test(names));
-ok('mainly animal foods and fruit', await p.evaluate(() => HF.filter(f => f.s === 'also').length <= 6 && HF.filter(f => f.s === 'fruit').length >= 15 && HF.filter(f => f.s === 'meat' || f.s === 'fish' || f.s === 'dairy').length >= 20));
+ok('mainly animal foods and fruit', await p.evaluate(() => HF.filter(f => f.s === 'also').length <= 8 && HF.filter(f => f.s === 'fruit').length >= 15 && HF.filter(f => f.s === 'meat' || f.s === 'fish' || f.s === 'dairy').length >= 20));
 ok('oats and chocolate say certified GF', /Oats \(certified GF\)/.test(names) && /Dark chocolate 85% \(certified GF\)/.test(names));
 ok('medium and large eggs share the eggs target', await p.evaluate(() => { const w = hfWeek(); return w.pools.eggs === 3; }));
 await put('eggm', 2);
 ok('medium eggs add to the same pool', await p.evaluate(() => hfWeek().pools.eggs === 5));
+// the diary is off Today, the healthy foods are on both Today and the Food tab
+ok('the food diary is no longer on Today', await p.evaluate(() => !document.querySelector('#s-today #foodList') && !!document.querySelector('#s-food #diaryWrap #foodList')));
+ok('and it is folded on the Food tab', await p.evaluate(() => !E('diaryWrap').open));
+await p.click('[data-t="food"]');
+let ft = sq(await p.innerText('#hfFood'));
+ok('the Food tab opens with the week’s healthy foods', /YOUR HEALTHY FOODS · THIS WEEK/i.test(ft) && /What everything you logged this week is doing for you/.test(ft), ft.slice(0, 200));
+ok('with the week in numbers', /FOODS\s*\d+ different healthy foods/i.test(ft) && /FRUIT\s*220 g/i.test(ft) && /EGGS\s*5/i.test(ft), ft.slice(0, 600));
+ok('what it did, by body system', /Skin and glow — omega-3/.test(ft));
+ok('and the vitamins and minerals shown open', await p.evaluate(() => [...E('hfFood').querySelectorAll('details')].some(d => d.open && /Vitamins and minerals/.test(d.textContent))) && /Omega-3 \(EPA\+DHA\)/.test(ft));
+await p.evaluate(() => { E('hfFood').querySelector('details').open = true; const s = E('hfFood').querySelector('details[data-hfsec="also"]'); if (s) s.open = true; });
+await p.fill('#hfFood input[data-hfin="walnut"]', '30'); await p.press('#hfFood input[data-hfin="walnut"]', 'Tab'); await p.waitForTimeout(100);
+ok('the Food-tab inputs save too', await p.evaluate(() => S.days[today()].hf.walnut === 30));
+await p.click('[data-t="today"]');
 // a past day, via the log date
 await p.evaluate(() => { E('logDate').value = addD(today(), -1); paintForm(); });
 await put('beef', 125);

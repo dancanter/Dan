@@ -49,7 +49,9 @@ const open = async (mode, local) => {
   await p.goto(FILE);
   await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, local || st()]);
   await p.reload(); await p.waitForTimeout(300);
-  await p.click('[data-t="today"]');
+  // the diary lives on the Food tab now, folded (28 Sep)
+  await p.click('[data-t="food"]');
+  await p.evaluate(() => { E('diaryWrap').open = true; });
   return { ctx, p };
 };
 const txt = async (p, sel) => (await p.textContent(sel)).replace(/\s+/g, ' ');

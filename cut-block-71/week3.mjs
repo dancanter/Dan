@@ -140,12 +140,12 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   }
   await p.click('[data-t="today"]');
   const bt = sq(await p.innerText('#betterCard'));
-  ok('the card says how many things got better', /Better in \d+ of \d+/.test(bt), bt.slice(0, 200));
+  ok('Today’s card is just weight and deficit', /WEIGHT AND DEFICIT/i.test(bt) && /deficit this week/i.test(bt) && /deficit, whole block/i.test(bt) && !/Better in|Improve next|%/.test(bt), bt.slice(0, 300));
   ok('the overall figure is the capped average: +7%', Math.round(BM.overall * 100) === 7, String(BM.overall));
-  ok('and the card leads with it', /\+7% better than last week/.test(bt), bt.slice(0, 200));
-  ok('with nothing wrong, it says you are getting better', /You’re getting better\./.test(bt));
-  ok('and says how the % is worked out', /capped at 10%/.test(bt));
-  ok('and has an Improve next list', /Improve next/.test(bt));
+  ok('weight: −0.8 lb on last week', /127\.5 lb −0\.8 lb on last week/.test(bt), bt.slice(0, 200));
+  ok('with nothing wrong, no warning line', !/Back off|overtrain|Rest what/i.test(bt));
+  ok('the overall % still exists for the Wins tile', typeof BM.overall === 'number');
+  ok('and the distance to 122–124', /to 122–124/i.test(bt));
   // a slower session is said plainly, and not made into a trend
   days[d2].runs = [{ k: 'reps', dm: 400, n: 6, secs: 384 }];
   await boot(st({ weights, days }));
@@ -156,7 +156,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   const B0 = await p.evaluate(() => betterModel());
   ok('with nothing to compare, lines say baseline', B0.n === 0 && B0.rows.every(r => r.tone === 'base') && !B0.rows.some(r => r.area === 'Skin'), JSON.stringify(B0.rows));
   await p.click('[data-t="today"]');
-  ok('and the card says week one is the baseline', /Week one is your baseline/.test(await p.innerText('#betterCard')));
+  ok('with nothing logged but a day, the card still shows the deficit', /deficit/i.test(await p.innerText('#betterCard')));
   await ctxB.close();
 }
 
@@ -190,7 +190,43 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   await boot(st({ days: { [await ago(1)]: { gym: true, split: 'back' } } }));
   ok('an ordinary week raises nothing', (await status()) === null);
   await p.click('[data-t="today"]');
-  ok('no warning shows when there is nothing to warn about', !/(rest|overtrain|overwork|overstress)/i.test((await p.innerText('#betterCard')).split('Improve next')[0]));
+  ok('no warning shows when there is nothing to warn about', !/(rest|overtrain|overwork|overstress)/i.test(await p.innerText('#betterCard')));
+}
+
+// ===== the week review: week 1 is 9 days, and it says what everything did =====
+{
+  const ctxR = await b.newContext({ viewport: { width: 430, height: 2400 } });
+  await ctxR.clock.setFixedTime(new Date('2026-09-28T12:00:00'));
+  const p = await ctxR.newPage();
+  p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  await p.goto(FILE);
+  await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({ days: {
+    '2026-09-19': { gym: true },
+    '2026-09-20': { runs: [{ km: 3.01, secs: 630, type: 'threshold', note: '3km all out' }] },
+    '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }], steps: 15000, kcal: 1799, sleep: 8 },
+    '2026-09-23': { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, up: 'some', gap: 147 }] },
+    '2026-09-24': { runs: [{ k: 'reps', dm: 100, n: 7, up: true }], gym: true, split: 'calis', calisType: 'both', push: 430, pull: 135 },
+    '2026-09-25': { gym: true, split: 'legs', gymRpe: 6 },
+    '2026-09-26': { refeed: true, kcal: 2400, steps: 11000 } } })]);
+  await p.reload(); await p.waitForTimeout(300);
+  const ws = await p.evaluate(() => reviewWeeks().map(w => ({ k: w.k, label: w.label, start: w.start, end: w.end })));
+  ok('week 1 takes in the pre-block: a 9-day week from 19 Sep', ws[0].k === 1 && ws[0].start === '2026-09-19' && ws[0].end === '2026-09-27' && /9-day week/.test(ws[0].label), JSON.stringify(ws));
+  ok('there is no separate pre-block week', !ws.some(w => w.k === 'pre'));
+  await p.click('[data-t="review"]'); await p.selectOption('#revPick', '1'); await p.waitForTimeout(200);
+  const t = sq(await p.innerText('#revBody'));
+  ok('the review says it is a 9-day week', /A 9-day week, lol/.test(t));
+  ok('what you did — and what it did for you', /WHAT YOU DID — AND WHAT IT DID FOR YOU/i.test(t));
+  ok('the 3 km all-out reads as a time trial, in km', /Time trial — 3 km in 10:30/.test(t) && /the most race-specific session there is/.test(t), (t.match(/Time trial.{0,80}/) || [''])[0]);
+  ok('the easy run explains mitochondria and capillaries', /5\.0 km easy/.test(t) && /mitochondria/.test(t) && /capillaries/.test(t));
+  ok('the 200s explain speed reserve, and grade-adjust the uphill', /5 × 200m part uphill · 30\.0 s a rep/.test(t) && /speed reserve/.test(t) && /grade-adjusted it was 2:27\/km/.test(t));
+  ok('the hill sprints explain force and hamstrings', /7 × 100 m uphill sprints/.test(t) && /maximal force/.test(t) && /hamstrings/.test(t));
+  ok('each run carries its kcal', (t.match(/About \d+ kcal\./g) || []).length === 4);
+  ok('gym sessions say what they build', /Legs · felt 6\/10/.test(t) && /sprint power/.test(t) && /430 push-ups \+ 135 pull-ups = 565/.test(t));
+  ok('an untagged gym day is just a gym session', /Sat 19 Sep Gym session/.test(t));
+  ok('everything else: deficit, refeed, steps, sleep', /Deficit [−+][\d,]+ kcal/.test(t) && /Refeed Sat/.test(t) && /kcal of walking/.test(t) && /Sleep 8\.0 h a night/.test(t));
+  ok('no step targets in the review', !/on target|ceiling|rest day went missing|against target/.test(t));
+  ok('no overall % in the review', !/better than last week|±0%|level with last week/.test(t));
+  await ctxR.close();
 }
 
 // ===== the week review: deficit, study, how it went, next week ==========
