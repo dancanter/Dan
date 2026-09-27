@@ -9,6 +9,8 @@ assert out != src, "IIFE opener not found"
 n = out.count("})();\n</script>")
 assert n == 1, f"expected one IIFE closer, found {n}"
 out = out.replace("})();\n</script>", "</script>", 1)
+# the suites read full text; simple mode (Read more) is switched on per test
+out = out.replace("<script>\n/*unwrapped for tests*/", "<script>window.__FULL=true;</script>\n<script>\n/*unwrapped for tests*/", 1)
 dest = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp/cb71.test.html')
 dest.write_text(out)
 print("wrote", dest, len(out), "bytes")

@@ -127,6 +127,32 @@ ok('and keeps a sets log by week', /YOUR SETS LOG/i.test(tt) && /Week 2/.test(tt
 ok('calisthenics days do not ask for sets', await p.evaluate(() => setsBoxHTML('2026-09-28') !== '' && (S.days['2026-09-29'] = { gym: true, split: 'calis' }, setsBoxHTML('2026-09-29') === '')));
 await ctx.close();
 
+// ===== simple mode: Read more, and Today at a glance =====
+({ ctx, p, boot } = await at('2026-09-30'));
+await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30': 128.0 },
+  days: { '2026-09-29': { runs: [{ k: 'reps', dm: 300, n: 6, secs: 276 }], gym: true, split: 'back' }, '2026-09-30': { sleep: 8.2, rt: [0, 1] } } }));
+await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
+await p.click('[data-t="today"]'); await p.waitForTimeout(200);
+let g = sq(await p.innerText('#glanceCard'));
+ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard · 0 sprints/.test(g) && /1 session/.test(g) && /8\.2 h ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
+await p.click('#glanceCard button[data-goto="mind"]'); await p.waitForTimeout(150);
+ok('tapping a line opens its tab', await p.evaluate(() => !E('s-mind').hidden));
+await p.click('[data-t="today"]'); await p.waitForTimeout(150);
+const tsup = async () => sq(await p.innerText('#tCard'));
+let tc = await tsup();
+ok('in simple mode the explanations fold away', !/Most of your testosterone is made while you sleep/.test(tc) && /Read more ▾/.test(tc), tc.slice(0, 300));
+await p.click('#tCard button.readmore'); await p.waitForTimeout(120);
+tc = await tsup();
+ok('Read more opens the card in full', /Most of your testosterone is made while you sleep/.test(tc) && /Show less ▴/.test(tc));
+await p.evaluate(() => touch()); await p.waitForTimeout(200);
+ok('and it stays open when the page redraws', /Show less ▴/.test(await tsup()));
+await p.click('#tCard button.readmore'); await p.waitForTimeout(120);
+ok('Show less folds it again', /Read more ▾/.test(await tsup()));
+ok('a card that would fold to nothing keeps its first line', await p.evaluate(() => [...document.querySelectorAll('#s-today .p')].filter(c => c.offsetParent).every(c => { const h = c.querySelector('h2'); const txt = (c.innerText || '').replace(h ? h.innerText : '', '').replace(/Read more ▾|Show less ▴/, '').trim(); return txt.length >= 3; })));
+await p.click('[data-t="mind"]');
+ok('the help line in Mind is never folded', await p.evaluate(() => { const x = [...E('mindCard').querySelectorAll('p')].find(q => /Samaritans/.test(q.textContent)); return x && x.offsetParent !== null; }));
+await ctx.close();
+
 await b.close();
 if (errs.length) fails.push(...errs);
 console.log(fails.length ? 'FAIL (' + fails.length + ')\n - ' + fails.join('\n - ') : 'all passed');

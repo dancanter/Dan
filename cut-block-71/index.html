@@ -66,6 +66,12 @@ section[hidden]{display:none!important}
 p{margin:0 0 8px}
 p:last-child{margin-bottom:0}
 .note{color:var(--ink-2);font-size:13px}
+/* simple mode: explaining text folds behind Read more */
+body.simple .p:not(.open) p.note:not(.wn):not(.keep),body.simple .p:not(.open) p.tiny:not(.keep),
+body.simple .p:not(.open) div.note:not(.wn):not(.keep),body.simple .p:not(.open) .more{display:none}
+.readmore{display:block;margin-top:8px;background:none;border:0;padding:4px 0;color:var(--accent);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+body:not(.simple) .readmore{display:none}
+body.simple .p:not(.open) .more-lead{display:block!important}
 .tiny{font-size:11.5px;color:var(--ink-3)}
 ul.clean{margin:0;padding-left:17px}
 ul.clean li{margin-bottom:5px}
@@ -189,6 +195,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
+  <div id="glanceCard"></div>
   <div id="refeedCard"></div>
 
   <div id="runsCard"></div>
@@ -3038,7 +3045,7 @@ function optLine(o,kind,pick){
   var g=o.d?guideFor(o.d,kind):'';
   return '<div style="margin:5px 0">'+(pick?'<span class="pill g">★ good pick this week</span> ':'• ')+(pick?'<b>'+o.t+'</b>':o.t)+
     (g?' <span class="tiny">— '+g.replace(/^Guide: /,'')+'</span>':'')+
-    '<div class="tiny dim" style="margin-left:14px">'+runDoes(o)+'</div></div>';
+    '<div class="tiny dim more" style="margin-left:14px">'+runDoes(o)+'</div></div>';
 }
 function weekRunsHTML(){
   var M=weekRunsModel();if(!M)return '';
@@ -3056,7 +3063,7 @@ function weekRunsHTML(){
       optLine(pickO,P.tt?'tt':kind,true)+others.map(function(o){return optLine(o,kind,false);}).join('')+
       (tts.length?'<div style="margin:5px 0">• Time trial — '+tts.map(function(o){var g=guideFor(o.d,'tt').replace(/^Guide: /,'').replace(/ <span class="tiny">\(best [^)]*\)<\/span>/,'');
           return o.t.replace('Time trial — ','')+' <span class="tiny">'+g+'</span>';}).join(' · ')+
-        '<div class="tiny dim" style="margin-left:14px">'+runDoes(tts[0])+'</div></div>':'')+
+        '<div class="tiny dim more" style="margin-left:14px">'+runDoes(tts[0])+'</div></div>':'')+
       '</div>';
   };
   var rows='';
@@ -3272,7 +3279,7 @@ function mindHTML(){
         '<span style="font-size:18px;flex:0 0 26px">'+(on?'✅':b.e)+'</span><span style="flex:1 1 auto"><b>'+b.n+'</b><br><span class="tiny">'+b.w+'</span></span></button>';}).join('')+
     '<div class="row" style="gap:8px;margin-top:10px;align-items:center"><span class="tiny">Sleep last night: <b>'+(slT!==null?f1(slT)+' h':'not logged')+'</b> — the biggest mood lever of all.</span>'+
     '<button type="button" class="pill'+(r.phoneOut?' g':'')+'" data-phone="1" style="cursor:pointer;border:0;margin-left:auto">📵 '+(r.phoneOut?'Phone out tonight ✓':'Phone out tonight?')+'</button></div>'+
-    '<p class="tiny" style="margin-top:10px">If your mood has been low for a couple of weeks, talk to someone — a mate, your GP, or Samaritans on 116 123 (free, any time).</p></div>';
+    '<p class="tiny keep" style="margin-top:10px">If your mood has been low for a couple of weeks, talk to someone — a mate, your GP, or Samaritans on 116 123 (free, any time).</p></div>';
 }
 function renderMind(){
   if(E('mindCard'))E('mindCard').innerHTML=mindHTML();
@@ -3289,6 +3296,80 @@ function wireMind(){
     if(ev.target.id==='inGood')setDay(today(),{good:ev.target.value.trim().slice(0,120)||null});
     if(ev.target.id==='inMed'){var v=Math.round(Number(ev.target.value));setDay(today(),{medMin:isFinite(v)&&v>0?Math.min(240,v):null});}
   });
+}
+/* ===================== simple by default, "Read more" for the rest =====================
+   Dan, 28 Sep: everything reads like loads — keep it simple and fun, and let
+   him open the in-depth bits when he wants them. In simple mode each card
+   shows its headline, numbers and warnings; the explaining paragraphs fold
+   behind a "Read more" at the bottom of the card. Warnings (.wn) and lines
+   marked .keep always show. */
+var OPEN_MORE={};
+var MORE_SEL='p.note:not(.wn):not(.keep), p.tiny:not(.keep), div.note:not(.wn):not(.keep), .more';
+function cardKey(card){
+  var host=card.closest('[id]'),id=host?host.id:'x';
+  var all=host?host.querySelectorAll('.p'):[];
+  return id+':'+Array.prototype.indexOf.call(all,card);
+}
+function decorateMore(){
+  if(!document.body.classList.contains('simple'))return;
+  Array.prototype.forEach.call(document.querySelectorAll('main .p'),function(card){
+    var own=Array.prototype.filter.call(card.querySelectorAll(MORE_SEL),function(x){return x.closest('.p')===card;});
+    var btn=Array.prototype.filter.call(card.children,function(c){return c.classList&&c.classList.contains('readmore');})[0];
+    if(!own.length){if(btn)btn.remove();return;}
+    var k=cardKey(card),open=!!OPEN_MORE[k];
+    if(card.classList.contains('open')!==open)card.classList.toggle('open',open);
+    /* a card whose every line is explanation would fold to just its title —
+       then its first line stays, so it still says something */
+    if(!open){
+      var lead=card.querySelector('.more-lead');
+      if(!lead){
+        var h=card.querySelector('h2'),txt=(card.innerText||'').replace(h?h.innerText:'','').replace(/Read more ▾|Show less ▴/,'').trim();
+        if(txt.length<3)own[0].classList.add('more-lead');
+      }
+    }
+    var label=open?'Show less ▴':'Read more ▾';
+    if(!btn){btn=document.createElement('button');btn.type='button';btn.className='readmore';card.appendChild(btn);}
+    if(btn.textContent!==label)btn.textContent=label;
+  });
+}
+function wireSimple(){
+  if(!window.__FULL)document.body.classList.add('simple');
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest('button.readmore');if(!b)return;
+    var card=b.parentNode,k=cardKey(card);
+    OPEN_MORE[k]=!OPEN_MORE[k];decorateMore();
+  });
+  var pending=false,main=document.querySelector('main');
+  if(main&&window.MutationObserver)new MutationObserver(function(){
+    if(pending)return;pending=true;
+    requestAnimationFrame(function(){pending=false;decorateMore();});
+  }).observe(main,{childList:true,subtree:true});
+  decorateMore();
+}
+/* ===================== Today at a glance =====================
+   The main things in one card, each a tap away from its tab. */
+function glanceHTML(){
+  var t=today(),r=S.days[t]||{},A=avgWindow(t,7),tr=trainingModel(),w=tr.week;
+  var wd=0,wn=0;for(var i=0;i<7;i++){var d=addD(tr.wkStart,i);if(d>t)break;var x=tdeeFor(d);if(x.stepsKnown||x.intakeKnown){wd+=x.deficit;wn++;}}
+  var M=weekRunsModel(),runIdea=M?(M.P.long?M.P.long.replace(/ — .*/,'')+' · ':'')+M.P.short.replace(/, fast but relaxed/,''):'';
+  var film=filmNight(t)?filmPick():null,next='';
+  if(!film){for(var j=1;j<=7;j++){var nd=addD(t,j);if(filmNight(nd)){next=DOWS[dow(nd)];break;}}}
+  var ticks=(r.rt||[]).length;
+  var row=function(e,label,val,go){return '<button type="button" data-goto="'+go+'" style="display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:8px 2px;color:inherit;cursor:pointer;align-items:center;font:inherit">'+
+    '<span style="font-size:20px;flex:0 0 28px">'+e+'</span><span style="flex:1 1 auto"><span class="tiny dim" style="display:block">'+label+'</span><b>'+val+'</b></span><span class="dim">›</span></button>';};
+  return '<div class="p lift"><h2>Today at a glance</h2>'+
+    row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
+    row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
+    row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.easy?' · '+w.easy+' easy':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
+    row('🏋️','Gym this week',w.gym+' session'+(w.gym===1?'':'s'),'training')+
+    row('😴','Sleep last night',typeof r.sleep==='number'?f1(r.sleep)+' h'+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
+    row('🎬',film?'Tonight is film night':'Film nights',film?esc(film[0]):(next?'next: '+next:'none set'),'mind')+
+    row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
+    '</div>';
+}
+function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=glanceHTML();}
+function wireGlance(){
+  E('glanceCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
 /* ===================== the week's notes =====================
    Dan, 28 Sep: jot what he did — a film, meeting mates, somewhere new — and
@@ -3656,6 +3737,7 @@ function renderBetter(){
     '</div></div>';
 }
 function renderGains(){
+  renderGlance();
   renderLife();
   renderMind();
   renderNotes();
@@ -5113,6 +5195,8 @@ function lookupFood(){
   });
 }
 function wireFood(){
+  wireSimple();
+  wireGlance();
   wireLife();
   wireMind();
   wireNotes();
