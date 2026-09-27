@@ -2881,17 +2881,44 @@ function weekGains(){
    drop in the deloads (4 and 8) and test in weeks 5 and 10. By feel only:
    no paces and no rest intervals, which are his to judge on the day. */
 var CUT_RUNS=[null,
-  {long:'5 × 800 m',short:'5 × 200 m',spr:7,note:'Week one: find your level — controlled, not all-out.'},
-  {long:'4 × 1 km',short:'6 × 300 m',spr:8},
-  {long:'5 × 800 m',short:'5 × 400 m',spr:8},
-  {deload:true,long:null,short:'5 × 200 m, fast but relaxed',spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
-  {long:'Time trial — 1 km',short:'Time trial — 400 m',spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
-  {long:'4 × 1 km',short:'4 × 600 m',spr:9},
-  {long:'5 × 800 m',short:'8 × 200 m',spr:9},
-  {deload:true,long:null,short:'4 × 300 m, fast but relaxed',spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
-  {long:'4 × 1 km — quicker than week 6 at the same feel',short:'5 × 400 m',spr:9},
-  {long:'Time trial — 1 km or a mile',short:'Time trial — 400 m or 200 m',spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'}
+  {long:'5 × 800 m',ld:[800],short:'5 × 200 m',sd:[200],spr:7,note:'Week one: find your level — controlled, not all-out.'},
+  {long:'4 × 1 km',ld:[1000],short:'6 × 300 m',sd:[300],spr:8},
+  {long:'5 × 800 m',ld:[800],short:'5 × 400 m',sd:[400],spr:8},
+  {deload:true,long:null,short:'5 × 200 m, fast but relaxed',sd:[200],spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
+  {long:'Time trial — 1 km',ld:[1000],short:'Time trial — 400 m',sd:[400],spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
+  {long:'4 × 1 km',ld:[1000],short:'4 × 600 m',sd:[600],spr:9},
+  {long:'5 × 800 m',ld:[800],short:'8 × 200 m',sd:[200],spr:9},
+  {deload:true,long:null,short:'4 × 300 m, fast but relaxed',sd:[300],spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
+  {long:'4 × 1 km — quicker than week 6 at the same feel',ld:[1000],short:'5 × 400 m',sd:[400],spr:9},
+  {long:'Time trial — 1 km or a mile',ld:[1000,1609],short:'Time trial — 400 m or 200 m',sd:[400,200],spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'}
 ];
+/* Rep-time guides. Dan asked for them outright (27 Sep), after years of the
+   tracker deliberately not prescribing paces because fixed ones backfired.
+   So: WIDE ranges, from his own best session at that distance (not his best
+   single effort — a rep in a session is run slower on purpose), and they
+   move as soon as he logs a faster session. On a cut, matching the best
+   session is the top of the range, not the bottom. Effort overrides the
+   watch: a range that feels like a 9 is a range to run slower than. */
+function repRef(dm){
+  var ref=BESTAVG[dm]||null;
+  for(var d in S.days){(S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);
+    if(m.kind==='reps'&&m.dm===dm&&m.repAvg!==null&&!r.up&&(ref===null||m.repAvg<ref))ref=m.repAvg;});}
+  return ref;
+}
+function tRange(lo,hi){
+  var f=function(x){return x<40?x.toFixed(1):(x<100?String(Math.round(x)):mmss(Math.round(x)));};
+  return f(lo)+'–'+f(hi)+(hi<100?' s':'');
+}
+function guideFor(dms,kind){
+  var out=dms.map(function(dm){
+    if(kind==='tt'){var b=bestAt(dm,records()[dm]).best;if(!b||!b.t)return null;
+      return repLabel(dm)+' '+tRange(b.t*0.98,b.t*1.02)+' <span class="tiny">(best '+secFmt(b.t)+')</span>';}
+    var r=repRef(dm);if(!r)return null;
+    var lo=kind==='relaxed'?r*1.04:r,hi=kind==='relaxed'?r*1.10:r*1.06;
+    return tRange(lo,hi)+' a rep <span class="tiny">(best '+repLabel(dm)+' session '+secFmt(r)+')</span>';
+  }).filter(Boolean);
+  return out.length?'Guide: '+out.join(' · or '):'';
+}
 function weekRunsModel(){
   var t=today();if(t<WEIGH_START||t>CFG.cutEnd)return null;
   var wk=weekOf(t),P=CUT_RUNS[wk];if(!P)return null;
@@ -2904,7 +2931,7 @@ function weekRunsModel(){
   /* in a deficit, stress is the thing to manage: if the week's status is
      flagging rest, legs or overtraining, one hard run only — the short one */
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
-  if(easeOff&&use.long)use={long:null,short:use.short,spr:use.spr,note:use.note,deload:use.deload,tt:false};
+  if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,spr:use.spr,note:use.note,deload:use.deload,tt:false};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
   var lng=0,sht=0;
@@ -2920,8 +2947,9 @@ function weekRunsHTML(){
   var M=weekRunsModel();if(!M)return '';
   var P=M.P,T=M.T,w=M.w,hardDone=w.hard,rows=[];
   var tick=function(ok){return ok?'<span class="pill g">✓</span>':'<span class="pill">○</span>';};
-  if(P.long)rows.push([M.longDone,'Hard · long reps',P.long+(P.tt?'':' — or a threshold run, comfortably hard for 20–25 min'),'Builds your 800 m, 1 km, mile and 5 km.']);
-  rows.push([M.shortDone,'Hard · short speed',P.short,'Builds your 200, 400 and 600.']);
+  var gl=P.ld?guideFor(P.ld,P.tt?'tt':'reps'):'',gs=P.sd?guideFor(P.sd,P.tt?'tt':(P.deload?'relaxed':'reps')):'';
+  if(P.long)rows.push([M.longDone,'Hard · long reps',P.long+(P.tt?'':' — or a threshold run, comfortably hard for 20–25 min (no time on that one)'),(gl?'<b>'+gl+'</b><br>':'')+'Builds your 800 m, 1 km, mile and 5 km.']);
+  rows.push([M.shortDone,'Hard · short speed',P.short,(gs?'<b>'+gs+'</b><br>':'')+'Builds your 200, 400 and 600.']);
   rows.push([w.sprints>=1,'Uphill sprints',P.spr+' × about 100 m uphill — explosive, walk back down, count the reps','Top-end speed and power, for very little fatigue.']);
   var h='<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
     '<p class="lede"><b>'+(M.easeOff?2:T.runs)+' runs: '+(M.easeOff?1:T.hard)+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Any order, any days — just never a hard run the day after legs or after another hard run.</p>'+
@@ -2932,6 +2960,7 @@ function weekRunsHTML(){
     '<div style="padding:6px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
       '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>'+
     (P.note?'<p class="note" style="margin-top:6px">'+P.note+'</p>':'')+
+    '<p class="tiny" style="margin-top:6px"><b>The guide times</b> are wide on purpose: the fast end is your best session at that distance, which on a cut is a great day; the slow end is still a good, controlled session. Effort overrides the watch — if the range feels like a 9, run slower than it. They move as soon as you log a faster session. No rest times: recover until you are ready.</p>'+
     '<p class="tiny" style="margin-top:6px"><b>Faster without the stress, on a deficit:</b> finish every session feeling you had one or two more reps in you. Stop the session when a rep feels clearly worse than the first ones — that is the fatigue a deficit cannot pay back. '+
     'Move up only if last week’s version felt controlled — about a 7 by the end; if it felt like a 9 or 10, repeat it. Add reps or go quicker, never both in the same week.</p></div>';
   return h;

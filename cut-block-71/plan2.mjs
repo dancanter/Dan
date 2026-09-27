@@ -53,7 +53,10 @@ ok('3 runs: 2 hard + 1 uphill sprints', /3 runs: 2 hard \+ 1 uphill sprints/.tes
 ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
 ok('with sprints to count', /8 × about 100 m uphill/.test(t));
 ok('no days of the week are named', !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/.test(t));
-ok('no paces or rest times are prescribed', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
+ok('no rest times, and no per-km paces', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
+ok('rep guides are wide ranges from his best session: 1 km 3:13–3:24', /Guide: 3:13–3:24 a rep \(best 1 km session 3:13\)/.test(t), (t.match(/Guide[^B]*/g) || []).join(' | '));
+ok('300s: 45–48 s', /Guide: 45–48 s a rep/.test(t));
+ok('and effort overrides the watch', /Effort overrides the watch/.test(t));
 let M = await p.evaluate(() => weekRunsModel());
 ok('a 300 m session ticks the short-speed slot, not long reps', M.shortDone && !M.longDone, JSON.stringify(M));
 ok('the rule for not getting ahead is there', /Move up only if last week’s version felt controlled/.test(t));
@@ -74,12 +77,21 @@ ok('a 9 last week means repeat last week’s sessions', M.repeat && /repeat last
 await boot(st({ days: { '2026-09-28': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 900 }] } } }));
 M = await p.evaluate(() => weekRunsModel());
 ok('1 km reps tick the long-rep slot', M.longDone && !M.shortDone, JSON.stringify(M));
+// the guide moves when he logs a faster session: 5 × 1 km at 3:00 a rep
+t = sq(await p.innerText('#runsCard'));
+ok('a faster logged session moves the guide: 3:00–3:11', /Guide: 3:00–3:11 a rep \(best 1 km session 3:00\)/.test(t), (t.match(/Guide[^B]*/g) || []).join(' | '));
+// uphill reps never move it
+await boot(st({ days: { '2026-09-28': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 800, up: true }] } } }));
+ok('an uphill session does not move the guide', /Guide: 3:13–3:24 a rep/.test(sq(await p.innerText('#runsCard'))));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-21'));   // week 5, tests
 await boot(st());
 t = sq(await p.evaluate(() => weekRunsHTML()));
 ok('week 5 is a test week with a 400 and a 1 km trial', /test week/.test(t) && /Time trial — 400 m/.test(t) && /Time trial — 1 km/.test(t));
 ok('and the test only if the week is clear', /only if the week is clear/.test(t));
+t = t.replace(/<[^>]+>/g, '');
+ok('time trials get ±2% of the best: 400 m 58–60 s', /400m 58–60 s \(best 59\.0 s\)/.test(t), (t.match(/Guide[^B]*/g) || []).join(' | '));
+ok('and 1 km 2:56–3:04', /1 km 2:56–3:04 \(best 3:00\)/.test(t));
 await ctx.close();
 
 // ===== healthy foods: tap, add up, say what it did =====
