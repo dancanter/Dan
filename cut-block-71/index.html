@@ -174,6 +174,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <button role="tab" data-t="times" aria-selected="false">Times</button>
     <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
     <button role="tab" data-t="study" aria-selected="false">Study</button>
+    <button role="tab" data-t="mind" aria-selected="false">Mind</button>
     <button role="tab" data-t="reverse" aria-selected="false">Reverse</button>
     <button role="tab" data-t="wins" aria-selected="false">Wins</button>
     <button role="tab" data-t="review" aria-selected="false">Review</button>
@@ -189,12 +190,10 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="storeWarn"></div>
   <div id="alertCard"></div>
   <div id="refeedCard"></div>
-  <div id="dayCard"></div>
-  <div id="filmCard"></div>
+
   <div id="runsCard"></div>
   <div id="betterCard"></div>
   <div id="tCard"></div>
-  <div id="spotCard"></div>
   <div id="xmasCard"></div>
   <div id="pbCard"></div>
   <div id="lowLine"></div>
@@ -230,6 +229,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
       <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
       <div class="f" style="max-width:130px"><label for="inGymRpe">Gym: how hard it <i>felt</i></label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
+      <div id="setsBox" style="flex-basis:100%"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
       <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>Phone out of room</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
@@ -532,6 +532,14 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
   </div>
   <div id="revBody"></div>
+</section>
+
+<!-- ================= MIND ================= -->
+<section id="s-mind" class="stack" hidden>
+  <div id="mindCard"></div>
+  <div id="dayCard"></div>
+  <div id="filmCard"></div>
+  <div id="spotCard"></div>
 </section>
 
 <!-- ================= SKIN ================= -->
@@ -3225,6 +3233,54 @@ function improveNext(){
   var wk=ws[ws.length-1];
   return reviewFeedback(buildReview(wk),wk).next.slice(0,2);
 }
+/* ===================== mind =====================
+   Dan, 28 Sep: a wellbeing section with the routine, film nights and places
+   to get out, plus whatever boosts mood. The boosters are the ones with
+   evidence behind them — daylight, sleep, time outside, time with people,
+   something just for fun — and a daily mood tap so the week can be seen.
+   Nothing is scored; it is a place to look after yourself, not another list. */
+var MOODS=['😞','😕','😐','🙂','😄'];
+var BOOSTS=[
+ {k:'sun',e:'☀️',n:'Daylight soon after waking',w:'Sets your body clock — better sleep tonight, better mood today.'},
+ {k:'green',e:'🌳',n:'Outside somewhere green',w:'Twenty minutes in nature measurably lowers stress hormone.'},
+ {k:'people',e:'👥',n:'Time with someone',w:'In person or a call. The strongest mood booster there is, and the one a busy cut squeezes out first.'},
+ {k:'fun',e:'🎨',n:'Something just for fun',w:'Not training, not study — something that is only for you.'},
+ {k:'breathe',e:'🧘',n:'Meditated or just breathed',w:'Ten minutes after lunch resets the afternoon and makes falling asleep easier.'}
+];
+function mindHTML(){
+  var d=today(),r=S.days[d]||{},mb=r.mb||[];
+  var strip='';
+  for(var i=6;i>=0;i--){var dd=addD(d,-i),m=(S.days[dd]||{}).mood;
+    strip+='<span style="display:inline-block;width:40px;text-align:center"><span class="tiny dim" style="display:block">'+DOWS[dow(dd)].slice(0,2)+'</span><span style="font-size:20px">'+(m?MOODS[m-1]:'·')+'</span></span>';}
+  var sl=(S.days[addD(d,-1)]||{}).sleep,slT=typeof r.sleep==='number'?r.sleep:null;
+  return '<div class="p lift"><h2>How are you today?</h2>'+
+    '<div class="row" style="gap:6px;margin:4px 0 8px">'+MOODS.map(function(e,i){var on=r.mood===i+1;
+      return '<button type="button" data-mood="'+(i+1)+'" style="font-size:28px;background:'+(on?'var(--rule-2)':'none')+';border:'+(on?'2px solid var(--accent)':'1px solid var(--rule-2)')+';border-radius:10px;padding:4px 8px;cursor:pointer">'+e+'</button>';}).join('')+'</div>'+
+    '<div style="margin:6px 0">'+strip+'</div>'+
+    '<div class="f" style="margin-top:8px"><label for="inGood">One good thing today</label><input type="text" id="inGood" maxlength="120" placeholder="a great session, a film, a laugh with a mate…" value="'+esc(r.good||'')+'"></div>'+
+    '<h3 style="margin-top:12px">Boosters today</h3>'+
+    BOOSTS.map(function(b){var on=mb.indexOf(b.k)>=0;
+      return '<button type="button" data-boost="'+b.k+'" style="display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;color:inherit;cursor:pointer;align-items:flex-start;font:inherit">'+
+        '<span style="font-size:18px;flex:0 0 26px">'+(on?'✅':b.e)+'</span><span style="flex:1 1 auto"><b>'+b.n+'</b><br><span class="tiny">'+b.w+'</span></span></button>';}).join('')+
+    '<div class="row" style="gap:8px;margin-top:10px;align-items:center"><span class="tiny">Sleep last night: <b>'+(slT!==null?f1(slT)+' h':'not logged')+'</b> — the biggest mood lever of all.</span>'+
+    '<button type="button" class="pill'+(r.phoneOut?' g':'')+'" data-phone="1" style="cursor:pointer;border:0;margin-left:auto">📵 '+(r.phoneOut?'Phone out tonight ✓':'Phone out tonight?')+'</button></div>'+
+    '<p class="tiny" style="margin-top:10px">If your mood has been low for a couple of weeks, talk to someone — a mate, your GP, or Samaritans on 116 123 (free, any time).</p></div>';
+}
+function renderMind(){
+  if(E('mindCard'))E('mindCard').innerHTML=mindHTML();
+}
+function wireMind(){
+  E('mindCard').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b)return;
+    var d=today(),r=S.days[d]||{};
+    if(b.dataset.mood){var v=Number(b.dataset.mood);setDay(d,{mood:r.mood===v?null:v});return;}
+    if(b.dataset.boost){var mb=(r.mb||[]).slice(),k=mb.indexOf(b.dataset.boost);if(k>=0)mb.splice(k,1);else mb.push(b.dataset.boost);setDay(d,{mb:mb.length?mb:null});return;}
+    if(b.dataset.phone){setDay(d,{phoneOut:r.phoneOut?null:true});return;}
+  });
+  E('mindCard').addEventListener('change',function(ev){
+    if(ev.target.id==='inGood')setDay(today(),{good:ev.target.value.trim().slice(0,120)||null});
+  });
+}
 /* ===================== your day, film nights, getting out =====================
    Dan, 28 Sep: a routine that fits how he likes to live (no alarm — the
    order matters, not the clock), film or series nights 2–3 times a week with
@@ -3556,6 +3612,7 @@ function renderBetter(){
 }
 function renderGains(){
   renderLife();
+  renderMind();
   renderBetter();
   E('tCard').innerHTML=(today()>=CFG.cutStart&&today()<=CFG.cutEnd)?tSupportHTML(addD(today(),-6),today(),'Testosterone support · last 7 days'):'';
   E('runsCard').innerHTML=weekRunsHTML();
@@ -5011,6 +5068,7 @@ function lookupFood(){
 }
 function wireFood(){
   wireLife();
+  wireMind();
   ['hfPanel','hfFood'].forEach(function(id){
   E(id).addEventListener('change',function(ev){
     var i=ev.target.closest('input[data-hfin]');if(!i)return;
@@ -5111,6 +5169,7 @@ function paintForm(){
     x.hidden=!rec.niggle;
   });
   E('inGymRpe').parentNode.hidden=!rec.gym;
+  E('setsBox').innerHTML=setsBoxHTML(E('logDate').value||today());
   [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
@@ -5627,6 +5686,43 @@ function renderStudy(tr){
 }
 
 /* ---------- the gym split ---------- */
+/* ===================== sets per muscle =====================
+   Dan, 28 Sep: log the sets on a gym day and get told whether the week's
+   volume for that muscle is too little, about right, or too much. He trains
+   each part once a week, so the session is the week — but a second go (the
+   free fifth day) adds up, so it is summed across Mon–Sun. Hard sets only:
+   working sets within a few reps of failure; warm-ups do not count. */
+var SPLIT_MUSCLES={chest:['Chest','Triceps'],back:['Back','Biceps'],delts:['Shoulders','Forearms'],legs:['Legs'],
+  arms:['Biceps','Triceps','Forearms'],other:['Chest','Back','Shoulders','Legs','Biceps','Triceps','Forearms']};
+function setsRange(m){
+  var onRev=today()>=REV_START;
+  for(var i=0;i<CFG.sets.length;i++)if(CFG.sets[i].m===m)return onRev?CFG.sets[i].rev:CFG.sets[i].cut;
+  return null;
+}
+function weekSets(d){
+  var st=mondayOf(d),out={};
+  for(var i=0;i<7;i++){var r=S.days[addD(st,i)];if(!r||!r.sets)continue;for(var k in r.sets)out[k]=(out[k]||0)+r.sets[k];}
+  return out;
+}
+function setsVerdict(m,week,session){
+  var R=setsRange(m);if(!R||!week)return null;
+  var cut=today()<REV_START;
+  if(session>SESSION_CAP)return {k:'w',t:'Too much for one session',w:'Past about '+SESSION_CAP+' hard sets for one muscle in a session, the extra ones stop paying and just cost recovery. Trim it, or split it across two days.'};
+  if(week<R[0])return {k:'',t:'Light',w:week+' of '+R[0]+'–'+R[1]+' for the week. '+(cut?'On a cut, heavy weights keep muscle more than sets do — but 1–2 more hard sets next time would make sure.':'Room for 1–2 more hard sets to grow it.')};
+  if(week<=R[1])return {k:'g',t:'Just right',w:week+' sets — inside '+R[0]+'–'+R[1]+'. '+(cut?'Enough to keep every bit of it in a deficit, without eating into your recovery or your running.':'The growth range — keep adding load.')};
+  return {k:'w',t:'On the high side',w:week+' sets, over '+R[1]+'. '+(cut?'More sets will not build much in a deficit; they cost recovery — and your running pays. '+R[1]+' is plenty.':'Past the useful range — more is not better; push the load instead.')};
+}
+function setsBoxHTML(d){
+  var r=S.days[d]||{};if(!r.gym||!r.split||r.split==='calis')return '';
+  var ms=SPLIT_MUSCLES[r.split]||[],cur=r.sets||{},wk=weekSets(d);
+  return '<div style="margin-top:8px;padding:8px;border:1px solid var(--rule-2);border-radius:8px">'+
+    '<div class="tiny" style="margin-bottom:6px"><b>Hard sets</b> — working sets within a few reps of failure; warm-ups do not count.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+ms.map(function(m){
+      return '<div class="f" style="max-width:110px"><label>'+m+'</label><input type="number" inputmode="numeric" min="0" max="40" step="1" data-sets="'+m+'" value="'+(cur[m]||'')+'" placeholder="0"></div>';}).join('')+'</div>'+
+    ms.map(function(m){var v=setsVerdict(m,wk[m]||0,cur[m]||0);if(!v)return '';
+      return '<p class="note" style="margin:6px 0 0"><span class="pill'+(v.k?' '+v.k:'')+'">'+m+' · '+v.t+'</span> '+v.w+'</p>';}).join('')+
+    '</div>';
+}
 function renderSplit(){
   var m=splitModel();
   var h='<div class="p"><h2>The split · four core days and a free one</h2>'+
@@ -5665,13 +5761,15 @@ function renderSplit(){
       ? 'You are on the reverse now, so these are <b>growth</b> numbers — the right-hand column.'
       : '<b>You cannot build muscle in a real deficit</b>, so the job until 28 November is keeping what you have. That is the left-hand column, and it is deliberately lower.')+'</p>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Muscle</th>'+
-    '<th class="n">Now · keeping it</th><th class="n">Reverse · growing it</th><th>Where it lands</th></tr></thead><tbody>';
+    '<th class="n">Now · keeping it</th><th class="n">Reverse · growing it</th><th class="n">This week</th><th>Where it lands</th></tr></thead><tbody>';
+  var WS=weekSets(today());
   CFG.sets.forEach(function(x){
     var cutN=x.cut[0]+'–'+x.cut[1],revN=x.rev[0]+'–'+x.rev[1];
     var need=sessionsNeeded((onRev?x.rev:x.cut)[1]);
     h+='<tr><td><b>'+x.m+'</b></td>'+
       '<td class="n"'+(onRev?'':' style="color:var(--accent)"')+'>'+cutN+'</td>'+
       '<td class="n"'+(onRev?' style="color:var(--accent)"':' class="dim"')+'>'+revN+'</td>'+
+      (function(){var v=WS[x.m]||0,vd=setsVerdict(x.m,v,0);return '<td class="n">'+(v?v+' <span class="pill'+(vd&&vd.k?' '+vd.k:'')+'">'+(vd?vd.t.toLowerCase():'')+'</span>':'<span class="tiny dim">—</span>')+'</td>';})()+
       '<td class="tiny">'+splitName(x.day)+
       (need>1?' <b style="color:var(--accent)">· split over '+need+' days</b>':'')+'</td></tr>';
   });
@@ -6508,7 +6606,7 @@ function renderData(w,tr,c){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','weight','food','training','times','sleep','study','reverse','wins','review','skin','data'].forEach(function(k){
+  ['today','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
@@ -6536,6 +6634,12 @@ function wire(){
        is never left to be guessed from which boxes happen to be filled */
     if(this.value==='calis'&&!(S.days[d]||{}).calisType)o.calisType='both';
     setDay(d,o);
+  });
+  E('setsBox').addEventListener('change',function(ev){
+    var i=ev.target.closest('input[data-sets]');if(!i)return;
+    var d=E('logDate').value||today(),cur=clone((S.days[d]||{}).sets||{}),v=Math.round(Number(i.value));
+    if(isFinite(v)&&v>0)cur[i.dataset.sets]=Math.min(40,v);else delete cur[i.dataset.sets];
+    setDay(d,{sets:Object.keys(cur).length?cur:null});
   });
   E('inCalisType').addEventListener('change',function(){
     var d=E('logDate').value||today();
