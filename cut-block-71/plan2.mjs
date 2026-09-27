@@ -50,13 +50,21 @@ await p.click('[data-t="today"]');
 t = sq(await p.innerText('#runsCard'));
 ok('Today shows this week’s runs', /THIS WEEK’S RUNS · WEEK 2/i.test(t), t.slice(0, 200));
 ok('3 runs: 2 hard + 1 uphill sprints', /3 runs: 2 hard \+ 1 uphill sprints/.test(t));
-ok('week 2 is 5 × 1 km and 6 × 300 m', /5 × 1 km/.test(t) && /6 × 300 m/.test(t));
+ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
 ok('with sprints to count', /8 × about 100 m uphill/.test(t));
 ok('no days of the week are named', !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/.test(t));
 ok('no paces or rest times are prescribed', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
 let M = await p.evaluate(() => weekRunsModel());
 ok('a 300 m session ticks the short-speed slot, not long reps', M.shortDone && !M.longDone, JSON.stringify(M));
-ok('the rule for not getting ahead is there', /move up only if last week’s version felt controlled/.test(t));
+ok('the rule for not getting ahead is there', /Move up only if last week’s version felt controlled/.test(t));
+ok('and the low-stress rule for a deficit', /one or two more reps in you/.test(t) && /fatigue a deficit cannot pay back/.test(t));
+ok('no long session is more than 5 km of reps', await p.evaluate(() => CUT_RUNS.filter(Boolean).every(w => { const m = /(\d+) × (\d+) (k?m)/.exec(w.long || ''); return !m || (+m[1]) * (+m[2]) * (m[3] === 'km' ? 1000 : 1) <= 5000; })));
+// a stress flag cuts the week to one hard run, the short one
+await boot(st({ days: { '2026-09-30': { niggle: true, niggleWhat: 'calf' } } }));
+M = await p.evaluate(() => weekRunsModel());
+t = sq(await p.innerText('#runsCard'));
+ok('a stress flag drops the week to one hard run', M.easeOff && !M.P.long && /2 runs: 1 hard \+ 1 uphill sprints/.test(t) && /one hard run/.test(t) && /Rest what hurts/.test(t), t.slice(0, 400));
+ok('with no long-rep session that week', !/Hard · long reps/.test(t));
 // last week's hard runs felt like a 9: repeat, don't move up
 await boot(st({ days: { '2026-09-23': { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, rpe: 9 }] } } }));
 M = await p.evaluate(() => weekRunsModel());
@@ -70,7 +78,8 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-21'));   // week 5, tests
 await boot(st());
 t = sq(await p.evaluate(() => weekRunsHTML()));
-ok('week 5 is a test week with a 400 and a 1 km or mile trial', /test week/.test(t) && /Time trial — 400 m/.test(t) && /Time trial — 1 km or a mile/.test(t));
+ok('week 5 is a test week with a 400 and a 1 km trial', /test week/.test(t) && /Time trial — 400 m/.test(t) && /Time trial — 1 km/.test(t));
+ok('and the test only if the week is clear', /only if the week is clear/.test(t));
 await ctx.close();
 
 // ===== healthy foods: tap, add up, say what it did =====
@@ -88,8 +97,17 @@ ok('the kcal is left alone', await p.evaluate(() => S.days[today()].kcal === und
 t = sq(await p.innerText('#hfPanel'));
 ok('it counts different healthy foods today', /4 different healthy foods today/.test(t), t.slice(0, 200));
 ok('the week adds up with targets', /Eggs 2 \/ 10/.test(t) && /Oily fish 1 \/ 3/.test(t));
+await tap('eggm', 2);
+t = sq(await p.innerText('#hfPanel'));
+ok('medium eggs count toward the same eggs target', /Eggs 4 \/ 10 2 large, 2 medium/.test(t), (t.match(/This week.{0,120}/) || [''])[0]);
+ok('both egg tiles show the shared weekly count', (t.match(/4\/10 wk/g) || []).length === 2);
+ok('a medium egg is about 85% of a large one', await p.evaluate(() => { const L = hfById('egg'), M = hfById('eggm'); return Math.abs(M.m[5] / L.m[5] - 0.87) < 0.05; }));
+ok('and the food diary has a medium egg at 66 kcal', await p.evaluate(() => foodById('x:eggm').kcal === 66 && !!foodById('x:eggm').mic));
+for (let i = 0; i < 2; i++) { await p.click('#hfPanel button[data-hf="eggm"][data-by="-1"]'); await p.waitForTimeout(60); }
+ok('medium eggs back to none', await p.evaluate(() => !S.days[today()].hf.eggm));
+t = sq(await p.innerText('#hfPanel'));
 ok('and says what each did', /EPA and DHA calm redness/.test(t));
-ok('by body system: hormones names the foods behind it', /Hormones — testosterone and thyroid/.test(t) && /From eggs ×2, oily fish ×1, brazil nuts ×2/.test(t), (t.match(/Hormones.{0,200}/) || [''])[0]);
+ok('by body system: hormones names the foods behind it', /Hormones — testosterone and thyroid/.test(t) && /From eggs \(large\) ×2, oily fish ×1, brazil nuts ×2/.test(t), (t.match(/Hormones.{0,200}/) || [''])[0]);
 ok('a system with nothing says so', /Gut — nothing from the list yet this week/.test(t));
 const W = await p.evaluate(() => hfWeek());
 ok('micronutrients add up: omega-3 = 2×30 + 2500', Math.round(W.mic.o3) === 2560, String(W.mic.o3));

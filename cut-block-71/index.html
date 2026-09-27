@@ -2882,15 +2882,15 @@ function weekGains(){
    no paces and no rest intervals, which are his to judge on the day. */
 var CUT_RUNS=[null,
   {long:'5 × 800 m',short:'5 × 200 m',spr:7,note:'Week one: find your level — controlled, not all-out.'},
-  {long:'5 × 1 km',short:'6 × 300 m',spr:8},
-  {long:'6 × 800 m',short:'6 × 400 m',spr:9},
-  {deload:true,long:null,short:'6 × 200 m, fast but relaxed',spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
-  {long:'Time trial — 1 km or a mile',short:'Time trial — 400 m',spr:8,tt:true,note:'Test week. Proper warm-up, and at least 48 h between the two trials.'},
-  {long:'5 × 1 km',short:'4 × 600 m',spr:9},
-  {long:'6 × 800 m',short:'8 × 200 m',spr:10},
-  {deload:true,long:null,short:'5 × 300 m, fast but relaxed',spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
-  {long:'4 × 1 km — quicker than week 6 at the same feel',short:'5 × 400 m',spr:10},
-  {long:'Time trial — a mile or 1 km',short:'Time trial — 400 m or 200 m',spr:8,tt:true,note:'Last week of the cut: test, then the reverse starts and the real PB chase with it.'}
+  {long:'4 × 1 km',short:'6 × 300 m',spr:8},
+  {long:'5 × 800 m',short:'5 × 400 m',spr:8},
+  {deload:true,long:null,short:'5 × 200 m, fast but relaxed',spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
+  {long:'Time trial — 1 km',short:'Time trial — 400 m',spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
+  {long:'4 × 1 km',short:'4 × 600 m',spr:9},
+  {long:'5 × 800 m',short:'8 × 200 m',spr:9},
+  {deload:true,long:null,short:'4 × 300 m, fast but relaxed',spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
+  {long:'4 × 1 km — quicker than week 6 at the same feel',short:'5 × 400 m',spr:9},
+  {long:'Time trial — 1 km or a mile',short:'Time trial — 400 m or 200 m',spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'}
 ];
 function weekRunsModel(){
   var t=today();if(t<WEIGH_START||t>CFG.cutEnd)return null;
@@ -2901,6 +2901,10 @@ function weekRunsModel(){
   for(i=0;i<7;i++){d=addD(prevStart,i);(S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.hard&&!m.empty&&r.rpe>=9)heavy=true;});}
   var repeat=heavy&&wk>1&&!P.deload&&!P.tt&&CUT_RUNS[wk-1]&&!CUT_RUNS[wk-1].deload&&!CUT_RUNS[wk-1].tt;
   var use=repeat?CUT_RUNS[wk-1]:P;
+  /* in a deficit, stress is the thing to manage: if the week's status is
+     flagging rest, legs or overtraining, one hard run only — the short one */
+  var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
+  if(easeOff&&use.long)use={long:null,short:use.short,spr:use.spr,note:use.note,deload:use.deload,tt:false};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
   var lng=0,sht=0;
@@ -2910,7 +2914,7 @@ function weekRunsModel(){
   /* a second session of the same kind still counts, toward the other slot */
   var longDone=lng>=1||(sht>=2&&!!use.long),shortDone=sht>=1||(lng>=2);
   if(!use.long)shortDone=lng+sht>=1;
-  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone};
+  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST};
 }
 function weekRunsHTML(){
   var M=weekRunsModel();if(!M)return '';
@@ -2920,14 +2924,16 @@ function weekRunsHTML(){
   rows.push([M.shortDone,'Hard · short speed',P.short,'Builds your 200, 400 and 600.']);
   rows.push([w.sprints>=1,'Uphill sprints',P.spr+' × about 100 m uphill — explosive, walk back down, count the reps','Top-end speed and power, for very little fatigue.']);
   var h='<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede"><b>'+T.runs+' runs: '+T.hard+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Any order, any days — just never a hard run the day after legs or after another hard run.</p>'+
+    '<p class="lede"><b>'+(M.easeOff?2:T.runs)+' runs: '+(M.easeOff?1:T.hard)+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Any order, any days — just never a hard run the day after legs or after another hard run.</p>'+
+    (M.easeOff?'<p class="note wn"><b>'+M.ST.t+'</b>, so this week is <b>one hard run</b> — the short one. The long reps wait until the flag clears. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>repeat last week’s sessions</b> rather than moving up. Getting ahead of yourself is how cuts go wrong.</p>':'')+
     rows.map(function(r){return '<div style="padding:6px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(r[0])+'<b>'+r[1]+'</b></div>'+
       '<div style="margin-top:2px">'+r[2]+'</div><div class="tiny">'+r[3]+'</div></div>';}).join('')+
     '<div style="padding:6px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
       '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>'+
     (P.note?'<p class="note" style="margin-top:6px">'+P.note+'</p>':'')+
-    '<p class="tiny" style="margin-top:6px"><b>How it builds without getting ahead of you:</b> move up only if last week’s version felt controlled — about a 7 by the end. If it felt like a 9 or 10, repeat it. Add reps or go quicker, never both in the same week.</p></div>';
+    '<p class="tiny" style="margin-top:6px"><b>Faster without the stress, on a deficit:</b> finish every session feeling you had one or two more reps in you. Stop the session when a rep feels clearly worse than the first ones — that is the fatigue a deficit cannot pay back. '+
+    'Move up only if last week’s version felt controlled — about a 7 by the end; if it felt like a 9 or 10, repeat it. Add reps or go quicker, never both in the same week.</p></div>';
   return h;
 }
 /* ===================== better than last week =====================
@@ -3936,6 +3942,7 @@ var FRESH=[
   {id:'x:riceraw',name:'White rice, dry weight',unit:'g',per:100,kcal:360,pro:7,carb:79,fat:0.6},
   {id:'x:rice',name:'White rice, cooked weight',unit:'g',per:100,kcal:130,pro:2.7,carb:28,fat:0.3},
   {id:'x:egg',name:'Egg, large',unit:'each',per:1,kcal:78,pro:7.3,carb:0.1,fat:5.3},
+  {id:'x:eggm',name:'Egg, medium',unit:'each',per:1,kcal:66,pro:6.2,carb:0.1,fat:4.5},
   {id:'x:eggwhite',name:'Egg white, large',unit:'each',per:1,kcal:17,pro:3.6,carb:0.2,fat:0.1},
   {id:'x:chickenraw',name:'Chicken breast, raw',unit:'g',per:100,kcal:106,pro:24,carb:0,fat:1.1},
   {id:'x:chicken',name:'Chicken breast, cooked',unit:'g',per:100,kcal:165,pro:31,carb:0,fat:3.6},
@@ -3987,6 +3994,7 @@ var MICRO_FRESH={
   'x:riceraw':[1.3,0.1,0.8,1.1,28,25,115,15,0,0,8,0],
   'x:rice':[0.4,0.1,0.2,0.5,10,12,35,7.5,0,0,3,0],
   'x:egg':[0,0.2,0.9,0.6,28,6,69,15.4,0,0.45,24,30],
+  'x:eggm':[0,0.2,0.8,0.5,24,5,59,13.1,0,0.38,20,26],
   'x:eggwhite':[0,0.2,0,0,2,4,54,6.6,0,0.03,1,0],
   'x:chickenraw':[0,0,0.4,0.7,5,28,334,22,0,0.2,4,20],
   'x:chicken':[0,0,0.5,1,15,29,256,27.6,0,0.3,4,20],
@@ -4136,8 +4144,10 @@ function mealNow(){var h=new Date().getHours(),m=new Date().getMinutes();
    A and biotin), nothing processed. Values are per portion and typical —
    the week totals count these foods only, so the real totals are higher. */
 var HF=[
- {k:'egg',n:'Eggs',u:'1 large egg',wk:10,m:[0.9,0.6,28,6,69,15,0,0.45,24,30],g:['hor','brain','skin'],
+ {k:'egg',n:'Eggs, large',u:'1 large egg',wk:10,pool:'eggs',m:[0.9,0.6,28,6,69,15,0,0.45,24,30],g:['hor','brain','skin'],
   why:'Choline for your brain, B12, selenium, and lutein that the yolk makes easy to absorb. The yolk’s fat and cholesterol are raw material for testosterone.'},
+ {k:'eggm',n:'Eggs, medium',u:'1 medium egg — counts toward the same 10',wk:10,pool:'eggs',m:[0.8,0.5,24,5,59,13,0,0.38,20,26],g:['hor','brain','skin'],
+  why:'The same as a large egg, about 15% smaller.'},
  {k:'oily',n:'Oily fish',u:'1 portion (~120 g) — salmon, mackerel, sardines, trout',wk:3,m:[0.6,0.6,30,36,440,45,0,5,20,2500],g:['skin','hor','brain','heart'],
   why:'The best single glow food: EPA and DHA calm redness and build the skin barrier. Also vitamin D from food and selenium, for testosterone and thyroid.'},
  {k:'red',n:'Lean beef or lamb',u:'1 portion (~125 g)',wk:2,m:[3.2,7.5,10,28,450,25,0,3,10,40],g:['hor','run'],
@@ -4212,6 +4222,7 @@ function renderHF(){
   var el=E('hfPanel');if(!el)return;
   var d=E('logDate').value||today(),h=(S.days[d]&&S.days[d].hf)||{},W=hfWeek();
   var todayN=Object.keys(h).filter(function(k){return h[k]>0;}).length;
+  var poolN=function(f){return f.pool?HF.filter(function(x){return x.pool===f.pool;}).reduce(function(a,x){return a+(W.tot[x.k]||0);},0):(W.tot[f.k]||0);};
   var grid=HF.map(function(f){var c=h[f.k]||0;
     return '<div style="border:1px solid var(--rule-2);border-radius:8px;padding:6px 8px'+(c?';border-color:var(--accent)':'')+'">'+
       '<div style="font-weight:600;font-size:14px">'+f.n+'</div><div class="tiny dim" style="min-height:2.4em">'+f.u+'</div>'+
@@ -4219,14 +4230,16 @@ function renderHF(){
       '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="-1" aria-label="one less '+f.n+'">−</button>'+
       '<b class="num" style="min-width:1.6em;text-align:center">'+c+'</b>'+
       '<button class="btn ghost sm" type="button" data-hf="'+f.k+'" data-by="1" aria-label="one more '+f.n+'">+</button>'+
-      '<span class="tiny dim" style="margin-left:auto">'+(W.tot[f.k]||0)+'/'+f.wk+' wk</span></div></div>';}).join('');
+      '<span class="tiny dim" style="margin-left:auto">'+poolN(f)+'/'+f.wk+' wk</span></div></div>';}).join('');
   /* the week: totals, then what they did */
-  var rows=HF.filter(function(f){return W.tot[f.k];}).map(function(f){var c=W.tot[f.k];
-    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+f.n+'</b><span class="mono">'+c+' / '+f.wk+'</span>'+
+  var seenPool={};
+  var rows=HF.filter(function(f){if(f.pool){if(seenPool[f.pool]||!poolN(f))return false;seenPool[f.pool]=1;return true;}return W.tot[f.k];}).map(function(f){var c=poolN(f);
+    var nm=f.pool?'Eggs':f.n,split=f.pool?HF.filter(function(x){return x.pool===f.pool&&W.tot[x.k];}).map(function(x){return W.tot[x.k]+' '+x.n.split(', ')[1];}).join(', '):'';
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+nm+'</b><span class="mono">'+c+' / '+f.wk+'</span>'+(split?'<span class="tiny">'+split+'</span>':'')+
       (c>=f.wk?'<span class="pill g" style="margin-left:auto">✓ target</span>':'')+
       (f.k==='brazil'&&c>14?'<span class="pill w" style="margin-left:auto">over 2 a day</span>':'')+'</div><div class="note">'+f.why+'</div></div>';}).join('');
   var sys=HF_GROUPS.map(function(g){var from=HF.filter(function(f){return W.tot[f.k]&&f.g.indexOf(g.k)>=0;});
-    return from.length?'<p style="margin:4px 0"><b>'+g.n+'</b> <span class="tiny">— '+g.w+'.</span><br><span class="note">From '+from.map(function(f){return f.n.toLowerCase()+' ×'+W.tot[f.k];}).join(', ')+'.</span></p>':
+    return from.length?'<p style="margin:4px 0"><b>'+g.n+'</b> <span class="tiny">— '+g.w+'.</span><br><span class="note">From '+from.map(function(f){return (f.pool?f.n.replace(', ',' (')+')':f.n).toLowerCase()+' ×'+W.tot[f.k];}).join(', ')+'.</span></p>':
       '<p style="margin:4px 0" class="dim"><b>'+g.n+'</b> <span class="tiny">— nothing from the list yet this week.</span></p>';}).join('');
   var mic=NUTRI.map(function(n){var v=W.mic[n.k],ref=n.ref*7,pc=Math.round(v/ref*100);
     return '<tr><td>'+n.n+'</td><td class="mono">'+(v<10?f1(v):ci(Math.round(v)))+' '+n.u+'</td><td><span class="mono'+(pc>=100?' gd':'')+'">'+pc+'%</span></td><td class="tiny">'+HF_WHY[n.k]+'</td></tr>';}).join('');
