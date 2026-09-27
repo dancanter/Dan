@@ -801,9 +801,11 @@ var CFG={
      With a gentle deficit (~340/day), high protein and hard sets a little
      growth is possible, so the cut column moved up from "keep" to "the most
      a cut allows" — still under the reverse numbers. */
-  sets:[{m:'Chest',cut:[8,12],rev:[12,18],day:'chest'},
-        {m:'Back',cut:[9,12],rev:[14,20],day:'back'},
-        {m:'Shoulders',cut:[9,12],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
+  /* 28 Sep, again: Dan trains each part ONCE a week, so the week's sets all
+     land in one session — the ranges are sized for that. */
+  sets:[{m:'Chest',cut:[10,15],rev:[12,18],day:'chest'},
+        {m:'Back',cut:[12,16],rev:[14,20],day:'back'},
+        {m:'Shoulders',cut:[10,15],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
         {m:'Legs',cut:[6,10],rev:[8,14],day:'legs'},
         {m:'Biceps',cut:[6,10],rev:[8,14],day:'back'},
         {m:'Triceps',cut:[6,10],rev:[8,14],day:'chest'},
@@ -1276,13 +1278,14 @@ function trainingModel(){
 
 /* ===================== the gym split ===================== */
 var SPLIT_CORE=['delts','chest','back','legs'];
-/* How many hard sets one muscle can absorb in a SINGLE session before the
-   next set stops paying for itself. Weekly volume keeps helping well past
-   this; per-session volume does not. It matters because the split trains
-   each muscle once a week, so the weekly number and the session number are
-   the same number — and the top of the reverse column quietly asks for a
-   34-set back day, which no one grows from. */
-var SESSION_CAP=12;
+/* How many hard sets one muscle takes in a SINGLE session before the extra
+   ones pay clearly less. The split trains each muscle once a week, so the
+   weekly number and the session number are the same number. */
+/* 28 Sep: raised from 12. Newer evidence says weekly volume keeps paying
+   even when it all goes into one session — with diminishing returns — and
+   Dan's split hits each muscle once a week. About 16 hard sets per muscle
+   in one session is the sensible top on a cut with running alongside. */
+var SESSION_CAP=16;
 function sessionsNeeded(hi){return Math.max(1,Math.ceil(hi/SESSION_CAP));}
 function splitName(k){
   for(var i=0;i<CFG.split.length;i++)if(CFG.split[i].k===k)return CFG.split[i].n;
@@ -5705,7 +5708,7 @@ function setsVerdict(m,week,session){
   var R=setsRange(m);if(!R||!week)return null;
   var cut=today()<REV_START;
   if(week<R[0])return {k:'',t:'Light',w:week+' of '+R[0]+'–'+R[1]+' for the week. '+(cut?'On a cut, heavy weights keep muscle more than sets do — but 1–2 more hard sets next time would make sure.':'Room for 1–2 more hard sets to grow it.')};
-  if(week<=R[1])return {k:'g',t:(week>=R[1]-1?'Right at the top':'Just right'),w:week+' sets this week — inside '+R[0]+'–'+R[1]+'. '+(cut?(week>=R[1]-1?'The most a cut can use — this is where the gains come from.':'Plenty to keep it, and some room to push toward '+R[1]+' for more gains.'):'The growth range — keep adding load.')};
+  if(week<=R[1])return {k:'g',t:(week>=R[1]-1?'Right at the top':'Just right'),w:week+' sets this week — inside '+R[0]+'–'+R[1]+'. '+(cut?(week>=R[1]-1?'The most a cut can use in your one session — this is where the gains come from, as long as every set stays hard.':'Plenty to keep it, and room to push toward '+R[1]+' for more gains.'):'The growth range — keep adding load.')};
   return {k:'w',t:'On the high side',w:week+' sets this week, over '+R[1]+'. '+(cut?'In a deficit, sets past this stop adding muscle and start taking recovery — and your running pays. Put the effort into load instead.':'Past the useful range — more is not better; push the load instead.')};
 }
 function setsBoxHTML(d){
@@ -5717,7 +5720,7 @@ function setsBoxHTML(d){
       return '<div class="f" style="max-width:110px"><label>'+m+'</label><input type="number" inputmode="numeric" min="0" max="40" step="1" data-sets="'+m+'" value="'+(cur[m]||'')+'" placeholder="0"></div>';}).join('')+'</div>'+
     ms.map(function(m){var v=setsVerdict(m,wk[m]||0,cur[m]||0);if(!v)return '';
       return '<p class="note" style="margin:6px 0 0"><span class="pill'+(v.k?' '+v.k:'')+'">'+m+' · '+v.t+'</span> '+v.w+
-        ((cur[m]||0)>SESSION_CAP?' <span class="tiny">Tip: past about '+SESSION_CAP+' in one go the extra sets pay less — a few on your free day would work harder.</span>':'')+'</p>';}).join('')+
+        ((cur[m]||0)>SESSION_CAP?' <span class="tiny">Tip: past about '+SESSION_CAP+' in one go the extra sets pay less and the quality drops — keep them hard, or move a few to your free day.</span>':'')+'</p>';}).join('')+
     '<p class="tiny" style="margin:6px 0 0">Judged on the <b>week</b> — Monday to Sunday, every session added up.</p>'+
     '</div>';
 }
@@ -5831,7 +5834,7 @@ function renderSplit(){
     'In a deficit it is the weight on the bar that tells the body to hold onto muscle. Cutting the volume is fine and sometimes necessary; going lighter because you feel tired is how people finish a cut smaller than they planned. '+
     'If a session has to shrink, lose the last set, not the plates.</p>'+
     (onRev?'':'<p><b>If you want the most growth this block can give you, run the top of the left column, not the bottom.</b> '+
-      'That is the whole lever — ten chest sets rather than six, twelve back rather than eight, every one of them within a few reps of failure. '+
+      'That is the whole lever — fifteen chest sets rather than ten, sixteen back rather than twelve, every one of them within a few reps of failure. '+
       'At '+defTxt+', with your running in the same week, do not expect much new muscle — but a little is realistic, and what matters more is how much you still have on 28 November: every pound you keep now is a pound you are not spending December to February getting back. '+
       '<b>The growth happens on the reverse.</b> This block just protects the starting point for it.</p>')+
     '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and 12,800 steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
@@ -5839,7 +5842,7 @@ function renderSplit(){
     '<p class="note"><b>Do not add volume as the block runs.</b> Recovery falls as you get leaner and the deficit accumulates, so the sensible direction is the same or slightly less, not more. If anything starts feeling heavier than it should, that is the signal to drop a set rather than push through.</p>'+
     '<hr class="d">'+
     '<p><b>These are weekly totals — but your split hits each muscle once a week, so for you the week IS the session.</b> '+
-    'Six to ten chest sets means six to ten on your chest day, not six to ten each time you happen to press something.</p>'+
+    'Ten to fifteen chest sets means ten to fifteen on your chest day, not ten to fifteen each time you happen to press something. On a chest-and-triceps day at the top of both, that is a long session — keep every set hard rather than rushing to hit the number.</p>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Session</th><th class="n">Sets in it'+(onRev?', growing':', now')+'</th><th class="tiny">Made up of</th></tr></thead><tbody>'+
     (function(){
       var out='',byDay={};

@@ -209,7 +209,7 @@ ok('and it points at the reverse for growth', /roughly double on the reverse/.te
 // the per-week / per-session point
 ok('it says outright these are weekly totals', /These are weekly totals/.test(t), t.slice(t.indexOf('weekly totals') - 40, t.indexOf('weekly totals') + 200));
 ok('and that for his split the week is the session', /the week IS the session/.test(t));
-ok('with a worked example', /not six to ten each time you happen to press something/.test(t));
+ok('with a worked example', /not ten to fifteen each time you happen to press something/.test(t));
 // pick the table by its header, not by position — the panel has several
 const perDay = await p.$$eval('#tSplit table', ts => {
   const tbl = ts.filter(x => {
@@ -222,10 +222,10 @@ const perDay = await p.$$eval('#tSplit table', ts => {
 });
 ok('a per-session table exists for the four core days', perDay.length === 4, JSON.stringify(perDay));
 const chestRow = perDay.filter(r => /Chest/.test(r[0]))[0];
-ok('chest day totals chest plus triceps', chestRow && chestRow[1] === '14–22', JSON.stringify(chestRow));
-ok('and shows what it is made of', /chest 8–12/.test(chestRow[2]) && /triceps 6–10/.test(chestRow[2]), chestRow[2]);
+ok('chest day totals chest plus triceps', chestRow && chestRow[1] === '16–25', JSON.stringify(chestRow));
+ok('and shows what it is made of', /chest 10–15/.test(chestRow[2]) && /triceps 6–10/.test(chestRow[2]), chestRow[2]);
 const backRow = perDay.filter(r => /Back/.test(r[0]))[0];
-ok('back day totals back plus biceps', backRow && backRow[1] === '15–22', JSON.stringify(backRow));
+ok('back day totals back plus biceps', backRow && backRow[1] === '18–26', JSON.stringify(backRow));
 const legRow = perDay.filter(r => /Legs/.test(r[0]))[0];
 ok('legs day is just legs', legRow && legRow[1] === '6–10', JSON.stringify(legRow));
 ok('a second session beats more sets', /a second session beats adding sets to the first/.test(t));
@@ -296,7 +296,7 @@ const cap = await p.evaluate(() => SESSION_CAP);
 const need = await p.evaluate(() => CFG.sets.map(x => ({ m: x.m, cut: sessionsNeeded(x.cut[1]), rev: sessionsNeeded(x.rev[1]) })));
 ok('nothing in the cut column overflows a session', need.every(x => x.cut === 1), JSON.stringify(need.filter(x => x.cut > 1)));
 ok('the big reverse targets do need a second day',
-  need.filter(x => x.rev > 1).map(x => x.m).join(',') === 'Chest,Back,Shoulders,Legs,Biceps,Triceps',
+  need.filter(x => x.rev > 1).map(x => x.m).join(',') === 'Chest,Back,Shoulders',
   JSON.stringify(need));
 ok('and forearms do not, because ten fits', need.find(x => x.m === 'Forearms').rev === 1);
 const tSets = await p.textContent('#s-training');
