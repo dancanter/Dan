@@ -59,6 +59,7 @@ ok('and never appears as a candidate', withSprint.cands.indexOf(400) < 0, JSON.s
 ok('the panel explains that exclusion', /a quick 200 says nothing about a 5 km/.test(await p.textContent('#tEffort')));
 
 // ---- the manual override still works ------------------------------------
+await p.evaluate(() => { const d = document.getElementById('tDeep'); if (d) d.open = true; });
 await p.fill('#in5k', '16:40');
 await p.click('#btn5k');
 await p.waitForTimeout(150);

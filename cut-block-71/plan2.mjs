@@ -40,7 +40,7 @@ ok('a deload week does not ask for a second hard run', !owes.includes('hard'), J
 t = sq(await p.innerText('#tRuns'));
 ok('the runs card names the deload', /week 4 · deload/i.test(t), t.slice(0, 200));
 ok('a deload has one hard slot, relaxed, and no time trials', !/Hard run · longer/.test(t) && /Hard run pick one/.test(t) && /fast but relaxed/.test(t) && !/Time trial —/.test(t) && /No time trials in a deload/.test(t));
-ok('and suggests one hard run', /A good week: one hard run from below/.test(t));
+ok('and suggests one hard run', /A good week: one hard run and some sprints/.test(t));
 await ctx.close();
 
 // ===== the weekly runs card: which runs, how many, never which day =====
@@ -49,9 +49,9 @@ await boot(st({ days: { '2026-09-28': { runs: [{ k: 'reps', dm: 300, n: 6, secs:
 await p.click('[data-t="today"]');
 t = sq(await p.innerText('#runsCard'));
 ok('Today shows this week’s run ideas', /RUNS THIS WEEK · IDEAS · WEEK 2/i.test(t), t.slice(0, 200));
-ok('as a good week, not an order', /A good week: a longer and a shorter hard run from below, and some uphill sprints/.test(t) && /Pick what you fancy/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
+ok('as a good week, not an order', /A good week: a longer and a shorter hard run and some sprints/.test(t) && /Any days — never the day after legs/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
 ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
-ok('with sprints to count', /8 × about 100 m uphill/.test(t));
+ok('with sprints to count', /8 × ~100 m uphill/.test(t));
 ok('no days of the week are named', !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/.test(t));
 ok('no rest times, and no per-km paces', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
 ok('rep guides are wide ranges from his best session: 1 km 3:13–3:24', /4 × 1 km — 3:13–3:24 a rep \(best 1 km session 3:13\)/.test(t), (t.match(/Guide[^B]*/g) || []).join(' | '));
@@ -73,7 +73,7 @@ ok('no long session is more than 5 km of reps', await p.evaluate(() => CUT_RUNS.
 await boot(st({ days: { '2026-09-30': { niggle: true, niggleWhat: 'calf' } } }));
 M = await p.evaluate(() => weekRunsModel());
 t = sq(await p.innerText('#runsCard'));
-ok('a stress flag drops the week to one hard run', M.easeOff && !M.P.long && /An easier week: one hard run from below/.test(t) && /one hard run/.test(t) && /Back off: rest what hurts/.test(t), t.slice(0, 400));
+ok('a stress flag drops the week to one hard run', M.easeOff && !M.P.long && /An easier week: one hard run and some sprints/.test(t) && /one hard run/.test(t) && /Back off: rest what hurts/.test(t), t.slice(0, 400));
 ok('and takes time trials off the menu', !/Time trial —/.test(t) && /No time trials while something is flagged/.test(t));
 ok('with no longer session that week', !/Hard run · longer/.test(t));
 // last week's hard runs felt like a 9: repeat, don't move up
@@ -156,8 +156,11 @@ ok('the food diary is no longer on Today', await p.evaluate(() => !document.quer
 ok('and it is folded on the Food tab', await p.evaluate(() => !E('diaryWrap').open));
 await p.click('[data-t="food"]');
 let ft = sq(await p.innerText('#hfFood'));
-ok('the Food tab opens with the week’s healthy foods', /YOUR HEALTHY FOODS · THIS WEEK/i.test(ft) && /What everything you logged this week is doing for you/.test(ft), ft.slice(0, 200));
-ok('with the week in numbers', /FOODS\s*\d+ different healthy foods/i.test(ft) && /FRUIT\s*220 g/i.test(ft) && /EGGS\s*5/i.test(ft), ft.slice(0, 600));
+const fn = sq(await p.innerText('#foodNums'));
+ok('the Food tab opens with numbers: eaten, burned, deficit, the block', /FOOD IN NUMBERS/i.test(fn) && /BURNED TODAY/i.test(fn) && /DEFICIT TODAY/i.test(fn) && /WHOLE BLOCK/i.test(fn), fn.slice(0, 300));
+ok('with healthy foods against the week and what to add', /Berries 220 g \/ 560 g/.test(fn) && /more handful/.test(fn) && /Eggs 5 eggs \/ 10 eggs/.test(fn), fn.slice(0, 900));
+ok('and the lowest vitamins with foods that fix them', /Lowest:/.test(fn));
+ok('the report below says what each food did', /WHAT YOUR HEALTHY FOODS DID/i.test(ft));
 ok('what it did, by body system', /Skin and glow — omega-3/.test(ft));
 ok('and the vitamins and minerals shown open', await p.evaluate(() => [...E('hfFood').querySelectorAll('details')].some(d => d.open && /Vitamins and minerals/.test(d.textContent))) && /Omega-3 \(EPA\+DHA\)/.test(ft));
 await p.evaluate(() => { E('hfFood').querySelector('details').open = true; const s = E('hfFood').querySelector('details[data-hfsec="also"]'); if (s) s.open = true; });

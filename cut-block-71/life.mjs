@@ -122,8 +122,10 @@ await boot(st({ days: { '2026-09-28': { gym: true, split: 'chest', sets: { Chest
 ok('a second go in the same week adds up', await p.evaluate(() => weekSets('2026-10-01').Chest === 12));
 await p.click('[data-t="training"]');
 const tt = sq(await p.innerText('#s-training'));
-ok('the Training tab shows this week’s sets with a verdict', /THIS WEEK/i.test(tt) && /Chest 10–15 12–18 12 just right/i.test(tt), (tt.match(/Chest 10.{0,80}/) || [''])[0]);
-ok('and keeps a sets log by week', /YOUR SETS LOG/i.test(tt) && /Week 2/.test(tt), (tt.match(/SETS LOG.{0,200}/i) || [''])[0]);
+const ts = sq(await p.innerText('#tSets'));
+ok('the Training tab shows this week’s sets as bars with a verdict', /SETS THIS WEEK/i.test(ts) && /Chest 12 \/ 10–15 Just right/i.test(ts), ts.slice(0, 300));
+ok('with the deep reasoning folded away', await p.evaluate(() => !E('tDeep').open && !!E('tDeep').querySelector('#tSplit')));
+ok('and keeps a sets log by week', /YOUR SETS LOG/i.test(ts) && /Week 2/.test(tt), (tt.match(/SETS LOG.{0,200}/i) || [''])[0]);
 ok('calisthenics days do not ask for sets', await p.evaluate(() => setsBoxHTML('2026-09-28') !== '' && (S.days['2026-09-29'] = { gym: true, split: 'calis' }, setsBoxHTML('2026-09-29') === '')));
 await ctx.close();
 
@@ -133,6 +135,10 @@ await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30
   days: { '2026-09-29': { runs: [{ k: 'reps', dm: 300, n: 6, secs: 276 }], gym: true, split: 'back' }, '2026-09-30': { sleep: 8.2, rt: [0, 1] } } }));
 await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
 await p.click('[data-t="today"]'); await p.waitForTimeout(200);
+ok('Today opens with the log, then calories in and burned', await p.evaluate(() => {
+  const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn');
+  return /Log ·/.test(kids[0].querySelector('h2').textContent) && kids[1].id === 'tdeeCard' && /Burn and deficit/.test(kids[1].textContent);
+}));
 let g = sq(await p.innerText('#glanceCard'));
 ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard · 0 sprints/.test(g) && /1 session/.test(g) && /8\.2 h ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
 await p.click('#glanceCard button[data-goto="mind"]'); await p.waitForTimeout(150);

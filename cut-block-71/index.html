@@ -66,6 +66,8 @@ section[hidden]{display:none!important}
 p{margin:0 0 8px}
 p:last-child{margin-bottom:0}
 .note{color:var(--ink-2);font-size:13px}
+/* grid children may shrink: a wide table inside a card scrolls, it never widens the page */
+.stack>*,main>section>*{min-width:0;max-width:100%}
 /* simple mode: explaining text folds behind Read more */
 body.simple .p:not(.open) p.note:not(.wn):not(.keep),body.simple .p:not(.open) p.tiny:not(.keep),
 body.simple .p:not(.open) div.note:not(.wn):not(.keep),body.simple .p:not(.open) .more{display:none}
@@ -194,26 +196,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TODAY ================= -->
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
-  <div id="alertCard"></div>
-  <div id="glanceCard"></div>
-  <div id="refeedCard"></div>
-
-  <div id="runsCard"></div>
-  <div id="betterCard"></div>
-  <div id="tCard"></div>
-  <div id="xmasCard"></div>
-  <div id="pbCard"></div>
-  <div id="lowLine"></div>
-  <div id="revNudge"></div>
-  <div id="callCard"></div>
-  <div id="closeCard"></div>
-  <div id="restCard"></div>
-  <div id="signalCard"></div>
-  <div id="gainCard"></div>
-  <div id="pushCard"></div>
-  <div id="loadCard"></div>
-  <div id="tdeeCard"></div>
-  <div id="fuelCard"></div>
+  <!-- 29 Sep: log first, then calories in and burned, then everything else -->
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
     <div class="row" style="margin-bottom:12px">
@@ -290,6 +273,26 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
+  <div id="tdeeCard"></div>
+  <div id="alertCard"></div>
+  <div id="glanceCard"></div>
+  <div id="refeedCard"></div>
+
+  <div id="runsCard"></div>
+  <div id="betterCard"></div>
+  <div id="tCard"></div>
+  <div id="xmasCard"></div>
+  <div id="pbCard"></div>
+  <div id="lowLine"></div>
+  <div id="revNudge"></div>
+  <div id="callCard"></div>
+  <div id="closeCard"></div>
+  <div id="restCard"></div>
+  <div id="signalCard"></div>
+  <div id="gainCard"></div>
+  <div id="pushCard"></div>
+  <div id="loadCard"></div>
+  <div id="fuelCard"></div>
   <div id="hfPanel"></div>
   <div id="goalsPanel"></div>
   <div id="todaySummary"></div>
@@ -313,7 +316,10 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
+  <div id="foodNums"></div>
   <div id="hfFood"></div>
+  <details class="p" id="foodDeep"><summary><b>Deep dive</b> <span class="tiny">· macros, meal timing, best foods, drinks</span></summary>
+    <div class="stack" style="margin-top:10px">
   <div id="foodBudget"></div>
   <div id="foodTdee"></div>
   <div id="foodFuel"></div>
@@ -413,6 +419,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <li>Salt stays where it is — once a day. The lever is potassium, not sodium.</li>
     </ul>
   </div>
+    </div>
+  </details>
   <!-- the diary moved off Today (28 Sep): optional, folded, still feeds the kcal -->
   <details class="p" id="diaryWrap"><summary><b>Food diary — scan or look up</b> <span class="tiny">optional · feeds your kcal</span></summary>
     <div style="margin-top:8px"></div>
@@ -447,14 +455,19 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <section id="s-training" class="stack" hidden>
   <div id="tRuns"></div>
   <div id="tWeek"></div>
+  <div id="tSets"></div>
+  <div id="tPredict"></div>
+  <div id="tHistory"></div>
+  <details class="p" id="tDeep"><summary><b>Deep dive</b> <span class="tiny">· the split, the sets rules, what moves each time, effort and steps</span></summary>
+    <div class="stack" style="margin-top:10px">
   <div id="tSplit"></div>
   <div id="tPlan"></div>
   <div id="tMix"></div>
   <div id="tRest"></div>
-  <div id="tPredict"></div>
   <div id="tEffort"></div>
   <div id="tSteps"></div>
-  <div id="tHistory"></div>
+    </div>
+  </details>
 </section>
 
 <!-- ================= TIMES ================= -->
@@ -3070,10 +3083,11 @@ function weekRunsHTML(){
   if(P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
   rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(w.sprints>=1)+'<b>Uphill sprints</b></div>'+
-    '<div style="margin-top:2px">'+P.spr+' × about 100 m uphill — explosive, walk back down, count the reps. No hill? Flat strides of about 80 m, same idea.</div>'+
-    '<div class="tiny">Top-end speed and power, for very little fatigue.</div></div>';
+    '<div style="margin-top:2px">'+P.spr+' × ~100 m uphill</div>'+
+    '<div class="tiny more">Explosive, walk back down, count the reps. No hill? Flat strides of about 80 m. Top-end speed and power for very little fatigue.</div></div>';
   rows+='<div style="padding:7px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
-    '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>';
+    '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, easy</div>'+
+    '<div class="tiny more">Talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>';
   var ttNote=P.deload?'No time trials in a deload — that is the point of it.':
     (P.tt&&!M.easeOff?'<b>Test week:</b> both hard runs can be time trials — at least 48 h apart, proper warm-up.':
     (M.easeOff?'No time trials while something is flagged.':
@@ -3081,8 +3095,8 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run from below and some uphill sprints.':'<b>A good week:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' from below, and some uphill sprints.')+
-    ' Pick what you fancy — any order, any days, just never a hard run the day after legs or after another hard run.</p>'+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and some sprints.':'<b>A good week:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and some sprints.')+
+    ' <span class="tiny">Any days — never the day after legs or another hard run.</span></p>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
     rows+
@@ -3371,6 +3385,70 @@ function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=glanceHTML(
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
+/* ===================== Training: sets this week, as bars =====================
+   29 Sep: Training should feel fun, not read like an essay — so the week's
+   sets are bars against the range, and the long reasoning is in Deep dive. */
+var MUSCLE_E={Chest:'🫁',Back:'🦅',Shoulders:'🏔️',Legs:'🦵',Biceps:'💪',Triceps:'🔱',Forearms:'✊'};
+function setsWeekHTML(){
+  var ws=weekSets(today());
+  var rows=CFG.sets.map(function(x){
+    var R=setsRange(x.m),v=ws[x.m]||0,top=Math.max(R[1]+4,v),vd=v?setsVerdict(x.m,v,0):null;
+    var col=!v?'var(--rule-2)':(v>R[1]?'var(--warn,#e0a040)':(v>=R[0]?'var(--accent)':'var(--ink-2)'));
+    return '<div style="padding:6px 0"><div class="row" style="gap:8px;align-items:baseline"><span style="font-size:18px">'+MUSCLE_E[x.m]+'</span><b>'+x.m+'</b>'+
+      '<span class="mono" style="margin-left:auto">'+v+' <span class="tiny dim">/ '+R[0]+'–'+R[1]+'</span></span></div>'+
+      '<div style="position:relative;height:10px;background:var(--rule-2);border-radius:5px;margin-top:4px;overflow:hidden">'+
+      '<div style="position:absolute;left:'+(R[0]/top*100)+'%;width:'+((R[1]-R[0])/top*100)+'%;top:0;bottom:0;background:rgba(80,200,170,.18)"></div>'+
+      '<div style="position:absolute;left:0;top:0;bottom:0;width:'+(Math.min(v,top)/top*100)+'%;background:'+col+';border-radius:5px"></div></div>'+
+      (vd?'<div class="tiny" style="margin-top:2px">'+vd.t+'</div>':'')+'</div>';
+  }).join('');
+  return '<div class="p"><h2>💪 Sets this week</h2>'+rows+
+    '<p class="tiny" style="margin-top:6px">The shaded band is the range for a cut aimed at gains. Log sets on the gym day in the Today log.</p></div>';
+}
+function renderSetsCard(){if(E('tSets'))E('tSets').innerHTML=setsWeekHTML()+setsLogHTML();}
+/* ===================== Food: numbers and feedback =====================
+   29 Sep: the Food tab should be data, numbers and feedback first; the
+   reading lives in Deep dive. */
+var NUT_TIP={fe:'red meat or mussels',zn:'oysters, beef or pumpkin seeds',ca:'Fage, kefir or sardines',mg:'pumpkin seeds or dark chocolate',
+  k:'potatoes, a banana or avocado',se:'fish or eggs',vc:'kiwi, strawberries or blackcurrants',b12:'fish, eggs or Fage',fol:'avocado, beetroot or strawberries',o3:'salmon, mackerel or sardines'};
+var POOL_TIP={eggs:function(n){return n+' more egg'+(n===1?'':'s');},red:function(g){return 'about '+Math.max(1,Math.round(g/125))+' more portion'+(Math.round(g/125)>1?'s':'')+' of red meat';},
+  oily:function(g){return 'about '+Math.max(1,Math.round(g/130))+' more portion'+(Math.round(g/130)>1?'s':'')+' of oily fish — your winter vitamin D';},
+  shell:function(){return 'one portion of mussels, prawns or oysters — zinc';},
+  berry:function(g){return 'about '+Math.max(1,Math.round(g/80))+' more handful'+(Math.round(g/80)>1?'s':'')+' of berries';},
+  fruit:function(g){return 'about '+Math.max(1,Math.round(g/100))+' more pieces of fruit';}};
+function foodNumsHTML(){
+  var t=today(),r=S.days[t]||{},x=tdeeFor(t),tr=trainingModel(),o=blockModel();
+  var wd=0,wn=0,kc=0,kn=0;
+  for(var i=0;i<7;i++){var d=addD(tr.wkStart,i);if(d>t)break;var y=tdeeFor(d),rr=S.days[d]||{};
+    if(y.stepsKnown||y.intakeKnown){wd+=y.deficit;wn++;}if(typeof rr.kcal==='number'){kc+=rr.kcal;kn++;}}
+  var sg=function(v){return (v>=0?'−':'+')+ci(Math.round(Math.abs(v)/10)*10);};
+  var h='<div class="p lift"><h2>🍽️ Food in numbers</h2>'+
+    '<div class="tiles t4">'+
+    tile('eaten today',typeof r.kcal==='number'?ci(r.kcal):'—','target '+ci(KCAL_DAY))+
+    tile('burned today',ci(Math.round(x.total/10)*10),'estimate · steps, runs, gym')+
+    tile('deficit today',typeof r.kcal==='number'?sg(x.deficit):'—',typeof r.kcal==='number'?'~'+f2(Math.abs(x.deficit)/3500)+' lb':'log your kcal')+
+    tile('this week',wn?sg(wd):'—',wn?'~'+f2(Math.abs(wd)/3500)+' lb · avg '+(kn?ci(Math.round(kc/kn)):'—')+' kcal':'nothing logged')+
+    tile('whole block',o.defN?sg(o.def):'—',o.defN?'~'+f1(Math.abs(o.def)/3500)+' lb of fat':'')+
+    tile('day plan',MACRO.pro+' · '+CARB_AT+' · '+MACRO.fat,'protein · carbs · fat (g), '+ci(KCAL_DAY)+' kcal')+
+    '</div>';
+  /* healthy foods: pools against targets, with what would close them */
+  var W=hfWeek(),daysLeft=Math.max(0,diffD(t,tr.wkEnd));
+  var anyHF=Object.keys(W.tot).length;
+  h+='<h3 style="margin-top:12px">Healthy foods this week</h3>';
+  if(!anyHF)h+='<p class="note keep">Nothing logged yet — put your foods in on Today and this fills with your numbers and what to add.</p>';
+  else{
+    h+=Object.keys(HF_POOLS).map(function(pk){var P=HF_POOLS[pk],v=W.pools[pk],pc=Math.min(100,Math.round(v/P.wk*100)),left=P.wk-v;
+      return '<div style="padding:5px 0"><div class="row" style="gap:8px;align-items:baseline"><b>'+P.n+'</b><span class="mono" style="margin-left:auto">'+hfAmt(v,P.u)+' <span class="tiny dim">/ '+hfAmt(P.wk,P.u)+'</span></span></div>'+
+        '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:'+(pc>=100?'var(--accent)':'var(--ink-2)')+'"></div></div>'+
+        '<div class="tiny keep" style="margin-top:2px">'+(left<=0?'✓ done for the week':(daysLeft?POOL_TIP[pk](Math.ceil(left))+' by Sunday':'next week: '+POOL_TIP[pk](Math.ceil(left))))+'</div></div>';}).join('');
+    var nut=NUTRI.map(function(n){return {n:n,pc:Math.round(W.mic[n.k]/(n.ref*7)*100)};}).sort(function(a,b){return a.pc-b.pc;});
+    h+='<h3 style="margin-top:12px">Vitamins and minerals</h3><div class="row" style="gap:6px;flex-wrap:wrap">'+
+      nut.slice().reverse().map(function(z){return '<span class="pill'+(z.pc>=100?' g':'')+'">'+z.n.n.replace(' (EPA+DHA)','')+' '+z.pc+'%</span>';}).join('')+'</div>'+
+      '<p class="tiny keep" style="margin-top:6px"><b>Lowest:</b> '+nut.slice(0,2).map(function(z){return z.n.n.replace(' (EPA+DHA)','')+' ('+z.pc+'%) — '+NUT_TIP[z.n.k];}).join(' · ')+'.</p>'+
+      '<p class="tiny">From the healthy foods you logged only, against the week’s reference — your real totals are higher.</p>';
+  }
+  return h+'</div>';
+}
+function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();}
 /* ===================== the week's notes =====================
    Dan, 28 Sep: jot what he did — a film, meeting mates, somewhere new — and
    see the week back. One line each, a tag for colour, kept on the day. */
@@ -3738,6 +3816,8 @@ function renderBetter(){
 }
 function renderGains(){
   renderGlance();
+  renderSetsCard();
+  renderFoodNums();
   renderLife();
   renderMind();
   renderNotes();
@@ -4916,12 +4996,11 @@ function hfHTML(full){
     tile('eggs',W.pools.eggs+'','large and medium')+
     tile('fruit',hfAmt(W.pools.fruit,'g'),'about '+ci(Math.round(W.pools.fruit/Math.max(1,W.days)))+' g a day')+
     tile('dairy',hfAmt(secTot('dairy'),'g'),'yoghurt, kefir, milk, cheese')+'</div>':'';
-  return (full?'<div class="p lift"><h2>Your healthy foods · this week</h2>'+
-      (ate.length?'<p class="lede">What everything you logged this week is doing for you — and the vitamins and minerals it added up to.</p>':'')+inNums+
+  return (full?'<div class="p"><h2>What your healthy foods did · this week</h2>'+
       '<details style="margin-top:6px"><summary>Put in '+(d===today()?'today’s':fmtS(d)+'’s')+' foods here</summary>':'<div class="p"><h2>Healthy foods '+(d===today()?'today':'· '+fmtS(d))+'</h2>')+
     '<p class="tiny" style="margin:0 0 4px">Put in the grams — raw weight for meat and fish, ml for milk and kefir, a count for eggs. '+(todayN?'<b>'+todayN+' healthy food'+(todayN===1?'':'s')+'</b> '+(d===today()?'today':'that day')+'.':'')+' Separate from your kcal.</p>'+
     secs+(full?'</details>':'')+
-    '<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+poolRows+
+    (full?'':'<h3 style="margin-top:14px">This week · since '+fmtS(W.from)+'</h3>'+poolRows)+
     (ate.length?'<div style="margin-top:8px">'+rows+'</div><h3 style="margin-top:12px">What it did for you</h3>'+sys+
       '<details style="margin-top:8px"'+(full?' open':'')+'><summary>Vitamins and minerals from these foods</summary><div class="scroll"><table class="tbl"><tbody>'+mic+'</tbody></table></div>'+
       '<p class="tiny" style="margin-top:6px">Against the week’s UK reference (7 days). Typical values, and only these foods are counted — your real totals are higher.</p></details>'
@@ -6020,7 +6099,6 @@ function renderSplit(){
     'Pick <b>Calisthenics</b> on the Today log, choose <b>which test</b>, and the right boxes appear.</p>'+
     '<p class="note"><b>A full '+CR.mins+'-minute test is a hard day, not a free one.</b> '+
     (B?ci(B.total)+' reps':'Hundreds of reps')+' of pulling and pressing is real training load \u2014 count it as one of the week\u2019s hard days and keep it away from a heavy chest or back session.</p></div>';
-  h+=setsLogHTML();
   E('tSplit').innerHTML=h;
 }
 

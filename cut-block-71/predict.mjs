@@ -107,6 +107,7 @@ ok('and names the dial to change', /the 5 km reference below it is the dial/.tes
 
 // changing the reference moves every prediction
 const before = await p.evaluate(() => predictAt(3000));
+await p.evaluate(() => { const d = document.getElementById('tDeep'); if (d) d.open = true; });
 await p.fill('#in5k', '17:30');
 await p.click('#btn5k');
 await p.waitForTimeout(150);
