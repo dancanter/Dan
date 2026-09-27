@@ -34,9 +34,9 @@ if (!D.pre) {
   ok('with no easy run, nothing running is owed', !owes.some(k => k === 'easy' || k === 'hard' || k === 'sprint'), JSON.stringify(owes));
   await p.click('[data-t="training"]');
   let t = sq(await p.innerText('#tWeek'));
-  ok('the week card shows runs all in 3 / 3, done', /Runs, all in 3 \/ 3 done/i.test(t), t.slice(0, 400));
+  ok('the week card shows counts with ticks, no quota', /Runs, all in 3 ✓/i.test(t) && !/3 \/ 3/.test(t), t.slice(0, 400));
   ok('the easy run is marked optional, never "to go"', /Easy runs optional 0 if you fancy it/i.test(t) && !/Easy runs[^G]*to go/i.test(t), t.slice(0, 400));
-  ok('the rule is said in plain words', /The week is 3 runs: your 2 hard runs and the short uphill sprints/.test(t));
+  ok('it says nothing is owed', /What you have done this week/.test(t) && /nothing is owed/.test(t));
 
   // one hard run and an easy one: the easy run is a bonus, not a stand-in
   await boot(st({ days: {
@@ -45,8 +45,8 @@ if (!D.pre) {
   await p.click('[data-t="training"]');
   t = sq(await p.innerText('#tWeek'));
   ok('an easy run shows as a bonus', /Easy runs optional 1 bonus/i.test(t), t.slice(0, 400));
-  ok('and still counts toward the runs total', /Runs, all in 2 \/ 3 1 to go/i.test(t), t.slice(0, 400));
-  ok('the hard run and the sprints still say what is left', /Hard runs 1 \/ 2 1 to go/i.test(t) && /Uphill sprints 0 \/ 1 1 to go/i.test(t));
+  ok('and still counts toward the runs total', /Runs, all in 2 ✓/i.test(t), t.slice(0, 400));
+  ok('and never says what is left to do', !/to go/i.test(t) && /Hard runs 1 ✓/i.test(t) && /Uphill sprints 0/i.test(t));
 }
 
 // ===== a refeed is planned, and the scale jump after it is explained =====
@@ -218,8 +218,8 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   ok('never tells him to eat less', !/eat less|cut (your )?calories|lower your calories/i.test(t));
   const FB = await p.evaluate(k => { const w = reviewWeeks().find(x => x.k === k); return reviewFeedback(buildReview(w), w); }, wk.k);
   ok('at most four things to work on', FB.next.length <= 4, FB.next.length);
-  ok('a hard run left is named', FB.next.some(x => /hard run/.test(x)));
-  ok('the sprints are asked for when missing', FB.next.some(x => /Uphill sprints/.test(x)));
+  ok('no session nags in what to do next', !FB.next.some(x => /hard run|Uphill sprints|Gym \d/.test(x)), JSON.stringify(FB.next));
+  ok('the hard runs done are credited instead', FB.win.some(x => /1 hard run/.test(x)), JSON.stringify(FB.win));
 }
 await b.close();
 if (errs.length) fails.push(...errs);

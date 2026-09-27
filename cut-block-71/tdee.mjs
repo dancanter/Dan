@@ -123,11 +123,11 @@ if (ck.off) {
 // ===================== steps on Wins =======================================
 await p.click('[data-t="wins"]');
 const wins = await p.textContent('#s-wins');
-ok('Wins now carries the step average', /Steps, daily average/.test(wins), wins.slice(0, 400));
-ok('against the 12,800 target', /12,800/.test(wins));
-ok('with how many days are logged', /days logged/.test(wins));
+ok('Wins carries the step average', /steps[\s\S]{0,30}a day on average/.test(wins), wins.slice(0, 400));
+const blockCard = wins.slice(wins.indexOf('Your block so far'), wins.indexOf('Weight goal'));
+ok('without a steps target in the block card', blockCard.length > 50 && !/ of 12,800|over target|under target|behind|pro-rata/.test(blockCard), blockCard.slice(0, 300));
 ok('and the running total', /all in/.test(wins));
-ok('it still counts the sessions', /Gym sessions/.test(wins) && /Hard runs/.test(wins));
+ok('it still counts the sessions, as totals', /Your block so far/.test(wins) && /gym/.test(wins) && /runs/.test(wins));
 
 // ===================== nothing broke =======================================
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {

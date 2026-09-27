@@ -1772,12 +1772,11 @@ function reviewFeedback(R,wk){
   if(!pre){
     var TT=tmplFor(wk.start);
     if(R.s.hard>=CFG.hardRuns.cap)next.push('<b>'+R.s.hard+' hard runs is the ceiling.</b> Fine once — aim for '+CFG.tmpl.hard+' next week.');
-    else if(R.s.hard>=TT.hard)win.push(TT.hard===1?'The deload’s one hard run done.':'Both hard runs done.');
-    else next.push('<b>'+(live?'Still to fit in: ':(TT.hard===1?'Get the hard run in: ':'Get both hard runs in: '))+(TT.hard-R.s.hard)+' hard run'+(TT.hard-R.s.hard===1?'':'s')+'.</b> '+(TT.hard-R.s.hard>1?'Leave a day between them, and neither the day after legs.':'Not the day after legs or the day after another hard run.'));
+    else if(R.s.hard)win.push(R.s.hard+' hard run'+(R.s.hard===1?'':'s')+'.');
     if(R.s.sprints>=TT.sprints)win.push('Uphill sprints done'+(R.s.easy?', plus '+R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' as a bonus':'')+'.');
-    else next.push('<b>Uphill sprints'+(live?' still to do':'')+'.</b> Short and explosive, count the reps — it is the speed that fades first on a cut.');
-    if(R.s.gym>=TT.gym)win.push('All '+TT.gym+' gym sessions.');
-    else if(!live)next.push('<b>Gym '+R.s.gym+' of '+TT.gym+'.</b> Put the sessions in the diary at the start of the week so they are decided before the week gets busy.');
+
+    if(R.s.gym)win.push(R.s.gym+' gym session'+(R.s.gym===1?'':'s')+'.');
+
   }
   /* steps */
   if(R.steps.days>=3){
@@ -1848,6 +1847,8 @@ function renderReview(){
 
   /* sessions */
   var tmplRow=function(name,got,want){
+    /* counts only — the targets went on 28 Sep */
+    return '<tr><td>'+name+'</td><td class="n">'+got+'</td><td>'+(got?'<span class="pill g">✓</span>':'')+'</td></tr>';
     return '<tr><td>'+name+'</td><td class="n">'+got+(want?' / '+want:'')+'</td><td>'+
       (want===0?(got?'<span class="pill g">bonus</span>':'<span class="tiny">bonus — optional</span>'):'')+
       (want===null?'<span class="tiny">no target this week</span>':want===0?'':(got>=want?'<span class="pill g">met</span>':'<span class="pill">'+(want-got)+' short</span>'))+'</td></tr>';
@@ -1868,7 +1869,7 @@ function renderReview(){
   /* the rest of the inputs */
   h+='<div class="cols"><div class="p"><h2>Steps</h2><div class="tiles t4">'+
     tile('total',ci(R.steps.total),R.steps.days+' day'+(R.steps.days===1?'':'s')+' logged')+
-    tile('against target',R.steps.days?signed(R.steps.total-R.steps.target,0):'—','target '+ci(R.steps.target)+' for these days')+
+    tile('a day on average',R.steps.days?ci(Math.round(R.steps.total/R.steps.days/100)*100):'—',R.steps.days?'across '+R.steps.days+' logged day'+(R.steps.days===1?'':'s'):'')+
     '</div>'+
     (R.steps.sat!==null?'<p class="tiny" style="margin-top:8px">Saturday: '+ci(R.steps.sat)+' against a ceiling of '+ci(STEPS_SAT)+' — '+(R.steps.sat<=STEPS_SAT?'under it, which is the point':'over it, which means the rest day went missing')+'.</p>':'')+
     (R.steps.blank?'<p class="tiny">'+R.steps.blank+' day'+(R.steps.blank===1?'':'s')+' unlogged, left out rather than counted as zero.</p>':'')+
@@ -2109,35 +2110,64 @@ function renderMission(){
     M.ties.map(function(t){return '<tr><td style="width:34%"><b>'+t[0]+'</b></td><td class="note">'+t[1]+'</td></tr>';}).join('')+
     '</tbody></table></div>';
 }
+/* ===================== your block so far =====================
+   Dan, 28 Sep: session targets for the block ("19 hard runs, 0.4 behind
+   pace") felt like pressure, and pressure to catch up is how a cut turns
+   into overtraining. So the block is shown as what he HAS done — totals and
+   averages, no targets, no pace — with the weight goal, the deficit and his
+   bests kept. The back-off warnings stay; they protect, they don't push. */
+function blockModel(){
+  var t=today(),c=cutTally(),tr=trainingModel(),w=weightModel();
+  var o={day:c.before?0:Math.min(c.day,CUT_DAYS),left:c.remaining,def:0,defN:0,kc:0,kcN:0,sl:0,slN:0,study:0,deep:0,km:0,easy:0};
+  for(var i=0;i<CUT_DAYS;i++){
+    var d=addD(CFG.cutStart,i);if(d>t)break;
+    var r=S.days[d]||{},x=tdeeFor(d);
+    if(x.stepsKnown||x.intakeKnown){o.def+=x.deficit;o.defN++;}
+    if(typeof r.kcal==='number'){o.kc+=r.kcal;o.kcN++;}
+    if(typeof r.sleep==='number'){o.sl+=r.sleep;o.slN++;}
+    if(typeof r.study==='number'){o.study+=r.study;if(typeof r.deep==='number')o.deep+=r.deep;}
+  }
+  eachRun(function(r){var m=runMeta(r);if(m.empty)return;if(m.km>0)o.km+=m.km;if(!m.hard&&!m.sprint)o.easy++;});
+  var cr=cutReadings();
+  o.first=cr.length?cr[0]:null;o.now=w.a7!==null?w.a7:(cr.length?cr[cr.length-1].lb:null);o.low=w.low;
+  o.runs=tr.runs.done;o.hard=tr.hard.done;o.spr=tr.sprints.done;o.gym=tr.gym.done;
+  o.stepsAvg=tr.stepsAvg;o.stepsTotal=tr.stepsTotal;
+  o.pbs=pbList();o.calis=calisRecords().both.best;
+  return o;
+}
+function blockProgressHTML(){
+  var o=blockModel();if(!o.day)return '';
+  var hide=S.settings.hideDaily;
+  var lost=(o.first&&o.now!==null)?o.first.lb-o.now:null;
+  var reel=[];
+  if(lost!==null&&lost>0.05)reel.push('<b>'+f1(lost)+' lb</b> down');
+  if(o.defN&&o.def>0)reel.push('about <b>'+f1(o.def/3500)+' lb of fat</b> from the deficit');
+  if(o.runs)reel.push('<b>'+o.runs+' run'+(o.runs===1?'':'s')+'</b>');
+  if(o.pbs.length)reel.push('<b>'+o.pbs.length+' best'+(o.pbs.length===1?'':'s')+'</b>');
+  if(o.gym)reel.push('<b>'+o.gym+' gym session'+(o.gym===1?'':'s')+'</b>');
+  if(o.study)reel.push('<b>'+f1(o.study)+' h</b> of study');
+  var runsSub=[o.hard?o.hard+' hard':'',o.spr?o.spr+' sprint'+(o.spr===1?'':'s'):'',o.easy?o.easy+' easy':''].filter(Boolean).join(' · ');
+  var calisTxt=(o.calis&&o.calis.d)?'40-min record '+ci(o.calis.total)+' reps':'';
+  return '<div class="p lift"><h2>Your block so far · day '+o.day+' of '+CUT_DAYS+'</h2>'+
+    (reel.length?'<p class="lede">'+reel.slice(0,-1).join(', ')+(reel.length>1?' and ':'')+reel[reel.length-1]+'.</p>':'<p class="note">Log a few days and this fills in.</p>')+
+    '<div class="tiles t4" style="margin-top:8px">'+
+    tile('weight',o.now===null?'—':(hide?'logged':f1(o.now)+' lb'),lost===null?'weighing opens '+fmtS(WEIGH_START):(Math.abs(lost)<0.05?'level with '+fmtS(o.first.d):(lost>0?'−'+f1(lost):'+'+f1(-lost))+' lb since '+fmtS(o.first.d))+(o.low&&!hide?' · low '+f1(o.low.lb):''))+
+    tile('to 122–124',o.now===null?'—':(o.now<=CFG.goals.weightHi+1?'there':f1(o.now-(CFG.goals.weightHi+1))+' lb'),'to the top of the range'+(o.now!==null&&o.now>CFG.w.target?' · '+f1(o.now-CFG.w.target)+' to 122.5':''))+
+    tile('deficit',o.defN?(o.def>=0?'−':'+')+ci(Math.round(Math.abs(o.def)/10)*10):'—',o.defN?'kcal · ~'+f1(Math.abs(o.def)/3500)+' lb of fat · '+(o.def>=0?'−':'+')+ci(Math.round(Math.abs(o.def/o.defN)))+'/day':'nothing logged')+
+    tile('calories',o.kcN?ci(Math.round(o.kc/o.kcN)):'—',o.kcN?'a day on average · '+o.kcN+' days':'nothing logged')+
+    tile('runs',o.runs+'',(runsSub||'none yet')+(o.km?' · '+f1(o.km)+' km':''))+
+    tile('bests',o.pbs.length+'',o.pbs.length?o.pbs.slice(0,3).map(function(p){return repLabel(p.dm)+' '+secFmt(p.now.t);}).join(' · '):'this block — none yet')+
+    tile('gym',o.gym+'',calisTxt||'sessions')+
+    tile('steps',o.stepsAvg===null?'—':ci(Math.round(o.stepsAvg)),o.stepsAvg===null?'nothing logged':'a day on average · '+ci(o.stepsTotal)+' all in')+
+    tile('study',f1(o.study)+' h',o.deep?f1(o.deep)+' h deep':'')+
+    tile('sleep',o.slN?f1(o.sl/o.slN)+' h':'—',o.slN?'a night on average':'nothing logged')+
+    '</div>'+
+    '<p class="tiny" style="margin-top:8px">'+o.left+' day'+(o.left===1?'':'s')+' to go. Everything here is what you have done — no session targets to chase. The only numbers that judge you are the weight rate and the back-off signals, and they are there to protect you.</p></div>';
+}
 function renderWins(){
   renderMission();
   var tr=trainingModel(),w=weightModel(),c=cutTally();
-  var rows=[['Gym sessions',tr.gym],['Hard runs',tr.hard],['Sprint sessions',tr.sprints],['Runs, all in',tr.runs]];
-  var h='<div class="p"><h2>This camp · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+
-    ' · '+c.remaining+' day'+(c.remaining===1?'':'s')+' left</h2>'+
-    '<div class="scroll"><table class="tbl"><thead><tr><th>&nbsp;</th><th class="n">Done</th><th class="n">Left</th><th class="n">Target</th><th>Against pace</th></tr></thead><tbody>';
-  rows.forEach(function(r){
-    var p=r[1];
-    h+='<tr><td><b>'+r[0]+'</b></td><td class="n">'+p.done+'</td><td class="n">'+p.left+'</td><td class="n">'+p.target+'</td>'+
-      '<td>'+(p.diff>=0?'<span class="pill g">'+f1(p.diff)+' ahead</span>':'<span class="pill w">'+f1(-p.diff)+' behind</span>')+
-      (p.perWeek===null?'':' <span class="tiny">'+f1(p.perWeek)+'/wk from here</span>')+'</td></tr>';
-  });
-  /* steps are an average rather than a count, so they read differently:
-     done/left makes no sense, over/under the target does. */
-  var sa=tr.stepsAvg;
-  h+='<tr><td><b>Steps, daily average</b></td>'+
-    '<td class="n">'+(sa===null?'—':ci(sa))+'</td>'+
-    '<td class="n"><span class="tiny">'+tr.stepsDays+' day'+(tr.stepsDays===1?'':'s')+' logged</span></td>'+
-    '<td class="n">'+ci(CFG.goals.steps)+'</td>'+
-    '<td>'+(sa===null?'<span class="tiny">nothing logged yet</span>'
-      :(sa>=CFG.goals.steps?'<span class="pill g">'+ci(sa-CFG.goals.steps)+' over</span>':'<span class="pill w">'+ci(CFG.goals.steps-sa)+' under</span>')+
-        ' <span class="tiny">'+ci(tr.stepsTotal)+' all in</span>')+'</td></tr>';
-  h+='</tbody></table></div>'+
-    '<div class="cols3" style="margin-top:12px">'+
-    rows.map(function(r){return goalCard(r[0],r[1]);}).join('')+
-    stepsCard(tr)+
-    '</div>'+
-    '<p class="tiny" style="margin-top:10px">The notch on each bar is pro-rata — '+pct(c.through,1)+' of the block counted. Rest days are not misses; they are in the plan.</p></div>';
+  var h=blockProgressHTML();
 
   /* the weight goal, as a goal rather than a chart */
   var cur=w.a7!==null?w.a7:(w.low?w.low.lb:null);
@@ -2160,8 +2190,8 @@ function renderWins(){
   });
   if(msHit.length)wins.push({k:'Through '+msHit[msHit.length-1].n.replace('Through ',''),
     m:msHit.length+' weight milestone'+(msHit.length===1?'':'s')+' crossed',d:msHit[msHit.length-1].when,hot:false});
-  if(tr.hard.done)wins.push({k:tr.hard.done+' hard run'+(tr.hard.done===1?'':'s'),m:'of '+CFG.goals.hard+' this block',d:null,hot:false});
-  if(tr.gym.done)wins.push({k:tr.gym.done+' gym session'+(tr.gym.done===1?'':'s'),m:'of '+CFG.goals.gym+' this block',d:null,hot:false});
+  if(tr.hard.done)wins.push({k:tr.hard.done+' hard run'+(tr.hard.done===1?'':'s'),m:'this block',d:null,hot:false});
+  if(tr.gym.done)wins.push({k:tr.gym.done+' gym session'+(tr.gym.done===1?'':'s'),m:'this block',d:null,hot:false});
   if(sl.streak>=3)wins.push({k:sl.streak+' nights phone-free',m:'and counting',d:null,hot:sl.streak>=7});
   if(sb.total>=1)wins.push({k:f1(sb.total)+' hours of study',m:sb.days+' day'+(sb.days===1?'':'s')+' logged'+(sb.deep>0?' · '+f1(sb.deep)+' h deep':''),d:null,hot:false});
 
@@ -2398,12 +2428,12 @@ function renderFuel(tr){
     head='Fuel today';
     lead=tr.pre
       ? 'Nothing logged, and the Monday-to-Sunday template has not opened yet — the pre-block is '+PRE_DAYS+' days. Treat it as a rest day and read the rest-day rules, which is the part that matters most this weekend anyway.'
-      : 'Nothing logged, and the week owes nothing. That makes today a rest day, and a rest day is in the plan.';
+      : 'Nothing logged yet. If today is a rest day, a rest day is in the plan — here is how to eat on it.';
   }else{
-    head='Fuel for what the week still owes';
-    lead='Nothing logged today yet. This week still owes '+f.owed.map(function(o){
-      return '<b>'+o.n+' '+esc(o.label)+(o.n===1?'':'s')+'</b>';}).join(', ')+
-      '. Whichever of those today turns out to be, here is how it gets fed.';
+    head='Fuel for today';
+    lead='Nothing logged today yet. If today turns out to be '+f.owed.map(function(o){
+      return '<b>a '+esc(o.label)+'</b>';}).join(' or ')+
+      ', here is how it gets fed.';
   }
   /* Today gets one line per block. The full tables were the first thing on
      the tab and he had to scroll past all of them to reach anything he could
@@ -2964,15 +2994,28 @@ function trialsBetween(a,b){
   for(var d in S.days){if(d<a||d>b)continue;(S.days[d].runs||[]).forEach(function(r){var x=isTrial(r);if(x)out.push({d:d,dm:x.dm});});}
   return out;
 }
+/* what each run does for him, in a line */
+function runDoes(o){
+  if(/^Time trial/.test(o.t))return 'Shows exactly where you are and practises racing — pacing, hurting, the finish. Great for confidence; costs more than a session.';
+  if(/relaxed/.test(o.t))return 'Keeps the speed switched on without the fatigue.';
+  if(!o.d)return 'Raises the effort you can hold without tying up — the biggest single lever for your 5 km, at low cost.';
+  return ({1000:'Raises the pace you can hold for a mile and 5 km — your engine, at near race speed.',
+           800:'Teaches you to hold 800 m and mile pace — the bridge between your speed and your endurance.',
+           600:'Over-distance for the 400 and the first half of the 800. Your 59 came out of one of these.',
+           400:'Race-specific for the 400, and the back half of the 800.',
+           300:'Speed endurance: the last 100 m of your 400 gets stronger.',
+           200:'Pure speed with good form — keeps you quick while the weight comes down.'})[o.d[0]]||'';
+}
 function optLine(o,kind,pick){
   var g=o.d?guideFor(o.d,kind):'';
-  return '<div style="margin:3px 0">'+(pick?'<span class="pill g">★ this week</span> ':'• ')+(pick?'<b>'+o.t+'</b>':o.t)+
-    (g?' <span class="tiny">— '+g.replace(/^Guide: /,'')+'</span>':'')+'</div>';
+  return '<div style="margin:5px 0">'+(pick?'<span class="pill g">★ good pick this week</span> ':'• ')+(pick?'<b>'+o.t+'</b>':o.t)+
+    (g?' <span class="tiny">— '+g.replace(/^Guide: /,'')+'</span>':'')+
+    '<div class="tiny dim" style="margin-left:14px">'+runDoes(o)+'</div></div>';
 }
 function weekRunsHTML(){
   var M=weekRunsModel();if(!M)return '';
   var P=M.P,T=M.T,w=M.w,t=today(),tr=trainingModel();
-  var tick=function(ok){return ok?'<span class="pill g">✓</span>':'<span class="pill">○</span>';};
+  var tick=function(ok){return ok?'<span class="pill g">✓ done</span>':'';};
   /* the time-trial allowance for this week */
   var thisWk=trialsBetween(tr.wkStart,t),lastTwo=trialsBetween(addD(tr.wkStart,-7),addD(tr.wkStart,-1));
   var ttOK=!P.deload&&!M.easeOff,ttUsed=thisWk.length>0&&!P.tt;
@@ -2981,10 +3024,12 @@ function weekRunsHTML(){
   var slot=function(title,done,pickO,opts,kind,ttDms,ttAllowed,builds){
     var others=opts.filter(function(o){return o.t!==pickO.t&&!(o.d&&pickO.d&&o.d[0]===pickO.d[0]&&!P.tt);});
     var tts=ttAllowed?ttDms.filter(function(dm){return !(P.tt&&pickO.d&&pickO.d.indexOf(dm)>=0);}).map(function(dm){return {t:'Time trial — '+(dm===1609?'a mile':(dm>=1000?(dm/1000)+' km':dm+' m')),d:[dm]};}):[];
-    return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(done)+'<b>'+title+'</b> <span class="tiny">pick one</span></div>'+
+    return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(done)+'<b>'+title+'</b> <span class="tiny">pick one, if you fancy it</span></div>'+
       optLine(pickO,P.tt?'tt':kind,true)+others.map(function(o){return optLine(o,kind,false);}).join('')+
-      tts.map(function(o){return optLine(o,'tt',false);}).join('')+
-      '<div class="tiny" style="margin-top:2px">'+builds+'</div></div>';
+      (tts.length?'<div style="margin:5px 0">• Time trial — '+tts.map(function(o){var g=guideFor(o.d,'tt').replace(/^Guide: /,'').replace(/ <span class="tiny">\(best [^)]*\)<\/span>/,'');
+          return o.t.replace('Time trial — ','')+' <span class="tiny">'+g+'</span>';}).join(' · ')+
+        '<div class="tiny dim" style="margin-left:14px">'+runDoes(tts[0])+'</div></div>':'')+
+      '</div>';
   };
   var rows='';
   if(P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
@@ -3000,16 +3045,18 @@ function weekRunsHTML(){
     (ttUsed?'<b>You have had your time trial this week</b> — one a week is the limit, so the rest are sessions.':
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
-  return '<div class="p"><h2>This week’s runs · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede"><b>'+(M.easeOff?2:T.runs)+' runs: '+(M.easeOff?1:T.hard)+' hard + '+T.sprints+' uphill sprints</b>, plus an easy run if your legs are fresh. Pick from each — any order, any days, just never a hard run the day after legs or after another hard run.</p>'+
+  return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run from below and some uphill sprints.':'<b>A good week:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' from below, and some uphill sprints.')+
+    ' Pick what you fancy — any order, any days, just never a hard run the day after legs or after another hard run.</p>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
     rows+
     '<p class="note" style="margin-top:6px">⏱ '+ttNote+(ttOK?' They are all-out, so they cost more than a session — which is why they are rationed on a cut, not banned.':'')+'</p>'+
     (P.note?'<p class="note">'+P.note+'</p>':'')+
-    '<p class="tiny" style="margin-top:6px"><b>The cut comes first:</b> this block is for the look, shredded, and 122–124 lb. The runs keep you fast and help the deficit; they never get to cost you sleep, a session in the gym, or the weight.</p>'+
-    '<p class="tiny" style="margin-top:6px"><b>The guide times</b> are wide on purpose: for reps, the fast end is your best session at that distance — a great day on a cut — and the slow end is still a good session; for time trials, within 2% of your best either way. Effort overrides the watch. They move as soon as you log something faster. No rest times: recover until you are ready.</p>'+
-    '<p class="tiny" style="margin-top:6px"><b>Faster without the stress:</b> finish sessions with a rep or two in hand, and stop when a rep feels clearly worse than the first ones. Move up only if last week felt controlled — about a 7 by the end.</p></div>';
+    '<p class="tiny" style="margin-top:6px"><b>The cut comes first</b> — the look, shredded, 122–124 lb. The runs keep you fast; they never get to cost you sleep, the gym or the weight.</p>'+
+    '<details style="margin-top:4px"><summary class="tiny">How the guide times work</summary>'+
+    '<p class="tiny" style="margin-top:6px">Wide on purpose. For reps, the fast end is your best session at that distance — a great day on a cut — and the slow end is still a good session. For time trials, within 2% of your best either way. Effort overrides the watch, and they move as soon as you log something faster. No rest times: recover until you are ready.</p>'+
+    '<p class="tiny" style="margin-top:6px"><b>Faster without the stress:</b> finish with a rep or two in hand, and stop when a rep feels clearly worse than the first ones. Move up only if last week felt controlled — about a 7 by the end.</p></details></div>';
 }
 /* ===================== better than last week =====================
    Dan asked for "you are this much better today" and then what to work on.
@@ -3662,7 +3709,7 @@ function renderSignals(tr){
   var h='<div class="p'+((over||NG.persistent||R.state==='high')?' warn':(R.state==='up'?' flag':''))+'"><h2>Signals</h2><div class="tiles t4">'+
     tile('resting HR',R.today!==null?R.today:(R.recentAvg!==null?Math.round(R.recentAvg):'—'),
          R.ready?('7-day '+Math.round(R.recentAvg)+' vs baseline '+Math.round(R.baseAvg)):(R.state==='building'?'building your baseline':'log it on waking'))+
-    tile('hard runs',EF.hardRuns+' / '+HR.cap,'target '+HR.target+', ceiling '+HR.cap)+
+    tile('hard runs',EF.hardRuns+'','this week · ceiling '+HR.cap+' — past it, back off')+
     tile('hard days',EF.hard,EF.hardGym?(EF.hardGym+' of them lifting'):'runs only')+
     tile('niggles',NG.n?NG.n+' d':'none',NG.n?(NG.top||'last 10 days'):'last 10 days')+
     '</div>';
@@ -3816,7 +3863,8 @@ function renderToday(c,w,tr){
     rc+='<p class="note">What it buys: glycogen back, cortisol down, and the held water usually lets go within a few days of easing off. That is why the scale often drops after a rest rather than during a hard week.</p></div>';
   }
   E('restCard').innerHTML=rc;
-  E('pushCard').innerHTML=pushCall(w,tr,c,rest);
+  /* no catch-up push: sessions are totals now, not targets (28 Sep) */
+  E('pushCard').innerHTML='';
 
   /* combined load */
   var st=studyModel();
@@ -3827,15 +3875,8 @@ function renderToday(c,w,tr){
   }
   E('loadCard').innerHTML=lc;
 
-  /* goals — how many left, and whether that is on pace */
-  var g='<div class="p"><h2>Goals — '+fmtS(CFG.cutStart)+' to '+fmtS(CFG.cutEnd)+' · day '+(c.before?0:Math.min(c.day,CUT_DAYS))+' of '+CUT_DAYS+'</h2>'+
-    '<div class="cols3">'+
-    goalCard('Gym sessions',tr.gym)+goalCard('Hard runs',tr.hard)+goalCard('Sprint sessions',tr.sprints)+goalCard('Runs, all in',tr.runs)+
-    stepsCard(tr)+
-    weightCard(w)+
-    daysCard(c)+
-    '</div>'+
-    '<p class="tiny" style="margin-top:10px">The notch on each bar is pro-rata — '+pct(c.through,1)+' of the block counted. A total with no pace attached is how you arrive at the last fortnight owing eleven gym sessions.</p></div>';
+  /* the block so far — totals, not targets */
+  var g=blockProgressHTML();
   E('goalsPanel').innerHTML=g;
 
   /* today summary */
@@ -3845,8 +3886,9 @@ function renderToday(c,w,tr){
   var s='<div class="cols"><div class="p"><h2>Today · '+fmtL(t)+'</h2><div class="tiles t4">'+
     tile('kcal target',ci(kc),'every day, hard or not')+
     tile('eaten',typeof rec.kcal==='number'?ci(rec.kcal):'—',typeof rec.kcal==='number'?signed(rec.kcal-kc,0).replace('.0','')+(rec.refeed?' · refeed day':' vs target'):'not logged')+
-    tile('steps target',ci(stepTarget(t)),dow(t)===6?'Saturday is a ceiling, not a floor':DOWS[dow(t)])+
-    tile('steps',typeof rec.steps==='number'?ci(rec.steps):'—',typeof rec.steps==='number'?(rec.steps>=stepTarget(t)?'target met':ci(stepTarget(t)-rec.steps)+' to go'):'not logged')+
+    tile('steps',typeof rec.steps==='number'?ci(rec.steps):'—',typeof rec.steps==='number'?'today':'not logged yet')+
+    (function(){var a=[],i;for(i=0;i<7;i++){var r=S.days[addD(t,-i)];if(r&&typeof r.steps==='number')a.push(r.steps);}
+      return tile('steps, 7-day avg',a.length?ci(Math.round(mean(a)/100)*100):'—',a.length?a.length+' day'+(a.length===1?'':'s')+' logged':'nothing logged');})()+
     '</div>';
   s+='<p class="tiny" style="margin-top:10px">Meals: 300 ml semi-skimmed milk ('+CFG.kcal.milk+') and the evening bowl ('+CFG.kcal.bowl+') are fixed, which leaves <b class="num">'+ci(kc-CFG.kcal.milk-CFG.kcal.bowl)+' kcal</b> for the three meals. Breakfast '+(hard?'is the oats — 70 g GF oats, 150 ml milk, 13 g honey, 60–90 min before the run.':'is lean fish + roots + veg, or eggs.')+'</p>';
   s+='<p class="tiny">Flat '+ci(KCAL_DAY)+' every day — no hard-day bump. The session logged still decides the breakfast, not the total.</p></div>';
@@ -3903,10 +3945,8 @@ function weekExtrasHTML(start,end){
   var a=inw.length?mean(inw.map(lb)):null,b=prv.length?mean(prv.map(lb)):null;
   var h='<hr class="d"><table class="tbl"><tbody>';
 
-  h+='<tr><td>Steps</td><td class="n">'+ci(st)+' / '+ci(stT)+'</td><td>'+
-     (stD===0?'<span class="tiny">none logged yet</span>':
-      (st>=stT?'<span class="pill g">on target</span>':'<span class="pill">'+ci(stT-st)+' short</span>')+
-      (stD<=span?' <span class="tiny">'+stD+' of '+(span+1)+' days logged</span>':''))+'</td></tr>';
+  h+='<tr><td>Steps, a day</td><td class="n">'+(stD?ci(Math.round(st/stD/100)*100):'—')+'</td><td>'+
+     (stD===0?'<span class="tiny">none logged yet</span>':'<span class="tiny">average · '+ci(st)+' all in · '+stD+' of '+(span+1)+' days logged</span>')+'</td></tr>';
 
   var wcell,wnote;
   if(a===null){
@@ -3979,6 +4019,11 @@ function weekTemplateHTML(tr){
   }
   h+='<table class="tbl"><tbody>';
   rows.forEach(function(r){
+    /* counts, not quotas: no "/ 2", no "to go" (28 Sep) */
+    if(r[0]!=='Easy runs'){
+      h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td><td class="n">'+(r[1]?'<span class="pill g">✓</span>':'')+'</td></tr>';
+      return;
+    }
     if(r[2]===0){
       h+='<tr><td>'+r[0]+' <span class="tiny">optional</span></td><td class="n">'+r[1]+'</td><td class="n">'+
         (r[1]?'<span class="pill g">bonus'+(r[1]>1?' ×'+r[1]:'')+'</span>':'<span class="tiny">if you fancy it</span>')+'</td></tr>';
@@ -3993,7 +4038,7 @@ function weekTemplateHTML(tr){
   h+='</tbody></table>'+weekExtrasHTML(tr.wkStart,tr.wkEnd);
 
 
-  h+='<p class="tiny" style="margin-top:8px"><b>The week is 3 runs: your 2 hard runs and the short uphill sprints.</b> An easy run on top is a bonus — it counts toward the runs total, but nothing is owed if you skip it. '+
+  h+='<p class="tiny" style="margin-top:8px"><b>What you have done this week</b> — the runs card has ideas for what to do next, and nothing is owed. '+
      '<b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
   return h;
 }

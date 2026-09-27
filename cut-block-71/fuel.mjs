@@ -77,7 +77,7 @@ t = await p.textContent('#fuelCard');
 const src = await p.evaluate(() => fuelToday(trainingModel()).src);
 ok('with nothing logged it does not invent a session', src === 'open' || src === 'rest', src);
 if (src === 'open') {
-  ok('says the week still owes something', /the week still owes/i.test(t), t.slice(0, 200));
+  ok('says what today might be, without owing anything', /If today turns out to be/.test(t) && !/owes/.test(t), t.slice(0, 200));
 } else {
   ok('or calls it a rest day', /rest day/i.test(t), t.slice(0, 200));
 }
@@ -106,15 +106,11 @@ await boot(st({ weights: wts, days: { [back(3)]: { gym: true } } }));
 let shifted = await startAt(back(28));
 ok('the block start moved and the dates were re-read', shifted.elapsed === 29, JSON.stringify(shifted));
 let push = await p.textContent('#pushCard');
-ok('step-it-up fires when the sessions are miles behind', push.length > 100, String(push.length));
-ok('it is headed as a push', /Step it up/.test(push), push.slice(0, 80));
-ok('names the counts against the targets', /of 48/.test(push) && /of 19/.test(push) && /Sprint sessions/.test(push), push.slice(0, 500));
-ok('and the rate that closes it', /a week from here closes it/.test(push));
-ok('it is never a reason to eat less', /Nothing here says eat less/.test(push));
-ok('and a rest day is not one of the misses', /a rest day is never one of the misses/.test(push));
-const band = await p.evaluate(() => weightModel().band);
-if (band === 'in') ok('leads with the weight doing its job', /The weight is doing its job/.test(push), push.slice(0, 160));
-else ok('leads with something about the weight', /weight/i.test(push.slice(0, 260)), 'band=' + band + ' :: ' + push.slice(0, 200));
+// Sessions are totals now, not targets (28 Sep): being "behind" never pushes.
+ok('no catch-up push, however few sessions are logged', push.trim() === '', push.slice(0, 200));
+const gp = await p.textContent('#goalsPanel');
+ok('Today shows the block as totals', /Your block so far/.test(gp) && /Everything here is what you have done/.test(gp), gp.slice(0, 200));
+ok('with no session targets or pace', !/of 48|of 19|of 29|behind|pro-rata|Target/.test(gp), gp.slice(0, 400));
 
 // rest and push are mutually exclusive
 const both = await p.evaluate(() => {
@@ -144,8 +140,8 @@ await startAt(back(28));
 push = await p.textContent('#pushCard');
 const se = await p.evaluate(() => softEfforts(14));
 ok('soft efforts are counted', se.tot === 2 && se.soft === 2, JSON.stringify(se));
-ok('and named with the pace line', /came in over the effort line of/.test(push), push.slice(0, 600));
-ok('that is the literal version of going harder', /that is the literal version of going harder/i.test(push));
+// the "go harder" push went with the targets (28 Sep): soft efforts are counted, never pushed
+ok('soft efforts are not turned into a push to go harder', push.trim() === '', push.slice(0, 300));
 
 // a genuinely hard threshold run is not called soft
 await boot(st({ days: { [back(2)]: { runs: [{ type: 'threshold', km: 5, secs: 1100 }] } } }));
