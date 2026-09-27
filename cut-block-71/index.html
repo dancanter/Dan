@@ -518,6 +518,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= STUDY ================= -->
 <section id="s-study" class="stack" hidden>
+  <div id="deepCard"></div>
   <div id="dayCard"></div>
   <div id="stTop"></div>
   <div class="p"><h2>Why study is in a cut app at all</h2>
@@ -2918,7 +2919,8 @@ function dayFeedback(is){
   }
   if(typeof r.study==='number'&&r.study>0){
     var wk=weekGains();
-    rows.push(['Study',f1(r.study)+' h'+(typeof r.deep==='number'&&r.deep>0?' ('+f1(r.deep)+' deep)':''),'<b>'+f1(wk.study)+' h</b> this week so far.','']);
+    rows.push(['Study',f1(r.study)+' h'+(typeof r.deep==='number'&&r.deep>0?' ('+f1(r.deep)+' deep)':''),'<b>'+f1(wk.study)+' h</b> this week so far.'+
+      (typeof r.deep==='number'&&r.deep>DEEP.day?' <span class="wn">'+f1(r.deep)+' h deep is past about '+DEEP.day+' — the extra rarely sticks; go lighter tomorrow.</span>':''),'']);
   }
   return rows;
 }
@@ -3456,6 +3458,49 @@ function foodNumsHTML(){
   return h+'</div>';
 }
 function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();}
+/* ===================== deep work this week =====================
+   Dan, 29 Sep: 8–12 h of deep work a week is the sweet spot in term, about
+   15 is the ceiling, and past about 4 h in one day the extra is mostly
+   sitting at the desk. A bar for the week, a bar for each day, and a gentle
+   flag — never a telling-off — when a day or the week runs past it. */
+var DEEP={lo:8,hi:12,cap:15,day:4};
+function deepWeek(d){
+  var st=mondayOf(d),days=[],tot=0;
+  for(var i=0;i<7;i++){var dd=addD(st,i),r=S.days[dd]||{},v=typeof r.deep==='number'?r.deep:0;days.push({d:dd,v:v,future:dd>d});tot+=v;}
+  return {days:days,tot:tot};
+}
+function deepVerdict(tot){
+  if(tot>DEEP.cap)return {k:'w',t:'Past the ceiling',w:'Over '+DEEP.cap+' h — the extra hours rarely stick, and they come out of your sleep and your training. Make the rest of the week lighter.'};
+  if(tot>DEEP.hi)return {k:'w',t:'High',w:'Fine for a week or two before a deadline — then drop back to '+DEEP.lo+'–'+DEEP.hi+'.'};
+  if(tot>=DEEP.lo)return {k:'g',t:'Sweet spot',w:DEEP.lo+'–'+DEEP.hi+' h: enough to move the modules on, and your focus stays sharp.'};
+  return {k:'',t:'Building',w:'Heading for '+DEEP.lo+'–'+DEEP.hi+' h. One or two morning blocks gets you there.'};
+}
+function deepHTML(){
+  var t=today(),W=deepWeek(t),v=deepVerdict(W.tot),top=Math.max(DEEP.cap+2,W.tot);
+  var pos=function(x){return (x/top*100).toFixed(1)+'%';};
+  var col=W.tot>DEEP.hi?'var(--warn)':(W.tot>=DEEP.lo?'var(--accent)':'var(--ink-2)');
+  var over=W.days.filter(function(x){return x.v>DEEP.day;});
+  var maxD=Math.max(DEEP.day+1,Math.max.apply(null,W.days.map(function(x){return x.v;})));
+  var bars=W.days.map(function(x){var hgt=Math.round(x.v/maxD*56);
+    return '<div style="flex:1;text-align:center"><div style="height:60px;display:flex;align-items:flex-end;justify-content:center;position:relative">'+
+      '<div style="position:absolute;left:0;right:0;bottom:'+Math.round(DEEP.day/maxD*56)+'px;border-top:1px dashed var(--rule)"></div>'+
+      '<div style="width:60%;height:'+Math.max(x.v?3:0,hgt)+'px;background:'+(x.v>DEEP.day?'var(--warn)':'var(--accent)')+';border-radius:3px 3px 0 0"></div></div>'+
+      '<div class="tiny dim">'+DOWS[dow(x.d)].slice(0,1)+'</div><div class="tiny mono">'+(x.v?f1(x.v):(x.future?'&nbsp;':'–'))+'</div></div>';}).join('');
+  return '<div class="p lift"><h2>🧠 Deep work this week</h2>'+
+    '<div class="row" style="gap:10px;align-items:baseline"><b class="num" style="font-size:1.6em">'+f1(W.tot)+' h</b><span class="pill'+(v.k?' '+v.k:'')+'">'+v.t+'</span></div>'+
+    '<div style="position:relative;height:14px;background:var(--rule-2);border-radius:7px;margin:10px 0 4px;overflow:hidden">'+
+      '<div style="position:absolute;left:'+pos(DEEP.lo)+';width:'+((DEEP.hi-DEEP.lo)/top*100).toFixed(1)+'%;top:0;bottom:0;background:rgba(80,200,170,.22)"></div>'+
+      '<div style="position:absolute;left:0;top:0;bottom:0;width:'+pos(Math.min(W.tot,top))+';background:'+col+';border-radius:7px"></div>'+
+      '<div style="position:absolute;left:'+pos(DEEP.cap)+';top:0;bottom:0;border-left:2px solid var(--warn)"></div></div>'+
+    '<div class="row tiny dim" style="justify-content:space-between"><span>0</span><span>sweet spot '+DEEP.lo+'–'+DEEP.hi+' h</span><span>ceiling '+DEEP.cap+'</span></div>'+
+    '<div class="row" style="gap:4px;margin-top:10px;align-items:flex-end">'+bars+'</div>'+
+    '<p class="tiny dim" style="margin:2px 0 0;text-align:right">dashed line = about '+DEEP.day+' h, a big day’s limit</p>'+
+    (over.length?'<p class="note wn" style="margin-top:8px">'+over.map(function(x){return DOWL[dow(x.d)]+': <b>'+f1(x.v)+' h</b> deep';}).join(' · ')+
+      ' — past about '+DEEP.day+' h in a day the extra is mostly sitting at the desk. A lighter day next is the fix.</p>':'')+
+    '<p class="note">'+v.w+'</p>'+
+    '<p class="tiny">Deep means single-tasking, phone away, and working to understand or produce — reading new material and writing notes from memory in your own words counts; copying, highlighting and tidying do not.</p></div>';
+}
+function renderDeep(){if(E('deepCard'))E('deepCard').innerHTML=deepHTML();}
 /* ===================== the week's notes =====================
    Dan, 28 Sep: jot what he did — a film, meeting mates, somewhere new — and
    see the week back. One line each, a tag for colour, kept on the day. */
@@ -3823,6 +3868,7 @@ function renderBetter(){
 }
 function renderGains(){
   renderGlance();
+  renderDeep();
   renderSetsCard();
   renderFoodNums();
   renderLife();
