@@ -191,6 +191,20 @@ ok('the read-back flags a 4.5 h deep day too', await p.evaluate(() => { const r 
 ok('what counts as deep is spelled out', /copying, highlighting and tidying do not/.test(await p.evaluate(() => deepHTML())));
 await ctx.close();
 
+// ===== tap a sleep bar to see the night =====
+({ ctx, p, boot } = await at('2026-09-28'));
+await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));
+await p.click('[data-t="sleep"]'); await p.waitForTimeout(150);
+let sp = sq(await p.innerText('#slPick'));
+ok('the latest night shows by default', /Sun night/.test(sp) && /8\.0 h/.test(sp) && /23:10 → ☀️ 07:25/.test(sp) && /Phone-free ✓/.test(sp), sp);
+await p.click('#slChart button[data-sd="2026-09-25"]'); await p.waitForTimeout(100);
+sp = sq(await p.innerText('#slPick'));
+ok('tapping a bar shows that night', /Thu night/.test(sp) && /7\.0 h/.test(sp) && /1\.0 h under/i.test(sp) && /Phone not marked out/.test(sp), sp);
+ok('and highlights the bar', await p.evaluate(() => E('slChart').querySelector('button.sel').dataset.sd === '2026-09-25'));
+await p.click('#slChart button[data-sd="2026-09-20"]'); await p.waitForTimeout(100);
+ok('an unlogged night says so, without judging', /Not logged — ignored, not judged/.test(await p.innerText('#slPick')));
+await ctx.close();
+
 await b.close();
 if (errs.length) fails.push(...errs);
 console.log(fails.length ? 'FAIL (' + fails.length + ')\n - ' + fails.join('\n - ') : 'all passed');

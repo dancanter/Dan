@@ -5,6 +5,9 @@ const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + x : '')); else c
 const FILE = 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html';
 const LS = 'cutblock71.v1';
 const p = await b.newPage({ viewport: { width: 430, height: 2400 } });
+// The fixtures here describe the cut's first full week (21–27 Sep), so the
+// clock is pinned inside it; otherwise the suite rots as the real date moves on.
+await p.clock.setFixedTime(new Date('2026-09-26T12:00:00'));
 p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
 const st = (o = {}) => Object.assign({ weights: {}, days: {}, bests: {}, settings: { hideDaily: false, fiveK: 1085 }, updatedAt: Date.now() }, o);
 const boot = async (s) => { await p.goto(FILE);

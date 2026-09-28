@@ -120,6 +120,9 @@ svg.chart{width:100%;height:auto;display:block}
 .bars .b.u{background:repeating-linear-gradient(45deg,var(--rule),var(--rule) 3px,transparent 3px,transparent 6px);border:1px dashed var(--rule)}
 .bars .b.lo{background:var(--warn)}
 .bars .b.vlo{background:var(--bad)}
+.bars .col{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;background:none;border:0;padding:0 1px;cursor:pointer;border-radius:3px}
+.bars .col .b{flex:1}
+.bars .col.sel{background:var(--rule-2);outline:1px solid var(--accent)}
 .barlab{display:flex;gap:3px;margin-top:3px}
 .barlab span{flex:1;text-align:center;font-size:9px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
 .track{height:7px;background:var(--panel-3);position:relative;border-radius:4px;overflow:hidden}
@@ -5909,6 +5912,20 @@ function renderTimes(){
 }
 
 /* ---------- sleep ---------- */
+var SL_PICK=null;
+/* one night, read back: the sleep logged on a day is the night before it */
+function sleepNightHTML(d){
+  if(!d)return '<p class="tiny">Tap a bar to see that night.</p>';
+  var r=S.days[d]||{},night=addD(d,-1);
+  var head='<b>'+DOWS[dow(night)]+' night</b> <span class="tiny dim">· logged '+DOWS[dow(d)]+' '+fmtS(d)+'</span>';
+  if(typeof r.sleep!=='number')return '<div class="p" style="box-shadow:none;padding:10px">'+head+'<div class="note">Not logged — ignored, not judged.</div></div>';
+  var gap=r.sleep-CFG.sleep.line;
+  return '<div class="p" style="box-shadow:none;padding:10px">'+head+
+    '<div class="row" style="gap:10px;align-items:baseline;margin-top:4px"><b class="num" style="font-size:1.5em">'+f1(r.sleep)+' h</b>'+
+    '<span class="pill'+(gap>=0?' g':(r.sleep<6?' b':' w'))+'">'+(gap>=0?'over the line':f1(-gap)+' h under')+'</span></div>'+
+    (r.bed&&r.wake?'<div style="margin-top:4px">😴 '+r.bed+' → ☀️ '+r.wake+'</div>':'')+
+    '<div style="margin-top:2px">'+(r.phoneOut?'📵 Phone-free ✓':'📱 Phone not marked out')+'</div></div>';
+}
 function renderSleep(){
   var m=sleepModel(),t=today();
   var lastNight=S.days[t]&&typeof S.days[t].sleep==='number'?S.days[t].sleep:null;
@@ -5926,15 +5943,20 @@ function renderSleep(){
   E('slTop').innerHTML=h;
 
   var maxH=10;
-  var bars='<div class="p"><h2>Last 14 nights</h2><div class="bars">';
+  /* tap a bar to see that night (29 Sep): the whole column is the target */
+  if(!SL_PICK||!m.bars.some(function(b){return b.d===SL_PICK;})){SL_PICK=null;for(var q=m.bars.length-1;q>=0;q--){if(m.bars[q].h!==null){SL_PICK=m.bars[q].d;break;}}}
+  var bars='<div class="p"><h2>Last 14 nights <span class="tiny dim">· tap a bar</span></h2><div class="bars" id="slBars">';
   m.bars.forEach(function(b){
-    if(b.h===null){bars+='<div class="b u" style="height:14%" title="'+fmtS(b.d)+' — not logged"></div>';}
+    var inner;
+    if(b.h===null){inner='<div class="b u" style="height:14%"></div>';}
     else{
       var cls=b.h<6?' vlo':(b.h<CFG.sleep.line?' lo':'');
-      bars+='<div class="b'+cls+'" style="height:'+Math.max(4,Math.min(100,(b.h/maxH)*100))+'%" title="'+fmtS(b.d)+' — '+f1(b.h)+' h"></div>';
+      inner='<div class="b'+cls+'" style="height:'+Math.max(4,Math.min(100,(b.h/maxH)*100))+'%"></div>';
     }
+    bars+='<button type="button" class="col'+(b.d===SL_PICK?' sel':'')+'" data-sd="'+b.d+'" aria-label="'+fmtS(b.d)+(b.h===null?' — not logged':' — '+f1(b.h)+' h')+'">'+inner+'</button>';
   });
   bars+='</div><div class="barlab">'+m.bars.map(function(b){return '<span>'+(dow(b.d)===1?fmtS(b.d).split(' ')[0]:DOWS[dow(b.d)].slice(0,1))+'</span>';}).join('')+'</div>';
+  bars+='<div id="slPick" style="margin-top:10px">'+sleepNightHTML(SL_PICK)+'</div>';
   bars+='<div class="row" style="margin-top:10px"><span class="pill g">'+f1(CFG.sleep.line)+' h and over</span><span class="pill w">under the line</span><span class="pill b">under 6</span><span class="pill">hatched = not logged, not judged</span></div></div>';
   E('slChart').innerHTML=bars;
 }
@@ -6952,6 +6974,12 @@ function wire(){
     var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t);
   });
   E('logDate').addEventListener('change',function(){paintForm();});
+  E('slChart').addEventListener('click',function(ev){
+    var b=ev.target.closest('button[data-sd]');if(!b)return;
+    SL_PICK=b.dataset.sd;
+    Array.prototype.forEach.call(E('slChart').querySelectorAll('button[data-sd]'),function(x){x.classList.toggle('sel',x===b);});
+    E('slPick').innerHTML=sleepNightHTML(SL_PICK);
+  });
   E('revPick').addEventListener('change',function(){REVWK=this.value;renderReview();});
   E('btnToday').addEventListener('click',function(){E('logDate').value=today();paintForm();});
   function num(el){var v=el.value.trim();if(v==='')return null;var n=Number(v);return isNaN(n)?null:n;}
