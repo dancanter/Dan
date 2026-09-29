@@ -56,6 +56,7 @@ section[hidden]{display:none!important}
 /* ---- stats ---- */
 .tiles{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
 .tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .tile{background:var(--panel);padding:11px 12px}
 .tile .k{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
 .tile .v{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
@@ -678,7 +679,10 @@ var CFG={
      week and 1 in each deload week (4 and 8) = 18, plus the pre-block's one
      = 19; 1 uphill sprint session every week = 10; runs = the two together =
      29, about 3 a week. Easy runs are a bonus on top and count toward runs. */
-  goals:{gym:48,hard:19,sprints:10,runs:29,steps:12800,weightLo:122,weightHi:123},
+  /* 29 Sep, Dan: weight first for this cut. Two easy five-milers a week join
+     the two hard runs, so runs = 19 hard + 20 easy = 39, about 4 a week.
+     Uphill sprints became the option (sprints stays as a tally, never owed). */
+  goals:{gym:48,hard:19,sprints:10,runs:39,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
@@ -847,7 +851,10 @@ var CFG={
   /* Dan's call, 26 Sep: the week is 2 hard runs + 1 set of short uphill
      sprints = 3 runs. The easy run is a bonus — counted and praised when it
      happens, never owed, never "to go". */
-  tmpl:{hard:2,easy:0,sprints:1,runs:3,gym:5}
+  /* 29 Sep, Dan: weight first, then build. The week is 2 hard runs + 2 easy
+     five-milers = 4 runs. Uphill sprints are the option — best tacked onto
+     the end of an easy run, so they never cost an extra day. */
+  tmpl:{hard:2,easy:2,sprints:0,runs:4,gym:5}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
 var WEIGH_START=mondayOnOrAfter(CFG.cutStart);
@@ -887,7 +894,7 @@ function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
    sets, same sessions) and drops to one hard run. */
 function tmplFor(start){
   var T={hard:CFG.tmpl.hard,sprints:CFG.tmpl.sprints,runs:CFG.tmpl.runs,gym:CFG.tmpl.gym,easy:CFG.tmpl.easy,deload:false};
-  if(start>=WEIGH_START&&isDeload(weekOf(start))){T.hard=1;T.runs=T.hard+T.sprints;T.deload=true;}
+  if(start>=WEIGH_START&&isDeload(weekOf(start))){T.hard=1;T.runs=T.hard+T.easy+T.sprints;T.deload=true;}
   return T;
 }
 function inCut(is){return is>=CFG.cutStart&&is<=CFG.cutEnd;}
@@ -1828,7 +1835,8 @@ function reviewFeedback(R,wk){
     var TT=tmplFor(wk.start);
     if(R.s.hard>=CFG.hardRuns.cap)next.push('<b>'+R.s.hard+' hard runs is the ceiling.</b> Fine once — aim for '+CFG.tmpl.hard+' next week.');
     else if(R.s.hard)win.push(R.s.hard+' hard run'+(R.s.hard===1?'':'s')+'.');
-    if(R.s.sprints>=TT.sprints)win.push('Uphill sprints done'+(R.s.easy?', plus '+R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' as a bonus':'')+'.');
+    if(R.s.easy)win.push(R.s.easy+' easy run'+(R.s.easy===1?'':'s')+' — the weight-loss miles, at almost no cost to recovery.');
+    if(R.s.sprints)win.push('Uphill sprints done — a bonus.');
 
     if(R.s.gym)win.push(R.s.gym+' gym session'+(R.s.gym===1?'':'s')+'.');
 
@@ -1913,9 +1921,9 @@ function renderReview(){
   var pre=(wk.k==='pre'),TW=tmplFor(wk.start);
   h+='<div class="p"><h2>Sessions</h2><table class="tbl"><tbody>'+
     tmplRow('Hard runs',R.s.hard,pre?null:TW.hard)+
-    tmplRow('Uphill sprints',R.s.sprints,pre?null:TW.sprints)+
+    tmplRow('Uphill sprints <span class="tiny">optional</span>',R.s.sprints,pre?null:TW.sprints)+
     tmplRow('Runs, all in',R.s.runs,pre?null:TW.runs)+
-    tmplRow('Easy runs <span class="tiny">optional</span>',R.s.easy,pre?null:TW.easy)+
+    tmplRow('Easy runs <span class="tiny">the five-milers</span>',R.s.easy,pre?null:TW.easy)+
     tmplRow('Gym',R.s.gym,pre?null:TW.gym)+
     '</tbody></table>'+
 
@@ -2136,7 +2144,7 @@ function achList(){
   ];
   return [
     {g:'Weight',items:weight},
-    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,14,CFG.goals.hard])).concat(tiers('runs',runs,[7,15,22,CFG.goals.runs]))},
+    {g:'Sessions',items:tiers('gym sessions',gym,[12,24,36,CFG.goals.gym]).concat(tiers('hard runs',hard,[5,10,14,CFG.goals.hard])).concat(tiers('runs',runs,[10,20,30,CFG.goals.runs]))},
     {g:'Speed',items:speed},
     {g:'Steps',items:steps},
     {g:'Sleep',items:sleep},
@@ -2453,6 +2461,7 @@ function weekOwes(tr){
   var T=tmplFor(tr.wkStart);
   if(tr.week.hard<T.hard)o.push({k:'hard',n:T.hard-tr.week.hard,label:'hard run'});
   if(tr.week.sprints<T.sprints)o.push({k:'sprint',n:T.sprints-tr.week.sprints,label:'sprint session'});
+  if(tr.week.easy<T.easy)o.push({k:'easy',n:T.easy-tr.week.easy,label:'easy five-miler'});
   if(tr.week.gym<T.gym)o.push({k:'gym',n:T.gym-tr.week.gym,label:'gym session'});
   return o;
 }
@@ -3032,7 +3041,10 @@ function weekRunsModel(){
   /* a second session of the same kind still counts, toward the other slot */
   var longDone=lng>=1||(sht>=2&&!!use.long),shortDone=sht>=1||(lng>=2);
   if(!use.long)shortDone=lng+sht>=1;
-  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST};
+  var aw=avgWindow(t,7),lb=aw&&aw.avg!==null?aw.avg:null;
+  if(lb===null){var ws=Object.keys(S.weights).sort();if(ws.length)lb=S.weights[ws[ws.length-1]];}
+  var kcal5=lb?Math.round(lb/2.2046*8.05/10)*10:null;
+  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3040,6 +3052,9 @@ function weekRunsModel(){
    place of a hard run and never on top, never in a deload, never when the
    status flags anything, and the long ones (800 m and up) every other week.
    The cut is for the look and the weight; the runs serve that. */
+/* easy pace: wide, and slower is never wrong. His 5 km best of 18:05 puts
+   easy at roughly 4:45–5:20; on a deficit the top end comes off. */
+var EASY_PACE='5:00–5:45';
 var LONG_OPTS=[{t:'4 × 1 km',d:[1000]},{t:'5 × 800 m',d:[800]},{t:'Threshold run — comfortably hard for 20–25 min, by feel',d:null}];
 var SHORT_OPTS=[{t:'6 × 300 m',d:[300]},{t:'5 × 400 m',d:[400]},{t:'8 × 200 m',d:[200]},{t:'4 × 600 m',d:[600]}];
 var RELAXED_OPTS=[{t:'5 × 200 m, fast but relaxed',d:[200]},{t:'4 × 300 m, fast but relaxed',d:[300]}];
@@ -3094,12 +3109,16 @@ function weekRunsHTML(){
   var rows='';
   if(P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
   rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
-  rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(w.sprints>=1)+'<b>Uphill sprints</b></div>'+
-    '<div style="margin-top:2px">'+P.spr+' × ~100 m uphill</div>'+
-    '<div class="tiny more">Explosive, walk back down, count the reps. No hill? Flat strides of about 80 m. Top-end speed and power for very little fatigue.</div></div>';
-  rows+='<div style="padding:7px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.easy?'<span class="pill g">bonus ✓</span>':'<span class="pill">+</span>')+'<b>Easy run</b> <span class="tiny">optional</span></div>'+
-    '<div style="margin-top:2px">30–45 min, or a 5 km / 5 mile, easy</div>'+
-    '<div class="tiny more">Talking in full sentences the whole way. If your legs are sore, this replaces a hard run — it never adds one.</div></div>';
+  var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
+  rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
+    (w.easy>=2?'<span class="pill g">✓ both done</span>':(w.easy===1?'<span class="pill g">1 of 2 ✓</span>':''))+'<b>Easy 5 miles × 2</b> <span class="tiny">the fat-loss runs</span></div>'+
+    '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+
+    (M.kcal5?' <span class="tiny">· about <b>'+ci(M.kcal5)+' kcal</b> each</span>':'')+'</div>'+
+    (legsFlag?'<div class="note wn" style="margin-top:4px">Legs flagged: make the next one a brisk walk, or 30 min very easy. It still burns; it just doesn’t dig the hole deeper.</div>':'')+
+    '<div class="tiny more">Full sentences the whole way, breathing through your nose most of it. This is the run that takes the weight off without touching your recovery — fat is the main fuel at this effort, cortisol stays low, and it builds the aerobic engine your 800 m to 5 km sit on. Not the day after a hard run is ideal, but after legs or the morning after a hard run is fine if it is truly easy. If it turns into a tempo, the app counts it as a hard run.</div></div>';
+  rows+='<div style="padding:7px 0"><div class="row" style="gap:8px;align-items:baseline">'+(w.sprints?'<span class="pill g">✓ done</span>':'<span class="pill">+</span>')+'<b>Uphill sprints</b> <span class="tiny">optional</span></div>'+
+    '<div style="margin-top:2px">'+P.spr+' × ~100 m uphill — best at the end of an easy 5 miles</div>'+
+    '<div class="tiny more">Explosive, walk back down, count the reps. Tacked onto an easy run they cost no extra day and very little recovery, and they keep the power and the leg shape you want while the weight comes off. Skip them on any week your legs feel heavy — nothing is lost.</div></div>';
   var ttNote=P.deload?'No time trials in a deload — that is the point of it.':
     (P.tt&&!M.easeOff?'<b>Test week:</b> both hard runs can be time trials — at least 48 h apart, proper warm-up.':
     (M.easeOff?'No time trials while something is flagged.':
@@ -3107,14 +3126,21 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and some sprints.':'<b>A good week:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and some sprints.')+
-    ' <span class="tiny">Any days — never the day after legs or another hard run.</span></p>'+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the two easy 5-milers, kept truly easy.':'<b>A good week:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', two easy 5-milers, and uphill sprints if you feel good.')+
+    ' <span class="tiny">Any days. Hard runs never the day after legs or each other, and one full day a week with no session at all.</span></p>'+
+    '<div class="tiles t3" style="margin:6px 0 4px">'+
+      tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
+      tile('easy 5-milers',w.easy+' <span class="tiny">of 2</span>','take the weight off')+
+      tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?3:4))+
+    '</div>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
     rows+
     '<p class="note" style="margin-top:6px">⏱ '+ttNote+(ttOK?' They are all-out, so they cost more than a session — which is why they are rationed on a cut, not banned.':'')+'</p>'+
     (P.note?'<p class="note">'+P.note+'</p>':'')+
-    '<p class="tiny" style="margin-top:6px"><b>The cut comes first</b> — the look, shredded, 122–124 lb. The runs keep you fast; they never get to cost you sleep, the gym or the weight.</p>'+
+    '<p class="tiny" style="margin-top:6px"><b>Weight first, then build.</b> The easy miles take the weight off, the two hard runs hold your times and nudge them down, the gym holds the muscle. The big PBs come once you are fuelled at maintenance — on the cut, holding and nudging your times <i>is</i> winning.</p>'+
+    '<details style="margin-top:4px"><summary class="tiny">Why this shape, on a deficit</summary>'+
+    '<p class="tiny" style="margin-top:6px">Two hard runs is where the times are kept — any more and, on a deficit, they cost more than they give: cortisol up, testosterone down, sleep worse, face puffier. Easy running barely touches any of that, so it is where the extra calories come from. The one full day off each week is when it all lands. The back-off warnings sit on top: if one fires, the hard runs come down first and the easy miles stay easy.</p></details>'+
     '<details style="margin-top:4px"><summary class="tiny">How the guide times work</summary>'+
     '<p class="tiny" style="margin-top:6px">Wide on purpose. For reps, the fast end is your best session at that distance — a great day on a cut — and the slow end is still a good session. For time trials, within 2% of your best either way. Effort overrides the watch, and they move as soon as you log something faster. No rest times: recover until you are ready.</p>'+
     '<p class="tiny" style="margin-top:6px"><b>Faster without the stress:</b> finish with a rep or two in hand, and stop when a rep feels clearly worse than the first ones. Move up only if last week felt controlled — about a 7 by the end.</p></details></div>';
@@ -3227,11 +3253,11 @@ function betterModel(){
    something he logged, never off a hunch. */
 function weekStatus(){
   var t=today(),R=rhrModel(),NG=niggleModel(),i,d,rec;
-  var hardRuns=0,legsLoad=0,trainedRun=0,sl=[],study=0;
+  var hardRuns=0,legsLoad=0,trainedRun=0,sl=[],study=0,runs7=0;
   for(i=0;i<7;i++){
     d=addD(t,-i);rec=S.days[d]||{};
     var hardHere=false,anyRun=false;
-    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;anyRun=true;if(m.hard){hardRuns++;hardHere=true;}});
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;anyRun=true;runs7++;if(m.hard){hardRuns++;hardHere=true;}});
     if(i<3){if(rec.split==='legs')legsLoad++;if(hardHere)legsLoad++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.sprint&&!m.empty)legsLoad++;});}
     if(i<3&&typeof rec.sleep==='number')sl.push(rec.sleep);
     if(typeof rec.study==='number')study+=rec.study;
@@ -3244,6 +3270,9 @@ function weekStatus(){
   if(NG.n&&(NG.today||NG.persistent))return {k:'rest',t:'Rest what hurts',w:'Something has hurt'+(NG.top?' — '+NG.top:'')+'. Easy running only until it has been quiet for a few days. A week off beats a month off.'};
   if(R.state==='high')return {k:'warn',t:'You might be overtraining',w:'Resting HR is up '+f1(R.delta)+' beats on your baseline — fatigue shows there before you feel it. Take a rest day, then keep it easy for three days.'};
   if(hardRuns>CFG.hardRuns.target)return {k:'rest',t:'You’ve done loads — time for a rest',w:hardRuns+' hard runs in 7 days is your ceiling. Next one waits until you’ve had a proper rest day.'};
+  /* 29 Sep: the plan is four runs; six in a week on a deficit is too much,
+     however easy they felt — that is how a cut starts ageing you */
+  if(runs7>=6)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is four. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
   if(trainedRun>=6)return start===1
     ? {k:'good',t:'Rest day today — well timed',w:'You had '+trainedRun+' days in a row with a session before it, so keep today fully off. The next hard session will be better for it.'}
     : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
@@ -4647,9 +4676,9 @@ function weekTemplateHTML(tr){
   var w=tr.week;
   var T=tmplFor(tr.wkStart);
   var rows=[['Hard runs',w.hard,T.hard,w.hard>=T.hard],
-            ['Uphill sprints',w.sprints,T.sprints,w.sprints>=T.sprints],
+            ['Easy 5-milers',w.easy,T.easy,w.easy>=T.easy],
+            ['Uphill sprints <span class="tiny">optional</span>',w.sprints,T.sprints,w.sprints>=T.sprints],
             ['Runs, all in',w.runs,T.runs,w.runs>=T.runs],
-            ['Easy runs',w.easy,0,true],
             ['Gym',w.gym,T.gym,w.gym>=T.gym]];
   var bk=w.byKind||{easy:0,hard:0,sprint:0};
   var parts=[['easy',bk.easy],['hard',bk.hard],['sprints',bk.sprint]].filter(function(x){return x[1]>0;});
@@ -4666,7 +4695,7 @@ function weekTemplateHTML(tr){
   h+='<table class="tbl"><tbody>';
   rows.forEach(function(r){
     /* counts, not quotas: no "/ 2", no "to go" (28 Sep) */
-    if(r[0]!=='Easy runs'){
+    if(true){
       h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td><td class="n">'+(r[1]?'<span class="pill g">✓</span>':'')+'</td></tr>';
       return;
     }

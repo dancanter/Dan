@@ -26,8 +26,8 @@ ok('every easy run is counted', wk.easy === 2, JSON.stringify({ easy: wk.easy, e
 ok('length no longer sorts them', wk.easy5k === undefined, String(wk.easy5k));
 await p.click('[data-t="training"]');
 let t = await p.textContent('#tWeek');
-ok('the week shows an easy runs row', /Easy runs/.test(t), t.slice(0, 300));
-ok('with the count, as a bonus', /Easy runs optional\s*2\s*bonus ×2/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
+ok('the week shows an easy runs row', /Easy 5-milers/.test(t), t.slice(0, 300));
+ok('with the count, ticked', /Easy 5-milers\s*2\s*✓/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
 ok('and says distance does not sort them', /A 5 km and a 5 mile easy run are the same thing here/.test(t));
 
 // ===== 2. the deficit is on the week panel ===============================

@@ -22,12 +22,11 @@ const at = async (when) => {
 let { ctx, p, boot } = await at('2026-10-14');   // week 4, a deload
 await boot(st());
 const T = await p.evaluate(() => ({ g: CFG.goals, w4: tmplFor(addD(WEIGH_START, 21)), w3: tmplFor(addD(WEIGH_START, 14)), w8: tmplFor(addD(WEIGH_START, 49)),
-  sum: (() => { let h = 0, s = 0; for (let k = 1; k <= W_WEEKS; k++) { const t = tmplFor(addD(WEIGH_START, (k - 1) * 7)); h += t.hard; s += t.sprints; } return { h, s }; })() }));
-ok('a deload week is 1 hard + sprints = 2 runs', T.w4.hard === 1 && T.w4.runs === 2 && T.w4.deload && T.w8.hard === 1, JSON.stringify(T.w4));
-ok('a normal week is 2 hard + sprints = 3 runs', T.w3.hard === 2 && T.w3.runs === 3 && !T.w3.deload);
+  sum: (() => { let h = 0, e = 0; for (let k = 1; k <= W_WEEKS; k++) { const t = tmplFor(addD(WEIGH_START, (k - 1) * 7)); h += t.hard; e += t.easy; } return { h, e }; })() }));
+ok('a deload week is 1 hard + 2 easy = 3 runs', T.w4.hard === 1 && T.w4.easy === 2 && T.w4.runs === 3 && T.w4.deload && T.w8.hard === 1, JSON.stringify(T.w4));
+ok('a normal week is 2 hard + 2 easy = 4 runs', T.w3.hard === 2 && T.w3.easy === 2 && T.w3.runs === 4 && !T.w3.deload);
 ok('the block hard-run goal is the weeks added up, plus the pre-block one', T.g.hard === T.sum.h + 1, JSON.stringify(T));
-ok('the sprint goal is one a week', T.g.sprints === T.sum.s);
-ok('runs = hard + sprints', T.g.runs === T.g.hard + T.g.sprints);
+ok('runs = hard + the easy five-milers', T.g.runs === T.g.hard + T.sum.e, JSON.stringify(T));
 // the week card and the review follow the deload target
 await boot(st({ days: { '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 180 }] } } }));
 await p.click('[data-t="training"]');
@@ -40,7 +39,7 @@ ok('a deload week does not ask for a second hard run', !owes.includes('hard'), J
 t = sq(await p.innerText('#tRuns'));
 ok('the runs card names the deload', /week 4 · deload/i.test(t), t.slice(0, 200));
 ok('a deload has one hard slot, relaxed, and no time trials', !/Hard run · longer/.test(t) && /Hard run pick one/.test(t) && /fast but relaxed/.test(t) && !/Time trial —/.test(t) && /No time trials in a deload/.test(t));
-ok('and suggests one hard run', /A good week: one hard run and some sprints/.test(t));
+ok('and suggests one hard run with the easy miles', /A good week: one hard run, two easy 5-milers/.test(t));
 await ctx.close();
 
 // ===== the weekly runs card: which runs, how many, never which day =====
@@ -49,9 +48,11 @@ await boot(st({ days: { '2026-09-28': { runs: [{ k: 'reps', dm: 300, n: 6, secs:
 await p.click('[data-t="today"]');
 t = sq(await p.innerText('#runsCard'));
 ok('Today shows this week’s run ideas', /RUNS THIS WEEK · IDEAS · WEEK 2/i.test(t), t.slice(0, 200));
-ok('as a good week, not an order', /A good week: a longer and a shorter hard run and some sprints/.test(t) && /Any days — never the day after legs/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
+ok('as a good week, not an order', /A good week: a longer and a shorter hard run, two easy 5-milers, and uphill sprints if you feel good/.test(t) && /Any days\. Hard runs never the day after legs or each other/.test(t) && /one full day a week with no session/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
 ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
-ok('with sprints to count', /8 × ~100 m uphill/.test(t));
+ok('with sprints as the option, on the end of an easy run', /Uphill sprints optional/i.test(t) && /8 × ~100 m uphill — best at the end of an easy 5 miles/.test(t));
+ok('two easy five-milers, with a wide easy pace and what they burn', /Easy 5 miles × 2 the fat-loss runs/.test(t) && /5:00–5:45 a km, and slower is never wrong/.test(t), t.slice(0, 900));
+ok('the counts sit at the top: 1 hard of 2, 0 easy of 2, plan is 4', /HARD RUNS 1 of 2/i.test(t) && /EASY 5-MILERS 0 of 2/i.test(t) && /the plan is 4/.test(t), t.slice(0, 500));
 ok('no days of the week are named', !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/.test(t));
 ok('no rest times, and no per-km paces', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
 ok('rep guides are wide ranges from his best session: 1 km 3:13–3:24', /4 × 1 km — 3:13–3:24 a rep \(best 1 km session 3:13\)/.test(t), (t.match(/Guide[^B]*/g) || []).join(' | '));
@@ -67,15 +68,25 @@ ok('every option says what it does for him', /Raises the pace you can hold for a
 ok('with alternatives', /5 × 800 m — 2:32–2:41 a rep/.test(t) && /8 × 200 m — 28\.1–29\.8 s a rep/.test(t) && /Threshold run — comfortably hard/.test(t));
 ok('and time trials on the menu in a clear week, on one line', /• Time trial — 800 m 2:29–2:35 · 1 km 2:56–3:04 · a mile 5:20–5:34/.test(t) && /Time trial — 200 m 27\.5–28\.6 s · 400 m 58–60 s · 600 m 1:38–1:42/.test(t) && /one at most, in place of a hard run, never on top/.test(t), (t.match(/Time trial.{0,120}/g) || []).join(' | '));
 ok('with what a time trial does', /practises racing/.test(t));
-ok('the cut comes first', /The cut comes first — the look, shredded, 122–124 lb/.test(t));
+ok('weight first, then build — and holding times on the cut is winning', /Weight first, then build/.test(t) && /holding and nudging your times is winning/.test(t));
+ok('it explains why two hard runs is the most on a deficit', /Why this shape, on a deficit/.test(t) && /cortisol up, testosterone down/.test(tAll));
 ok('no long session is more than 5 km of reps', await p.evaluate(() => CUT_RUNS.filter(Boolean).every(w => { const m = /(\d+) × (\d+) (k?m)/.exec(w.long || ''); return !m || (+m[1]) * (+m[2]) * (m[3] === 'km' ? 1000 : 1) <= 5000; })));
 // a stress flag cuts the week to one hard run, the short one
 await boot(st({ days: { '2026-09-30': { niggle: true, niggleWhat: 'calf' } } }));
 M = await p.evaluate(() => weekRunsModel());
 t = sq(await p.innerText('#runsCard'));
-ok('a stress flag drops the week to one hard run', M.easeOff && !M.P.long && /An easier week: one hard run and some sprints/.test(t) && /one hard run/.test(t) && /Back off: rest what hurts/.test(t), t.slice(0, 400));
+ok('a stress flag drops the week to one hard run', M.easeOff && !M.P.long && /An easier week: one hard run and the two easy 5-milers/.test(t) && /one hard run/.test(t) && /Back off: rest what hurts/.test(t), t.slice(0, 400));
 ok('and takes time trials off the menu', !/Time trial —/.test(t) && /No time trials while something is flagged/.test(t));
 ok('with no longer session that week', !/Hard run · longer/.test(t));
+ok('and the easy runs turn into a walk while it hurts', /Legs flagged: make the next one a brisk walk/.test(t));
+// an easy run shows what it burned, from his weight
+await boot(st({ weights: { '2026-09-29': 127.6, '2026-09-30': 127.4 }, days: { '2026-09-29': { runs: [{ km: 8.05, secs: 2460, type: 'easy' }] } } }));
+t = sq(await p.innerText('#runsCard'));
+ok('an easy 5 miles is about 470 kcal at his weight, and ticks 1 of 2', /about 470 kcal each/.test(t) && /1 of 2 ✓/i.test(t), t.slice(0, 900));
+// six runs in seven days on a deficit is a back-off
+const six = {}; for (let i = 0; i < 6; i++) six['2026-09-' + (25 + i)] = { runs: [{ km: 8, secs: 2500, type: 'easy' }] };
+await boot(st({ days: six }));
+ok('six runs in a week on a deficit says back off', await p.evaluate(() => { const s = weekStatus(); return s && s.k === 'rest' && /a lot of running on a deficit/.test(s.t); }));
 // last week's hard runs felt like a 9: repeat, don't move up
 await boot(st({ days: { '2026-09-23': { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, rpe: 9 }] } } }));
 M = await p.evaluate(() => weekRunsModel());

@@ -19,11 +19,11 @@ const sq = s => s.replace(/\s+/g, ' ');
 await boot(st());
 const D = await p.evaluate(() => { const m = mondayOf(today()); return { t: today(), mon: m, tue: addD(m, 1), wed: addD(m, 2), pre: isPreBlock(today()) }; });
 
-// ===== the week is 2 hard + 1 uphill sprints = 3; the easy run is a bonus =====
+// ===== the week (29 Sep): 2 hard + 2 easy five-milers = 4; uphill sprints are the option =====
 const cfg = await p.evaluate(() => ({ tmpl: CFG.tmpl, runs: CFG.goals.runs, hard: CFG.goals.hard, sprints: CFG.goals.sprints }));
-ok('the weekly run target is 3', cfg.tmpl.runs === 3 && cfg.tmpl.hard + cfg.tmpl.sprints === 3, JSON.stringify(cfg.tmpl));
-ok('the easy run owes nothing', cfg.tmpl.easy === 0);
-ok('block targets: 19 hard, 10 sprints, 29 runs', cfg.runs === 29 && cfg.hard === 19 && cfg.sprints === 10, JSON.stringify(cfg));
+ok('the week is 4 runs: 2 hard and 2 easy', cfg.tmpl.runs === 4 && cfg.tmpl.hard === 2 && cfg.tmpl.easy === 2, JSON.stringify(cfg.tmpl));
+ok('the sprints are the option, never owed', cfg.tmpl.sprints === 0);
+ok('block totals: 19 hard, 39 runs', cfg.runs === 39 && cfg.hard === 19, JSON.stringify(cfg));
 
 if (!D.pre) {
   // hard + hard + sprints, no easy run: the week is done
@@ -34,11 +34,11 @@ if (!D.pre) {
   let wk = await p.evaluate(() => trainingModel().week);
   ok('two reps sessions are the two hard runs, the hills are the sprints', wk.hard === 2 && wk.sprints === 1 && wk.runs === 3, JSON.stringify(wk));
   const owes = await p.evaluate(() => weekOwes(trainingModel()).map(o => o.k));
-  ok('with no easy run, nothing running is owed', !owes.some(k => k === 'easy' || k === 'hard' || k === 'sprint'), JSON.stringify(owes));
+  ok('with two hard runs done, the easy five-milers are what is left — never the sprints', owes.includes('easy') && !owes.some(k => k === 'hard' || k === 'sprint'), JSON.stringify(owes));
   await p.click('[data-t="training"]');
   let t = sq(await p.innerText('#tWeek'));
   ok('the week card shows counts with ticks, no quota', /Runs, all in 3 ✓/i.test(t) && !/3 \/ 3/.test(t), t.slice(0, 400));
-  ok('the easy run is marked optional, never "to go"', /Easy runs optional 0 if you fancy it/i.test(t) && !/Easy runs[^G]*to go/i.test(t), t.slice(0, 400));
+  ok('the sprints are marked optional, and nothing says "to go"', /Uphill sprints optional 1 ✓/i.test(t) && /Easy 5-milers 0/i.test(t) && !/to go/i.test(t), t.slice(0, 400));
   ok('it says nothing is owed', /What you have done this week/.test(t) && /nothing is owed/.test(t));
 
   // one hard run and an easy one: the easy run is a bonus, not a stand-in
@@ -47,9 +47,9 @@ if (!D.pre) {
     [D.tue]: { runs: [{ km: 5, secs: 1500, type: 'easy' }] } } }));
   await p.click('[data-t="training"]');
   t = sq(await p.innerText('#tWeek'));
-  ok('an easy run shows as a bonus', /Easy runs optional 1 bonus/i.test(t), t.slice(0, 400));
+  ok('an easy run counts as one of the five-milers', /Easy 5-milers 1 ✓/i.test(t), t.slice(0, 400));
   ok('and still counts toward the runs total', /Runs, all in 2 ✓/i.test(t), t.slice(0, 400));
-  ok('and never says what is left to do', !/to go/i.test(t) && /Hard runs 1 ✓/i.test(t) && /Uphill sprints 0/i.test(t));
+  ok('and never says what is left to do', !/to go/i.test(t) && /Hard runs 1 ✓/i.test(t) && /Uphill sprints optional 0/i.test(t));
 }
 
 // ===== a refeed is planned, and the scale jump after it is explained =====
