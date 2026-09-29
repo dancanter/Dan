@@ -220,8 +220,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
         <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>📵 No phone in bed</button>
         <span class="tiny" id="sleepCalc"></span></div></div>
       <input type="hidden" id="inSleep">
-      <div class="f"><label for="inStudy">Study (h)</label><input type="number" step="0.25" min="0" max="16" id="inStudy" placeholder="—"></div>
-      <div class="f"><label for="inDeep">Of which deep (h)</label><input type="number" step="0.25" min="0" max="16" id="inDeep" placeholder="—"></div>
+      <div class="f"><label for="inStudyH">📚 Study</label><div class="row hmin" style="gap:6px;flex-wrap:nowrap"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inStudyH" placeholder="h" aria-label="Study hours"><span class="tiny">h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inStudyM" placeholder="min" aria-label="Study minutes"><span class="tiny">min</span></div></div>
+      <div class="f"><label for="inDeepH">Of which deep</label><div class="row hmin" style="gap:6px;flex-wrap:nowrap"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inDeepH" placeholder="h" aria-label="Deep work hours"><span class="tiny">h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inDeepM" placeholder="min" aria-label="Deep work minutes"><span class="tiny">min</span></div></div>
     </div>
     <div class="row" style="margin-top:12px">
       <button class="tog" id="tgGym" aria-pressed="false" type="button"><span class="chk"></span>Gym</button>
@@ -1862,9 +1862,9 @@ function reviewFeedback(R,wk){
   }
   /* study */
   if(R.study.live&&R.study.n){
-    if(R.study.total>=CFG.study.lo)win.push('<b>'+f1(R.study.total)+' h</b> of study — inside the band.');
-    else if(!live)next.push('<b>Study:</b> '+f1(R.study.total)+' h, '+f1(CFG.study.lo-R.study.total)+' h under 16. Two fixed deep blocks early in the week make it easy.');
-  }else if(R.study.total>0)win.push('<b>'+f1(R.study.total)+' h</b> of study before term has even started.');
+    if(R.study.total>=CFG.study.lo)win.push('<b>'+sh(R.study.total)+'</b> of study — inside the band.');
+    else if(!live)next.push('<b>Study:</b> '+sh(R.study.total)+', '+sh(CFG.study.lo-R.study.total)+' under 16. Two fixed deep blocks early in the week make it easy.');
+  }else if(R.study.total>0)win.push('<b>'+sh(R.study.total)+'</b> of study before term has even started.');
   /* next week's shape */
   var nx=typeof wk.k==='number'?wk.k+1:1;
   if(!live&&isDeload(nx))next.push('<b>Week '+nx+' is a deload:</b> sessions come down, the food does not.');
@@ -1967,9 +1967,9 @@ function renderReview(){
     (DF.blank?'<p class="tiny">'+DF.blank+' day'+(DF.blank===1?'':'s')+' with nothing logged, left out rather than guessed.</p>':'')+
     '<p class="tiny">An estimate from your steps, runs, gym and food. The weight average is the real judge — if the two disagree for a fortnight, the weight wins.</p></div>'+
     '<div class="p"><h2>Study</h2>'+
-    '<div class="tiles t4">'+tile('hours',f1(R.study.total)+' h',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
-      tile('deep',f1(R.study.deep)+' h',R.study.total>0?Math.round(R.study.deep/R.study.total*100)+'% of them':'')+'</div>'+
-    (R.study.live?'<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(f1(CFG.study.lo-R.study.total)+' h under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>'
+    '<div class="tiles t4">'+tile('hours',sh(R.study.total)+'',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
+      tile('deep',sh(R.study.deep)+'',R.study.total>0?Math.round(R.study.deep/R.study.total*100)+'% of them':'')+'</div>'+
+    (R.study.live?'<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(sh(CFG.study.lo-R.study.total)+' under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>'
      :'<p class="tiny" style="margin-top:8px">Term starts '+fmtL(CFG.study.term)+', so nothing is judged yet — but every hour counts.</p>')+
     '</div></div>';
 
@@ -2125,8 +2125,8 @@ function achList(){
   ];
   var study=[
     {n:'A week inside 16–20 h',got:st.live&&st.total>=CFG.study.lo,when:null,
-     m:!st.live?('term starts '+fmtS(CFG.study.term)):(f1(st.total)+' h in the last 7 days')},
-    {n:'10 deep hours in a week',got:st.deep>=10,when:null,m:f1(st.deep)+' h deep in the last 7 days'}
+     m:!st.live?('term starts '+fmtS(CFG.study.term)):(sh(st.total)+' in the last 7 days')},
+    {n:'10 deep hours in a week',got:st.deep>=10,when:null,m:sh(st.deep)+' deep in the last 7 days'}
   ];
   var rec=records();
   var speed=[200,400,800,1000,1609,5000].map(function(dm){
@@ -2219,7 +2219,7 @@ function blockProgressHTML(){
   if(o.runs)reel.push('<b>'+o.runs+' run'+(o.runs===1?'':'s')+'</b>');
   if(o.pbs.length)reel.push('<b>'+o.pbs.length+' best'+(o.pbs.length===1?'':'s')+'</b>');
   if(o.gym)reel.push('<b>'+o.gym+' gym session'+(o.gym===1?'':'s')+'</b>');
-  if(o.study)reel.push('<b>'+f1(o.study)+' h</b> of study');
+  if(o.study)reel.push('<b>'+sh(o.study)+'</b> of study');
   var runsSub=[o.hard?o.hard+' hard':'',o.spr?o.spr+' sprint'+(o.spr===1?'':'s'):'',o.easy?o.easy+' easy':''].filter(Boolean).join(' · ');
   var calisTxt=(o.calis&&o.calis.d)?'40-min record '+ci(o.calis.total)+' reps':'';
   return '<div class="p lift"><h2>Your block so far · day '+o.day+' of '+CUT_DAYS+'</h2>'+
@@ -2233,7 +2233,7 @@ function blockProgressHTML(){
     tile('bests',o.pbs.length+'',o.pbs.length?o.pbs.slice(0,3).map(function(p){return repLabel(p.dm)+' '+secFmt(p.now.t);}).join(' · '):'this block — none yet')+
     tile('gym',o.gym+'',calisTxt||'sessions')+
     tile('steps',o.stepsAvg===null?'—':ci(Math.round(o.stepsAvg)),o.stepsAvg===null?'nothing logged':'a day on average · '+ci(o.stepsTotal)+' all in')+
-    tile('study',f1(o.study)+' h',o.deep?f1(o.deep)+' h deep':'')+
+    tile('study',sh(o.study)+'',o.deep?sh(o.deep)+' deep':'')+
     tile('sleep',o.slN?f1(o.sl/o.slN)+' h':'—',o.slN?'a night on average':'nothing logged')+
     '</div>'+
     '<p class="tiny" style="margin-top:8px">'+o.left+' day'+(o.left===1?'':'s')+' to go. Everything here is what you have done — no session targets to chase. The only numbers that judge you are the weight rate and the back-off signals, and they are there to protect you.</p></div>';
@@ -2267,7 +2267,7 @@ function renderWins(){
   if(tr.hard.done)wins.push({k:tr.hard.done+' hard run'+(tr.hard.done===1?'':'s'),m:'this block',d:null,hot:false});
   if(tr.gym.done)wins.push({k:tr.gym.done+' gym session'+(tr.gym.done===1?'':'s'),m:'this block',d:null,hot:false});
   if(sl.streak>=3)wins.push({k:sl.streak+' nights phone-free',m:'and counting',d:null,hot:sl.streak>=7});
-  if(sb.total>=1)wins.push({k:f1(sb.total)+' hours of study',m:sb.days+' day'+(sb.days===1?'':'s')+' logged'+(sb.deep>0?' · '+f1(sb.deep)+' h deep':''),d:null,hot:false});
+  if(sb.total>=1)wins.push({k:sh(sb.total)+' of study',m:sb.days+' day'+(sb.days===1?'':'s')+' logged'+(sb.deep>0?' · '+sh(sb.deep)+' deep':''),d:null,hot:false});
 
   var bh='<div class="p lift"><h2>The board · what you have actually done</h2>';
   if(wins.length){
@@ -2283,14 +2283,14 @@ function renderWins(){
 
   /* study, for the whole block */
   var stH='<div class="p"><h2>Study this block</h2><div class="tiles t4">'+
-    tile('hours',f1(sb.total)+' h',sb.days+' day'+(sb.days===1?'':'s')+' logged')+
-    tile('deep',f1(sb.deep)+' h',sb.deepShare===null?'':Math.round(sb.deepShare*100)+'% of them')+
-    tile('per day logged',f1(sb.avg)+' h','on the days you logged')+
+    tile('hours',sh(sb.total)+'',sb.days+' day'+(sb.days===1?'':'s')+' logged')+
+    tile('deep',sh(sb.deep)+'',sb.deepShare===null?'':Math.round(sb.deepShare*100)+'% of them')+
+    tile('per day logged',sh(sb.avg)+'','on the days you logged')+
     tile(sb.live?'per week since term':'term starts',
-      sb.live?(sb.perWeek===null?'—':f1(sb.perWeek)+' h'):fmtS(CFG.study.term),
+      sb.live?(sb.perWeek===null?'—':sh(sb.perWeek)+''):fmtS(CFG.study.term),
       sb.live?'against the '+CFG.study.lo+'–'+CFG.study.hi+' band':'nothing judged until then')+
     '</div>'+
-    (sb.best?'<p class="tiny" style="margin-top:10px">Biggest day: <b class="num">'+f1(sb.best.h)+' h</b> on '+fmtS(sb.best.d)+'.</p>':'')+
+    (sb.best?'<p class="tiny" style="margin-top:10px">Biggest day: <b class="num">'+sh(sb.best.h)+'</b> on '+fmtS(sb.best.d)+'.</p>':'')+
     '<p class="tiny">Hours are counted for the whole block, not the rolling week — the Study tab has the week and the band.</p></div>';
   E('winStudy').innerHTML=stH;
 
@@ -2940,8 +2940,8 @@ function dayFeedback(is){
   }
   if(typeof r.study==='number'&&r.study>0){
     var wk=weekGains();
-    rows.push(['Study',f1(r.study)+' h'+(typeof r.deep==='number'&&r.deep>0?' ('+f1(r.deep)+' deep)':''),'<b>'+f1(wk.study)+' h</b> this week so far.'+
-      (typeof r.deep==='number'&&r.deep>DEEP.day?' <span class="wn">'+f1(r.deep)+' h deep is past about '+DEEP.day+' — the extra rarely sticks; go lighter tomorrow.</span>':''),'']);
+    rows.push(['Study',sh(r.study)+(typeof r.deep==='number'&&r.deep>0?' ('+sh(r.deep)+' deep)':''),'<b>'+sh(wk.study)+'</b> this week so far.'+
+      (typeof r.deep==='number'&&r.deep>DEEP.day?' <span class="wn">'+sh(r.deep)+' deep is past about '+DEEP.day+' — the extra rarely sticks; go lighter tomorrow.</span>':''),'']);
   }
   return rows;
 }
@@ -3248,7 +3248,7 @@ function betterModel(){
     B.days>=3?(A.skin-B.skin)/7:null);
   if(A.syN){
     var dsy=A.sy-B.sy;
-    add('Study',f1(A.sy)+' h',B.syN?(Math.abs(dsy)<0.25?'level with last week':(dsy>0?'+'+f1(dsy)+' h on last week':'−'+f1(-dsy)+' h on last week')):'baseline — term starts '+fmtS(CFG.study.term),
+    add('Study',sh(A.sy)+'',B.syN?(Math.abs(dsy)<0.25?'level with last week':(dsy>0?'+'+sh(dsy)+' on last week':'−'+sh(-dsy)+' on last week')):'baseline — term starts '+fmtS(CFG.study.term),
       B.syN?(Math.abs(dsy)<0.25?'same':(dsy>0?'up':'down')):'base',B.sy>0?dsy/B.sy:null);
   }
   var cmp=rows.filter(function(r){return r.tone!=='base';});
@@ -3289,7 +3289,7 @@ function weekStatus(){
     : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
   if(legsLoad>=3)return {k:'legs',t:'Time to rest your legs',w:'Legs, hard running and sprints stacked into the last three days. Upper body or a walk next, not another leg session or hard run.'};
   if(sleep3!==null&&sleep3<7&&R.state==='up')return {k:'warn',t:'You might be overstressing',w:'Sleep is down to '+f1(sleep3)+' h and your resting HR is creeping up. Early night, and keep tomorrow easy.'};
-  if(study>CFG.study.hi&&sleep3!==null&&sleep3<CFG.sleep.line)return {k:'warn',t:'You might be overworking',w:f1(study)+' h of study this week and sleep has slipped to '+f1(sleep3)+' h. The hours after 20 are costing more than they give.'};
+  if(study>CFG.study.hi&&sleep3!==null&&sleep3<CFG.sleep.line)return {k:'warn',t:'You might be overworking',w:sh(study)+' of study this week and sleep has slipped to '+f1(sleep3)+' h. The hours after 20 are costing more than they give.'};
   if(sleep3!==null&&sleep3<6.5)return {k:'warn',t:'Short on sleep',w:'Last few nights averaged '+f1(sleep3)+' h. Keep the next hard session until you’ve had a proper night.'};
   if(R.state==='up')return {k:'warn',t:'Keep the next day easy',w:'Resting HR is a little up on your baseline. Not a warning yet — just don’t stack a hard day on it.'};
   return null;
@@ -3491,7 +3491,7 @@ function coachModel(){
   if(moodAvg!==null&&moodAvg<=2.5)add(1,'your mood has been low');
   if(o.heavy14>=2)add(1,o.heavy14+' sessions felt like a 9 or 10 in the last fortnight');
   if(w.band==='fast')add(1,'the weight is coming off faster than the safe band');
-  if(o.study>CFG.study.hi)add(1,f1(o.study)+' h of study this week');
+  if(o.study>CFG.study.hi)add(1,sh(o.study)+' of study this week');
   if(NG.persistent)add(2,'something has hurt on '+NG.n+' days'+(NG.top?' — '+NG.top:''));else if(NG.n)add(1,'something has hurt'+(NG.top?' — '+NG.top:''));
   if(o.lastOff>=10)add(1,'no full day off in '+o.lastOff+' days');
   if(stAvg!==null&&stAvg>16500&&o.runs>=5)add(1,'big steps on top of '+o.runs+' runs');
@@ -3532,8 +3532,8 @@ function coachModel(){
   if(stAvg!==null&&stAvg>=CFG.goals.steps)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
   if(slAvg!==null&&slAvg>=CFG.sleep.line)good.push('Sleep averaging <b>'+hm(slAvg*60)+'</b> — the biggest testosterone lever, covered.');
   if(o.sl.length>=3&&o.phone>=o.sl.length-1)good.push('Phone out of the bed '+o.phone+' of '+o.sl.length+' nights.');
-  if(o.study>=CFG.study.lo&&o.study<=CFG.study.hi)good.push('<b>'+f1(o.study)+' h</b> of study — inside the band.');
-  else if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+f1(o.deep)+' h</b> of deep work — the sweet spot.');
+  if(o.study>=CFG.study.lo&&o.study<=CFG.study.hi)good.push('<b>'+sh(o.study)+'</b> of study — inside the band.');
+  else if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+sh(o.deep)+'</b> of deep work — the sweet spot.');
   if(moodAvg!==null&&moodAvg>=4)good.push('Mood has been good.');
   /* what to change — at most three, the most useful first */
   if(slAvg!==null&&slAvg<CFG.sleep.line)sug.push('<b>Sleep:</b> '+hm(slAvg*60)+' a night. Bed about '+hm((CFG.sleep.line-slAvg)*60)+' earlier, phone out of the room.');
@@ -3542,7 +3542,7 @@ function coachModel(){
   if(o.hard>=3)sug.push('<b>'+o.hard+' hard runs in 7 days.</b> Two is where the times are kept on a deficit — make the next one easy.');
   if(o.runs>=6)sug.push('<b>'+o.runs+' runs in 7 days.</b> The plan is four; walk instead of the extra ones.');
   if(stAvg!==null&&stAvg<CFG.goals.steps-1500)sug.push('<b>Steps:</b> '+ci(Math.round(stAvg/100)*100)+' a day. A 20-minute walk after lunch closes most of it.');
-  if(o.study>CFG.study.hi)sug.push('<b>Study is high</b> — '+f1(o.study)+' h. Cap deep work at about 4 h a day; the hours past 20 cost more than they give.');
+  if(o.study>CFG.study.hi)sug.push('<b>Study is high</b> — '+sh(o.study)+'. Cap deep work at about 4 h a day; the hours past 20 cost more than they give.');
   if(o.sl.length>=3&&o.phone<o.sl.length/2)sug.push('<b>Phone out of the bedroom</b> — only '+o.phone+' of '+o.sl.length+' nights so far.');
   if(moodAvg!==null&&moodAvg<=2.5)sug.push('<b>Mood has been low.</b> Get out somewhere green, see a mate, and a film night — they count.');
   return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
@@ -3667,7 +3667,7 @@ function deepHTML(){
       '<div style="width:60%;height:'+Math.max(x.v?3:0,hgt)+'px;background:'+(x.v>DEEP.day?'var(--warn)':'var(--accent)')+';border-radius:3px 3px 0 0"></div></div>'+
       '<div class="tiny dim">'+DOWS[dow(x.d)].slice(0,1)+'</div><div class="tiny mono">'+(x.v?f1(x.v):(x.future?'&nbsp;':'–'))+'</div></div>';}).join('');
   return '<div class="p lift"><h2>🧠 Deep work this week</h2>'+
-    '<div class="row" style="gap:10px;align-items:baseline"><b class="num" style="font-size:1.6em">'+f1(W.tot)+' h</b><span class="pill'+(v.k?' '+v.k:'')+'">'+v.t+'</span></div>'+
+    '<div class="row" style="gap:10px;align-items:baseline"><b class="num" style="font-size:1.6em">'+sh(W.tot)+'</b><span class="pill'+(v.k?' '+v.k:'')+'">'+v.t+'</span></div>'+
     '<div style="position:relative;height:14px;background:var(--rule-2);border-radius:7px;margin:10px 0 4px;overflow:hidden">'+
       '<div style="position:absolute;left:'+pos(DEEP.lo)+';width:'+((DEEP.hi-DEEP.lo)/top*100).toFixed(1)+'%;top:0;bottom:0;background:rgba(80,200,170,.22)"></div>'+
       '<div style="position:absolute;left:0;top:0;bottom:0;width:'+pos(Math.min(W.tot,top))+';background:'+col+';border-radius:7px"></div>'+
@@ -3675,7 +3675,7 @@ function deepHTML(){
     '<div class="row tiny dim" style="justify-content:space-between"><span>0</span><span>sweet spot '+DEEP.lo+'–'+DEEP.hi+' h</span><span>ceiling '+DEEP.cap+'</span></div>'+
     '<div class="row" style="gap:4px;margin-top:10px;align-items:flex-end">'+bars+'</div>'+
     '<p class="tiny dim" style="margin:2px 0 0;text-align:right">dashed line = about '+DEEP.day+' h, a big day’s limit</p>'+
-    (over.length?'<p class="note wn" style="margin-top:8px">'+over.map(function(x){return DOWL[dow(x.d)]+': <b>'+f1(x.v)+' h</b> deep';}).join(' · ')+
+    (over.length?'<p class="note wn" style="margin-top:8px">'+over.map(function(x){return DOWL[dow(x.d)]+': <b>'+sh(x.v)+'</b> deep';}).join(' · ')+
       ' — past about '+DEEP.day+' h in a day the extra is mostly sitting at the desk. A lighter day next is the fix.</p>':'')+
     '<p class="note">'+v.w+'</p>'+
     '<p class="tiny">Deep means single-tasking, phone away, and working to understand or produce — reading new material and writing notes from memory in your own words counts; copying, highlighting and tidying do not.</p></div>';
@@ -4015,7 +4015,7 @@ function reviewDidHTML(R,wk){
   if(R.sleep.n)ev.push(['Sleep',f1(R.sleep.avg)+' h a night',R.sleep.line+' of '+R.sleep.n+' nights at '+f1(CFG.sleep.line)+' h or more. Sleep is when testosterone is made and muscle repaired, and it keeps your hunger hormones in check.']);
   if(rhr.length)ev.push(['Resting HR',Math.round(mean(rhr))+' bpm avg',rhr.length+' mornings. Lower over the weeks means fitter and recovering well.']);
   if(R.skin.am||R.skin.pm)ev.push(['Skin','AM '+R.skin.am+' · PM '+R.skin.pm,'The morning SPF is the best anti-ageing thing you do; the night routine repairs the barrier.']);
-  if(R.study.total)ev.push(['Study',f1(R.study.total)+' h',(R.study.deep?f1(R.study.deep)+' h of it deep work. ':'')+'Protected hours, and a sharper brain on a cut is sleep and omega-3 as much as effort.']);
+  if(R.study.total)ev.push(['Study',sh(R.study.total)+'',(R.study.deep?sh(R.study.deep)+' of it deep work. ':'')+'Protected hours, and a sharper brain on a cut is sleep and omega-3 as much as effort.']);
   if(R.pro.n)ev.push(['Protein',ci(Math.round(R.pro.avg))+' g a day','On the days you logged food — the number that keeps your muscle while the fat comes off.']);
   var HFW=(function(){var tot={},p={};for(var pk in HF_POOLS)p[pk]=0;
     for(var j=0;j<=diffD(wk.start,cut);j++){var hh=(S.days[addD(wk.start,j)]||{}).hf||{};for(var k in hh){var f=hfById(k);if(!f)continue;tot[k]=(tot[k]||0)+hh[k];(f.p||[]).forEach(function(q){p[q]+=hh[k];});}}
@@ -4099,7 +4099,7 @@ function renderWeek(){
   if(WG.logged)rows.push(['Food groups',WG.logged+' day'+(WG.logged===1?'':'s')+' logged',
     GROUPS.map(function(g){var c=WG.c[g.k],tgt=Math.min(g.wk,WG.days);
       return (c>=tgt?'<span class="gd">\u2713</span> ':'')+g.n+' '+c+'/'+g.wk;}).join(' · ')+'.']);
-  if(W.study)rows.push(['Study',f1(W.study)+' h',W.deep?(Math.abs(W.deep-W.study)<0.05?'All of it deep work.':f1(W.deep)+' h of it deep work.'):'']);
+  if(W.study)rows.push(['Study',sh(W.study)+'',W.deep?(Math.abs(W.deep-W.study)<0.05?'All of it deep work.':sh(W.deep)+' of it deep work.'):'']);
   if(!rows.length){E('winWeek').innerHTML='';return;}
   var BM=betterModel();
   E('winWeek').innerHTML='<div class="p lift"><h2>Your week</h2>'+statusHTML(weekStatus(),BM)+
@@ -4697,7 +4697,7 @@ function renderToday(c,w,tr){
   var st=studyModel();
   var lc='';
   if(st.live&&st.total>=CFG.study.hi&&(tr.week.hard>=3||(tr.week.hard>=2&&tr.week.gym>=5))){
-    lc='<div class="p warn"><h2>Both loads are high this week</h2><p>'+tr.week.hard+' effort session'+(tr.week.hard===1?'':'s')+' and '+tr.week.gym+' gym, against <b class="num">'+f1(st.total)+' h</b> of study in the last seven days.</p>'+
+    lc='<div class="p warn"><h2>Both loads are high this week</h2><p>'+tr.week.hard+' effort session'+(tr.week.hard===1?'':'s')+' and '+tr.week.gym+' gym, against <b class="num">'+sh(st.total)+'</b> of study in the last seven days.</p>'+
        '<p>Neither on its own is a problem. Together, in a deficit, they are the combination that turns into a flat fortnight. <b>Drop the third effort session, not the study hours</b> — the deadline does not move and the session does.</p></div>';
   }
   E('loadCard').innerHTML=lc;
@@ -4806,10 +4806,10 @@ function weekExtrasHTML(start,end){
         :'<span class="tiny">nothing logged yet</span>')+'</td></tr>';
 
   if(cut>=CFG.study.term){
-    h+='<tr><td>Study</td><td class="n">'+f1(sy)+' h</td><td>'+
+    h+='<tr><td>Study</td><td class="n">'+sh(sy)+'</td><td>'+
        (syN===0?'<span class="tiny">none logged yet</span>':
-        (sy>=CFG.study.lo?(sy>=CFG.study.hi?'<span class="pill">full week</span>':'<span class="pill g">in the band</span>'):'<span class="pill w">'+f1(CFG.study.lo-sy)+' h short</span>')+
-        (dp>0?' <span class="tiny">'+f1(dp)+' h deep</span>':''))+'</td></tr>';
+        (sy>=CFG.study.lo?(sy>=CFG.study.hi?'<span class="pill">full week</span>':'<span class="pill g">in the band</span>'):'<span class="pill w">'+sh(CFG.study.lo-sy)+' short</span>')+
+        (dp>0?' <span class="tiny">'+sh(dp)+' deep</span>':''))+'</td></tr>';
   }
   return h+'</tbody></table>';
 }
@@ -5604,9 +5604,12 @@ function sleepMins(rec){
 function hm(min,long){
   if(min===null||min===undefined)return '—';
   min=Math.round(min);var h=Math.floor(min/60),m=min%60;
+  if(h===0)return m+' min'+(long&&m!==1?'s':'');
   if(long)return h+' hour'+(h===1?'':'s')+(m?' '+m+' min'+(m===1?'':'s'):'');
   return h+' h'+(m?' '+m+' min':'');
 }
+/* hours as hours and minutes: 3.8 → "3 h 48 min" (Dan, 29 Sep, for study) */
+function sh(x){return x===null||x===undefined||!isFinite(x)?'—':(Math.round(x*60)===0?'0 h':hm(x*60));}
 function hDec(min){return (Math.round(min/6)/10).toFixed(1);}
 function sleepCalcText(rec){
   var c=sleepFromTimes(rec.bed,rec.wake);
@@ -5625,8 +5628,10 @@ function paintForm(){
   E('inSleep').value=typeof rec.sleep==='number'?rec.sleep:'';
   E('inBed').value=rec.bed||'';E('inWake').value=rec.wake||'';
   E('sleepCalc').innerHTML=sleepCalcText(rec);
-  E('inStudy').value=typeof rec.study==='number'?rec.study:'';
-  E('inDeep').value=typeof rec.deep==='number'?rec.deep:'';
+  [['inStudy','study'],['inDeep','deep']].forEach(function(q){
+    var v=rec[q[1]],has=typeof v==='number',mm=has?Math.round(v*60):0;
+    E(q[0]+'H').value=has?Math.floor(mm/60):'';E(q[0]+'M').value=has?mm%60:'';
+  });
   E('inPush').value=typeof rec.push==='number'?rec.push:'';
   E('inPull').value=typeof rec.pull==='number'?rec.pull:'';
   E('inRhr').value=typeof rec.rhr==='number'?rec.rhr:'';
@@ -6166,19 +6171,19 @@ function renderStudy(tr){
     h='<div class="p"><h2>Study</h2><div class="tiles t4">'+
       tile('term starts',fmtS(CFG.study.term),'SK297 + SK298')+
       tile('days away',m.toTerm,'nothing to judge until then')+
-      tile('logged so far',f1(m.preTotal)+' h',m.preDays+' day'+(m.preDays===1?'':'s')+(m.preDeep>0?' · '+f1(m.preDeep)+' h deep':''))+
+      tile('logged so far',sh(m.preTotal)+'',m.preDays+' day'+(m.preDays===1?'':'s')+(m.preDeep>0?' · '+sh(m.preDeep)+' deep':''))+
       tile('cut day then',(diffD(CFG.cutStart,CFG.study.term)+1)+' / '+CUT_DAYS,'four days past halfway')+
       '</div><p class="tiny" style="margin-top:10px">Log hours whenever you like — they are kept, and nothing judges them against the 16–20 band until term. This panel stays quiet until then. A bar reading "16 hours short" every morning for a fortnight is noise, and noise gets ignored right up until the week it matters.</p></div>';
   }else{
     var cls=m.state==='under'?'warn':(m.state==='full'?'flag':'good');
     h='<div class="p"><h2>Study · rolling 7 days</h2><div class="tiles t4">'+
-      tile('last 7 days',f1(m.total)+' h',m.daysLogged+' day'+(m.daysLogged===1?'':'s')+' logged')+
-      tile('deep work',f1(m.deep)+' h',m.deepShare===null?'inside the 7-day total':Math.round(m.deepShare*100)+'% of the hours were deep')+
-      tile('standing',m.state==='under'?f1(CFG.study.lo-m.total)+' h short':(m.state==='full'?'full week':'inside the band'),'')+
+      tile('last 7 days',sh(m.total)+'',m.daysLogged+' day'+(m.daysLogged===1?'':'s')+' logged')+
+      tile('deep work',sh(m.deep)+'',m.deepShare===null?'inside the 7-day total':Math.round(m.deepShare*100)+'% of the hours were deep')+
+      tile('standing',m.state==='under'?sh(CFG.study.lo-m.total)+' short':(m.state==='full'?'full week':'inside the band'),'')+
       tile('effort sessions',tr.week.hard,'this Mon–Sun week')+
       '</div>';
-    if(m.state==='under')h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>'+f1(CFG.study.lo-m.total)+' h short of the band.</b> Deep blocks beat scattered hours — two more three-hour sessions close it faster than an hour a day.</div>';
-    if(m.state==='in')h+='<div class="p good" style="margin-top:12px;box-shadow:none">Inside the band — '+f1(m.total)+' h against '+CFG.study.lo+'–'+CFG.study.hi+'.</div>';
+    if(m.state==='under')h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>'+sh(CFG.study.lo-m.total)+' short of the band.</b> Deep blocks beat scattered hours — two more three-hour sessions close it faster than an hour a day.</div>';
+    if(m.state==='in')h+='<div class="p good" style="margin-top:12px;box-shadow:none">Inside the band — '+sh(m.total)+' against '+CFG.study.lo+'–'+CFG.study.hi+'.</div>';
     if(m.deepShare!==null&&m.deepShare<0.5&&m.total>=6)h+='<div class="p" style="margin-top:12px;box-shadow:none;border-left:3px solid var(--ink-3)">Under half of those hours were deep. The hours are there; the shape of them is what costs you.</div>';
     if(m.state==='full')h+='<div class="p lift" style="margin-top:12px;box-shadow:none"><b>That is a full week — protect the Saturday.</b></div>';
     h+='</div>';
@@ -7212,7 +7217,17 @@ function wire(){
     var d=E('logDate').value||today();
     setDay(d,{niggleWhat:this.value.trim().slice(0,60)||null});
   });
-  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inStudy','study'],['inDeep','deep'],['inPush','push'],['inPull','pull'],['inRhr','rhr'],['inGymRpe','gymRpe']].forEach(function(p){
+  /* study and deep as hours and minutes (29 Sep); stored as hours so every
+     total still adds up, shown back as "3 h 40 min" */
+  [['inStudy','study'],['inDeep','deep']].forEach(function(q){
+    [q[0]+'H',q[0]+'M'].forEach(function(id){E(id).addEventListener('change',function(){
+      var d=E('logDate').value||today(),h=num(E(q[0]+'H')),m=num(E(q[0]+'M')),o={};
+      if(h===null&&m===null){o[q[1]]=null;}
+      else{var mins=Math.max(0,Math.round((h||0)*60+(m||0)));o[q[1]]=mins?Math.min(16*60,mins)/60:null;}
+      setDay(d,o);
+    });});
+  });
+  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inPush','push'],['inPull','pull'],['inRhr','rhr'],['inGymRpe','gymRpe']].forEach(function(p){
     E(p[0]).addEventListener('change',function(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });

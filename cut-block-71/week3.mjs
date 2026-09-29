@@ -139,7 +139,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
     ok('steps: +14% on last week', row('Steps').tone === 'up' && /\+14% on last week/.test(row('Steps').change), JSON.stringify(row('Steps')));
     ok('weight: −0.8 lb on last week', row('Weight').tone === 'up' && /−0\.8 lb on last week/.test(row('Weight').change), JSON.stringify(row('Weight')));
     ok('skin: more full days than last week', row('Skin').tone === 'up', JSON.stringify(row('Skin')));
-    ok('study: +7 h on last week', row('Study').tone === 'up' && /\+7\.0 h on last week/.test(row('Study').change), JSON.stringify(row('Study')));
+    ok('study: +7 h on last week', row('Study').tone === 'up' && /\+7 h on last week/.test(row('Study').change), JSON.stringify(row('Study')));
   }
   await p.click('[data-t="today"]');
   const bt = sq(await p.innerText('#betterCard'));
@@ -255,7 +255,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   const t = sq(await p.innerText('#revBody'));
   ok('Food and deficit card with the week total and per day', /FOOD AND DEFICIT/i.test(t) && /DEFICIT, THE WEEK/i.test(t) && /PER DAY/i.test(t), t.slice(0, 300));
   ok('it says it is an estimate and the weight is the judge', /The weight average is the real judge/.test(t));
-  ok('study hours show even before term', /STUDY HOURS 4\.5 h/i.test(t), (t.match(/STUDY.{0,80}/i) || [''])[0]);
+  ok('study hours show even before term', /STUDY HOURS 4 h 30 min/i.test(t), (t.match(/STUDY.{0,80}/i) || [''])[0]);
   ok('a feedback card', /(HOW IT WENT|HOW IT IS GOING)/i.test(t));
   ok('sleep under the line comes first in what to do', /1 Sleep first\. 6\.5 h a night is 1\.5 h under the line/i.test(t), (t.match(/(NEXT WEEK|REST OF THE WEEK).{0,200}/i) || [''])[0]);
   ok('never tells him to eat less', !/eat less|cut (your )?calories|lower your calories/i.test(t));

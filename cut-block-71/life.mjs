@@ -187,12 +187,32 @@ await ctx.close();
 await boot(st({ days: { '2026-09-28': { study: 3, deep: 2 }, '2026-09-29': { study: 5, deep: 4.5 }, '2026-09-30': { study: 3, deep: 1.5 }, '2026-10-01': { study: 4, deep: 2 } } }));
 await p.click('[data-t="study"]'); await p.waitForTimeout(150);
 let dc = sq(await p.innerText('#deepCard'));
-ok('the Study tab opens with deep work this week', /DEEP WORK THIS WEEK/i.test(dc) && /10\.0 h/.test(dc) && /SWEET SPOT/i.test(dc), dc.slice(0, 200));
+ok('the Study tab opens with deep work this week', /DEEP WORK THIS WEEK/i.test(dc) && /10 h/.test(dc) && /SWEET SPOT/i.test(dc), dc.slice(0, 200));
 ok('it shows the sweet spot and the ceiling', /sweet spot 8–12 h/.test(dc) && /ceiling 15/.test(dc));
-ok('a day past 4 h gets a gentle flag', /Tuesday: 4\.5 h deep — past about 4 h in a day/.test(dc) && /A lighter day next is the fix/.test(dc));
+ok('a day past 4 h gets a gentle flag', /Tuesday: 4 h 30 min deep — past about 4 h in a day/.test(dc) && /A lighter day next is the fix/.test(dc));
 ok('the verdicts: building, sweet spot, high, past the ceiling', await p.evaluate(() => deepVerdict(5).t === 'Building' && deepVerdict(10).t === 'Sweet spot' && deepVerdict(13.5).t === 'High' && deepVerdict(16).t === 'Past the ceiling'));
 ok('the read-back flags a 4.5 h deep day too', await p.evaluate(() => { const r = dayFeedback('2026-09-29').find(x => x[0] === 'Study'); return r && /past about 4/.test(r[2]); }));
 ok('what counts as deep is spelled out', /copying, highlighting and tidying do not/.test(await p.evaluate(() => deepHTML())));
+await ctx.close();
+
+// ===== study in hours and minutes =====
+({ ctx, p, boot } = await at('2026-10-01'));
+await boot(st());
+await p.click('[data-t="today"]');
+await p.fill('#inStudyH', '3'); await p.press('#inStudyH', 'Tab');
+await p.fill('#inStudyM', '40'); await p.press('#inStudyM', 'Tab');
+await p.fill('#inDeepH', '2'); await p.press('#inDeepH', 'Tab');
+await p.fill('#inDeepM', '15'); await p.press('#inDeepM', 'Tab'); await p.waitForTimeout(150);
+const sdy = await p.evaluate(() => S.days[today()]);
+ok('3 h 40 min of study is stored as hours, exactly', Math.round(sdy.study * 60) === 220 && Math.round(sdy.deep * 60) === 135, JSON.stringify(sdy));
+ok('and read back as hours and minutes', await p.evaluate(() => { const r = dayFeedback(today()).find(x => x[0] === 'Study'); return /3 h 40 min \(2 h 15 min deep\)/.test(r[1]); }));
+ok('3.8 reads as 3 h 48 min, 0.5 as 30 min', await p.evaluate(() => sh(3.8) === '3 h 48 min' && sh(0.5) === '30 min' && sh(4) === '4 h'));
+await p.reload(); await p.waitForTimeout(200);
+ok('the boxes fill back in as hours and minutes', (await p.inputValue('#inStudyH')) === '3' && (await p.inputValue('#inStudyM')) === '40');
+await p.fill('#inStudyH', ''); await p.press('#inStudyH', 'Tab'); await p.fill('#inStudyM', ''); await p.press('#inStudyM', 'Tab'); await p.waitForTimeout(150);
+ok('emptying both clears it', await p.evaluate(() => S.days[today()].study === undefined));
+await p.click('[data-t="study"]'); await p.waitForTimeout(100);
+ok('the Study tab shows deep work as hours and minutes', /2 h 15 min/.test(sq(await p.innerText('#deepCard'))));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====

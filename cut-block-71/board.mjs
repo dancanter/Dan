@@ -85,7 +85,7 @@ ok('starred while it still stands', /★/.test(t));
 ok('it counts hard runs', /hard run/.test(t));
 ok('and gym sessions', /gym session/.test(t));
 ok('and the phone-free streak', /nights phone-free/.test(t));
-ok('and study hours', /hours of study/.test(t));
+ok('and study hours', /of study/.test(t));
 
 // ===== 4. Wins: study ====================================================
 t = await p.textContent('#winStudy');
@@ -93,8 +93,8 @@ const sb = await p.evaluate(() => studyBlock());
 ok('study is totalled for the block', sb.total === 5 && sb.days === 2, JSON.stringify(sb));
 ok('with deep hours', sb.deep === 4, String(sb.deep));
 ok('and the deep share', Math.abs(sb.deepShare - 0.8) < 1e-9, String(sb.deepShare));
-ok('the panel shows the hours', /5\.0 h/.test(t), t.slice(0, 200));
-ok('and the biggest day', /Biggest day/.test(t) && /3\.0 h/.test(t), t.slice(-200));
+ok('the panel shows the hours', /5 h/.test(t), t.slice(0, 200));
+ok('and the biggest day', /Biggest day/.test(t) && /3 h/.test(t), t.slice(-200));
 ok('it says it is the whole block, not the week', /whole block, not the rolling week/.test(t));
 
 // empty state
@@ -102,7 +102,7 @@ await boot(st({ weights: { '2026-09-21': 128.6 } }));
 await p.click('[data-t="wins"]');
 ok('the board has an honest empty state', /Nothing on it yet/.test(await p.textContent('#winBoard')),
   (await p.textContent('#winBoard')).slice(0, 160));
-ok('and study still renders at zero', /0\.0 h/.test(await p.textContent('#winStudy')));
+ok('and study still renders at zero', /0 h/.test(await p.textContent('#winStudy')));
 
 // ===== nothing broke =====================================================
 await boot(REAL);
