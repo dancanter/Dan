@@ -366,16 +366,9 @@ const state = await p.evaluate(() => {
   return { fire: r.fire, tooFast: r.tooFast, ahOk: ah.ok, band: w.band };
 });
 const restTxt = await p.textContent('#restCard');
-ok('earned rest fires when he is ahead', state.fire === true, JSON.stringify(state));
-if (state.ahOk) {
-  ok('and it says the refeed is earned, right there', /you have earned a refeed/i.test(restTxt) || /eat more on them/i.test(restTxt),
-    restTxt.slice(0, 300));
-  ok('with the actual number of calories', /Eat \+[\d,]+ kcal/.test(restTxt), (restTxt.match(/Eat \+[^.]*/) || [])[0]);
-  ok('and the grams of carbohydrate', /about \d+ g/.test(restTxt), (restTxt.match(/about \d+ g/) || [])[0]);
-  ok('and what the day totals', /for the day/.test(restTxt));
-} else {
-  ok('or says exactly why it is not a refeed day', /Not a refeed day/.test(restTxt), restTxt.slice(0, 300));
-}
+ok('being ahead no longer fires rest on its own — rest is called on need', state.fire === false, JSON.stringify(state));
+const cm = await p.evaluate(() => { const c = coachModel(); return { r: c.refeed.k, band: weightModel().band }; });
+ok('and a refeed is not offered just for being ahead', cm.band === 'fast' ? cm.r === 'yes' : cm.r !== 'yes', JSON.stringify(cm));
 ok('rest never says eat less', !/eat less/.test(restTxt.replace(/not a day to eat less/g, '')), restTxt.slice(0, 200));
 
 // ---- nothing else broke --------------------------------------------------

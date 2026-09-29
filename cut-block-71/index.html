@@ -180,6 +180,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   </div>
   <nav class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="today" aria-selected="true">Today</button>
+    <button role="tab" data-t="feedback" aria-selected="false">Feedback</button>
     <button role="tab" data-t="weight" aria-selected="false">Weight</button>
     <button role="tab" data-t="food" aria-selected="false">Food</button>
     <button role="tab" data-t="training" aria-selected="false">Training</button>
@@ -565,6 +566,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="revBody"></div>
 </section>
 
+<!-- ================= FEEDBACK ================= -->
+<section id="s-feedback" class="stack" hidden>
+  <div id="fbCard"></div>
+</section>
+
 <!-- ================= MIND ================= -->
 <section id="s-mind" class="stack" hidden>
   <div id="mindCard"></div>
@@ -672,7 +678,9 @@ function mondayOf(is){return addD(is,-fmod(dow(is)-1,7));}
 /* ===================== one config, everything derived ===================== */
 var CFG={
   cutStart:'2026-09-19', cutEnd:'2026-11-28',
-  deloadWeeks:[4,8],
+  /* 29 Sep, Dan: no fixed deloads (every 4 weeks was too soon). Rest is
+     judged from his data on the Feedback tab — days off, or an easy week. */
+  deloadWeeks:[],
   /* runs was 43 with an easy run in every week; Dan made the easy run a bonus
      (26 Sep), so the block total drops by one run a week: 43 - 10 = 33. */
   /* 27 Sep, Dan's block targets, from the weekly template: 2 hard runs a
@@ -682,7 +690,8 @@ var CFG={
   /* 29 Sep, Dan: weight first for this cut. Two easy five-milers a week join
      the two hard runs, so runs = 19 hard + 20 easy = 39, about 4 a week.
      Uphill sprints became the option (sprints stays as a tally, never owed). */
-  goals:{gym:48,hard:19,sprints:10,runs:39,steps:12800,weightLo:122,weightHi:123},
+  /* no fixed deloads from 29 Sep: 2 hard runs × 10 weeks + the pre-block one = 21; runs = 21 + 20 easy = 41 */
+  goals:{gym:48,hard:21,sprints:10,runs:41,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
@@ -2030,9 +2039,7 @@ function callToday(w,tr,rest){
   if(w.band==='fast'){
     return box('bad','You are losing too fast — put food back, carbs first.',
       '<p>'+pct(w.ratePct)+' a week against a band that tops out at '+pct(CFG.w.bandHi,1)+'. At this rate more of each pound comes out of muscle.</p>'+
-      (ah.ok
-        ? '<p><b>You are ahead, so the refeed is earned.</b>'+(since!==null?' Last one was '+since+' days ago.':' None logged yet — there is a toggle on the log.')+'</p>'+refeedLine(w)+'<p class="note">Not less training.</p>'
-        : '<p><b>Take the '+ci(KCAL_LIGHTUP)+' day — +100, carbs first.</b> Not a refeed: '+noRefeedBecause(ah)+', and a refeed is only for when the weight and the sessions are both ahead.</p>'));
+      '<p><b>This is when a refeed is needed.</b>'+(since!==null?' Last one was '+since+' days ago.':' None logged yet — there is a toggle on the log.')+'</p>'+refeedLine(w)+'<p class="note">Not less training.</p>');
   }
   if(isDeload(wk)){
     return box('flag','Deload week — sessions come down, food does not.',
@@ -2055,7 +2062,7 @@ function callToday(w,tr,rest){
   if(w.band==='in'){
     return box('good','On the rate. Hold everything where it is.',
       '<p class="note">'+pct(w.ratePct)+' a week, inside '+pct(CFG.w.bandLo,1)+'–'+pct(CFG.w.bandHi,1)+', against a taper asking '+pct(w.taperNow)+'.</p>'+
-      (ah.ok?('<p class="note">Weight and sessions are both ahead, which is the only condition a refeed is earned under'+(since!==null?' — last one '+since+' days ago':'')+'.</p>'+refeedLine(w)):''));
+      '<p class="note">No refeed needed — the Feedback tab says if that changes.</p>');
   }
   return box('flag','Not enough readings for a verdict yet.',
     '<p class="note">A weekly verdict needs '+CFG.w.minReads+' mornings; the rate needs two full 7-day windows. Keep weighing and nothing here will guess.</p>');
@@ -2398,7 +2405,9 @@ function restModel(w,tr){
   if(w.rateLb!==null&&w.taperLb!==null&&w.rateLb>=w.taperLb+0.15)out.why.push('You are losing '+w.rateLb.toFixed(2)+' lb a week against a taper asking '+w.taperLb.toFixed(2)+'.');
   var sess=(tr.gym.diff>=1&&tr.hard.diff>=1&&tr.runs.diff>=1);
   if(sess)out.why.push('Gym, hard runs and runs are each a whole session clear of pro-rata.');
-  out.fire=out.why.length>0;
+  /* "earned rest" (rest because he was ahead) retired 29 Sep: rest and
+     refeeds are now called only on need, by coachModel on the Feedback tab */
+  out.fire=false;
   out.tooFast=(w.band==='fast');
   return out;
 }
@@ -2983,11 +2992,11 @@ var CUT_RUNS=[null,
   {long:'5 × 800 m',ld:[800],short:'5 × 200 m',sd:[200],spr:7,note:'Week one: find your level — controlled, not all-out.'},
   {long:'4 × 1 km',ld:[1000],short:'6 × 300 m',sd:[300],spr:8},
   {long:'5 × 800 m',ld:[800],short:'5 × 400 m',sd:[400],spr:8},
-  {deload:true,long:null,short:'5 × 200 m, fast but relaxed',sd:[200],spr:6,note:'Deload: one hard run, and finish it feeling you had more in you.'},
+  {long:'5 × 800 m',ld:[800],short:'8 × 200 m',sd:[200],spr:8},
   {long:'Time trial — 1 km',ld:[1000],short:'Time trial — 400 m',sd:[400],spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
   {long:'4 × 1 km',ld:[1000],short:'4 × 600 m',sd:[600],spr:9},
   {long:'5 × 800 m',ld:[800],short:'8 × 200 m',sd:[200],spr:9},
-  {deload:true,long:null,short:'4 × 300 m, fast but relaxed',sd:[300],spr:6,note:'Deload: one hard run, sets down in the gym, food stays the same.'},
+  {long:'4 × 1 km',ld:[1000],short:'6 × 300 m',sd:[300],spr:9},
   {long:'4 × 1 km — quicker than week 6 at the same feel',ld:[1000],short:'5 × 400 m',sd:[400],spr:9},
   {long:'Time trial — 1 km or a mile',ld:[1000,1609],short:'Time trial — 400 m or 200 m',sd:[400,200],spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'}
 ];
@@ -3031,6 +3040,8 @@ function weekRunsModel(){
   /* in a deficit, stress is the thing to manage: if the week's status is
      flagging rest, legs or overtraining, one hard run only — the short one */
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
+  /* an easy week he chose to take on the Feedback tab */
+  if(easyWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
   if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,spr:use.spr,note:use.note,deload:use.deload,tt:false};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
@@ -3412,7 +3423,9 @@ function glanceHTML(){
   var ticks=(r.rt||[]).length;
   var row=function(e,label,val,go){return '<button type="button" data-goto="'+go+'" style="display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:8px 2px;color:inherit;cursor:pointer;align-items:center;font:inherit">'+
     '<span style="font-size:20px;flex:0 0 28px">'+e+'</span><span style="flex:1 1 auto"><span class="tiny dim" style="display:block">'+label+'</span><b>'+val+'</b></span><span class="dim">›</span></button>';};
+  var C=t>=CFG.cutStart?coachModel():null;
   return '<div class="p lift"><h2>Today at a glance</h2>'+
+    (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
     row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.easy?' · '+w.easy+' easy':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
@@ -3425,6 +3438,141 @@ function glanceHTML(){
 function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=glanceHTML();}
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
+}
+/* ===================== Feedback: the coach's calls =====================
+   29 Sep, Dan: no fixed deloads — every 4 weeks felt too soon, and he would
+   rather have days off, or a whole easy week when it is actually needed. So
+   nothing is scheduled: rest is judged from what he logs — sessions, steps,
+   runs, study, sleep, resting HR, mood, niggles and the weight rate. A
+   refeed is the same: only when something says he needs one. Then what is
+   going well, and at most three suggestions. Simple, in his words. */
+var EASY_WK_DAYS=7;
+function easyWeekOn(t){var f=S.settings.easyFrom;return !!(f&&f<=t&&diffD(f,t)<EASY_WK_DAYS);}
+function coachModel(){
+  var t=today(),i,d,rec,R=rhrModel(),NG=niggleModel(),w=weightModel(),ST=weekStatus();
+  var o={sessDays:0,runs:0,hard:0,easy:0,gym:0,heavy14:0,steps:[],sl:[],mood:[],study:0,deep:0,phone:0,slN:0,def:0,defN:0,lastOff:null};
+  for(i=0;i<14;i++){
+    d=addD(t,-i);if(d<CFG.cutStart)break;rec=S.days[d]||{};
+    var ran=false;
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;ran=true;
+      if(i<7){o.runs++;if(m.hard)o.hard++;else if(!m.sprint)o.easy++;}
+      if(m.hard&&r.rpe>=9)o.heavy14++;});
+    if(typeof rec.gymRpe==='number'&&rec.gymRpe>=9)o.heavy14++;
+    var sess=ran||!!rec.gym;
+    /* today only counts as a day off once it is over — it may not have happened yet */
+    if(!sess&&i>0&&o.lastOff===null)o.lastOff=i;
+    if(i>=7)continue;
+    if(rec.gym)o.gym++;
+    if(sess)o.sessDays++;
+    if(typeof rec.steps==='number')o.steps.push(rec.steps);
+    if(typeof rec.sleep==='number'){o.sl.push(rec.sleep);if(rec.phoneOut)o.phone++;}
+    if(rec.mood)o.mood.push(rec.mood);
+    if(typeof rec.study==='number')o.study+=rec.study;
+    if(typeof rec.deep==='number')o.deep+=rec.deep;
+    var x=tdeeFor(d);if(typeof rec.kcal==='number'){o.def+=x.deficit;o.defN++;}
+  }
+  if(o.lastOff===null)o.lastOff=Math.min(14,diffD(CFG.cutStart,t)+1);
+  var slAvg=o.sl.length>=3?mean(o.sl):null,stAvg=o.steps.length>=3?mean(o.steps):null,moodAvg=o.mood.length>=3?mean(o.mood):null;
+  /* weeks since the last easy week: a finished week with at most one hard
+     run and three gym sessions counts, and so does one he chose to take */
+  var sinceEasy=0;
+  for(var k=1;k<=12;k++){
+    var ws=addD(mondayOf(t),-7*k);if(ws<CFG.cutStart&&addD(ws,6)<CFG.cutStart)break;
+    var h=0,g=0,taken=S.settings.easyFrom&&S.settings.easyFrom>=ws&&S.settings.easyFrom<=addD(ws,6);
+    for(i=0;i<7;i++){rec=S.days[addD(ws,i)]||{};if(rec.gym)g++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty&&m.hard)h++;});}
+    if(taken||(h<=1&&g<=3))break;
+    sinceEasy++;
+  }
+  /* strain: each thing that is costing him, with why */
+  var strain=[],pts=0;
+  var add=function(p,txt){pts+=p;strain.push(txt);};
+  if(R.state==='high')add(2,'resting HR is well up on your baseline');else if(R.state==='up')add(1,'resting HR is creeping up');
+  if(slAvg!==null&&slAvg<6.5)add(2,'sleep is averaging '+f1(slAvg)+' h');else if(slAvg!==null&&slAvg<7)add(1,'sleep is averaging '+f1(slAvg)+' h');
+  if(moodAvg!==null&&moodAvg<=2.5)add(1,'your mood has been low');
+  if(o.heavy14>=2)add(1,o.heavy14+' sessions felt like a 9 or 10 in the last fortnight');
+  if(w.band==='fast')add(1,'the weight is coming off faster than the safe band');
+  if(o.study>CFG.study.hi)add(1,f1(o.study)+' h of study this week');
+  if(NG.persistent)add(2,'something has hurt on '+NG.n+' days'+(NG.top?' — '+NG.top:''));else if(NG.n)add(1,'something has hurt'+(NG.top?' — '+NG.top:''));
+  if(o.lastOff>=10)add(1,'no full day off in '+o.lastOff+' days');
+  if(stAvg!==null&&stAvg>16500&&o.runs>=5)add(1,'big steps on top of '+o.runs+' runs');
+  if(sinceEasy>=6)add(1,sinceEasy+' hard weeks since your last easy one');
+  /* the rest call */
+  var rest;
+  if(easyWeekOn(t)){
+    var left=EASY_WK_DAYS-diffD(S.settings.easyFrom,t);
+    rest={k:'on',t:'Easy week — '+left+' day'+(left===1?'':'s')+' to go',w:'One hard run, kept controlled. The easy miles and steps stay. Same gym sessions with about a third fewer sets, nothing to failure. No time trials. Food stays exactly the same.'};
+  }else if(pts>=4||(R.state==='high'&&slAvg!==null&&slAvg<7)){
+    rest={k:'week',t:'Take an easy week',w:'Not a scheduled one — your body is asking: '+strain.slice(0,3).join(', ')+'. Seven days: one hard run kept controlled, the easy miles and steps stay, the gym stays with about a third fewer sets. Food stays the same. You come out of it faster, not slower.'};
+  }else if(ST&&(ST.k==='rest'||ST.k==='legs')){
+    rest={k:'day',t:ST.t,w:ST.w};
+  }else if(pts>=2||(ST&&ST.k==='warn')){
+    rest={k:'days',t:'Take a day or two off',w:(strain.length?'Because '+strain.slice(0,2).join(' and ')+'. ':(ST?ST.w+' ':''))+'A day or two with no sessions in the next few days — steps can stay. That is usually all it takes to stop this becoming an easy week.'};
+  }else if(o.lastOff>=6){
+    rest={k:'day',t:'Next day fully off',w:'No day off in '+o.lastOff+' days. Take the next one with no run and no gym — walking is fine. Rest is when the fitness actually lands.'};
+  }else{
+    rest={k:'go',t:'No rest needed — keep going',w:(strain.length?'One small thing to watch: '+strain[0]+'. Not enough to change the week.':'Recovery is keeping up with the training. Your normal days off are doing the job.')};
+  }
+  /* the refeed call — only if something says he needs one */
+  var rf=lastRefeed(),since=rf?diffD(rf,t):null,plan=refeedPlan(w),under=weeksUnderBand(w);
+  var perDay=o.defN?o.def/o.defN:null,steep=perDay!==null&&perDay>650;
+  var refeed;
+  if(since!==null&&since<=3)refeed={k:'done',t:'Refeed done',w:'You had one '+(since===0?'today':since===1?'yesterday':DOWS[dow(rf)])+'. Normal days now — nothing to make up.'};
+  else if(w.band==='fast')refeed={k:'yes',t:'Yes — have a refeed this week',w:'You are losing faster than the safe band, and that starts taking muscle. One day at about maintenance, carbs first.'};
+  else if(pts>=3&&(steep||w.band==='in')&&(since===null||since>=7))refeed={k:'yes',t:'Yes — a refeed would help',w:'Recovery is struggling ('+strain.slice(0,2).join(', ')+'). One day at maintenance tops up glycogen and eases the stress hormones — better sleep, better sessions.'};
+  else if(w.band==='slow'||under>=2)refeed={k:'no',t:'No refeed this week',w:'The weight has slowed, so a refeed would slow it more. Normal days — and never cut food for a plateau under two weeks.'};
+  else refeed={k:'no',t:'No refeed needed',w:w.band==='in'?'The weight is coming off at a healthy rate and you are recovering. Normal days.':'Nothing says you need one. Normal days — this updates as you log.'};
+  if(refeed.k==='yes'&&plan)refeed.size='+'+ci(plan.extra)+' kcal, about '+plan.carbs+' g of carbs — '+ci(plan.day)+' for the day. Saturday works, as usual. Skip the scale the morning after.';
+  /* what is good */
+  var good=[],sug=[];
+  if(w.band==='in')good.push('Weight coming off at <b>'+f1(w.rateLb)+' lb a week</b> — right in the sweet spot.');
+  if(w.newLowToday)good.push('<b>New low today.</b>');
+  if(o.defN>=3&&o.def>0)good.push('About <b>'+ci(Math.round(o.def/10)*10)+' kcal</b> of deficit in the last 7 days — roughly '+f2(o.def/3500)+' lb of fat.');
+  if(o.hard>=1||o.easy>=1)good.push(o.hard+' hard run'+(o.hard===1?'':'s')+' and '+o.easy+' easy one'+(o.easy===1?'':'s')+' in the last 7 days'+(o.hard<=2&&o.easy>=2?' — the week as planned.':'.'));
+  if(o.gym>=3)good.push('<b>'+o.gym+' gym sessions</b> — the muscle is being held.');
+  if(stAvg!==null&&stAvg>=CFG.goals.steps)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
+  if(slAvg!==null&&slAvg>=CFG.sleep.line)good.push('Sleep averaging <b>'+hm(slAvg*60)+'</b> — the biggest testosterone lever, covered.');
+  if(o.sl.length>=3&&o.phone>=o.sl.length-1)good.push('Phone out of the bed '+o.phone+' of '+o.sl.length+' nights.');
+  if(o.study>=CFG.study.lo&&o.study<=CFG.study.hi)good.push('<b>'+f1(o.study)+' h</b> of study — inside the band.');
+  else if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+f1(o.deep)+' h</b> of deep work — the sweet spot.');
+  if(moodAvg!==null&&moodAvg>=4)good.push('Mood has been good.');
+  /* what to change — at most three, the most useful first */
+  if(slAvg!==null&&slAvg<CFG.sleep.line)sug.push('<b>Sleep:</b> '+hm(slAvg*60)+' a night. Bed about '+hm((CFG.sleep.line-slAvg)*60)+' earlier, phone out of the room.');
+  if(w.band==='fast')sug.push('<b>Eat a little more</b> — carbs first. Losing this fast costs muscle and flattens the face, not sharpens it.');
+  if(under>=2)sug.push('<b>Two weeks under the band.</b> Check steps, sleep and study load first; only then a small trim.');
+  if(o.hard>=3)sug.push('<b>'+o.hard+' hard runs in 7 days.</b> Two is where the times are kept on a deficit — make the next one easy.');
+  if(o.runs>=6)sug.push('<b>'+o.runs+' runs in 7 days.</b> The plan is four; walk instead of the extra ones.');
+  if(stAvg!==null&&stAvg<CFG.goals.steps-1500)sug.push('<b>Steps:</b> '+ci(Math.round(stAvg/100)*100)+' a day. A 20-minute walk after lunch closes most of it.');
+  if(o.study>CFG.study.hi)sug.push('<b>Study is high</b> — '+f1(o.study)+' h. Cap deep work at about 4 h a day; the hours past 20 cost more than they give.');
+  if(o.sl.length>=3&&o.phone<o.sl.length/2)sug.push('<b>Phone out of the bedroom</b> — only '+o.phone+' of '+o.sl.length+' nights so far.');
+  if(moodAvg!==null&&moodAvg<=2.5)sug.push('<b>Mood has been low.</b> Get out somewhere green, see a mate, and a film night — they count.');
+  return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
+}
+function feedbackHTML(){
+  var t=today();if(t<CFG.cutStart)return '<div class="p"><h2>Feedback</h2><p class="note">Starts when the cut does.</p></div>';
+  var C=coachModel();
+  var restTone={go:'good',day:'warn',days:'warn',week:'bad',on:'flag'}[C.rest.k];
+  var h='<div class="p lift"><h2>Feedback</h2>'+
+    '<div class="p '+restTone+'" style="box-shadow:none;margin:8px 0"><div class="tiny dim">🛌 Rest</div><p class="lede" style="margin:2px 0"><b>'+C.rest.t+'</b></p><p class="note keep" style="margin:2px 0">'+C.rest.w+'</p>'+
+      (C.rest.k==='week'?'<button type="button" class="btn sm" id="btnEasyWk" style="margin-top:6px">I’m taking it — start today</button>':'')+
+      (C.rest.k==='on'?'<button type="button" class="btn ghost sm" id="btnEasyOff" style="margin-top:6px">End it early</button>':'')+'</div>'+
+    '<div class="p '+(C.refeed.k==='yes'?'flag':'good')+'" style="box-shadow:none;margin:8px 0"><div class="tiny dim">🍚 Refeed</div><p class="lede" style="margin:2px 0"><b>'+C.refeed.t+'</b></p><p class="note keep" style="margin:2px 0">'+C.refeed.w+'</p>'+
+      (C.refeed.size?'<p style="margin:4px 0"><b>'+C.refeed.size+'</b></p>':'')+'</div>'+
+    '<h3 style="margin-top:12px">What’s good</h3>'+
+    (C.good.length?C.good.map(function(x){return '<p style="margin:4px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'<p class="tiny keep">Log a few days and this fills in.</p>')+
+    '<h3 style="margin-top:12px">What I suggest</h3>'+
+    (C.sug.length?C.sug.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:4px 0"><b>Nothing to change. Run the same week again.</b></p>')+
+    '<details style="margin-top:10px"><summary class="tiny">How the calls are made</summary>'+
+    '<p class="tiny" style="margin-top:6px">No rest weeks on a calendar. Rest is judged from your last one to two weeks: resting HR, sleep, mood, sessions that felt 9–10, the weight rate, study hours, niggles, days since a day off, steps on top of runs, and how long since your last easy week. One or two of those: a day or two off. Several at once: an easy week. A refeed only when you are losing too fast, or recovery is struggling and the deficit is doing it — never when the weight has slowed.</p>'+
+    '<p class="tiny">'+(C.lastOff===0?'':'Last full day off: '+(C.lastOff===1?'yesterday':C.lastOff+' days ago')+'. ')+(C.sinceEasy?C.sinceEasy+' full week'+(C.sinceEasy===1?'':'s')+' since an easy one.':'')+'</p></details>'+
+    '</div>';
+  return h;
+}
+function renderFeedback(){if(E('fbCard'))E('fbCard').innerHTML=feedbackHTML();}
+function wireFeedback(){
+  E('fbCard').addEventListener('click',function(ev){
+    if(ev.target.closest('#btnEasyWk')){S.settings.easyFrom=today();touch();}
+    else if(ev.target.closest('#btnEasyOff')){delete S.settings.easyFrom;touch();}
+  });
 }
 /* ===================== Training: sets this week, as bars =====================
    29 Sep: Training should feel fun, not read like an essay — so the week's
@@ -3900,6 +4048,7 @@ function renderBetter(){
 }
 function renderGains(){
   renderGlance();
+  renderFeedback();
   renderDeep();
   renderSetsCard();
   renderFoodNums();
@@ -4317,6 +4466,9 @@ function render(){
    there is a banner nobody reads. */
 function alertsNow(w,tr,c){
   var out=[],rest=restModel(w,tr),R=rhrModel(),NG=niggleModel(),EF=effortWeek(),ah=aheadEnough(w,tr);
+  var CM=coachModel();
+  if(['day','days','week'].indexOf(CM.rest.k)>=0)out.push({k:'REST',t:CM.rest.t,w:CM.rest.w+' <span class="tiny">More on the Feedback tab.</span>'});
+  if(CM.refeed.k==='yes')out.push({k:'REFEED',t:CM.refeed.t,w:CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')});
   if(rest.fire){
     out.push({k:'REST',t:'Take a day or two off',
       w:rest.tooFast?'You are coming down faster than the safe band. Days off, and eat <b>more</b> on them \u2014 carbs first.'
@@ -5361,6 +5513,7 @@ function lookupFood(){
 function wireFood(){
   wireSimple();
   wireGlance();
+  wireFeedback();
   wireLife();
   wireMind();
   wireNotes();
@@ -6303,7 +6456,7 @@ function renderPlan(){
     '<tr><td><b>Supercompensation</b></td><td class="note">Right after a hard session you are worse than when you started. Then you recover, and then you rise slightly above where you began. That rise is the whole point, and it arrives days later — which is why testing yourself in the dip tells you nothing except that you are tired.</td></tr>'+
     '<tr><td><b>Why 48 hours</b></td><td class="note">A hard session leaves you needing roughly two days before the next one lands properly. Back-to-back hard days are not twice the training; they are one good session and one session run on the fatigue of the first.</td></tr>'+
     '<tr><td><b>On a deficit it is slower</b></td><td class="note">Less glycogen to replace it with, more cortisol, and repair competing with a calorie shortfall. The same session you have always done costs more to come back from right now. That is a reason to space them, not a reason to do fewer.</td></tr>'+
-    '<tr><td><b>The deloads</b></td><td class="note">Weeks '+CFG.deloadWeeks.join(' and ')+' exist for this. Sessions come down, the food does not move. A deload is where accumulated work turns into fitness.</td></tr>'+
+    '<tr><td><b>Easy weeks</b></td><td class="note">Not on a calendar — the Feedback tab calls one when your data says you need it. Sessions come down, the food does not move. An easy week is where accumulated work turns into fitness.</td></tr>'+
     '<tr><td><b>Sleep</b></td><td class="note">The largest recovery lever there is, and the one you already named as most important. Growth hormone, tissue repair and glycogen resynthesis all run overnight.</td></tr>'+
     '</tbody></table>'+
     '<hr class="d"><h2>How to tell you have not recovered</h2>'+
@@ -7005,7 +7158,7 @@ function renderData(w,tr,c){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
+  ['today','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){

@@ -86,7 +86,7 @@ ok('supercompensation is explained', /Supercompensation/.test(t) && /testing you
 ok('and why 48 hours', /Why 48 hours/.test(t) && /one good session and one session run on the fatigue/.test(t));
 ok('it says a deficit slows recovery', /On a deficit it is slower/.test(t));
 ok('but is not a reason to do fewer sessions', /a reason to space them, not a reason to do fewer/.test(t));
-ok('the deloads are named', /Weeks 4 and 8 exist for this/.test(t));
+ok('easy weeks are called on need, not on a calendar', /Not on a calendar — the Feedback tab calls one/.test(t));
 ok('sleep is named as the biggest lever', /largest recovery lever/.test(t));
 ok('there are signs of under-recovery', /How to tell you have not recovered/.test(t));
 ok('including motivation dropping first', /Motivation drops before performance does/.test(t));

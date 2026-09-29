@@ -18,28 +18,20 @@ const at = async (when) => {
   return { ctx, p, boot };
 };
 
-// ===== block targets and the deload weeks =====
-let { ctx, p, boot } = await at('2026-10-14');   // week 4, a deload
+// ===== no fixed deloads (29 Sep): every week is 2 hard + 2 easy =====
+let { ctx, p, boot } = await at('2026-10-14');   // week 4, which used to be a deload
 await boot(st());
-const T = await p.evaluate(() => ({ g: CFG.goals, w4: tmplFor(addD(WEIGH_START, 21)), w3: tmplFor(addD(WEIGH_START, 14)), w8: tmplFor(addD(WEIGH_START, 49)),
+const T = await p.evaluate(() => ({ g: CFG.goals, w4: tmplFor(addD(WEIGH_START, 21)), w8: tmplFor(addD(WEIGH_START, 49)),
   sum: (() => { let h = 0, e = 0; for (let k = 1; k <= W_WEEKS; k++) { const t = tmplFor(addD(WEIGH_START, (k - 1) * 7)); h += t.hard; e += t.easy; } return { h, e }; })() }));
-ok('a deload week is 1 hard + 2 easy = 3 runs', T.w4.hard === 1 && T.w4.easy === 2 && T.w4.runs === 3 && T.w4.deload && T.w8.hard === 1, JSON.stringify(T.w4));
-ok('a normal week is 2 hard + 2 easy = 4 runs', T.w3.hard === 2 && T.w3.easy === 2 && T.w3.runs === 4 && !T.w3.deload);
-ok('the block hard-run goal is the weeks added up, plus the pre-block one', T.g.hard === T.sum.h + 1, JSON.stringify(T));
-ok('runs = hard + the easy five-milers', T.g.runs === T.g.hard + T.sum.e, JSON.stringify(T));
-// the week card and the review follow the deload target
-await boot(st({ days: { '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 180 }] } } }));
-await p.click('[data-t="training"]');
-let t = sq(await p.innerText('#tWeek'));
-ok('in a deload week the hard run shows as done, no quota', /Hard runs 1 ✓/i.test(t) && !/1 \/ 1/.test(t), t.slice(0, 300));
-ok('and the week says deload', /deload/i.test(t));
-const owes = await p.evaluate(() => weekOwes(trainingModel()).map(o => o.k));
-ok('a deload week does not ask for a second hard run', !owes.includes('hard'), JSON.stringify(owes));
-// the runs card in a deload: one hard slot, the short one
-t = sq(await p.innerText('#tRuns'));
-ok('the runs card names the deload', /week 4 · deload/i.test(t), t.slice(0, 200));
-ok('a deload has one hard slot, relaxed, and no time trials', !/Hard run · longer/.test(t) && /Hard run pick one/.test(t) && /fast but relaxed/.test(t) && !/Time trial —/.test(t) && /No time trials in a deload/.test(t));
-ok('and suggests one hard run with the easy miles', /A good week: one hard run, two easy 5-milers/.test(t));
+ok('no week is a scheduled deload any more', !T.w4.deload && !T.w8.deload && T.w4.hard === 2 && T.w4.runs === 4, JSON.stringify(T.w4));
+ok('the block hard-run total is the weeks added up, plus the pre-block one', T.g.hard === T.sum.h + 1 && T.g.hard === 21, JSON.stringify(T));
+ok('runs = hard + the easy five-milers', T.g.runs === T.g.hard + T.sum.e && T.g.runs === 41, JSON.stringify(T));
+let t = sq(await p.evaluate(() => weekRunsHTML()));
+ok('week 4 is a normal week now', !/deload/i.test(t) && /Hard run · longer/.test(t), t.slice(0, 200));
+// an easy week he chooses to take cuts the runs card to one hard run
+await boot(st({ settings: { hideDaily: false, fiveK: 1085, easyFrom: '2026-10-13' } }));
+t = sq(await p.innerText('#runsCard'));
+ok('while an easy week is on, the runs card is one hard run and no trials', !/Hard run · longer/.test(t) && /An easier week: one hard run/.test(t) && /No time trials while something is flagged/.test(t), t.slice(0, 400));
 await ctx.close();
 
 // ===== the weekly runs card: which runs, how many, never which day =====
