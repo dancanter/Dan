@@ -140,7 +140,7 @@ ok('Today opens with the log, then calories in and burned', await p.evaluate(() 
   return /Log ·/.test(kids[0].querySelector('h2').textContent) && kids[1].id === 'tdeeCard' && /Burn and deficit/.test(kids[1].textContent);
 }));
 let g = sq(await p.innerText('#glanceCard'));
-ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard · 0 sprints/.test(g) && /1 session/.test(g) && /8\.2 h ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
+ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard · 0 sprints/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
 await p.click('#glanceCard button[data-goto="mind"]'); await p.waitForTimeout(150);
 ok('tapping a line opens its tab', await p.evaluate(() => !E('s-mind').hidden));
 await p.click('[data-t="today"]'); await p.waitForTimeout(150);
@@ -167,7 +167,7 @@ await p.fill('#inBed', '23:10'); await p.press('#inBed', 'Tab');
 await p.fill('#inWake', '07:25'); await p.press('#inWake', 'Tab'); await p.waitForTimeout(150);
 let sd = await p.evaluate(() => S.days[today()]);
 ok('bed 23:10 and up 07:25 is about 8.0 h asleep (in bed 8 h 15, minus 15 to drop off)', sd.bed === '23:10' && sd.wake === '07:25' && sd.sleep === 8, JSON.stringify(sd));
-ok('it says so under the times', /≈ 8\.0 h asleep · in bed 8 h 15 min/.test(sq(await p.innerText('#sleepCalc'))));
+ok('it says so under the times', /≈ 8\.0 h · 8 hours asleep · in bed 8 h 15 min/.test(sq(await p.innerText('#sleepCalc'))));
 await p.click('#tgPhone'); await p.waitForTimeout(120);
 ok('📵 no phone in bed is logged with it', await p.evaluate(() => S.days[today()].phoneOut === true) && /phone-free ✓/.test(sq(await p.innerText('#sleepCalc'))));
 await p.fill('#inBed', '00:40'); await p.press('#inBed', 'Tab'); await p.waitForTimeout(150);
@@ -176,6 +176,10 @@ ok('the read-back shows the times and phone-free', await p.evaluate(() => { cons
 ok('the sleep number still feeds everything else', await p.evaluate(() => sleepFromTimes('22:30', '06:45').h === 8 && sleepFromTimes('07:00', '07:10') === null));
 await p.click('[data-t="review"]'); await p.waitForTimeout(150);
 ok('every week review ends with the whole-cut totals', /YOUR BLOCK SO FAR/i.test(sq(await p.innerText('#revBody')).slice(-1500)));
+await p.click('[data-t="today"]'); await p.waitForTimeout(100);
+await p.fill('#inBed', '23:20'); await p.press('#inBed', 'Tab'); await p.waitForTimeout(150);
+ok('odd minutes are shown exactly: 23:20 → 07:25 is 7.8 h · 7 hours 50 mins', /≈ 7\.8 h · 7 hours 50 mins asleep/.test(sq(await p.innerText('#sleepCalc'))), sq(await p.innerText('#sleepCalc')));
+ok('hm() writes hours and minutes', await p.evaluate(() => hm(520, true) === '8 hours 40 mins' && hm(455) === '7 h 35 min' && hm(480) === '8 h' && hDec(455) === '7.6'));
 await ctx.close();
 
 // ===== deep work this week =====
@@ -196,10 +200,15 @@ await ctx.close();
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));
 await p.click('[data-t="sleep"]'); await p.waitForTimeout(150);
 let sp = sq(await p.innerText('#slPick'));
-ok('the latest night shows by default', /Sun night/.test(sp) && /8\.0 h/.test(sp) && /23:10 → ☀️ 07:25/.test(sp) && /Phone-free ✓/.test(sp), sp);
+ok('the latest night shows by default', /Sun night/.test(sp) && /8\.0 h/.test(sp) && /8 hours/.test(sp) && /23:10 → ☀️ 07:25/.test(sp) && /Phone-free ✓/.test(sp), sp);
 await p.click('#slChart button[data-sd="2026-09-25"]'); await p.waitForTimeout(100);
 sp = sq(await p.innerText('#slPick'));
-ok('tapping a bar shows that night', /Thu night/.test(sp) && /7\.0 h/.test(sp) && /1\.0 h under/i.test(sp) && /Phone not marked out/.test(sp), sp);
+ok('tapping a bar shows that night', /Thu night/.test(sp) && /7\.0 h/.test(sp) && /7 hours/.test(sp) && /1 h under/i.test(sp) && /Phone not marked out/.test(sp), sp);
+await p.evaluate(() => { S.days['2026-09-26'] = { bed: '22:50', wake: '07:45', sleep: 8.7 }; renderSleep(); });
+await p.click('#slChart button[data-sd="2026-09-26"]'); await p.waitForTimeout(100);
+sp = sq(await p.innerText('#slPick'));
+ok('exact to the minute: 22:50 → 07:45 is 8.7 h · 8 hours 40 mins, 40 min over', /8\.7 h/.test(sp) && /8 hours 40 mins/.test(sp) && /40 min over the line/i.test(sp) && /in bed 8 h 55 min/.test(sp), sp);
+await p.click('#slChart button[data-sd="2026-09-25"]'); await p.waitForTimeout(100);
 ok('and highlights the bar', await p.evaluate(() => E('slChart').querySelector('button.sel').dataset.sd === '2026-09-25'));
 await p.click('#slChart button[data-sd="2026-09-20"]'); await p.waitForTimeout(100);
 ok('an unlogged night says so, without judging', /Not logged — ignored, not judged/.test(await p.innerText('#slPick')));

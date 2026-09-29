@@ -2885,7 +2885,7 @@ function dayFeedback(is){
   }
   if(typeof r.sleep==='number'){
     var ok=r.sleep>=CFG.sleep.line;
-    rows.push(['Sleep',f1(r.sleep)+' h'+(r.bed&&r.wake?' <span class="tiny">'+r.bed+'→'+r.wake+'</span>':''),(ok?'<b>Over the line.</b> Best recovery tool you have, and it is free.':
+    rows.push(['Sleep',hDec(sleepMins(r))+' h · '+hm(sleepMins(r))+(r.bed&&r.wake?' <span class="tiny">'+r.bed+'→'+r.wake+'</span>':''),(ok?'<b>Over the line.</b> Best recovery tool you have, and it is free.':
       f1(CFG.sleep.line-r.sleep)+' h under the line — an early night tonight pays it back.')+(r.phoneOut?' 📵 Phone-free — that is the one that counts.':''),ok?'g':'']);
   }
   var rs2=r.runs||[],pbs=pbList().filter(function(p){return p.now.date===is;});
@@ -3388,7 +3388,7 @@ function glanceHTML(){
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
     row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.easy?' · '+w.easy+' easy':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
     row('🏋️','Gym this week',w.gym+' session'+(w.gym===1?'':'s'),'training')+
-    row('😴','Sleep last night',typeof r.sleep==='number'?f1(r.sleep)+' h'+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
+    row('😴','Sleep last night',typeof r.sleep==='number'?hDec(sleepMins(r))+' h · '+hm(sleepMins(r))+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
     row('🎬',film?'Tonight is film night':'Film nights',film?esc(film[0]):(next?'next: '+next:'none set'),'mind')+
     row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
     '</div>';
@@ -5409,12 +5409,27 @@ function sleepFromTimes(bed,wake){
   var m=function(t){var q=t.split(':');return Number(q[0])*60+Number(q[1]);};
   var inBed=m(wake)-m(bed);if(inBed<=0)inBed+=1440;
   var h=Math.round((inBed-15)/6)/10;
-  return (h>=1&&h<=14)?{h:h,inBed:inBed}:null;
+  return (h>=1&&h<=14)?{h:h,inBed:inBed,min:inBed-15}:null;
 }
+/* exact sleep (29 Sep): minutes from the bed/wake times when there are
+   any, else from the logged hours. hm() writes them as hours and minutes. */
+function sleepMins(rec){
+  if(!rec)return null;
+  var c=sleepFromTimes(rec.bed,rec.wake);
+  if(c)return c.min;
+  return typeof rec.sleep==='number'?Math.round(rec.sleep*60):null;
+}
+function hm(min,long){
+  if(min===null||min===undefined)return '—';
+  min=Math.round(min);var h=Math.floor(min/60),m=min%60;
+  if(long)return h+' hour'+(h===1?'':'s')+(m?' '+m+' min'+(m===1?'':'s'):'');
+  return h+' h'+(m?' '+m+' min':'');
+}
+function hDec(min){return (Math.round(min/6)/10).toFixed(1);}
 function sleepCalcText(rec){
   var c=sleepFromTimes(rec.bed,rec.wake);
-  if(c)return '≈ <b>'+f1(c.h)+' h asleep</b> · in bed '+Math.floor(c.inBed/60)+' h '+(c.inBed%60)+' min'+(rec.phoneOut?' · 📵 phone-free ✓':' · phone in the room?');
-  if(typeof rec.sleep==='number')return f1(rec.sleep)+' h logged';
+  if(c)return '≈ <b>'+hDec(c.min)+' h · '+hm(c.min,true)+' asleep</b> · in bed '+hm(c.inBed)+(rec.phoneOut?' · 📵 phone-free ✓':' · phone in the room?');
+  if(typeof rec.sleep==='number')return hDec(sleepMins(rec))+' h · '+hm(sleepMins(rec),true)+' logged';
   return 'Put in when you went to bed and woke — the hours work themselves out.';
 }
 function paintForm(){
@@ -5919,11 +5934,12 @@ function sleepNightHTML(d){
   var r=S.days[d]||{},night=addD(d,-1);
   var head='<b>'+DOWS[dow(night)]+' night</b> <span class="tiny dim">· logged '+DOWS[dow(d)]+' '+fmtS(d)+'</span>';
   if(typeof r.sleep!=='number')return '<div class="p" style="box-shadow:none;padding:10px">'+head+'<div class="note">Not logged — ignored, not judged.</div></div>';
-  var gap=r.sleep-CFG.sleep.line;
+  var mins=sleepMins(r),gap=mins-Math.round(CFG.sleep.line*60),c=sleepFromTimes(r.bed,r.wake);
   return '<div class="p" style="box-shadow:none;padding:10px">'+head+
-    '<div class="row" style="gap:10px;align-items:baseline;margin-top:4px"><b class="num" style="font-size:1.5em">'+f1(r.sleep)+' h</b>'+
-    '<span class="pill'+(gap>=0?' g':(r.sleep<6?' b':' w'))+'">'+(gap>=0?'over the line':f1(-gap)+' h under')+'</span></div>'+
-    (r.bed&&r.wake?'<div style="margin-top:4px">😴 '+r.bed+' → ☀️ '+r.wake+'</div>':'')+
+    '<div class="row" style="gap:10px;align-items:baseline;margin-top:4px"><b class="num" style="font-size:1.5em">'+hDec(mins)+' h</b>'+
+    '<b id="slExact">'+hm(mins,true)+'</b>'+
+    '<span class="pill'+(gap>=0?' g':(mins<360?' b':' w'))+'">'+(gap===0?'right on the line':gap>0?hm(gap).replace(/^0 h /,'')+' over the line':hm(-gap).replace(/^0 h /,'')+' under')+'</span></div>'+
+    (r.bed&&r.wake?'<div style="margin-top:4px">😴 '+r.bed+' → ☀️ '+r.wake+(c?' <span class="tiny dim">· in bed '+hm(c.inBed)+', 15 min allowed to drop off</span>':'')+'</div>':'')+
     '<div style="margin-top:2px">'+(r.phoneOut?'📵 Phone-free ✓':'📱 Phone not marked out')+'</div></div>';
 }
 function renderSleep(){
@@ -5931,9 +5947,9 @@ function renderSleep(){
   var lastNight=S.days[t]&&typeof S.days[t].sleep==='number'?S.days[t].sleep:null;
   var bd=sleepBand(lastNight);
   var h='<div class="p"><h2>Sleep — the top lever, and you named it yourself</h2><div class="tiles t4">'+
-    tile('7-night average',m.a7.avg===null?'—':f1(m.a7.avg)+' h',m.a7.n+' of 7 nights logged')+
-    tile('28-night average',m.a28.avg===null?'—':f1(m.a28.avg)+' h',m.a28.n+' of 28 nights logged')+
-    tile('last night',lastNight===null?'—':f1(lastNight)+' h',bd.t)+
+    tile('7-night average',m.a7.avg===null?'—':f1(m.a7.avg)+' h',(m.a7.avg===null?'':hm(m.a7.avg*60)+' · ')+m.a7.n+' of 7 nights logged')+
+    tile('28-night average',m.a28.avg===null?'—':f1(m.a28.avg)+' h',(m.a28.avg===null?'':hm(m.a28.avg*60)+' · ')+m.a28.n+' of 28 nights logged')+
+    tile('last night',lastNight===null?'—':hDec(sleepMins(S.days[t]))+' h',lastNight===null?bd.t:hm(sleepMins(S.days[t]))+' · '+bd.t)+
     tile('phone-free streak',m.streak+' night'+(m.streak===1?'':'s'),'tonight is not counted until it is ticked')+
     '</div>';
   if(m.blank7>=3){
@@ -5953,7 +5969,7 @@ function renderSleep(){
       var cls=b.h<6?' vlo':(b.h<CFG.sleep.line?' lo':'');
       inner='<div class="b'+cls+'" style="height:'+Math.max(4,Math.min(100,(b.h/maxH)*100))+'%"></div>';
     }
-    bars+='<button type="button" class="col'+(b.d===SL_PICK?' sel':'')+'" data-sd="'+b.d+'" aria-label="'+fmtS(b.d)+(b.h===null?' — not logged':' — '+f1(b.h)+' h')+'">'+inner+'</button>';
+    bars+='<button type="button" class="col'+(b.d===SL_PICK?' sel':'')+'" data-sd="'+b.d+'" aria-label="'+fmtS(b.d)+(b.h===null?' — not logged':' — '+hm(sleepMins(S.days[b.d])))+'">'+inner+'</button>';
   });
   bars+='</div><div class="barlab">'+m.bars.map(function(b){return '<span>'+(dow(b.d)===1?fmtS(b.d).split(' ')[0]:DOWS[dow(b.d)].slice(0,1))+'</span>';}).join('')+'</div>';
   bars+='<div id="slPick" style="margin-top:10px">'+sleepNightHTML(SL_PICK)+'</div>';

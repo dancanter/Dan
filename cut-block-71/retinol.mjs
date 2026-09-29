@@ -106,7 +106,7 @@ ok('a retinol night can be ticked',
 ok('and it counts', (await p.evaluate(() => retinolModel().done)) === 1);
 
 // once it has started, it knows whether tonight is one
-await p.evaluate(() => { CFG.retinol.start = '2026-09-15'; render(); });
+await p.evaluate(() => { CFG.retinol.start = addD(today(), -9); render(); });
 const live = await p.evaluate(() => retinolModel());
 ok('after starting it reports the week', live.started === true && live.weeks === 1, JSON.stringify({ s: live.started, w: live.weeks }));
 ok('and lists this week\'s nights as dates', live.nights.every(n => /^\d{4}-\d{2}-\d{2}$/.test(n)), JSON.stringify(live.nights));
