@@ -101,6 +101,11 @@ table.tbl tr.dim td{color:var(--ink-3)}
 
 /* ---- forms ---- */
 .f{display:grid;gap:4px}
+/* study as hours + minutes: each on its own row so nothing is squashed on a phone */
+.f.hmrow{grid-column:1/-1;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.hmin{display:flex;align-items:center;gap:6px}
+.hmin input{width:64px;text-align:center}
+.hmin span{font-size:13px;color:var(--ink-2);min-width:24px}
 .f label{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);font-weight:700}
 input[type="text"],input[type="number"],input[type="date"],select,textarea{background:var(--panel-2);border:1px solid var(--rule);padding:7px 8px;width:100%;font-family:"IBM Plex Mono",monospace;font-size:13px;border-radius:2px}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -220,8 +225,8 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
         <button class="tog" id="tgPhone" aria-pressed="false" type="button"><span class="chk"></span>📵 No phone in bed</button>
         <span class="tiny" id="sleepCalc"></span></div></div>
       <input type="hidden" id="inSleep">
-      <div class="f"><label for="inStudyH">📚 Study</label><div class="row hmin" style="gap:6px;flex-wrap:nowrap"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inStudyH" placeholder="h" aria-label="Study hours"><span class="tiny">h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inStudyM" placeholder="min" aria-label="Study minutes"><span class="tiny">min</span></div></div>
-      <div class="f"><label for="inDeepH">Of which deep</label><div class="row hmin" style="gap:6px;flex-wrap:nowrap"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inDeepH" placeholder="h" aria-label="Deep work hours"><span class="tiny">h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inDeepM" placeholder="min" aria-label="Deep work minutes"><span class="tiny">min</span></div></div>
+      <div class="f hmrow"><label for="inStudyH">📚 Study</label><div class="hmin"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inStudyH" placeholder="0" aria-label="Study hours"><span>h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inStudyM" placeholder="0" aria-label="Study minutes"><span>min</span></div></div>
+      <div class="f hmrow"><label for="inDeepH">🧠 Of which deep</label><div class="hmin"><input type="number" inputmode="numeric" step="1" min="0" max="16" id="inDeepH" placeholder="0" aria-label="Deep work hours"><span>h</span><input type="number" inputmode="numeric" step="5" min="0" max="59" id="inDeepM" placeholder="0" aria-label="Deep work minutes"><span>min</span></div></div>
     </div>
     <div class="row" style="margin-top:12px">
       <button class="tog" id="tgGym" aria-pressed="false" type="button"><span class="chk"></span>Gym</button>
@@ -7220,10 +7225,20 @@ function wire(){
   /* study and deep as hours and minutes (29 Sep); stored as hours so every
      total still adds up, shown back as "3 h 40 min" */
   [['inStudy','study'],['inDeep','deep']].forEach(function(q){
-    [q[0]+'H',q[0]+'M'].forEach(function(id){E(id).addEventListener('change',function(){
+    [q[0]+'H',q[0]+'M'].forEach(function(id){
+      /* tapping in selects what is there, so typing replaces it rather than
+         tacking on — "48" then "15" was becoming 4815 minutes (29 Sep) */
+      E(id).addEventListener('focus',function(){var el=this;setTimeout(function(){try{el.select();}catch(e){}},0);});
+      E(id).addEventListener('change',function(){
       var d=E('logDate').value||today(),h=num(E(q[0]+'H')),m=num(E(q[0]+'M')),o={};
       if(h===null&&m===null){o[q[1]]=null;}
-      else{var mins=Math.max(0,Math.round((h||0)*60+(m||0)));o[q[1]]=mins?Math.min(16*60,mins)/60:null;}
+      else{
+        /* 90 min with no hours is 1 h 30; anything past 16 h is a typo, so
+           it is put back rather than saved */
+        var mins=Math.round((h||0)*60+(m||0));
+        if(mins<0||mins>16*60||(h!==null&&h>16)||(m!==null&&m>600)){paintForm();return;}
+        o[q[1]]=mins?mins/60:null;
+      }
       setDay(d,o);
     });});
   });

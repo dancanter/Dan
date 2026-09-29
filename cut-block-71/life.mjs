@@ -209,10 +209,18 @@ ok('and read back as hours and minutes', await p.evaluate(() => { const r = dayF
 ok('3.8 reads as 3 h 48 min, 0.5 as 30 min', await p.evaluate(() => sh(3.8) === '3 h 48 min' && sh(0.5) === '30 min' && sh(4) === '4 h'));
 await p.reload(); await p.waitForTimeout(200);
 ok('the boxes fill back in as hours and minutes', (await p.inputValue('#inStudyH')) === '3' && (await p.inputValue('#inStudyM')) === '40');
+// tapping into a box with a number in it replaces it, never tacks on (48 then 15 was 4815 min)
+await p.click('#inStudyM'); await p.waitForTimeout(60); await p.keyboard.type('15'); await p.press('#inStudyM', 'Tab'); await p.waitForTimeout(150);
+ok('typing into the minutes replaces them: 3 h 15 min', await p.evaluate(() => Math.round(S.days[today()].study * 60) === 195));
+await p.fill('#inStudyH', '90'); await p.press('#inStudyH', 'Tab'); await p.waitForTimeout(150);
+ok('a typo past 16 h is put back, not saved', await p.evaluate(() => Math.round(S.days[today()].study * 60) === 195) && (await p.inputValue('#inStudyH')) === '3');
+await p.fill('#inDeepH', '0'); await p.press('#inDeepH', 'Tab'); await p.fill('#inDeepM', '90'); await p.press('#inDeepM', 'Tab'); await p.waitForTimeout(150);
+ok('90 min carries to 1 h 30', await p.evaluate(() => Math.round(S.days[today()].deep * 60) === 90) && (await p.inputValue('#inDeepH')) === '1' && (await p.inputValue('#inDeepM')) === '30');
+ok('the study boxes sit inside the screen', await p.evaluate(() => { const r = E('inDeepM').parentNode.getBoundingClientRect(); return r.right <= document.documentElement.clientWidth; }));
 await p.fill('#inStudyH', ''); await p.press('#inStudyH', 'Tab'); await p.fill('#inStudyM', ''); await p.press('#inStudyM', 'Tab'); await p.waitForTimeout(150);
 ok('emptying both clears it', await p.evaluate(() => S.days[today()].study === undefined));
 await p.click('[data-t="study"]'); await p.waitForTimeout(100);
-ok('the Study tab shows deep work as hours and minutes', /2 h 15 min/.test(sq(await p.innerText('#deepCard'))));
+ok('the Study tab shows deep work as hours and minutes', /1 h 30 min/.test(sq(await p.innerText('#deepCard'))));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====
