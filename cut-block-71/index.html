@@ -532,7 +532,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="dayCard"></div>
   <div id="stTop"></div>
   <div class="p"><h2>Why study is in a cut app at all</h2>
-    <p>SK297 and SK298 — two 30-credit modules, 8–10 hours each, so a 16–20 hour week. Term starts <b>Monday 28 September</b>.</p>
+    <p>SK297 and SK298 — two 30-credit modules. For a distinction the number that matters is <b>8–12 h of deep study a week</b>; over 15 is too much. Term starts <b>Monday 28 September</b>.</p>
     <p class="note">The point is not to manage the degree. It is that training load and study load draw down the same recovery, and an app that can only see the running will tell you to push in a week you are already buried.</p>
     <p class="note">When both are high in the same week the instruction has a direction: <b>drop the third effort session, not the study hours.</b> The deadline does not move and the session does.</p>
   </div>
@@ -1463,7 +1463,7 @@ function studyModel(){
   }
   return {live:live,toTerm:diffD(t,CFG.study.term),total:s,daysLogged:n,deep:dp,
           deepShare:s>0?dp/s:null,preTotal:pre,preDays:preN,preDeep:preDeep,
-          state:!live?'pre':(s<CFG.study.lo?'under':(s>=CFG.study.hi?'full':'in'))};
+          state:!live?'pre':(dp>DEEP.cap?'too':(dp>DEEP.hi?'high':(dp>=DEEP.lo?'in':'building')))};
 }
 
 /* ===================== what a session actually was =====================
@@ -1867,8 +1867,9 @@ function reviewFeedback(R,wk){
   }
   /* study */
   if(R.study.live&&R.study.n){
-    if(R.study.total>=CFG.study.lo)win.push('<b>'+sh(R.study.total)+'</b> of study — inside the band.');
-    else if(!live)next.push('<b>Study:</b> '+sh(R.study.total)+', '+sh(CFG.study.lo-R.study.total)+' under 16. Two fixed deep blocks early in the week make it easy.');
+    if(R.study.deep>DEEP.cap)next.push('<b>Deep study:</b> '+sh(R.study.deep)+' — past '+DEEP.cap+' h, which is too much. The extra rarely sticks; keep it to '+DEEP.lo+'–'+DEEP.hi+'.');
+    else if(R.study.deep>=DEEP.lo)win.push('<b>'+sh(R.study.deep)+'</b> of deep study — the range for a distinction.');
+    else win.push('<b>'+sh(R.study.total)+'</b> of study'+(R.study.deep?', '+sh(R.study.deep)+' of it deep':'')+'.');
   }else if(R.study.total>0)win.push('<b>'+sh(R.study.total)+'</b> of study before term has even started.');
   /* next week's shape */
   var nx=typeof wk.k==='number'?wk.k+1:1;
@@ -1974,7 +1975,7 @@ function renderReview(){
     '<div class="p"><h2>Study</h2>'+
     '<div class="tiles t4">'+tile('hours',sh(R.study.total)+'',R.study.n+' day'+(R.study.n===1?'':'s')+' logged')+
       tile('deep',sh(R.study.deep)+'',R.study.total>0?Math.round(R.study.deep/R.study.total*100)+'% of them':'')+'</div>'+
-    (R.study.live?'<p class="tiny" style="margin-top:8px">'+(R.study.total<CFG.study.lo?(sh(CFG.study.lo-R.study.total)+' under the 16–20 band.'):(R.study.total>=CFG.study.hi?'A full week — protect the Saturday.':'Inside the band.'))+'</p>'
+    (R.study.live?'<p class="tiny" style="margin-top:8px">'+(R.study.deep>DEEP.cap?'Past '+DEEP.cap+' h of deep study — too much for one week.':(R.study.deep>=DEEP.lo?'Deep study in the '+DEEP.lo+'–'+DEEP.hi+' h range for a distinction.':'Aim: '+DEEP.lo+'–'+DEEP.hi+' h of deep study a week.'))+'</p>'
      :'<p class="tiny" style="margin-top:8px">Term starts '+fmtL(CFG.study.term)+', so nothing is judged yet — but every hour counts.</p>')+
     '</div></div>';
 
@@ -2129,7 +2130,7 @@ function achList(){
      m:sl.a7.avg===null?'no nights logged yet':(sl.a7.n<4?(sl.a7.n+' of 7 nights logged — not enough to say'):(f1(sl.a7.avg)+' h over '+sl.a7.n+' nights'))}
   ];
   var study=[
-    {n:'A week inside 16–20 h',got:st.live&&st.total>=CFG.study.lo,when:null,
+    {n:'A week of '+DEEP.lo+'–'+DEEP.hi+' h deep study',got:st.live&&st.deep>=DEEP.lo,when:null,
      m:!st.live?('term starts '+fmtS(CFG.study.term)):(sh(st.total)+' in the last 7 days')},
     {n:'10 deep hours in a week',got:st.deep>=10,when:null,m:sh(st.deep)+' deep in the last 7 days'}
   ];
@@ -2293,10 +2294,10 @@ function renderWins(){
     tile('per day logged',sh(sb.avg)+'','on the days you logged')+
     tile(sb.live?'per week since term':'term starts',
       sb.live?(sb.perWeek===null?'—':sh(sb.perWeek)+''):fmtS(CFG.study.term),
-      sb.live?'against the '+CFG.study.lo+'–'+CFG.study.hi+' band':'nothing judged until then')+
+      sb.live?'aim: '+DEEP.lo+'–'+DEEP.hi+' h deep':'nothing judged until then')+
     '</div>'+
     (sb.best?'<p class="tiny" style="margin-top:10px">Biggest day: <b class="num">'+sh(sb.best.h)+'</b> on '+fmtS(sb.best.d)+'.</p>':'')+
-    '<p class="tiny">Hours are counted for the whole block, not the rolling week — the Study tab has the week and the band.</p></div>';
+    '<p class="tiny">Hours are counted for the whole block, not the rolling week — the Study tab has the week.</p></div>';
   E('winStudy').innerHTML=stH;
 
   /* the deficit as a running total for the whole block, day by day */
@@ -3269,7 +3270,7 @@ function betterModel(){
    something he logged, never off a hunch. */
 function weekStatus(){
   var t=today(),R=rhrModel(),NG=niggleModel(),i,d,rec;
-  var hardRuns=0,legsLoad=0,trainedRun=0,sl=[],study=0,runs7=0;
+  var hardRuns=0,legsLoad=0,trainedRun=0,sl=[],study=0,deep7=0,runs7=0;
   for(i=0;i<7;i++){
     d=addD(t,-i);rec=S.days[d]||{};
     var hardHere=false,anyRun=false;
@@ -3277,6 +3278,7 @@ function weekStatus(){
     if(i<3){if(rec.split==='legs')legsLoad++;if(hardHere)legsLoad++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.sprint&&!m.empty)legsLoad++;});}
     if(i<3&&typeof rec.sleep==='number')sl.push(rec.sleep);
     if(typeof rec.study==='number')study+=rec.study;
+    if(typeof rec.deep==='number')deep7+=rec.deep;
   }
   /* days in a row with a session in them, counting back from today (or
      from yesterday, if today has nothing on it yet) */
@@ -3294,7 +3296,7 @@ function weekStatus(){
     : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
   if(legsLoad>=3)return {k:'legs',t:'Time to rest your legs',w:'Legs, hard running and sprints stacked into the last three days. Upper body or a walk next, not another leg session or hard run.'};
   if(sleep3!==null&&sleep3<7&&R.state==='up')return {k:'warn',t:'You might be overstressing',w:'Sleep is down to '+f1(sleep3)+' h and your resting HR is creeping up. Early night, and keep tomorrow easy.'};
-  if(study>CFG.study.hi&&sleep3!==null&&sleep3<CFG.sleep.line)return {k:'warn',t:'You might be overworking',w:sh(study)+' of study this week and sleep has slipped to '+f1(sleep3)+' h. The hours after 20 are costing more than they give.'};
+  if(deep7>DEEP.cap&&sleep3!==null&&sleep3<CFG.sleep.line)return {k:'warn',t:'You might be overworking',w:sh(deep7)+' of deep study this week — past '+DEEP.cap+' h — and sleep has slipped to '+f1(sleep3)+' h. The extra hours are costing more than they give.'};
   if(sleep3!==null&&sleep3<6.5)return {k:'warn',t:'Short on sleep',w:'Last few nights averaged '+f1(sleep3)+' h. Keep the next hard session until you’ve had a proper night.'};
   if(R.state==='up')return {k:'warn',t:'Keep the next day easy',w:'Resting HR is a little up on your baseline. Not a warning yet — just don’t stack a hard day on it.'};
   return null;
@@ -3496,7 +3498,7 @@ function coachModel(){
   if(moodAvg!==null&&moodAvg<=2.5)add(1,'your mood has been low');
   if(o.heavy14>=2)add(1,o.heavy14+' sessions felt like a 9 or 10 in the last fortnight');
   if(w.band==='fast')add(1,'the weight is coming off faster than the safe band');
-  if(o.study>CFG.study.hi)add(1,sh(o.study)+' of study this week');
+  if(o.deep>DEEP.cap)add(1,sh(o.deep)+' of deep study this week');
   if(NG.persistent)add(2,'something has hurt on '+NG.n+' days'+(NG.top?' — '+NG.top:''));else if(NG.n)add(1,'something has hurt'+(NG.top?' — '+NG.top:''));
   if(o.lastOff>=10)add(1,'no full day off in '+o.lastOff+' days');
   if(stAvg!==null&&stAvg>16500&&o.runs>=5)add(1,'big steps on top of '+o.runs+' runs');
@@ -3537,8 +3539,7 @@ function coachModel(){
   if(stAvg!==null&&stAvg>=CFG.goals.steps)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
   if(slAvg!==null&&slAvg>=CFG.sleep.line)good.push('Sleep averaging <b>'+hm(slAvg*60)+'</b> — the biggest testosterone lever, covered.');
   if(o.sl.length>=3&&o.phone>=o.sl.length-1)good.push('Phone out of the bed '+o.phone+' of '+o.sl.length+' nights.');
-  if(o.study>=CFG.study.lo&&o.study<=CFG.study.hi)good.push('<b>'+sh(o.study)+'</b> of study — inside the band.');
-  else if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+sh(o.deep)+'</b> of deep work — the sweet spot.');
+  if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+sh(o.deep)+'</b> of deep study — the range for a distinction.');
   if(moodAvg!==null&&moodAvg>=4)good.push('Mood has been good.');
   /* what to change — at most three, the most useful first */
   if(slAvg!==null&&slAvg<CFG.sleep.line)sug.push('<b>Sleep:</b> '+hm(slAvg*60)+' a night. Bed about '+hm((CFG.sleep.line-slAvg)*60)+' earlier, phone out of the room.');
@@ -3547,7 +3548,7 @@ function coachModel(){
   if(o.hard>=3)sug.push('<b>'+o.hard+' hard runs in 7 days.</b> Two is where the times are kept on a deficit — make the next one easy.');
   if(o.runs>=6)sug.push('<b>'+o.runs+' runs in 7 days.</b> The plan is four; walk instead of the extra ones.');
   if(stAvg!==null&&stAvg<CFG.goals.steps-1500)sug.push('<b>Steps:</b> '+ci(Math.round(stAvg/100)*100)+' a day. A 20-minute walk after lunch closes most of it.');
-  if(o.study>CFG.study.hi)sug.push('<b>Study is high</b> — '+sh(o.study)+'. Cap deep work at about 4 h a day; the hours past 20 cost more than they give.');
+  if(o.deep>DEEP.cap)sug.push('<b>Deep study is past '+DEEP.cap+' h</b> — '+sh(o.deep)+'. That is too much: keep to about '+DEEP.day+' h a day and '+DEEP.lo+'–'+DEEP.hi+' a week; the extra rarely sticks.');
   if(o.sl.length>=3&&o.phone<o.sl.length/2)sug.push('<b>Phone out of the bedroom</b> — only '+o.phone+' of '+o.sl.length+' nights so far.');
   if(moodAvg!==null&&moodAvg<=2.5)sug.push('<b>Mood has been low.</b> Get out somewhere green, see a mate, and a film night — they count.');
   return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
@@ -3649,6 +3650,10 @@ function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML(
    sitting at the desk. A bar for the week, a bar for each day, and a gentle
    flag — never a telling-off — when a day or the week runs past it. */
 var DEEP={lo:8,hi:12,cap:15,day:4};
+/* Dan, 30 Sep: no "X hours under" for study — just the aim for a distinction
+   and where too much starts. Study is judged on deep hours only, and the only
+   flag is too much, never too little. */
+var DEEP_AIM='For a distinction: <b>'+DEEP.lo+'–'+DEEP.hi+' h of deep study a week</b>, up to about '+DEEP.day+' h in a day. Over '+DEEP.cap+' h a week is too much.';
 function deepWeek(d){
   var st=mondayOf(d),days=[],tot=0;
   for(var i=0;i<7;i++){var dd=addD(st,i),r=S.days[dd]||{},v=typeof r.deep==='number'?r.deep:0;days.push({d:dd,v:v,future:dd>d});tot+=v;}
@@ -3658,7 +3663,7 @@ function deepVerdict(tot){
   if(tot>DEEP.cap)return {k:'w',t:'Past the ceiling',w:'Over '+DEEP.cap+' h — the extra hours rarely stick, and they come out of your sleep and your training. Make the rest of the week lighter.'};
   if(tot>DEEP.hi)return {k:'w',t:'High',w:'Fine for a week or two before a deadline — then drop back to '+DEEP.lo+'–'+DEEP.hi+'.'};
   if(tot>=DEEP.lo)return {k:'g',t:'Sweet spot',w:DEEP.lo+'–'+DEEP.hi+' h: enough to move the modules on, and your focus stays sharp.'};
-  return {k:'',t:'Building',w:'Heading for '+DEEP.lo+'–'+DEEP.hi+' h. One or two morning blocks gets you there.'};
+  return {k:'',t:'Building',w:'The week is still going — '+DEEP.lo+'–'+DEEP.hi+' h is the aim. Your morning blocks are how it adds up.'};
 }
 function deepHTML(){
   var t=today(),W=deepWeek(t),v=deepVerdict(W.tot),top=Math.max(DEEP.cap+2,W.tot);
@@ -3670,8 +3675,9 @@ function deepHTML(){
     return '<div style="flex:1;text-align:center"><div style="height:60px;display:flex;align-items:flex-end;justify-content:center;position:relative">'+
       '<div style="position:absolute;left:0;right:0;bottom:'+Math.round(DEEP.day/maxD*56)+'px;border-top:1px dashed var(--rule)"></div>'+
       '<div style="width:60%;height:'+Math.max(x.v?3:0,hgt)+'px;background:'+(x.v>DEEP.day?'var(--warn)':'var(--accent)')+';border-radius:3px 3px 0 0"></div></div>'+
-      '<div class="tiny dim">'+DOWS[dow(x.d)].slice(0,1)+'</div><div class="tiny mono">'+(x.v?f1(x.v):(x.future?'&nbsp;':'–'))+'</div></div>';}).join('');
+      '<div class="tiny dim">'+DOWS[dow(x.d)].slice(0,1)+'</div><div class="tiny mono">'+(x.v?hm(x.v*60).replace(' h ','h').replace(' min','').replace(' h','h'):(x.future?'&nbsp;':'–'))+'</div></div>';}).join('');
   return '<div class="p lift"><h2>🧠 Deep work this week</h2>'+
+    '<p class="keep" style="margin:0 0 8px">🎯 '+DEEP_AIM+'</p>'+
     '<div class="row" style="gap:10px;align-items:baseline"><b class="num" style="font-size:1.6em">'+sh(W.tot)+'</b><span class="pill'+(v.k?' '+v.k:'')+'">'+v.t+'</span></div>'+
     '<div style="position:relative;height:14px;background:var(--rule-2);border-radius:7px;margin:10px 0 4px;overflow:hidden">'+
       '<div style="position:absolute;left:'+pos(DEEP.lo)+';width:'+((DEEP.hi-DEEP.lo)/top*100).toFixed(1)+'%;top:0;bottom:0;background:rgba(80,200,170,.22)"></div>'+
@@ -4701,8 +4707,8 @@ function renderToday(c,w,tr){
   /* combined load */
   var st=studyModel();
   var lc='';
-  if(st.live&&st.total>=CFG.study.hi&&(tr.week.hard>=3||(tr.week.hard>=2&&tr.week.gym>=5))){
-    lc='<div class="p warn"><h2>Both loads are high this week</h2><p>'+tr.week.hard+' effort session'+(tr.week.hard===1?'':'s')+' and '+tr.week.gym+' gym, against <b class="num">'+sh(st.total)+'</b> of study in the last seven days.</p>'+
+  if(st.live&&st.deep>=DEEP.hi&&(tr.week.hard>=3||(tr.week.hard>=2&&tr.week.gym>=5))){
+    lc='<div class="p warn"><h2>Both loads are high this week</h2><p>'+tr.week.hard+' effort session'+(tr.week.hard===1?'':'s')+' and '+tr.week.gym+' gym, against <b class="num">'+sh(st.total)+'</b> of study ('+sh(st.deep)+' deep) in the last seven days.</p>'+
        '<p>Neither on its own is a problem. Together, in a deficit, they are the combination that turns into a flat fortnight. <b>Drop the third effort session, not the study hours</b> — the deadline does not move and the session does.</p></div>';
   }
   E('loadCard').innerHTML=lc;
@@ -4813,7 +4819,7 @@ function weekExtrasHTML(start,end){
   if(cut>=CFG.study.term){
     h+='<tr><td>Study</td><td class="n">'+sh(sy)+'</td><td>'+
        (syN===0?'<span class="tiny">none logged yet</span>':
-        (sy>=CFG.study.lo?(sy>=CFG.study.hi?'<span class="pill">full week</span>':'<span class="pill g">in the band</span>'):'<span class="pill w">'+sh(CFG.study.lo-sy)+' short</span>')+
+        (dp>DEEP.cap?'<span class="pill w">too much deep</span>':(dp>=DEEP.lo?'<span class="pill g">distinction range</span>':''))+
         (dp>0?' <span class="tiny">'+sh(dp)+' deep</span>':''))+'</td></tr>';
   }
   return h+'</tbody></table>';
@@ -6178,19 +6184,17 @@ function renderStudy(tr){
       tile('days away',m.toTerm,'nothing to judge until then')+
       tile('logged so far',sh(m.preTotal)+'',m.preDays+' day'+(m.preDays===1?'':'s')+(m.preDeep>0?' · '+sh(m.preDeep)+' deep':''))+
       tile('cut day then',(diffD(CFG.cutStart,CFG.study.term)+1)+' / '+CUT_DAYS,'four days past halfway')+
-      '</div><p class="tiny" style="margin-top:10px">Log hours whenever you like — they are kept, and nothing judges them against the 16–20 band until term. This panel stays quiet until then. A bar reading "16 hours short" every morning for a fortnight is noise, and noise gets ignored right up until the week it matters.</p></div>';
+      '</div><p class="tiny" style="margin-top:10px">Log hours whenever you like — they are kept, and nothing judges them until term. '+DEEP_AIM+'</p></div>';
   }else{
-    var cls=m.state==='under'?'warn':(m.state==='full'?'flag':'good');
-    h='<div class="p"><h2>Study · rolling 7 days</h2><div class="tiles t4">'+
-      tile('last 7 days',sh(m.total)+'',m.daysLogged+' day'+(m.daysLogged===1?'':'s')+' logged')+
-      tile('deep work',sh(m.deep)+'',m.deepShare===null?'inside the 7-day total':Math.round(m.deepShare*100)+'% of the hours were deep')+
-      tile('standing',m.state==='under'?sh(CFG.study.lo-m.total)+' short':(m.state==='full'?'full week':'inside the band'),'')+
-      tile('effort sessions',tr.week.hard,'this Mon–Sun week')+
+    h='<div class="p"><h2>Study · last 7 days</h2><div class="tiles t4">'+
+      tile('study',sh(m.total),m.daysLogged+' day'+(m.daysLogged===1?'':'s')+' logged')+
+      tile('deep study',sh(m.deep),m.deepShare===null?'':Math.round(m.deepShare*100)+'% of it deep')+
+      tile('aim',DEEP.lo+'–'+DEEP.hi+' h','deep, for a distinction')+
+      tile('too much','over '+DEEP.cap+' h','deep in a week · ~'+DEEP.day+' h a day')+
       '</div>';
-    if(m.state==='under')h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>'+sh(CFG.study.lo-m.total)+' short of the band.</b> Deep blocks beat scattered hours — two more three-hour sessions close it faster than an hour a day.</div>';
-    if(m.state==='in')h+='<div class="p good" style="margin-top:12px;box-shadow:none">Inside the band — '+sh(m.total)+' against '+CFG.study.lo+'–'+CFG.study.hi+'.</div>';
-    if(m.deepShare!==null&&m.deepShare<0.5&&m.total>=6)h+='<div class="p" style="margin-top:12px;box-shadow:none;border-left:3px solid var(--ink-3)">Under half of those hours were deep. The hours are there; the shape of them is what costs you.</div>';
-    if(m.state==='full')h+='<div class="p lift" style="margin-top:12px;box-shadow:none"><b>That is a full week — protect the Saturday.</b></div>';
+    if(m.state==='too')h+='<div class="p warn" style="margin-top:12px;box-shadow:none"><b>'+sh(m.deep)+' of deep study — past '+DEEP.cap+' h.</b> That is too much: the extra rarely sticks, and it comes out of sleep and training. Make the next few days lighter.</div>';
+    if(m.state==='in')h+='<div class="p good" style="margin-top:12px;box-shadow:none">'+sh(m.deep)+' of deep study — right in the range for a distinction.</div>';
+    if(m.state==='high')h+='<div class="p lift" style="margin-top:12px;box-shadow:none">'+sh(m.deep)+' deep — on the high side. Fine before a deadline; keep it under '+DEEP.cap+' h.</div>';
     h+='</div>';
   }
   E('stTop').innerHTML=h;

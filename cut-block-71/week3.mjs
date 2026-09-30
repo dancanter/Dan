@@ -187,9 +187,9 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   const ng = await status();
   ok('something hurts: rest it, and it names it', /Rest what hurts/.test(ng.t) && /calf/.test(ng.w), JSON.stringify(ng));
   days = {};
-  for (let i = 0; i < 7; i++) days[await ago(i)] = { study: 3.2, sleep: 7.0 };
+  for (let i = 0; i < 7; i++) days[await ago(i)] = { study: 3.2, deep: 2.4, sleep: 7.0 };
   await boot(st({ days }));
-  ok('lots of study and sleep slipping: overworking', /overworking/.test((await status() || {}).t), JSON.stringify(await status()));
+  ok('deep study past 15 h and sleep slipping: overworking', /overworking/.test((await status() || {}).t), JSON.stringify(await status()));
   await boot(st({ days: { [await ago(1)]: { gym: true, split: 'back' } } }));
   ok('an ordinary week raises nothing', (await status()) === null);
   await p.click('[data-t="today"]');

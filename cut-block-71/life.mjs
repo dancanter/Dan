@@ -195,6 +195,20 @@ ok('the read-back flags a 4.5 h deep day too', await p.evaluate(() => { const r 
 ok('what counts as deep is spelled out', /copying, highlighting and tidying do not/.test(await p.evaluate(() => deepHTML())));
 await ctx.close();
 
+// ===== study: the aim for a distinction, never "hours under" =====
+({ ctx, p, boot } = await at('2026-10-01'));
+await boot(st({ days: { '2026-09-28': { study: 2, deep: 1.5 }, '2026-09-29': { study: 1, deep: 1 } } }));
+await p.click('[data-t="study"]'); await p.waitForTimeout(150);
+let stx = sq(await p.innerText('#s-study'));
+ok('the Study tab shows the aim and the too-much line', /For a distinction: 8–12 h of deep study a week/.test(stx) && /Over 15 h a week is too much/.test(stx), stx.slice(0, 400));
+ok('and never says how many hours under or short', !/\bunder\b.{0,20}(band|16)|short of the band|h short|\d+ h under/i.test(stx), (stx.match(/.{0,40}(under|short).{0,40}/gi) || []).join(' | '));
+const lowFb = await p.evaluate(() => { const c = coachModel(); return c.sug.join(' ') + ' ' + c.strain.join(' '); });
+ok('a light study week is not flagged anywhere', !/study|deep/i.test(lowFb), lowFb);
+await boot(st({ days: { '2026-09-28': { study: 6, deep: 5 }, '2026-09-29': { study: 6, deep: 5 }, '2026-09-30': { study: 6, deep: 5 }, '2026-10-01': { study: 2, deep: 1.5 } } }));
+const hiC = await p.evaluate(() => { const c = coachModel(); return { sug: c.sug.join(' '), st: studyModel().state }; });
+ok('past 15 h deep is called too much', hiC.st === 'too' && /Deep study is past 15 h/.test(hiC.sug), JSON.stringify(hiC));
+await ctx.close();
+
 // ===== study in hours and minutes =====
 ({ ctx, p, boot } = await at('2026-10-01'));
 await boot(st());

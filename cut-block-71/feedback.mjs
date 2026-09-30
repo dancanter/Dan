@@ -65,10 +65,10 @@ await boot(st({ weights: good, days: d }));
 ok('a recent refeed reads as done', (await C()).refeed.k === 'done');
 
 // ===== a couple of strains: a day or two off =====
-d = clean(); for (let i = 0; i < 7; i++) { d[iso(i)].sleep = 6.8; d[iso(i)].study = 3.5; }
+d = clean(); for (let i = 0; i < 7; i++) { d[iso(i)].sleep = 6.8; d[iso(i)].study = 3.5; d[iso(i)].deep = 2.5; }
 await boot(st({ weights: good, days: d }));
 c = await C();
-ok('short sleep and heavy study: a day or two off', c.rest.k === 'days' && /Take a day or two off/.test(c.rest.t) && /sleep is averaging 6\.8 h/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
+ok('short sleep and too much deep study: a day or two off', c.rest.k === 'days' && /Take a day or two off/.test(c.rest.t) && /sleep is averaging 6\.8 h/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
 ok('and says sleep first', /Sleep:/.test(c.sug[0] || ''), JSON.stringify(c.sug));
 
 // ===== no day off in a week: the next day off =====
