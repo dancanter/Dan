@@ -888,14 +888,17 @@ var KCAL_LIGHTUP=KCAL_DAY+100;
    floor is no longer the binding constraint. */
 /* fat 48 g (was 42) from 28 Sep: about 24% of the day, clear of the ~20% under which testosterone drops */
 /* 1 Oct, the reverse: protein HOLDS at 135 (more food lowers what it takes to
-   keep muscle, and past ~2.2 g/kg buys nothing), fat climbs from 48 to fatRev
+   keep muscle, and past ~2.2 g/kg buys nothing), fat climbs from 48 to 30%
+   of maintenance (Dan, 1 Oct: fat matters for health and testosterone —
+   30% is the middle of the healthy 25–35% and still leaves ~4 g/kg carbs)
    by maintenance, and everything else goes to carbohydrate — which is what
    refills glycogen and lets the times come. The hold weeks are all carbs. */
-var MACRO={pro:135,fat:48,proRev:135,fatRev:65};
+var MACRO={pro:135,fat:48,proRev:135,fatRevPct:0.30};
+function fatTop(maint){return Math.max(MACRO.fat,Math.round(maint*MACRO.fatRevPct/9));}
 /* protein, fat and carbs for any rung of the reverse */
 function revMacros(k,first,maint){
   var fr=maint>first?Math.max(0,Math.min(1,(k-first)/(maint-first))):(k>=maint?1:0);
-  var fat=Math.round(MACRO.fat+(MACRO.fatRev-MACRO.fat)*fr);
+  var fat=Math.round(MACRO.fat+(fatTop(maint)-MACRO.fat)*fr);
   var pro=MACRO.proRev;
   return {pro:pro,fat:fat,carb:Math.max(0,Math.round((k-pro*4-fat*9)/4))};
 }
@@ -3659,7 +3662,7 @@ function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML(
 /* 1 Oct, Dan: his macros on the cut, in the reverse, and in general for
    longevity and hormones — the numbers first, the why behind Read more. */
 function macroHTML(){
-  var R=reverseModel(),top=R.top||{kcal:R.maint,pro:MACRO.proRev,fat:MACRO.fatRev,carbs:0};
+  var R=reverseModel(),top=R.top||{kcal:R.maint,pro:MACRO.proRev,fat:fatTop(R.maint),carbs:0};
   var kg=(avgWindow(today(),7).avg||CFG.w.target)*0.45359237;
   var gk=function(g){return f1(g/kg)+' g/kg';};
   var pct=function(g,per,k){return Math.round(g*per/k*100)+'%';};
@@ -3671,10 +3674,10 @@ function macroHTML(){
   return '<div class="p"><h2>Your macros · and why</h2>'+
     row('On the cut','now · '+ci(KCAL_DAY)+' kcal',
       [MACRO.pro+' g',gk(MACRO.pro)+' · '+pct(MACRO.pro,4,KCAL_DAY)],[MACRO.fat+' g',gk(MACRO.fat)+' · '+pct(MACRO.fat,9,KCAL_DAY)],[cutC+' g','never under '+CARB_FLOOR+' · '+pct(cutC,4,KCAL_DAY)],
-      '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
+      '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. It is not higher on the cut only because every extra 10 g of fat costs 22 g of carbs, and carbs are already at their floor — it goes up in the reverse. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
     row('The reverse, at the top','from '+fmtS(REV_START)+' · '+ci(top.kcal)+' kcal',
       [top.pro+' g','holds steady'],[top.fat+' g','up from '+MACRO.fat],[top.carbs+' g','+'+(top.carbs-cutC)+' on the cut'],
-      'Most of the extra food goes to <b>carbs</b>: they refill glycogen, and that is where the PBs come from. Protein holds — with more food you need less of it to keep muscle. Fat rises gently, to about 25–30%. The Reverse tab has every week. Expect 1–2 lb on the scale the first week: glycogen and water, not fat.')+
+      'Most of the extra food goes to <b>carbs</b>: they refill glycogen, and that is where the PBs come from. Protein holds — with more food you need less of it to keep muscle. <b>Fat rises to 30% of the day</b>: testosterone is made from it, and the benefit levels off around 30–35%, so this is the sweet spot while still leaving about 4 g/kg of carbs for your running. The Reverse tab has every week. Expect 1–2 lb on the scale the first week: glycogen and water, not fat.')+
     row('In general · health, hormones, longevity','at maintenance',
       ['105–140','g · 1.8–2.4 g/kg'],['25–35%','65–90 g'],['45–55%','the rest'],
       'For a young person who trains, more muscle predicts a longer, healthier life, so protein stays high — split over 3–4 meals of 30–40 g. Fat from whole foods: oily fish 2–3 times a week, eggs, dairy, walnuts, hazelnuts, meat. Carbs from fruit, potatoes, rice, certified GF oats and honey — more on hard days, less on rest days.')+
@@ -6804,8 +6807,8 @@ function renderReverse(){
       '<td class="n"><b>'+ci(r.kcal)+'</b>'+(r.atTop?' <span class="tiny">✓ top</span>':(r.hold?' <span class="tiny">hold</span>':''))+'</td><td class="n">'+r.pro+'</td><td class="n">'+r.fat+'</td><td class="n">'+r.carbs+(r.carbUp>0?' <span class="tiny">+'+r.carbUp+'</span>':'')+'</td></tr>';
   });
   lg+='</tbody></table></div><p class="tiny keep" style="margin-top:4px">Protein, fat and carbs in grams a day.</p>'+
-    '<p class="tiny" style="margin-top:8px"><b>Protein holds at '+MACRO.proRev+' g, fat climbs from '+MACRO.fat+' to '+MACRO.fatRev+' g, and the rest is carbs.</b> '+
-    'Why: with more food your body needs less protein to keep its muscle, and past about 2.2 g/kg extra buys nothing. Fat rises gently for hormones, to about 25–30% of the day. '+
+    '<p class="tiny" style="margin-top:8px"><b>Protein holds at '+MACRO.proRev+' g, fat climbs from '+MACRO.fat+' to '+fatTop(R.maint)+' g (30% of maintenance), and the rest is carbs.</b> '+
+    'Why: with more food your body needs less protein to keep its muscle, and past about 2.2 g/kg extra buys nothing. Fat rises to 30% of the day — testosterone is made from it, and the benefit levels off around 30–35%. '+
     'Most of the climb goes in as carbohydrate — the first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
     '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+

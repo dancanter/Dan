@@ -20,10 +20,10 @@ await boot(st());
 // because there the calories pay for it. The suite pins the SHAPE — cut
 // number, reverse number, headroom, derived strings — not the digits, so
 // moving the dial does not turn the suite red for no reason.
-const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: MACRO.fatRev,
+const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: fatTop(reverseModel().maint), fatPct: MACRO.fatRevPct,
   carb: CARB_AT, floor: CARB_FLOOR, max: PRO_MAX, txt: PRO_TXT, kcal: KCAL_DAY }));
 ok('the cut protein is the one Dan set', m.pro === 135, String(m.pro));
-ok('on the reverse protein holds and fat climbs (1 Oct)', m.proRev === m.pro && m.fatRev > m.fat, JSON.stringify(m));
+ok('on the reverse protein holds and fat climbs (1 Oct)', m.proRev === m.pro && m.fatRev > m.fat && m.fatPct === 0.30, JSON.stringify(m));
 ok('the carbohydrate it leaves clears the hard-day floor', m.carb >= m.floor, JSON.stringify(m));
 ok('PRO_MAX is the real headroom', Math.round((m.kcal - m.max * 4 - m.fat * 9) / 4) >= m.floor, String(m.max));
 ok('and one gram past PRO_MAX breaches it',

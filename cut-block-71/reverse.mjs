@@ -90,7 +90,8 @@ ok('week 1 starts on the start date', m.rungs[0].from === '2026-11-29', m.rungs[
 ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round((r.kcal - (m.rungs[m.rungs.indexOf(r) - 1] || { kcal: rev.kcal }).kcal) / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
 // Derived, not typed: protein moved 135 -> 150 g and this assertion was the
 // only thing that noticed. It should never need editing again when it moves.
-const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: MACRO.fatRev }));
+const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: fatTop(reverseModel().maint), maint: reverseModel().maint }));
+ok('fat at the top is 30% of maintenance', Math.abs(mac.fatRev * 9 / mac.maint - 0.30) < 0.01, JSON.stringify(mac));
 ok('protein and fat are pinned',
   new RegExp('Protein holds at ' + mac.proRev + ' g, fat climbs from ' + mac.fat + ' to ' + mac.fatRev + ' g').test(t), t.slice(0, 200));
 const rm = await p.evaluate(() => { const R = reverseModel(); return R.rungs.map(r => ({ k: r.kcal, p: r.pro, f: r.fat, c: r.carbs })); });
