@@ -1304,6 +1304,11 @@ function eachRun(fn){
     for(var i=0;i<rs.length;i++)fn(rs[i],d,i);
   }
 }
+/* Dan, 1 Oct: an easy 5 km is an easy run, but it is not one of the two
+   five-milers. GPS reads a 5-mile loop anywhere from about 7.9 to 8.4 km,
+   so 7.5 km and over counts as the five-miler. */
+var FIVE_MILE_KM=7.5;
+function isFiveMiler(m){return !!(m&&m.km>=FIVE_MILE_KM);}
 function trainingModel(){
   var gym=0,runs=0,hard=0,spr=0,t=today();
   for(var d in S.days){if(inCut(d)&&d<=t&&S.days[d].gym)gym++;}
@@ -1320,7 +1325,7 @@ function trainingModel(){
      exactly one bucket. The older counters overlap on purpose (a five-miler
      is both a five-miler and an easy run), which is fine for the template
      rows but useless for a total that has to add up. */
-  var wk={hard:0,sprints:0,gym:0,runs:0,easy:0,byKind:{easy:0,hard:0,sprint:0}};
+  var wk={hard:0,sprints:0,gym:0,runs:0,easy:0,five:0,easy5k:0,byKind:{easy:0,hard:0,sprint:0}};
   for(var dd in S.days){
     if(dd<wkStart||dd>wkEnd||dd>t)continue;
     if(S.days[dd].gym)wk.gym++;
@@ -1333,7 +1338,7 @@ function trainingModel(){
       if(jd.hard)wk.hard++;
       if(jd.sprint)wk.sprints++;
       /* any easy continuous run, 5 km or 5 miles or anything else */
-      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint)wk.easy++;
+      if(jd.kind==='cont'&&!jd.hard&&!jd.sprint){wk.easy++;if(isFiveMiler(jd))wk.five++;else wk.easy5k++;}
     }
   }
   return {gym:goalPace(gym,CFG.goals.gym),hard:goalPace(hard,CFG.goals.hard),runs:goalPace(runs,CFG.goals.runs),sprints:goalPace(spr,CFG.goals.sprints),
@@ -1953,7 +1958,7 @@ function renderReview(){
     tmplRow('Hard runs',R.s.hard,pre?null:TW.hard)+
     tmplRow('Uphill sprints <span class="tiny">optional</span>',R.s.sprints,pre?null:TW.sprints)+
     tmplRow('Runs, all in',R.s.runs,pre?null:TW.runs)+
-    tmplRow('Easy runs <span class="tiny">the five-milers</span>',R.s.easy,pre?null:TW.easy)+
+    tmplRow('Easy runs <span class="tiny">5 miles and 5 km</span>',R.s.easy,pre?null:TW.easy)+
     tmplRow('Gym',R.s.gym,pre?null:TW.gym)+
     '</tbody></table>'+
 
@@ -2491,7 +2496,7 @@ function weekOwes(tr){
   var T=tmplFor(tr.wkStart);
   if(tr.week.hard<T.hard)o.push({k:'hard',n:T.hard-tr.week.hard,label:'hard run'});
   if(tr.week.sprints<T.sprints)o.push({k:'sprint',n:T.sprints-tr.week.sprints,label:'sprint session'});
-  if(tr.week.easy<T.easy)o.push({k:'easy',n:T.easy-tr.week.easy,label:'easy five-miler'});
+  if(tr.week.five<T.easy)o.push({k:'easy',n:T.easy-tr.week.five,label:'easy five-miler'});
   if(tr.week.gym<T.gym)o.push({k:'gym',n:T.gym-tr.week.gym,label:'gym session'});
   return o;
 }
@@ -3143,7 +3148,8 @@ function weekRunsHTML(){
   rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
-    (w.easy>=2?'<span class="pill g">✓ both done</span>':(w.easy===1?'<span class="pill g">1 of 2 ✓</span>':''))+'<b>Easy 5 miles × 2</b> <span class="tiny">the fat-loss runs</span></div>'+
+    (w.five>=2?'<span class="pill g">✓ both done</span>':(w.five===1?'<span class="pill g">1 of 2 ✓</span>':''))+'<b>Easy 5 miles × 2</b> <span class="tiny">the fat-loss runs</span></div>'+
+    (w.easy5k?'<div class="tiny" style="margin-top:2px">+ '+w.easy5k+' easy 5 km'+(w.easy5k===1?'':'s')+' this week — a bonus, not one of the two.</div>':'')+
     '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+
     (M.kcal5?' <span class="tiny">· about <b>'+ci(M.kcal5)+' kcal</b> each</span>':'')+'</div>'+
     (legsFlag?'<div class="note wn" style="margin-top:4px">Legs flagged: make the next one a brisk walk, or 30 min very easy. It still burns; it just doesn’t dig the hole deeper.</div>':'')+
@@ -3162,7 +3168,7 @@ function weekRunsHTML(){
     ' <span class="tiny">Any days. Hard runs never the day after legs or each other, and one full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
-      tile('easy 5-milers',w.easy+' <span class="tiny">of 2</span>','take the weight off')+
+      tile('easy 5-milers',w.five+' <span class="tiny">of 2</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':'take the weight off')+
       tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?3:4))+
     '</div>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
@@ -3450,7 +3456,7 @@ function glanceHTML(){
     (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
-    row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.easy?' · '+w.easy+' easy':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
+    row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.five?' · '+w.five+' × 5 mi':'')+(w.easy5k?' · '+w.easy5k+' × 5 km':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
     row('🏋️','Gym this week',w.gym+' session'+(w.gym===1?'':'s'),'training')+
     row('😴','Sleep last night',typeof r.sleep==='number'?hDec(sleepMins(r))+' h · '+hm(sleepMins(r))+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
     row('🎬',film?'Tonight is film night':'Film nights',film?esc(film[0]):(next?'next: '+next:'none set'),'mind')+
@@ -3472,12 +3478,12 @@ var EASY_WK_DAYS=7;
 function easyWeekOn(t){var f=S.settings.easyFrom;return !!(f&&f<=t&&diffD(f,t)<EASY_WK_DAYS);}
 function coachModel(){
   var t=today(),i,d,rec,R=rhrModel(),NG=niggleModel(),w=weightModel(),ST=weekStatus();
-  var o={sessDays:0,runs:0,hard:0,easy:0,gym:0,heavy14:0,steps:[],sl:[],mood:[],study:0,deep:0,phone:0,slN:0,def:0,defN:0,lastOff:null};
+  var o={sessDays:0,runs:0,hard:0,easy:0,five:0,gym:0,heavy14:0,steps:[],sl:[],mood:[],study:0,deep:0,phone:0,slN:0,def:0,defN:0,lastOff:null};
   for(i=0;i<14;i++){
     d=addD(t,-i);if(d<CFG.cutStart)break;rec=S.days[d]||{};
     var ran=false;
     (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;ran=true;
-      if(i<7){o.runs++;if(m.hard)o.hard++;else if(!m.sprint)o.easy++;}
+      if(i<7){o.runs++;if(m.hard)o.hard++;else if(!m.sprint){o.easy++;if(isFiveMiler(m))o.five++;}}
       if(m.hard&&r.rpe>=9)o.heavy14++;});
     if(typeof rec.gymRpe==='number'&&rec.gymRpe>=9)o.heavy14++;
     var sess=ran||!!rec.gym;
@@ -3549,7 +3555,7 @@ function coachModel(){
   if(w.band==='in')good.push('Weight coming off at <b>'+f1(w.rateLb)+' lb a week</b> — right in the sweet spot.');
   if(w.newLowToday)good.push('<b>New low today.</b>');
   if(o.defN>=3&&o.def>0)good.push('About <b>'+ci(Math.round(o.def/10)*10)+' kcal</b> of deficit in the last 7 days — roughly '+f2(o.def/3500)+' lb of fat.');
-  if(o.hard>=1||o.easy>=1)good.push(o.hard+' hard run'+(o.hard===1?'':'s')+' and '+o.easy+' easy one'+(o.easy===1?'':'s')+' in the last 7 days'+(o.hard<=2&&o.easy>=2?' — the week as planned.':'.'));
+  if(o.hard>=1||o.easy>=1)good.push(o.hard+' hard run'+(o.hard===1?'':'s')+' and '+o.easy+' easy one'+(o.easy===1?'':'s')+' in the last 7 days'+(o.hard<=2&&o.five>=2?' — the week as planned.':'.'));
   if(o.gym>=3)good.push('<b>'+o.gym+' gym sessions</b> — the muscle is being held.');
   if(stAvg!==null&&stAvg>=CFG.goals.steps)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
   if(slAvg!==null&&slAvg>=CFG.sleep.line)good.push('Sleep averaging <b>'+hm(slAvg*60)+'</b> — the biggest testosterone lever, covered.');
@@ -4883,7 +4889,8 @@ function weekTemplateHTML(tr){
   var w=tr.week;
   var T=tmplFor(tr.wkStart);
   var rows=[['Hard runs',w.hard,T.hard,w.hard>=T.hard],
-            ['Easy 5-milers',w.easy,T.easy,w.easy>=T.easy],
+            ['Easy 5-milers',w.five,T.easy,w.five>=T.easy],
+            ['Easy 5 km <span class="tiny">bonus</span>',w.easy5k,0,true],
             ['Uphill sprints <span class="tiny">optional</span>',w.sprints,T.sprints,w.sprints>=T.sprints],
             ['Runs, all in',w.runs,T.runs,w.runs>=T.runs],
             ['Gym',w.gym,T.gym,w.gym>=T.gym]];
@@ -4902,6 +4909,7 @@ function weekTemplateHTML(tr){
   h+='<table class="tbl"><tbody>';
   rows.forEach(function(r){
     /* counts, not quotas: no "/ 2", no "to go" (28 Sep) */
+    if(/^Easy 5 km/.test(r[0])&&!r[1])return;
     if(true){
       h+='<tr><td>'+r[0]+'</td><td class="n">'+r[1]+'</td><td class="n">'+(r[1]?'<span class="pill g">✓</span>':'')+'</td></tr>';
       return;
@@ -4921,7 +4929,7 @@ function weekTemplateHTML(tr){
 
 
   h+='<p class="tiny" style="margin-top:8px"><b>What you have done this week</b> — the runs card has ideas for what to do next, and nothing is owed. '+
-     '<b>A 5 km and a 5 mile easy run are the same thing here — easy is easy.</b> What splits a run is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
+     '<b>Both are easy runs, but only a 5 mile counts as one of your two five-milers</b> — an easy 5 km is a bonus (7.5 km and over counts as the 5 mile, for GPS wobble). What makes a run hard is the effort, not the distance: a five-mile threshold is a hard run, a five-mile plod is an easy one. Days with nothing on them are rest, not misses.</p>';
   return h;
 }
 /* ===================== the food diary =====================

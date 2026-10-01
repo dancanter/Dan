@@ -47,7 +47,13 @@ if (!D.pre) {
     [D.tue]: { runs: [{ km: 5, secs: 1500, type: 'easy' }] } } }));
   await p.click('[data-t="training"]');
   t = sq(await p.innerText('#tWeek'));
-  ok('an easy run counts as one of the five-milers', /Easy 5-milers 1 ✓/i.test(t), t.slice(0, 400));
+  ok('an easy 5 km is its own row, not one of the five-milers', /Easy 5-milers 0/i.test(t) && /Easy 5 km bonus 1 ✓/i.test(t), t.slice(0, 400));
+  await boot(st({ days: { [D.tue]: { runs: [{ km: 8.28, secs: 2326, type: 'easy' }] } } }));
+  await p.click('[data-t="training"]');
+  ok('an 8.28 km easy run is a five-miler', /Easy 5-milers 1 ✓/i.test(sq(await p.innerText('#tWeek'))));
+  await boot(st({ days: { [D.mon]: { runs: [{ k: 'reps', dm: 400, n: 6, secs: 62 }] }, [D.tue]: { runs: [{ km: 5, secs: 1500, type: 'easy' }] } } }));
+  await p.click('[data-t="training"]');
+  t = sq(await p.innerText('#tWeek'));
   ok('and still counts toward the runs total', /Runs, all in 2 ✓/i.test(t), t.slice(0, 400));
   ok('and never says what is left to do', !/to go/i.test(t) && /Hard runs 1 ✓/i.test(t) && /Uphill sprints optional 0/i.test(t));
 }

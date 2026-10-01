@@ -55,9 +55,7 @@ await boot(mk({ '2026-09-21': { runs: [{ km: 5, secs: 1482, type: 'easy' }] },
 let wk = await p.evaluate(() => trainingModel().week);
 ok('a 5 km and a 5 mile plod both count as easy runs', wk.easy === 2, JSON.stringify(wk));
 ok('and they are the same bucket', wk.byKind.easy === 2, JSON.stringify(wk.byKind));
-ok('the old five-mile bookkeeping is gone',
-  wk.fivemile === undefined && wk.easy5k === undefined && wk.fiveWhy === undefined,
-  JSON.stringify(Object.keys(wk)));
+ok('but only the 5 mile is one of the five-milers; the 5 km is an easy 5 km (Dan, 1 Oct)', wk.five === 1 && wk.easy5k === 1, JSON.stringify(wk));
 
 // A five-mile threshold is a hard run. A five-mile plod is not.
 await boot(mk({ '2026-09-21': { runs: [{ km: 8.05, secs: 1750, type: 'threshold' }] },
@@ -81,8 +79,8 @@ ok('the easy-run row is the slot now', /Easy 5-milers/.test(t), t.slice(0, 260))
 // Only the TABLE must be free of it — the sentence explaining the rule says
 // "5 mile" on purpose.
 const wkRows = await p.$$eval('#tWeek table tr td:first-child', c => c.map(x => x.textContent.trim()));
-ok('there is no five-mile row left', !wkRows.some(x => /5 ?mile/i.test(x)), wkRows.join(' | '));
-ok('and the rule is stated', /A 5 km and a 5 mile easy run are the same thing here/.test(t));
+ok('the table has a five-milers row and an easy 5 km row', wkRows.some(x => /Easy 5-milers/.test(x)) && wkRows.some(x => /Easy 5 km/.test(x)), wkRows.join(' | '));
+ok('and the rule is stated', /only a 5 mile counts as one of your two five-milers/.test(t));
 ok('with what actually splits them', /a five-mile threshold is a hard run, a five-mile plod is an easy one/.test(t));
 // The "Filed as" menu should no longer offer a distance as a category.
 await p.click('[data-t="today"]');

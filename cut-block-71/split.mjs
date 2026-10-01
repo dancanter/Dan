@@ -22,13 +22,13 @@ await boot(st({ days: {
   '2026-09-22': { runs: [{ km: 7.2, secs: 2300, type: 'easy' }] } } }));
 let wk = await p.evaluate(() => trainingModel().week);
 ok('every easy run is counted', wk.easy === 2, JSON.stringify({ easy: wk.easy, easy5k: wk.easy5k }));
-// No more length test: an easy run is an easy run whatever the distance.
-ok('length no longer sorts them', wk.easy5k === undefined, String(wk.easy5k));
+// 1 Oct, Dan: distance does sort them now — under 7.5 km is an easy 5 km, not a five-miler.
+ok('5 km and 7.2 km are easy 5 km runs, not five-milers', wk.easy5k === 2 && wk.five === 0, JSON.stringify(wk));
 await p.click('[data-t="training"]');
 let t = await p.textContent('#tWeek');
 ok('the week shows an easy runs row', /Easy 5-milers/.test(t), t.slice(0, 300));
-ok('with the count, ticked', /Easy 5-milers\s*2\s*✓/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
-ok('and says distance does not sort them', /A 5 km and a 5 mile easy run are the same thing here/.test(t));
+ok('with the count, ticked', /Easy 5 km bonus\s*2\s*✓/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
+ok('and says which counts as the five-miler', /only a 5 mile counts as one of your two five-milers/.test(t));
 
 // ===== 2. the deficit is on the week panel ===============================
 await boot(st({ days: {
