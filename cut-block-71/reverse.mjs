@@ -90,9 +90,14 @@ ok('week 1 starts on the start date', m.rungs[0].from === '2026-11-29', m.rungs[
 ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round((r.kcal - (m.rungs[m.rungs.indexOf(r) - 1] || { kcal: rev.kcal }).kcal) / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
 // Derived, not typed: protein moved 135 -> 150 g and this assertion was the
 // only thing that noticed. It should never need editing again when it moves.
-const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev }));
+const mac = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: MACRO.fatRev }));
 ok('protein and fat are pinned',
-  new RegExp('Protein goes to ' + mac.proRev + ' g and fat stays at ' + mac.fat + ' g').test(t), t.slice(0, 200));
+  new RegExp('Protein holds at ' + mac.proRev + ' g, fat climbs from ' + mac.fat + ' to ' + mac.fatRev + ' g').test(t), t.slice(0, 200));
+const rm = await p.evaluate(() => { const R = reverseModel(); return R.rungs.map(r => ({ k: r.kcal, p: r.pro, f: r.fat, c: r.carbs })); });
+ok('every week of the ladder has protein, fat and carbs that add up', rm.every(r => Math.abs(r.p * 4 + r.f * 9 + r.c * 4 - r.k) <= 6), JSON.stringify(rm));
+ok('protein holds, fat climbs to its top by maintenance, carbs climb', rm.every(r => r.p === mac.proRev) && rm[rm.length - 1].f === mac.fatRev && rm.every((r, i) => !i || (r.f >= rm[i - 1].f && r.c >= rm[i - 1].c)), JSON.stringify(rm));
+ok('the first step is all carbs', rm[0].f === mac.fat && rm[0].c > (await p.evaluate(() => CARB_AT)), JSON.stringify(rm[0]));
+ok('the ladder table shows the three columns', /Protein\s*Fat\s*Carbs/.test(t), t.slice(0, 300));
 ok('the foods are his, not packets', /certified GF oats/.test(t) && /Potatoes, rice/.test(t));
 ok('and it says to hold a rung rather than push', /hold that rung a second week/.test(t));
 

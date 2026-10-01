@@ -20,10 +20,10 @@ await boot(st());
 // because there the calories pay for it. The suite pins the SHAPE — cut
 // number, reverse number, headroom, derived strings — not the digits, so
 // moving the dial does not turn the suite red for no reason.
-const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev,
+const m = await p.evaluate(() => ({ pro: MACRO.pro, fat: MACRO.fat, proRev: MACRO.proRev, fatRev: MACRO.fatRev,
   carb: CARB_AT, floor: CARB_FLOOR, max: PRO_MAX, txt: PRO_TXT, kcal: KCAL_DAY }));
 ok('the cut protein is the one Dan set', m.pro === 135, String(m.pro));
-ok('the reverse takes the higher number', m.proRev > m.pro, JSON.stringify(m));
+ok('on the reverse protein holds and fat climbs (1 Oct)', m.proRev === m.pro && m.fatRev > m.fat, JSON.stringify(m));
 ok('the carbohydrate it leaves clears the hard-day floor', m.carb >= m.floor, JSON.stringify(m));
 ok('PRO_MAX is the real headroom', Math.round((m.kcal - m.max * 4 - m.fat * 9) / 4) >= m.floor, String(m.max));
 ok('and one gram past PRO_MAX breaches it',
@@ -43,7 +43,11 @@ ok('the budget card states the headroom rather than a stale claim',
   new RegExp('as high as\\s*' + m.max + ' g').test(foodTxt.replace(/\s+/g, ' ')),
   (foodTxt.replace(/\s+/g, ' ').match(/could carry protein[^.]{0,80}/) || [''])[0]);
 ok('and says where it goes on the reverse',
-  new RegExp('goes to ' + m.proRev + ' g on the reverse').test(foodTxt.replace(/\s+/g, ' ')));
+  new RegExp('holds at ' + m.proRev + ' g on the reverse').test(foodTxt.replace(/\s+/g, ' ')));
+const mc = (await p.textContent('#macroCard')).replace(/\s+/g, ' ');
+ok('the Food tab has your macros on the cut, in the reverse, and in general', /Your macros · and why/i.test(mc) && /On the cut/.test(mc) && /The reverse, at the top/.test(mc) && /In general · health, hormones, longevity/.test(mc), mc.slice(0, 300));
+ok('with the why for each, and by goal and season', /testosterone drops 10–15%/.test(mc) && /refill glycogen/.test(mc) && /By goal:/.test(mc) && /By season:/.test(mc), mc.slice(0, 200));
+ok('cut macros are the live numbers', mc.includes(m.pro + ' g') && mc.includes(m.fat + ' g') && mc.includes(m.carb + ' g'));
 // 1,719 survives in one place on purpose — the line explaining the cycle Dan
 // overruled. It must not survive in the protein panel, where it was describing
 // a day that no longer exists.

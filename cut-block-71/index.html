@@ -332,6 +332,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
   <div id="foodNums"></div>
+  <div id="macroCard"></div>
   <div id="hfFood"></div>
   <details class="p" id="foodDeep"><summary><b>Deep dive</b> <span class="tiny">· macros, meal timing, best foods, drinks</span></summary>
     <div class="stack" style="margin-top:10px">
@@ -886,7 +887,18 @@ var KCAL_LIGHTUP=KCAL_DAY+100;
    reverse number, where the calories are there to pay for it and the carb
    floor is no longer the binding constraint. */
 /* fat 48 g (was 42) from 28 Sep: about 24% of the day, clear of the ~20% under which testosterone drops */
-var MACRO={pro:135,fat:48,proRev:150};
+/* 1 Oct, the reverse: protein HOLDS at 135 (more food lowers what it takes to
+   keep muscle, and past ~2.2 g/kg buys nothing), fat climbs from 48 to fatRev
+   by maintenance, and everything else goes to carbohydrate — which is what
+   refills glycogen and lets the times come. The hold weeks are all carbs. */
+var MACRO={pro:135,fat:48,proRev:135,fatRev:65};
+/* protein, fat and carbs for any rung of the reverse */
+function revMacros(k,first,maint){
+  var fr=maint>first?Math.max(0,Math.min(1,(k-first)/(maint-first))):(k>=maint?1:0);
+  var fat=Math.round(MACRO.fat+(MACRO.fatRev-MACRO.fat)*fr);
+  var pro=MACRO.proRev;
+  return {pro:pro,fat:fat,carb:Math.max(0,Math.round((k-pro*4-fat*9)/4))};
+}
 var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
 /* One protein string, derived. It was typed out in four places and went
    stale the moment the number moved. */
@@ -3643,7 +3655,33 @@ function foodNumsHTML(){
   }
   return h+'</div>';
 }
-function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();}
+function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();if(E('macroCard'))E('macroCard').innerHTML=macroHTML();}
+/* 1 Oct, Dan: his macros on the cut, in the reverse, and in general for
+   longevity and hormones — the numbers first, the why behind Read more. */
+function macroHTML(){
+  var R=reverseModel(),top=R.top||{kcal:R.maint,pro:MACRO.proRev,fat:MACRO.fatRev,carbs:0};
+  var kg=(avgWindow(today(),7).avg||CFG.w.target)*0.45359237;
+  var gk=function(g){return f1(g/kg)+' g/kg';};
+  var pct=function(g,per,k){return Math.round(g*per/k*100)+'%';};
+  var row=function(title,sub,p,f,c,why){
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b>'+title+'</b><span class="tiny dim">'+sub+'</span></div>'+
+      '<div class="tiles t3" style="margin:6px 0">'+tile('protein',p[0],p[1])+tile('fat',f[0],f[1])+tile('carbs',c[0],c[1])+'</div>'+
+      '<div class="tiny more">'+why+'</div></div>';};
+  var cutC=CARB_AT;
+  return '<div class="p"><h2>Your macros · and why</h2>'+
+    row('On the cut','now · '+ci(KCAL_DAY)+' kcal',
+      [MACRO.pro+' g',gk(MACRO.pro)+' · '+pct(MACRO.pro,4,KCAL_DAY)],[MACRO.fat+' g',gk(MACRO.fat)+' · '+pct(MACRO.fat,9,KCAL_DAY)],[cutC+' g','never under '+CARB_FLOOR+' · '+pct(cutC,4,KCAL_DAY)],
+      '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
+    row('The reverse, at the top','from '+fmtS(REV_START)+' · '+ci(top.kcal)+' kcal',
+      [top.pro+' g','holds steady'],[top.fat+' g','up from '+MACRO.fat],[top.carbs+' g','+'+(top.carbs-cutC)+' on the cut'],
+      'Most of the extra food goes to <b>carbs</b>: they refill glycogen, and that is where the PBs come from. Protein holds — with more food you need less of it to keep muscle. Fat rises gently, to about 25–30%. The Reverse tab has every week. Expect 1–2 lb on the scale the first week: glycogen and water, not fat.')+
+    row('In general · health, hormones, longevity','at maintenance',
+      ['105–140','g · 1.8–2.4 g/kg'],['25–35%','65–90 g'],['45–55%','the rest'],
+      'For a young person who trains, more muscle predicts a longer, healthier life, so protein stays high — split over 3–4 meals of 30–40 g. Fat from whole foods: oily fish 2–3 times a week, eggs, dairy, walnuts, hazelnuts, meat. Carbs from fruit, potatoes, rice, certified GF oats and honey — more on hard days, less on rest days.')+
+    '<p class="tiny" style="margin-top:8px"><b>By goal:</b> cutting — protein high, fat at its floor, carbs as high as the calories allow · performance block — carbs 5–7 g/kg · lean gain — +200–300 kcal, the extra mostly carbs · lighter weeks — carbs 4–5 g/kg, fat a little higher.</p>'+
+    '<p class="tiny"><b>By season:</b> winter (Oct–Mar) — the sun is too weak for vitamin D, so oily fish and egg yolks matter most, and a bigger appetite in the cold is normal · summer — more salt and fluids around runs, plenty of fruit.</p>'+
+    '<p class="tiny"><b>In one line:</b> protein protects the muscle, fat protects the hormones, carbs pay for the training.</p></div>';
+}
 /* ===================== deep work this week =====================
    Dan, 29 Sep: 8–12 h of deep work a week is the sweet spot in term, about
    15 is the ceiling, and past about 4 h in one day the extra is mostly
@@ -4245,6 +4283,9 @@ function reverseModel(){
     kc=(maint-kc<=CFG.rev.step*1.5)?maint:kc+CFG.rev.step;
     rung(kc,false);
   }
+  /* macros per rung; the hold rungs are all carbohydrate */
+  var firstK=rungs.length?rungs[0].kcal:KCAL_DAY,prevC=CARB_AT;
+  rungs.forEach(function(r){var m=revMacros(r.kcal,firstK,maint);r.pro=m.pro;r.fat=m.fat;r.carbs=m.carb;r.carbUp=m.carb-prevC;prevC=m.carb;});
   var cur=live?Math.min(rungs.length,Math.floor(diffD(REV_START,t)/7)+1):0;
   return {live:live,toStart:toStart,start:REV_START,est:est,maint:maint,rungs:rungs,
           cur:cur,now:cur?rungs[cur-1]:null,weeks:rungs.length,
@@ -5904,8 +5945,8 @@ function renderFood(c,tr){
     '</div>'+
     '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, clear of the '+CARB_FLOOR+' g floor a hard day asks for. '+
     'The budget could carry protein as high as <b>'+PRO_MAX+' g</b> before carbohydrate fell through that floor, and there is no strong reason to go there: '+MACRO.pro+
-    ' g is '+f1(MACRO.pro/(CFG.w.target*0.45359237))+' g per kg of goal bodyweight, which is already past the point where the curve flattens. It goes to '+MACRO.proRev+
-    ' g on the reverse, where the calories pay for it. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
+    ' g is '+f1(MACRO.pro/(CFG.w.target*0.45359237))+' g per kg of goal bodyweight, which is already past the point where the curve flattens. It holds at '+MACRO.proRev+
+    ' g on the reverse, where the extra food goes to carbs and a little fat. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
     '<hr class="d"><div class="cols"><div>'+
     '<table class="tbl"><tbody>'+
     '<tr><td>300 ml semi-skimmed milk, across the day</td><td class="n">'+CFG.kcal.milk+'</td></tr>'+
@@ -6728,7 +6769,8 @@ function renderReverse(){
     h+='<p class="lede">Starts <b>'+fmtL(R.start)+'</b> — the morning after the cut ends. <b class="num">'+R.toStart+' day'+(R.toStart===1?'':'s')+'</b> away.</p>'+
        '<p>This is the half that sets the times. <b>Sub-55 and sub-17 do not happen on a deficit</b> — they happen three to six weeks into eating properly again, with glycogen back and creatine in. The cut makes you light; the reverse makes you fast. Doing them in the other order is how people end a cut in the best shape of their life and run slower than they did in August.</p>';
   }else{
-    h+='<p class="lede">Eat <b class="num acc">'+ci(R.now.kcal)+' kcal</b> today'+(R.now.atTop?' — that is maintenance, and the ladder is done':'')+'.</p>';
+    h+='<p class="lede">Eat <b class="num acc">'+ci(R.now.kcal)+' kcal</b> today'+(R.now.atTop?' — that is maintenance, and the ladder is done':'')+'.</p>'+
+      '<p style="margin:2px 0"><b>Protein '+R.now.pro+' g · fat '+R.now.fat+' g · carbs '+R.now.carbs+' g</b></p>';
   }
   h+='<div class="tiles t4" style="margin-top:12px">'+
     tile('maintenance',ci(R.maint),R.est.from==='measured'?'measured off your own '+R.est.days+' days':'estimated from the plan, not yet measured')+
@@ -6754,18 +6796,17 @@ function renderReverse(){
     ' weeks sitting at '+ci(first.kcal)+'</b>, and small steps after that. '+
     'The hold is not caution for its own sake — it is the only way to tell glycogen water from anything real, because two weeks at one number is what it takes for the scale to stop lying to you.</p>'+
     '<div class="scroll"><table class="tbl">'+
-    '<thead><tr><th>Week</th><th>Dates</th><th class="n">Eat</th><th class="n">Added carbs</th><th></th></tr></thead><tbody>';
+    '<thead><tr><th>Wk</th><th>From</th><th class="n">kcal</th><th class="n">Protein</th><th class="n">Fat</th><th class="n">Carbs</th></tr></thead><tbody>'+
+    '<tr class="dim"><td>cut</td><td class="tiny">now</td><td class="n">'+ci(KCAL_DAY)+'</td><td class="n">'+MACRO.pro+'</td><td class="n">'+MACRO.fat+'</td><td class="n">'+CARB_AT+'</td></tr>';
   R.rungs.forEach(function(r){
     var now=R.live&&r.wk===R.cur,past=r.to<t;
-    lg+='<tr'+(r.from>t?' class="dim"':'')+'><td>'+r.wk+'</td><td class="tiny">'+fmtS(r.from)+'–'+fmtS(r.to)+'</td>'+
-      '<td class="n"><b>'+ci(r.kcal)+'</b></td><td class="n">'+(r.carb>0?'+'+r.carb+' g':'—')+'</td>'+
-      '<td>'+(now?'<span class="pill a">this week</span>':(past?'<span class="tiny">done</span>':
-        (r.atTop?'<span class="pill g">maintenance</span>':(r.hold?'<span class="tiny">hold</span>':''))))+'</td></tr>';
+    lg+='<tr'+(r.from>t?' class="dim"':'')+(now?' style="background:var(--rule-2)"':'')+'><td>'+r.wk+(now?' ◀':'')+'</td><td class="tiny" style="white-space:nowrap">'+fmtS(r.from)+'</td>'+
+      '<td class="n"><b>'+ci(r.kcal)+'</b>'+(r.atTop?' <span class="tiny">✓ top</span>':(r.hold?' <span class="tiny">hold</span>':''))+'</td><td class="n">'+r.pro+'</td><td class="n">'+r.fat+'</td><td class="n">'+r.carbs+(r.carbUp>0?' <span class="tiny">+'+r.carbUp+'</span>':'')+'</td></tr>';
   });
-  lg+='</tbody></table></div>'+
-    '<p class="tiny" style="margin-top:8px"><b>Protein goes to '+MACRO.proRev+' g and fat stays at '+MACRO.fat+' g.</b> '+
-    'On the cut it sits at '+MACRO.pro+' g because raising it would have pushed carbohydrate under the hard-day floor. Here there is room for both. Every calorie of the climb itself goes in as carbohydrate — '+
-    Math.round(CFG.rev.first/4)+' g on the first step and '+Math.round(CFG.rev.step/4)+' g a week after the hold — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
+  lg+='</tbody></table></div><p class="tiny keep" style="margin-top:4px">Protein, fat and carbs in grams a day.</p>'+
+    '<p class="tiny" style="margin-top:8px"><b>Protein holds at '+MACRO.proRev+' g, fat climbs from '+MACRO.fat+' to '+MACRO.fatRev+' g, and the rest is carbs.</b> '+
+    'Why: with more food your body needs less protein to keep its muscle, and past about 2.2 g/kg extra buys nothing. Fat rises gently for hormones, to about 25–30% of the day. '+
+    'Most of the climb goes in as carbohydrate — the first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
     '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+
     '<p class="note"><b>The price of the slow half, named.</b> After the hold it takes <b>'+R.weeks+' weeks</b> in total to reach '+ci(R.maint)+
