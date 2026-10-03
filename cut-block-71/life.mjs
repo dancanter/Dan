@@ -237,6 +237,27 @@ await p.click('[data-t="study"]'); await p.waitForTimeout(100);
 ok('the Study tab shows deep work as hours and minutes', /1 h 30 min/.test(sq(await p.innerText('#deepCard'))));
 await ctx.close();
 
+// ===== the reverse: build mode, crank up the weights =====
+({ ctx, p, boot } = await at('2026-10-03'));
+await boot(st());
+let bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs') }));
+ok('on the cut the sets are the cut ranges', bm.bw === 0 && bm.chest.join() === '10,15' && bm.legs.join() === '6,10', JSON.stringify(bm));
+await p.click('[data-t="reverse"]'); await p.waitForTimeout(120);
+let rt = sq(await p.innerText('#revTrain'));
+ok('the Reverse tab previews build mode and when it starts', /build mode, from 29 Nov/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
+ok('the Training tab has no build card yet', !/Build mode/.test(sq(await p.innerText('#tSets'))));
+await ctx.close();
+for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '10,15', '6,10', /crank up the weights/i], ['2026-12-14', 3, '11,17', '8,12', /add sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
+  ({ ctx, p, boot } = await at(day));
+  await boot(st());
+  bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs'), sug: coachModel().sug[0] || '' }));
+  ok('reverse week ' + wk + ': sets ' + chest + ' chest, ' + legs + ' legs', bm.bw === wk && bm.chest.join() === chest && bm.legs.join() === legs, JSON.stringify(bm));
+  ok('and Feedback says it first (week ' + wk + ')', line.test(bm.sug), bm.sug);
+  await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+  ok('the Training tab shows build mode (week ' + wk + ')', new RegExp('Build mode · reverse week ' + wk, 'i').test(sq(await p.innerText('#tSets'))));
+  await ctx.close();
+}
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

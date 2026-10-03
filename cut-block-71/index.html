@@ -855,7 +855,7 @@ var CFG={
   sets:[{m:'Chest',cut:[10,15],rev:[12,18],day:'chest'},
         {m:'Back',cut:[12,16],rev:[14,20],day:'back'},
         {m:'Shoulders',cut:[10,15],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
-        {m:'Legs',cut:[6,10],rev:[8,14],day:'legs'},
+        {m:'Legs',cut:[6,10],rev:[10,14],day:'legs'},
         {m:'Biceps',cut:[6,10],rev:[8,14],day:'back'},
         {m:'Triceps',cut:[6,10],rev:[8,14],day:'chest'},
         {m:'Forearms',cut:[4,8],rev:[6,10],day:'delts'}],
@@ -3572,6 +3572,11 @@ function coachModel(){
   if(o.deep>DEEP.cap)sug.push('<b>Deep study is past '+DEEP.cap+' h</b> — '+sh(o.deep)+'. That is too much: keep to about '+DEEP.day+' h a day and '+DEEP.lo+'–'+DEEP.hi+' a week; the extra rarely sticks.');
   if(o.sl.length>=3&&o.phone<o.sl.length/2)sug.push('<b>Phone out of the bedroom</b> — only '+o.phone+' of '+o.sl.length+' nights so far.');
   if(moodAvg!==null&&moodAvg<=2.5)sug.push('<b>Mood has been low.</b> Get out somewhere green, see a mate, and a film night — they count.');
+  /* the reverse: the gym call comes first */
+  var bw=buildWeek(t);
+  if(bw>=1&&bw<=2)sug.unshift('<b>Build mode: crank up the weights.</b> Same sets as the cut, heavier — add a rep or 2.5 kg to every main lift this week.');
+  else if(bw>=3&&bw<=4)sug.unshift('<b>Build mode: add sets.</b> About 2 more hard sets per muscle than on the cut, and keep the weights climbing.');
+  else if(bw===5)sug.unshift('<b>Build mode: full growth range</b> from this week — the Training tab has the sets for each muscle.');
   return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
 }
 function feedbackHTML(){
@@ -3618,9 +3623,9 @@ function setsWeekHTML(){
       (vd?'<div class="tiny" style="margin-top:2px">'+vd.t+'</div>':'')+'</div>';
   }).join('');
   return '<div class="p"><h2>💪 Sets this week</h2>'+rows+
-    '<p class="tiny" style="margin-top:6px">The shaded band is the range for a cut aimed at gains. Log sets on the gym day in the Today log.</p></div>';
+    '<p class="tiny" style="margin-top:6px">The shaded band is '+(buildWeek()?'this stage of the build':'the range for a cut aimed at gains')+'. Log sets on the gym day in the Today log.</p></div>';
 }
-function renderSetsCard(){if(E('tSets'))E('tSets').innerHTML=setsWeekHTML()+setsLogHTML();}
+function renderSetsCard(){if(E('tSets'))E('tSets').innerHTML=(buildWeek()?buildHTML(false):'')+setsWeekHTML()+setsLogHTML();}
 /* ===================== Food: numbers and feedback =====================
    29 Sep: the Food tab should be data, numbers and feedback first; the
    reading lives in Deep dive. */
@@ -6261,10 +6266,38 @@ function renderStudy(tr){
    working sets within a few reps of failure; warm-ups do not count. */
 var SPLIT_MUSCLES={chest:['Chest','Triceps'],back:['Back','Biceps'],delts:['Shoulders','Forearms'],legs:['Legs'],
   arms:['Biceps','Triceps','Forearms'],other:['Chest','Back','Shoulders','Legs','Biceps','Triceps','Forearms']};
+/* Dan, 3 Oct: the reverse is where he builds — as much muscle as he can
+   while staying shredded. So from REV_START the weights go up first and the
+   sets follow: weeks 1–2 (the calorie hold) keep cut volume and push the
+   load, weeks 3–4 sit halfway, and from week 5 it is the full growth range. */
+function buildWeek(t){t=t||today();return t>=REV_START?Math.floor(diffD(REV_START,t)/7)+1:0;}
 function setsRange(m){
-  var onRev=today()>=REV_START;
-  for(var i=0;i<CFG.sets.length;i++)if(CFG.sets[i].m===m)return onRev?CFG.sets[i].rev:CFG.sets[i].cut;
+  var bw=buildWeek();
+  for(var i=0;i<CFG.sets.length;i++)if(CFG.sets[i].m===m){
+    var c=CFG.sets[i].cut,r=CFG.sets[i].rev;
+    if(!bw)return c;
+    if(bw<=2)return c;
+    if(bw<=4)return [Math.round((c[0]+r[0])/2),Math.round((c[1]+r[1])/2)];
+    return r;
+  }
   return null;
+}
+/* the build card: shown on Training from the first day of the reverse, and
+   on the Reverse tab before it as what is coming */
+function buildHTML(preview){
+  var bw=buildWeek(),stage=!bw?0:(bw<=2?1:(bw<=4?2:3));
+  var rows=CFG.sets.map(function(x){return '<tr><td>'+x.m+'</td><td class="n">'+x.cut[0]+'–'+x.cut[1]+'</td><td class="n"><b>'+x.rev[0]+'–'+x.rev[1]+'</b></td></tr>';}).join('');
+  var now=['','<b>Weeks 1–2: crank up the weights.</b> Same sets as the cut — the extra food goes into heavier lifts first. Glycogen is back, so you will be stronger within days: add weight wherever the reps allow.',
+    '<b>Weeks 3–4: add sets.</b> About 2 more hard sets per muscle than on the cut, and keep the weights climbing.',
+    '<b>Full build.</b> The growth range for every muscle — and the weights keep going up every week.'][stage];
+  return '<div class="p lift"><h2>🏗️ '+(preview?'The reverse: build mode, from '+fmtS(REV_START):'Build mode · reverse week '+bw)+'</h2>'+
+    (stage?'<p class="lede" style="margin:0 0 8px">'+now+'</p>':'<p class="lede" style="margin:0 0 8px">On '+fmtL(REV_START)+' the goal flips from keeping muscle to <b>building as much as you can while staying shredded</b>. This is when the weights go up.</p>')+
+    '<p class="keep" style="margin:4px 0"><b>Crank up the weights:</b> 6–12 reps, every set 1–2 reps from failure, the last set of each exercise to about 1 rep left. Every week add <b>a rep or 2.5 kg</b> to your main lifts — when you hit the top of the rep range on all sets, go heavier. That steady climb is what builds muscle.</p>'+
+    '<div class="scroll"><table class="tbl" style="margin-top:6px"><thead><tr><th>Hard sets a week</th><th class="n">Cut</th><th class="n">Build</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny more">The sets ramp in: weeks 1–2 at cut volume with heavier weights, weeks 3–4 halfway, from week 5 the full build range. The sets card and the log judge you against whichever stage you are in.</p>'+
+    '<p class="tiny more"><b>Most growth from one session a week:</b> past about 10–12 hard sets for one muscle in one session, extra sets pay less. For chest, back and shoulders, put the sets over 12 on a second day — 4–6 sets on your arms day works. Legs stay at '+CFG.sets[3].rev[0]+'–'+CFG.sets[3].rev[1]+' because running already loads them.</p>'+
+    '<p class="tiny more"><b>Staying shredded while you build:</b> the slow calorie ladder means very little fat can come on; protein holds at '+MACRO.proRev+' g; steps stay up; sleep 8 h — that is when the muscle is actually built. If the weight climbs more than '+CFG.rev.holdOver+' lb past the first-week settling, hold the calories a week; the training stays the same.</p>'+
+    '</div>';
 }
 function weekSets(d){
   var st=mondayOf(d),out={};
@@ -7003,7 +7036,7 @@ function renderReverse(){
       '<p class="tiny"><b>When to stop:</b> '+r.stop+'</p>';
   });
   tv+='</details>';
-  E('revTrain').innerHTML=tv;
+  E('revTrain').innerHTML=buildHTML(!buildWeek())+tv;
 
   /* what changes besides the food */
   E('revRest').innerHTML='<div class="cols">'+
