@@ -752,7 +752,14 @@ var CFG={
       ['Leaner vs looking better','There is a floor, and you are heading to it. Past it, leaner starts costing sleep, mood and hormones, and those show up in the face as exactly the puffiness you are trying to avoid.'],
       ['Strength vs running, on the reverse','Neither \u2014 they only fight when they are stacked. Space them and you can have both, which is the whole reason the week is laid out the way it is.']]
   },
-  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardDays:3,deloadEvery:4},
+  rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardDays:3,deloadEvery:4,
+       /* Dan, 4 Oct: the reverse week — 2 hard runs, 2 easy (one 5 mile, one
+          5 km), sprints if fresh, gym 5 days in build mode, 11,000 steps */
+       steps:11000,week:{hard:2,easy:2,gym:5}},
+  /* Dan's order for the reverse (4 Oct): lean and the angular face first,
+     then health and recovery, then muscle, then times. Muscle and times still
+     matter — never at the cost of the first two. */
+  revPriorities:['Lean — the angular, chiselled face','Health and recovery — limit the stresses that age you','Muscle','Times'],
   /* The reverse week. Legs sits as far from both runs as seven days allow,
      because the one thing that actually costs muscle is running hard into a
      leg session. Upper-body days do not care about running at all, which is
@@ -915,7 +922,7 @@ var CARB_FLOOR=200;
 var PRO_MAX=Math.floor((KCAL_DAY-CARB_FLOOR*4-MACRO.fat*9)/4);
 var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
 
-function stepTarget(is){var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
+function stepTarget(is){if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
 function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
@@ -4276,7 +4283,13 @@ function reverseModel(){
     var ref=(w.a7!==null?w.a7:CFG.w.target),lbWk=ref*taperAt(wkNow-1);
     est={lbWk:lbWk,deficit:lbWk*3500/7,days:0,lost:null,from:'planned'};
   }
-  var maint=Math.round((KCAL_DAY+est.deficit)/10)*10;
+  /* measured maintenance is at CUT activity; the reverse week walks and runs
+     a little less (11,000 steps, one 5 mile becomes a 5 km), so the top of
+     the ladder comes down by that much — lean first, so no hidden surplus */
+  var kgR=(w.a7!==null?w.a7:CFG.w.target)*0.45359237;
+  var actAdj=Math.round(((CFG.goals.steps-CFG.rev.steps)/1000*WALK_KCAL_PER_KG_1K+(8.05-5)*RUN_KCAL_PER_KG_KM/7)*kgR);
+  var maintCut=Math.round((KCAL_DAY+est.deficit)/10)*10;
+  var maint=Math.round((KCAL_DAY+est.deficit-actAdj)/10)*10;
   /* Dan's shape, not a generic ramp: one honest step up to the first rung,
      hold it long enough to see what the scale actually does, then small
      steps from there. The hold is the part that makes the rest readable —
@@ -4299,9 +4312,13 @@ function reverseModel(){
   }
   /* macros per rung; the hold rungs are all carbohydrate */
   var firstK=rungs.length?rungs[0].kcal:KCAL_DAY,prevC=CARB_AT;
-  rungs.forEach(function(r){var m=revMacros(r.kcal,firstK,maint);r.pro=m.pro;r.fat=m.fat;r.carbs=m.carb;r.carbUp=m.carb-prevC;prevC=m.carb;});
+  var floorC=rungs.length?revMacros(rungs[0].kcal,firstK,maint).carb:CARB_AT;
+  rungs.forEach(function(r){var m=revMacros(r.kcal,firstK,maint);
+    /* fat climbs, but never by taking carbs below where the first step put them */
+    if(m.carb<floorC){m.fat=Math.floor((r.kcal-m.pro*4-floorC*4)/9);m.carb=Math.round((r.kcal-m.pro*4-m.fat*9)/4);}
+    r.pro=m.pro;r.fat=m.fat;r.carbs=m.carb;r.carbUp=m.carb-prevC;prevC=m.carb;});
   var cur=live?Math.min(rungs.length,Math.floor(diffD(REV_START,t)/7)+1):0;
-  return {live:live,toStart:toStart,start:REV_START,est:est,maint:maint,rungs:rungs,
+  return {live:live,toStart:toStart,start:REV_START,est:est,maint:maint,maintCut:maintCut,actAdj:actAdj,rungs:rungs,
           cur:cur,now:cur?rungs[cur-1]:null,weeks:rungs.length,
           top:rungs.length?rungs[rungs.length-1]:null};
 }
@@ -5197,6 +5214,8 @@ var HF=[
  {k:'fage5',s:'dairy',n:'Fage 5%',m:[0.1,0.5,100,11,135,9.5,0,0.7,7,0],g:['sleep','hor','gut','skin'],why:'The creamiest: protein and calcium, and the fat carries fat-soluble vitamins and keeps you full longest.'},
  {k:'skyr',s:'dairy',n:'Skyr or other Greek yoghurt',m:[0,0.5,110,11,141,9.7,0,0.75,7,0],g:['sleep','hor','gut'],why:'Like Fage 0%: slow protein, calcium and iodine.'},
  {k:'kefir',s:'dairy',n:'Kefir',u:'ml',m:[0,0.4,120,12,155,2,1,0.4,5,0],g:['gut','sleep'],why:'Live cultures for your gut — a calm gut shows in your skin — and calcium.'},
+ {k:'milkA2',s:'dairy',n:'A2 whole milk',u:'ml',m:[0.03,0.4,120,11,150,1,1,0.9,5,20],g:['sleep','run','hor'],why:'Everything milk has, plus the fat that carries vitamins A, D and K2 and supports testosterone. A2 is the protein many people find easier on the gut.'},
+ {k:'butter',s:'dairy',n:'Grass-fed butter',m:[0.02,0.1,24,2,24,1,0,0.2,3,300],g:['hor','skin'],why:'Vitamin A and K2, plus a little omega-3 and CLA when grass-fed. Fat for hormones — 10–15 g a day is plenty, it is dense.'},
  {k:'milk',s:'dairy',n:'Milk',u:'ml',m:[0.03,0.4,120,11,150,1,1,0.9,5,0],g:['sleep','run'],why:'Calcium, iodine, B12 and B2. Protein and carbs together, a good recovery drink.'},
  {k:'cottage',s:'dairy',n:'Cottage cheese',m:[0.1,0.4,83,8,104,9.7,0,0.43,12,0],g:['sleep'],why:'Casein, the slow protein, which makes it a good one before bed.'},
  {k:'cheese',s:'dairy',n:'Hard cheese (cheddar)',m:[0.3,4.1,739,29,77,11,0,1.1,33,0],g:['hor'],why:'A lot of calcium and zinc in a small amount. It is calorie-dense, so keep it to small amounts.'},
@@ -6296,6 +6315,7 @@ function buildHTML(preview){
     '<div class="scroll"><table class="tbl" style="margin-top:6px"><thead><tr><th>Hard sets a week</th><th class="n">Cut</th><th class="n">Build</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny more">The sets ramp in: weeks 1–2 at cut volume with heavier weights, weeks 3–4 halfway, from week 5 the full build range. The sets card and the log judge you against whichever stage you are in.</p>'+
     '<p class="tiny more"><b>Most growth from one session a week:</b> past about 10–12 hard sets for one muscle in one session, extra sets pay less. For chest, back and shoulders, put the sets over 12 on a second day — 4–6 sets on your arms day works. Legs stay at '+CFG.sets[3].rev[0]+'–'+CFG.sets[3].rev[1]+' because running already loads them.</p>'+
+    '<p class="keep" style="margin:4px 0"><b>Lean and health come first.</b> If a session leaves you wrecked, or sleep slips, drop a set — never chase volume at the cost of recovery.</p>'+
     '<p class="tiny more"><b>Staying shredded while you build:</b> the slow calorie ladder means very little fat can come on; protein holds at '+MACRO.proRev+' g; steps stay up; sleep 8 h — that is when the muscle is actually built. If the weight climbs more than '+CFG.rev.holdOver+' lb past the first-week settling, hold the calories a week; the training stays the same.</p>'+
     '</div>';
 }
@@ -6825,7 +6845,7 @@ function renderReverse(){
   if(R.est.from==='measured'){
     h+='<p class="tiny" style="margin-top:10px">That maintenance number is not from a formula. Over '+R.est.days+' days you have eaten '+ci(KCAL_DAY)+
        ' a day and lost <b class="num">'+f1(R.est.lost)+' lb</b>, which at 3,500 kcal a pound is a <b class="num">'+ci(Math.round(R.est.deficit))+
-       ' kcal</b> daily shortfall. Add it back and you are level. It gets more accurate every morning you weigh, so the ladder below will move — that is it working.</p>';
+       ' kcal</b> daily shortfall. Add it back and you are level at today’s activity ('+ci(R.maintCut)+'); the reverse week walks and runs a little less, about '+ci(R.actAdj)+' kcal a day, so the ladder tops out at <b>'+ci(R.maint)+'</b> — lean first, no hidden surplus. It gets more accurate every morning you weigh, so the ladder below will move — that is it working.</p>';
   }else{
     h+='<p class="tiny" style="margin-top:10px">Sized off the taper for now, because a measured deficit needs a fortnight of mornings inside the cut. It will re-derive itself from your own numbers as soon as it can, and the ladder will change. Do not write these figures down yet.</p>';
   }
@@ -6850,7 +6870,7 @@ function renderReverse(){
   lg+='</tbody></table></div><p class="tiny keep" style="margin-top:4px">Protein, fat and carbs in grams a day.</p>'+
     '<p class="tiny" style="margin-top:8px"><b>Protein holds at '+MACRO.proRev+' g, fat climbs from '+MACRO.fat+' to '+fatTop(R.maint)+' g (30% of maintenance), and the rest is carbs.</b> '+
     'Why: with more food your body needs less protein to keep its muscle, and past about 2.2 g/kg extra buys nothing. Fat rises to 30% of the day — testosterone is made from it, and the benefit levels off around 30–35%. '+
-    'Most of the climb goes in as carbohydrate — the first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g — because carbohydrate is what refills glycogen, and glycogen is what the times are waiting on. '+
+    'The first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g, because carbohydrate refills glycogen; after the hold, the steps mostly go to fat until it reaches 30%, and carbs never drop below where the first step put them. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
     '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+
     '<p class="note"><b>The price of the slow half, named.</b> After the hold it takes <b>'+R.weeks+' weeks</b> in total to reach '+ci(R.maint)+
@@ -6867,20 +6887,24 @@ function renderReverse(){
   /* The short version, first, because the rest of this tab is long and the
      long version is not what he needs at 10pm on a Tuesday. */
   E('revCard').innerHTML='<div class="p lift"><h2>The reverse, in one screen</h2>'+
+    '<p class="lede" style="margin:0 0 8px"><b>Your order:</b> '+CFG.revPriorities.map(function(x,i){return '<span class="pill'+(i<2?' g':'')+'">'+(i+1)+'</span> '+x;}).join(' · ')+'</p>'+
+    '<p class="tiny keep" style="margin:0 0 8px">Muscle and times still matter — they just never get paid for with the first two.</p>'+
     '<div class="tiles t4">'+
     tile('eat',ci(R.rungs[0].kcal),'day one, then hold '+CFG.rev.holdWeeks+' weeks')+
     tile('then','+'+ci(CFG.rev.step)+'/wk','up to '+ci(R.maint))+
-    tile('runs',CFG.hardRuns.target+' hard','+ easy, '+CFG.hardRuns.cap+' hard is the ceiling')+
-    tile('lift','4 days','legs once, far from the hard runs')+
+    tile('runs',CFG.rev.week.hard+' hard · '+CFG.rev.week.easy+' easy','one 5 mile, one 5 km · sprints if fresh · '+CFG.hardRuns.cap+' hard is the ceiling')+
+    tile('lift',CFG.rev.week.gym+' days','build mode · weights first')+
     '</div>'+
     '<table class="tbl" style="margin-top:12px"><tbody>'+
-    '<tr><td><b>The job</b></td><td class="note">Food back to normal without the scale running away. Health and sleep first. Times held, not chased. A bit of muscle if it turns up.</td></tr>'+
-    '<tr><td><b>The one rule</b></td><td class="note">Never a hard run in the 24 hours before legs.</td></tr>'+
+    '<tr><td><b>Steps</b></td><td class="note">About <b>'+ci(CFG.rev.steps)+'</b> a day — down from '+ci(CFG.goals.steps)+'. Walking stays the cheapest health and leanness tool there is; the small drop goes into recovery.</td></tr>'+
+    '<tr><td><b>Recovery</b></td><td class="note">One full day off every week, 8 h+ sleep with the phone out, and an easy week whenever the Feedback tab calls one. Nothing to failure; if sleep slips or resting HR climbs, drop a set or a rep before anything else.</td></tr>'+
+    '<tr><td><b>The one rule</b></td><td class="note">Hard runs and legs a day apart either way — never a hard run in the 24 hours before legs, or the day after. Same day is fine: run first, lift in the evening.</td></tr>'+
+    '<tr><td><b>Food</b></td><td class="note">The most bioavailable whole foods: red meat, eggs, oily fish, grass-fed butter, Fage and kefir, A2 whole milk, raw honey, fruit and roots. Fat rises to 30% of the day as the calories climb.</td></tr>'+
+    '<tr><td><b>Lean first</b></td><td class="note">Stay between <b>'+CFG.hold.lo+' and '+CFG.hold.hi+' lb</b> through Christmas. The ladder tops out at what you will actually burn on the reverse week, so there is no hidden surplus — if the weight drifts up past the first-week bump, the calories hold, not the training.</td></tr>'+
     '<tr><td><b>The one fear</b></td><td class="note">You will not go puffy. The first weeks usually make your face <b>sharper</b>, not softer — the card below does the maths.</td></tr>'+
-    '<tr><td><b>The band</b></td><td class="note">Stay between <b>'+CFG.hold.lo+' and '+CFG.hold.hi+' lb</b> through Christmas. Christmas has its own card below \u2014 it is smaller than you think.</td></tr>'+
     '<tr><td><b>When it ends</b></td><td class="note">Your call. Say the word and I will set it.</td></tr>'+
     '</tbody></table>'+
-    '<p class="tiny" style="margin-top:10px">Everything under here is the detail behind those four lines. You do not need it on a normal day.</p></div>';
+    '<p class="tiny" style="margin-top:10px">Everything under here is the detail. You do not need it on a normal day.</p></div>';
 
   var ph=phaseModel();
   var pv='<div class="p '+(ph.now.k==='rev'?'lift':'flag')+'"><h2>Where you are, and what ends it</h2>'+
