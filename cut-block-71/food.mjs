@@ -335,6 +335,22 @@ const checks = await p.$$eval('#dChecks tr', r => r.map(x => x.children[0].textC
 ok('every self-check passes', checks.every(x => x === 'ok'), checks.join(','));
 await ctx.close();
 ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
+// ===== seasons in Bassingham (6 Oct) =====
+{
+  const sp = await b.newPage({ viewport: { width: 390, height: 2400 } });
+  await sp.clock.setFixedTime(new Date('2026-10-06T12:00:00'));
+  sp.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  await sp.goto(FILE); await sp.waitForTimeout(250);
+  await sp.click('[data-t="food"]'); await sp.waitForTimeout(120);
+  let sc = (await sp.innerText('#seasonCard')).replace(/\s+/g, ' ');
+  ok('the Food tab has the seasons, with autumn picked in October', /Seasons in Bassingham/i.test(sc) && /🍂 Autumn · now/.test(sc) && /Oysters/.test(sc) && /No vitamin D from the sun from October/.test(sc), sc.slice(0, 300));
+  await sp.click('#seasonCard button[data-season="summer"]'); await sp.waitForTimeout(80);
+  sc = (await sp.innerText('#seasonCard')).replace(/\s+/g, ' ');
+  ok('tapping summer shows summer', /Strawberries/.test(sc) && /Run early, before the heat/.test(sc) && !/Oysters/.test(sc), sc.slice(0, 300));
+  ok('nothing on the list breaks his rules', await sp.evaluate(() => !/broccoli|sprout|cabbage|kale|rocket|watercress|liver|swede|turnip|supplement|tablet/i.test(JSON.stringify(SEASONS))));
+  ok('the seasons fit the screen', await sp.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await sp.close();
+}
 await b.close();
 if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n' + fails.map(f => ' - ' + f).join('\n')); process.exit(1); }
 console.log('\nall passed');

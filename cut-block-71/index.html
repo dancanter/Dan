@@ -332,6 +332,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
   <div id="foodNums"></div>
+  <div id="seasonCard"></div>
   <div id="macroCard"></div>
   <div id="hfFood"></div>
   <details class="p" id="foodDeep"><summary><b>Deep dive</b> <span class="tiny">· macros, meal timing, best foods, drinks</span></summary>
@@ -3676,7 +3677,38 @@ function foodNumsHTML(){
   }
   return h+'</div>';
 }
-function renderFoodNums(){if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();if(E('macroCard'))E('macroCard').innerHTML=macroHTML();}
+/* ===================== the seasons, in Bassingham =====================
+   Dan, 6 Oct: what to eat and how to live through the year where he is
+   (53°N, Lincolnshire) — simple and fun: tap a season, today's is picked.
+   No brassicas, no liver, no supplements; vitamin D from food and sun. */
+var SEASONS=[
+ {k:'autumn',e:'🍂',n:'Autumn',m:'Sep–Nov',sun:'No vitamin D from the sun from October — oily fish and egg yolks are your source now.',
+  eat:['🍎 English apples and pears','🫐 Last blackberries and plums','🥔 Local potatoes and beetroot','🦌 Venison and game — season opens','🦪 Oysters — back in season, top zinc food','🐟 Oily fish and 🥚 eggs every week'],
+  doo:['☀️ Daylight within an hour of waking — 10 min is enough','🏃 Run in the light while you can — lunchtime','🤧 Cold season: sleep, zinc and fruit']},
+ {k:'winter',e:'❄️',n:'Winter',m:'Dec–Feb',sun:'About 7½ hours of daylight in December, and no vitamin D from the sun.',
+  eat:['🍊 Clementines and blood oranges','🥩 Red meat and game','🐟 Oily fish, eggs, whole dairy','🌿 Forced rhubarb, from January','🍲 Slow-cooked beef or lamb, potatoes and leeks'],
+  doo:['🌞 Outside around midday — beats the winter low','🧴 Moisturise, lukewarm showers, SPF still','🧊 Longer warm-ups; treadmill when it is icy','👥 See people — film nights count']},
+ {k:'spring',e:'🌱',n:'Spring',m:'Mar–May',sun:'Vitamin D from the sun comes back around April — midday only.',
+  eat:['🌱 Lincolnshire asparagus, late April to June','🐑 New-season lamb','🌿 Rhubarb and wild garlic','🥔 Lincolnshire new potatoes, late May'],
+  doo:['☀️ 10–20 min midday sun on arms and legs — SPF on your face','🌼 Hay fever? Run early or after rain','🚶 Lighter evenings — more walks']},
+ {k:'summer',e:'☀️',n:'Summer',m:'Jun–Aug',sun:'Peak vitamin D from sensible sun. Never burn — that is what ages skin most.',
+  eat:['🍓 Strawberries, raspberries, cherries','🐟 Mackerel at its best and cheapest','🍖 Barbecue — but no charring','💧 More water and salt on hot days'],
+  doo:['🌅 Run early, before the heat','🧢 SPF, a hat and shade','🌙 Blackout blinds — it is light until 9:30']}
+];
+var SEASON_PICK=null;
+function seasonNow(t){var m=Number((t||today()).slice(5,7));return m>=9&&m<=11?'autumn':(m===12||m<=2?'winter':(m<=5?'spring':'summer'));}
+function seasonHTML(){
+  var now=seasonNow(),k=SEASON_PICK||now,S2=SEASONS.filter(function(x){return x.k===k;})[0];
+  var chip=function(x){return '<span style="display:inline-block;padding:6px 10px;margin:3px 4px 3px 0;border:1px solid var(--rule-2);border-radius:14px;background:var(--rule-2)">'+x+'</span>';};
+  return '<div class="p lift"><h2>🗓️ Seasons in Bassingham</h2>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 10px">'+SEASONS.map(function(x){
+      return '<button type="button" class="btn sm'+(x.k===k?'':' ghost')+'" data-season="'+x.k+'" aria-pressed="'+(x.k===k)+'">'+x.e+' '+x.n+(x.k===now?' · now':'')+'</button>';}).join('')+'</div>'+
+    '<p class="tiny keep" style="margin:0 0 6px">'+S2.e+' <b>'+S2.n+'</b> · '+S2.m+' — '+S2.sun+'</p>'+
+    '<h3 style="margin:8px 0 2px">🍽️ Eat</h3><div>'+S2.eat.map(chip).join('')+'</div>'+
+    '<h3 style="margin:10px 0 2px">✨ Do</h3>'+S2.doo.map(function(x){return '<p style="margin:4px 0">'+x+'</p>';}).join('')+
+    '<p class="tiny keep" style="margin-top:10px"><b>All year:</b> farm shops like Doddington Hall for local meat and eggs · fresh fish from Grimsby · Whisby and Hartsholme for green time.</p></div>';
+}
+function renderFoodNums(){if(E('seasonCard'))E('seasonCard').innerHTML=seasonHTML();if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();if(E('macroCard'))E('macroCard').innerHTML=macroHTML();}
 /* 1 Oct, Dan: his macros on the cut, in the reverse, and in general for
    longevity and hormones — the numbers first, the why behind Read more. */
 function macroHTML(){
@@ -5599,6 +5631,7 @@ function lookupFood(){
 }
 function wireFood(){
   wireSimple();
+  E('seasonCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-season]');if(!b)return;SEASON_PICK=b.dataset.season;E('seasonCard').innerHTML=seasonHTML();});
   wireGlance();
   wireFeedback();
   wireLife();
