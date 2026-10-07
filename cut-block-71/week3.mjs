@@ -21,9 +21,9 @@ const D = await p.evaluate(() => { const m = mondayOf(today()); return { t: toda
 
 // ===== the week (29 Sep): 2 hard + 2 easy five-milers = 4; uphill sprints are the option =====
 const cfg = await p.evaluate(() => ({ tmpl: CFG.tmpl, runs: CFG.goals.runs, hard: CFG.goals.hard, sprints: CFG.goals.sprints }));
-ok('the week is 4 runs: 2 hard and 2 easy', cfg.tmpl.runs === 4 && cfg.tmpl.hard === 2 && cfg.tmpl.easy === 2, JSON.stringify(cfg.tmpl));
+ok('the week is 4 runs: 2 hard and 2 easy', cfg.tmpl.runs === 3 && cfg.tmpl.hard === 2 && cfg.tmpl.easy === 1 && cfg.tmpl.gym === 4, JSON.stringify(cfg.tmpl));
 ok('the sprints are the option, never owed', cfg.tmpl.sprints === 0);
-ok('block totals: 21 hard, 41 runs (no fixed deloads)', cfg.runs === 41 && cfg.hard === 21, JSON.stringify(cfg));
+ok('block totals: 21 hard, 41 runs (no fixed deloads)', cfg.runs === 31 && cfg.hard === 21, JSON.stringify(cfg));
 
 if (!D.pre) {
   // hard + hard + sprints, no easy run: the week is done
@@ -38,7 +38,7 @@ if (!D.pre) {
   await p.click('[data-t="training"]');
   let t = sq(await p.innerText('#tWeek'));
   ok('the week card shows counts with ticks, no quota', /Runs, all in 3 ✓/i.test(t) && !/3 \/ 3/.test(t), t.slice(0, 400));
-  ok('the sprints are marked optional, and nothing says "to go"', /Uphill sprints optional 1 ✓/i.test(t) && /Easy 5-milers 0/i.test(t) && !/to go/i.test(t), t.slice(0, 400));
+  ok('the sprints are marked optional, and nothing says "to go"', /Uphill sprints optional 1 ✓/i.test(t) && /Easy 5 miles 0/i.test(t) && !/to go/i.test(t), t.slice(0, 400));
   ok('it says nothing is owed', /What you have done this week/.test(t) && /nothing is owed/.test(t));
 
   // one hard run and an easy one: the easy run is a bonus, not a stand-in
@@ -47,10 +47,10 @@ if (!D.pre) {
     [D.tue]: { runs: [{ km: 5, secs: 1500, type: 'easy' }] } } }));
   await p.click('[data-t="training"]');
   t = sq(await p.innerText('#tWeek'));
-  ok('an easy 5 km is its own row, not one of the five-milers', /Easy 5-milers 0/i.test(t) && /Easy 5 km bonus 1 ✓/i.test(t), t.slice(0, 400));
+  ok('an easy 5 km is its own row, not one of the five-milers', /Easy 5 miles 0/i.test(t) && /Easy 5 km bonus 1 ✓/i.test(t), t.slice(0, 400));
   await boot(st({ days: { [D.tue]: { runs: [{ km: 8.28, secs: 2326, type: 'easy' }] } } }));
   await p.click('[data-t="training"]');
-  ok('an 8.28 km easy run is a five-miler', /Easy 5-milers 1 ✓/i.test(sq(await p.innerText('#tWeek'))));
+  ok('an 8.28 km easy run is a five-miler', /Easy 5 miles 1 ✓/i.test(sq(await p.innerText('#tWeek'))));
   await boot(st({ days: { [D.mon]: { runs: [{ k: 'reps', dm: 400, n: 6, secs: 62 }] }, [D.tue]: { runs: [{ km: 5, secs: 1500, type: 'easy' }] } } }));
   await p.click('[data-t="training"]');
   t = sq(await p.innerText('#tWeek'));

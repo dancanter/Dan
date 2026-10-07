@@ -75,12 +75,12 @@ ok('and a slow run filed as threshold is still easy', wk.easy === 1, JSON.string
 // The week panel says the rule in Dan's own terms.
 await p.click('[data-t="training"]');
 t = (await p.textContent('#tWeek')).replace(/\s+/g, ' ');
-ok('the easy-run row is the slot now', /Easy 5-milers/.test(t), t.slice(0, 260));
+ok('the easy-run row is the slot now', /Easy 5 miles/.test(t), t.slice(0, 260));
 // Only the TABLE must be free of it — the sentence explaining the rule says
 // "5 mile" on purpose.
 const wkRows = await p.$$eval('#tWeek table tr td:first-child', c => c.map(x => x.textContent.trim()));
-ok('the table has a five-milers row and an easy 5 km row', wkRows.some(x => /Easy 5-milers/.test(x)) && wkRows.some(x => /Easy 5 km/.test(x)), wkRows.join(' | '));
-ok('and the rule is stated', /only a 5 mile counts as one of your two five-milers/.test(t));
+ok('the table has a five-milers row and an easy 5 km row', wkRows.some(x => /Easy 5 miles/.test(x)) && wkRows.some(x => /Easy 5 km/.test(x)), wkRows.join(' | '));
+ok('and the rule is stated', /only a 5 mile counts as your five-miler/.test(t));
 ok('with what actually splits them', /a five-mile threshold is a hard run, a five-mile plod is an easy one/.test(t));
 // The "Filed as" menu should no longer offer a distance as a category.
 await p.click('[data-t="today"]');

@@ -26,9 +26,9 @@ ok('every easy run is counted', wk.easy === 2, JSON.stringify({ easy: wk.easy, e
 ok('5 km and 7.2 km are easy 5 km runs, not five-milers', wk.easy5k === 2 && wk.five === 0, JSON.stringify(wk));
 await p.click('[data-t="training"]');
 let t = await p.textContent('#tWeek');
-ok('the week shows an easy runs row', /Easy 5-milers/.test(t), t.slice(0, 300));
+ok('the week shows an easy runs row', /Easy 5 miles/.test(t), t.slice(0, 300));
 ok('with the count, ticked', /Easy 5 km bonus\s*2\s*✓/.test(t.replace(/\s+/g, ' ')), t.replace(/\s+/g, ' ').slice(0, 300));
-ok('and says which counts as the five-miler', /only a 5 mile counts as one of your two five-milers/.test(t));
+ok('and says which counts as the five-miler', /only a 5 mile counts as your five-miler/.test(t));
 
 // ===== 2. the deficit is on the week panel ===============================
 await boot(st({ days: {
