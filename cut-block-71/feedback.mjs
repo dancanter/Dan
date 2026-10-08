@@ -42,7 +42,7 @@ ok('the Feedback tab: rest, refeed, what’s good, what I suggest', /FEEDBACK/i.
 ok('and says the calls are not on a calendar', /No rest weeks on a calendar/.test(await p.evaluate(() => feedbackHTML())));
 await p.click('[data-t="today"]');
 t = sq(await p.innerText('#glanceCard'));
-ok('Today at a glance leads with the feedback', /💬 Feedback No rest needed · no refeed needed/.test(t), t.slice(0, 200));
+ok('Today at a glance stays calm when there is nothing to do', /💬 Rest and refeed ✅ All good — nothing to do/.test(t), t.slice(0, 200));
 await p.click('#glanceCard button[data-goto="feedback"]'); await p.waitForTimeout(100);
 ok('and taps through to it', await p.evaluate(() => !E('s-feedback').hidden));
 
@@ -52,6 +52,10 @@ c = await C();
 ok('losing too fast: yes to a refeed', c.refeed.k === 'yes' && /Yes — have a refeed this week/.test(c.refeed.t), JSON.stringify(c.refeed));
 ok('with the size, carbs, and Saturday', /\+[\d,]+ kcal, about \d+ g of carbs/.test(c.refeed.size || '') && /Saturday works/.test(c.refeed.size || ''), c.refeed.size);
 ok('and a suggestion to eat a little more', c.sug.some(x => /Eat a little more/.test(x)), JSON.stringify(c.sug));
+await p.click('[data-t="today"]'); await p.waitForTimeout(80);
+ok('when it matters, the glance line makes the call', /I’m calling it 🍚 Refeed this week/.test((await p.innerText('#glanceCard')).replace(/\s+/g, ' ')));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(80);
+ok('and the camp tab leads with it', /I’m calling a refeed/.test(await p.innerText('#campCard')));
 ok('the Today banner carries the refeed call too', /A refeed would help|have a refeed this week/.test(sq(await p.innerText('#alertCard'))));
 
 // ===== stalled: no refeed =====

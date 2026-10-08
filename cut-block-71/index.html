@@ -3517,7 +3517,13 @@ function glanceHTML(){
     '<span style="font-size:20px;flex:0 0 28px">'+e+'</span><span style="flex:1 1 auto"><span class="tiny dim" style="display:block">'+label+'</span><b>'+val+'</b></span><span class="dim">›</span></button>';};
   var C=t>=CFG.cutStart?coachModel():null;
   return '<div class="p lift"><h2>Today at a glance</h2>'+
-    (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
+    (C?(function(){
+      /* Dan, 8 Oct: he does not watch for these — the tracker tells him. Calm
+         when there is nothing to do; the call itself when there is. */
+      var calls=[];
+      if(['day','days','week','on'].indexOf(C.rest.k)>=0)calls.push('🛌 '+C.rest.t);
+      if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
+      return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el)?'Left this week: '+[hl?hl+' hard':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','camp');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
@@ -3784,6 +3790,13 @@ function campGame(){
   var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7),cutDay:Math.min(CUT_DAYS,diffD(CFG.cutStart,t)+1)};
   return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
+function campCallHTML(){
+  if(today()<CFG.cutStart)return '';
+  var CM=coachModel(),out='';
+  if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 I’m calling it: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
+  if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
+  return out;
+}
 function campGameHTML(){
   var C=CFG.camp,t=today();
   if(t<C.start){var d=diffD(t,C.start);
@@ -3822,7 +3835,7 @@ function campHTML(){
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 4 Dec'],['pb','PB window','5–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
-    campGameHTML()+
+    campCallHTML()+campGameHTML()+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     '<div class="scroll"><table class="tbl camptbl"><thead><tr><th>Distance</th><th class="n">2026</th><th class="n">All-time</th><th class="n">December</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny keep" style="margin-top:6px"><b>All-time</b> is the ultimate boss: your 2025 bests from Strava (the 800 is your half-mile split, the 400 and 800 came inside a 1 km rep). <b>December</b> is the realistic range from your own sessions on the way there. Never two trials within three days, and only on a week the Feedback tab is clear.</p>'+
