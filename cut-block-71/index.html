@@ -3725,8 +3725,11 @@ function campGame(){
     if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
     if(r.phoneOut)add(5);
   }
-  /* the shred: +25 for every weight milestone the 7-day average passes in camp */
-  var a0=avgWindow(addD(C.start,-1),7).avg,aN=avgWindow(t,7).avg,miles=[];
+  /* the shred is the CUT's, not the camp's (Dan, 8 Oct): it measures from
+     where the cut began on 19 Sep, and every milestone passed since then is
+     +25 — including the ones already banked before camp started */
+  var wmS=weightModel(),cr0=cutReadings(),aN=avgWindow(t,7).avg,miles=[];
+  var a0=wmS.baseline!==null?wmS.baseline:(cr0.length?cr0[0].lb:null);
   if(a0!==null&&aN!==null)MILESTONES.forEach(function(m){if(a0>m&&aN<=m){miles.push(m);xp+=25;}});
   /* muscle: +50 for every camp week with every muscle inside its set range */
   var setWeeks=0;
@@ -3767,7 +3770,7 @@ function campGame(){
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */
   var startW=a0!==null?a0:(cutReadings().length?cutReadings()[0].lb:null);
-  var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7)};
+  var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7),cutDay:Math.min(CUT_DAYS,diffD(CFG.cutStart,t)+1)};
   return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
 function campGameHTML(){
@@ -3787,7 +3790,7 @@ function campGameHTML(){
     (function(){var S2=G.shred;if(S2.now===null)return '';
       var span=Math.max(0.1,(S2.start||S2.now)-S2.target),done=Math.max(0,Math.min(1,((S2.start||S2.now)-S2.now)/span));
       var togo=Math.max(0,S2.now-S2.hi);
-      return '<div style="margin-top:10px"><b>🔪 Shred meter</b> <span class="tiny dim">7-day average</span>'+
+      return '<div style="margin-top:10px"><b>🔪 Shred meter</b> <span class="tiny dim">the cut · day '+S2.cutDay+' of '+CUT_DAYS+' · 7-day average'+(S2.start&&!S.settings.hideDaily?' · '+(S2.start-S2.now>=0?'−':'+')+f1(Math.abs(S2.start-S2.now))+' lb since 19 Sep':'')+'</span>'+
         '<div class="row" style="gap:8px;align-items:baseline;margin-top:2px"><b class="num" style="font-size:1.2em">'+(S.settings.hideDaily?'—':f1(S2.now)+' lb')+'</b><span class="tiny">'+(togo>0?f1(togo)+' lb to '+S2.hi+' · '+f1(S2.weeksLeft)+' weeks to 28 Nov':'in the '+S2.lo+'–'+S2.hi+' zone ✓')+'</span></div>'+
         '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:4px 0;overflow:hidden"><div style="height:100%;width:'+Math.round(done*100)+'%;background:var(--accent)"></div></div>'+
         '<div class="row" style="gap:4px;flex-wrap:wrap">'+MILESTONES.filter(function(m){return m<=(S2.start||S2.now)+0.01;}).map(function(m){var hit=S2.now<=m;return '<span class="pill'+(hit?' g':'')+'">'+m+(hit?' ✓':'')+'</span>';}).join('')+'</div></div>';})()+

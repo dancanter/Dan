@@ -346,7 +346,8 @@ ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
-ok('the card shows the shred meter and milestones', /Shred meter/.test(gx) && /lb to 123/.test(gx), gx.slice(0, 900));
+ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 123/.test(gx) && /the cut · day 26 of 71/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
+ok('milestones count from the start of the cut, not the camp', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - b) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
 await ctx.close();
