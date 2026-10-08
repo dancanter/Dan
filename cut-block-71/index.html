@@ -471,6 +471,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= TRAINING ================= -->
 <section id="s-training" class="stack" hidden>
+  <div id="campCard"></div>
   <div id="tRuns"></div>
   <div id="tWeek"></div>
   <div id="tSets"></div>
@@ -701,7 +702,9 @@ var CFG={
   /* no fixed deloads from 29 Sep: 2 hard runs × 10 weeks + the pre-block one = 21; runs = 21 + 20 easy = 41 */
   /* 7 Oct, Dan: 3–4 runs and 4 gym sessions a week, for anti-ageing — runs =
      21 hard + 10 easy five-milers = 31, gym about 4 a week = 42 */
-  goals:{gym:42,hard:21,sprints:10,runs:31,steps:12800,weightLo:122,weightHi:123},
+  /* camp from 12 Oct: 3 easy five-milers a week for the last 7 weeks — runs
+     = 21 hard + 3×1 + 7×3 easy ≈ 45 */
+  goals:{gym:42,hard:21,sprints:10,runs:45,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -887,7 +890,14 @@ var CFG={
   /* 7 Oct, Dan: 3–4 runs a week — 2 hard, one easy 5 mile, and an easy
      5 km only if fresh — and 4 gym sessions (the four core days, no free
      fifth), for anti-ageing: enough to improve, never piling stress up. */
-  tmpl:{hard:2,easy:1,easyMax:2,sprints:0,runs:3,gym:4}
+  tmpl:{hard:2,easy:1,easyMax:2,sprints:0,runs:3,gym:4},
+  /* 12 Oct, Dan: race camp — PBs at 400, 600, 800, 1 km, mile and 5 km
+     before Christmas, while the cut carries on to 122–123 by 28 Nov. From
+     camp start the week is 2 hard runs and 3 easy five-milers (one with
+     strides), gym 3–4. */
+  camp:{start:'2026-10-12',window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},
+    pb:[{dm:400,lo:57.5,hi:58.5,on:'2026-12-09'},{dm:600,lo:95,hi:98,on:'2026-12-22'},{dm:800,lo:138,hi:142,on:'2026-12-16'},
+        {dm:1000,lo:174,hi:178,on:'2026-12-05'},{dm:1609,lo:312,hi:320,on:'2026-12-19'},{dm:5000,lo:1050,hi:1070,on:'2026-12-12'}]}
 };
 var CUT_DAYS=diffD(CFG.cutStart,CFG.cutEnd)+1;
 var WEIGH_START=mondayOnOrAfter(CFG.cutStart);
@@ -955,7 +965,8 @@ function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
 /* The week's targets. A deload week keeps the sprints and the gym (fewer
    sets, same sessions) and drops to one hard run. */
 function tmplFor(start){
-  var T={hard:CFG.tmpl.hard,sprints:CFG.tmpl.sprints,runs:CFG.tmpl.runs,gym:CFG.tmpl.gym,easy:CFG.tmpl.easy,deload:false};
+  var B=start>=mondayOf(CFG.camp.start)?CFG.camp.tmpl:CFG.tmpl;
+  var T={hard:B.hard,sprints:B.sprints,runs:B.runs,gym:B.gym,easy:B.easy,deload:false};
   if(start>=WEIGH_START&&isDeload(weekOf(start))){T.hard=1;T.runs=T.hard+T.easy+T.sprints;T.deload=true;}
   return T;
 }
@@ -3182,9 +3193,9 @@ function weekRunsHTML(){
   rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
-    (w.five>=1?'<span class="pill g">✓ done</span>':'')+'<b>Easy 5 miles</b> <span class="tiny">the fat-loss run · plus an easy 5 km only if you feel fresh</span></div>'+
+    (w.five>=T.easy?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+T.easy+' ✓</span>':''))+'<b>Easy 5 miles'+(T.easy>1?' × '+T.easy:'')+'</b> <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
     (w.easy5k?'<div class="tiny" style="margin-top:2px">+ '+w.easy5k+' easy 5 km'+(w.easy5k===1?'':'s')+' this week — the optional extra.</div>':'')+
-    '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+
+    '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+(T.easy>1?'. One a week can be steady, 4:40–4:55, if your resting HR is normal':'')+
     (M.kcal5?' <span class="tiny">· about <b>'+ci(M.kcal5)+' kcal</b> each</span>':'')+'</div>'+
     (legsFlag?'<div class="note wn" style="margin-top:4px">Legs flagged: make the next one a brisk walk, or 30 min very easy. It still burns; it just doesn’t dig the hole deeper.</div>':'')+
     '<div class="tiny more">Full sentences the whole way, breathing through your nose most of it. This is the run that takes the weight off without touching your recovery — fat is the main fuel at this effort, cortisol stays low, and it builds the aerobic engine your 800 m to 5 km sit on. Not the day after a hard run is ideal, but after legs or the morning after a hard run is fine if it is truly easy. If it turns into a tempo, the app counts it as a hard run.</div></div>';
@@ -3198,12 +3209,12 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and an easy 5 miles, kept truly easy.':'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.')+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':(T.easy>1?'<b>A camp week, 5 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and '+T.easy+' easy 5-milers, one with strides. Gym 3–4.':'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
     ' <span class="tiny">Any days. Hard runs never the day after legs or each other, and one full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
-      tile('easy 5 miles',w.five+' <span class="tiny">of 1</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':'takes the weight off')+
-      tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?'2–3':'3–4'))+
+      tile('easy 5 miles',w.five+' <span class="tiny">of '+T.easy+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off'))+
+      tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?(T.runs-1)+'':(T.easy>1?T.runs+'':'3–4')))+
     '</div>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
@@ -3659,6 +3670,51 @@ function setsWeekHTML(){
   return '<div class="p"><h2>💪 Sets this week</h2>'+rows+
     '<p class="tiny" style="margin-top:6px">The shaded band is '+(buildWeek()?'this stage of the build':'the range for a cut aimed at gains')+'. Log sets on the gym day in the Today log.</p></div>';
 }
+/* ===================== race camp =====================
+   Dan, 8 Oct: from 12 Oct, a camp to beat his 400, 600, 800, 1 km, mile and
+   5 km before Christmas. Fitness is built on the cut (quality, not volume),
+   two checkpoints test it, then the PB window opens a week into the reverse,
+   fuelled and light. Targets are realistic ranges from his own sessions. */
+function campPhase(t){
+  var C=CFG.camp;t=t||today();
+  if(t<C.start)return {k:'pre',n:'Starts '+fmtS(C.start)};
+  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs, three easy 5-milers. The cut carries on.'};
+  if(t<=CFG.cutEnd)return {k:'check',n:'Checkpoint',w:'Test week on the last of the cut — the 1 km or mile and the 400 or 200, only if the week is clear.'};
+  if(t<C.window)return {k:'refuel',n:'Refuel',w:'The reverse starts: carbs back in, sessions controlled, no trials. Legs fill up and fresh up.'};
+  if(t<=C.end)return {k:'pb',n:'PB window',w:'The trials are the hard sessions now — two a week at most, three days apart, easy runs between.'};
+  return {k:'done',n:'Camp done'};
+}
+function campRange(lo,hi){var f=function(x){return x>=60?mmss(Math.round(x)):x.toFixed(1);};return f(lo)+'–'+f(hi)+(hi<60?' s':'');}
+function campHTML(){
+  var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
+  var left=Math.max(0,diffD(t,C.end));
+  var rows=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best,cur=b&&b.t?b.t:(BESTAVG[x.dm]||null);
+    var beat=cur!==null&&cur<=x.hi&&b&&b.d&&b.d>=C.start;
+    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+campRange(x.lo,x.hi)+'</td><td class="tiny">'+fmtS(x.on)+'</td><td>'+(beat?'<span class="pill g">PB ✓</span>':'')+'</td></tr>';}).join('');
+  var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 4 Dec'],['pb','PB window','5–23 Dec']];
+  return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
+    (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Best now</th><th class="n">Target</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny keep" style="margin-top:6px">Realistic ranges from your own sessions — 3 × 1 km at 3:14 and 300s at 44 s say these are there. The dates are a guide: never two trials within three days, and only on a week the Feedback tab is clear.</p>'+
+    '<details style="margin-top:6px"><summary class="tiny"><b>Everything that makes you faster</b></summary>'+
+    '<ul class="clean tiny" style="margin-top:6px">'+
+    '<li><b>Sleep 8 h+</b> — the one that matters most for speed and for staying lean.</li>'+
+    '<li><b>Easy runs truly easy</b> (5:00–5:45). The hard runs are only as good as the easy ones are easy.</li>'+
+    '<li><b>Strides</b>: 6–8 × 80 m fast-relaxed at the end of one easy run a week — speed for the 400 and 600 at almost no cost.</li>'+
+    '<li><b>Fuel the hard days</b>: they are 1,899 days; oats 60–90 min before, carbs and protein within the hour after.</li>'+
+    '<li><b>Gym 3–4</b>: legs once, short (6–10 sets), never the day before or after a hard run.</li>'+
+    '<li><b>Losing the weight is free speed</b>: each pound off is roughly 1–2 s a mile at the same effort.</li>'+
+    '<li><b>Trial-day warm-up</b>: 15 min easy, drills, 4 × 100 m strides, then 1 × 200 m at race pace and 5 min easy.</li>'+
+    '<li><b>Caffeine</b> for trials only: about 3 mg per kg (~175 mg, two espressos) 45–60 min before, and only before 2pm.</li>'+
+    '<li><b>Beetroot</b> 2–3 h before a trial, a small portion — nitrates help 1 km to 5 km. Skip it if it upsets your gut.</li>'+
+    '<li><b>Pacing</b>: 400 — first 200 about a second quicker than the second; 800 — even, or slightly quicker first lap; 1 km, mile, 5 km — even, finish strongest.</li>'+
+    '<li><b>Taper</b> for the PB window: the refuel week cuts volume by about a third and keeps a little speed.</li>'+
+    '<li><b>Conditions</b>: pick a calm, dry day, a flat measured route or a track; wind costs more than you think.</li>'+
+    '<li><b>Back off when your body says so</b>: resting HR up 5+, poor sleep, or a 9–10 session — the trial waits, the PB does not disappear.</li>'+
+    '</ul></details></div>';
+}
+function renderCamp(){if(E('campCard'))E('campCard').innerHTML=today()>=addD(CFG.camp.start,-7)&&today()<=CFG.camp.end?campHTML():'';}
 function renderSetsCard(){if(E('tSets'))E('tSets').innerHTML=(buildWeek()?buildHTML(false):'')+setsWeekHTML()+setsLogHTML();}
 /* ===================== Food: numbers and feedback =====================
    29 Sep: the Food tab should be data, numbers and feedback first; the
@@ -6099,6 +6155,7 @@ function renderTraining(tr,c){
   var h='<div class="p"><h2>'+(tr.pre?'Pre-block':'This week')+' · '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd)+(tr.pre?'':(isDeload(weekOf(t))?' · deload week':''))+'</h2>'+weekTemplateHTML(tr)+'</div>';
   E('tWeek').innerHTML=h;
   E('tRuns').innerHTML=weekRunsHTML();
+  renderCamp();
 
   var thr=thresholdPace(),line=effortLine();
   var e='<div class="p"><h2>Judge an effort by pace, not by what it was filed as</h2><div class="tiles t4">'+

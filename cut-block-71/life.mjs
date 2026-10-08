@@ -284,6 +284,26 @@ const fb8 = await p.evaluate(() => { S.days['2026-10-06'].kcal = 1890; return da
 ok('1,890 on a hard-run day is on budget', /On budget — a 1,899 day/.test(fb8), fb8);
 await ctx.close();
 
+// ===== race camp from 12 Oct (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st());
+const cw = await p.evaluate(() => ({ t: tmplFor(mondayOf(today())), before: tmplFor('2026-10-05'), ph: campPhase().k }));
+ok('from camp week the plan is 2 hard and 3 easy 5-milers, 5 runs', cw.t.hard === 2 && cw.t.easy === 3 && cw.t.runs === 5 && cw.before.easy === 1 && cw.ph === 'build', JSON.stringify(cw));
+await p.click('[data-t="training"]'); await p.waitForTimeout(150);
+let cc = sq(await p.innerText('#campCard'));
+ok('the camp card shows the phases, PB targets and dates', /Race camp · PBs before Christmas/i.test(cc) && /Build:/.test(cc) && /400m/i.test(cc) && /5km|5 km|5000/i.test(cc) && /Try on/i.test(cc), cc.slice(0, 500));
+let rcw = sq(await p.innerText('#tRuns'));
+ok('the runs card says a camp week, 3 easy 5-milers with strides', /A camp week, 5 runs/.test(rcw) && /Easy 5 miles × 3/.test(rcw) && /strides/.test(rcw) && /EASY 5 MILES 0 of 3/i.test(rcw), rcw.slice(0, 600));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-10'));
+await boot(st());
+ok('in December the camp is in the PB window', await p.evaluate(() => campPhase().k === 'pb'));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-01'));
+await boot(st());
+ok('the first reverse week is refuel', await p.evaluate(() => campPhase().k === 'refuel'));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));
