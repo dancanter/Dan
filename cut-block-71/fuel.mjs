@@ -50,7 +50,7 @@ ok('two sessions fires the lunch warning', /lunch is not optional/i.test(t), t.s
 ok('gives the oats in the summary', /Oats 60–90 min before/.test(t));
 ok('and the post-run protein and carbs', /30 g protein \+ 60 g carbs/.test(t));
 ok('names the bowl timing', /bowl 20:30/.test(t));
-ok('never adds to the total', /Spending the 1,799 differently, never adding to it/.test(t));
+ok('never adds to the total', /Spending the 1,899 differently, never adding to it/.test(t));
 ok('and points at Food for the detail', /Full detail on the Food tab/.test(t));
 
 // ---- an easy run alone is not a hard day ---------------------------------
@@ -85,7 +85,7 @@ if (src === 'open') {
 // ---- the rest-day rules are the ones that must never drift ---------------
 const book = await p.evaluate(() => fuelBook().rest.r.map(r => r[0] + ' :: ' + r[1]));
 ok('rest day says the food does not come down', /The food does not come down/.test(book.join('|')), book.join(' | '));
-ok('and quotes the real daily target', /1,799/.test(book.join('|')), book.join(' | '));
+ok('and quotes the real daily target', /1,899/.test(book.join('|')), book.join(' | '));
 ok('and keeps the carb floor derived', /147 g|\d+ g is what/.test(book.join('|')), book[2]);
 
 // ---- the Food tab carries the whole set ----------------------------------
@@ -93,7 +93,7 @@ await p.click('[data-t="food"]');
 t = await p.textContent('#foodFuel');
 ['Hard run', '100m uphill sprints', 'Easy run', 'Gym at 18:30', 'Rest day'].forEach(k =>
   ok('food tab lists ' + k, t.indexOf(k) >= 0));
-ok('and says the total never moves', /1,799 every day, hard session or not/.test(t), t.slice(-300));
+ok('and says the total never moves', /1,899 every day, hard session or not/.test(t), t.slice(-300));
 
 // ================= the step-it-up call =====================================
 const week = (n) => { const o = {}; for (let i = 0; i < n; i++) o[back(i)] = {}; return o; };

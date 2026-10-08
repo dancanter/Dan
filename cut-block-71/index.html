@@ -702,7 +702,11 @@ var CFG={
      21 hard + 10 easy five-milers = 31, gym about 4 a week = 42 */
   goals:{gym:42,hard:21,sprints:10,runs:31,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
-  kcal:{avg:1799,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
+  /* 8 Oct, Dan: 1,799 -> 1,899, all of it carbs (232 g). Runs, gym and study
+     were getting hard, resting HR was climbing, and he wants one number he can
+     keep on a Saturday too. Measured rate ~0.6 lb/wk at 1,799, so ~0.45 at
+     1,899 still lands him inside 122–124 by 28 Nov. */
+  kcal:{avg:1899,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
   study:{term:'2026-09-28',lo:16,hi:20},
   /* 8 h from 28 Sep: optimal testosterone on the cut, and sleep is the biggest lever */
@@ -4318,7 +4322,11 @@ function reverseModel(){
     if(days>=14){
       var lost=w.baseline-w.a7;
       var perDay=lost/days*3500;
-      est={lbWk:lost/days*7,deficit:perDay,days:days,lost:lost,from:'measured'};
+      /* what he actually ate over those days (the day number moved 1,799 ->
+         1,899 on 8 Oct, and refeeds count), else the day number */
+      var kE=[];for(var q=0;q<=days;q++){var rq=S.days[addD(WEIGH_START,q)];if(rq&&typeof rq.kcal==='number')kE.push(rq.kcal);}
+      var eaten=kE.length>=7?mean(kE):KCAL_DAY;
+      est={lbWk:lost/days*7,deficit:perDay,days:days,lost:lost,from:'measured',eaten:eaten};
     }
   }
   if(!est){
@@ -4331,8 +4339,9 @@ function reverseModel(){
      the ladder comes down by that much — lean first, so no hidden surplus */
   var kgR=(w.a7!==null?w.a7:CFG.w.target)*0.45359237;
   var actAdj=Math.round(((CFG.goals.steps-CFG.rev.steps)/1000*WALK_KCAL_PER_KG_1K)*kgR);
-  var maintCut=Math.round((KCAL_DAY+est.deficit)/10)*10;
-  var maint=Math.round((KCAL_DAY+est.deficit-actAdj)/10)*10;
+  var eatenNow=est.eaten||KCAL_DAY;
+  var maintCut=Math.round((eatenNow+est.deficit)/10)*10;
+  var maint=Math.round((eatenNow+est.deficit-actAdj)/10)*10;
   /* Dan's shape, not a generic ramp: one honest step up to the first rung,
      hold it long enough to see what the scale actually does, then small
      steps from there. The hold is the part that makes the rest readable —
@@ -6887,7 +6896,7 @@ function renderReverse(){
     tile('your deficit now',ci(Math.round(R.est.deficit))+'/day',f1(R.est.lbWk)+' lb a week')+
     '</div>';
   if(R.est.from==='measured'){
-    h+='<p class="tiny" style="margin-top:10px">That maintenance number is not from a formula. Over '+R.est.days+' days you have eaten '+ci(KCAL_DAY)+
+    h+='<p class="tiny" style="margin-top:10px">That maintenance number is not from a formula. Over '+R.est.days+' days you have eaten about '+ci(Math.round((R.est.eaten||KCAL_DAY)/10)*10)+
        ' a day and lost <b class="num">'+f1(R.est.lost)+' lb</b>, which at 3,500 kcal a pound is a <b class="num">'+ci(Math.round(R.est.deficit))+
        ' kcal</b> daily shortfall. Add it back and you are level at today’s activity ('+ci(R.maintCut)+'); the reverse week walks and runs a little less, about '+ci(R.actAdj)+' kcal a day, so the ladder tops out at <b>'+ci(R.maint)+'</b> — lean first, no hidden surplus. It gets more accurate every morning you weigh, so the ladder below will move — that is it working.</p>';
   }else{

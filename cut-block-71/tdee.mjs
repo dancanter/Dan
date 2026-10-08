@@ -61,7 +61,7 @@ ok('walking on a rest day is all of the steps', r.walkSteps === 9000 && r.runSte
 await boot(st({ weights: { [TODAY]: 128.0 }, days: {} }));
 let u = await p.evaluate(t => tdeeFor(t), TODAY);
 ok('with nothing logged, steps are unknown not zero', u.steps === null && u.walkKcal === null, JSON.stringify({ s: u.steps, w: u.walkKcal }));
-ok('and intake falls back to the target, flagged', u.intakeKnown === false && u.against === 1799, JSON.stringify(u.against));
+ok('and intake falls back to the target, flagged', u.intakeKnown === false && u.against === 1899, JSON.stringify(u.against));
 ok('the card says walking is missing', /No step count on today yet/.test(await p.textContent('#tdeeCard')),
   (await p.textContent('#tdeeCard')).slice(0, 220));
 ok('and says roughly what it would add', /it will rise by roughly/.test(await p.textContent('#tdeeCard')));
