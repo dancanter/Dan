@@ -350,6 +350,7 @@ ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
   ok('summer has breakfast, lunch and dinner ideas, and the evening bowl stays', /Breakfast/.test(sc) && /Overnight GF oats/.test(sc) && /Lunch/.test(sc) && /Grilled mackerel/.test(sc) && /Dinner · 16:30/.test(sc) && /Your yoghurt bowl — always the same/.test(sc), sc.slice(0, 900));
   ok('every season has three ideas for each meal', await sp.evaluate(() => SEASONS.every(x => ['b', 'l', 'd'].every(k => x.meals[k].length === 3))));
   ok('any oats are gluten-free', await sp.evaluate(() => SEASONS.every(x => JSON.stringify(x.meals).match(/oats|porridge/gi).length === (JSON.stringify(x.meals).match(/GF (oats|porridge)/g) || []).length)));
+  ok('no onion, leek or garlic in the seasons (8 Oct)', await sp.evaluate(() => !/onion|leek|garlic/i.test(JSON.stringify(SEASONS))));
   ok('nothing on the list breaks his rules', await sp.evaluate(() => !/broccoli|sprout|cabbage|kale|rocket|watercress|liver|swede|turnip|supplement|tablet/i.test(JSON.stringify(SEASONS))));
   ok('the seasons fit the screen', await sp.evaluate(() => document.documentElement.scrollWidth <= 390));
   await sp.close();

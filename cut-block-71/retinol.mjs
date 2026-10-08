@@ -5,6 +5,8 @@ const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + x : '')); else c
 const FILE = 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html';
 const LS = 'cutblock71.v1';
 const p = await b.newPage({ viewport: { width: 430, height: 2600 } });
+// Phase one is the first fortnight after 24 Sep; pin the clock inside it so the suite does not rot.
+await p.clock.setFixedTime(new Date('2026-09-28T12:00:00'));
 p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
 p.on('console', m => { const x = m.text();
   if (m.type() === 'error' && !/ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis/.test(x)) errs.push('CONSOLE: ' + x.slice(0, 220)); });
