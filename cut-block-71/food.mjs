@@ -355,6 +355,22 @@ ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
   ok('the seasons fit the screen', await sp.evaluate(() => document.documentElement.scrollWidth <= 390));
   await sp.close();
 }
+// ===== face, hormones and muscle foods (8 Oct) =====
+{
+  const fp = await b.newPage({ viewport: { width: 390, height: 2400 } });
+  fp.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  await fp.goto(FILE); await fp.waitForTimeout(250);
+  await fp.click('[data-t="food"]'); await fp.waitForTimeout(120);
+  let fc = (await fp.innerText('#faceCard')).replace(/\s+/g, ' ');
+  ok('the face card opens on de-puff, with potatoes first', /Face, hormones and muscle foods/i.test(fc) && /Potatoes — the top potassium food/.test(fc) && /never cut/.test(fc), fc.slice(0, 300));
+  ok('and says the calorie call', /1,899 on hard-run, 5-mile and Saturdays, 1,799 on the rest/.test(fc));
+  await fp.click('#faceCard button[data-face="hormones"]'); await fp.waitForTimeout(80);
+  fc = (await fp.innerText('#faceCard')).replace(/\s+/g, ' ');
+  ok('tapping hormones shows the hormone foods', /Oysters — the most zinc/.test(fc) && /Whole eggs/.test(fc), fc.slice(0, 300));
+  ok('nothing on it breaks his rules', await fp.evaluate(() => { const t = JSON.stringify(FACE_GROUPS.filter(g => g.k !== 'limit')); return !/broccoli|sprout|cabbage|kale|rocket|watercress|liver|spinach|olive oil|green tea|brazil|lentil|onion|leek|garlic|supplement|tablet|biotin|beta-carotene/i.test(t); }));
+  ok('the face card fits the screen', await fp.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await fp.close();
+}
 await b.close();
 if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n' + fails.map(f => ' - ' + f).join('\n')); process.exit(1); }
 console.log('\nall passed');

@@ -332,6 +332,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= FOOD ================= -->
 <section id="s-food" class="stack" hidden>
   <div id="foodNums"></div>
+  <div id="faceCard"></div>
   <div id="seasonCard"></div>
   <div id="macroCard"></div>
   <div id="hfFood"></div>
@@ -3721,6 +3722,33 @@ var SEASONS=[
   doo:['🌅 Run early, before the heat','🧢 SPF, a hat and shade','🌙 Blackout blinds — it is light until 9:30']}
 ];
 var SEASON_PICK=null;
+/* Dan, 8 Oct: the foods for a de-puffed, chiselled, glowing face, for
+   hormones and for muscle — all of them, as tappable groups. Built round his
+   rules: no brassicas, spinach, rocket, watercress, liver, olive oil, green
+   tea, Brazil nuts or lentils; no onion, leek or garlic; certified GF only. */
+var FACE_GROUPS=[
+ {k:'depuff',e:'💧',n:'De-puff',w:'Potassium pushes out the water that salt holds; magnesium and a calm gut do the rest.',
+  f:['🥔 Potatoes — the top potassium food','🥝 Kiwi','🍊 Oranges and clementines','🍅 Tomatoes','🥒 Cucumber','🍌 Firm bananas','🐟 Salmon','🥛 Fage and kefir','🎃 Pumpkin seeds — magnesium','🍫 85% dark chocolate, certified GF','💧 2.5–3 L water a day','🧂 The same salt every day — steady, never cut']},
+ {k:'glow',e:'✨',n:'Glow',w:'Omega-3 for the skin barrier, vitamin C to make collagen, lycopene and flavanols against sun damage.',
+  f:['🐟 Salmon, mackerel, sardines, trout','🍓 Strawberries, blueberries, raspberries','🥝 Kiwi and 🍊 oranges','🌶️ Red and yellow peppers','🍅 Tomatoes, cooked','🌰 Hazelnuts — vitamin E','🥚 Egg yolks','🍫 85% dark chocolate, about 20 g','🥩 Red meat and 🦪 oysters — zinc for clear skin']},
+ {k:'hormones',e:'⚡',n:'Hormones',w:'Testosterone and thyroid run on zinc, vitamin D, cholesterol, enough fat, enough carbs, selenium and iodine.',
+  f:['🦪 Oysters — the most zinc of any food','🥩 Beef, lamb, venison — zinc, iron, B12','🥚 Whole eggs — cholesterol, choline, vitamin D','🐟 Oily fish — vitamin D, omega-3','🧈 Grass-fed butter and 🥛 A2 whole milk, in the reverse','🥛 Fage and kefir — iodine for thyroid','🎃 Pumpkin seeds — zinc and magnesium','🌰 Walnuts and hazelnuts','🥔 Potatoes, rice, GF oats — carbs keep cortisol down','🍓 Fruit every day']},
+ {k:'muscle',e:'💪',n:'Muscle',w:'135 g protein a day over 3–4 meals of 30–40 g, from foods rich in leucine.',
+  f:['🥩 Beef and lamb — creatine too','🐔 Chicken','🐟 Cod, salmon, prawns','🥚 Eggs','🥛 Fage 0%, 2%, 5%','🥛 Milk and kefir','🥔 Carbs around training — potatoes, rice, GF oats','🍯 Raw honey before a hard session']},
+ {k:'limit',e:'🚫',n:'Limit',w:'What puffs a face up, or pulls hormones down.',
+  f:['🍺 Alcohol — the biggest one','🧅 Onion, leek and garlic — they bloat you','🍎 Apples, pears, asparagus — if they bloat you','🍯 Big spoonfuls of honey','🍟 Takeaways, crisps, anything ultra-processed — salt spikes','🔥 Charred or burnt meat','🍬 Sugary drinks and sweets','🌙 Big meals late at night','☕ Caffeine after 2pm','🌿 Real liquorice — it holds water and lowers testosterone']}
+];
+var FACE_PICK='depuff';
+function faceHTML(){
+  var g=FACE_GROUPS.filter(function(x){return x.k===FACE_PICK;})[0]||FACE_GROUPS[0];
+  var chip=function(x){return '<span style="display:inline-block;padding:6px 10px;margin:3px 4px 3px 0;border:1px solid var(--rule-2);border-radius:14px;background:var(--rule-2)">'+x+'</span>';};
+  return '<div class="p lift"><h2>😎 Face, hormones and muscle foods</h2>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+FACE_GROUPS.map(function(x){
+      return '<button type="button" class="btn sm'+(x.k===g.k?'':' ghost')+'" data-face="'+x.k+'" aria-pressed="'+(x.k===g.k)+'">'+x.e+' '+x.n+'</button>';}).join('')+'</div>'+
+    '<p class="tiny keep" style="margin:0 0 6px">'+g.w+'</p><div>'+g.f.map(chip).join('')+'</div>'+
+    '<p class="tiny keep" style="margin-top:10px"><b>Calories, my call:</b> '+ci(KCAL_UP)+' on hard-run, 5-mile and Saturdays, '+ci(KCAL_DAY)+' on the rest. Fed training days keep stress hormones — and the water they hold — down; the lighter days keep the fat coming off.</p>'+
+    '<p class="tiny keep">The face comes from fat down to 122–124, steady salt and water, a calm gut, 8 h of sleep and low stress. These foods make each of those easier.</p></div>';
+}
 function seasonNow(t){var m=Number((t||today()).slice(5,7));return m>=9&&m<=11?'autumn':(m===12||m<=2?'winter':(m<=5?'spring':'summer'));}
 function seasonHTML(){
   var now=seasonNow(),k=SEASON_PICK||now,S2=SEASONS.filter(function(x){return x.k===k;})[0];
@@ -3738,7 +3766,7 @@ function seasonHTML(){
     '<p class="tiny keep" style="margin:4px 0 0">Hard-run morning: the oats, 60–90 min before. Any meal works with any season’s fruit. No onion, leek or garlic (8 Oct, they slow your gut) — chives, or onion or garlic fried in butter and lifted out, give the flavour without it.</p>'+
     '<p class="tiny keep" style="margin-top:10px"><b>All year:</b> farm shops like Doddington Hall for local meat and eggs · fresh fish from Grimsby · Whisby and Hartsholme for green time.</p></div>';
 }
-function renderFoodNums(){if(E('seasonCard'))E('seasonCard').innerHTML=seasonHTML();if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();if(E('macroCard'))E('macroCard').innerHTML=macroHTML();}
+function renderFoodNums(){if(E('faceCard'))E('faceCard').innerHTML=faceHTML();if(E('seasonCard'))E('seasonCard').innerHTML=seasonHTML();if(E('foodNums'))E('foodNums').innerHTML=foodNumsHTML();if(E('macroCard'))E('macroCard').innerHTML=macroHTML();}
 /* 1 Oct, Dan: his macros on the cut, in the reverse, and in general for
    longevity and hormones — the numbers first, the why behind Read more. */
 function macroHTML(){
@@ -5667,6 +5695,7 @@ function lookupFood(){
 }
 function wireFood(){
   wireSimple();
+  E('faceCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-face]');if(!b)return;FACE_PICK=b.dataset.face;E('faceCard').innerHTML=faceHTML();});
   E('seasonCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-season]');if(!b)return;SEASON_PICK=b.dataset.season;E('seasonCard').innerHTML=seasonHTML();});
   wireGlance();
   wireFeedback();
