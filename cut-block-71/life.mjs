@@ -140,7 +140,7 @@ ok('Today opens with the log, then calories in and burned', await p.evaluate(() 
   return /Log ·/.test(kids[0].querySelector('h2').textContent) && kids[1].id === 'tdeeCard' && /Burn and deficit/.test(kids[1].textContent);
 }));
 let g = sq(await p.innerText('#glanceCard'));
-ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard · 0 sprints/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
+ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
 await p.click('#glanceCard button[data-goto="mind"]'); await p.waitForTimeout(150);
 ok('tapping a line opens its tab', await p.evaluate(() => !E('s-mind').hidden));
 await p.click('[data-t="today"]'); await p.waitForTimeout(150);
@@ -289,9 +289,10 @@ await ctx.close();
 await boot(st());
 const cw = await p.evaluate(() => ({ t: tmplFor(mondayOf(today())), before: tmplFor('2026-10-05'), ph: campPhase().k }));
 ok('camp week 1 is straight in: 2 hard and 3 easy 5-milers, 5 runs (no ramp, his call)', cw.t.hard === 2 && cw.t.easy === 3 && cw.t.runs === 5 && !cw.t.ramp && cw.before.easy === 1 && cw.ph === 'build', JSON.stringify(cw));
-await p.click('[data-t="training"]'); await p.waitForTimeout(150);
+await p.click('[data-t="camp"]'); await p.waitForTimeout(150);
 let cc = sq(await p.innerText('#campCard'));
 ok('the camp card shows the phases, PB targets and dates', /Race camp · PBs before Christmas/i.test(cc) && /Build:/.test(cc) && /400m/i.test(cc) && /5km|5 km|5000/i.test(cc) && /Try on/i.test(cc), cc.slice(0, 500));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let rcw = sq(await p.innerText('#tRuns'));
 ok('the runs card says a camp week, 3 easy 5-milers with strides', /A camp week, 5 runs/.test(rcw) && !/Ramp week/.test(rcw) && /Easy 5 miles × 3/.test(rcw) && /strides/.test(rcw) && /EASY 5 MILES 0 of 3/i.test(rcw), rcw.slice(0, 600));
 await ctx.close();
@@ -307,8 +308,11 @@ await ctx.close();
 // ===== the fun part: XP, levels, quests, mission, bosses (8 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-08'));
 await boot(st());
-await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 ok('before camp it counts down to Monday', /Camp starts in 4 days/.test(sq(await p.innerText('#campCard'))));
+ok('the camp has its own tab, next to Today', await p.evaluate(() => { const b = [...document.querySelectorAll('#tabs button')].map(x => x.dataset.t); return b[1] === 'camp'; }));
+await p.click('[data-t="today"]'); await p.waitForTimeout(80);
+ok('Today at a glance says when the camp starts, and taps through to it', /Race camp starts in 4 days — Mon 12 Oct/.test(sq(await p.innerText('#glanceCard'))) && await p.evaluate(() => !!document.querySelector('#glanceCard button[data-goto="camp"]')));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-15'));   // Thursday of camp week 1
 await boot(st({ days: {
@@ -321,7 +325,7 @@ ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day ==
 ok('quests count the week: hard 1/2, 5-milers 2/3, gym 3/4', JSON.stringify(G.quests.slice(0, 3).map(q => q[2] + '/' + q[3])) === '["1/2","2/3","3/4"]', JSON.stringify(G.quests));
 ok('the runs left are listed, never a day: one hard (8 × 200 m) and one easy 5 miles, each with how to run it', G.left.filter(x => x.e === '⚡').length === 1 && /8 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 1 && /Chatty/.test(G.left.find(x => x.e === '🏃').how), JSON.stringify(G.left));
 ok('six bosses, none beaten yet', G.bosses.length === 6 && G.bosses.every(b => !b.won));
-await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
 ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Friday|Saturday|Sunday/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
 await p.click('[data-t="today"]'); await p.waitForTimeout(100);
@@ -340,7 +344,7 @@ let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, lef
 ok('a clear build week turns uphill sprints ON, after a 5-miler', G2.spr.on && G2.left.some(n => /Uphill sprints are ON: \d+ × ~10 s, at the end of a 5-miler/.test(n)), JSON.stringify(G2.spr));
 ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'), JSON.stringify(G2.q));
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
-await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
 ok('the card shows the shred meter and milestones', /Shred meter/.test(gx) && /lb to 123/.test(gx), gx.slice(0, 900));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
@@ -353,6 +357,13 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-14'));
 await boot(st({ days: { '2026-10-14': { niggle: true, niggleWhat: 'calf' } } }));
 ok('something hurting turns the sprints off', await p.evaluate(() => !campGame().spr.on));
+await ctx.close();
+
+// ===== the glance runs line shows what is left, not what is done (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-08'));
+await boot(st({ days: { '2026-10-05': { runs: [{ km: 5, secs: 1463, type: 'easy' }] }, '2026-10-08': { runs: [{ k: 'reps', dm: 800, n: 3, secs: 471 }] } } }));
+let gl8 = sq(await p.innerText('#glanceCard'));
+ok('the runs line: 1 hard, 1 × 5 km easy, and only the short session left to pick', /1 hard · 1 × 5 km easy/.test(gl8) && /still to pick from: 5 × 400 m/.test(gl8) && !/still to pick from: 5 × 800/.test(gl8) && !/0 sprints/.test(gl8), gl8.slice(0, 600));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====

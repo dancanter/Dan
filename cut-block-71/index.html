@@ -185,6 +185,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   </div>
   <nav class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="today" aria-selected="true">Today</button>
+    <button role="tab" data-t="camp" aria-selected="false">🏁 Camp</button>
     <button role="tab" data-t="feedback" aria-selected="false">Feedback</button>
     <button role="tab" data-t="weight" aria-selected="false">Weight</button>
     <button role="tab" data-t="food" aria-selected="false">Food</button>
@@ -472,7 +473,6 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= TRAINING ================= -->
 <section id="s-training" class="stack" hidden>
-  <div id="campCard"></div>
   <div id="tRuns"></div>
   <div id="tWeek"></div>
   <div id="tSets"></div>
@@ -574,6 +574,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
   </div>
   <div id="revBody"></div>
+</section>
+
+<!-- ================= CAMP ================= -->
+<section id="s-camp" class="stack" hidden>
+  <div id="campCard"></div>
 </section>
 
 <!-- ================= FEEDBACK ================= -->
@@ -3494,7 +3499,7 @@ function wireSimple(){
 function glanceHTML(){
   var t=today(),r=S.days[t]||{},A=avgWindow(t,7),tr=trainingModel(),w=tr.week;
   var wd=0,wn=0;for(var i=0;i<7;i++){var d=addD(tr.wkStart,i);if(d>t)break;var x=tdeeFor(d);if(x.stepsKnown||x.intakeKnown){wd+=x.deficit;wn++;}}
-  var M=weekRunsModel(),runIdea=M?(M.P.long?M.P.long.replace(/ — .*/,'')+' · ':'')+M.P.short.replace(/, fast but relaxed/,''):'';
+  var M=weekRunsModel(),runIdea=M?[(M.P.long&&!M.longDone)?M.P.long.replace(/ — .*/,''):'',(!M.shortDone)?M.P.short.replace(/, fast but relaxed/,''):''].filter(Boolean).join(' · '):'';
   var film=filmNight(t)?filmPick():null,next='';
   if(!film){for(var j=1;j<=7;j++){var nd=addD(t,j);if(filmNight(nd)){next=DOWS[dow(nd)];break;}}}
   var ticks=(r.rt||[]).length;
@@ -3503,10 +3508,11 @@ function glanceHTML(){
   var C=t>=CFG.cutStart?coachModel():null;
   return '<div class="p lift"><h2>Today at a glance</h2>'+
     (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
-    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el)?'Left this week: '+[hl?hl+' hard':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','training');})():'')+
+    (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
+    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el)?'Left this week: '+[hl?hl+' hard':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','camp');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
-    row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.five?' · '+w.five+' × 5 mi':'')+(w.easy5k?' · '+w.easy5k+' × 5 km':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
+    row('🏃','Runs this week',([w.hard+' hard',w.five?w.five+' × 5 mile easy':'',w.easy5k?w.easy5k+' × 5 km easy':'',w.sprints?w.sprints+' sprint'+(w.sprints===1?'':'s'):''].filter(Boolean).join(' · '))+(runIdea?' <span class="tiny dim">· still to pick from: '+esc(runIdea)+'</span>':''),'training')+
     row('🏋️','Gym this week',w.gym+' session'+(w.gym===1?'':'s'),'training')+
     row('😴','Sleep last night',typeof r.sleep==='number'?hDec(sleepMins(r))+' h · '+hm(sleepMins(r))+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
     row('🎬',film?'Tonight is film night':'Film nights',film?esc(film[0]):(next?'next: '+next:'none set'),'mind')+
@@ -3821,7 +3827,7 @@ function campHTML(){
     '<li><b>Back off when your body says so</b>: resting HR up 5+, poor sleep, or a 9–10 session — the trial waits, the PB does not disappear.</li>'+
     '</ul></details></div>';
 }
-function renderCamp(){if(E('campCard'))E('campCard').innerHTML=today()>=addD(CFG.camp.start,-7)&&today()<=CFG.camp.end?campHTML():'';}
+function renderCamp(){if(E('campCard'))E('campCard').innerHTML=today()<=CFG.camp.end?campHTML():'<div class="p"><h2>🏁 Race camp</h2><p class="note">The camp finished on '+fmtL(CFG.camp.end)+'.</p></div>';}
 function renderSetsCard(){if(E('tSets'))E('tSets').innerHTML=(buildWeek()?buildHTML(false):'')+setsWeekHTML()+setsLogHTML();}
 /* ===================== Food: numbers and feedback =====================
    29 Sep: the Food tab should be data, numbers and feedback first; the
@@ -7545,7 +7551,7 @@ function renderData(w,tr,c){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
+  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
