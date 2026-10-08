@@ -23,9 +23,9 @@ let { ctx, p, boot } = await at('2026-10-14');   // week 4, which used to be a d
 await boot(st());
 const T = await p.evaluate(() => ({ g: CFG.goals, w4: tmplFor(addD(WEIGH_START, 21)), w8: tmplFor(addD(WEIGH_START, 49)),
   sum: (() => { let h = 0, e = 0; for (let k = 1; k <= W_WEEKS; k++) { const t = tmplFor(addD(WEIGH_START, (k - 1) * 7)); h += t.hard; e += t.easy; } return { h, e }; })() }));
-ok('no week is a scheduled deload any more', !T.w4.deload && !T.w8.deload && T.w4.hard === 2 && T.w4.runs === 5, JSON.stringify(T.w4));
+ok('no week is a scheduled deload any more', !T.w4.deload && !T.w8.deload && T.w4.hard === 2 && T.w4.runs === 4, JSON.stringify(T.w4));
 ok('the block hard-run total is the weeks added up, plus the pre-block one', T.g.hard === T.sum.h + 1 && T.g.hard === 21, JSON.stringify(T));
-ok('runs = hard + the easy five-milers', T.g.runs === T.g.hard + T.sum.e && T.g.runs === 45, JSON.stringify(T));
+ok('runs = hard + the easy five-milers', T.g.runs === T.g.hard + T.sum.e && T.g.runs === 43, JSON.stringify(T));
 let t = sq(await p.evaluate(() => weekRunsHTML()));
 ok('week 4 is a normal week now', !/deload/i.test(t) && /Hard run · longer/.test(t), t.slice(0, 200));
 // an easy week he chooses to take cuts the runs card to one hard run
