@@ -904,7 +904,11 @@ var CFG={
      strides), gym 3–4. */
   /* 8 Oct: a two-week ramp was offered; Dan is used to the volume and said
      no — straight in at 3 (rampWeeks 0 keeps the switch if it is ever wanted) */
-  camp:{start:'2026-10-12',window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},rampWeeks:0,rampEasy:2,
+  /* Dan, 8 Oct: the camp week is 4 WORK days (study + the hard training — both
+     hard runs and the gym), 2 LIGHT days (easy 5-milers, light stuff), and
+     SATURDAY — fully stress-free: no runs, no weights, no study, steps only if
+     they come naturally. */
+  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},rampWeeks:0,rampEasy:2,
     /* all-time bests, all 2025, from Strava's own best efforts and Dan (8 Oct):
        400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
        1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
@@ -3727,7 +3731,7 @@ function campGame(){
       if(m.hard)add(30);else if(isFiveMiler(m))add(20);else add(10);});
     if(r.gym)add(20);
     if(r.gym&&r.pr)add(15);                             /* beat last time on a main lift */
-    if(!ran&&!r.gym&&d<t)add(10);                       /* a full rest day counts — recovery is training */
+    if(!ran&&!r.gym&&d<t)add(dow(d)===C.offDay&&typeof r.study!=='number'?20:10);   /* rest counts; a stress-free Saturday counts double */
     if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
     if(r.phoneOut)add(5);
   }
@@ -3747,14 +3751,14 @@ function campGame(){
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
     (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;});
-    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
+    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
-  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🛌','Full rest day',q.rest,1],['😴','8 h nights',q.sleep,5]];
+  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),left=[];
@@ -3773,7 +3777,7 @@ function campGame(){
   var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
   if(sprOn&&!q.spr)left.push({e:'⛰️',n:'Uphill sprints are ON: '+spr.n+' × ~10 s, at the end of a 5-miler',how:'Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.'});
   for(var e5=q.five;e5<T.easy;e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
-  if(q.rest<1)left.push({e:'🛌',n:'A full rest day',how:'Walking only. This is where the fitness lands.'});
+  if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */
   var startW=a0!==null?a0:(cutReadings().length?cutReadings()[0].lb:null);
@@ -3793,7 +3797,7 @@ function campGameHTML(){
     '<div style="margin:10px 0 4px"><b>🗓️ Runs left this week — you pick the days</b>'+
       (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
       (G.spr.done?'<div class="tiny" style="margin-top:6px">⛰️ Uphill sprints done this week ✓</div>':(!G.spr.on&&G.spr.why?'<div class="tiny dim" style="margin-top:6px">⛰️ Uphill sprints: off this week — '+G.spr.why+'.</div>':''))+
-      '<div class="tiny dim" style="margin-top:6px">Any days you like: hard runs 3+ days apart, never the day after legs (same day, run first, is fine).</div></div>'+
+      '<div class="tiny dim" style="margin-top:6px"><b>Your week:</b> 4 work days — study plus the hard training (both hard runs and the gym); 2 light days — easy 5-milers and light stuff; Saturday stress-free. Pick the days inside that: hard runs 3+ days apart, never the day after legs (same day, run first, is fine).</div></div>'+
     (function(){var S2=G.shred;if(S2.now===null)return '';
       var span=Math.max(0.1,(S2.start||S2.now)-S2.target),done=Math.max(0,Math.min(1,((S2.start||S2.now)-S2.now)/span));
       var togo=Math.max(0,S2.now-S2.hi);
@@ -3806,7 +3810,7 @@ function campGameHTML(){
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
       return '<span class="pill'+(b.won?' g':'')+'">'+(b.legend?'👑 ':(b.won?'🏆 ':'👹 '))+repLabel(b.dm)+(b.legend?' all-time beaten':(b.won?' 2026 beaten':' · '+fmtS(b.on)))+'</span>';}).join('')+'</div>'+
       '<div class="tiny dim" style="margin-top:4px">Beat your 2026 best: 🏆 +100 XP. Beat your all-time (2025) best too: 👑 +250 more.</div></div>'+
-    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · full rest day 10 · 8 h night 10 · phone-free 5 · 2026 best beaten 100 · all-time beaten 250 more. It only goes up.</p></div>';
+    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · stress-free Saturday 20 · other full rest day 10 · 8 h night 10 · phone-free 5 · 2026 best beaten 100 · all-time beaten 250 more. It only goes up.</p></div>';
 }
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
@@ -3983,7 +3987,7 @@ var DEEP={lo:8,hi:12,cap:15,day:4};
 /* Dan, 30 Sep: no "X hours under" for study — just the aim for a distinction
    and where too much starts. Study is judged on deep hours only, and the only
    flag is too much, never too little. */
-var DEEP_AIM='For a distinction: <b>'+DEEP.lo+'–'+DEEP.hi+' h of deep study a week</b>, up to about '+DEEP.day+' h in a day. Over '+DEEP.cap+' h a week is too much.';
+var DEEP_AIM='For a distinction: <b>'+DEEP.lo+'–'+DEEP.hi+' h of deep study a week</b> — on your 4 work days that is about 2–3 h each — up to about '+DEEP.day+' h in a day. Over '+DEEP.cap+' h a week is too much. Light days are light; Saturday is no study at all.';
 function deepWeek(d){
   var st=mondayOf(d),days=[],tot=0;
   for(var i=0;i<7;i++){var dd=addD(st,i),r=S.days[dd]||{},v=typeof r.deep==='number'?r.deep:0;days.push({d:dd,v:v,future:dd>d});tot+=v;}

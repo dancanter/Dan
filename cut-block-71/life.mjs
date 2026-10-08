@@ -328,7 +328,7 @@ ok('six bosses, none beaten yet', G.bosses.length === 6 && G.bosses.every(b => !
 ok('the all-time bests are the ultimate bosses: 400 57, 1 km 2:48, mile 4:54, 5 km 17:17', await p.evaluate(() => { const a = CFG.camp.allTime; return a[400].t === 57 && a[1000].t === 168 && a[1609].t === 294 && a[5000].t === 1037; }));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
-ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Friday|Saturday|Sunday/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
+ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Thursday|Friday|Sunday/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
 await p.click('[data-t="today"]'); await p.waitForTimeout(100);
 ok('Today at a glance has the camp line and what is left', /Camp day 4 · 🥉 Rookie/.test(sq(await p.innerText('#glanceCard'))) && /Left this week: 1 hard · 1 easy — you pick the days/.test(sq(await p.innerText('#glanceCard'))));
 await ctx.close();
@@ -366,6 +366,22 @@ await ctx.close();
 await boot(st({ days: { '2026-10-05': { runs: [{ km: 5, secs: 1463, type: 'easy' }] }, '2026-10-08': { runs: [{ k: 'reps', dm: 800, n: 3, secs: 471 }] } } }));
 let gl8 = sq(await p.innerText('#glanceCard'));
 ok('the runs line: 1 hard, 1 × 5 km easy, and only the short session left to pick', /1 hard · 1 × 5 km easy/.test(gl8) && /still to pick from: 5 × 400 m/.test(gl8) && !/still to pick from: 5 × 800/.test(gl8) && !/0 sprints/.test(gl8), gl8.slice(0, 600));
+await ctx.close();
+
+// ===== the stress-free Saturday and the 4-work-day week (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-18'));   // Sunday of camp week 1
+await boot(st({ days: { '2026-10-17': { steps: 6000 }, '2026-10-16': { gym: true, study: 3 } } }));
+const SF = await p.evaluate(() => { const g = campGame(); return { q: g.quests.find(q => /Stress-free Saturday/.test(q[1])), xp: g.xp }; });
+ok('a Saturday with no run, weights or study ticks the stress-free quest', SF.q && SF.q[2] === 1, JSON.stringify(SF));
+await boot(st({ days: { '2026-10-17': { study: 2 } } }));
+ok('studying on Saturday does not count as stress-free', await p.evaluate(() => campGame().quests.find(q => /Stress-free Saturday/.test(q[1]))[2] === 0));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st());
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
+let wk4 = sq(await p.innerText('#campCard'));
+ok('the camp says the week shape: 4 work days, 2 light, Saturday stress-free', /4 work days — study plus the hard training/.test(wk4) && /2 light days/.test(wk4) && /Saturday: the stress-free day/.test(wk4) && /No runs, no weights, no study/.test(wk4), wk4.slice(0, 900));
+ok('the study aim says 2–3 h on each of the 4 work days', /on your 4 work days that is about 2–3 h each/.test(await p.evaluate(() => DEEP_AIM)));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====
