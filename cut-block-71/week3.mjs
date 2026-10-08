@@ -23,7 +23,7 @@ const D = await p.evaluate(() => { const m = mondayOf(today()); return { t: toda
 const cfg = await p.evaluate(() => ({ tmpl: CFG.tmpl, runs: CFG.goals.runs, hard: CFG.goals.hard, sprints: CFG.goals.sprints }));
 ok('the week is 4 runs: 2 hard and 2 easy', cfg.tmpl.runs === 3 && cfg.tmpl.hard === 2 && cfg.tmpl.easy === 1 && cfg.tmpl.gym === 4, JSON.stringify(cfg.tmpl));
 ok('the sprints are the option, never owed', cfg.tmpl.sprints === 0);
-ok('block totals: 21 hard, 41 runs (no fixed deloads)', cfg.runs === 43 && cfg.hard === 21, JSON.stringify(cfg));
+ok('block totals: 21 hard, 41 runs (no fixed deloads)', cfg.runs === 45 && cfg.hard === 21, JSON.stringify(cfg));
 
 if (!D.pre) {
   // hard + hard + sprints, no easy run: the week is done

@@ -704,7 +704,7 @@ var CFG={
      21 hard + 10 easy five-milers = 31, gym about 4 a week = 42 */
   /* camp from 12 Oct: 3 easy five-milers a week for the last 7 weeks — runs
      = 21 hard + 3×1 + 7×3 easy ≈ 45 */
-  goals:{gym:42,hard:21,sprints:10,runs:43,steps:12800,weightLo:122,weightHi:123},
+  goals:{gym:42,hard:21,sprints:10,runs:45,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -895,9 +895,9 @@ var CFG={
      before Christmas, while the cut carries on to 122–123 by 28 Nov. From
      camp start the week is 2 hard runs and 3 easy five-milers (one with
      strides), gym 3–4. */
-  /* 8 Oct: from 0–1 five-milers a week to 3 is too big a jump at once, so the
-     first two camp weeks ramp at 2 (week 2 may add an easy 5 km) */
-  camp:{start:'2026-10-12',window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},rampWeeks:2,rampEasy:2,
+  /* 8 Oct: a two-week ramp was offered; Dan is used to the volume and said
+     no — straight in at 3 (rampWeeks 0 keeps the switch if it is ever wanted) */
+  camp:{start:'2026-10-12',window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},rampWeeks:0,rampEasy:2,
     pb:[{dm:400,lo:57.5,hi:58.5,on:'2026-12-09'},{dm:600,lo:95,hi:98,on:'2026-12-22'},{dm:800,lo:138,hi:142,on:'2026-12-16'},
         {dm:1000,lo:174,hi:178,on:'2026-12-05'},{dm:1609,lo:312,hi:320,on:'2026-12-19'},{dm:5000,lo:1050,hi:1070,on:'2026-12-12'}]}
 };
