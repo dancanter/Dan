@@ -57,6 +57,7 @@ section[hidden]{display:none!important}
 .tiles{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
 .tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.camptbl{font-size:13px}.camptbl td,.camptbl th{white-space:nowrap;padding-left:4px;padding-right:4px}
 .tile{background:var(--panel);padding:11px 12px}
 .tile .k{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
 .tile .v{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
@@ -904,6 +905,11 @@ var CFG={
   /* 8 Oct: a two-week ramp was offered; Dan is used to the volume and said
      no — straight in at 3 (rampWeeks 0 keeps the switch if it is ever wanted) */
   camp:{start:'2026-10-12',window:'2026-12-05',end:'2026-12-23',tmpl:{hard:2,easy:3,easyMax:3,sprints:0,runs:5,gym:4},rampWeeks:0,rampEasy:2,
+    /* all-time bests, all 2025, from Strava's own best efforts and Dan (8 Oct):
+       400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
+       1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
+       1 May 2025. No 600 on record. These are the ultimate bosses. */
+    allTime:{400:{t:57,d:'2025-06-04'},800:{t:132,d:'2025-06-04',n:'half-mile split'},1000:{t:168,d:'2025-06-04'},1609:{t:294,d:'2025-05-22'},5000:{t:1037,d:'2025-05-01'}},
     pb:[{dm:400,lo:57.5,hi:58.5,on:'2026-12-09'},{dm:600,lo:95,hi:98,on:'2026-12-22'},{dm:800,lo:138,hi:142,on:'2026-12-16'},
         {dm:1000,lo:174,hi:178,on:'2026-12-05'},{dm:1609,lo:312,hi:320,on:'2026-12-19'},{dm:5000,lo:1050,hi:1070,on:'2026-12-12'}]}
 };
@@ -3736,7 +3742,8 @@ function campGame(){
   for(var w0=mondayOf(C.start);w0<=t;w0=addD(w0,7)){var ss=weekSets(w0);
     if(CFG.sets.every(function(x){var rr=setsRange(x.m),v=ss[x.m]||0;return v>=rr[0]&&v<=rr[1];})){setWeeks++;xp+=50;}}
   var R=records(),bosses=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best;var won=!!(b&&b.date&&b.date>=C.start);if(won)xp+=100;
-    return {dm:x.dm,on:x.on,won:won,t:b?b.t:null};});
+    var at=C.allTime[x.dm],legend=!!(won&&at&&b.t<at.t);if(legend)xp+=250;
+    return {dm:x.dm,on:x.on,won:won,legend:legend,t:b?b.t:null,at:at?at.t:null};});
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
@@ -3797,22 +3804,24 @@ function campGameHTML(){
     '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
       return '<span class="pill'+(ok?' g':'')+'">'+x[0]+' '+x[1]+' '+Math.min(x[2],x[3])+'/'+x[3]+(ok?' ✓':'')+'</span>';}).join('')+'</div></div>'+
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
-      return '<span class="pill'+(b.won?' g':'')+'">'+(b.won?'🏆 ':'👹 ')+repLabel(b.dm)+(b.won?' beaten':' · '+fmtS(b.on))+'</span>';}).join('')+'</div></div>'+
-    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · full rest day 10 · 8 h night 10 · phone-free 5 · boss beaten 100. It only goes up.</p></div>';
+      return '<span class="pill'+(b.won?' g':'')+'">'+(b.legend?'👑 ':(b.won?'🏆 ':'👹 '))+repLabel(b.dm)+(b.legend?' all-time beaten':(b.won?' 2026 beaten':' · '+fmtS(b.on)))+'</span>';}).join('')+'</div>'+
+      '<div class="tiny dim" style="margin-top:4px">Beat your 2026 best: 🏆 +100 XP. Beat your all-time (2025) best too: 👑 +250 more.</div></div>'+
+    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · full rest day 10 · 8 h night 10 · phone-free 5 · 2026 best beaten 100 · all-time beaten 250 more. It only goes up.</p></div>';
 }
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
   var left=Math.max(0,diffD(t,C.end));
   var rows=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best,cur=b&&b.t?b.t:(BESTAVG[x.dm]||null);
     var beat=!!(b&&b.date&&b.date>=C.start);
-    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+campRange(x.lo,x.hi)+'</td><td class="tiny">'+fmtS(x.on)+'</td><td>'+(beat?'<span class="pill g">PB ✓</span>':'')+'</td></tr>';}).join('');
+    var at=C.allTime[x.dm];
+    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n"><b>'+(at?secFmt(at.t):'—')+'</b></td><td class="n">'+campRange(x.lo,x.hi)+'</td><td class="tiny">'+fmtS(x.on)+'</td><td>'+(beat?'<span class="pill g">'+(at&&cur<at.t?'👑':'✓')+'</span>':'')+'</td></tr>';}).join('');
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 4 Dec'],['pb','PB window','5–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     campGameHTML()+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
-    '<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Best now</th><th class="n">Target</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p class="tiny keep" style="margin-top:6px">Realistic ranges from your own sessions — 3 × 1 km at 3:14 and 300s at 44 s say these are there. The dates are a guide: never two trials within three days, and only on a week the Feedback tab is clear.</p>'+
+    '<div class="scroll"><table class="tbl camptbl"><thead><tr><th>Distance</th><th class="n">2026</th><th class="n">All-time</th><th class="n">December</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny keep" style="margin-top:6px"><b>All-time</b> is the ultimate boss: your 2025 bests from Strava (the 800 is your half-mile split, the 400 and 800 came inside a 1 km rep). <b>December</b> is the realistic range from your own sessions on the way there. Never two trials within three days, and only on a week the Feedback tab is clear.</p>'+
     '<details style="margin-top:6px"><summary class="tiny"><b>Everything that makes you faster</b></summary>'+
     '<ul class="clean tiny" style="margin-top:6px">'+
     '<li><b>Sleep 8 h+</b> — the one that matters most for speed and for staying lean.</li>'+

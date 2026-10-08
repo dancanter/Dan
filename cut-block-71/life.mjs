@@ -325,6 +325,7 @@ ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day ==
 ok('quests count the week: hard 1/2, 5-milers 2/3, gym 3/4', JSON.stringify(G.quests.slice(0, 3).map(q => q[2] + '/' + q[3])) === '["1/2","2/3","3/4"]', JSON.stringify(G.quests));
 ok('the runs left are listed, never a day: one hard (8 × 200 m) and one easy 5 miles, each with how to run it', G.left.filter(x => x.e === '⚡').length === 1 && /8 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 1 && /Chatty/.test(G.left.find(x => x.e === '🏃').how), JSON.stringify(G.left));
 ok('six bosses, none beaten yet', G.bosses.length === 6 && G.bosses.every(b => !b.won));
+ok('the all-time bests are the ultimate bosses: 400 57, 1 km 2:48, mile 4:54, 5 km 17:17', await p.evaluate(() => { const a = CFG.camp.allTime; return a[400].t === 57 && a[1000].t === 168 && a[1609].t === 294 && a[5000].t === 1037; }));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
 ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Friday|Saturday|Sunday/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
