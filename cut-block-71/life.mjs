@@ -272,6 +272,18 @@ ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st ===
 ok('grass-fed butter and A2 whole milk are on the healthy foods list', await p.evaluate(() => !!hfById('butter') && !!hfById('milkA2')));
 await ctx.close();
 
+// ===== up days: 1,899 on hard-run, 5-mile and Saturday; 1,799 otherwise (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-08'));   // a Thursday
+await boot(st({ days: { '2026-10-06': { runs: [{ k: 'reps', dm: 800, n: 5, secs: 770 }] }, '2026-10-07': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }] },
+  '2026-10-05': { runs: [{ km: 5, secs: 1463, type: 'easy' }] }, '2026-10-03': {} } }));
+const ud = await p.evaluate(() => ({ hard: dayTarget('2026-10-06'), five: dayTarget('2026-10-07'), k5: dayTarget('2026-10-05'), sat: dayTarget('2026-10-03'), rest: dayTarget('2026-10-08'), carbs: [CARB_AT, CARB_UP], txt: targetTxt('2026-10-08') }));
+ok('hard-run day, 5-mile day and Saturday are 1,899; easy 5 km and rest days 1,799', ud.hard === 1899 && ud.five === 1899 && ud.sat === 1899 && ud.k5 === 1799 && ud.rest === 1799, JSON.stringify(ud));
+ok('the extra 100 is all carbs: 207 -> 232 g', ud.carbs[0] === 207 && ud.carbs[1] === 232, JSON.stringify(ud.carbs));
+ok('today without a run says 1,799, or 1,899 if you run hard or 5 miles', /1,799 · 1,899 if you run hard or 5 miles/.test(ud.txt), ud.txt);
+const fb8 = await p.evaluate(() => { S.days['2026-10-06'].kcal = 1890; return dayFeedback('2026-10-06').find(x => x[0] === 'Food')[2]; });
+ok('1,890 on a hard-run day is on budget', /On budget — a 1,899 day/.test(fb8), fb8);
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

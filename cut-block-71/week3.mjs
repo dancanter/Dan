@@ -64,7 +64,7 @@ await boot(st({ weights: { [y2]: 128.4, [D.t]: 130.1 }, days: { [yday]: { kcal: 
 let fb = await p.evaluate(d => dayFeedback(d), yday);
 let food = fb.find(r => r[0] === 'Food');
 ok('a refeed day is not "over budget"', food && !/over budget/.test(food[2]) && /Refeed day — planned, not a slip/.test(food[2]), JSON.stringify(food));
-ok('it says what it costs, honestly', /about 0\.1 lb of the week/.test(food[2]), food[2]);
+ok('it says what it costs, honestly', /about 0\.2 lb of the week/.test(food[2]), food[2]);
 ok('and warns about the scale', /expect the scale to jump/.test(food[2]));
 ok('and says how close to maintenance it was', /over what you burned today<\/b> — close to maintenance/.test(food[2]), food[2]);
 ok('shown as a good row, not a warning', food[3] === 'g');
@@ -74,7 +74,7 @@ ok('the morning after: glycogen and water, not fat', wt && /\+1\.7 after the ref
 // a normal over-budget day still says over budget
 await boot(st({ days: { [yday]: { kcal: 2400 } } }));
 food = (await p.evaluate(d => dayFeedback(d), yday)).find(r => r[0] === 'Food');
-ok('a day without the refeed toggle still reads as over', /501 over budget/.test(food[2]), food[2]);
+ok('a day without the refeed toggle still reads as over', /601 over budget/.test(food[2]), food[2]);
 // a drop after a refeed is still just good news
 await boot(st({ weights: { [y2]: 128.4, [D.t]: 128.2 }, days: { [yday]: { kcal: 2400, refeed: true } } }));
 wt = (await p.evaluate(d => dayFeedback(d), D.t)).find(r => r[0] === 'Weight');

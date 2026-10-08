@@ -81,7 +81,7 @@ rec = await p.evaluate(() => S.days[today()]);
 ok('two eggs are 156 kcal', rec.eaten[1].kcal === 156 && rec.kcal === 362, JSON.stringify(rec));
 let fl = await txt(p, '#foodList');
 ok('the diary groups by meal', fl.indexOf('Breakfast') < fl.indexOf('Lunch') && /Egg, large/.test(fl), fl);
-ok('it totals kcal against the budget', /362 kcal of your 1,899/.test(fl), fl);
+ok('it totals kcal against the budget', /362 kcal of your 1,799/.test(fl), fl);
 ok('and counts protein toward 135', /53 g protein/.test(fl) && /82 g to 135/.test(fl), fl);
 ok('the kcal box shows the diary total', (await p.$eval('#inKcal', e => e.value)) === '362');
 // nothing picked / nothing entered: said plainly

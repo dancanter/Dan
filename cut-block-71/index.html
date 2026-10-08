@@ -702,11 +702,10 @@ var CFG={
      21 hard + 10 easy five-milers = 31, gym about 4 a week = 42 */
   goals:{gym:42,hard:21,sprints:10,runs:31,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
-  /* 8 Oct, Dan: 1,799 -> 1,899, all of it carbs (232 g). Runs, gym and study
-     were getting hard, resting HR was climbing, and he wants one number he can
-     keep on a Saturday too. Measured rate ~0.6 lb/wk at 1,799, so ~0.45 at
-     1,899 still lands him inside 122–124 by 28 Nov. */
-  kcal:{avg:1899,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
+  /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
+     carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
+     Saturday. Easy, gym-only and walking days stay at 1,799. */
+  kcal:{avg:1799,up:1899,hardDelta:200,otherDelta:-80,milk:150,bowl:535},
   steps:{weekday:15000,sunday:10000},
   study:{term:'2026-09-28',lo:16,hi:20},
   /* 8 h from 28 Sep: optimal testosterone on the cut, and sleep is the biggest lever */
@@ -900,6 +899,20 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
 var KCAL_DAY=CFG.kcal.avg;
 var KCAL_FREE=KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl;
 var KCAL_LIGHTUP=KCAL_DAY+100;
+var KCAL_UP=CFG.kcal.up;
+/* an up day: Saturday, or a hard run or the five-miler logged on it */
+function upDay(is){
+  if(dow(is)===6)return true;
+  var rs=(S.days[is]||{}).runs||[];
+  for(var i=0;i<rs.length;i++){var m=runMeta(rs[i]);if(m.empty)continue;if(m.hard||isFiveMiler(m))return true;}
+  return false;
+}
+function dayTarget(is){return upDay(is)?KCAL_UP:KCAL_DAY;}
+/* the words for a day's target: today can still become an up day */
+function targetTxt(is){
+  if(upDay(is))return ci(KCAL_UP)+' — '+(dow(is)===6&&!((S.days[is]||{}).runs||[]).length?'Saturday':'run day');
+  return ci(KCAL_DAY)+(is===today()?' · '+ci(KCAL_UP)+' if you run hard or 5 miles':'');
+}
 /* pro is the cut number — Dan's call, and it is a fine one: 135 g at 58 kg is
    2.33 g/kg, which is already past where the curve flattens. proRev is the
    reverse number, where the calories are there to pay for it and the carb
@@ -921,6 +934,7 @@ function revMacros(k,first,maint){
   return {pro:pro,fat:fat,carb:Math.max(0,Math.round((k-pro*4-fat*9)/4))};
 }
 var CARB_AT=Math.round((KCAL_DAY-MACRO.pro*4-MACRO.fat*9)/4);
+var CARB_UP=Math.round((CFG.kcal.up-MACRO.pro*4-MACRO.fat*9)/4);
 /* One protein string, derived. It was typed out in four places and went
    stale the moment the number moved. */
 var PRO_TXT=(MACRO.pro-5)+'–'+(MACRO.pro+5)+' g';
@@ -1823,7 +1837,7 @@ function buildReview(wk){
   }
   R.s=S2;
   /* steps, sleep, study, food */
-  var st=0,stD=0,stT=0,sat=null,sl=0,slN=0,ph=0,sy=0,dp=0,syN=0,kc=0,kcN=0;
+  var st=0,stD=0,stT=0,sat=null,sl=0,slN=0,ph=0,sy=0,dp=0,syN=0,kc=0,kcN=0,kT=0;
   for(i=0;i<=diffD(wk.start,cut);i++){
     d=addD(wk.start,i);rec=S.days[d]||{};
     stT+=stepTarget(d);
@@ -1831,12 +1845,12 @@ function buildReview(wk){
     if(typeof rec.sleep==='number'){sl+=rec.sleep;slN++;}
     if(rec.phoneOut)ph++;
     if(typeof rec.study==='number'){sy+=rec.study;syN++;dp+=(typeof rec.deep==='number'?rec.deep:0);}
-    if(typeof rec.kcal==='number'){kc+=rec.kcal;kcN++;}
+    if(typeof rec.kcal==='number'){kc+=rec.kcal;kcN++;kT+=dayTarget(d);}
   }
   R.steps={total:st,days:stD,target:stT,avg:stD?st/stD:null,sat:sat,blank:(diffD(wk.start,cut)+1)-stD};
   R.sleep={avg:slN?sl/slN:null,n:slN,blank:(diffD(wk.start,cut)+1)-slN,phone:ph};
   R.study={total:sy,deep:dp,n:syN,live:wk.end>=CFG.study.term};
-  R.food={avg:kcN?kc/kcN:null,n:kcN,blank:(diffD(wk.start,cut)+1)-kcN};
+  R.food={avg:kcN?kc/kcN:null,tgt:kcN?kT/kcN:null,n:kcN,blank:(diffD(wk.start,cut)+1)-kcN};
   /* the deficit for the same days, from the same estimate Today uses; days
      with neither steps nor food logged are left out rather than guessed */
   var df=0,dfN=0,dfBlank=0,refeeds=[],skAM=0,skPM=0,slLine=0,pro=0,proN=0;
@@ -2003,7 +2017,7 @@ function renderReview(){
   var DF=R.def,dsign=function(x){return (x>=0?'−':'+')+ci(Math.abs(Math.round(x)));};
   h+='<div class="cols"><div class="p"><h2>Food and deficit</h2><div class="tiles t4">'+
     tile('average logged',R.food.avg===null?'—':ci(R.food.avg),R.food.n+' day'+(R.food.n===1?'':'s')+' logged')+
-    tile('against target',R.food.avg===null?'—':signed(R.food.avg-KCAL_DAY,0),'target '+ci(KCAL_DAY)+' flat')+
+    tile('against target',R.food.avg===null?'—':signed(R.food.avg-(R.food.tgt||KCAL_DAY),0),'target '+ci(Math.round(R.food.tgt||KCAL_DAY))+' on average')+
     tile('deficit, the week',DF.n?dsign(DF.total):'—',DF.n?(DF.total>=0?f2(DF.lb)+' lb of fat':'a surplus'):'nothing logged')+
     tile('per day',DF.n?dsign(DF.perDay):'—',DF.n?DF.n+' day'+(DF.n===1?'':'s')+' counted':'')+
     '</div>'+
@@ -2568,14 +2582,14 @@ function renderFuel(tr){
     var bl=book[k];if(!bl)return '';
     return '<tr><td style="white-space:nowrap"><b>'+esc(bl.n.split(' — ')[0])+'</b></td><td class="note">'+bl.s+'</td></tr>';
   }).join('')+'</tbody></table>'+
-    '<p class="tiny" style="margin-top:8px">Spending the '+ci(KCAL_DAY)+' differently, never adding to it. '+
+    '<p class="tiny" style="margin-top:8px">Spending the day’s number differently — '+ci(KCAL_DAY)+', or '+ci(KCAL_UP)+' on a hard-run, 5-mile or Saturday — never adding to it. '+
     '<b>Full detail on the Food tab</b> — the timings, the why, and every session type.</p></div>';
   E('fuelCard').innerHTML=h;
 
   var all='<div class="p"><h2>Fuelling, session by session</h2>'+
     '<p class="note">The Today tab shows whichever of these applies to the day in front of you. This is the whole set.</p>'+
     ['hard','sprint','easy','gym','rest'].map(function(k){return fuelBlockHTML(k,book);}).join('')+
-    '<hr class="d"><p class="tiny"><b>What none of this changes: the total.</b> '+ci(KCAL_DAY)+' every day, hard session or not. '+
+    '<hr class="d"><p class="tiny"><b>What none of this changes: the total.</b> '+ci(KCAL_DAY)+', or '+ci(KCAL_UP)+' on a hard-run, 5-mile or Saturday. '+
     'What the session changes is the <b>shape</b> of the day — which meal the carbohydrate sits in, and how close to the session it lands.</p></div>';
   E('foodFuel').innerHTML=all;
 }
@@ -2757,7 +2771,7 @@ function tdeeFor(is){
   var lb=lbOn(is),kg=lb*0.45359237,age=ageOn(is);
   var bmr=bmrOf(kg,age);
   var intake=(typeof rec.kcal==='number')?rec.kcal:null;
-  var tef=(intake===null?KCAL_DAY:intake)*TEF_RATE;
+  var tef=(intake===null?dayTarget(is):intake)*TEF_RATE;
   var runKm=0;
   (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.km>0)runKm+=m.km;});
   var runKcal=runKm*RUN_KCAL_PER_KG_KM*kg;
@@ -2767,7 +2781,7 @@ function tdeeFor(is){
   var walkKcal=(walkSteps===null)?null:walkSteps/1000*WALK_KCAL_PER_KG_1K*kg;
   var gymKcal=rec.gym?GYM_MET_NET*kg*GYM_HOURS:0;
   var total=bmr+tef+runKcal+gymKcal+(walkKcal||0);
-  var against=(intake===null?KCAL_DAY:intake);
+  var against=(intake===null?dayTarget(is):intake);
   return {date:is,lb:lb,kg:kg,age:age,bmr:bmr,tef:tef,runKm:runKm,runKcal:runKcal,
           runSteps:runSteps,steps:steps,walkSteps:walkSteps,walkKcal:walkKcal,
           gym:!!rec.gym,gymKcal:gymKcal,total:total,intake:intake,
@@ -2930,8 +2944,9 @@ function dayFeedback(is){
   }
   if(typeof r.kcal==='number'){
     x=tdeeFor(is);
-    var fk=r.kcal<=KCAL_DAY+25?'On budget.':(ci(r.kcal-KCAL_DAY)+' over budget — one day moves nothing.');
-    if(r.refeed)fk='<b>Refeed day — planned, not a slip.</b>'+(r.kcal>KCAL_DAY?' The extra '+ci(r.kcal-KCAL_DAY)+' kcal is about '+f1((r.kcal-KCAL_DAY)/3500)+' lb of the week’s fat loss, and it buys back glycogen for the runs and the lifting.':'')+
+    var tgt=dayTarget(is);
+    var fk=r.kcal<=tgt+25?'On budget'+(tgt===KCAL_UP?' — a '+ci(KCAL_UP)+' day.':'.'):(ci(r.kcal-tgt)+' over budget — one day moves nothing.');
+    if(r.refeed)fk='<b>Refeed day — planned, not a slip.</b>'+(r.kcal>tgt?' The extra '+ci(r.kcal-tgt)+' kcal is about '+f1((r.kcal-tgt)/3500)+' lb of the week’s fat loss, and it buys back glycogen for the runs and the lifting.':'')+
       (x.deficit<0?' That is only about <b>'+ci(Math.round(-x.deficit/10)*10)+' over what you burned today</b> — close to maintenance, which is exactly what a refeed should be.':'')+
       ' Carbs are the point of it. Back to '+ci(KCAL_DAY)+' tomorrow, and expect the scale to jump for a couple of mornings.';
     if(x.deficit>50)fk+=' About <b>'+ci(Math.round(x.deficit/10)*10)+' kcal under maintenance</b> — roughly '+ci(Math.round(x.deficit/KCAL_PER_G_FAT/10)*10)+' g of fat.';
@@ -3662,12 +3677,12 @@ function foodNumsHTML(){
   var sg=function(v){return (v>=0?'−':'+')+ci(Math.round(Math.abs(v)/10)*10);};
   var h='<div class="p lift"><h2>🍽️ Food in numbers</h2>'+
     '<div class="tiles t4">'+
-    tile('eaten today',typeof r.kcal==='number'?ci(r.kcal):'—','target '+ci(KCAL_DAY))+
+    tile('eaten today',typeof r.kcal==='number'?ci(r.kcal):'—','target '+targetTxt(today()))+
     tile('burned today',ci(Math.round(x.total/10)*10),'estimate · steps, runs, gym')+
     tile('deficit today',typeof r.kcal==='number'?sg(x.deficit):'—',typeof r.kcal==='number'?'~'+f2(Math.abs(x.deficit)/3500)+' lb':'log your kcal')+
     tile('this week',wn?sg(wd):'—',wn?'~'+f2(Math.abs(wd)/3500)+' lb · avg '+(kn?ci(Math.round(kc/kn)):'—')+' kcal':'nothing logged')+
     tile('whole block',o.defN?sg(o.def):'—',o.defN?'~'+f1(Math.abs(o.def)/3500)+' lb of fat':'')+
-    tile('day plan',MACRO.pro+' · '+CARB_AT+' · '+MACRO.fat,'protein · carbs · fat (g), '+ci(KCAL_DAY)+' kcal')+
+    tile('day plan',MACRO.pro+' · '+(upDay(today())?CARB_UP:CARB_AT)+' · '+MACRO.fat,'protein · carbs · fat (g), '+ci(dayTarget(today()))+' kcal')+
     '</div>';
   /* healthy foods: pools against targets, with what would close them */
   var W=hfWeek(),daysLeft=Math.max(0,diffD(t,tr.wkEnd));
@@ -3737,7 +3752,7 @@ function macroHTML(){
       '<div class="tiny more">'+why+'</div></div>';};
   var cutC=CARB_AT;
   return '<div class="p"><h2>Your macros · and why</h2>'+
-    row('On the cut','now · '+ci(KCAL_DAY)+' kcal',
+    row('On the cut','now · '+ci(KCAL_DAY)+' kcal · up days '+ci(KCAL_UP)+' with '+CARB_UP+' g carbs',
       [MACRO.pro+' g',gk(MACRO.pro)+' · '+pct(MACRO.pro,4,KCAL_DAY)],[MACRO.fat+' g',gk(MACRO.fat)+' · '+pct(MACRO.fat,9,KCAL_DAY)],[cutC+' g','never under '+CARB_FLOOR+' · '+pct(cutC,4,KCAL_DAY)],
       '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. It is not higher on the cut only because every extra 10 g of fat costs 22 g of carbs, and carbs are already at their floor — it goes up in the reverse. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
     row('The reverse, at the top','from '+fmtS(REV_START)+' · '+ci(top.kcal)+' kcal',
@@ -4347,13 +4362,14 @@ function reverseModel(){
      steps from there. The hold is the part that makes the rest readable —
      a fortnight at one number is the only way to separate glycogen water
      from anything real. */
-  var rungs=[],kc=KCAL_DAY,wk=1,prev=KCAL_DAY,i;
+  var rungs=[],kc=KCAL_UP,wk=1,prev=KCAL_UP,i;
   function rung(k,hold){
     rungs.push({wk:wk,kcal:k,from:addD(REV_START,(wk-1)*7),to:addD(REV_START,wk*7-1),
                 carb:Math.round((k-prev)/4),hold:!!hold,atTop:k>=maint});
     prev=k;wk++;
   }
-  kc=Math.min(maint,KCAL_DAY+CFG.rev.first);
+  /* the reverse starts 100 over the UP day, every day */
+  kc=Math.min(maint,KCAL_UP+CFG.rev.first);
   for(i=0;i<Math.max(1,CFG.rev.holdWeeks);i++)rung(kc,i>0);
   /* Stop one step short of a stub. Without this the last rung can be a
      1 kcal climb — a whole week that adds nothing but a row — so a remainder
@@ -4363,10 +4379,10 @@ function reverseModel(){
     rung(kc,false);
   }
   /* macros per rung; the hold rungs are all carbohydrate */
-  var firstK=rungs.length?rungs[0].kcal:KCAL_DAY,prevC=CARB_AT;
-  var floorC=rungs.length?revMacros(rungs[0].kcal,firstK,maint).carb:CARB_AT;
+  var firstK=rungs.length?rungs[0].kcal:KCAL_DAY,prevC=CARB_UP;
+  var floorC=CARB_UP;
   rungs.forEach(function(r){var m=revMacros(r.kcal,firstK,maint);
-    /* fat climbs, but never by taking carbs below where the first step put them */
+    /* fat climbs, but never by taking carbs below the cut's up-day carbs */
     if(m.carb<floorC){m.fat=Math.floor((r.kcal-m.pro*4-floorC*4)/9);m.carb=Math.round((r.kcal-m.pro*4-m.fat*9)/4);}
     r.pro=m.pro;r.fat=m.fat;r.carbs=m.carb;r.carbUp=m.carb-prevC;prevC=m.carb;});
   var cur=live?Math.min(rungs.length,Math.floor(diffD(REV_START,t)/7)+1):0;
@@ -4737,7 +4753,7 @@ function whyKcal(is){
   for(i=0;i<rs.length;i++){m=runMeta(rs[i]);if(m.hard&&m.km>0&&m.secs>0)return m.label;}
   return null;
 }
-function kcalToday(){return KCAL_DAY;}
+function kcalToday(){return dayTarget(today());}
 
 /* ---------- today ---------- */
 function renderToday(c,w,tr){
@@ -4853,7 +4869,7 @@ function renderToday(c,w,tr){
       return tile('steps, 7-day avg',a.length?ci(Math.round(mean(a)/100)*100):'—',a.length?a.length+' day'+(a.length===1?'':'s')+' logged':'nothing logged');})()+
     '</div>';
   s+='<p class="tiny" style="margin-top:10px">Meals: 300 ml semi-skimmed milk ('+CFG.kcal.milk+') and the evening bowl ('+CFG.kcal.bowl+') are fixed, which leaves <b class="num">'+ci(kc-CFG.kcal.milk-CFG.kcal.bowl)+' kcal</b> for the three meals. Breakfast '+(hard?'is the oats — 70 g GF oats, 150 ml milk, 13 g honey, 60–90 min before the run.':'is lean fish + roots + veg, or eggs.')+'</p>';
-  s+='<p class="tiny">Flat '+ci(KCAL_DAY)+' every day — no hard-day bump. The session logged still decides the breakfast, not the total.</p></div>';
+  s+='<p class="tiny">'+ci(KCAL_DAY)+' on easy, gym and walking days · <b>'+ci(KCAL_UP)+'</b> on hard-run days, 5-mile days and Saturdays — the extra 100 is all carbs.</p></div>';
   s+='<div class="p"><h2>'+(tr.pre?'Pre-block':'This week')+' · '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd)+(tr.pre?'':(isDeload(weekOf(t))?' · DELOAD':''))+'</h2>'+weekTemplateHTML(tr)+'</div></div>';
   E('todaySummary').innerHTML=s;
 
@@ -5408,7 +5424,7 @@ function renderFoodLog(){
           '<button class="btn ghost sm" data-eat="'+x.i+'" type="button" style="margin-left:auto">remove</button></div>';
       });
     });
-    h+='<p style="margin-top:8px"><b class="num">'+ci(Math.round(t.kcal))+'</b> kcal of your '+ci(KCAL_DAY)+' · <b class="num">'+ci(Math.round(t.pro))+' g</b> protein'+
+    h+='<p style="margin-top:8px"><b class="num">'+ci(Math.round(t.kcal))+'</b> kcal of your '+ci(dayTarget(today()))+' · <b class="num">'+ci(Math.round(t.pro))+' g</b> protein'+
       (t.pro>=MACRO.pro?' <span class="pill g">protein hit</span>':' <span class="tiny">('+ci(Math.round(MACRO.pro-t.pro))+' g to '+MACRO.pro+')</span>')+
       ' · '+ci(Math.round(t.carb))+' g carbs · '+ci(Math.round(t.fat))+' g fat'+
       (t.fibN?' · <b class="num">'+ci(Math.round(t.fib))+' g</b> fibre <span class="tiny">of '+FIBRE_REF+'</span>':'')+
@@ -6025,8 +6041,9 @@ function renderFood(c,tr){
   var hard=hardRunOn(today());
   var kc=KCAL_DAY;
   var free=kc-CFG.kcal.milk-CFG.kcal.bowl;
-  var h='<div class="p"><h2>The budget — one number, every day</h2><div class="tiles t4">'+
-    tile('every day',ci(KCAL_DAY),'hard session or not')+
+  var h='<div class="p"><h2>The budget — two numbers</h2><div class="tiles t4">'+
+    tile('base day',ci(KCAL_DAY),'easy, gym and walking days')+
+    tile('up day',ci(KCAL_UP),'hard run, 5 mile, Saturday · '+CARB_UP+' g carbs')+
     tile('fixed',ci(CFG.kcal.milk+CFG.kcal.bowl),'milk '+CFG.kcal.milk+' + bowl '+CFG.kcal.bowl)+
     tile('three meals',ci(KCAL_FREE),'what is left to spend')+
     tile('carbs it leaves',CARB_AT+' g','at '+MACRO.pro+' g protein and '+MACRO.fat+' g fat')+
@@ -6891,7 +6908,7 @@ function renderReverse(){
   }
   h+='<div class="tiles t4" style="margin-top:12px">'+
     tile('maintenance',ci(R.maint),R.est.from==='measured'?'measured off your own '+R.est.days+' days':'estimated from the plan, not yet measured')+
-    tile('from',ci(KCAL_DAY),'the cut number')+
+    tile('from',ci(KCAL_DAY)+' / '+ci(KCAL_UP),'the cut: base / up days')+
     tile('the climb',ci(R.rungs[0].kcal)+' first','hold '+CFG.rev.holdWeeks+' wk, then +'+ci(CFG.rev.step)+'/wk · '+R.weeks+' wk to the top')+
     tile('your deficit now',ci(Math.round(R.est.deficit))+'/day',f1(R.est.lbWk)+' lb a week')+
     '</div>';
@@ -6914,7 +6931,7 @@ function renderReverse(){
     'The hold is not caution for its own sake — it is the only way to tell glycogen water from anything real, because two weeks at one number is what it takes for the scale to stop lying to you.</p>'+
     '<div class="scroll"><table class="tbl">'+
     '<thead><tr><th>Wk</th><th>From</th><th class="n">kcal</th><th class="n">Protein</th><th class="n">Fat</th><th class="n">Carbs</th></tr></thead><tbody>'+
-    '<tr class="dim"><td>cut</td><td class="tiny">now</td><td class="n">'+ci(KCAL_DAY)+'</td><td class="n">'+MACRO.pro+'</td><td class="n">'+MACRO.fat+'</td><td class="n">'+CARB_AT+'</td></tr>';
+    '<tr class="dim"><td>cut</td><td class="tiny">now</td><td class="n">'+ci(KCAL_DAY)+'–'+ci(KCAL_UP)+'</td><td class="n">'+MACRO.pro+'</td><td class="n">'+MACRO.fat+'</td><td class="n">'+CARB_AT+'</td></tr>';
   R.rungs.forEach(function(r){
     var now=R.live&&r.wk===R.cur,past=r.to<t;
     lg+='<tr'+(r.from>t?' class="dim"':'')+(now?' style="background:var(--rule-2)"':'')+'><td>'+r.wk+(now?' ◀':'')+'</td><td class="tiny" style="white-space:nowrap">'+fmtS(r.from)+'</td>'+
@@ -6923,7 +6940,7 @@ function renderReverse(){
   lg+='</tbody></table></div><p class="tiny keep" style="margin-top:4px">Protein, fat and carbs in grams a day.</p>'+
     '<p class="tiny" style="margin-top:8px"><b>Protein holds at '+MACRO.proRev+' g, fat climbs from '+MACRO.fat+' to '+fatTop(R.maint)+' g (30% of maintenance), and the rest is carbs.</b> '+
     'Why: with more food your body needs less protein to keep its muscle, and past about 2.2 g/kg extra buys nothing. Fat rises to 30% of the day — testosterone is made from it, and the benefit levels off around 30–35%. '+
-    'The first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g, because carbohydrate refills glycogen; after the hold, the steps mostly go to fat until it reaches 30%, and carbs never drop below where the first step put them. '+
+    'The first step is all carbs, +'+Math.round(CFG.rev.first/4)+' g, because carbohydrate refills glycogen; after the hold, the steps mostly go to fat until it reaches 30%, and carbs never drop below your up-day '+CARB_UP+' g. '+
     'Potatoes, rice, certified GF oats, fruit, honey. The same foods, more of them.</p>'+
     '<p class="tiny">If a week feels heavy or the weight jumps more than <b>'+CFG.rev.holdOver+' lb</b> beyond the settling, hold that rung a second week rather than climbing.</p>'+
     '<p class="note"><b>The price of the slow half, named.</b> After the hold it takes <b>'+R.weeks+' weeks</b> in total to reach '+ci(R.maint)+

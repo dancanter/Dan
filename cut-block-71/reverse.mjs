@@ -59,7 +59,7 @@ t = await p.textContent('#revLadder');
 // Derived from CFG: the step is Dan's dial and the suite should follow it,
 // not pin it. It moved 100 -> 50 when he asked for a very slow reverse.
 const rev = await p.evaluate(() => ({ step: CFG.rev.step, first: CFG.rev.first,
-  hold: CFG.rev.holdWeeks, kcal: KCAL_DAY }));
+  hold: CFG.rev.holdWeeks, kcal: KCAL_UP }));
 // Dan's shape: one step of `first` on day one, `holdWeeks` sitting there,
 // then `step` a week. The suite follows CFG rather than pinning the numbers.
 ok('the first rung is the one big step',
@@ -97,7 +97,7 @@ ok('protein and fat are pinned',
   new RegExp('Protein holds at ' + mac.proRev + ' g, fat climbs from ' + mac.fat + ' to ' + mac.fatRev + ' g').test(t), t.slice(0, 200));
 const rm = await p.evaluate(() => { const R = reverseModel(); return R.rungs.map(r => ({ k: r.kcal, p: r.pro, f: r.fat, c: r.carbs })); });
 ok('every week of the ladder has protein, fat and carbs that add up', rm.every(r => Math.abs(r.p * 4 + r.f * 9 + r.c * 4 - r.k) <= 6), JSON.stringify(rm));
-ok('protein holds, fat climbs to its top by maintenance, carbs climb', rm.every(r => r.p === mac.proRev) && Math.abs(rm[rm.length - 1].f - mac.fatRev) <= 4 && rm.every((r, i) => !i || (r.f >= rm[i - 1].f && r.c >= rm[0].c)), JSON.stringify(rm));
+ok('protein holds, fat climbs to its top by maintenance, carbs climb', rm.every(r => r.p === mac.proRev) && Math.abs(rm[rm.length - 1].f - mac.fatRev) <= 2 && rm.every((r, i) => !i || (r.f >= rm[i - 1].f && r.c >= (rm.carbUp || 232))), JSON.stringify(rm));
 ok('the first step is all carbs', rm[0].f === mac.fat && rm[0].c > (await p.evaluate(() => CARB_AT)), JSON.stringify(rm[0]));
 ok('the ladder table shows the three columns', /Protein\s*Fat\s*Carbs/.test(t), t.slice(0, 300));
 ok('the foods are his, not packets', /certified GF oats/.test(t) && /Potatoes, rice/.test(t));
