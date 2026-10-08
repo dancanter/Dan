@@ -3502,6 +3502,7 @@ function glanceHTML(){
   var C=t>=CFG.cutStart?coachModel():null;
   return '<div class="p lift"><h2>Today at a glance</h2>'+
     (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
+    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',G.mission.e+' '+G.mission.t.replace(/<[^>]+>/g,'').split(' — ')[0].split('. ')[0],'training');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
     row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.five?' · '+w.five+' × 5 mi':'')+(w.easy5k?' · '+w.easy5k+' × 5 km':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
@@ -3688,15 +3689,71 @@ function campPhase(t){
   return {k:'done',n:'Camp done'};
 }
 function campRange(lo,hi){var f=function(x){return x>=60?mmss(Math.round(x)):x.toFixed(1);};return f(lo)+'–'+f(hi)+(hi<60?' s':'');}
+/* ---- the fun part (Dan, 8 Oct: "how fun are you gonna make it") ----
+   XP only ever goes up — nothing here reads as behind. Levels, a weekly
+   quest board, today's mission, and the six time trials as bosses. */
+var CAMP_LEVELS=[[0,'Rookie','🥉'],[300,'Club runner','🏃'],[800,'County','🥈'],[1600,'National','🥇'],[2800,'International','🌍'],[4500,'Olympian','🏆']];
+function campGame(){
+  var C=CFG.camp,t=today(),xp=0,log=[];
+  var add=function(n,why){xp+=n;};
+  for(var d=C.start;d<=t&&d<=C.end;d=addD(d,1)){
+    var r=S.days[d]||{},ran=false;
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;ran=true;
+      if(m.hard)add(30);else if(isFiveMiler(m))add(20);else add(10);});
+    if(r.gym)add(20);
+    if(!ran&&!r.gym&&d<t)add(10);                       /* a full rest day counts — recovery is training */
+    if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
+    if(r.phoneOut)add(5);
+  }
+  var R=records(),bosses=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best;var won=!!(b&&b.date&&b.date>=C.start);if(won)xp+=100;
+    return {dm:x.dm,on:x.on,won:won,t:b?b.t:null};});
+  var lv=CAMP_LEVELS[0],nx=null;
+  for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
+  /* this week's quests */
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0},lastHard=null,legsY=false;
+  for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
+    (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;});
+    if(rr.gym)q.gym++;if(!rn&&!rr.gym&&dd<t)q.rest++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
+  for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
+  var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
+  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['🛌','Full rest day',q.rest,1],['😴','8 h nights',q.sleep,5]];
+  /* today's mission */
+  var tr=S.days[t]||{},doneToday=(tr.runs||[]).some(function(x){return !runMeta(x).empty;});
+  var M=weekRunsModel(),ST=weekStatus(),mission;
+  if(doneToday)mission={e:'✅',t:'Run done — refuel: carbs and protein within the hour, then rest your legs.'};
+  else if(ST&&(ST.k==='rest'||ST.k==='warn'))mission={e:'🛌',t:ST.t+' — '+ST.w};
+  else if(q.hard<T.hard&&!legsY&&(!lastHard||diffD(lastHard,t)>=3)&&M){var pick=!M.longDone&&M.P.long?M.P.long:M.P.short;mission={e:'⚡',t:'Hard day: <b>'+pick+'</b>. Oats 60–90 min before, proper warm-up, guide times on the runs card.'};}
+  else if(q.five<T.easy)mission={e:'🏃',t:'Easy 5 miles, chatty — 5:00–5:45 a km'+(q.five===0?', with 6–8 strides at the end':'')+'.'};
+  else if(q.rest<1)mission={e:'🛌',t:'Full rest day — walking only. This is where the fitness lands.'};
+  else mission={e:'🚶',t:'Week done — walk, stretch, early night.'};
+  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,mission:mission,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
+}
+function campGameHTML(){
+  var C=CFG.camp,t=today();
+  if(t<C.start){var d=diffD(t,C.start);
+    return '<div class="p" style="box-shadow:none;border:1px dashed var(--rule);margin:0 0 10px"><b>🚀 Camp starts in '+d+' day'+(d===1?'':'s')+'.</b> <span class="tiny">From Monday: a mission every day, XP for every session, rest day and 8 h night, levels from Rookie to Olympian, and six time trials to beat as bosses.</span></div>';}
+  var G=campGame(),pc=G.nx?Math.round((G.xp-G.lv[0])/(G.nx[0]-G.lv[0])*100):100;
+  return '<div class="p" style="box-shadow:none;margin:0 0 10px">'+
+    '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.3em">'+G.lv[2]+' '+G.lv[1]+'</b><span class="mono">'+ci(G.xp)+' XP</span><span class="tiny dim" style="margin-left:auto">camp day '+G.day+' of '+G.days+'</span></div>'+
+    '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:6px 0 2px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:var(--accent)"></div></div>'+
+    '<div class="tiny dim">'+(G.nx?(ci(G.nx[0]-G.xp)+' XP to '+G.nx[2]+' '+G.nx[1]):'Top level. Legend.')+'</div>'+
+    '<p style="margin:10px 0 4px"><b>'+G.mission.e+' Today’s mission</b><br>'+G.mission.t+'</p>'+
+    '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
+      return '<span class="pill'+(ok?' g':'')+'">'+x[0]+' '+x[1]+' '+Math.min(x[2],x[3])+'/'+x[3]+(ok?' ✓':'')+'</span>';}).join('')+'</div></div>'+
+    '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
+      return '<span class="pill'+(b.won?' g':'')+'">'+(b.won?'🏆 ':'👹 ')+repLabel(b.dm)+(b.won?' beaten':' · '+fmtS(b.on))+'</span>';}).join('')+'</div></div>'+
+    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run 10 · gym 20 · full rest day 10 · 8 h night 10 · phone-free 5 · boss beaten 100. It only goes up.</p></div>';
+}
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
   var left=Math.max(0,diffD(t,C.end));
   var rows=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best,cur=b&&b.t?b.t:(BESTAVG[x.dm]||null);
-    var beat=cur!==null&&cur<=x.hi&&b&&b.d&&b.d>=C.start;
+    var beat=!!(b&&b.date&&b.date>=C.start);
     return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+campRange(x.lo,x.hi)+'</td><td class="tiny">'+fmtS(x.on)+'</td><td>'+(beat?'<span class="pill g">PB ✓</span>':'')+'</td></tr>';}).join('');
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 4 Dec'],['pb','PB window','5–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
+    campGameHTML()+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Distance</th><th class="n">Best now</th><th class="n">Target</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny keep" style="margin-top:6px">Realistic ranges from your own sessions — 3 × 1 km at 3:14 and 300s at 44 s say these are there. The dates are a guide: never two trials within three days, and only on a week the Feedback tab is clear.</p>'+

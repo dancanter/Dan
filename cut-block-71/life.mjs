@@ -304,6 +304,34 @@ await boot(st());
 ok('the first reverse week is refuel', await p.evaluate(() => campPhase().k === 'refuel'));
 await ctx.close();
 
+// ===== the fun part: XP, levels, quests, mission, bosses (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-08'));
+await boot(st());
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+ok('before camp it counts down to Monday', /Camp starts in 4 days/.test(sq(await p.innerText('#campCard'))));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-15'));   // Thursday of camp week 1
+await boot(st({ days: {
+  '2026-10-12': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }], gym: true, sleep: 8.2, phoneOut: true },
+  '2026-10-13': { runs: [{ k: 'reps', dm: 800, n: 5, secs: 770 }], gym: true, sleep: 8.4 },
+  '2026-10-14': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }], gym: true, sleep: 7.5 } } }));
+const G = await p.evaluate(() => campGame());
+ok('XP adds up from the sessions, sleep and phone-free nights', G.xp === (20 + 20 + 10 + 5) + (30 + 20 + 10) + (20 + 20), JSON.stringify({ xp: G.xp }));
+ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day === 4, JSON.stringify({ lv: G.lv, d: G.day }));
+ok('quests count the week: hard 1/2, 5-milers 2/3, gym 3/4', JSON.stringify(G.quests.slice(0, 3).map(q => q[2] + '/' + q[3])) === '["1/2","2/3","3/4"]', JSON.stringify(G.quests));
+ok('today’s mission is the second hard run, two days after the first is too soon — so easy', /Easy 5 miles/.test(G.mission.t), G.mission.t);
+ok('six bosses, none beaten yet', G.bosses.length === 6 && G.bosses.every(b => !b.won));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+let gc = sq(await p.innerText('#campCard'));
+ok('the card shows level, XP, mission, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Today’s mission/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
+await p.click('[data-t="today"]'); await p.waitForTimeout(100);
+ok('Today at a glance has the camp line', /Camp day 4 · 🥉 Rookie/.test(sq(await p.innerText('#glanceCard'))));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-17'));   // Saturday, 4 days after the 800s
+await boot(st({ days: { '2026-10-13': { runs: [{ k: 'reps', dm: 800, n: 5, secs: 770 }] } } }));
+ok('four days on, the mission is the second hard run', await p.evaluate(() => /Hard day/.test(campGame().mission.t)));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));
