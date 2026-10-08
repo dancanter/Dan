@@ -332,6 +332,29 @@ await boot(st({ days: { '2026-10-13': { runs: [{ k: 'reps', dm: 800, n: 5, secs:
 ok('a time trial says how to warm up and pace it', await p.evaluate(() => /15 min easy, drills/.test(runHow('Time trial — 1 km')) && /Even pace/.test(runHow('Time trial — 1 km'))));
 await ctx.close();
 
+// ===== sprints only when I say, the shred meter, lifting games (8 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+const wts = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 14 - i)).toISOString().slice(0, 10); wts[d] = i < 4 ? 126.9 : 127.6; }
+await boot(st({ weights: wts, days: { '2026-10-12': { gym: true, pr: true, split: 'back', sets: { Back: 14, Biceps: 8 } }, '2026-10-13': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }] } } }));
+let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, left: g.left.map(x => x.n), q: g.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), shred: g.shred, xp: g.xp }; });
+ok('a clear build week turns uphill sprints ON, after a 5-miler', G2.spr.on && G2.left.some(n => /Uphill sprints are ON: \d+ × ~10 s, at the end of a 5-miler/.test(n)), JSON.stringify(G2.spr));
+ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'), JSON.stringify(G2.q));
+ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+let gx = sq(await p.innerText('#campCard'));
+ok('the card shows the shred meter and milestones', /Shred meter/.test(gx) && /lb to 123/.test(gx), gx.slice(0, 900));
+await p.click('[data-t="today"]'); await p.waitForTimeout(80);
+ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-21'));   // week 5 is a test week
+await boot(st());
+ok('in a test week the sprints are off, and it says why', await p.evaluate(() => { const g = campGame(); return !g.spr.on && /test week/.test(g.spr.why); }));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-14': { niggle: true, niggleWhat: 'calf' } } }));
+ok('something hurting turns the sprints off', await p.evaluate(() => !campGame().spr.on));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

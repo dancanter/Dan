@@ -235,6 +235,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <div class="f calis" style="max-width:110px"><label for="inPush">Push-ups</label><input type="number" step="1" min="0" max="2000" id="inPush" placeholder="—"></div>
       <div class="f calis" style="max-width:110px"><label for="inPull">Pull-ups</label><input type="number" step="1" min="0" max="1000" id="inPull" placeholder="—"></div>
       <div class="f" style="max-width:130px"><label for="inGymRpe">Gym: how hard it <i>felt</i></label><input type="number" step="1" min="1" max="10" id="inGymRpe" placeholder="—"></div>
+      <button class="tog" id="tgPR" aria-pressed="false" type="button" title="More weight or more reps than last time on a main lift"><span class="chk"></span>💪 Beat last time</button>
       <div id="setsBox" style="flex-basis:100%"></div>
       <button class="tog" id="tgRefeed" aria-pressed="false" type="button"><span class="chk"></span>Refeed</button>
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
@@ -3713,22 +3714,31 @@ function campGame(){
     (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;ran=true;
       if(m.hard)add(30);else if(isFiveMiler(m))add(20);else add(10);});
     if(r.gym)add(20);
+    if(r.gym&&r.pr)add(15);                             /* beat last time on a main lift */
     if(!ran&&!r.gym&&d<t)add(10);                       /* a full rest day counts — recovery is training */
     if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
     if(r.phoneOut)add(5);
   }
+  /* the shred: +25 for every weight milestone the 7-day average passes in camp */
+  var a0=avgWindow(addD(C.start,-1),7).avg,aN=avgWindow(t,7).avg,miles=[];
+  if(a0!==null&&aN!==null)MILESTONES.forEach(function(m){if(a0>m&&aN<=m){miles.push(m);xp+=25;}});
+  /* muscle: +50 for every camp week with every muscle inside its set range */
+  var setWeeks=0;
+  for(var w0=mondayOf(C.start);w0<=t;w0=addD(w0,7)){var ss=weekSets(w0);
+    if(CFG.sets.every(function(x){var rr=setsRange(x.m),v=ss[x.m]||0;return v>=rr[0]&&v<=rr[1];})){setWeeks++;xp+=50;}}
   var R=records(),bosses=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best;var won=!!(b&&b.date&&b.date>=C.start);if(won)xp+=100;
     return {dm:x.dm,on:x.on,won:won,t:b?b.t:null};});
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
     (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;});
-    if(rr.gym)q.gym++;if(!rn&&!rr.gym&&dd<t)q.rest++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
+    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
-  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['🛌','Full rest day',q.rest,1],['😴','8 h nights',q.sleep,5]];
+  var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
+  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🛌','Full rest day',q.rest,1],['😴','8 h nights',q.sleep,5]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),left=[];
@@ -3738,10 +3748,21 @@ function campGame(){
     if(!M.shortDone&&M.P.short)picks.push(M.P.short);
     picks.slice(0,Math.max(0,hardLeft)).forEach(function(x){left.push({e:'⚡',n:x,how:runHow(x)});});
   }
+  /* uphill sprints: only when I say — in the build, recovery clear, not a
+     test week, and not already done this week */
+  var RH=rhrModel(),NGs=niggleModel(),ph=campPhase(t);
+  var stOk=!(ST&&ST.k!=='good');
+  var sprOn=!!(M&&ph.k==='build'&&!M.P.tt&&stOk&&RH.state!=='up'&&RH.state!=='high'&&!NGs.n);
+  var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':'')))));
+  var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
+  if(sprOn&&!q.spr)left.push({e:'⛰️',n:'Uphill sprints are ON: '+spr.n+' × ~10 s, at the end of a 5-miler',how:'Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.'});
   for(var e5=q.five;e5<T.easy;e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   if(q.rest<1)left.push({e:'🛌',n:'A full rest day',how:'Walking only. This is where the fitness lands.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
-  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
+  /* the shred meter */
+  var startW=a0!==null?a0:(cutReadings().length?cutReadings()[0].lb:null);
+  var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7)};
+  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
 function campGameHTML(){
   var C=CFG.camp,t=today();
@@ -3755,12 +3776,20 @@ function campGameHTML(){
     (G.warn?'<p class="note wn" style="margin:10px 0 4px"><b>'+G.warn.t+'.</b> '+G.warn.w+'</p>':'')+
     '<div style="margin:10px 0 4px"><b>🗓️ Runs left this week — you pick the days</b>'+
       (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
+      (G.spr.done?'<div class="tiny" style="margin-top:6px">⛰️ Uphill sprints done this week ✓</div>':(!G.spr.on&&G.spr.why?'<div class="tiny dim" style="margin-top:6px">⛰️ Uphill sprints: off this week — '+G.spr.why+'.</div>':''))+
       '<div class="tiny dim" style="margin-top:6px">Any days you like: hard runs 3+ days apart, never the day after legs (same day, run first, is fine).</div></div>'+
+    (function(){var S2=G.shred;if(S2.now===null)return '';
+      var span=Math.max(0.1,(S2.start||S2.now)-S2.target),done=Math.max(0,Math.min(1,((S2.start||S2.now)-S2.now)/span));
+      var togo=Math.max(0,S2.now-S2.hi);
+      return '<div style="margin-top:10px"><b>🔪 Shred meter</b> <span class="tiny dim">7-day average</span>'+
+        '<div class="row" style="gap:8px;align-items:baseline;margin-top:2px"><b class="num" style="font-size:1.2em">'+(S.settings.hideDaily?'—':f1(S2.now)+' lb')+'</b><span class="tiny">'+(togo>0?f1(togo)+' lb to '+S2.hi+' · '+f1(S2.weeksLeft)+' weeks to 28 Nov':'in the '+S2.lo+'–'+S2.hi+' zone ✓')+'</span></div>'+
+        '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:4px 0;overflow:hidden"><div style="height:100%;width:'+Math.round(done*100)+'%;background:var(--accent)"></div></div>'+
+        '<div class="row" style="gap:4px;flex-wrap:wrap">'+MILESTONES.filter(function(m){return m<=(S2.start||S2.now)+0.01;}).map(function(m){var hit=S2.now<=m;return '<span class="pill'+(hit?' g':'')+'">'+m+(hit?' ✓':'')+'</span>';}).join('')+'</div></div>';})()+
     '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
       return '<span class="pill'+(ok?' g':'')+'">'+x[0]+' '+x[1]+' '+Math.min(x[2],x[3])+'/'+x[3]+(ok?' ✓':'')+'</span>';}).join('')+'</div></div>'+
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
       return '<span class="pill'+(b.won?' g':'')+'">'+(b.won?'🏆 ':'👹 ')+repLabel(b.dm)+(b.won?' beaten':' · '+fmtS(b.on))+'</span>';}).join('')+'</div></div>'+
-    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run 10 · gym 20 · full rest day 10 · 8 h night 10 · phone-free 5 · boss beaten 100. It only goes up.</p></div>';
+    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · full rest day 10 · 8 h night 10 · phone-free 5 · boss beaten 100. It only goes up.</p></div>';
 }
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
@@ -5974,8 +6003,9 @@ function paintForm(){
     x.hidden=!rec.niggle;
   });
   E('inGymRpe').parentNode.hidden=!rec.gym;
+  E('tgPR').hidden=!rec.gym;
   E('setsBox').innerHTML=setsBoxHTML(E('logDate').value||today());
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
+  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
   var rs=rec.runs||[];
@@ -7594,7 +7624,7 @@ function wire(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
   });
-  [['tgGym','gym'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
+  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).addEventListener('click',function(){
       var d=E('logDate').value||today(),on=this.getAttribute('aria-pressed')==='true',o={};
       o[p[1]]=on?null:true;setDay(d,o);
