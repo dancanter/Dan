@@ -3502,7 +3502,7 @@ function glanceHTML(){
   var C=t>=CFG.cutStart?coachModel():null;
   return '<div class="p lift"><h2>Today at a glance</h2>'+
     (C?row('💬','Feedback',esc(C.rest.t.replace(/ — .*/,''))+' · '+(C.refeed.k==='yes'?'refeed: yes':C.refeed.k==='done'?'refeed done':'no refeed needed'),'feedback'):'')+
-    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',G.mission.e+' '+G.mission.t.replace(/<[^>]+>/g,'').split(' — ')[0].split('. ')[0],'training');})():'')+
+    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el)?'Left this week: '+[hl?hl+' hard':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','training');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
     row('🏃','Runs this week',(w.hard+' hard · '+w.sprints+' sprint'+(w.sprints===1?'':'s')+(w.five?' · '+w.five+' × 5 mi':'')+(w.easy5k?' · '+w.easy5k+' × 5 km':''))+(runIdea?' <span class="tiny dim">· ideas: '+esc(runIdea)+'</span>':''),'training')+
@@ -3691,7 +3691,19 @@ function campPhase(t){
 function campRange(lo,hi){var f=function(x){return x>=60?mmss(Math.round(x)):x.toFixed(1);};return f(lo)+'–'+f(hi)+(hi<60?' s':'');}
 /* ---- the fun part (Dan, 8 Oct: "how fun are you gonna make it") ----
    XP only ever goes up — nothing here reads as behind. Levels, a weekly
-   quest board, today's mission, and the six time trials as bosses. */
+   quest board, the runs left this week (he picks the days), and the six
+   time trials as bosses. */
+/* how to run each kind of session — short, by feel, no rest prescriptions */
+function runHow(x){
+  x=String(x);
+  if(x==='easy')return 'Chatty the whole way, 5:00–5:45 a km — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
+  if(/^Time trial/.test(x))return 'Calm, dry day. 15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy. Coffee 45–60 min before if before 2pm. Even pace (400: first 200 a touch quicker); finish strongest.';
+  if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
+  var m=/(\d+) × (\d+) ?(k?m)/.exec(x),d=m?(+m[2])*(m[3]==='km'?1000:1):0;
+  if(d>=600)return '15 min easy, drills, 4 strides. Run every rep inside the guide time, the first one controlled. Recover walking or jogging until your breathing settles. About 8 out of 10. Stop if a rep comes in clearly slower than the first two.';
+  if(d>0)return '15 min easy, drills, 4 strides. Fast but relaxed — tall, loose shoulders. Walk back between reps until you feel ready. The last rep should match or beat the first; stop if one drops off.';
+  return 'Warm up properly; effort over the watch.';
+}
 var CAMP_LEVELS=[[0,'Rookie','🥉'],[300,'Club runner','🏃'],[800,'County','🥈'],[1600,'National','🥇'],[2800,'International','🌍'],[4500,'Olympian','🏆']];
 function campGame(){
   var C=CFG.camp,t=today(),xp=0,log=[];
@@ -3717,27 +3729,33 @@ function campGame(){
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['🛌','Full rest day',q.rest,1],['😴','8 h nights',q.sleep,5]];
-  /* today's mission */
-  var tr=S.days[t]||{},doneToday=(tr.runs||[]).some(function(x){return !runMeta(x).empty;});
-  var M=weekRunsModel(),ST=weekStatus(),mission;
-  if(doneToday)mission={e:'✅',t:'Run done — refuel: carbs and protein within the hour, then rest your legs.'};
-  else if(ST&&(ST.k==='rest'||ST.k==='warn'))mission={e:'🛌',t:ST.t+' — '+ST.w};
-  else if(q.hard<T.hard&&!legsY&&(!lastHard||diffD(lastHard,t)>=3)&&M){var pick=!M.longDone&&M.P.long?M.P.long:M.P.short;mission={e:'⚡',t:'Hard day: <b>'+pick+'</b>. Oats 60–90 min before, proper warm-up, guide times on the runs card.'};}
-  else if(q.five<T.easy)mission={e:'🏃',t:'Easy 5 miles, chatty — 5:00–5:45 a km'+(q.five===0?', with 6–8 strides at the end':'')+'.'};
-  else if(q.rest<1)mission={e:'🛌',t:'Full rest day — walking only. This is where the fitness lands.'};
-  else mission={e:'🚶',t:'Week done — walk, stretch, early night.'};
-  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,mission:mission,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
+  /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
+     and each one says how to run it */
+  var M=weekRunsModel(),ST=weekStatus(),left=[];
+  if(M){
+    var hardLeft=T.hard-q.hard,picks=[];
+    if(!M.longDone&&M.P.long)picks.push(M.P.long);
+    if(!M.shortDone&&M.P.short)picks.push(M.P.short);
+    picks.slice(0,Math.max(0,hardLeft)).forEach(function(x){left.push({e:'⚡',n:x,how:runHow(x)});});
+  }
+  for(var e5=q.five;e5<T.easy;e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
+  if(q.rest<1)left.push({e:'🛌',n:'A full rest day',how:'Walking only. This is where the fitness lands.'});
+  var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
+  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
 function campGameHTML(){
   var C=CFG.camp,t=today();
   if(t<C.start){var d=diffD(t,C.start);
-    return '<div class="p" style="box-shadow:none;border:1px dashed var(--rule);margin:0 0 10px"><b>🚀 Camp starts in '+d+' day'+(d===1?'':'s')+'.</b> <span class="tiny">From Monday: a mission every day, XP for every session, rest day and 8 h night, levels from Rookie to Olympian, and six time trials to beat as bosses.</span></div>';}
+    return '<div class="p" style="box-shadow:none;border:1px dashed var(--rule);margin:0 0 10px"><b>🚀 Camp starts in '+d+' day'+(d===1?'':'s')+'.</b> <span class="tiny">From Monday: the week’s runs to pick from, XP for every session, rest day and 8 h night, levels from Rookie to Olympian, and six time trials to beat as bosses.</span></div>';}
   var G=campGame(),pc=G.nx?Math.round((G.xp-G.lv[0])/(G.nx[0]-G.lv[0])*100):100;
   return '<div class="p" style="box-shadow:none;margin:0 0 10px">'+
     '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.3em">'+G.lv[2]+' '+G.lv[1]+'</b><span class="mono">'+ci(G.xp)+' XP</span><span class="tiny dim" style="margin-left:auto">camp day '+G.day+' of '+G.days+'</span></div>'+
     '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:6px 0 2px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:var(--accent)"></div></div>'+
     '<div class="tiny dim">'+(G.nx?(ci(G.nx[0]-G.xp)+' XP to '+G.nx[2]+' '+G.nx[1]):'Top level. Legend.')+'</div>'+
-    '<p style="margin:10px 0 4px"><b>'+G.mission.e+' Today’s mission</b><br>'+G.mission.t+'</p>'+
+    (G.warn?'<p class="note wn" style="margin:10px 0 4px"><b>'+G.warn.t+'.</b> '+G.warn.w+'</p>':'')+
+    '<div style="margin:10px 0 4px"><b>🗓️ Runs left this week — you pick the days</b>'+
+      (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
+      '<div class="tiny dim" style="margin-top:6px">Any days you like: hard runs 3+ days apart, never the day after legs (same day, run first, is fine).</div></div>'+
     '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
       return '<span class="pill'+(ok?' g':'')+'">'+x[0]+' '+x[1]+' '+Math.min(x[2],x[3])+'/'+x[3]+(ok?' ✓':'')+'</span>';}).join('')+'</div></div>'+
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
