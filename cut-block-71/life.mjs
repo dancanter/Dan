@@ -323,8 +323,10 @@ const G = await p.evaluate(() => campGame());
 ok('XP adds up from the sessions, sleep and phone-free nights', G.xp === (20 + 20 + 10 + 5) + (30 + 20 + 10) + (20 + 20), JSON.stringify({ xp: G.xp }));
 ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day === 4, JSON.stringify({ lv: G.lv, d: G.day }));
 ok('quests count the week: hard 1/2, 5-milers 2/3, gym 3/4', JSON.stringify(G.quests.slice(0, 3).map(q => q[2] + '/' + q[3])) === '["1/2","2/3","3/4"]', JSON.stringify(G.quests));
-ok('the runs left are listed, never a day: one hard (8 × 200 m) and one easy 5 miles, each with how to run it', G.left.filter(x => x.e === '⚡').length === 1 && /8 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 1 && /Chatty/.test(G.left.find(x => x.e === '🏃').how), JSON.stringify(G.left));
-ok('six bosses, none beaten yet', G.bosses.length === 6 && G.bosses.every(b => !b.won));
+ok('the runs left are listed, never a day: one hard (6 × 200 m) and one easy 5 miles, each with how to run it', G.left.filter(x => x.e === '⚡').length === 1 && /6 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 1 && /Chatty/.test(G.left.find(x => x.e === '🏃').how), JSON.stringify(G.left));
+ok('seven bosses (200 added), none beaten yet', G.bosses.length === 7 && G.bosses.every(b => !b.won));
+ok('the goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00 800, sub-55 400', await p.evaluate(() => { const g = {}; CFG.camp.pb.forEach(x => g[x.dm] = x.goal); return g[5000] === 1020 && g[1609] === 290 && g[1000] === 165 && g[800] === 120 && g[400] === 55 && g[600] && g[200]; }));
+ok('no trial lands on his stress-free Saturday', await p.evaluate(() => CFG.camp.pb.every(x => dow(x.on) !== 6)));
 ok('the all-time bests are the ultimate bosses: 400 57, 1 km 2:48, mile 4:54, 5 km 17:17', await p.evaluate(() => { const a = CFG.camp.allTime; return a[400].t === 57 && a[1000].t === 168 && a[1609].t === 294 && a[5000].t === 1037; }));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
@@ -382,6 +384,23 @@ await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let wk4 = sq(await p.innerText('#campCard'));
 ok('the camp says the week shape: 4 work days, 2 light, Saturday stress-free', /4 work days — study plus the hard training/.test(wk4) && /2 light days/.test(wk4) && /Saturday: the stress-free day/.test(wk4) && /No runs, no weights, no study/.test(wk4), wk4.slice(0, 900));
 ok('the study aim says 2–3 h on each of the 4 work days', /on your 4 work days that is about 2–3 h each/.test(await p.evaluate(() => DEEP_AIM)));
+await ctx.close();
+
+// ===== the goal plan (9 Oct) =====
+({ ctx, p, boot } = await at('2026-11-04'));   // week 7: mile pace + 800 pace
+await boot(st());
+let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short, lg: m.P.lg, sg: m.P.sg }; });
+ok('week 7 is 10 × 400 m at mile pace and 4 × 400 m at 800 pace, with goal-pace guides', /10 × 400 m at mile pace/.test(M7.l) && /4 × 400 m at 800 pace/.test(M7.s) && /72\.5/.test(M7.lg) && /pace is 60/.test(M7.sg), JSON.stringify(M7));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+let r7 = sq(await p.innerText('#tRuns'));
+ok('the runs card shows the goal-pace guide and what the session does', /72–77 s a rep · sub-4:50 mile pace is 72\.5/.test(r7) && /sub-4:50 rhythm/.test(r7), r7.slice(0, 800));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-07'));   // PB window, week 12
+await boot(st());
+const pb = await p.evaluate(() => { const g = campGame(); return { left: g.left.map(x => x.n), ph: campPhase().k }; });
+ok('in the PB window the week’s trials are the hard runs: 400 and 5 km', pb.ph === 'pb' && pb.left.some(n => /400m trial — goal sub-55/.test(n)) && pb.left.some(n => /5 km trial — goal sub-17:00/.test(n)), JSON.stringify(pb));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+ok('and the runs card lists them', /This week’s trials/.test(sq(await p.innerText('#tRuns'))));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====
