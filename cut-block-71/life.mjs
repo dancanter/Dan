@@ -428,6 +428,26 @@ await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
 ok('the camp card shows his fitness right now', /Your fitness right now/.test(sq(await p.innerText('#campCard'))));
 await ctx.close();
 
+// ===== achievements and celebrations (9 Oct) =====
+({ ctx, p, boot } = await at('2026-10-15'));
+await boot(st({ days: { '2026-10-13': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 175 }], gym: true, pr: true }, '2026-10-14': { runs: [{ k: 'reps', dm: 400, n: 1, secs: 56.5 }] } } }));
+const AC = await p.evaluate(() => campAchievements().map(a => ({ id: a.id, t: a.tier, n: a.n })));
+ok('a 2:55 km is a best of 2026; a 56.5 400 is an all-time best', AC.some(a => /pb1000/.test(a.id) && a.t === 'year') && AC.some(a => /pb400/.test(a.id) && a.t === 'all' && /ALL-TIME BEST — 400m/.test(a.n)), JSON.stringify(AC));
+ok('the first beat-last-time is a badge', AC.some(a => a.id === 'pr1'), JSON.stringify(AC));
+await p.click('[data-t="today"]'); await p.waitForTimeout(100);
+let cel = sq(await p.innerText('#glanceCard'));
+ok('Today celebrates the newest one', /ALL-TIME BEST — 400m/.test(cel) && /\+350 XP/.test(cel) && /Let’s go/.test(cel), cel.slice(0, 300));
+await p.click('#glanceCard button[data-cele]'); await p.waitForTimeout(150);
+ok('and once dismissed it moves on to the next', !/ALL-TIME BEST — 400m/.test(sq(await p.innerText('#glanceCard'))));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+let ach = sq(await p.innerText('#campCard'));
+ok('the camp tab has the achievements wall, with locked goals to chase', /ACHIEVEMENTS/.test(ach) && /earned/.test(ach) && /sub-2:45/.test(ach), ach.slice(-700));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-07'));
+await boot(st({ days: { '2026-12-06': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 164 }] } } }));
+ok('a 2:44 km smashes the goal', await p.evaluate(() => campAchievements().some(a => a.tier === 'goal' && /GOAL SMASHED — 1 km/.test(a.n))));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

@@ -57,7 +57,15 @@ section[hidden]{display:none!important}
 .tiles{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
 .tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.camptbl{font-size:13px}.camptbl td,.camptbl th{white-space:nowrap;padding-left:4px;padding-right:4px}
+.camptbl{font-size:13px}
+@keyframes cbPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+@keyframes cbFall{0%{transform:translateY(-30px) rotate(0);opacity:1}100%{transform:translateY(140px) rotate(320deg);opacity:0}}
+.cb-cele{position:relative;overflow:hidden;animation:cbPop .6s ease-out both;border:2px solid var(--accent);text-align:center}
+.cb-cele .cf{position:absolute;top:0;font-size:20px;animation:cbFall 2.4s ease-in infinite}
+.cb-badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:6px}
+.cb-badge{border:1px solid var(--rule-2);border-radius:10px;padding:8px 6px;text-align:center;font-size:12px;line-height:1.25}
+.cb-badge .bi{font-size:24px;display:block;margin-bottom:2px}
+.cb-badge.lock{opacity:.38;filter:grayscale(1)}.camptbl td,.camptbl th{white-space:nowrap;padding-left:4px;padding-right:4px}
 .tile{background:var(--panel);padding:11px 12px}
 .tile .k{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
 .tile .v{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
@@ -913,6 +921,8 @@ var CFG={
        400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
        1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
        1 May 2025. No 600 on record. These are the ultimate bosses. */
+    /* the 2026 bests on the day camp began — what a camp PB has to beat */
+    base:{200:28.1,400:59,600:100.1,800:151.96,1000:180,1609:327,5000:1085},
     allTime:{400:{t:57,d:'2025-06-04'},800:{t:132,d:'2025-06-04',n:'half-mile split'},1000:{t:168,d:'2025-06-04'},1609:{t:294,d:'2025-05-22'},5000:{t:1037,d:'2025-05-01'}},
     /* 9 Oct, Dan's goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00
        800, sub-55 400, better 600 and 200. Trial dates moved off Saturdays
@@ -3594,9 +3604,10 @@ function glanceHTML(){
     row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
     '</div>';
 }
-function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=glanceHTML();}
+function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+glanceHTML();}
 function wireGlance(){
-  E('glanceCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
+  E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
+  E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
 }
 /* ===================== Feedback: the coach's calls =====================
    29 Sep, Dan: no fixed deloads — every 4 weeks felt too soon, and he would
@@ -3862,6 +3873,61 @@ function campCallHTML(){
   if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
   return out;
 }
+/* ===================== achievements (Dan, 9 Oct: "really cool") =====================
+   Every camp best is an achievement with its tier — 🏆 best of 2026, 👑 best
+   of all time, 💎 goal smashed — plus weight milestones, stress-free
+   Saturdays, beat-last-time and perfect weeks. The newest one gets a
+   celebration, once, on Today and the Camp tab. */
+function campAchievements(){
+  var C=CFG.camp,t=today(),out=[],best={},k;
+  for(k in C.base)best[k]=C.base[k];
+  var goals={};C.pb.forEach(function(x){goals[x.dm]=x.goal;});
+  for(var d=C.start;d<=t;d=addD(d,1)){
+    (((S.days[d]||{}).runs)||[]).forEach(function(r){var m=runMeta(r);if(m.empty||!m.dm||m.repAvg===null||r.up)return;
+      var dm=m.dm,v=m.repAvg;if(!(dm in best)||v>=best[dm])return;best[dm]=v;
+      var at=C.allTime[dm],tier=(goals[dm]&&v<goals[dm])?'goal':((at&&v<at.t)?'all':'year');
+      out.push({id:'pb'+dm+d,d:d,tier:tier,e:tier==='goal'?'💎':(tier==='all'?'👑':'🏆'),
+        n:(tier==='goal'?'GOAL SMASHED':(tier==='all'?'ALL-TIME BEST':'BEST OF 2026'))+' — '+repLabel(dm),
+        sub:secFmt(v)+(m.n>1?' a rep':'')+(tier==='goal'?' · under '+secFmt(goals[dm]):(at?' · all-time '+secFmt(at.t):'')),xp:tier==='goal'?850:(tier==='all'?350:100)});});
+  }
+  /* weight milestones since the cut began */
+  var a0=weightModel().baseline,hit={};
+  if(a0!==null)for(var d2=WEIGH_START;d2<=t;d2=addD(d2,1)){var av=avgWindow(d2,7).avg;if(av===null)continue;
+    MILESTONES.forEach(function(m){if(!hit[m]&&a0>m&&av<=m){hit[m]=1;out.push({id:'w'+m,d:d2,tier:'w',e:'🔪',n:'UNDER '+m+' LB',sub:'7-day average '+f1(av)+' lb',xp:25});}});}
+  /* habits */
+  var sat=0,pr=0,perfect=0;
+  for(var d3=C.start;d3<t;d3=addD(d3,1)){var r=S.days[d3]||{},ran=(r.runs||[]).some(function(x){return !runMeta(x).empty;});
+    if(dow(d3)===C.offDay&&!ran&&!r.gym&&typeof r.study!=='number'){sat++;if([1,4,8].indexOf(sat)>=0)out.push({id:'sat'+sat,d:d3,tier:'h',e:'🧘',n:sat===1?'FIRST STRESS-FREE SATURDAY':sat+' STRESS-FREE SATURDAYS',sub:'Recovery is training',xp:0});}
+    if(r.gym&&r.pr){pr++;if([1,10,25].indexOf(pr)>=0)out.push({id:'pr'+pr,d:d3,tier:'h',e:'💪',n:pr===1?'FIRST “BEAT LAST TIME”':pr+'× BEAT LAST TIME',sub:'Stronger every week',xp:0});}
+    if(dow(d3)===0){var hw=0,fv=0,gy=0;for(var j=0;j<7;j++){var rr=S.days[addD(d3,-j)]||{};if(rr.gym)gy++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;if(m.hard)hw++;else if(isFiveMiler(m))fv++;});}
+      if(hw>=2&&fv>=2&&gy>=4){perfect++;out.push({id:'pw'+d3,d:d3,tier:'h',e:'⭐',n:'PERFECT WEEK',sub:hw+' hard · '+fv+' five-milers · '+gy+' gym',xp:0});}}
+  }
+  out.sort(function(a,b){return a.d<b.d?1:(a.d>b.d?-1:0);});
+  return out;
+}
+function celeSeen(id,set){var k=LS+'.cele';try{var s=JSON.parse(localStorage.getItem(k)||'{}');if(set){s[id]=1;localStorage.setItem(k,JSON.stringify(s));}return !!s[id];}catch(e){return false;}}
+function celeHTML(){
+  if(today()<CFG.camp.start)return '';
+  var A=campAchievements().filter(function(a){return diffD(a.d,today())<=2&&!celeSeen(a.id);});
+  if(!A.length)return '';
+  var a=A[0],conf=['🎉','✨','🎊','⭐','🔥','🏁'],c='';
+  for(var i=0;i<12;i++)c+='<span class="cf" style="left:'+(i*8+3)+'%;animation-delay:'+(i*0.17).toFixed(2)+'s">'+conf[i%conf.length]+'</span>';
+  return '<div class="p lift cb-cele">'+c+'<div style="font-size:44px;line-height:1.1">'+a.e+'</div>'+
+    '<div style="font-weight:800;letter-spacing:.04em;margin-top:4px">'+a.n+'</div>'+
+    '<div class="num" style="font-size:1.4em;margin:4px 0">'+a.sub+'</div>'+
+    (a.xp?'<div class="pill g" style="display:inline-block">+'+a.xp+' XP</div>':'')+
+    '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':'Nice! 🙌'))+'</button></div></div>';
+}
+function achievementsHTML(){
+  var A=campAchievements(),C=CFG.camp,got={};A.forEach(function(a){got[a.id.replace(/\d{4}-\d{2}-\d{2}$/,'')]=1;});
+  var locked=[];
+  C.pb.forEach(function(x){var tiers=A.filter(function(a){return a.id.indexOf('pb'+x.dm)===0;}).map(function(a){return a.tier;});
+    if(tiers.indexOf('goal')<0)locked.push({e:'💎',n:repLabel(x.dm)+' sub-'+(x.goal>=60?mmss(x.goal):x.goal),sub:'goal'});
+    if(C.allTime[x.dm]&&tiers.indexOf('all')<0&&tiers.indexOf('goal')<0)locked.push({e:'👑',n:repLabel(x.dm)+' all-time',sub:'beat '+secFmt(C.allTime[x.dm].t)});});
+  var card=function(a,lock){return '<div class="cb-badge'+(lock?' lock':'')+'"><span class="bi">'+a.e+'</span><b>'+a.n+'</b><div class="tiny">'+(lock?a.sub:fmtS(a.d)+' · '+a.sub)+'</div></div>';};
+  return '<div style="margin-top:12px"><b>🏅 ACHIEVEMENTS</b> <span class="tiny dim">'+A.length+' earned</span>'+
+    '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.slice(0,8).map(function(a){return card(a,true);}).join('')+'</div></div>';
+}
 function campGameHTML(){
   var C=CFG.camp,t=today();
   if(t<C.start){var d=diffD(t,C.start);
@@ -3904,7 +3970,7 @@ function campHTML(){
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
-    campCallHTML()+campGameHTML()+
+    celeHTML()+campCallHTML()+campGameHTML()+(today()>=CFG.camp.start?achievementsHTML():'')+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};
       return '<p class="tiny keep" style="margin:0 0 6px"><b>Your fitness right now</b> (from your bests, moves as you do): 400 '+f(400)+' · 800 '+f(800)+' · 1 km '+f(1000)+' · mile '+f(1609)+' · 5 km '+f(5000)+' · easy '+easyPaceTxt()+' a km · threshold '+thrPaceTxt()+' a km.</p>';})()+
