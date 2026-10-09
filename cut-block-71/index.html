@@ -3093,10 +3093,10 @@ var CUT_RUNS=[null,
      today's range a step short of it. Trials never on a Saturday. ---- */
   {long:'5 × 1 km',ld:[1000],short:'6 × 200 m',sd:[200],spr:8,note:'Camp week 1. Both sessions controlled — about 8 out of 10. This week sets your baseline.'},
   {long:'Time trial — 1 km',ld:[1000],short:'Time trial — 400 m',sd:[400],spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
-  {long:'3 × 1 mile at 5 km pace',ld:[1609],lg:'5:25–5:40 a mile · sub-17 5 km pace is 5:28',short:'5 × 300 m at 800 pace',sd:[300],sg:'45–48 s a rep · sub-2:00 800 pace is 45',spr:8},
-  {long:'10 × 400 m at mile pace',ld:[400],lg:'72–77 s a rep · sub-4:50 mile pace is 72.5',short:'4 × 400 m at 800 pace',sd:[400],sg:'60–64 s a rep · sub-2:00 800 pace is 60',spr:9},
-  {long:'6 × 800 m at 5 km pace',ld:[800],lg:'2:40–2:46 a rep · sub-17 5 km pace is 2:43',short:'3 × 600 m at 800 pace',sd:[600],sg:'1:33–1:38 a rep · sub-2:00 800 pace is 1:30',spr:9},
-  {long:'5 × 1 km at mile pace',ld:[1000],lg:'3:02–3:08 a rep · sub-4:50 mile pace is 3:00',short:'2 × (3 × 200 m) fast',sd:[200],sg:'26.5–28 s a rep · sub-55 400 pace is 27.5',spr:9},
+  {long:'3 × 1 mile at 5 km pace',ld:[1609],lp:[5000,1609],short:'5 × 300 m at 800 pace',sd:[300],sp:[800,300],spr:8},
+  {long:'10 × 400 m at mile pace',ld:[400],lp:[1609,400],short:'4 × 400 m at 800 pace',sd:[400],sp:[800,400],spr:9},
+  {long:'6 × 800 m at 5 km pace',ld:[800],lp:[5000,800],short:'3 × 600 m at 800 pace',sd:[600],sp:[800,600],spr:9},
+  {long:'5 × 1 km at mile pace',ld:[1000],lp:[1609,1000],short:'2 × (3 × 200 m) fast',sd:[200],sp:[400,200],spr:9},
   {long:'Time trial — 1 km or a mile',ld:[1000,1609],short:'Time trial — 400 m or 200 m',sd:[400,200],spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'},
   {long:'Threshold run — comfortably hard for 20 min, by feel',ld:null,short:'6 × 200 m, fast but relaxed',sd:[200],spr:6,note:'Refuel week: the reverse starts. Carbs back in, sessions controlled, no trials — your legs fill up and fresh up for the PB window.'},
   {pbwin:true,spr:0,note:'PB window: the trials are the hard runs.'},
@@ -3145,7 +3145,7 @@ function weekRunsModel(){
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
   /* an easy week he chose to take on the Feedback tab */
   if(easyWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
-  if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,sg:use.sg,spr:use.spr,note:use.note,deload:use.deload,tt:false};
+  if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
   var lng=0,sht=0;
@@ -3172,6 +3172,38 @@ function weekRunsModel(){
 /* easy pace: wide, and slower is never wrong. His 5 km best of 18:05 puts
    easy at roughly 4:45–5:20; on a deficit the top end comes off. */
 var EASY_PACE='5:00–5:45';
+/* ===================== current fitness (Dan, 9 Oct) =====================
+   Ballpark paces that move as he gets fitter. His bests at 400 m, 1 km and
+   5 km are anchors; any distance between them is read off a straight line on
+   a log-log plot through his OWN two neighbouring bests (his personal speed-
+   to-endurance curve, not a textbook one), and past the ends the nearest
+   segment carries on. New bests — trials, faster single efforts — move the
+   anchors, so every pace below gets faster with him. */
+function fitAnchors(){
+  var R=records(),a=[];
+  [400,1000,5000].forEach(function(d){var b=bestAt(d,R[d]).best;if(b&&b.t>0)a.push([d,b.t]);});
+  return a;
+}
+function fitnessEst(d){
+  var a=fitAnchors();if(!a.length)return null;if(a.length===1)return riegel(a[0][1],a[0][0],d);
+  var i=0;while(i<a.length-2&&d>a[i+1][0])i++;
+  var p=a[i],q=a[i+1],k=Math.log(q[1]/p[1])/Math.log(q[0]/p[0]);
+  return p[1]*Math.pow(d/p[0],k);
+}
+/* paced reps: from today's race pace for that event down to goal pace */
+function pacedGuide(ev,repDm,goal){
+  var cur=fitnessEst(ev);if(!cur)return '';
+  var gR=goal*repDm/ev,cR=cur*repDm/ev,lo=Math.min(gR,cR),hi=Math.max(gR,cR);
+  if(hi-lo<lo*0.02)hi=lo*1.03;
+  var big=hi>=100,f=function(x){return big?mmss(Math.round(x)):(x<40?x.toFixed(1):String(Math.round(x)));};
+  return f(lo)+'–'+f(hi)+(big?'':' s')+' a rep · goal pace '+f(gR)+(big?'':' s');
+}
+function campGoal(ev){var g=null;(CFG.camp.pb||[]).forEach(function(x){if(x.dm===ev)g=x.goal;});return g;}
+function kmPace(sPerKm){return mmss(Math.round(sPerKm));}
+/* easy and threshold from current 5 km fitness: easy ~1.35–1.55 × 5 km pace,
+   threshold ~1.05–1.08 × — wide, and effort still overrides */
+function easyPaceTxt(){var c=fitnessEst(5000);if(!c)return EASY_PACE;var p=c/5;return kmPace(p*1.35)+'–'+kmPace(p*1.55);}
+function thrPaceTxt(){var c=fitnessEst(5000);if(!c)return '';var p=c/5;return kmPace(p*1.05)+'–'+kmPace(p*1.08);}
 var LONG_OPTS=[{t:'4 × 1 km',d:[1000]},{t:'5 × 800 m',d:[800]},{t:'Threshold run — comfortably hard for 20–25 min, by feel',d:null}];
 var SHORT_OPTS=[{t:'6 × 300 m',d:[300]},{t:'5 × 400 m',d:[400]},{t:'8 × 200 m',d:[200]},{t:'4 × 600 m',d:[600]}];
 var RELAXED_OPTS=[{t:'5 × 200 m, fast but relaxed',d:[200]},{t:'4 × 300 m, fast but relaxed',d:[300]}];
@@ -3201,6 +3233,7 @@ function runDoes(o){
            300:'Speed endurance: the last 100 m of your 400 gets stronger.',
            200:'Pure speed with good form — keeps you quick while the weight comes down.'})[o.d[0]]||'';
 }
+function pacedOf(spec){return spec?pacedGuide(spec[0],spec[1],campGoal(spec[0])):'';}
 function optLine(o,kind,pick){
   var g=o.g?o.g:(o.d?guideFor(o.d,kind):'');
   return '<div style="margin:5px 0">'+(pick?'<span class="pill g">★ good pick this week</span> ':'• ')+(pick?'<b>'+o.t+'</b>':o.t)+
@@ -3234,13 +3267,13 @@ function weekRunsHTML(){
       '<div class="tiny dim more" style="margin-left:14px">'+runHow('Time trial')+'</div></div>';
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>Between trials</b><div class="tiny">Easy 5-milers, and 4 × 200 m fast-relaxed two days before a trial to stay sharp. No other hard running.</div></div>';
   }
-  if(!P.pbwin&&P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:P.lg},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
-  if(!P.pbwin)rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd,g:P.sg},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
+  if(!P.pbwin&&P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
+  if(!P.pbwin)rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
     (w.five>=M.easyTarget?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+M.easyTarget+' ✓</span>':''))+'<b>Easy 5 miles'+(M.easyTarget>1?' × '+M.easyTarget:'')+'</b>'+(M.easyTarget<T.easy?' <span class="tiny">(one fewer this week — recovery first)</span>':'')+' <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
     (w.easy5k?'<div class="tiny" style="margin-top:2px">+ '+w.easy5k+' easy 5 km'+(w.easy5k===1?'':'s')+' this week — the optional extra.</div>':'')+
-    '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+(T.easy>1?'. One a week can be steady, 4:40–4:55, if your resting HR is normal':'')+
+    '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+easyPaceTxt()+' a km, and slower is never wrong'+(T.easy>1?'. One a week can be steady, 4:40–4:55, if your resting HR is normal':'')+
     (M.kcal5?' <span class="tiny">· about <b>'+ci(M.kcal5)+' kcal</b> each</span>':'')+'</div>'+
     (legsFlag?'<div class="note wn" style="margin-top:4px">Legs flagged: make the next one a brisk walk, or 30 min very easy. It still burns; it just doesn’t dig the hole deeper.</div>':'')+
     '<div class="tiny more">Full sentences the whole way, breathing through your nose most of it. This is the run that takes the weight off without touching your recovery — fat is the main fuel at this effort, cortisol stays low, and it builds the aerobic engine your 800 m to 5 km sit on. Not the day after a hard run is ideal, but after legs or the morning after a hard run is fine if it is truly easy. If it turns into a tempo, the app counts it as a hard run.</div></div>';
@@ -3746,10 +3779,10 @@ function campRange(lo,hi){var f=function(x){return x>=60?mmss(Math.round(x)):x.t
 /* how to run each kind of session — short, by feel, no rest prescriptions */
 function runHow(x){
   x=String(x);
-  if(x==='easy')return 'Chatty the whole way, 5:00–5:45 a km — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
+  if(x==='easy')return 'Chatty the whole way, about '+easyPaceTxt()+' a km for you right now — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
   if(/^Time trial/.test(x))return 'Calm, dry day. 15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy. Coffee 45–60 min before if before 2pm. Even pace (400: first 200 a touch quicker); finish strongest.';
   if(/at (mile|5 km|800) pace/.test(x))return '15 min easy, drills, 4 strides. Lock into the pace in the guide — every rep the same, relaxed and controlled, never faster than the range. Recover until ready. Stop if you cannot hold the pace.';
-  if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
+  if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — about '+thrPaceTxt()+' a km for you right now, and you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
   var m=/(\d+) × (\d+) ?(k?m)/.exec(x),d=m?(+m[2])*(m[3]==='km'?1000:1):0;
   if(d>=600)return '15 min easy, drills, 4 strides. Run every rep inside the guide time, the first one controlled. Recover walking or jogging until your breathing settles. About 8 out of 10. Stop if a rep comes in clearly slower than the first two.';
   if(d>0)return '15 min easy, drills, 4 strides. Fast but relaxed — tall, loose shoulders. Walk back between reps until you feel ready. The last rep should match or beat the first; stop if one drops off.';
@@ -3802,7 +3835,7 @@ function campGame(){
     var hardLeft=T.hard-q.hard,picks=[];
     if(!M.longDone&&M.P.long)picks.push(M.P.long);
     if(!M.shortDone&&M.P.short)picks.push(M.P.short);
-    picks.slice(0,Math.max(0,hardLeft)).forEach(function(x){left.push({e:'⚡',n:x+(x===M.P.long&&M.P.lg?' — '+M.P.lg:'')+(x===M.P.short&&M.P.sg?' — '+M.P.sg:''),how:runHow(x)});});
+    picks.slice(0,Math.max(0,hardLeft)).forEach(function(x){left.push({e:'⚡',n:x+(x===M.P.long&&M.P.lp?' — '+pacedOf(M.P.lp):'')+(x===M.P.short&&M.P.sp?' — '+pacedOf(M.P.sp):''),how:runHow(x)});});
     if(M.P.pbwin)C.pb.filter(function(x){return x.on>=ws&&x.on<=addD(ws,6);}).forEach(function(x){var b=bestAt(x.dm,R[x.dm]).best;if(b&&b.date>=ws)return;
       left.push({e:'⏱',n:repLabel(x.dm)+' trial — goal '+campGoalTxt(x)+' (suggested '+DOWS[dow(x.on)]+' '+fmtS(x.on)+')',how:runHow('Time trial')});});
   }
@@ -3873,6 +3906,8 @@ function campHTML(){
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     campCallHTML()+campGameHTML()+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
+    (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};
+      return '<p class="tiny keep" style="margin:0 0 6px"><b>Your fitness right now</b> (from your bests, moves as you do): 400 '+f(400)+' · 800 '+f(800)+' · 1 km '+f(1000)+' · mile '+f(1609)+' · 5 km '+f(5000)+' · easy '+easyPaceTxt()+' a km · threshold '+thrPaceTxt()+' a km.</p>';})()+
     '<div class="scroll"><table class="tbl camptbl"><thead><tr><th>Distance</th><th class="n">2026</th><th class="n">All-time</th><th class="n">Goal</th><th>When</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny keep" style="margin-top:6px"><b>Each week’s runs appear when the week starts</b>, set from where you are — your times, recovery and how the last week felt. <b>Goal</b> is what the whole plan is built for. Every hard session has your goal pace in it, with today’s range a step short of it — the range moves every time you run faster. December is the first shot: expect 2026 bests to fall and the gap to the goals to close; the biggest ones (sub-2:00, sub-55, sub-4:50) are a 2027 season job, and the plan carries on until they fall. Never two trials within three days, never on a Saturday, and only on a week the Feedback tab is clear.</p>'+
     '<details style="margin-top:6px"><summary class="tiny"><b>Everything that makes you faster</b></summary>'+

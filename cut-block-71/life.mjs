@@ -389,11 +389,11 @@ await ctx.close();
 // ===== the goal plan (9 Oct) =====
 ({ ctx, p, boot } = await at('2026-11-04'));   // week 7: mile pace + 800 pace
 await boot(st());
-let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short, lg: m.P.lg, sg: m.P.sg }; });
-ok('week 7 is 10 × 400 m at mile pace and 4 × 400 m at 800 pace, with goal-pace guides', /10 × 400 m at mile pace/.test(M7.l) && /4 × 400 m at 800 pace/.test(M7.s) && /72\.5/.test(M7.lg) && /pace is 60/.test(M7.sg), JSON.stringify(M7));
+let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short, lg: pacedOf(m.P.lp), sg: pacedOf(m.P.sp) }; });
+ok('week 7 is 10 × 400 m at mile pace and 4 × 400 m at 800 pace, with goal-pace guides', /10 × 400 m at mile pace/.test(M7.l) && /4 × 400 m at 800 pace/.test(M7.s) && /goal pace 72 s/.test(M7.lg) && /goal pace 60 s/.test(M7.sg), JSON.stringify(M7));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let r7 = sq(await p.innerText('#tRuns'));
-ok('the runs card shows the goal-pace guide and what the session does', /72–77 s a rep · sub-4:50 mile pace is 72\.5/.test(r7) && /sub-4:50 rhythm/.test(r7), r7.slice(0, 800));
+ok('the runs card shows the goal-pace guide and what the session does', /\d+–\d+ s a rep · goal pace 72 s/.test(r7) && /sub-4:50 rhythm/.test(r7), r7.slice(0, 800));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-12-07'));   // PB window, week 12
 await boot(st());
@@ -414,6 +414,18 @@ await ctx.close();
 await boot(st());
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 ok('the trial dates appear from the refuel week', /6 Dec/.test(sq(await p.innerText('#campCard'))));
+await ctx.close();
+
+// ===== current fitness moves the paces (9 Oct) =====
+({ ctx, p, boot } = await at('2026-11-04'));
+await boot(st());
+const F0 = await p.evaluate(() => ({ m: fitnessEst(1609), e: easyPaceTxt(), g: pacedOf([1609, 400]) }));
+ok('fitness is read off his own bests: mile about 5:06 now', Math.abs(F0.m - 306) < 6, JSON.stringify(F0));
+await boot(st({ days: { '2026-11-02': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 170 }] } } }));   // a 2:50 1 km trial
+const F1 = await p.evaluate(() => ({ m: fitnessEst(1609), g: pacedOf([1609, 400]) }));
+ok('a faster 1 km moves the mile estimate and the guide down', F1.m < F0.m - 10 && F1.g !== F0.g, JSON.stringify({ F0, F1 }));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+ok('the camp card shows his fitness right now', /Your fitness right now/.test(sq(await p.innerText('#campCard'))));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====

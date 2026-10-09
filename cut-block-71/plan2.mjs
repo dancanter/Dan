@@ -43,7 +43,7 @@ ok('Today shows this week’s run ideas', /RUNS THIS WEEK · IDEAS · WEEK 2/i.t
 ok('as a good week, not an order', /A good week, 3–4 runs: a longer and a shorter hard run, an easy 5 miles, and an easy 5 km only if you feel fresh\. 4 gym sessions\./.test(t) && /Any days\. Hard runs never the day after legs or each other/.test(t) && /one full day a week with no session/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
 ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
 ok('with sprints as the option, on the end of an easy run', /Uphill sprints optional/i.test(t) && /8 × ~100 m uphill — best at the end of an easy 5 miles/.test(t));
-ok('two easy five-milers, with a wide easy pace and what they burn', /Easy 5 miles the fat-loss run · plus an easy 5 km only if you feel fresh/.test(t) && /5:00–5:45 a km, and slower is never wrong/.test(t), t.slice(0, 900));
+ok('two easy five-milers, with a wide easy pace and what they burn', /Easy 5 miles the fat-loss run · plus an easy 5 km only if you feel fresh/.test(t) && /\d:\d\d–\d:\d\d a km, and slower is never wrong/.test(t), t.slice(0, 900));
 ok('the counts sit at the top: 1 hard of 2, 0 easy of 2, plan is 4', /HARD RUNS 1 of 2/i.test(t) && /EASY 5 MILES 0 of 1/i.test(t) && /the plan is 3–4/.test(t), t.slice(0, 500));
 ok('no days of the week are named', !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/.test(t));
 ok('no rest times, and no per-km paces', !/\/km|min rest|seconds? rest|recover(y)? of \d/.test(t));
