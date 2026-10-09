@@ -291,7 +291,7 @@ const cw = await p.evaluate(() => ({ t: tmplFor(mondayOf(today())), before: tmpl
 ok('camp week 1 is straight in: 2 hard and 3 easy 5-milers, 5 runs (no ramp, his call)', cw.t.hard === 2 && cw.t.easy === 3 && cw.t.runs === 5 && !cw.t.ramp && cw.before.easy === 1 && cw.ph === 'build', JSON.stringify(cw));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(150);
 let cc = sq(await p.innerText('#campCard'));
-ok('the camp card shows the phases, PB targets and dates', /Race camp · PBs before Christmas/i.test(cc) && /Build:/.test(cc) && /400m/i.test(cc) && /5km|5 km|5000/i.test(cc) && /Try on/i.test(cc), cc.slice(0, 500));
+ok('the camp card shows the phases, PB targets and dates', /Race camp · PBs before Christmas/i.test(cc) && /Build:/.test(cc) && /400m/i.test(cc) && /5km|5 km|5000/i.test(cc) && /When/i.test(cc) && /PB window/.test(cc) && !/9 Dec/.test(cc), cc.slice(0, 500));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let rcw = sq(await p.innerText('#tRuns'));
 ok('the runs card says a camp week, 3 easy 5-milers with strides', /A camp week, 5 runs/.test(rcw) && !/Ramp week/.test(rcw) && /Easy 5 miles × 3/.test(rcw) && /strides/.test(rcw) && /EASY 5 MILES 0 of 3/i.test(rcw), rcw.slice(0, 600));
@@ -401,6 +401,19 @@ const pb = await p.evaluate(() => { const g = campGame(); return { left: g.left.
 ok('in the PB window the week’s trials are the hard runs: 400 and 5 km', pb.ph === 'pb' && pb.left.some(n => /400m trial — goal sub-55/.test(n)) && pb.left.some(n => /5 km trial — goal sub-17:00/.test(n)), JSON.stringify(pb));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 ok('and the runs card lists them', /This week’s trials/.test(sq(await p.innerText('#tRuns'))));
+await ctx.close();
+
+// ===== plans appear when their week comes; the five-milers adapt (9 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-14': { niggle: true, niggleWhat: 'calf' } } }));
+ok('a flagged week asks for one fewer five-miler', await p.evaluate(() => { const m = weekRunsModel(); return m.easeOff && m.easyTarget === 2 && m.T.easy === 3; }));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+ok('and says why', /one fewer this week — recovery first/.test(sq(await p.innerText('#tRuns'))));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-01'));
+await boot(st());
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
+ok('the trial dates appear from the refuel week', /6 Dec/.test(sq(await p.innerText('#campCard'))));
 await ctx.close();
 
 // ===== tap a sleep bar to see the night =====

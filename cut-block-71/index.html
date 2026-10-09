@@ -3158,7 +3158,10 @@ function weekRunsModel(){
   var aw=avgWindow(t,7),lb=aw&&aw.avg!==null?aw.avg:null;
   if(lb===null){var ws=Object.keys(S.weights).sort();if(ws.length)lb=S.weights[ws[ws.length-1]];}
   var kcal5=lb?Math.round(lb/2.2046*8.05/10)*10:null;
-  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5};
+  /* the five-milers adapt too (Dan, 9 Oct: "you never know where I'm at"):
+     a week the recovery flags drops one */
+  var easyTarget=Math.max(1,T.easy-(easeOff&&T.easy>1?1:0));
+  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3235,7 +3238,7 @@ function weekRunsHTML(){
   if(!P.pbwin)rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd,g:P.sg},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
-    (w.five>=T.easy?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+T.easy+' ✓</span>':''))+'<b>Easy 5 miles'+(T.easy>1?' × '+T.easy:'')+'</b> <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
+    (w.five>=M.easyTarget?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+M.easyTarget+' ✓</span>':''))+'<b>Easy 5 miles'+(M.easyTarget>1?' × '+M.easyTarget:'')+'</b>'+(M.easyTarget<T.easy?' <span class="tiny">(one fewer this week — recovery first)</span>':'')+' <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
     (w.easy5k?'<div class="tiny" style="margin-top:2px">+ '+w.easy5k+' easy 5 km'+(w.easy5k===1?'':'s')+' this week — the optional extra.</div>':'')+
     '<div style="margin-top:2px">About 40–45 min, conversational — roughly '+EASY_PACE+' a km, and slower is never wrong'+(T.easy>1?'. One a week can be steady, 4:40–4:55, if your resting HR is normal':'')+
     (M.kcal5?' <span class="tiny">· about <b>'+ci(M.kcal5)+' kcal</b> each</span>':'')+'</div>'+
@@ -3255,7 +3258,7 @@ function weekRunsHTML(){
     ' <span class="tiny">Any days. Hard runs never the day after legs or each other, and one full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
-      tile('easy 5 miles',w.five+' <span class="tiny">of '+T.easy+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off'))+
+      tile('easy 5 miles',w.five+' <span class="tiny">of '+M.easyTarget+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off'))+
       tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?(T.runs-1)+'':(T.easy>1?T.runs+'':'3–4')))+
     '</div>'+
     (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
@@ -3790,7 +3793,8 @@ function campGame(){
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
-  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,T.easy],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5]];
+  var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
+  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,eT],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),left=[];
@@ -3810,7 +3814,7 @@ function campGame(){
   var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':'')))));
   var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
   if(sprOn&&!q.spr)left.push({e:'⛰️',n:'Uphill sprints are ON: '+spr.n+' × ~10 s, at the end of a 5-miler',how:'Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.'});
-  for(var e5=q.five;e5<T.easy;e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
+  for(var e5=q.five;e5<(M?M.easyTarget:T.easy);e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */
@@ -3849,25 +3853,28 @@ function campGameHTML(){
     '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
       return '<span class="pill'+(ok?' g':'')+'">'+x[0]+' '+x[1]+' '+Math.min(x[2],x[3])+'/'+x[3]+(ok?' ✓':'')+'</span>';}).join('')+'</div></div>'+
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
-      return '<span class="pill'+(b.won?' g':'')+'">'+(b.goal?'💎 ':(b.legend?'👑 ':(b.won?'🏆 ':'👹 ')))+repLabel(b.dm)+(b.goal?' goal smashed':(b.legend?' all-time beaten':(b.won?' 2026 beaten':' · '+fmtS(b.on))))+'</span>';}).join('')+'</div>'+
+      return '<span class="pill'+(b.won?' g':'')+'">'+(b.goal?'💎 ':(b.legend?'👑 ':(b.won?'🏆 ':'👹 ')))+repLabel(b.dm)+(b.goal?' goal smashed':(b.legend?' all-time beaten':(b.won?' 2026 beaten':' · '+(t>=addD(C.window,-7)?fmtS(b.on):'PB window'))))+'</span>';}).join('')+'</div>'+
       '<div class="tiny dim" style="margin-top:4px">Beat your 2026 best: 🏆 +100 XP. Your all-time best too: 👑 +250. Your goal: 💎 +500.</div></div>'+
     '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · stress-free Saturday 20 · other full rest day 10 · 8 h night 10 · phone-free 5 · 2026 best beaten 100 · all-time 250 more · goal smashed 500 more. It only goes up.</p></div>';
 }
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
+  /* Dan, 9 Oct: plans are shown when their week comes, not before — so the
+     trial dates appear from the refuel week, once the build has shown where he is */
+  var showDates=t>=addD(C.window,-7);
   var left=Math.max(0,diffD(t,C.end));
   var rows=C.pb.map(function(x){var b=bestAt(x.dm,R[x.dm]).best,cur=b&&b.t?b.t:(BESTAVG[x.dm]||null);
     var beat=!!(b&&b.date&&b.date>=C.start);
     var at=C.allTime[x.dm];
     var smash=beat&&cur<x.goal;
-    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+(at?secFmt(at.t):'—')+'</td><td class="n"><b class="acc">'+campGoalTxt(x)+'</b></td><td class="tiny">'+fmtS(x.on)+'</td><td>'+(beat?'<span class="pill g">'+(smash?'💎':(at&&cur<at.t?'👑':'✓'))+'</span>':'')+'</td></tr>';}).join('');
+    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+(at?secFmt(at.t):'—')+'</td><td class="n"><b class="acc">'+campGoalTxt(x)+'</b></td><td class="tiny">'+(showDates?fmtS(x.on):'PB window')+'</td><td>'+(beat?'<span class="pill g">'+(smash?'💎':(at&&cur<at.t?'👑':'✓'))+'</span>':'')+'</td></tr>';}).join('');
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     campCallHTML()+campGameHTML()+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
-    '<div class="scroll"><table class="tbl camptbl"><thead><tr><th>Distance</th><th class="n">2026</th><th class="n">All-time</th><th class="n">Goal</th><th>Try on</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p class="tiny keep" style="margin-top:6px"><b>Goal</b> is what the whole plan is built for. Every hard session has your goal pace in it, with today’s range a step short of it — the range moves every time you run faster. December is the first shot: expect 2026 bests to fall and the gap to the goals to close; the biggest ones (sub-2:00, sub-55, sub-4:50) are a 2027 season job, and the plan carries on until they fall. Never two trials within three days, never on a Saturday, and only on a week the Feedback tab is clear.</p>'+
+    '<div class="scroll"><table class="tbl camptbl"><thead><tr><th>Distance</th><th class="n">2026</th><th class="n">All-time</th><th class="n">Goal</th><th>When</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny keep" style="margin-top:6px"><b>Each week’s runs appear when the week starts</b>, set from where you are — your times, recovery and how the last week felt. <b>Goal</b> is what the whole plan is built for. Every hard session has your goal pace in it, with today’s range a step short of it — the range moves every time you run faster. December is the first shot: expect 2026 bests to fall and the gap to the goals to close; the biggest ones (sub-2:00, sub-55, sub-4:50) are a 2027 season job, and the plan carries on until they fall. Never two trials within three days, never on a Saturday, and only on a week the Feedback tab is clear.</p>'+
     '<details style="margin-top:6px"><summary class="tiny"><b>Everything that makes you faster</b></summary>'+
     '<ul class="clean tiny" style="margin-top:6px">'+
     '<li><b>Sleep 8 h+</b> — the one that matters most for speed and for staying lean.</li>'+
