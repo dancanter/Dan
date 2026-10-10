@@ -3864,7 +3864,7 @@ function campGame(){
   var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,eT],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
-  var M=weekRunsModel(),ST=weekStatus(),left=[];
+  var M=weekRunsModel(),ST=weekStatus(),RH=rhrModel(),left=[];
   if(M){
     var hardLeft=T.hard-q.hard,picks=[];
     if(!M.longDone&&M.P.long)picks.push(M.P.long);
@@ -3876,13 +3876,20 @@ function campGame(){
   if(M&&M.thrOn&&!M.thrDone)left.push({e:'⚡',n:'Threshold run, 20–25 min at about '+thrPaceTxt()+' a km — your 3rd quality session (replaces a 5-miler)',how:runHow('Threshold')});
   /* uphill sprints: only when I say — in the build, recovery clear, not a
      test week, and not already done this week */
-  var RH=rhrModel(),NGs=niggleModel(),ph=campPhase(t);
+  var NGs=niggleModel(),ph=campPhase(t);
   var stOk=!(ST&&ST.k!=='good');
   var sprOn=!!(M&&ph.k==='build'&&!M.P.tt&&stOk&&RH.state!=='up'&&RH.state!=='high'&&!NGs.n);
   var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':'')))));
   var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
   if(sprOn&&!q.spr)left.push({e:'⛰️',n:'Uphill sprints are ON: '+spr.n+' × ~10 s, at the end of a 5-miler',how:'Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.'});
-  for(var e5=q.five;e5<(M?M.easyTarget:T.easy);e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
+  /* Dan, 10 Oct: whether an easy run should be a walk is my call too. When
+     recovery is strained — legs or rest flagged, resting HR up, two short
+     nights — the next easy run becomes a brisk walk. Less stress, same burn. */
+  var sl2=[1,2].map(function(i){var r=S.days[addD(t,-i)];return r&&typeof r.sleep==='number'?r.sleep:null;}).filter(function(x){return x!==null;});
+  var walkSwap=!!((ST&&(ST.k==='legs'||ST.k==='rest'||ST.k==='warn'))||RH.state==='up'||RH.state==='high'||(sl2.length===2&&mean(sl2)<7));
+  var walkWhy=ST&&ST.k!=='good'?ST.t.toLowerCase():((RH.state==='up'||RH.state==='high')?'resting HR is up':'two short nights');
+  if(walkSwap&&q.five<(M?M.easyTarget:T.easy))left.push({e:'🚶',n:'Next easy run: make it a brisk walk instead, 45–60 min',how:'My call today — '+walkWhy+'. A walk burns most of the same calories with almost none of the stress, so your face and recovery both win. Back to running when the signs settle.'});
+  for(var e5=q.five+(walkSwap?1:0);e5<(M?M.easyTarget:T.easy);e5++)left.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */

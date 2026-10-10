@@ -469,6 +469,16 @@ await boot(st({ days: { '2026-10-26': { runs: [{ k: 'reps', dm: 1609, n: 3, secs
 ok('three planned quality sessions do not trip the “done loads” warning', await p.evaluate(() => { const s = weekStatus(); return !(s && /done loads/.test(s.t)); }));
 await ctx.close();
 
+// ===== easy run or a walk: my call (10 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-13': { sleep: 6.4 }, '2026-10-12': { sleep: 6.6 } } }));
+let WS = await p.evaluate(() => campGame().left.map(x => x.n));
+ok('two short nights turn the next easy run into a brisk walk', WS.some(n => /make it a brisk walk instead/.test(n)), JSON.stringify(WS));
+await boot(st({ days: { '2026-10-13': { sleep: 8.3 }, '2026-10-12': { sleep: 8.1 } } }));
+WS = await p.evaluate(() => campGame().left.map(x => x.n));
+ok('a rested week keeps the runs', !WS.some(n => /brisk walk/.test(n)), JSON.stringify(WS));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));
