@@ -448,6 +448,27 @@ await boot(st({ days: { '2026-12-06': { runs: [{ k: 'reps', dm: 1000, n: 1, secs
 ok('a 2:44 km smashes the goal', await p.evaluate(() => campAchievements().some(a => a.tier === 'goal' && /GOAL SMASHED — 1 km/.test(a.n))));
 await ctx.close();
 
+// ===== the 3rd quality session, when recovery is green (10 Oct) =====
+({ ctx, p, boot } = await at('2026-10-28'));   // camp week 3
+await boot(st({ days: { '2026-10-27': { sleep: 8.2 }, '2026-10-26': { sleep: 8.1 } } }));
+let TH = await p.evaluate(() => { const m = weekRunsModel(); return { on: m.thrOn, easy: m.easyTarget, ok: thresholdOK() }; });
+ok('a green week from camp week 3 adds the threshold run and drops one five-miler', TH.on && TH.easy === 2, JSON.stringify(TH));
+await p.click('[data-t="training"]'); await p.waitForTimeout(120);
+ok('the runs card shows it with a pace', /Threshold run — your 3rd quality session/.test(sq(await p.innerText('#tRuns'))) && /\d:\d\d–\d:\d\d a km/.test(sq(await p.innerText('#tRuns'))));
+await boot(st({ days: { '2026-10-27': { sleep: 6.5 }, '2026-10-26': { sleep: 6.8 } } }));
+ok('short sleep keeps it off', await p.evaluate(() => !weekRunsModel().thrOn));
+await boot(st({ days: { '2026-10-21': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 300, rpe: 9 }] } } }));
+ok('a 9 last week keeps it off', await p.evaluate(() => !weekRunsModel().thrOn));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st());
+ok('not in camp weeks 1–2', await p.evaluate(() => !thresholdOK()));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-30'));
+await boot(st({ days: { '2026-10-26': { runs: [{ k: 'reps', dm: 1609, n: 3, secs: 1000 }] }, '2026-10-28': { runs: [{ km: 5, secs: 1160, type: 'threshold' }] }, '2026-10-29': { runs: [{ k: 'reps', dm: 300, n: 5, secs: 230 }] }, '2026-10-27': { sleep: 8.2 }, '2026-10-29b': {} } }));
+ok('three planned quality sessions do not trip the “done loads” warning', await p.evaluate(() => { const s = weekStatus(); return !(s && /done loads/.test(s.t)); }));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

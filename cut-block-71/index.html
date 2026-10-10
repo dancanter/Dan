@@ -3141,6 +3141,24 @@ function guideFor(dms,kind){
   }).filter(Boolean);
   return out.length?'Guide: '+out.join(' · or '):'';
 }
+/* ===================== the 3rd quality session (Dan, 10 Oct) =====================
+   He hands the call over: "if you want 3 hard runs with the threshold I will
+   do them — but look at my recovery first". His own 2025 note says three hard
+   runs was too much, so the threshold run only goes in when everything is
+   green, from camp week 3, never in a test week or the PB window, and it
+   REPLACES one five-miler rather than adding a sixth run. Pure function — no
+   weekStatus inside, so weekStatus can use it without a loop. */
+function thresholdOK(t){
+  t=t||today();var C=CFG.camp;if(!C||t<'2026-10-26'||t>CFG.cutEnd)return false;
+  var wk=weekOf(t),P=CUT_RUNS[wk];if(!P||P.tt||P.pbwin)return false;
+  var R=rhrModel();if(R.state==='up'||R.state==='high')return false;
+  if(niggleModel().n)return false;
+  var sl=[],i,d,r;for(i=1;i<=3;i++){r=S.days[addD(t,-i)];if(r&&typeof r.sleep==='number')sl.push(r.sleep);}
+  if(sl.length>=2&&mean(sl)<7.5)return false;
+  var ms=mondayOf(t);for(i=1;i<=7;i++){r=S.days[addD(ms,-i)]||{};
+    if((r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&x.rpe>=9;}))return false;}
+  return true;
+}
 function weekRunsModel(){
   var t=today();if(t<WEIGH_START||t>(CFG.camp?CFG.camp.end:CFG.cutEnd))return null;
   var wk=weekOf(t),P=CUT_RUNS[wk];if(!P)return null;
@@ -3158,9 +3176,11 @@ function weekRunsModel(){
   if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
-  var lng=0,sht=0;
+  var lng=0,sht=0,thrDone=0;
+  var thrOn=thresholdOK(t)&&!easeOff;
   for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;
     (S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty||!m.hard)return;
+      if(thrOn&&!thrDone&&m.kind==='cont'){thrDone=1;return;}
       if(m.kind==='reps'&&m.dm&&m.dm<=400)sht++;else lng++;});}
   /* a second session of the same kind still counts, toward the other slot */
   var longDone=lng>=1||(sht>=2&&!!use.long),shortDone=sht>=1||(lng>=2);
@@ -3170,8 +3190,8 @@ function weekRunsModel(){
   var kcal5=lb?Math.round(lb/2.2046*8.05/10)*10:null;
   /* the five-milers adapt too (Dan, 9 Oct: "you never know where I'm at"):
      a week the recovery flags drops one */
-  var easyTarget=Math.max(1,T.easy-(easeOff&&T.easy>1?1:0));
-  return {wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
+  var easyTarget=Math.max(1,T.easy-(easeOff&&T.easy>1?1:0)-(thrOn&&T.easy>1?1:0));
+  return {thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3278,6 +3298,9 @@ function weekRunsHTML(){
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>Between trials</b><div class="tiny">Easy 5-milers, and 4 × 200 m fast-relaxed two days before a trial to stay sharp. No other hard running.</div></div>';
   }
   if(!P.pbwin&&P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
+  if(M.thrOn)rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+(M.thrDone?'<span class="pill g">✓ done</span>':'')+'<b>⚡ Threshold run — your 3rd quality session</b> <span class="tiny">on this week, because your recovery is green · it replaces one 5-miler</span></div>'+
+    '<div style="margin-top:2px">20–25 min comfortably hard, about '+thrPaceTxt()+' a km</div>'+
+    '<div class="tiny more">'+runHow('Threshold')+' The biggest single lever for sub-17 and sub-4:50, and the gentlest of the three on your legs.</div></div>';
   if(!P.pbwin)rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
@@ -3441,7 +3464,7 @@ function weekStatus(){
   var sleep3=sl.length>=2?mean(sl):null;
   if(NG.n&&(NG.today||NG.persistent))return {k:'rest',t:'Rest what hurts',w:'Something has hurt'+(NG.top?' — '+NG.top:'')+'. Easy running only until it has been quiet for a few days. A week off beats a month off.'};
   if(R.state==='high')return {k:'warn',t:'You might be overtraining',w:'Resting HR is up '+f1(R.delta)+' beats on your baseline — fatigue shows there before you feel it. Take a rest day, then keep it easy for three days.'};
-  if(hardRuns>CFG.hardRuns.target)return {k:'rest',t:'You’ve done loads — time for a rest',w:hardRuns+' hard runs in 7 days is your ceiling. Next one waits until you’ve had a proper rest day.'};
+  if(hardRuns>CFG.hardRuns.target+(thresholdOK(t)?1:0))return {k:'rest',t:'You’ve done loads — time for a rest',w:hardRuns+' hard runs in 7 days is your ceiling. Next one waits until you’ve had a proper rest day.'};
   /* 29 Sep: the plan is four runs; six in a week on a deficit is too much,
      however easy they felt — that is how a cut starts ageing you */
   if(runs7>=6)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is four. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
@@ -3850,6 +3873,7 @@ function campGame(){
     if(M.P.pbwin)C.pb.filter(function(x){return x.on>=ws&&x.on<=addD(ws,6);}).forEach(function(x){var b=bestAt(x.dm,R[x.dm]).best;if(b&&b.date>=ws)return;
       left.push({e:'⏱',n:repLabel(x.dm)+' trial — goal '+campGoalTxt(x)+' (suggested '+DOWS[dow(x.on)]+' '+fmtS(x.on)+')',how:runHow('Time trial')});});
   }
+  if(M&&M.thrOn&&!M.thrDone)left.push({e:'⚡',n:'Threshold run, 20–25 min at about '+thrPaceTxt()+' a km — your 3rd quality session (replaces a 5-miler)',how:runHow('Threshold')});
   /* uphill sprints: only when I say — in the build, recovery clear, not a
      test week, and not already done this week */
   var RH=rhrModel(),NGs=niggleModel(),ph=campPhase(t);
