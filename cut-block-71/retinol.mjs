@@ -94,7 +94,7 @@ ok('naming the irritation window', /8 Oct to 5 Nov/.test(t), (t.match(/\d+ \w+ t
 // the old blanket ban is gone from both places
 await p.click('[data-t="data"]');
 const data = await p.textContent('#s-data');
-ok('the hard-constraint row reflects his decision', /Retinol — reintroducing, his call/.test(data), data.slice(0, 400));
+ok('the hard-constraint row reflects his decision', /Retinol — forehead only, his call/.test(data), data.slice(0, 400));
 ok('and still rules out tretinoin', /Tretinoin is still a no/.test(data));
 await p.click('[data-t="skin"]');
 ok('the skin tab no longer says never retinol', !/Never retinol or tretinoin/.test(await p.textContent('#s-skin')));
@@ -112,6 +112,33 @@ await p.evaluate(() => { CFG.retinol.start = addD(today(), -9); render(); });
 const live = await p.evaluate(() => retinolModel());
 ok('after starting it reports the week', live.started === true && live.weeks === 1, JSON.stringify({ s: live.started, w: live.weeks }));
 ok('and lists this week\'s nights as dates', live.nights.every(n => /^\d{4}-\d{2}-\d{2}$/.test(n)), JSON.stringify(live.nights));
+
+// ---- 11 Oct: restarted on the forehead only ------------------------------
+const p2 = await b.newPage({ viewport: { width: 430, height: 2600 } });
+await p2.clock.setFixedTime(new Date('2026-10-11T19:00:00'));
+p2.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+await p2.goto(FILE); await p2.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p2.reload(); await p2.waitForTimeout(220);
+const F = await p2.evaluate(() => retinolModel());
+ok('from 11 Oct the pause no longer applies', F.paused === null && F.area === 'forehead' && F.start === '2026-10-11', JSON.stringify({ p: F.paused, a: F.area, s: F.start }));
+ok('tonight (Sunday) is the first forehead night, once a week', F.tonight === true && F.phase.n === 1, JSON.stringify(F.phase));
+let g = await p2.textContent('#glanceCard');
+ok('Today says it, forehead only', /Retinol · forehead only/.test(g) && /Tonight — a rice grain, forehead only/.test(g), g.slice(0, 600));
+await p2.click('[data-t="skin"]');
+let f = await p2.textContent('#skRetinol');
+ok('the panel is forehead-only and not paused', /forehead only/.test(f) && !/Paused since/.test(f) && /Tonight is a retinol night/.test(f), f.slice(0, 300));
+ok('a rice grain, a gap above the brows, never before a run', /A rice grain/.test(f) && /finger-width gap above the eyebrows/.test(f) && /never before a run/.test(f));
+ok('the rest of the face stays off it', /rest of your face stays retinol-free/.test(f));
+const ramp2 = await p2.$$eval('#skRetinol table:has(thead) tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+ok('a fresh ramp from 11 Oct: 2x from 25 Oct, 3x from 8 Nov', /11 Oct/.test(ramp2[0]) && /25 Oct/.test(ramp2[1]) && /2× a week/.test(ramp2[1]) && /8 Nov/.test(ramp2[2]), JSON.stringify(ramp2));
+await p2.click('[data-t="today"]'); await p2.click('#tgRet'); await p2.waitForTimeout(150);
+ok('ticking it shows done on Today', /✓ done tonight/.test(await p2.textContent('#glanceCard')));
+await p2.close();
+const p3 = await b.newPage(); await p3.clock.setFixedTime(new Date('2026-10-13T19:00:00'));
+await p3.goto(FILE); await p3.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p3.reload(); await p3.waitForTimeout(220);
+ok('on a Tuesday it says next Sunday', /next: Sun 18 Oct/.test(await p3.textContent('#glanceCard')), (await p3.textContent('#glanceCard')).match(/Retinol[^›]*/)?.[0]);
+await p3.close();
 
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
   await p.click(`[data-t="${tab}"]`);
