@@ -479,6 +479,19 @@ WS = await p.evaluate(() => campGame().left.map(x => x.n));
 ok('a rested week keeps the runs', !WS.some(n => /brisk walk/.test(n)), JSON.stringify(WS));
 await ctx.close();
 
+// ===== the camp on Today, with every change spelled out (11 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-13': { sleep: 6.4, medMin: 10 }, '2026-10-12': { sleep: 6.6 } } }));
+await p.click('[data-t="today"]'); await p.waitForTimeout(120);
+let ct = sq(await p.innerText('#campToday'));
+ok('Today has the camp week, with the change and why', /Camp · this week/i.test(ct) && /Next easy run → a brisk walk/.test(ct) && /two short nights/.test(ct) && /You pick the days/.test(ct), ct.slice(0, 500));
+await boot(st({ days: { '2026-10-13': { sleep: 8.3 }, '2026-10-12': { sleep: 8.2 } } }));
+ok('two short nights also switch the sprints off', await p.evaluate(() => { S.days['2026-10-13'] = { sleep: 6.4 }; S.days['2026-10-12'] = { sleep: 6.6 }; const g = campGame(); return !g.spr.on && /two short nights/.test(g.spr.why); }));
+await boot(st({ days: { '2026-10-13': { sleep: 8.3 }, '2026-10-12': { sleep: 8.2 } } }));
+ok('a week on plan says so', /The week is on plan/.test(sq(await p.innerText('#campToday'))));
+ok('meditation counts: a quest and XP', await p.evaluate(() => { S.days['2026-10-13'] = { medMin: 12 }; const g = campGame(); const q = g.quests.find(x => /Meditate/.test(x[1])); return q && q[2] === 1 && g.xp >= 5; }));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

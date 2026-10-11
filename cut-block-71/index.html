@@ -302,6 +302,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="tdeeCard"></div>
   <div id="alertCard"></div>
   <div id="glanceCard"></div>
+  <div id="campToday"></div>
   <div id="refeedCard"></div>
 
   <div id="runsCard"></div>
@@ -3627,10 +3628,11 @@ function glanceHTML(){
     row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
     '</div>';
 }
-function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+glanceHTML();}
+function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+glanceHTML();if(E('campToday'))E('campToday').innerHTML=campTodayHTML();}
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
+  E('campToday').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
 /* ===================== Feedback: the coach's calls =====================
    29 Sep, Dan: no fixed deloads — every 4 weeks felt too soon, and he would
@@ -3835,6 +3837,7 @@ function campGame(){
     if(!ran&&!r.gym&&d<t)add(dow(d)===C.offDay&&typeof r.study!=='number'?20:10);   /* rest counts; a stress-free Saturday counts double */
     if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
     if(r.phoneOut)add(5);
+    if(r.medMin>=5)add(5);                              /* the mindful part of the camp */
   }
   /* the shred is the CUT's, not the camp's (Dan, 8 Oct): it measures from
      where the cut began on 19 Sep, and every milestone passed since then is
@@ -3853,15 +3856,15 @@ function campGame(){
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
     (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;});
-    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;}
+    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;if(rr.medMin>=5)q.med++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
-  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,eT],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5]];
+  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,eT],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),RH=rhrModel(),left=[];
@@ -3878,8 +3881,10 @@ function campGame(){
      test week, and not already done this week */
   var NGs=niggleModel(),ph=campPhase(t);
   var stOk=!(ST&&ST.k!=='good');
-  var sprOn=!!(M&&ph.k==='build'&&!M.P.tt&&stOk&&RH.state!=='up'&&RH.state!=='high'&&!NGs.n);
-  var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':'')))));
+  var slS=[1,2].map(function(i){var r=S.days[addD(t,-i)];return r&&typeof r.sleep==='number'?r.sleep:null;}).filter(function(x){return x!==null;});
+  var sleepShort=slS.length===2&&mean(slS)<7;
+  var sprOn=!!(M&&ph.k==='build'&&!M.P.tt&&stOk&&!sleepShort&&RH.state!=='up'&&RH.state!=='high'&&!NGs.n);
+  var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':(sleepShort?'two short nights — not this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':''))))));
   var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
   if(sprOn&&!q.spr)left.push({e:'⛰️',n:'Uphill sprints are ON: '+spr.n+' × ~10 s, at the end of a 5-miler',how:'Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.'});
   /* Dan, 10 Oct: whether an easy run should be a walk is my call too. When
@@ -3895,7 +3900,16 @@ function campGame(){
   /* the shred meter */
   var startW=a0!==null?a0:(cutReadings().length?cutReadings()[0].lb:null);
   var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7),cutDay:Math.min(CUT_DAYS,diffD(CFG.cutStart,t)+1)};
-  return {xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
+  /* Dan, 11 Oct: make any change to the week obvious on Today, with why */
+  var changes=[];
+  if(M){
+    if(M.easeOff&&M.orig&&M.orig.long)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
+    if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:'One fewer 5-miler',why:'recovery first'});
+    if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it replaces one 5-miler'});
+    if(M.repeat)changes.push({e:'🔁',t:'Last week’s sessions again, not a step up',why:'last week felt like a 9–10'});
+  }
+  if(walkSwap&&q.five<(M?M.easyTarget:T.easy))changes.push({e:'🚶',t:'Next easy run → a brisk walk',why:walkWhy});
+  return {changes:changes,xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
 function campCallHTML(){
   if(today()<CFG.cutStart)return '';
@@ -3959,6 +3973,15 @@ function achievementsHTML(){
   return '<div style="margin-top:12px"><b>🏅 ACHIEVEMENTS</b> <span class="tiny dim">'+A.length+' earned</span>'+
     '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.slice(0,8).map(function(a){return card(a,true);}).join('')+'</div></div>';
 }
+function campTodayHTML(){
+  var C=CFG.camp,t=today();if(t<C.start||t>C.end)return '';
+  var G=campGame();
+  return '<div class="p"><h2>🏁 Camp · this week</h2>'+
+    (G.changes.length?'<div style="margin:0 0 8px">'+G.changes.map(function(c){return '<div class="note wn" style="margin:4px 0"><b>'+c.e+' '+c.t+'</b> <span class="tiny">— '+c.why+'</span></div>';}).join('')+'</div>':'<div class="tiny" style="margin:0 0 6px">✅ The week is on plan.</div>')+
+    (G.left.length?G.left.map(function(x){return '<div style="margin:3px 0">'+x.e+' '+x.n+'</div>';}).join(''):'<div>✅ All done this week.</div>')+
+    '<div class="tiny dim" style="margin-top:6px">You pick the days. This list updates as you log — tap Camp for how to run each one.</div>'+
+    '<div style="margin-top:6px"><button type="button" class="btn sm ghost" data-goto="camp">Open camp ›</button></div></div>';
+}
 function campGameHTML(){
   var C=CFG.camp,t=today();
   if(t<C.start){var d=diffD(t,C.start);
@@ -3985,7 +4008,7 @@ function campGameHTML(){
     '<div style="margin-top:10px"><b class="tiny">BOSSES · the PB trials</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.bosses.map(function(b){
       return '<span class="pill'+(b.won?' g':'')+'">'+(b.goal?'💎 ':(b.legend?'👑 ':(b.won?'🏆 ':'👹 ')))+repLabel(b.dm)+(b.goal?' goal smashed':(b.legend?' all-time beaten':(b.won?' 2026 beaten':' · '+(t>=addD(C.window,-7)?fmtS(b.on):'PB window'))))+'</span>';}).join('')+'</div>'+
       '<div class="tiny dim" style="margin-top:4px">Beat your 2026 best: 🏆 +100 XP. Your all-time best too: 👑 +250. Your goal: 💎 +500.</div></div>'+
-    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · stress-free Saturday 20 · other full rest day 10 · 8 h night 10 · phone-free 5 · 2026 best beaten 100 · all-time 250 more · goal smashed 500 more. It only goes up.</p></div>';
+    '<p class="tiny dim" style="margin:8px 0 0">XP: hard run 30 · 5-miler 20 · other run or sprints 10 · gym 20 · 💪 beat last time 15 · every muscle in range for the week 50 · weight milestone 25 · stress-free Saturday 20 · other full rest day 10 · 8 h night 10 · phone-free 5 · 🧘 meditation 5 min+ 5 · 2026 best beaten 100 · all-time 250 more · goal smashed 500 more. It only goes up.</p></div>';
 }
 function campHTML(){
   var C=CFG.camp,t=today(),ph=campPhase(t),R=records();
