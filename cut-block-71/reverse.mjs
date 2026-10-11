@@ -145,7 +145,7 @@ ok('the step and the destination',
   new RegExp('\\+' + rev.step + '/wk').test(tCard) && new RegExp('up to ' + m.maint.toLocaleString('en-GB')).test(tCard), tCard.slice(0, 260));
 const hrCard = await p.evaluate(() => CFG.hardRuns);
 ok('the run rule', new RegExp(hrCard.target + ' hard').test(tCard) && new RegExp(hrCard.cap + ' hard is the ceiling').test(tCard));
-ok('the one rule about legs', /never a hard run in the 24 hours before legs, or the day after/.test(tCard));
+ok('the one rule about legs', /The day after legs is fine if legs stayed short/.test(tCard));
 ok('the puffiness fear, answered in one line', /You will not go puffy/.test(tCard));
 ok('and that the length is his call', /Your call/.test(tCard));
 ok('it says the rest is optional detail', /You do not need it on a normal day/.test(tCard));

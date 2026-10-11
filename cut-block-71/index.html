@@ -3321,7 +3321,7 @@ function weekRunsHTML(){
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
     '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':(T.easy>1?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and '+T.easy+' easy 5-milers, one with strides. Gym 3–4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
-    ' <span class="tiny">Any days. Hard runs never the day after legs or each other, and one full day a week with no session at all.</span></p>'+
+    ' <span class="tiny">Any days. Hard runs never back to back; the day after legs is fine if legs stayed short (6–10 sets, nothing to failure) — run it later in the day. One full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
       tile('easy 5 miles',w.five+' <span class="tiny">of '+M.easyTarget+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off'))+
@@ -3972,7 +3972,7 @@ function campGameHTML(){
     '<div style="margin:10px 0 4px"><b>🗓️ Runs left this week — you pick the days</b>'+
       (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
       (G.spr.done?'<div class="tiny" style="margin-top:6px">⛰️ Uphill sprints done this week ✓</div>':(!G.spr.on&&G.spr.why?'<div class="tiny dim" style="margin-top:6px">⛰️ Uphill sprints: off this week — '+G.spr.why+'.</div>':''))+
-      '<div class="tiny dim" style="margin-top:6px"><b>Your week:</b> 4 work days — study plus the hard training (both hard runs and the gym); 2 light days — easy 5-milers and light stuff; Saturday stress-free. Pick the days inside that: hard runs 3+ days apart, never the day after legs (same day, run first, is fine).</div></div>'+
+      '<div class="tiny dim" style="margin-top:6px"><b>Your week:</b> 4 work days — study plus the hard training (both hard runs and the gym); 2 light days — easy 5-milers and light stuff; Saturday stress-free. Pick the days inside that: hard runs 3+ days apart; legs the day before is fine if legs stay short (6–10 sets, nothing to failure), and the same day with the run first is best.</div></div>'+
     (function(){var S2=G.shred;if(S2.now===null)return '';
       var span=Math.max(0.1,(S2.start||S2.now)-S2.target),done=Math.max(0,Math.min(1,((S2.start||S2.now)-S2.now)/span));
       var togo=Math.max(0,S2.now-S2.hi);
@@ -7365,7 +7365,7 @@ function renderReverse(){
     '<table class="tbl" style="margin-top:12px"><tbody>'+
     '<tr><td><b>Steps</b></td><td class="note">About <b>'+ci(CFG.rev.steps)+'</b> a day — down from '+ci(CFG.goals.steps)+'. Walking stays the cheapest health and leanness tool there is; the small drop goes into recovery.</td></tr>'+
     '<tr><td><b>Recovery</b></td><td class="note">One full day off every week, 8 h+ sleep with the phone out, and an easy week whenever the Feedback tab calls one. Nothing to failure; if sleep slips or resting HR climbs, drop a set or a rep before anything else.</td></tr>'+
-    '<tr><td><b>The one rule</b></td><td class="note">Hard runs and legs a day apart either way — never a hard run in the 24 hours before legs, or the day after. Same day is fine: run first, lift in the evening.</td></tr>'+
+    '<tr><td><b>The one rule</b></td><td class="note">Hard runs and legs: the same day is best (run first, lift in the evening). The day after legs is fine if legs stayed short and nothing went to failure — Dan’s call, 11 Oct.</td></tr>'+
     '<tr><td><b>Food</b></td><td class="note">The most bioavailable whole foods: red meat, eggs, oily fish, grass-fed butter, Fage and kefir, A2 whole milk, raw honey, fruit and roots. Fat rises to 30% of the day as the calories climb.</td></tr>'+
     '<tr><td><b>Lean first</b></td><td class="note">Stay between <b>'+CFG.hold.lo+' and '+CFG.hold.hi+' lb</b> through Christmas. The ladder tops out at what you will actually burn on the reverse week, so there is no hidden surplus — if the weight drifts up past the first-week bump, the calories hold, not the training.</td></tr>'+
     '<tr><td><b>The one fear</b></td><td class="note">You will not go puffy. The first weeks usually make your face <b>sharper</b>, not softer — the card below does the maths.</td></tr>'+

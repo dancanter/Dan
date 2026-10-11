@@ -40,7 +40,7 @@ await boot(st({ days: { '2026-09-28': { runs: [{ k: 'reps', dm: 300, n: 6, secs:
 await p.click('[data-t="today"]');
 t = sq(await p.innerText('#runsCard'));
 ok('Today shows this week’s run ideas', /RUNS THIS WEEK · IDEAS · WEEK 2/i.test(t), t.slice(0, 200));
-ok('as a good week, not an order', /A good week, 3–4 runs: a longer and a shorter hard run, an easy 5 miles, and an easy 5 km only if you feel fresh\. 4 gym sessions\./.test(t) && /Any days\. Hard runs never the day after legs or each other/.test(t) && /one full day a week with no session/.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
+ok('as a good week, not an order', /A good week, 3–4 runs: a longer and a shorter hard run, an easy 5 miles, and an easy 5 km only if you feel fresh\. 4 gym sessions\./.test(t) && /Any days\. Hard runs never back to back; the day after legs is fine if legs stayed short/.test(t) && /one full day a week with no session/i.test(t) && !/\b(need to|must|owes?)\b/i.test(t));
 ok('week 2 is 4 × 1 km and 6 × 300 m', /4 × 1 km/.test(t) && /6 × 300 m/.test(t));
 ok('with sprints as the option, on the end of an easy run', /Uphill sprints optional/i.test(t) && /8 × ~100 m uphill — best at the end of an easy 5 miles/.test(t));
 ok('two easy five-milers, with a wide easy pace and what they burn', /Easy 5 miles the fat-loss run · plus an easy 5 km only if you feel fresh/.test(t) && /\d:\d\d–\d:\d\d a km, and slower is never wrong/.test(t), t.slice(0, 900));
