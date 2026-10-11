@@ -492,6 +492,25 @@ ok('a week on plan says so', /The week is on plan/.test(sq(await p.innerText('#c
 ok('meditation counts: a quest and XP', await p.evaluate(() => { S.days['2026-10-13'] = { medMin: 12 }; const g = campGame(); const q = g.quests.find(x => /Meditate/.test(x[1])); return q && q[2] === 1 && g.xp >= 5; }));
 await ctx.close();
 
+// ===== the camp's weekly review (11 Oct) =====
+({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
+const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
+await boot(st({ weights: wv, days: {
+  '2026-10-13': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 880 }], gym: true, pr: true, sleep: 8.2 },
+  '2026-10-15': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 174 }], sleep: 8.4 },
+  '2026-10-12': { runs: [{ km: 8.1, secs: 2550, type: 'easy' }], sleep: 8.1, medMin: 10 },
+  '2026-10-17': { sleep: 9 } } }));
+const RV = await p.evaluate(() => { const o = campWeekReview('2026-10-12'); return { bests: o.bests.length, g1k: o.goals.find(g => g.dm === 1000), wT: o.wTrack, sat: o.sat }; });
+ok('the review sees the new 1 km best and the fitness gain', RV.bests >= 1 && RV.g1k.gain > 5 && RV.g1k.now < 175, JSON.stringify(RV));
+ok('and a stress-free Saturday', RV.sat);
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
+let lw = await p.evaluate(() => E('campCard').textContent.replace(/\s+/g, ' '));
+ok('the Camp tab has last week’s review with goals and verdict', /Last week’s review/.test(lw) && /Improving/.test(lw) && /Goals — how far, how much closer/.test(lw) && /s closer this week/.test(lw) && /Weight:/.test(lw), lw.slice(lw.indexOf('Last week'), lw.indexOf('Last week') + 900));
+await p.click('[data-t="review"]'); await p.waitForTimeout(150);
+await p.evaluate(() => { REVWK = '4'; renderReview(); });
+ok('the Review tab has the camp week too', /Camp week · 12 Oct–18 Oct/.test(await p.evaluate(() => E('revBody').textContent)));
+await ctx.close();
+
 // ===== tap a sleep bar to see the night =====
 ({ ctx, p, boot } = await at('2026-09-28'));
 await boot(st({ days: { '2026-09-28': { bed: '23:10', wake: '07:25', sleep: 8, phoneOut: true }, '2026-09-25': { sleep: 7 } } }));

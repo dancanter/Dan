@@ -1999,6 +1999,7 @@ function renderReview(){
      '</div>';
 
   if(wk.len&&wk.len!==7)h+='<p class="tiny" style="margin:-4px 0 10px">A '+wk.len+'-day week, lol — the Saturday and Sunday before the first Monday are in here too.</p>';
+  if(wk.start>=mondayOf(CFG.camp.start)&&wk.start<=CFG.camp.end)h+=campReviewHTML(wk.start);
   h+=reviewDidHTML(R,wk);
   h+=tSupportHTML(wk.start,wk.end,'Testosterone support · this week');
   /* how it went, and what to do next */
@@ -3982,6 +3983,76 @@ function campTodayHTML(){
     '<div class="tiny dim" style="margin-top:6px">You pick the days. This list updates as you log — tap Camp for how to run each one.</div>'+
     '<div style="margin-top:6px"><button type="button" class="btn sm ghost" data-goto="camp">Open camp ›</button></div></div>';
 }
+/* ===================== the camp's weekly review (Dan, 11 Oct) =====================
+   What improved, by how much, and whether he is on track — for the goals and
+   for 122–123 by 28 Nov. Fitness is re-read as it stood at each date (his
+   bests up to that day), so the week-on-week change is real. Calm wording:
+   on track, ahead, or a little behind with the one thing to change. */
+function bestsAt(date){
+  var C=CFG.camp,b={};for(var k in C.base)b[k]=C.base[k];
+  for(var d=C.start;d<=date;d=addD(d,1))(((S.days[d]||{}).runs)||[]).forEach(function(r){var m=runMeta(r);
+    if(m.empty||!m.dm||m.repAvg===null||r.up)return;if(m.dm in b&&m.repAvg<b[m.dm])b[m.dm]=m.repAvg;});
+  return b;
+}
+function fitnessAt(date,dist){
+  var b=bestsAt(date),a=[[400,b[400]],[1000,b[1000]],[5000,b[5000]]];
+  var i=0;while(i<a.length-2&&dist>a[i+1][0])i++;
+  var p=a[i],q=a[i+1],k=Math.log(q[1]/p[1])/Math.log(q[0]/p[0]);
+  return p[1]*Math.pow(dist/p[0],k);
+}
+function campWeekReview(ws){
+  var C=CFG.camp,we=addD(ws,6),t=today(),end=we<t?we:t,prev=addD(ws,-1),i,d,r;
+  var o={ws:ws,we:we,hard:[],five:0,easy5k:0,walk:0,gym:0,pr:0,med:0,sl:[],rhr:[],sat:false,thr:0};
+  for(i=0;i<7;i++){d=addD(ws,i);if(d>end)break;r=S.days[d]||{};
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
+      if(m.hard)o.hard.push(m.label+(m.repAvg!==null&&m.dm?' · '+secFmt(m.repAvg)+(m.n>1?' a rep':''):''));else if(isFiveMiler(m))o.five++;else o.easy5k++;});
+    if(r.gym)o.gym++;if(r.gym&&r.pr)o.pr++;if(r.medMin>=5)o.med++;
+    if(typeof r.sleep==='number')o.sl.push(r.sleep);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
+    if(dow(d)===C.offDay&&!(r.runs||[]).length&&!r.gym&&typeof r.study!=='number'&&d<t)o.sat=true;}
+  /* fitness and the goals: week start vs week end */
+  o.goals=C.pb.filter(function(x){return [400,800,1000,1609,5000].indexOf(x.dm)>=0;}).map(function(x){
+    var a=fitnessAt(prev<C.start?C.start:prev,x.dm),b=fitnessAt(end,x.dm);
+    return {dm:x.dm,goal:x.goal,before:a,now:b,gain:a-b,gap:b-x.goal};}).sort(function(x,y){return x.dm-y.dm;});
+  /* new bests this week */
+  o.bests=campAchievements().filter(function(a){return a.d>=ws&&a.d<=we&&/^pb/.test(a.id);});
+  /* weight: on track for the top of 122–123 by 28 Nov? */
+  var a0=avgWindow(prev,7).avg,a1=avgWindow(end,7).avg;o.w0=a0;o.w1=a1;
+  if(a1!==null){var wl=Math.max(0.1,diffD(end,CFG.cutEnd)/7);o.need=Math.max(0,(a1-CFG.goals.weightHi)/wl);o.lost=(a0!==null?a0-a1:null);
+    o.wTrack=o.lost===null?'first':(a1<=CFG.goals.weightHi?'there':(o.lost>=o.need-0.05?'on':(o.lost>=o.need*0.6?'close':'behind')));}
+  o.slAvg=o.sl.length?mean(o.sl):null;o.rhrAvg=o.rhr.length?mean(o.rhr):null;
+  return o;
+}
+function campReviewHTML(ws){
+  var o=campWeekReview(ws),C=CFG.camp;
+  var good=[],next=[];
+  if(o.bests.length)good.push(o.bests.map(function(b){return b.e+' '+b.n.replace(/^.* — /,'')+' '+b.sub.split(' · ')[0];}).join(' · '));
+  var gained=o.goals.filter(function(g){return g.gain>0.05;});
+  if(gained.length)good.push('Fitter: '+gained.map(function(g){return repLabel(g.dm)+' '+(g.gain>=1?Math.round(g.gain)+' s':g.gain.toFixed(1)+' s')+' quicker';}).join(', ')+'.');
+  if(o.hard.length)good.push(o.hard.length+' quality session'+(o.hard.length===1?'':'s')+': '+o.hard.join(' · '));
+  if(o.five)good.push(o.five+' easy 5-miler'+(o.five===1?'':'s')+(o.easy5k?' + '+o.easy5k+' easy 5 km':''));
+  if(o.gym)good.push(o.gym+' gym session'+(o.gym===1?'':'s')+(o.pr?', 💪 beat last time '+o.pr+'×':''));
+  if(o.slAvg!==null&&o.slAvg>=CFG.sleep.line)good.push('Sleep averaged '+hm(o.slAvg*60)+'.');
+  if(o.sat)good.push('🧘 A stress-free Saturday.');
+  if(o.med)good.push('🧘 Meditated on '+o.med+' day'+(o.med===1?'':'s')+'.');
+  /* on track? */
+  var wT={on:['✅','Weight: on track'],close:['🟡','Weight: nearly on track'],behind:['🟠','Weight: a little behind'],there:['💎','Weight: in the 122–123 zone'],first:['·','Weight: first reading of the camp']}[o.wTrack]||['·','Weight: not enough mornings yet'];
+  var wLine=o.w1===null?'':(wT[0]+' <b>'+wT[1]+'</b> — '+(S.settings.hideDaily?'':f1(o.w1)+' lb average')+(o.lost!==null?', '+(o.lost>=0?'−':'+')+f1(Math.abs(o.lost))+' lb this week':'')+(o.need&&o.wTrack!=='there'?' · about '+f1(o.need)+' lb a week gets you to 123 by 28 Nov':''));
+  if(o.wTrack==='behind')next.push('Weight: keep steps up on rest days — walking is the lever that costs your running nothing. Food stays the same.');
+  if(o.slAvg!==null&&o.slAvg<CFG.sleep.line)next.push('Sleep: '+hm(o.slAvg*60)+' a night — bed 30 min earlier, phone out. It is the cheapest speed there is.');
+  if(o.hard.length<2&&diffD(o.ws,today())>=6)next.push('Quality: '+o.hard.length+' this week — fine if recovery asked for it; otherwise next week’s two are the priority.');
+  var goalRows=o.goals.map(function(g){var pct=g.gap<=0?100:Math.max(0,Math.round((1-g.gap/(C.base[g.dm]-g.goal))*100));
+    return '<div style="margin:3px 0"><b>'+repLabel(g.dm)+'</b> <span class="mono">'+secFmt(Math.round(g.now*10)/10)+'</span> → goal sub-'+(g.goal>=60?mmss(g.goal):g.goal)+
+      ' <span class="tiny">'+(g.gap<=0?'💎 there':(Math.round(g.gap*10)/10)+' s to go')+(g.gain>0.05?' · '+(Math.round(g.gain*10)/10)+' s closer this week':'')+'</span>'+
+      '<div style="height:6px;background:var(--rule-2);border-radius:3px;margin-top:2px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--accent)"></div></div></div>';}).join('');
+  var verdict=(o.bests.length||gained.length)?'🚀 Improving':'➡️ Holding steady';
+  return '<div class="p lift"><h2>🏁 Camp week · '+fmtS(o.ws)+'–'+fmtS(o.we)+'</h2>'+
+    '<p class="lede" style="margin:0 0 6px"><b>'+verdict+'</b>'+(o.wTrack?' · '+wT[0]+' '+wT[1].replace('Weight: ','weight ')+'':'')+'</p>'+
+    (good.length?'<h3 style="margin:8px 0 2px">What went well</h3>'+good.map(function(x){return '<p style="margin:3px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'')+
+    '<h3 style="margin:10px 0 2px">Goals — how far, how much closer</h3>'+goalRows+
+    (wLine?'<p style="margin:8px 0 0">'+wLine+'</p>':'')+
+    '<h3 style="margin:10px 0 2px">For next week</h3>'+(next.length?next.map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:3px 0"><b>Nothing to change — the plan carries on.</b></p>')+
+    '<p class="tiny dim" style="margin-top:6px">Fitness is read from your bests as they stood each day, so “closer” is real. The goals bars run from where the camp started to the goal.</p></div>';
+}
 function campGameHTML(){
   var C=CFG.camp,t=today();
   if(t<C.start){var d=diffD(t,C.start);
@@ -4025,6 +4096,7 @@ function campHTML(){
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     celeHTML()+campCallHTML()+campGameHTML()+(today()>=CFG.camp.start?achievementsHTML():'')+
+    (mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};
       return '<p class="tiny keep" style="margin:0 0 6px"><b>Your fitness right now</b> (from your bests, moves as you do): 400 '+f(400)+' · 800 '+f(800)+' · 1 km '+f(1000)+' · mile '+f(1609)+' · 5 km '+f(5000)+' · easy '+easyPaceTxt()+' a km · threshold '+thrPaceTxt()+' a km.</p>';})()+
