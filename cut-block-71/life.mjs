@@ -344,7 +344,7 @@ await ctx.close();
 const wts = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 14 - i)).toISOString().slice(0, 10); wts[d] = i < 4 ? 126.9 : 127.6; }
 await boot(st({ weights: wts, days: { '2026-10-12': { gym: true, pr: true, split: 'back', sets: { Back: 14, Biceps: 8 } }, '2026-10-13': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }] } } }));
 let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, left: g.left.map(x => x.n), q: g.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), shred: g.shred, xp: g.xp }; });
-ok('a clear build week turns uphill sprints ON, after a 5-miler', G2.spr.on && G2.left.some(n => /Uphill sprints are ON: \d+ × ~10 s, at the end of a 5-miler/.test(n)), JSON.stringify(G2.spr));
+ok('a clear build week turns uphill sprints ON, after a 5-miler', G2.spr.on && G2.left.some(n => /Easy 5 miles \+ ⛰️ \d+ uphill sprints \(~10 s\) at the end/.test(n)) && !G2.left.some(n => /^Uphill sprints/.test(n)), JSON.stringify(G2.spr));
 ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'), JSON.stringify(G2.q));
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
