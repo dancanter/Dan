@@ -492,6 +492,18 @@ ok('a week on plan says so', /The week is on plan/.test(sq(await p.innerText('#c
 ok('meditation counts: a quest and XP', await p.evaluate(() => { S.days['2026-10-13'] = { medMin: 12 }; const g = campGame(); const q = g.quests.find(x => /Meditate/.test(x[1])); return q && q[2] === 1 && g.xp >= 5; }));
 await ctx.close();
 
+// ===== under 124 is its own achievement (12 Oct) =====
+({ ctx, p, boot } = await at('2026-10-30'));
+const w124 = {}; for (let i = 0; i < 40; i++) { const d = new Date(Date.UTC(2026, 9, 30 - i)).toISOString().slice(0, 10); w124[d] = i < 7 ? 123.8 : (i < 14 ? 124.0 : 127.6); }
+w124['2026-09-19'] = 128.4;
+await boot(st({ weights: w124 }));
+const A124 = await p.evaluate(() => campAchievements().filter(a => /^w12[34]/.test(a.id)).map(a => a.id + ' ' + a.n + ' ' + a.sub + ' ' + a.xp));
+ok('a 124.0 average is not under 124; 123.8 is — the Sub-124 club, +150', A124.length === 1 && /^w124 SUB-124 CLUB 7-day average 123\.[89] lb · the chisel zone 150$/.test(A124[0]), JSON.stringify(A124));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
+const wall = await p.evaluate(() => E('campCard').textContent);
+ok('the badge wall shows it earned, with the goal zone still to unlock', /SUB-124 CLUB/.test(wall) && /122–123 zone/.test(wall) && !/Sub-124 club7-day/.test(wall), wall.slice(wall.indexOf('ACHIEVEMENTS'), wall.indexOf('ACHIEVEMENTS') + 400));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

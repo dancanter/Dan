@@ -998,6 +998,10 @@ var CARB_FLOOR=200;
    the protein number moves. */
 var PRO_MAX=Math.floor((KCAL_DAY-CARB_FLOOR*4-MACRO.fat*9)/4);
 var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
+/* Dan, 12 Oct: under 124 is its own achievement — and 123 is the goal itself.
+   These two are strictly UNDER (the average reads 123.9, never "124.0"). */
+var WBIG={124:{e:'🗿',n:'SUB-124 CLUB',sub:'the chisel zone',xp:150},123:{e:'💎',n:'GOAL WEIGHT — IN THE 122–123 ZONE',sub:'you made it',xp:300}};
+function wUnder(av,m){return WBIG[m]?Math.round(av*10)/10<m:av<=m;}
 
 function stepTarget(is){if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
@@ -3855,7 +3859,7 @@ function campGame(){
      +25 — including the ones already banked before camp started */
   var wmS=weightModel(),cr0=cutReadings(),aN=avgWindow(t,7).avg,miles=[];
   var a0=wmS.baseline!==null?wmS.baseline:(cr0.length?cr0[0].lb:null);
-  if(a0!==null&&aN!==null)MILESTONES.forEach(function(m){if(a0>m&&aN<=m){miles.push(m);xp+=25;}});
+  if(a0!==null&&aN!==null)MILESTONES.forEach(function(m){if(a0>m&&wUnder(aN,m)){miles.push(m);xp+=WBIG[m]?WBIG[m].xp:25;}});
   /* muscle: +50 for every camp week with every muscle inside its set range */
   var setWeeks=0;
   for(var w0=mondayOf(C.start);w0<=t;w0=addD(w0,7)){var ss=weekSets(w0);
@@ -3956,7 +3960,8 @@ function campAchievements(){
   /* weight milestones since the cut began */
   var a0=weightModel().baseline,hit={};
   if(a0!==null)for(var d2=WEIGH_START;d2<=t;d2=addD(d2,1)){var av=avgWindow(d2,7).avg;if(av===null)continue;
-    MILESTONES.forEach(function(m){if(!hit[m]&&a0>m&&av<=m){hit[m]=1;out.push({id:'w'+m,d:d2,tier:'w',e:'🔪',n:'UNDER '+m+' LB',sub:'7-day average '+f1(av)+' lb',xp:25});}});}
+    MILESTONES.forEach(function(m){if(!hit[m]&&a0>m&&wUnder(av,m)){hit[m]=1;var B=WBIG[m];
+      out.push({id:'w'+m,d:d2,tier:B?'wbig':'w',e:B?B.e:'🔪',n:B?B.n:'UNDER '+m+' LB',sub:'7-day average '+f1(av)+' lb'+(B?' · '+B.sub:''),xp:B?B.xp:25});}});}
   /* habits */
   var sat=0,pr=0,perfect=0;
   for(var d3=C.start;d3<t;d3=addD(d3,1)){var r=S.days[d3]||{},ran=(r.runs||[]).some(function(x){return !runMeta(x).empty;});
@@ -3979,17 +3984,18 @@ function celeHTML(){
     '<div style="font-weight:800;letter-spacing:.04em;margin-top:4px">'+a.n+'</div>'+
     '<div class="num" style="font-size:1.4em;margin:4px 0">'+a.sub+'</div>'+
     (a.xp?'<div class="pill g" style="display:inline-block">+'+a.xp+' XP</div>':'')+
-    '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':'Nice! 🙌'))+'</button></div></div>';
+    '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':(a.tier==='wbig'?'Chiselled 🗿':'Nice! 🙌')))+'</button></div></div>';
 }
 function achievementsHTML(){
   var A=campAchievements(),C=CFG.camp,got={};A.forEach(function(a){got[a.id.replace(/\d{4}-\d{2}-\d{2}$/,'')]=1;});
   var locked=[];
+  [124,123].forEach(function(m){if(!got['w'+m])locked.push({e:WBIG[m].e,n:m===124?'Sub-124 club':'122–123 zone',sub:'7-day average under '+m+' lb'});});
   C.pb.forEach(function(x){var tiers=A.filter(function(a){return a.id.indexOf('pb'+x.dm)===0;}).map(function(a){return a.tier;});
     if(tiers.indexOf('goal')<0)locked.push({e:'💎',n:repLabel(x.dm)+' sub-'+(x.goal>=60?mmss(x.goal):x.goal),sub:'goal'});
     if(C.allTime[x.dm]&&tiers.indexOf('all')<0&&tiers.indexOf('goal')<0)locked.push({e:'👑',n:repLabel(x.dm)+' all-time',sub:'beat '+secFmt(C.allTime[x.dm].t)});});
   var card=function(a,lock){return '<div class="cb-badge'+(lock?' lock':'')+'"><span class="bi">'+a.e+'</span><b>'+a.n+'</b><div class="tiny">'+(lock?a.sub:fmtS(a.d)+' · '+a.sub)+'</div></div>';};
   return '<div style="margin-top:12px"><b>🏅 ACHIEVEMENTS</b> <span class="tiny dim">'+A.length+' earned</span>'+
-    '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.slice(0,8).map(function(a){return card(a,true);}).join('')+'</div></div>';
+    '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.slice(0,10).map(function(a){return card(a,true);}).join('')+'</div></div>';
 }
 function campTodayHTML(){
   var C=CFG.camp,t=today();if(t<C.start||t>C.end)return '';
