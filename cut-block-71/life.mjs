@@ -504,6 +504,17 @@ const wall = await p.evaluate(() => E('campCard').textContent);
 ok('the badge wall shows it earned, with the goal zone still to unlock', /SUB-124 CLUB/.test(wall) && /122–123 zone/.test(wall) && !/Sub-124 club7-day/.test(wall), wall.slice(wall.indexOf('ACHIEVEMENTS'), wall.indexOf('ACHIEVEMENTS') + 400));
 await ctx.close();
 
+// ===== the mile is on the badge wall (12 Oct) =====
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({}));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
+let mw = await p.evaluate(() => E('campCard').textContent);
+ok('the wall shows the mile goal and the mile all-time, locked', /1 mile sub-4:50/i.test(mw) && /1 mile all-time/i.test(mw) && /beat 4:54/.test(mw), mw.slice(mw.indexOf('ACHIEVEMENTS'), mw.indexOf('ACHIEVEMENTS') + 900));
+await boot(st({ days: { '2026-10-15': { runs: [{ k: 'reps', dm: 1609, n: 1, secs: 299 }] }, '2026-10-18': { runs: [{ k: 'reps', dm: 1609, n: 1, secs: 292 }] } } }));
+const MA = await p.evaluate(() => campAchievements().filter(a => /^pb1609/.test(a.id)).map(a => a.e + ' ' + a.n + ' ' + a.sub));
+ok('a mile best earns 🏆 then 👑 all-time under 4:54', MA.length === 2 && /👑 ALL-TIME BEST — 1 mile 4:52/.test(MA.join('|')) && /🏆 BEST OF 2026 — 1 mile 4:59/.test(MA.join('|')), JSON.stringify(MA));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

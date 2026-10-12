@@ -3990,12 +3990,14 @@ function achievementsHTML(){
   var A=campAchievements(),C=CFG.camp,got={};A.forEach(function(a){got[a.id.replace(/\d{4}-\d{2}-\d{2}$/,'')]=1;});
   var locked=[];
   [124,123].forEach(function(m){if(!got['w'+m])locked.push({e:WBIG[m].e,n:m===124?'Sub-124 club':'122–123 zone',sub:'7-day average under '+m+' lb'});});
-  C.pb.forEach(function(x){var tiers=A.filter(function(a){return a.id.indexOf('pb'+x.dm)===0;}).map(function(a){return a.tier;});
+  /* Dan, 12 Oct: every distance shows — the wall used to cut off at 8 locked
+     badges, which hid the mile. Shortest to longest. */
+  C.pb.slice().sort(function(a,b){return a.dm-b.dm;}).forEach(function(x){var tiers=A.filter(function(a){return a.id.indexOf('pb'+x.dm)===0;}).map(function(a){return a.tier;});
     if(tiers.indexOf('goal')<0)locked.push({e:'💎',n:repLabel(x.dm)+' sub-'+(x.goal>=60?mmss(x.goal):x.goal),sub:'goal'});
     if(C.allTime[x.dm]&&tiers.indexOf('all')<0&&tiers.indexOf('goal')<0)locked.push({e:'👑',n:repLabel(x.dm)+' all-time',sub:'beat '+secFmt(C.allTime[x.dm].t)});});
   var card=function(a,lock){return '<div class="cb-badge'+(lock?' lock':'')+'"><span class="bi">'+a.e+'</span><b>'+a.n+'</b><div class="tiny">'+(lock?a.sub:fmtS(a.d)+' · '+a.sub)+'</div></div>';};
   return '<div style="margin-top:12px"><b>🏅 ACHIEVEMENTS</b> <span class="tiny dim">'+A.length+' earned</span>'+
-    '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.slice(0,10).map(function(a){return card(a,true);}).join('')+'</div></div>';
+    '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.map(function(a){return card(a,true);}).join('')+'</div></div>';
 }
 function campTodayHTML(){
   var C=CFG.camp,t=today();if(t<C.start||t>C.end)return '';
