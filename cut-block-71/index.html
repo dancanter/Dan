@@ -3481,7 +3481,10 @@ function weekStatus(){
   if(hardRuns>CFG.hardRuns.target+(thresholdOK(t)?1:0))return {k:'rest',t:'You’ve done loads — time for a rest',w:hardRuns+' hard runs in 7 days is your ceiling. Next one waits until you’ve had a proper rest day.'};
   /* 29 Sep: the plan is four runs; six in a week on a deficit is too much,
      however easy they felt — that is how a cut starts ageing you */
-  if(runs7>=6)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is four. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
+  /* in camp the week is five runs, and a rolling 7 days can hold six of them
+     without anything being wrong (Sunday + Mon–Fri) — the flag is for more */
+  var runCap=(t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs+2:6;
+  if(runs7>=runCap)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is '+((t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs:4)+'. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
   if(trainedRun>=6)return start===1
     ? {k:'good',t:'Rest day today — well timed',w:'You had '+trainedRun+' days in a row with a session before it, so keep today fully off. The next hard session will be better for it.'}
     : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
@@ -3612,6 +3615,50 @@ function wireSimple(){
 }
 /* ===================== Today at a glance =====================
    The main things in one card, each a tap away from its tab. */
+/* ===================== today's light (Dan, 13 Oct) =====================
+   One clear call, top of Today and the Camp tab: 🟢 good to go (and for
+   what), 🟡 easy only, 🔴 rest, ✅ done, 🧘 Saturday. Always with the reason,
+   so the green light means something. */
+function greenLight(){
+  var t=today();if(t<CFG.cutStart)return null;
+  var r=S.days[t]||{},y=S.days[addD(t,-1)]||{};
+  var mt=(r.runs||[]).map(runMeta).filter(function(m){return !m.empty;});
+  var hardT=mt.some(function(m){return m.hard;});
+  var yHard=(y.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;});
+  var C=coachModel(),ST=weekStatus(),RH=rhrModel(),NG=niggleModel();
+  var inCamp=t>=CFG.camp.start&&t<=CFG.camp.end,G=inCamp?campGame():null;
+  var hardLeft=G?G.left.filter(function(x){return x.e==='⚡'||x.e==='⏱';}).map(function(x){return x.n.replace(/ — .*/,'');}):[];
+  var easyLeft=G?G.left.filter(function(x){return x.e==='🏃'||x.e==='🚶';}).length:0;
+  var sl=typeof r.sleep==='number'?r.sleep:null,sly=typeof y.sleep==='number'?y.sleep:null;
+  var facts=[];if(sl!==null)facts.push(hm(sl*60)+' sleep');if(typeof r.rhr==='number')facts.push('resting HR '+r.rhr);
+  if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
+  if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:'Rest today',w:C.rest.t+'. '+(C.rest.w||'')};
+  if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'};
+  if(mt.length)return {c:'done',e:'✅',t:'Today’s run is done',w:'Good. The rest of the day is recovery.'};
+  var why=[],walk=false;
+  if(NG.today||(NG.n&&NG.persistent)){why.push('something has hurt'+(NG.top?' ('+NG.top+')':''));walk=true;}
+  if(RH.state==='high'||RH.state==='up'){why.push('resting HR is up on your baseline');walk=RH.state==='high'||walk;}
+  if(sl!==null&&sly!==null&&(sl+sly)/2<7){why.push('two short nights');walk=true;}
+  else if(sl!==null&&sl<6.5)why.push('a short night ('+hm(sl*60)+')');
+  if(ST&&(ST.k==='legs'||ST.k==='rest'||ST.k==='warn')&&why.indexOf(ST.t)<0)why.push(ST.t.toLowerCase());
+  if(yHard)why.push('you ran hard yesterday — one day between the hard ones');
+  if(why.length)return {c:'amber',e:'🟡',t:walk?'Walk or easy only today':'Easy only today',
+    w:why.join(' · ').replace(/^./,function(c){return c.toUpperCase();})+'. '+(walk?'A brisk walk, or a gentle easy run if you feel good. No hard running.':(easyLeft?'An easy 5-miler is fine — save the hard run for a green day.':'A walk or a rest — no hard running.'))};
+  var legsY=y.gym&&y.split==='legs';
+  var tail=(sl===null?' Log last night’s sleep to confirm it.':'')+(legsY?' Legs yesterday: if they are properly sore once you have warmed up, go easy today and do it tomorrow.':'');
+  if(hardLeft.length)return {c:'green',e:'🟢',t:'Green light — good to go',sub:'Hard run is on: '+hardLeft.join(' or '),w:(facts.length?'Recovery is good — '+facts.join(', ')+'.':'Nothing says hold back.')+tail};
+  if(easyLeft)return {c:'green',e:'🟢',t:'Good to go — easy run',sub:'An easy 5-miler',w:'The hard runs are done this week. '+(facts.length?facts.join(', ')+'.':'')};
+  return {c:'green',e:'🟢',t:'All clear',sub:G?'This week’s runs are done — walk, gym or rest':'',w:facts.join(', ')};
+}
+function greenLightHTML(){
+  var L=greenLight();if(!L)return '';
+  var cls={green:'good',amber:'warn',red:'bad',done:'lift',sat:'lift'}[L.c];
+  return '<div class="p '+cls+'" style="border-left-width:6px;padding-top:10px;padding-bottom:10px">'+
+    '<div class="tiny dim" style="letter-spacing:.06em">TODAY’S CALL</div>'+
+    '<div style="display:flex;gap:10px;align-items:center;margin-top:2px"><span style="font-size:30px;line-height:1">'+L.e+'</span>'+
+    '<div><div style="font-weight:800;font-size:1.15em">'+esc(L.t)+'</div>'+(L.sub?'<div><b>'+esc(L.sub)+'</b></div>':'')+'</div></div>'+
+    (L.w?'<div class="note" style="margin-top:6px">'+esc(L.w)+'</div>':'')+'</div>';
+}
 function glanceHTML(){
   var t=today(),r=S.days[t]||{},A=avgWindow(t,7),tr=trainingModel(),w=tr.week;
   var wd=0,wn=0;for(var i=0;i<7;i++){var d=addD(tr.wkStart,i);if(d>t)break;var x=tdeeFor(d);if(x.stepsKnown||x.intakeKnown){wd+=x.deficit;wn++;}}
@@ -3643,7 +3690,7 @@ function glanceHTML(){
     row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
     '</div>';
 }
-function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+glanceHTML();if(E('campToday'))E('campToday').innerHTML=campTodayHTML();}
+function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+greenLightHTML()+glanceHTML();if(E('campToday'))E('campToday').innerHTML=campTodayHTML();}
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
@@ -4120,7 +4167,7 @@ function campHTML(){
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
-    celeHTML()+campCallHTML()+campGameHTML()+(today()>=CFG.camp.start?achievementsHTML():'')+
+    celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+(today()>=CFG.camp.start?achievementsHTML():'')+
     (mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};

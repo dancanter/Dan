@@ -515,6 +515,30 @@ const MA = await p.evaluate(() => campAchievements().filter(a => /^pb1609/.test(
 ok('a mile best earns 🏆 then 👑 all-time under 4:54', MA.length === 2 && /👑 ALL-TIME BEST — 1 mile 4:52/.test(MA.join('|')) && /🏆 BEST OF 2026 — 1 mile 4:59/.test(MA.join('|')), JSON.stringify(MA));
 await ctx.close();
 
+// ===== today's call: the green light (13 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }], gym: true, split: 'legs', sleep: 9.1, rhr: 58 },
+  '2026-10-13': { runs: [{ km: 8.04, secs: 2452, type: 'easy' }], sleep: 8.5, rhr: 56 }, '2026-10-14': { sleep: 8.2, rhr: 56 } } }));
+let gl = await p.evaluate(() => E('glanceCard').textContent.replace(/\s+/g, ' '));
+ok('Today opens with the call: green light, the hard run on, and why', /TODAY’S CALL\s*🟢\s*Green light — good to go\s*Hard run is on: 5 × 1 km/i.test(gl) && /8 h 12 min sleep, resting HR 56/.test(gl), gl.slice(0, 300));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+ok('and the Camp tab shows it too', /Green light — good to go/.test(await p.evaluate(() => E('campCard').textContent)));
+await boot(st({ days: { '2026-10-14': { sleep: 8.2, rhr: 56, runs: [{ k: 'reps', dm: 1000, n: 5, secs: 965 }] } } }));
+ok('after the hard run: done, recover', /Hard run done — now recover/.test(await p.evaluate(() => E('glanceCard').textContent)));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-15'));
+await boot(st({ days: { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 965 }], sleep: 8 }, '2026-10-15': { sleep: 8 } } }));
+ok('the day after a hard run: easy only, with the reason', /🟡\s*Easy only today/.test(await p.evaluate(() => E('glanceCard').textContent)) && /ran hard yesterday/.test(await p.evaluate(() => E('glanceCard').textContent)));
+await boot(st({ days: { '2026-10-14': { sleep: 6.8 }, '2026-10-15': { sleep: 6.9 } } }));
+ok('two short nights: walk or easy only', /Walk or easy only today/.test(await p.evaluate(() => E('glanceCard').textContent)), await p.evaluate(() => JSON.stringify(greenLight())));
+await boot(st({ days: { '2026-10-13': { sleep: 6.1 }, '2026-10-14': { sleep: 6.2 }, '2026-10-15': { sleep: 6.0 } } }));
+ok('properly short on sleep: the coach’s rest call turns it red', /🔴\s*Rest today/.test(await p.evaluate(() => E('glanceCard').textContent)));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-17'));
+await boot(st({}));
+ok('Saturday: the stress-free day', /🧘\s*Stress-free day/.test(await p.evaluate(() => E('glanceCard').textContent)));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
