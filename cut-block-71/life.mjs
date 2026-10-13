@@ -539,6 +539,26 @@ await boot(st({}));
 ok('Saturday: the stress-free day', /🧘\s*Stress-free day/.test(await p.evaluate(() => E('glanceCard').textContent)));
 await ctx.close();
 
+// ===== times dipping → fewer 5-milers (13 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+const base30 = { '2026-09-30': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 582 }] }, '2026-09-23': { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, up: 'some' }] } };
+await boot(st({ days: Object.assign({}, base30, { '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }] }, '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 990 }], sleep: 8 } }) }));
+let TD = await p.evaluate(() => ({ d: timesDip(), e: weekRunsModel().easyTarget }));
+ok('3:18 over 5 reps after 3 at 3:14 is not a dip; hill 200s are never the yardstick', TD.d.level === 0, JSON.stringify(TD.d));
+await boot(st({ days: Object.assign({}, base30, { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 1010 }], sleep: 8 } }) }));
+TD = await p.evaluate(() => { const G = campGame(); return { d: timesDip(), e: weekRunsModel().easyTarget, ch: G.changes.map(c => c.t + ' — ' + c.why) }; });
+ok('3:22 is a dip: two 5-milers, not three, and it says why', TD.d.level === 1 && TD.e === 2 && TD.ch.some(c => /Times dipping — two 5-milers this week, not three — 5 × 1 km: 3:22 a rep vs 3:14 last time/.test(c)), JSON.stringify(TD));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({ days: Object.assign({}, base30, { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 1010 }] }, '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }] },
+  '2026-10-19': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 200 }] } }) }));
+TD = await p.evaluate(() => { const G = campGame(); return { d: timesDip(), left: G.left.map(x => x.n), q: G.quests.map(q => q[1] + ' ' + q[3]) }; });
+ok('a second dip: one 5-miler and one easy 5 km', TD.d.level === 2 && TD.left.includes('Easy 5 miles') && TD.left.includes('Easy 5 km — not 5 miles this week') && TD.q.includes('Easy runs 2'), JSON.stringify(TD));
+ok('and no threshold while times are dipping', await p.evaluate(() => weekRunsModel().thrOn === false));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+ok('last week’s review names the dip', /Times: 5 × 1 km dipped/.test(await p.evaluate(() => E('campCard').textContent)));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

@@ -3173,6 +3173,36 @@ function thresholdOK(t){
     if((r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&x.rpe>=9;}))return false;}
   return true;
 }
+/* ===================== times dipping (Dan, 13 Oct) =====================
+   "If my times are falling, adapt — most of the time it's too many
+   5-milers." His bests came off 2 easy + 2 hard (+ sprints or an easy 5 km).
+   A hard session counts as a DIP when it is clearly slower than it should be:
+     · a paced session (lp/sp) more than 3% off today's race pace for that event;
+     · a time trial more than 2% off his current fitness at that distance;
+     · free reps more than 2% (+0.5% per extra rep) slower than the last
+       comparable session at the same distance.
+   A dip this week or last trims the 5-milers for this week and next. */
+function sessionDips(t){
+  t=t||today();var C=CFG.camp,from=addD(mondayOf(t),-7),out=[],prev={},d;
+  /* never hill reps; sessions from the month before camp can be the
+     comparison, but only camp sessions are judged */
+  for(d=addD(C.start,-28);d<=t;d=addD(d,1))(((S.days[d]||{}).runs)||[]).forEach(function(r){var m=runMeta(r);
+    if(m.empty||!m.hard||!m.dm||m.repAvg===null||m.kind!=='reps'||r.up)return;
+    var P=CUT_RUNS[weekOf(d)]||{},ev=null,exp=null,why='',dip=false,n=m.n||1;
+    if(P.lp&&m.dm===P.lp[1])ev=P.lp[0];else if(P.sp&&m.dm===P.sp[1])ev=P.sp[0];
+    if(d<C.start){}
+    else if(ev){exp=fitnessAt(addD(d,-1),ev)*m.dm/ev;dip=m.repAvg>exp*1.03;why=secFmt(m.repAvg)+' a rep vs about '+secFmt(Math.round(exp))+' at your current '+repLabel(ev)+' pace';}
+    else if(P.tt){exp=fitnessAt(addD(d,-1),m.dm);dip=m.repAvg>exp*1.02;why=secFmt(m.repAvg)+' vs your current '+secFmt(Math.round(exp))+' '+repLabel(m.dm)+' fitness';}
+    else{var pv=prev[m.dm];
+      if(pv&&diffD(pv.d,d)<=35&&Math.abs(n-pv.n)<=2){/* 2% (+0.5% a rep more), and never under a second — GPS on a 200 is not finer than that */
+        var tol=Math.max(pv.v*(0.02+0.005*Math.max(0,n-pv.n)),1);dip=m.repAvg>pv.v+tol;
+        why=secFmt(m.repAvg)+' a rep vs '+secFmt(pv.v)+' last time ('+pv.n+' × '+repLabel(m.dm)+')';}
+      prev[m.dm]={v:m.repAvg,n:n,d:d};}
+    if(d<C.start)prev[m.dm]={v:m.repAvg,n:n,d:d};
+    if(dip&&d>=from&&d>=C.start)out.push({d:d,label:m.label,why:why,rpe:r.rpe||null});});
+  return out;
+}
+function timesDip(t){var D=sessionDips(t);return {level:D.length>=2?2:(D.length?1:0),dips:D};}
 function weekRunsModel(){
   var t=today();if(t<WEIGH_START||t>(CFG.camp?CFG.camp.end:CFG.cutEnd))return null;
   var wk=weekOf(t),P=CUT_RUNS[wk];if(!P)return null;
@@ -3204,8 +3234,13 @@ function weekRunsModel(){
   var kcal5=lb?Math.round(lb/2.2046*8.05/10)*10:null;
   /* the five-milers adapt too (Dan, 9 Oct: "you never know where I'm at"):
      a week the recovery flags drops one */
+  var dipM=t>=CFG.camp.start?timesDip(t):{level:0,dips:[]};
+  if(dipM.level)thrOn=false;
   var easyTarget=Math.max(1,T.easy-(easeOff&&T.easy>1?1:0)-(thrOn&&T.easy>1?1:0));
-  return {thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
+  /* times dipping: back to the shape his bests came from — two easy runs,
+     and on a second dip one of them is an easy 5 km, not 5 miles */
+  if(dipM.level)easyTarget=Math.min(easyTarget,2);
+  return {dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3918,15 +3953,15 @@ function campGame(){
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,e5k:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
-    (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;});
+    (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;else if(m.km>=4.5)q.e5k++;});
     if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;if(rr.medMin>=5)q.med++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
-  var quests=[['⚡','Hard runs',q.hard,T.hard],['🏃','Easy 5-milers',q.five,eT],['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+  var quests=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.dip.level===2?['🏃','Easy runs',Math.min(q.five,1)+Math.min(q.e5k,1),eT]:['🏃','Easy 5-milers',q.five,eT]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),RH=rhrModel(),left=[];
@@ -3957,6 +3992,12 @@ function campGame(){
   var walkWhy=ST&&ST.k!=='good'?ST.t.toLowerCase():((RH.state==='up'||RH.state==='high')?'resting HR is up':'two short nights');
   if(walkSwap&&q.five<(M?M.easyTarget:T.easy))left.push({e:'🚶',n:'Next easy run: make it a brisk walk instead, 45–60 min',how:'My call today — '+walkWhy+'. A walk burns most of the same calories with almost none of the stress, so your face and recovery both win. Back to running when the signs settle.'});
   var easyL=[];
+  if(M&&M.dip.level===2){
+    /* second dip: one 5-miler and one easy 5 km — the week his bests came from */
+    var need5=Math.max(0,1-q.five-(walkSwap?1:0)),need5k=Math.max(0,1-q.e5k);
+    if(need5)easyL.push({e:'🏃',n:'Easy 5 miles',how:runHow('easy')});
+    if(need5k)easyL.push({e:'🏃',n:'Easy 5 km — not 5 miles this week',how:'Easy, conversational, about '+easyPaceTxt()+' a km. Shorter on purpose: less mileage, fresher legs for the hard runs.'});
+  }else
   for(var e5=q.five+(walkSwap?1:0);e5<(M?M.easyTarget:T.easy);e5++)easyL.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   /* Dan, 12 Oct: a separate sprints line read as a sixth run. They are not
      one — they ride on the end of an easy 5-miler, so they live on that line. */
@@ -3972,8 +4013,10 @@ function campGame(){
   /* Dan, 11 Oct: make any change to the week obvious on Today, with why */
   var changes=[];
   if(M){
-    if(M.easeOff&&M.orig&&M.orig.long)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
-    if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:'One fewer 5-miler',why:'recovery first'});
+    if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
+    if(M.dip.level)changes.push({e:'📉',t:M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three',
+      why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. Fewer miles, fresher legs — the shape your bests came from. Back to normal once the times are back.'});
+    else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:'One fewer 5-miler',why:'recovery first'});
     if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it replaces one 5-miler'});
     if(M.repeat)changes.push({e:'🔁',t:'Last week’s sessions again, not a step up',why:'last week felt like a 9–10'});
   }
@@ -4091,6 +4134,7 @@ function campWeekReview(ws){
   var a0=avgWindow(prev,7).avg,a1=avgWindow(end,7).avg;o.w0=a0;o.w1=a1;
   if(a1!==null){var wl=Math.max(0.1,diffD(end,CFG.cutEnd)/7);o.need=Math.max(0,(a1-CFG.goals.weightHi)/wl);o.lost=(a0!==null?a0-a1:null);
     o.wTrack=o.lost===null?'first':(a1<=CFG.goals.weightHi?'there':(o.lost>=o.need-0.05?'on':(o.lost>=o.need*0.6?'close':'behind')));}
+  o.dips=sessionDips(end).filter(function(x){return x.d>=ws&&x.d<=we;});
   o.slAvg=o.sl.length?mean(o.sl):null;o.rhrAvg=o.rhr.length?mean(o.rhr):null;
   return o;
 }
@@ -4109,6 +4153,7 @@ function campReviewHTML(ws){
   /* on track? */
   var wT={on:['✅','Weight: on track'],close:['🟡','Weight: nearly on track'],behind:['🟠','Weight: a little behind'],there:['💎','Weight: in the 122–123 zone'],first:['·','Weight: first reading of the camp']}[o.wTrack]||['·','Weight: not enough mornings yet'];
   var wLine=o.w1===null?'':(wT[0]+' <b>'+wT[1]+'</b> — '+(S.settings.hideDaily?'':f1(o.w1)+' lb average')+(o.lost!==null?', '+(o.lost>=0?'−':'+')+f1(Math.abs(o.lost))+' lb this week':'')+(o.need&&o.wTrack!=='there'?' · about '+f1(o.need)+' lb a week gets you to 123 by 28 Nov':''));
+  if(o.dips.length)next.push('Times: '+o.dips.map(function(x){return x.label+' dipped ('+x.why+')';}).join('; ')+' — so two easy runs, not three, until they are back. That is the week shape your bests came from.');
   if(o.wTrack==='behind')next.push('Weight: keep steps up on rest days — walking is the lever that costs your running nothing. Food stays the same.');
   if(o.slAvg!==null&&o.slAvg<CFG.sleep.line)next.push('Sleep: '+hm(o.slAvg*60)+' a night — bed 30 min earlier, phone out. It is the cheapest speed there is.');
   if(o.hard.length<2&&diffD(o.ws,today())>=6)next.push('Quality: '+o.hard.length+' this week — fine if recovery asked for it; otherwise next week’s two are the priority.');
