@@ -559,6 +559,20 @@ await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
 ok('last week’s review names the dip', /Times: 5 × 1 km dipped/.test(await p.evaluate(() => E('campCard').textContent)));
 await ctx.close();
 
+// ===== the reset day: calm-system focus (14 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({ days: { '2026-10-14': { sleep: 8.2, gym: true, split: 'back' } } }));
+let RS = await p.evaluate(() => { const G = campGame(); return { left: G.left.map(x => x.n), xp: G.xp, q: G.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]) }; });
+ok('the week lists a reset day until one is done', RS.left.some(n => /^Reset day — one light day, calm-system focus/.test(n)) && RS.q.includes('Reset day 0/1'), JSON.stringify(RS.left));
+await p.click('[data-t="today"]'); await p.click('#tgReset'); await p.waitForTimeout(150);
+ok('ticking it saves', await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].reset === true));
+const RS2 = await p.evaluate(() => { const G = campGame(); return { left: G.left.map(x => x.n), xp: G.xp, q: G.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), L: greenLight() }; });
+ok('then the quest is done, +15 XP, and it leaves the list', RS2.q.includes('Reset day 1/1') && RS2.xp === RS.xp + 15 && !RS2.left.some(n => /^Reset day/.test(n)), JSON.stringify({ a: RS.xp, b: RS2.xp }));
+ok('and Today’s call becomes the reset day, with what to do', RS2.L.c === 'reset' && /Slow breathing/.test(RS2.L.w) && /walk outside/.test(RS2.L.w) && /No hard running, no legs, no deep study/.test(RS2.L.sub), JSON.stringify(RS2.L));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+ok('the camp card shows the reset day', /Reset day/.test(await p.evaluate(() => E('campCard').textContent)));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

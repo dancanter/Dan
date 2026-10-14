@@ -252,6 +252,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
       <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
       <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
       <button class="tog" id="tgRet" aria-pressed="false" type="button"><span class="chk"></span>Retinol</button>
+      <button class="tog" id="tgReset" aria-pressed="false" type="button" title="One light day a week, focused on calming the nervous system"><span class="chk"></span>🌿 Reset day</button>
       <button class="tog" id="tgNiggle" aria-pressed="false" type="button"><span class="chk"></span>Something hurts</button>
       <div class="f niggle" style="max-width:220px"><label for="inNiggle">Where / what</label><input type="text" id="inNiggle" placeholder="left achilles, tight"></div>
     </div>
@@ -3668,6 +3669,8 @@ function greenLight(){
   var facts=[];if(sl!==null)facts.push(hm(sl*60)+' sleep');if(typeof r.rhr==='number')facts.push('resting HR '+r.rhr);
   if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
   if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:'Rest today',w:C.rest.t+'. '+(C.rest.w||'')};
+  if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
+    w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night.'};
   if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'};
   if(mt.length)return {c:'done',e:'✅',t:'Today’s run is done',w:'Good. The rest of the day is recovery.'};
   var why=[],walk=false;
@@ -3687,7 +3690,7 @@ function greenLight(){
 }
 function greenLightHTML(){
   var L=greenLight();if(!L)return '';
-  var cls={green:'good',amber:'warn',red:'bad',done:'lift',sat:'lift'}[L.c];
+  var cls={green:'good',amber:'warn',red:'bad',done:'lift',sat:'lift',reset:'good'}[L.c];
   return '<div class="p '+cls+'" style="border-left-width:6px;padding-top:10px;padding-bottom:10px">'+
     '<div class="tiny dim" style="letter-spacing:.06em">TODAY’S CALL</div>'+
     '<div style="display:flex;gap:10px;align-items:center;margin-top:2px"><span style="font-size:30px;line-height:1">'+L.e+'</span>'+
@@ -3922,6 +3925,20 @@ function runHow(x){
   return 'Warm up properly; effort over the watch.';
 }
 var CAMP_LEVELS=[[0,'Rookie','🥉'],[300,'Club runner','🏃'],[800,'County','🥈'],[1600,'National','🥇'],[2800,'International','🌍'],[4500,'Olympian','🏆']];
+/* ===================== the reset day (Dan, 14 Oct) =====================
+   Not Saturday's rest — a light day a week whose job is the calm side of the
+   nervous system (parasympathetic): easy movement, slow breathing, outside,
+   people, an early night. No hard running, no legs, no deep study. */
+var RESET_MENU=[
+  ['🌬️','Slow breathing, 5–10 min','In 4 s, out 6 s — about 6 breaths a minute. The long out-breath is the switch; it measurably lifts heart-rate variability.'],
+  ['🌳','A long walk outside, 45–90 min','Daylight and somewhere green. Nature lowers the stress hormone faster than anything indoors.'],
+  ['🧘','Meditation, 10 min or more','Logs on the Mind tab and counts for the meditation quest.'],
+  ['🤸','Mobility or gentle yoga, 10–20 min','Hips, calves, upper back. Slow, nothing that strains.'],
+  ['🛁','A warm bath or shower in the evening','Warmth before bed helps you drop into deep sleep.'],
+  ['👥','Time with someone','In person or a call — connection is one of the strongest calming signals there is.'],
+  ['🌙','Caffeine before noon, phone out, early night','The day ends calm, and tomorrow starts recovered.']];
+var RESET_OK='Allowed: upper-body gym at normal effort, or an easy conversational run. Not today: hard runs, a legs session, deep study.';
+function resetHow(){return RESET_MENU.map(function(x){return x[0]+' '+x[1]+' — '+x[2];}).join(' ')+' '+RESET_OK;}
 function campGame(){
   var C=CFG.camp,t=today(),xp=0,log=[];
   var add=function(n,why){xp+=n;};
@@ -3935,6 +3952,7 @@ function campGame(){
     if(typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line)add(10);
     if(r.phoneOut)add(5);
     if(r.medMin>=5)add(5);                              /* the mindful part of the camp */
+    if(r.reset&&!(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))add(15);   /* a reset day */
   }
   /* the shred is the CUT's, not the camp's (Dan, 8 Oct): it measures from
      where the cut began on 19 Sep, and every milestone passed since then is
@@ -3953,15 +3971,15 @@ function campGame(){
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,e5k:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,five:0,e5k:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0,reset:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
     (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(isFiveMiler(m))q.five++;else if(m.km>=4.5)q.e5k++;});
-    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;if(rr.medMin>=5)q.med++;}
+    if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;if(rr.medMin>=5)q.med++;if(rr.reset)q.reset++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
-  var quests=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.dip.level===2?['🏃','Easy runs',Math.min(q.five,1)+Math.min(q.e5k,1),eT]:['🏃','Easy 5-milers',q.five,eT]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+  var quests=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.dip.level===2?['🏃','Easy runs',Math.min(q.five,1)+Math.min(q.e5k,1),eT]:['🏃','Easy 5-milers',q.five,eT]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
   var M=weekRunsModel(),ST=weekStatus(),RH=rhrModel(),left=[];
@@ -4005,6 +4023,7 @@ function campGame(){
     if(hostE&&!/strides/.test(hostE.n)){hostE.n='Easy 5 miles + ⛰️ '+spr.n+' uphill sprints (~10 s) at the end';hostE.how=runHow('easy')+' Then the sprints: '+sprHow;}
     else left.push({e:'⛰️',n:'Uphill sprints: '+spr.n+' × ~10 s, on the end of an easy run — not a run of their own',how:sprHow});}
   left=left.concat(easyL);
+  if(!q.reset&&!(dow(t)===0))left.push({e:'🌿',n:'Reset day — one light day, calm-system focus (tick 🌿 on Today)',how:resetHow()});
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */
@@ -4121,7 +4140,7 @@ function campWeekReview(ws){
   for(i=0;i<7;i++){d=addD(ws,i);if(d>end)break;r=S.days[d]||{};
     (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
       if(m.hard)o.hard.push(m.label+(m.repAvg!==null&&m.dm?' · '+secFmt(m.repAvg)+(m.n>1?' a rep':''):''));else if(isFiveMiler(m))o.five++;else o.easy5k++;});
-    if(r.gym)o.gym++;if(r.gym&&r.pr)o.pr++;if(r.medMin>=5)o.med++;
+    if(r.gym)o.gym++;if(r.gym&&r.pr)o.pr++;if(r.medMin>=5)o.med++;if(r.reset)o.reset=(o.reset||0)+1;
     if(typeof r.sleep==='number')o.sl.push(r.sleep);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
     if(dow(d)===C.offDay&&!(r.runs||[]).length&&!r.gym&&typeof r.study!=='number'&&d<t)o.sat=true;}
   /* fitness and the goals: week start vs week end */
@@ -4149,6 +4168,7 @@ function campReviewHTML(ws){
   if(o.gym)good.push(o.gym+' gym session'+(o.gym===1?'':'s')+(o.pr?', 💪 beat last time '+o.pr+'×':''));
   if(o.slAvg!==null&&o.slAvg>=CFG.sleep.line)good.push('Sleep averaged '+hm(o.slAvg*60)+'.');
   if(o.sat)good.push('🧘 A stress-free Saturday.');
+  if(o.reset)good.push('🌿 A reset day for the nervous system.');
   if(o.med)good.push('🧘 Meditated on '+o.med+' day'+(o.med===1?'':'s')+'.');
   /* on track? */
   var wT={on:['✅','Weight: on track'],close:['🟡','Weight: nearly on track'],behind:['🟠','Weight: a little behind'],there:['💎','Weight: in the 122–123 zone'],first:['·','Weight: first reading of the camp']}[o.wTrack]||['·','Weight: not enough mornings yet'];
@@ -6420,7 +6440,7 @@ function paintForm(){
   E('inGymRpe').parentNode.hidden=!rec.gym;
   E('tgPR').hidden=!rec.gym;
   E('setsBox').innerHTML=setsBoxHTML(E('logDate').value||today());
-  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
+  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgReset','reset'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).setAttribute('aria-pressed',rec[p[1]]?'true':'false');
   });
   var rs=rec.runs||[];
@@ -8052,7 +8072,7 @@ function wire(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
   });
-  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgNiggle','niggle']].forEach(function(p){
+  [['tgGym','gym'],['tgPR','pr'],['tgRefeed','refeed'],['tgPhone','phoneOut'],['tgAM','skinAM'],['tgPM','skinPM'],['tgTeeth','teeth'],['tgRet','retinol'],['tgReset','reset'],['tgNiggle','niggle']].forEach(function(p){
     E(p[0]).addEventListener('click',function(){
       var d=E('logDate').value||today(),on=this.getAttribute('aria-pressed')==='true',o={};
       o[p[1]]=on?null:true;setDay(d,o);
