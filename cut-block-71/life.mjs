@@ -571,6 +571,9 @@ ok('then the quest is done, +15 XP, and it leaves the list', RS2.q.includes('Res
 ok('and Today’s call becomes the reset day, with what to do', RS2.L.c === 'reset' && /Slow breathing/.test(RS2.L.w) && /walk outside/.test(RS2.L.w) && /No hard running, no legs, no deep study/.test(RS2.L.sub), JSON.stringify(RS2.L));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
 ok('the camp card shows the reset day', /Reset day/.test(await p.evaluate(() => E('campCard').textContent)));
+await p.click('[data-t="today"]'); await p.waitForTimeout(80);
+const RG = await p.evaluate(() => E('glanceCard').textContent);
+ok('on a reset day Today carries the guide: coffee, food, little things', /Reset day guide/.test(RG) && /Coffee: yes — one, with breakfast, before 11/.test(RG) && /Two kiwis about an hour before bed/.test(RG) && /Eat slowly, sitting down/.test(RG) && /Not green tea/.test(RG) && !/onion(?! and leek)/i.test(RG.replace(/onion and leek/g, '')), RG.slice(0, 300));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====

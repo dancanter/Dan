@@ -3670,7 +3670,7 @@ function greenLight(){
   if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
   if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:'Rest today',w:C.rest.t+'. '+(C.rest.w||'')};
   if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
-    w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night.'};
+    w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night. ☕ One coffee, with breakfast, before 11.'};
   if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'};
   if(mt.length)return {c:'done',e:'✅',t:'Today’s run is done',w:'Good. The rest of the day is recovery.'};
   var why=[],walk=false;
@@ -3695,7 +3695,7 @@ function greenLightHTML(){
     '<div class="tiny dim" style="letter-spacing:.06em">TODAY’S CALL</div>'+
     '<div style="display:flex;gap:10px;align-items:center;margin-top:2px"><span style="font-size:30px;line-height:1">'+L.e+'</span>'+
     '<div><div style="font-weight:800;font-size:1.15em">'+esc(L.t)+'</div>'+(L.sub?'<div><b>'+esc(L.sub)+'</b></div>':'')+'</div></div>'+
-    (L.w?'<div class="note" style="margin-top:6px">'+esc(L.w)+'</div>':'')+'</div>';
+    (L.w?'<div class="note" style="margin-top:6px">'+esc(L.w)+'</div>':'')+(L.c==='reset'?resetGuideHTML(false):'')+'</div>';
 }
 function glanceHTML(){
   var t=today(),r=S.days[t]||{},A=avgWindow(t,7),tr=trainingModel(),w=tr.week;
@@ -3938,6 +3938,30 @@ var RESET_MENU=[
   ['👥','Time with someone','In person or a call — connection is one of the strongest calming signals there is.'],
   ['🌙','Caffeine before noon, phone out, early night','The day ends calm, and tomorrow starts recovered.']];
 var RESET_OK='Allowed: upper-body gym at normal effort, or an easy conversational run. Not today: hard runs, a legs session, deep study.';
+/* food and drink on a reset day — his foods, his rules (GF, no onion/leek,
+   no green tea, nuts and chocolate certified GF) */
+var RESET_FOOD=[
+  ['☕','Coffee: yes — one, with breakfast, before 11','Caffeine lingers 5–6 h, so morning only. With food, not on an empty stomach. Skipping it is not the goal — a withdrawal headache is stress too.'],
+  ['🐟','Oily fish at lunch or tea','Salmon, mackerel or sardines. Omega-3 gives heart-rate variability a small, real lift.'],
+  ['🥔','Carbs at tea — potatoes or rice','Carbs in the evening lower the stress hormone and help you fall asleep. Keep the 200 g floor.'],
+  ['🥝','Two kiwis about an hour before bed','In a small study they helped people fall asleep faster and sleep longer. Also good for digestion.'],
+  ['🥛','Kefir and Greek yoghurt','Fermented foods feed the gut, which talks to the brain along the vagus nerve.'],
+  ['🍫','Magnesium foods','Your 85% dark chocolate (certified GF), bananas, potatoes, yoghurt, pumpkin seeds (certified GF).'],
+  ['🥛','Warm A2 milk at night if you fancy it','A calm ritual, with a little tryptophan. A teaspoon of honey in it is fine.'],
+  ['🌼','Chamomile or rooibos tea in the evening','Caffeine-free and calming. Not green tea.'],
+  ['🧂','Salt once, water steady','Steady fluid supports blood volume and HRV. Nothing changes here.'],
+  ['🚫','Not today','Alcohol, energy drinks, caffeine after noon, a huge late meal, long gaps without food, onion and leek.']];
+var RESET_LITTLE=[
+  ['🍽️','Eat slowly, sitting down, no screen'],['🚶','A 10 min walk after meals'],['👃','Nose breathing on the walk, no headphones for part of it'],
+  ['🌅','Daylight within an hour of waking'],['💡','Dim, warm lights after sunset; phone on night mode'],['📝','Five-minute brain dump before bed — write tomorrow’s to-do list; it helps you fall asleep faster'],
+  ['🦵','Legs up the wall, 5 minutes'],['😂','Something that makes you laugh'],['🛏️','Bedroom cool, about 16–19 °C, and dark'],['💧','Cold water on your face when stress spikes — 15–30 s']];
+function resetGuideHTML(open){
+  var li=function(a){return '<div style="margin:5px 0"><b>'+a[0]+' '+a[1]+'</b>'+(a[2]?' <span class="tiny">— '+a[2]+'</span>':'')+'</div>';};
+  return '<details'+(open?' open':'')+' style="margin:8px 0"><summary><b>🌿 Reset day guide</b> <span class="tiny dim">what to do, eat and drink</span></summary>'+
+    '<h3 style="margin:8px 0 2px">Do</h3>'+RESET_MENU.map(li).join('')+'<p class="tiny">'+RESET_OK+'</p>'+
+    '<h3 style="margin:8px 0 2px">Eat and drink</h3>'+RESET_FOOD.map(li).join('')+
+    '<h3 style="margin:8px 0 2px">Little things</h3>'+RESET_LITTLE.map(li).join('')+'</details>';
+}
 function resetHow(){return RESET_MENU.map(function(x){return x[0]+' '+x[1]+' — '+x[2];}).join(' ')+' '+RESET_OK;}
 function campGame(){
   var C=CFG.camp,t=today(),xp=0,log=[];
@@ -4232,7 +4256,7 @@ function campHTML(){
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
-    celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+(today()>=CFG.camp.start?achievementsHTML():'')+
+    celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+
     (mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};
