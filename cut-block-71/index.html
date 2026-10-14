@@ -4527,9 +4527,31 @@ var FILMS=[
  ['Whiplash',2014,'deep',106],['Good Will Hunting',1997,'deep',126],['The Shawshank Redemption',1994,'deep',142],['The Social Network',2010,'deep',120],['Dead Poets Society',1989,'deep',128],
  ['Into the Wild',2007,'deep',148],['Aftersun',2022,'deep',101],['Past Lives',2023,'deep',106],
  ['Slow Horses',0,'series',45],['Shōgun',0,'series',60],['The Bear',0,'series',30],['Severance',0,'series',50],['Chernobyl',0,'series',65],['Band of Brothers',0,'series',60],
- ['Peaky Blinders',0,'series',55],['Adolescence',0,'series',60],['Mindhunter',0,'series',55],['True Detective (season 1)',0,'series',58],['Breaking Bad',0,'series',47]
+ ['Peaky Blinders',0,'series',55],['Adolescence',0,'series',60],['Mindhunter',0,'series',55],['True Detective (season 1)',0,'series',58],['Breaking Bad',0,'series',47],
+ /* Dan, 14 Oct: seasons and more genres. October leans Halloween, December Christmas. */
+ ['Hocus Pocus',1993,'halloween',96],['The Nightmare Before Christmas',1993,'halloween',76],['Coraline',2009,'halloween',100],['Corpse Bride',2005,'halloween',77],
+ ['Beetlejuice',1988,'halloween',92],['Beetlejuice Beetlejuice',2024,'halloween',104],['The Addams Family',1991,'halloween',99],['Addams Family Values',1993,'halloween',94],
+ ['Casper',1995,'halloween',100],['Ghostbusters',1984,'halloween',105],['Practical Magic',1998,'halloween',104],['Sleepy Hollow',1999,'halloween',105],['Edward Scissorhands',1990,'halloween',105],
+ ['Gremlins',1984,'halloween',106],['ParaNorman',2012,'halloween',92],['Monster House',2006,'halloween',91],['Shaun of the Dead',2004,'halloween',99],['What We Do in the Shadows',2014,'halloween',86],
+ ['Trick ’r Treat',2007,'halloween',82],['Hotel Transylvania',2012,'halloween',91],['Frankenweenie',2012,'halloween',87],['Halloweentown',1998,'halloween',84],['Wednesday',0,'halloween',50],
+ ['Halloween',1978,'horror',91],['Scream',1996,'horror',111],['The Shining',1980,'horror',146],['The Exorcist',1973,'horror',122],['A Nightmare on Elm Street',1984,'horror',91],
+ ['The Conjuring',2013,'horror',112],['Insidious',2010,'horror',103],['It',2017,'horror',135],['The Others',2001,'horror',104],['The Sixth Sense',1999,'horror',107],['Get Out',2017,'horror',104],
+ ['A Quiet Place',2018,'horror',90],['Hereditary',2018,'horror',127],['Alien',1979,'horror',117],['The Thing',1982,'horror',109],['28 Days Later',2002,'horror',113],['Stranger Things',0,'horror',50],
+ ['Elf',2003,'christmas',97],['Home Alone',1990,'christmas',103],['Home Alone 2: Lost in New York',1992,'christmas',120],['The Holiday',2006,'christmas',136],['Love Actually',2003,'christmas',135],
+ ['It’s a Wonderful Life',1946,'christmas',130],['The Muppet Christmas Carol',1992,'christmas',85],['Die Hard',1988,'christmas',132],['The Polar Express',2004,'christmas',100],['Klaus',2019,'christmas',96],
+ ['Arthur Christmas',2011,'christmas',97],['How the Grinch Stole Christmas',2000,'christmas',104],['National Lampoon’s Christmas Vacation',1989,'christmas',97],['Miracle on 34th Street',1994,'christmas',114],
+ ['The Santa Clause',1994,'christmas',97],['Last Christmas',2019,'christmas',103],['Jingle All the Way',1996,'christmas',89],
+ ['Spider-Man: Into the Spider-Verse',2018,'animated',117],['Spider-Man: Across the Spider-Verse',2023,'animated',140],['Spirited Away',2001,'animated',125],['Up',2009,'animated',96],
+ ['Inside Out',2015,'animated',95],['Toy Story',1995,'animated',81],['How to Train Your Dragon',2010,'animated',98],['Ratatouille',2007,'animated',111],['The Iron Giant',1999,'animated',86],['WALL·E',2008,'animated',98],
+ ['La La Land',2016,'romance',128],['Before Sunrise',1995,'romance',101],['Crazy, Stupid, Love',2011,'romance',118],['Notting Hill',1999,'romance',124],['Pride & Prejudice',2005,'romance',129],
+ ['500 Days of Summer',2009,'romance',95],['Anyone But You',2023,'romance',103],
+ ['Free Solo',2018,'docs',100],['The Last Dance',0,'docs',50],['Icarus',2017,'docs',121],['Breaking2',2017,'docs',55],['The Barkley Marathons',2014,'docs',89],['Senna',2010,'docs',106],
+ ['Kipchoge: The Last Milestone',2021,'docs',89],['Formula 1: Drive to Survive',0,'docs',40]
 ];
-var FILM_G={sport:'🥊 Sport and grit',epic:'🚀 Big-screen epics',thriller:'🔪 Thrillers',mind:'🌀 Mind-benders',feel:'😂 Feel-good',deep:'💭 Stays with you',series:'📺 Series'};
+var FILM_G={halloween:'🎃 Halloween',horror:'👻 Proper scary',christmas:'🎄 Christmas',sport:'🥊 Sport and grit',epic:'🚀 Big-screen epics',thriller:'🔪 Thrillers',mind:'🌀 Mind-benders',feel:'😂 Feel-good',deep:'💭 Stays with you',animated:'🎨 Animated',romance:'💘 Romance',docs:'🎥 Sport docs',series:'📺 Series'};
+/* the season's theme: October is Halloween, 1–26 December is Christmas */
+function filmSeason(d){var m=Number(d.slice(5,7)),dd=Number(d.slice(8,10));return m===10?['halloween','horror']:(m===12&&dd<=26?['christmas']:null);}
+var FILM_SEASON_N={halloween:'🎃 Halloween season',christmas:'🎄 Christmas season'};
 var SPOTS=[
  {n:'River Witham, from the door',k:'easy',w:'An out-and-back along the river — the easiest way to make a normal easy run feel different.'},
  {n:'Whisby Nature Park',k:'easy',w:'Lakes and woodland trails about 15 minutes away. Soft ground for easy runs, and a proper change of scene for walks.'},
@@ -4558,7 +4580,11 @@ function filmPick(){
   if(FILM_UI.pick&&pool.some(function(x){return x[0]===FILM_UI.pick;}))return pool.filter(function(x){return x[0]===FILM_UI.pick;})[0];
   /* a weeknight leans to a series or a film under two hours, so bed is not late */
   var d=today(),wk=dow(d)>=1&&dow(d)<=4;
-  var fit=pool.filter(function(x){return !wk||x[2]==='series'||x[3]<=125;});
+  /* in season, "Anything" leans to the season's films */
+  var sea=filmSeason(d);if(sea&&!FILM_UI.g){var sp=pool.filter(function(x){return sea.indexOf(x[2])>=0;});if(sp.length)pool=sp;}
+  /* proper scary is a Friday or Saturday thing — it keeps the nervous system up, and bed is later */
+  if(wk&&!FILM_UI.g){var calm=pool.filter(function(x){return x[2]!=='horror';});if(calm.length)pool=calm;}
+  var fit=pool.filter(function(x){return !wk||x[2]==='series'||x[3]<=125||x[0]==='Wednesday';});
   var use=fit.length?fit:pool,x=use[hashStr(d+(FILM_UI.g||''))%use.length];
   FILM_UI.pick=x[0];return x;
 }
@@ -4594,10 +4620,12 @@ function filmHTML(){
   var next='';
   if(!on){for(var i=1;i<=7;i++){var nd=addD(d,i);if(filmNight(nd)){next=DOWL[dow(nd)];break;}}}
   var chips='<button type="button" class="pill'+(!FILM_UI.g?' g':'')+'" data-fg="" style="cursor:pointer;border:0">🎲 Anything</button> '+
-    Object.keys(FILM_G).map(function(k){return '<button type="button" class="pill'+(FILM_UI.g===k?' g':'')+'" data-fg="'+k+'" style="cursor:pointer;border:0">'+FILM_G[k]+'</button>';}).join(' ');
+    (function(){var sea=filmSeason(d)||[];return Object.keys(FILM_G).sort(function(a,b){return (sea.indexOf(b)>=0)-(sea.indexOf(a)>=0);});})().map(function(k){return '<button type="button" class="pill'+(FILM_UI.g===k?' g':'')+'" data-fg="'+k+'" style="cursor:pointer;border:0">'+FILM_G[k]+'</button>';}).join(' ');
+  var sea=filmSeason(d);
   return '<div class="p'+(on?' lift':'')+'"><h2>'+(on?'🎬 Tonight is film night':'🎬 Film nights'+(next?' · next: '+next:''))+'</h2>'+
+    (sea?'<p class="tiny" style="margin:0 0 4px"><b>'+FILM_SEASON_N[sea[0]]+'</b> — picks lean '+(sea[0]==='halloween'?'spooky; proper scary ones on Friday or Saturday, finished by about 9:30':'festive')+'.</p>':'')+
     (x?'<div style="margin:6px 0 8px"><div style="font-size:1.3em;font-weight:700">'+esc(x[0])+(x[1]?' <span class="tiny dim">'+x[1]+'</span>':'')+'</div>'+
-      '<div class="tiny">'+FILM_G[x[2]]+' · '+(x[2]==='series'?'about '+x[3]+' min an episode':Math.floor(x[3]/60)+' h '+(x[3]%60)+' min')+'</div></div>'+
+      '<div class="tiny">'+FILM_G[x[2]]+' · '+(x[2]==='series'||!x[1]?'about '+x[3]+' min an episode':Math.floor(x[3]/60)+' h '+(x[3]%60)+' min')+'</div></div>'+
       '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" type="button" data-film="next">🔄 Another</button>'+
       '<button class="btn ghost sm" type="button" data-film="seen">✓ Seen it</button></div>':
       '<p class="note">You have seen everything on the list'+(FILM_UI.g?' in this genre':'')+' — send me your Letterboxd export and I will load more.</p>')+

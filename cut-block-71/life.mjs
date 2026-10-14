@@ -576,6 +576,24 @@ const RG = await p.evaluate(() => E('glanceCard').textContent);
 ok('on a reset day Today carries the guide: coffee, food, little things', /Reset day guide/.test(RG) && /Coffee: yes — one, with breakfast, before 11/.test(RG) && /Two kiwis about an hour before bed/.test(RG) && /Eat slowly, sitting down/.test(RG) && /Not green tea/.test(RG) && !/onion(?! and leek)/i.test(RG.replace(/onion and leek/g, '')), RG.slice(0, 300));
 await ctx.close();
 
+// ===== film seasons and genres (14 Oct) =====
+({ ctx, p, boot } = await at('2026-10-14'));
+await boot(st({}));
+let FP = await p.evaluate(() => { const x = filmPick(); return { g: x[2], chips: E('filmCard').textContent }; });
+ok('a Wednesday in October picks Halloween, not proper scary', FP.g === 'halloween', FP.g);
+ok('with the season named and the new genres on the chips, Halloween first', /Halloween season/.test(FP.chips) && FP.chips.indexOf('🎃 Halloween') < FP.chips.indexOf('🥊 Sport') && /🎄 Christmas/.test(FP.chips) && /🎨 Animated/.test(FP.chips) && /💘 Romance/.test(FP.chips) && /🎥 Sport docs/.test(FP.chips), FP.chips.slice(0, 300));
+await p.click('[data-fg="horror"]'); await p.waitForTimeout(60);
+ok('proper scary is there when he asks for it', await p.evaluate(() => filmPick()[2] === 'horror'));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-05'));
+await boot(st({}));
+ok('December leans Christmas', await p.evaluate(() => filmPick()[2] === 'christmas'));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-10'));
+await boot(st({}));
+ok('November has no theme', await p.evaluate(() => filmSeason(today()) === null && !/season —/.test(E('filmCard').textContent)));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
