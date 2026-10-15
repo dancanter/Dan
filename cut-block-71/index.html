@@ -3510,7 +3510,7 @@ function weekStatus(){
   /* days in a row with a session in them, counting back from today (or
      from yesterday, if today has nothing on it yet) */
   var start=(S.days[t]&&(S.days[t].gym||(S.days[t].runs||[]).length))?0:1;
-  for(i=start;i<30;i++){rec=S.days[addD(t,-i)]||{};if(rec.gym||(rec.runs||[]).some(function(r){return !runMeta(r).empty;}))trainedRun++;else break;}
+  for(i=start;i<30;i++){rec=S.days[addD(t,-i)]||{};if((rec.gym||(rec.runs||[]).some(function(r){return !runMeta(r).empty;}))&&!(rec.reset&&rec.split!=='legs'))trainedRun++;else break;}
   var sleep3=sl.length>=2?mean(sl):null;
   if(NG.n&&(NG.today||NG.persistent))return {k:'rest',t:'Rest what hurts',w:'Something has hurt'+(NG.top?' — '+NG.top:'')+'. Easy running only until it has been quiet for a few days. A week off beats a month off.'};
   if(R.state==='high')return {k:'warn',t:'You might be overtraining',w:'Resting HR is up '+f1(R.delta)+' beats on your baseline — fatigue shows there before you feel it. Take a rest day, then keep it easy for three days.'};
@@ -3521,7 +3521,7 @@ function weekStatus(){
      without anything being wrong (Sunday + Mon–Fri) — the flag is for more */
   var runCap=(t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs+2:6;
   if(runs7>=runCap)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is '+((t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs:4)+'. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
-  if(trainedRun>=6)return start===1
+  if(trainedRun>=((t>=CFG.camp.start&&t<=CFG.camp.end)?7:6))return start===1
     ? {k:'good',t:'Rest day today — well timed',w:'You had '+trainedRun+' days in a row with a session before it, so keep today fully off. The next hard session will be better for it.'}
     : {k:'rest',t:'Time for a rest day',w:trainedRun+' days in a row with a session. Rest is where the fitness actually lands — take one before your body takes it for you.'};
   if(legsLoad>=3)return {k:'legs',t:'Time to rest your legs',w:'Legs, hard running and sprints stacked into the last three days. Upper body or a walk next, not another leg session or hard run.'};
@@ -3753,7 +3753,8 @@ function coachModel(){
       if(i<7){o.runs++;if(m.hard)o.hard++;else if(!m.sprint){o.easy++;if(isFiveMiler(m))o.five++;}}
       if(m.hard&&r.rpe>=9)o.heavy14++;});
     if(typeof rec.gymRpe==='number'&&rec.gymRpe>=9)o.heavy14++;
-    var sess=ran||!!rec.gym;
+    /* a reset day (no hard run, no legs) is a light day — it breaks the chain */
+    var sess=(ran||!!rec.gym)&&!(rec.reset&&rec.split!=='legs'&&!(rec.runs||[]).some(function(r){var m=runMeta(r);return !m.empty&&m.hard;}));
     /* today only counts as a day off once it is over — it may not have happened yet */
     if(!sess&&i>0&&o.lastOff===null)o.lastOff=i;
     if(i>=7)continue;
@@ -3802,7 +3803,9 @@ function coachModel(){
     rest={k:'day',t:ST.t,w:ST.w};
   }else if(pts>=2||(ST&&ST.k==='warn')){
     rest={k:'days',t:'Take a day or two off',w:(strain.length?'Because '+strain.slice(0,2).join(' and ')+'. ':(ST?ST.w+' ':''))+'A day or two with no sessions in the next few days — steps can stay. That is usually all it takes to stop this becoming an easy week.'};
-  }else if(o.lastOff>=6){
+  /* in camp the week is built as six training days and Saturday fully off,
+     so six in a row is the plan; the call is for a seventh */
+  }else if(o.lastOff>=((t>=CFG.camp.start&&t<=CFG.camp.end)?7:6)){
     rest={k:'day',t:'Next day fully off',w:'No day off in '+o.lastOff+' days. Take the next one with no run and no gym — walking is fine. Rest is when the fitness actually lands.'};
   }else{
     rest={k:'go',t:'No rest needed — keep going',w:(strain.length?'One small thing to watch: '+strain[0]+'. Not enough to change the week.':'Recovery is keeping up with the training. Your normal days off are doing the job.')};

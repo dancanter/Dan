@@ -594,6 +594,20 @@ await boot(st({}));
 ok('November has no theme', await p.evaluate(() => filmSeason(today()) === null && !/season —/.test(E('filmCard').textContent)));
 await ctx.close();
 
+// ===== six training days and Saturday off is the camp week (15 Oct) =====
+({ ctx, p, boot } = await at('2026-10-16'));
+const run8 = { km: 8.0, secs: 2600, type: 'easy' };
+await boot(st({ days: { '2026-10-10': {}, '2026-10-11': { runs: [{ km: 5, secs: 1485, type: 'easy' }], sleep: 8 }, '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }], gym: true, split: 'legs', sleep: 9 },
+  '2026-10-13': { runs: [run8], sleep: 8.5 }, '2026-10-14': { gym: true, split: 'back', sleep: 8.3 }, '2026-10-15': { runs: [run8], sleep: 8.2 }, '2026-10-16': { sleep: 8.1 } } }));
+let SX = await p.evaluate(() => ({ L: greenLight(), r: coachModel().rest }));
+ok('Friday after Sun–Thu sessions is still green for the 1 kms — Saturday is the day off', SX.L.c === 'green' && SX.r.k === 'go', JSON.stringify(SX));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-18'));
+const wk7 = {}; for (let i = 0; i < 7; i++) { const d = new Date(Date.UTC(2026, 9, 11 + i)).toISOString().slice(0, 10); wk7[d] = { runs: [run8], sleep: 8 }; }
+await boot(st({ days: Object.assign(wk7, { '2026-10-10': {} }) }));
+ok('training through Saturday too — seven in a row — and it calls the next day off', await p.evaluate(() => coachModel().rest.k === 'day'));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
