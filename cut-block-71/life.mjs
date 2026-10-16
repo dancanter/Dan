@@ -388,12 +388,12 @@ await ctx.close();
 
 // ===== the goal plan (9 Oct) =====
 ({ ctx, p, boot } = await at('2026-11-04'));   // week 7: mile pace + 800 pace
-await boot(st());
+await boot(st({ days: { '2026-10-27': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 790 }] }, '2026-10-30': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 320 }] } } }));
 let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short, lg: pacedOf(m.P.lp), sg: pacedOf(m.P.sp) }; });
-ok('week 7 is 10 × 400 m at mile pace and 4 × 400 m at 800 pace, with goal-pace guides', /10 × 400 m at mile pace/.test(M7.l) && /4 × 400 m at 800 pace/.test(M7.s) && /goal pace 72 s/.test(M7.lg) && /goal pace 60 s/.test(M7.sg), JSON.stringify(M7));
+ok('a target week after the staples: paced sessions with goal-pace guides', /at (mile|5 km) pace/.test(M7.l) && /at 800 pace|fast/.test(M7.s) && /goal pace/.test(M7.lg) && /goal pace/.test(M7.sg), JSON.stringify(M7));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let r7 = sq(await p.innerText('#tRuns'));
-ok('the runs card shows the goal-pace guide and what the session does', /\d+–\d+ s a rep · goal pace 72 s/.test(r7) && /sub-4:50 rhythm/.test(r7), r7.slice(0, 800));
+ok('the runs card shows the goal-pace guide and why the week was picked', /a rep · goal pace/.test(r7) && /Picked for you this week/.test(r7), r7.slice(0, 800));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-12-07'));   // PB window, week 12
 await boot(st());
@@ -630,6 +630,19 @@ for (const [when, ready] of [['2026-10-18T19:00:00', false], ['2026-10-18T20:30:
   }
   await c2.close();
 }
+
+// ===== build weeks pick sessions: staples, then targets (16 Oct) =====
+const hist = { '2026-10-16': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 802 }] }, '2026-10-21': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 178 }] }, '2026-10-24': { runs: [{ k: 'reps', dm: 400, n: 1, secs: 59 }] } };
+({ ctx, p, boot } = await at('2026-10-26'));
+await boot(st({ days: hist }));
+let AW = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short, note: M.P.note, adapted: M.P.adapted }; });
+ok('after the test week: a target week, never last week’s distances, and it says why', AW.adapted && !/1 km/.test(AW.l) && !/^\d+ × 400/.test(AW.s) && /aimed at your/.test(AW.note) && /had its turn last week/.test(AW.note), JSON.stringify(AW));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-02'));
+await boot(st({ days: Object.assign({}, hist, { '2026-10-27': { runs: [{ k: 'reps', dm: 1609, n: 3, secs: 1000 }] }, '2026-10-30': { runs: [{ k: 'reps', dm: 300, n: 5, secs: 230 }] } }) }));
+AW = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short, left: campGame().left.map(x => x.n) }; });
+ok('then the staple week: 4 × 1 km and 5 × 400, with last time to beat', AW.l === '4 × 1 km' && AW.s === '5 × 400 m' && AW.left.some(n => /^4 × 1 km — last time 3:21 a rep \(4 × 1 km\)/.test(n)), JSON.stringify(AW));
+await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
