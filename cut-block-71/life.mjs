@@ -330,7 +330,7 @@ ok('no trial lands on his stress-free Saturday', await p.evaluate(() => CFG.camp
 ok('the all-time bests are the ultimate bosses: 400 57, 1 km 2:48, mile 4:54, 5 km 17:17', await p.evaluate(() => { const a = CFG.camp.allTime; return a[400].t === 57 && a[1000].t === 168 && a[1609].t === 294 && a[5000].t === 1037; }));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
-ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Thursday|Friday|Sunday/.test(gc) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
+ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Thursday|Friday|Sunday/.test(gc.replace('ready Sunday at 8 pm', '')) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
 await p.click('[data-t="today"]'); await p.waitForTimeout(100);
 ok('Today at a glance has the camp line and what is left', /Camp day 4 · 🥉 Rookie/.test(sq(await p.innerText('#glanceCard'))) && /Left this week: 1 hard · 1 easy — you pick the days/.test(sq(await p.innerText('#glanceCard'))));
 await ctx.close();
@@ -607,6 +607,29 @@ const wk7 = {}; for (let i = 0; i < 7; i++) { const d = new Date(Date.UTC(2026, 
 await boot(st({ days: Object.assign(wk7, { '2026-10-10': {} }) }));
 ok('training through Saturday too — seven in a row — and it calls the next day off', await p.evaluate(() => coachModel().rest.k === 'day'));
 await ctx.close();
+
+// ===== the review lands Sunday 8 pm, with gains, timeline, focus (16 Oct) =====
+for (const [when, ready] of [['2026-10-18T19:00:00', false], ['2026-10-18T20:30:00', true]]) {
+  const c2 = await b.newContext({ viewport: { width: 430, height: 2400 } }); await c2.clock.setFixedTime(new Date(when));
+  const p2 = await c2.newPage(); p2.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  await p2.goto(FILE);
+  await p2.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({ days: {
+    '2026-09-30': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 582 }] }, '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }], gym: true, sleep: 9 },
+    '2026-10-13': { runs: [{ km: 8.04, secs: 2452, type: 'easy' }], sleep: 8.5 }, '2026-10-16': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 802 }], sleep: 9 },
+    '2026-10-18': { runs: [{ k: 'reps', dm: 80, n: 8, secs: 100, up: true }], sleep: 8.5 } } })]);
+  await p2.reload(); await p2.waitForTimeout(250);
+  const g2 = await p2.evaluate(() => E('glanceCard').textContent);
+  await p2.click('[data-t="camp"]'); await p2.waitForTimeout(120);
+  const c3 = await p2.evaluate(() => E('campCard').textContent);
+  if (!ready) ok('before 8 pm on Sunday it says when the review lands', /ready Sunday at 8 pm/.test(c3) && !/This week’s review — ready/.test(c3) && !/review is ready/.test(g2));
+  else {
+    ok('at 8 pm Sunday: ready on Today and open on Camp', /Your week’s review is ready/.test(g2) && /This week’s review — ready/.test(c3) && /Camp week · 12 Oct–18 Oct/.test(c3));
+    ok('it says what the week likely built and which goals it feeds', /What this week likely built/.test(c3) && /Speed and running economy/.test(c3) && /VO₂max — the engine/.test(c3) && /Power and top speed/.test(c3) && /Aerobic base/.test(c3));
+    ok('the timeline: each goal, its attempt date, what it needs', /Your timeline/.test(c3) && /1 mile sub-4:50 · attempt 20 Dec/.test(c3) && /s a week/.test(c3) && /first projection after week 2/.test(c3));
+    ok('and the focus for next week, with the dip named', /Focus next week/.test(c3) && /4 × 1 km dipped — 3:21 a rep vs 3:14/.test(c3), c3.slice(c3.indexOf('Focus next week'), c3.indexOf('Focus next week') + 300));
+  }
+  await c2.close();
+}
 
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1

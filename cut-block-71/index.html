@@ -3715,6 +3715,7 @@ function glanceHTML(){
       if(['day','days','week','on'].indexOf(C.rest.k)>=0)calls.push('🛌 '+C.rest.t);
       if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
       return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
+    (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el)?'Left this week: '+[hl?hl+' hard':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','camp');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
@@ -4163,10 +4164,12 @@ function fitnessAt(date,dist){
 }
 function campWeekReview(ws){
   var C=CFG.camp,we=addD(ws,6),t=today(),end=we<t?we:t,prev=addD(ws,-1),i,d,r;
-  var o={ws:ws,we:we,hard:[],five:0,easy5k:0,walk:0,gym:0,pr:0,med:0,sl:[],rhr:[],sat:false,thr:0};
+  var o={ws:ws,we:we,hard:[],hm:[],spr:0,five:0,easy5k:0,walk:0,gym:0,pr:0,med:0,sl:[],rhr:[],sat:false,thr:0};
   for(i=0;i<7;i++){d=addD(ws,i);if(d>end)break;r=S.days[d]||{};
     (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
-      if(m.hard)o.hard.push(m.label+(m.repAvg!==null&&m.dm?' · '+secFmt(m.repAvg)+(m.n>1?' a rep':''):''));else if(isFiveMiler(m))o.five++;else o.easy5k++;});
+      if(m.sprint||x.up){o.spr++;return;}
+      if(m.hard)o.hm.push({dm:m.dm,kind:m.kind,tt:!!(CUT_RUNS[weekOf(d)]||{}).tt});
+      if(m.hard)o.hard.push(m.label+(m.repAvg!==null&&m.dm?' · '+secFmt(m.repAvg)+(m.n>1?' a rep':''):''));else if(isFiveMiler(m))o.five++;else if(m.km>=4.5)o.easy5k++;else o.walk++;});
     if(r.gym)o.gym++;if(r.gym&&r.pr)o.pr++;if(r.medMin>=5)o.med++;if(r.reset)o.reset=(o.reset||0)+1;
     if(typeof r.sleep==='number')o.sl.push(r.sleep);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
     if(dow(d)===C.offDay&&!(r.runs||[]).length&&!r.gym&&typeof r.study!=='number'&&d<t)o.sat=true;}
@@ -4184,6 +4187,31 @@ function campWeekReview(ws){
   o.slAvg=o.sl.length?mean(o.sl):null;o.rhrAvg=o.rhr.length?mean(o.rhr):null;
   return o;
 }
+/* what the week likely built, and which goals it feeds (Dan, 16 Oct) */
+function reviewGains(o){
+  var g=[],has=function(f){return o.hm.some(f);};
+  if(has(function(m){return m.dm&&m.dm<=300;}))g.push(['⚡','Speed and running economy','Short fast reps teach your legs to turn over quicker and waste less — it carries straight into the 400 and 800.','200 · 400 · 800']);
+  if(has(function(m){return m.dm>=400&&m.dm<=800;}))g.push(['🔥','Speed endurance','Holding pace while it hurts — the skill the last 200 of an 800 and the third lap of a mile are made of.','800 · mile']);
+  if(has(function(m){return m.dm>=1000&&!m.tt;})||has(function(m){return m.kind==='cont';}))g.push(['🫀','VO₂max — the engine','Reps at about mile-to-5 km pace push the top of your aerobic engine up. This is what lowers the mile and the 5 km.','1 km · mile · 5 km']);
+  if(has(function(m){return m.tt;}))g.push(['⏱','A true read','Time trials show where you really are, so the next weeks’ paces fit you exactly.','all']);
+  if(o.five||o.easy5k)g.push(['🌱','Aerobic base','Easy miles grow the small blood vessels and the mitochondria in your legs — a faster 5 km, and quicker recovery between reps.','5 km · mile']);
+  if(o.spr)g.push(['⛰️','Power and top speed','All-out hill sprints build stride power and stiffer tendons for very little fatigue.','200 · 400']);
+  if(o.gym)g.push(['🏋️','Strength and muscle','Stronger legs and trunk mean a more economical stride and fewer niggles — and you keep the muscle on the cut.','everything']);
+  if(o.slAvg!==null&&o.slAvg>=CFG.sleep.line)g.push(['😴','It actually stuck','Training is the signal; sleep is when the body builds from it. '+hm(o.slAvg*60)+' a night means this week’s work lands.','everything']);
+  if(o.sat||o.reset)g.push(['🌿','Absorbed, not just done','Saturday off'+(o.reset?' and a reset day':'')+' let the nervous system come down — that is where the freshness for next week comes from.','everything']);
+  return g;
+}
+/* the timeline: each goal, its date, and whether the trend gets there */
+function reviewTimeline(o){
+  var C=CFG.camp,end=o.we<today()?o.we:today(),wkIn=diffD(C.start,end)/7;
+  return C.pb.filter(function(x){return [400,800,1000,1609,5000].indexOf(x.dm)>=0;}).sort(function(a,b){return a.dm-b.dm;}).map(function(x){
+    var now=fitnessAt(end,x.dm),start=C.base[x.dm],gap=now-x.goal,wl=Math.max(0.1,diffD(end,x.on)/7);
+    var rate=wkIn>=1.8?(start-now)/wkIn:null,need=gap>0?gap/wl:0,proj=rate!==null?now-rate*wl:null;
+    var st=gap<=0?'there':(rate===null?'early':(proj<=x.goal?'on':(rate>=need*0.6?'close':'build')));
+    return {dm:x.dm,goal:x.goal,on:x.on,now:now,gap:gap,weeks:wl,rate:rate,need:need,proj:proj,st:st};});
+}
+/* Dan, 16 Oct: the week's review lands on Sunday at 8 pm */
+function reviewReady(){var t=today();return t>=CFG.camp.start&&t<=CFG.camp.end&&dow(t)===0&&new Date().getHours()>=20;}
 function campReviewHTML(ws){
   var o=campWeekReview(ws),C=CFG.camp;
   var good=[],next=[];
@@ -4191,7 +4219,7 @@ function campReviewHTML(ws){
   var gained=o.goals.filter(function(g){return g.gain>0.05;});
   if(gained.length)good.push('Fitter: '+gained.map(function(g){return repLabel(g.dm)+' '+(g.gain>=1?Math.round(g.gain)+' s':g.gain.toFixed(1)+' s')+' quicker';}).join(', ')+'.');
   if(o.hard.length)good.push(o.hard.length+' quality session'+(o.hard.length===1?'':'s')+': '+o.hard.join(' · '));
-  if(o.five)good.push(o.five+' easy 5-miler'+(o.five===1?'':'s')+(o.easy5k?' + '+o.easy5k+' easy 5 km':''));
+  if(o.five||o.easy5k)good.push([o.five?o.five+' easy 5-miler'+(o.five===1?'':'s'):'',o.easy5k?o.easy5k+' easy 5 km':''].filter(Boolean).join(' + ')+(o.spr?' · ⛰️ hill sprints':''));
   if(o.gym)good.push(o.gym+' gym session'+(o.gym===1?'':'s')+(o.pr?', 💪 beat last time '+o.pr+'×':''));
   if(o.slAvg!==null&&o.slAvg>=CFG.sleep.line)good.push('Sleep averaged '+hm(o.slAvg*60)+'.');
   if(o.sat)good.push('🧘 A stress-free Saturday.');
@@ -4200,7 +4228,7 @@ function campReviewHTML(ws){
   /* on track? */
   var wT={on:['✅','Weight: on track'],close:['🟡','Weight: nearly on track'],behind:['🟠','Weight: a little behind'],there:['💎','Weight: in the 122–123 zone'],first:['·','Weight: first reading of the camp']}[o.wTrack]||['·','Weight: not enough mornings yet'];
   var wLine=o.w1===null?'':(wT[0]+' <b>'+wT[1]+'</b> — '+(S.settings.hideDaily?'':f1(o.w1)+' lb average')+(o.lost!==null?', '+(o.lost>=0?'−':'+')+f1(Math.abs(o.lost))+' lb this week':'')+(o.need&&o.wTrack!=='there'?' · about '+f1(o.need)+' lb a week gets you to 123 by 28 Nov':''));
-  if(o.dips.length)next.push('Times: '+o.dips.map(function(x){return x.label+' dipped ('+x.why+')';}).join('; ')+' — so two easy runs, not three, until they are back. That is the week shape your bests came from.');
+  if(o.dips.length)next.push('Times: '+o.dips.map(function(x){return x.label+' dipped — '+x.why;}).join('; ')+' — so two easy runs, not three, until they are back. That is the week shape your bests came from.');
   if(o.wTrack==='behind')next.push('Weight: keep steps up on rest days — walking is the lever that costs your running nothing. Food stays the same.');
   if(o.slAvg!==null&&o.slAvg<CFG.sleep.line)next.push('Sleep: '+hm(o.slAvg*60)+' a night — bed 30 min earlier, phone out. It is the cheapest speed there is.');
   if(o.hard.length<2&&diffD(o.ws,today())>=6)next.push('Quality: '+o.hard.length+' this week — fine if recovery asked for it; otherwise next week’s two are the priority.');
@@ -4209,12 +4237,26 @@ function campReviewHTML(ws){
       ' <span class="tiny">'+(g.gap<=0?'💎 there':(Math.round(g.gap*10)/10)+' s to go')+(g.gain>0.05?' · '+(Math.round(g.gain*10)/10)+' s closer this week':'')+'</span>'+
       '<div style="height:6px;background:var(--rule-2);border-radius:3px;margin-top:2px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--accent)"></div></div></div>';}).join('');
   var verdict=(o.bests.length||gained.length)?'🚀 Improving':'➡️ Holding steady';
+  var gains=reviewGains(o),tl=reviewTimeline(o);
+  var gainsHTML=gains.length?'<h3 style="margin:10px 0 2px">What this week likely built</h3>'+gains.map(function(x){return '<div style="margin:5px 0"><b>'+x[0]+' '+x[1]+'</b> <span class="pill">'+x[3]+'</span><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join(''):'';
+  var stTxt={there:'💎 there already',early:'📈 first projection after week 2',on:'✅ on pace',close:'🟡 close — the December refuel can bridge it',build:'🔨 needs more — the plan builds towards it'};
+  var tlHTML='<h3 style="margin:10px 0 2px">Your timeline</h3>'+tl.map(function(x){
+    return '<div style="margin:5px 0"><b>'+repLabel(x.dm)+' sub-'+(x.goal>=60?mmss(x.goal):x.goal)+'</b> <span class="tiny">· attempt '+fmtS(x.on)+' · '+Math.round(x.weeks)+' weeks</span><div class="tiny" style="margin-left:2px">'+
+      stTxt[x.st]+(x.gap>0?' · '+(Math.round(x.gap*10)/10)+' s to find, about '+(Math.round(x.need*10)/10)+' s a week':'')+
+      (x.proj!==null&&x.gap>0?' · current trend: about '+(Math.round(x.rate*10)/10)+' s a week, projecting '+secFmt(Math.round(x.proj))+' on the day':'')+'</div></div>';}).join('')+
+    '<p class="tiny dim" style="margin-top:4px">Projections are the trend so far, not a promise. The taper and extra food before the December attempts usually add a further couple of per cent on the day — not counted here.</p>';
+  /* focus: what matters most next week — never which sessions (they are revealed on Monday) */
+  var focus=next.slice(0,2);
+  if(!o.dips.length&&o.hard.length>=2)focus.push('Quality: arrive at both hard runs on a 🟢 day, with carbs 2–3 h before. Even reps beat a fast first one.');
+  if(!focus.length)focus.push('Same again — the week worked. Keep the easy days genuinely easy.');
   return '<div class="p lift"><h2>🏁 Camp week · '+fmtS(o.ws)+'–'+fmtS(o.we)+'</h2>'+
     '<p class="lede" style="margin:0 0 6px"><b>'+verdict+'</b>'+(o.wTrack?' · '+wT[0]+' '+wT[1].replace('Weight: ','weight ')+'':'')+'</p>'+
     (good.length?'<h3 style="margin:8px 0 2px">What went well</h3>'+good.map(function(x){return '<p style="margin:3px 0"><span class="pill g">✓</span> '+x+'</p>';}).join(''):'')+
+    gainsHTML+
     '<h3 style="margin:10px 0 2px">Goals — how far, how much closer</h3>'+goalRows+
+    tlHTML+
     (wLine?'<p style="margin:8px 0 0">'+wLine+'</p>':'')+
-    '<h3 style="margin:10px 0 2px">For next week</h3>'+(next.length?next.map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:3px 0"><b>Nothing to change — the plan carries on.</b></p>')+
+    '<h3 style="margin:10px 0 2px">Focus next week</h3>'+focus.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+
     '<p class="tiny dim" style="margin-top:6px">Fitness is read from your bests as they stood each day, so “closer” is real. The goals bars run from where the camp started to the goal.</p></div>';
 }
 function campGameHTML(){
@@ -4260,7 +4302,9 @@ function campHTML(){
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+
-    (mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
+    (reviewReady()?'<details open style="margin:10px 0"><summary><b>📋 This week’s review — ready</b></summary>'+campReviewHTML(mondayOf(today()))+'</details>':
+      ((mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
+       (today()>=CFG.camp.start?'<p class="tiny dim" style="margin:6px 0">📋 This week’s review: ready Sunday at 8 pm.</p>':'')))+
     (ph.w?'<p class="lede" style="margin:0 0 8px"><b>'+ph.n+':</b> '+ph.w+'</p>':'<p class="lede" style="margin:0 0 8px">'+ph.n+'.</p>')+
     (function(){var f=function(d){var x=fitnessEst(d);return x?secFmt(Math.round(x*10)/10):'—';};
       return '<p class="tiny keep" style="margin:0 0 6px"><b>Your fitness right now</b> (from your bests, moves as you do): 400 '+f(400)+' · 800 '+f(800)+' · 1 km '+f(1000)+' · mile '+f(1609)+' · 5 km '+f(5000)+' · easy '+easyPaceTxt()+' a km · threshold '+thrPaceTxt()+' a km.</p>';})()+
