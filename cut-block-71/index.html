@@ -4265,6 +4265,37 @@ function reviewTimeline(o){
     var st=gap<=0?'there':(rate===null?'early':(proj<=x.goal?'on':(rate>=need*0.6?'close':'build')));
     return {dm:x.dm,goal:x.goal,on:x.on,now:now,gap:gap,weeks:wl,rate:rate,need:need,proj:proj,st:st};});
 }
+/* ===================== muscle max (Dan, 18 Oct) =====================
+   "I'm eating 100 more — I want that to go to muscle. Max my muscles this
+   camp." What actually decides it on a small deficit, in order: hard sets
+   near failure in the right range, beating last time, protein spread across
+   the day with a slow one before bed, carbs around the session, sleep, and
+   keeping the running from stepping on the lifting. */
+var MUSCLE_RULES=[
+  ['🎯','Sets in range, near failure','Main lifts 6–12 reps, stopping 1–2 reps short; the last set of an isolation move can go to failure. Inside the range builds; past it on a cut only costs recovery.'],
+  ['📈','Beat last time, every session','One more rep or a little more weight on one main lift. That is the signal that builds muscle in a deficit — tick 💪 when you do.'],
+  ['🥩','Protein: 4 feeds of 30–40 g','Breakfast, lunch, tea and the evening bowl. About 135 g a day — 2.3 g per kg, the top of what the research supports on a cut.'],
+  ['🌙','The evening yoghurt bowl stays — it is perfect','Greek yoghurt is mostly casein, the slow protein that feeds muscle through the night.'],
+  ['🍌','The extra 100 kcal goes after the gym','Carbs plus protein within a couple of hours of lifting — a banana with your yoghurt, or extra potatoes with tea. Same day total, aimed at the muscle.'],
+  ['⏱️','Run first, lift later','On a day with both, run in the morning and lift 6 h or more later where you can — the muscle signal stays cleaner. Easy runs barely interfere.'],
+  ['🦵','Legs short','6–10 hard sets. Your running already loads your legs heavily; the extra sets past that only add swelling and slow the hard runs.'],
+  ['😴','8 h or more','Muscle is built while you sleep, and short nights raise cortisol, which works against it.']];
+function muscleMaxHTML(){
+  var t=today();if(t<CFG.camp.start||t>CFG.camp.end)return '';
+  var ws=weekSets(t),pr=0,gy=0;
+  for(var i=0;i<7;i++){var d=addD(mondayOf(t),i);if(d>t)break;var r=S.days[d]||{};if(r.gym)gy++;if(r.gym&&r.pr)pr++;}
+  var rows=CFG.sets.map(function(x){var rg=setsRange(x.m),v=ws[x.m]||0,st=v<rg[0]?'under':(v>rg[1]?'over':'in');
+    var pct=Math.min(100,Math.round(v/rg[1]*100));
+    return '<div style="margin:4px 0"><div class="row" style="gap:6px;align-items:baseline"><b style="min-width:84px">'+(MUSCLE_E[x.m]||'')+' '+x.m+'</b><span class="mono">'+v+'</span><span class="tiny dim">of '+rg[0]+'–'+rg[1]+'</span>'+
+      '<span class="tiny" style="margin-left:auto">'+(st==='in'?'✅ in range':(st==='under'?'↑ '+(rg[0]-v)+' to go':'⚠ over — no more this week'))+'</span></div>'+
+      '<div style="height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(st==='over'?'var(--warn)':'var(--accent)')+'"></div></div></div>';}).join('');
+  return '<div class="p"><h2>💪 Muscle max</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">The extra 100 calories are for muscle. This is what makes them land there.</p>'+
+    '<div class="row" style="gap:12px;margin:0 0 6px"><span><b>'+gy+'</b> <span class="tiny">gym sessions</span></span><span><b>'+pr+'</b> <span class="tiny">× beat last time</span></span></div>'+
+    rows+
+    '<details style="margin-top:8px"><summary><b>The rules that build muscle on a cut</b></summary>'+
+    MUSCLE_RULES.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details></div>';
+}
 /* Dan, 16 Oct: the week's review lands on Sunday at 8 pm */
 function reviewReady(){var t=today();return t>=CFG.camp.start&&t<=CFG.camp.end&&dow(t)===0&&new Date().getHours()>=20;}
 function campReviewHTML(ws){
@@ -4356,7 +4387,7 @@ function campHTML(){
   var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
-    celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+
+    celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+muscleMaxHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+
     (reviewReady()?'<details open style="margin:10px 0"><summary><b>📋 This week’s review — ready</b></summary>'+campReviewHTML(mondayOf(today()))+'</details>':
       ((mondayOf(today())>mondayOf(CFG.camp.start)?'<details style="margin:10px 0"><summary><b>📋 Last week’s review</b></summary>'+campReviewHTML(addD(mondayOf(today()),-7))+'</details>':'')+
        (today()>=CFG.camp.start?'<p class="tiny dim" style="margin:6px 0">📋 This week’s review: ready Sunday at 8 pm.</p>':'')))+

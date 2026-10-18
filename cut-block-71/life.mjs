@@ -644,6 +644,16 @@ AW = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s
 ok('then the staple week: 4 × 1 km and 5 × 400, with last time to beat', AW.l === '4 × 1 km' && AW.s === '5 × 400 m' && AW.left.some(n => /^4 × 1 km — last time 3:21 a rep \(4 × 1 km\)/.test(n)), JSON.stringify(AW));
 await ctx.close();
 
+// ===== muscle max on the camp tab (18 Oct) =====
+({ ctx, p, boot } = await at('2026-10-18'));
+await boot(st({ days: { '2026-10-12': { gym: true, split: 'legs', sets: { Legs: 22 } }, '2026-10-13': { gym: true, split: 'delts', sets: { Shoulders: 12 } },
+  '2026-10-14': { gym: true, split: 'back', sets: { Back: 14, Biceps: 8 }, pr: true } } }));
+await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
+const MM = await p.evaluate(() => E('campCard').textContent);
+ok('the camp tab has Muscle max: sets per muscle against range, over and under named', /💪 Muscle max/.test(MM) && /The extra 100 calories are for muscle/.test(MM) && /⚠ over — no more this week/.test(MM) && /✅ in range/.test(MM) && /to go/.test(MM), MM.slice(MM.indexOf('Muscle max'), MM.indexOf('Muscle max') + 500));
+ok('with the rules: near failure, beat last time, 4 protein feeds, the evening bowl, the extra 100 after the gym', /Beat last time, every session/.test(MM) && /Protein: 4 feeds of 30–40 g/.test(MM) && /evening yoghurt bowl stays/.test(MM) && /extra 100 kcal goes after the gym/.test(MM) && /1 × beat last time|1× beat last time/.test(MM.replace(/\s+/g, ' ')));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
