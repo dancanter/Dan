@@ -654,6 +654,12 @@ ok('the camp tab has Muscle max: sets per muscle against range, over and under n
 ok('with the rules: near failure, beat last time, 4 protein feeds, the evening bowl, the extra 100 after the gym', /Beat last time, every session/.test(MM) && /Protein: 4 feeds of 30–40 g/.test(MM) && /evening yoghurt bowl stays/.test(MM) && /extra 100 kcal goes after the gym/.test(MM) && /1 × beat last time|1× beat last time/.test(MM.replace(/\s+/g, ' ')));
 await ctx.close();
 
+// ===== 1,899 every day from 18 Oct (his call) =====
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({}));
+ok('from 18 Oct every day is 1,899 — gym-only, reset and light days too, to the end of the cut', await p.evaluate(() => dayTarget('2026-10-20') === 1899 && dayTarget('2026-10-22') === 1899 && dayTarget('2026-11-28') === 1899 && dayTarget('2026-10-15') === 1799));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

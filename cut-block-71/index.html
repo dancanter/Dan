@@ -955,7 +955,11 @@ var KCAL_FREE=KCAL_DAY-CFG.kcal.milk-CFG.kcal.bowl;
 var KCAL_LIGHTUP=KCAL_DAY+100;
 var KCAL_UP=CFG.kcal.up;
 /* an up day: Saturday, or a hard run or the five-miler logged on it */
+/* Dan, 18 Oct: 1,899 every day from here to the end of the cut — he feels
+   better on it, and the extra goes to muscle (see Muscle max). */
+var ALL_UP_FROM='2026-10-18';
 function upDay(is){
+  if(is>=ALL_UP_FROM&&is<=CFG.cutEnd)return true;
   if(dow(is)===6)return true;
   var rs=(S.days[is]||{}).runs||[];
   for(var i=0;i<rs.length;i++){var m=runMeta(rs[i]);if(m.empty)continue;if(m.hard||isFiveMiler(m))return true;}
