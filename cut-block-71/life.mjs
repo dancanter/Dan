@@ -699,6 +699,14 @@ await boot(st({ weights: wAt('2026-11-16', i => 126 + i * 0.01) }));
 ok('from 15 Nov, projecting well above 123: a calm choice, start anyway or cut a little longer', await p.evaluate(() => { const r = revWatch(); return r && r.k === 'decide' && /start the reverse on 29 Nov anyway/.test(r.w) && /move the PB window back/.test(r.w); }));
 await ctx.close();
 
+// ===== the run ceiling: 4 a week, sprints on top (18 Oct) =====
+({ ctx, p, boot } = await at('2026-10-25'));
+const r8 = { km: 5, secs: 1500, type: 'easy' };
+await boot(st({ days: { '2026-10-19': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 178 }] }, '2026-10-20': { runs: [{ km: 8, secs: 1980, type: 'fun' }] }, '2026-10-22': { runs: [{ k: 'reps', dm: 400, n: 1, secs: 59 }] },
+  '2026-10-23': { runs: [r8] }, '2026-10-25': { runs: [{ k: 'reps', dm: 100, n: 8, up: true }, r8] } } }));
+ok('a full week (4 runs + a 5th across the boundary, sprints on top) is not flagged as too much running', await p.evaluate(() => { const w = weekStatus(); return !w || w.t !== 'That’s a lot of running on a deficit'; }));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

@@ -3582,7 +3582,7 @@ function weekStatus(){
   for(i=0;i<7;i++){
     d=addD(t,-i);rec=S.days[d]||{};
     var hardHere=false,anyRun=false;
-    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;anyRun=true;runs7++;if(m.hard){hardRuns++;hardHere=true;}});
+    (rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty)return;anyRun=true;if(!m.sprint)runs7++;if(m.hard){hardRuns++;hardHere=true;}});
     if(i<3){if(rec.split==='legs')legsLoad++;if(hardHere)legsLoad++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(m.sprint&&!m.empty)legsLoad++;});}
     if(i<3&&typeof rec.sleep==='number')sl.push(rec.sleep);
     if(typeof rec.study==='number')study+=rec.study;
@@ -3600,7 +3600,10 @@ function weekStatus(){
      however easy they felt — that is how a cut starts ageing you */
   /* in camp the week is five runs, and a rolling 7 days can hold six of them
      without anything being wrong (Sunday + Mon–Fri) — the flag is for more */
-  var runCap=(t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs+2:6;
+  /* Dan, 18 Oct: the most is 4 runs a week (2 hard, the fun run, the
+     optional easy 5 km); sprints ride on top and never count. A rolling 7
+     days can hold 5 across a week boundary, so the flag is for 6. */
+  var runCap=6;
   if(runs7>=runCap)return {k:'rest',t:'That’s a lot of running on a deficit',w:runs7+' runs in 7 days. The plan is '+((t>=CFG.camp.start&&t<=CFG.camp.end)?CFG.camp.tmpl.runs:4)+'. Next day off running — walk instead — and the fat keeps coming off without the extra stress.'};
   if(trainedRun>=((t>=CFG.camp.start&&t<=CFG.camp.end)?7:6))return start===1
     ? {k:'good',t:'Rest day today — well timed',w:'You had '+trainedRun+' days in a row with a session before it, so keep today fully off. The next hard session will be better for it.'}
