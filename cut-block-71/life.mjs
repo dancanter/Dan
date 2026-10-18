@@ -532,7 +532,8 @@ ok('the day after a hard run: easy only, with the reason', /🟡\s*Easy only tod
 await boot(st({ days: { '2026-10-14': { sleep: 6.8 }, '2026-10-15': { sleep: 6.9 } } }));
 ok('two short nights: walk or easy only', /Walk or easy only today/.test(await p.evaluate(() => E('glanceCard').textContent)), await p.evaluate(() => JSON.stringify(greenLight())));
 await boot(st({ days: { '2026-10-13': { sleep: 6.1 }, '2026-10-14': { sleep: 6.2 }, '2026-10-15': { sleep: 6.0 } } }));
-ok('properly short on sleep: the coach’s rest call turns it red', /🔴\s*Rest today/.test(await p.evaluate(() => E('glanceCard').textContent)));
+const RD = await p.evaluate(() => E('glanceCard').textContent);
+ok('properly short on sleep: the coach’s call turns it red — a recovery day, with why and what to do', /🔴\s*Recovery day today/.test(RD) && /What to do today/.test(RD) && /No run, no gym, no deep study/.test(RD) && /gentle walk, 30–60 min/.test(RD) && /Eat normally — 1,899/.test(RD) && /Early night/.test(RD), RD.slice(0, 500));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-17'));
 await boot(st({}));

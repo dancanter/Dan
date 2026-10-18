@@ -3749,7 +3749,9 @@ function greenLight(){
   var sl=typeof r.sleep==='number'?r.sleep:null,sly=typeof y.sleep==='number'?y.sleep:null;
   var facts=[];if(sl!==null)facts.push(hm(sl*60)+' sleep');if(typeof r.rhr==='number')facts.push('resting HR '+r.rhr);
   if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
-  if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:'Rest today',w:C.rest.t+'. '+(C.rest.w||'')};
+  /* Dan, 18 Oct: when the signs or the load say recover, say so — and say
+     exactly what to do with the day */
+  if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:C.rest.k==='week'?'Easy week — recovery first':'Recovery day today',sub:C.rest.t,w:(C.rest.w||''),todo:RECOVERY_DAY};
   if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
     w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night. ☕ One coffee, with breakfast, before 11.'};
   if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'};
@@ -3769,6 +3771,14 @@ function greenLight(){
   if(easyLeft)return {c:'green',e:'🟢',t:funLeft?'Good to go — fun fast run':'Good to go — easy run',sub:funLeft?'Fun fast run — '+funPick().n:'An easy 5-miler',w:'The hard runs are done this week. '+(facts.length?facts.join(', ')+'.':'')};
   return {c:'green',e:'🟢',t:'All clear',sub:G?'This week’s runs are done — walk, gym or rest':'',w:facts.join(', ')};
 }
+var RECOVERY_DAY=[
+  ['🚫','No run, no gym, no deep study','The whole point is a day with no training stress. Light reading or admin is fine.'],
+  ['🚶','A gentle walk, 30–60 min','Outside, in daylight. It moves fluid and speeds recovery without adding load.'],
+  ['🤸','Mobility or foam rolling, 10–15 min','Calves, hips, quads, upper back — slow and easy.'],
+  ['🌬️','Slow breathing, 5 min','In 4, out 6. Brings the stress system down.'],
+  ['🍽️','Eat normally — 1,899, carbs at 200 g or more','A recovery day is not a day to eat less: carbs refill your legs, protein rebuilds them.'],
+  ['💧','Water steady, potassium foods','Potatoes, kiwis, a banana, yoghurt.'],
+  ['😴','Early night — 8.5 h or more','Most of the recovery happens tonight.']];
 function greenLightHTML(){
   var L=greenLight();if(!L)return '';
   var cls={green:'good',amber:'warn',red:'bad',done:'lift',sat:'lift',reset:'good'}[L.c];
@@ -3776,7 +3786,9 @@ function greenLightHTML(){
     '<div class="tiny dim" style="letter-spacing:.06em">TODAY’S CALL</div>'+
     '<div style="display:flex;gap:10px;align-items:center;margin-top:2px"><span style="font-size:30px;line-height:1">'+L.e+'</span>'+
     '<div><div style="font-weight:800;font-size:1.15em">'+esc(L.t)+'</div>'+(L.sub?'<div><b>'+esc(L.sub)+'</b></div>':'')+'</div></div>'+
-    (L.w?'<div class="note" style="margin-top:6px">'+esc(L.w)+'</div>':'')+(L.c==='reset'?resetGuideHTML(false):'')+'</div>';
+    (L.w?'<div class="note" style="margin-top:6px">'+esc(L.w)+'</div>':'')+
+    (L.todo?'<div style="margin-top:6px"><b>What to do today</b>'+L.todo.map(function(x){return '<div style="margin:4px 0">'+x[0]+' <b>'+x[1]+'</b> <span class="tiny">— '+x[2]+'</span></div>';}).join('')+'</div>':'')+
+    (L.c==='reset'?resetGuideHTML(false):'')+'</div>';
 }
 function glanceHTML(){
   var t=today(),r=S.days[t]||{},A=avgWindow(t,7),tr=trainingModel(),w=tr.week;
