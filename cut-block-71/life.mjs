@@ -683,6 +683,22 @@ ok('the review never says behind: steady, usually water, a relaxed date for 123'
 ok('three flat weeks suggest a daily walk, food the same', /flat for three weeks — add a daily walk. Food stays the same/.test(WL));
 await ctx.close();
 
+// ===== reverse watch: the weight decides (18 Oct) =====
+const wAt = (end, v) => { const o = {}; for (let i = 0; i < 28; i++) { const d = new Date(Date.UTC(+end.slice(0, 4), +end.slice(5, 7) - 1, +end.slice(8, 10) - i)).toISOString().slice(0, 10); o[d] = typeof v === 'function' ? v(i) : v; } o['2026-09-19'] = 128.4; return o; };
+({ ctx, p, boot } = await at('2026-11-04'));
+await boot(st({ weights: wAt('2026-11-04', 122.8) }));
+let RWa = await p.evaluate(() => ({ rw: revWatch(), g: E('glanceCard').textContent }));
+ok('at 122–123 early: goal weight, the reverse can start next Monday — on Today too', RWa.rw && RWa.rw.k === 'goal' && /start the reverse from Monday 9 Nov/.test(RWa.rw.w) && /Goal weight — the reverse can start/.test(RWa.g), JSON.stringify(RWa.rw));
+await boot(st({ weights: wAt('2026-11-04', 121.5) }));
+ok('under 122: start the reverse now', await p.evaluate(() => revWatch().k === 'below'));
+await boot(st({ weights: wAt('2026-11-04', 126) }));
+ok('above range before 15 Nov: nothing to call', await p.evaluate(() => revWatch() === null));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-16'));
+await boot(st({ weights: wAt('2026-11-16', i => 126 + i * 0.01) }));
+ok('from 15 Nov, projecting well above 123: a calm choice, start anyway or cut a little longer', await p.evaluate(() => { const r = revWatch(); return r && r.k === 'decide' && /start the reverse on 29 Nov anyway/.test(r.w) && /move the PB window back/.test(r.w); }));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

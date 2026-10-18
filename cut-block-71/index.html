@@ -3807,6 +3807,7 @@ function glanceHTML(){
       var calls=[];
       if(['day','days','week','on'].indexOf(C.rest.k)>=0)calls.push('🛌 '+C.rest.t);
       if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
+      var RW=revWatch();if(RW)calls.push(RW.e+' '+RW.t);
       return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
@@ -4188,9 +4189,28 @@ function campGame(){
   if(walkSwap&&q.five<(M?M.easyTarget:T.easy))changes.push({e:'🚶',t:'Next easy run → a brisk walk',why:walkWhy});
   return {changes:changes,xp:xp,lv:lv,nx:nx,quests:quests,bosses:bosses,left:left,warn:warn,spr:spr,shred:shred,setWeeks:setWeeks,day:Math.max(0,diffD(C.start,t)+1),days:diffD(C.start,C.end)+1};
 }
+/* ===================== reverse watch (Dan, 18 Oct) =====================
+   "You know when my reverse hits — when I'm on my goal weight." The reverse
+   is planned for 29 Nov, but the weight decides: at 122–123 on the 7-day
+   average it is time (from the next Monday); under 122 it is overdue; and
+   from 15 Nov, if 28 Nov is projecting well above 123, it is a calm choice
+   between starting anyway and cutting a little longer. Dates move when he
+   says go — I set them up. */
+var REV_DECIDE='2026-11-15';
+function revWatch(){
+  var t=today();if(t<CFG.cutStart||t>=REV_START)return null;
+  var a=avgWindow(t,7).avg,G=CFG.goals;if(a===null)return null;
+  var nm=addD(mondayOf(t),7);
+  if(a<G.weightLo-0.2)return {k:'below',e:'🛑',t:'Under your range — start the reverse now',w:'Your 7-day average is '+f1(a)+' lb, below 122. Going lower costs muscle, hormones and the face you are after. Say “start the reverse” and I set it up from tomorrow.'};
+  if(a<=G.weightHi)return {k:'goal',e:'🎯',t:'Goal weight — the reverse can start',w:'Your 7-day average is '+f1(a)+' lb, in the 122–123 zone. My call: start the reverse from Monday '+fmtS(nm)+' rather than waiting for '+fmtS(REV_START)+'. Say “start the reverse” and I set it up — the camp carries on, on more food.'};
+  if(t>=REV_DECIDE){var a3=avgWindow(addD(t,-21),7).avg,rate=a3!==null?Math.max(0,(a3-a)/3):0,proj=a-rate*diffD(t,CFG.cutEnd)/7;
+    if(proj>G.weightHi+0.5)return {k:'decide',e:'🗓️',t:'Reverse: a choice to make',w:'At your pace you land around '+f1(proj)+' lb on '+fmtS(CFG.cutEnd)+'. Two good options: start the reverse on '+fmtS(REV_START)+' anyway — best for the December PB window — or keep cutting a week or two at 1,899 and I move the PB window back. No wrong answer; tell me which.'};}
+  return null;
+}
 function campCallHTML(){
   if(today()<CFG.cutStart)return '';
-  var CM=coachModel(),out='';
+  var CM=coachModel(),out='',RW=revWatch();
+  if(RW)out+='<div class="p '+(RW.k==='below'?'warn':'flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+RW.e+' '+RW.t+'.</b><div class="tiny" style="margin-top:4px">'+RW.w+'</div></div>';
   if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 I’m calling it: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
   if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
   return out;
