@@ -322,7 +322,7 @@ await boot(st({ days: {
 const G = await p.evaluate(() => campGame());
 ok('XP adds up from the sessions, sleep and phone-free nights', G.xp === (20 + 20 + 10 + 5) + (30 + 20 + 10) + (20 + 20), JSON.stringify({ xp: G.xp }));
 ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day === 4, JSON.stringify({ lv: G.lv, d: G.day }));
-ok('quests count the week: hard 1/2, fun fast run 0/1 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.slice(0, 3).map(q => q[2] + '/' + q[3])) === '["1/2","0/1","3/4"]', JSON.stringify(G.quests));
+ok('quests count the week: hard 1/2, fun fast run 0/1 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.filter(q => /^(Hard runs|Fun fast run|Gym)$/.test(q[1])).map(q => q[2] + '/' + q[3])) === '["1/2","0/1","3/4"]', JSON.stringify(G.quests));
 ok('the runs left are listed, never a day: one hard (6 × 200 m) with how to run it; two easy runs already fill the easy slots', G.left.filter(x => x.e === '⚡').length === 1 && /6 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 0, JSON.stringify(G.left));
 ok('seven bosses (200 added), none beaten yet', G.bosses.length === 7 && G.bosses.every(b => !b.won));
 ok('the goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00 800, sub-55 400', await p.evaluate(() => { const g = {}; CFG.camp.pb.forEach(x => g[x.dm] = x.goal); return g[5000] === 1020 && g[1609] === 290 && g[1000] === 165 && g[800] === 120 && g[400] === 55 && g[600] && g[200]; }));
@@ -344,7 +344,8 @@ await ctx.close();
 const wts = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 14 - i)).toISOString().slice(0, 10); wts[d] = i < 4 ? 126.9 : 127.6; }
 await boot(st({ weights: wts, days: { '2026-10-12': { gym: true, pr: true, split: 'back', sets: { Back: 14, Biceps: 8 } }, '2026-10-13': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }] } } }));
 let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, left: g.left.map(x => x.n), q: g.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), shred: g.shred, xp: g.xp }; });
-ok('a clear build week turns uphill sprints ON, on the end of an easy run or a walk', G2.spr.on && G2.left.some(n => /^Uphill sprints: \d+ × ~10 s, on the end of an easy run or a walk/.test(n)), JSON.stringify(G2.spr));
+ok('sprints have their own quest when they are on', G2.q.some(x => /^Hill sprints, explosive 0\/1$/.test(x)), JSON.stringify(G2.q));
+ok('a clear build week turns uphill sprints ON, on the end of an easy run or a walk', G2.spr.on && G2.left.some(n => /^Hill sprints — explosive: \d+ × ~10 s, after a short easy jog or a walk/.test(n)), JSON.stringify(G2.spr));
 ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'), JSON.stringify(G2.q));
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);

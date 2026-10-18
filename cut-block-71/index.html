@@ -4150,6 +4150,8 @@ function campGame(){
   var sprOn=!!(M&&ph.k==='build'&&!M.P.tt&&stOk&&!sleepShort&&RH.state!=='up'&&RH.state!=='high'&&!NGs.n);
   var sprWhy=!M?'':(M.P.tt?'test week — save the legs for the trials':(!stOk?'recovery comes first this week':(sleepShort?'two short nights — not this week':((RH.state==='up'||RH.state==='high')?'resting HR is up — not this week':(NGs.n?'something has hurt — not this week':(ph.k!=='build'?'not in this phase':''))))));
   var spr={on:sprOn,done:q.spr>0,n:M?M.P.spr:0,why:sprWhy};
+  /* Dan, 18 Oct: "they don't really count, but kinda do" — a quest of their own when they are on */
+  if(sprOn||q.spr)quests.splice(2,0,['⛰️','Hill sprints, explosive',Math.min(q.spr,1),1]);
   var sprHow='Find a steady hill. Sprint up hard for about 10 s, tall and powerful, then walk all the way down. Stop the moment one feels slower. Top-end speed and leg power for very little cost.';
   /* Dan, 10 Oct: whether an easy run should be a walk is my call too. When
      recovery is strained — legs or rest flagged, resting HR up, two short
@@ -4170,7 +4172,7 @@ function campGame(){
      one — they ride on the end of an easy 5-miler, so they live on that line. */
   if(sprOn&&!q.spr){var hostE=easyL.length?easyL[easyL.length-1]:null;
     if(hostE&&!/strides/.test(hostE.n)&&hostE.e==='🏃'){hostE.n='Easy 5 miles + ⛰️ '+spr.n+' uphill sprints (~10 s) at the end';hostE.how=runHow('easy')+' Then the sprints: '+sprHow;}
-    else left.push({e:'⛰️',n:'Uphill sprints: '+spr.n+' × ~10 s, on the end of an easy run or a walk — not a run of their own',how:sprHow});}
+    else left.push({e:'⛰️',n:'Hill sprints — explosive: '+spr.n+' × ~10 s, after a short easy jog or a walk (a short session, not a full run)',how:sprHow});}
   left=left.concat(easyL);
   if(!q.reset&&!(dow(t)===0))left.push({e:'🌿',n:'Reset day — one light day, calm-system focus (tick 🌿 on Today)',how:resetHow()});
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
