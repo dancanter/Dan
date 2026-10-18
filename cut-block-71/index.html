@@ -3155,12 +3155,17 @@ var CAMP_SESS={
         {n:'3 × 1 mile at 5 km pace',ld:[1609],lp:[5000,1609],feeds:[5000]},
         {n:'6 × 800 m at 5 km pace',ld:[800],lp:[5000,800],feeds:[5000]},
         {n:'4 × 800 m at mile pace',ld:[800],lp:[1609,800],feeds:[1609,800]},
-        {n:'10 × 400 m at mile pace',ld:[400],lp:[1609,400],feeds:[1609]}],
+        {n:'10 × 400 m at mile pace',ld:[400],lp:[1609,400],feeds:[1609]},
+        {n:'3 × 1 km, the last one all out',ld:[1000],feeds:[1000,1609]},
+        {n:'Ladder 800-600-400-200, twice',ld:[800],feeds:[800,1609]}],
   short:[{n:'5 × 400 m',sd:[400],feeds:[400,800],staple:true},
          {n:'5 × 300 m at 800 pace',sd:[300],sp:[800,300],feeds:[800]},
          {n:'3 × 600 m at 800 pace',sd:[600],sp:[800,600],feeds:[800]},
          {n:'4 × 400 m at 800 pace',sd:[400],sp:[800,400],feeds:[800,400]},
-         {n:'2 × (3 × 200 m) fast',sd:[200],sp:[400,200],feeds:[400]}]};
+         {n:'2 × (3 × 200 m) fast',sd:[200],sp:[400,200],feeds:[400]},
+         {n:'3 × 300 m + 2 × 200 m, hard',sd:[300],feeds:[400,800]},
+         {n:'5 × 600 m at 800 pace',sd:[600],sp:[800,600],feeds:[800]},
+         {n:'6 × 200 m uphill',sd:[200],feeds:[400],up:true}]};
 function gapPct(dm,asof){var g=null;CFG.camp.pb.forEach(function(x){if(x.dm===dm)g=x.goal;});return g?(fitnessAt(asof,dm)-g)/g:0;}
 function lastRepTxt(dm,before){
   for(var d=addD(before,-1);d>=addD(before,-120);d=addD(d,-1)){var hit=null;
@@ -3998,19 +4003,34 @@ function runHow(x){
   if(x==='easy')return 'Chatty the whole way, about '+easyPaceTxt()+' a km for you right now — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
   if(/^Time trial/.test(x))return 'Calm, dry day. 15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy. Coffee 45–60 min before if before 2pm. Even pace (400: first 200 a touch quicker); finish strongest.';
   if(/at (mile|5 km|800) pace/.test(x))return '15 min easy, drills, 4 strides. Lock into the pace in the guide — every rep the same, relaxed and controlled, never faster than the range. Recover until ready. Stop if you cannot hold the pace.';
-  if(/^Fun fast run/.test(x))return funPick().how+' Fast but fun — 6–7 out of 10, finishing like you could do more. Not the day before a hard run. Log it as a fun run.';
+  if(/^Fun fast run/.test(x)){var fp=funPick();return fp.how+(fp.why?' Picked: '+fp.why+'.':'')+' Fast but fun — 6–7 out of 10, finishing like you could do more. Not the day before a hard run. Log it as a fun run.';}
   if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — about '+thrPaceTxt()+' a km for you right now, and you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
   var m=/(\d+) × (\d+) ?(k?m)/.exec(x),d=m?(+m[2])*(m[3]==='km'?1000:1):0;
   if(d>=600)return '15 min easy, drills, 4 strides. Run every rep inside the guide time, the first one controlled. Recover walking or jogging until your breathing settles. About 8 out of 10. Stop if a rep comes in clearly slower than the first two.';
   if(d>0)return '15 min easy, drills, 4 strides. Fast but relaxed — tall, loose shoulders. Walk back between reps until you feel ready. The last rep should match or beat the first; stop if one drops off.';
   return 'Warm up properly; effort over the watch.';
 }
-/* the fun fast run: three kinds in rotation, paced from his fitness */
-function funPick(d){var w=weekOf(d||today()),k=['fartlek','progression','steady'][w%3],p5=(fitnessEst(5000)||1085)/5;
-  var F={fartlek:{n:'Fartlek, 30 min',how:'10 min steady, then 8 × (1 min quick at about '+kmPace(p5*1.0)+'–'+kmPace(p5*1.05)+' a km, 1 min steady — keep running), 5 min easy. Playful, not a session.'},
-    progression:{n:'Progression 5 miles',how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.12)+'. Never faster than that — it should feel like you could keep going.'},
-    steady:{n:'Steady 5 km',how:'Comfortably quick all the way — about '+kmPace(p5*1.12)+'–'+kmPace(p5*1.20)+' a km, 6–7 out of 10. Your 2025 “easy” pace.'}};
-  return F[k];}
+/* the fun fast run (Dan, 18 Oct: "give the fun runs limitless"): a wide menu,
+   each one quick and playful but never a race, picked each week for the event
+   furthest from its goal and never last week's. Paced from his fitness. */
+function funMenu(){var p5=(fitnessEst(5000)||1085)/5,q=kmPace(p5*1.0)+'–'+kmPace(p5*1.05),st=kmPace(p5*1.12)+'–'+kmPace(p5*1.20);
+  return [
+  {k:'fartlek',n:'Fartlek, 30 min',feeds:[1609,5000],how:'10 min steady, then 8 × (1 min quick at about '+q+' a km, 1 min steady — keep running), 5 min easy.'},
+  {k:'progression',n:'Progression 5 miles',feeds:[5000],how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.12)+'. Never faster than that.'},
+  {k:'steady',n:'Steady 5 km',feeds:[5000,1609],how:'Comfortably quick the whole way — about '+st+' a km. Your 2025 “easy” pace.'},
+  {k:'mona',n:'Mona fartlek, 20 min',feeds:[1609,1000,800],how:'After a warm-up: 2 × 90 s, 4 × 60 s, 4 × 30 s, 4 × 15 s quick, each followed by the same time floating (steady, not walking). Quick bits at about '+q+' a km, the 15s quicker.'},
+  {k:'thirty',n:'30/30s, 12 rounds',feeds:[1000,800,1609],how:'Warm up 10 min, then 12 × (30 s quick, 30 s float). Quick at about mile pace, smooth and relaxed. 10 min easy after.'},
+  {k:'pyramid',n:'Pyramid fartlek 1-2-3-2-1',feeds:[1609,5000],how:'Warm up 10 min, then 1-2-3-2-1 minutes quick at about '+q+' a km, with half that time floating between. Cool down 5 min.'},
+  {k:'hills',n:'Rolling hills run, 35 min',feeds:[400,800,5000],how:'Somewhere with hills (the Lincoln Edge) — steady on the flat, push the climbs at about 7/10, float the descents.'},
+  {k:'strides',n:'Strides run, 6 km',feeds:[200,400,800],how:'6 km steady at about '+st+' a km, then 10 × 20 s strides — fast and loose, walk back. Speed without the fatigue.'},
+  {k:'negative',n:'Negative-split 5 km',feeds:[5000],how:'First 2.5 km at about '+kmPace(p5*1.20)+', second half at about '+kmPace(p5*1.10)+'. Finish feeling strong, never racing.'}];}
+function funKey(ws){var M=funMenu(),asof=addD(ws,-1),evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);}),w=weekOf(ws);
+  var c=M.filter(function(x){return x.feeds.indexOf(evs[0])>=0;});if(!c.length)c=M;return c[w%c.length].k;}
+function funPick(d){var ws=mondayOf(d||today()),M=funMenu(),last=funKey(addD(ws,-7)),asof=addD(ws,-1),w=weekOf(ws);
+  var evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);});
+  for(var k=0;k<evs.length;k++){var c=M.filter(function(x){return x.feeds.indexOf(evs[k])>=0&&x.k!==last;});
+    if(c.length){var x=c[w%c.length];x.why='aimed at your '+repLabel(evs[k])+', the furthest from its goal'+(k?' after last week’s':'');return x;}}
+  return M[w%M.length];}
 var CAMP_LEVELS=[[0,'Rookie','🥉'],[300,'Club runner','🏃'],[800,'County','🥈'],[1600,'National','🥇'],[2800,'International','🌍'],[4500,'Olympian','🏆']];
 /* ===================== the reset day (Dan, 14 Oct) =====================
    Not Saturday's rest — a light day a week whose job is the calm side of the
