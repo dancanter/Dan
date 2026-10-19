@@ -109,12 +109,11 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-21'));   // week 5, tests
 await boot(st());
 t = sq(await p.evaluate(() => weekRunsHTML()));
-ok('week 5 is a test week with a 400 and a 1 km trial', /test week/.test(t) && /Time trial — 400 m/.test(t) && /Time trial — 1 km/.test(t));
+ok('week 5 is a test week with one trial — the 1 km (the 400 is next week)', /test week/i.test(t) && /Time trial — 1 km/.test(t) && !/Time trial — 400 m — /.test(t));
 ok('and the test only if the week is clear', /only if the week is clear/.test(t));
 t = t.replace(/<[^>]+>/g, '');
-ok('time trials get ±2% of the best: 400 m 58–60 s', /Time trial — 400 m — 58–60 s \(best 59\.0 s\)/.test(t), t.slice(0, 600));
 ok('and 1 km 2:56–3:04', /Time trial — 1 km — 2:56–3:04 \(best 3:00\)/.test(t));
-ok('test week: both hard runs can be trials', /both hard runs can be time trials/.test(t));
+ok('test week: one trial, the other hard run builds', /one time trial this week — the 1 km — and the other hard run builds/.test(t));
 await ctx.close();
 
 // ===== healthy foods: grams in, the week added up, what it did =====

@@ -549,7 +549,7 @@ let TD = await p.evaluate(() => ({ d: timesDip(), e: weekRunsModel().easyTarget 
 ok('3:18 over 5 reps after 3 at 3:14 is not a dip; hill 200s are never the yardstick', TD.d.level === 0, JSON.stringify(TD.d));
 await boot(st({ days: Object.assign({}, base30, { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 1010 }], sleep: 8 } }) }));
 TD = await p.evaluate(() => { const G = campGame(); return { d: timesDip(), e: weekRunsModel().easyTarget, ch: G.changes.map(c => c.t + ' — ' + c.why) }; });
-ok('3:22 is a dip: no fun run this week, and it says why', TD.d.level === 1 && TD.e === 0 && TD.ch.some(c => /Times dipping — no fun run this week, just the two hard runs — 5 × 1 km: 3:22 a rep vs 3:14 last time/.test(c)), JSON.stringify(TD));
+ok('3:22 is a dip: the fun run stays (the slow miles are already gone), kept 6–7/10, and it says why', TD.d.level === 1 && TD.e === 1 && TD.ch.some(c => /Times dipped — the fun run stays, kept truly 6–7 out of 10 — 5 × 1 km: 3:22 a rep vs 3:14 last time/.test(c)), JSON.stringify(TD));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-20'));
 await boot(st({ days: Object.assign({}, base30, { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 1010 }] }, '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }] },
@@ -706,6 +706,18 @@ const r8 = { km: 5, secs: 1500, type: 'easy' };
 await boot(st({ days: { '2026-10-19': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 178 }] }, '2026-10-20': { runs: [{ km: 8, secs: 1980, type: 'fun' }] }, '2026-10-22': { runs: [{ k: 'reps', dm: 400, n: 1, secs: 59 }] },
   '2026-10-23': { runs: [r8] }, '2026-10-25': { runs: [{ k: 'reps', dm: 100, n: 8, up: true }, r8] } } }));
 ok('a full week (4 runs + a 5th across the boundary, sprints on top) is not flagged as too much running', await p.evaluate(() => { const w = weekStatus(); return !w || w.t !== 'That’s a lot of running on a deficit'; }));
+await ctx.close();
+
+// ===== the test is split: 1 km trial one week, 400 the next (19 Oct) =====
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({ days: { '2026-10-12': { runs: [{ k: 'reps', dm: 200, n: 6, secs: 187 }] }, '2026-10-16': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 802 }] } } }));
+let SPL = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short }; });
+ok('this week: the 1 km trial and a real building session — not two trials', SPL.l === 'Time trial — 1 km' && !/Time trial/.test(SPL.s), JSON.stringify(SPL));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-27'));
+await boot(st({ days: { '2026-10-21': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 177 }] }, '2026-10-23': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 320 }] } } }));
+SPL = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short }; });
+ok('next week: the 400 trial and a real longer session', SPL.s === 'Time trial — 400 m' && !/Time trial/.test(SPL.l), JSON.stringify(SPL));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====

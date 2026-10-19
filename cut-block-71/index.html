@@ -3126,8 +3126,11 @@ var CUT_RUNS=[null,
      faster). Paced sessions carry their own guide (lg/sg): goal pace in view,
      today's range a step short of it. Trials never on a Saturday. ---- */
   {long:'5 × 1 km',ld:[1000],short:'6 × 200 m',sd:[200],spr:8,note:'Camp week 1. Both sessions controlled — about 8 out of 10. This week sets your baseline.'},
-  {long:'Time trial — 1 km',ld:[1000],short:'Time trial — 400 m',sd:[400],spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
-  {adapt:true,long:'3 × 1 mile at 5 km pace',ld:[1609],lp:[5000,1609],short:'5 × 300 m at 800 pace',sd:[300],sp:[800,300],spr:8},
+  /* Dan, 19 Oct: "one trial a week — 2 in one week this early builds nothing
+     and it's too little volume." So the test is split: the 1 km this week, the
+     400 next, and the other slot each week is a real building session. */
+  {adapt:true,ttL:'Time trial — 1 km',long:'Time trial — 1 km',ld:[1000],short:'Time trial — 400 m',sd:[400],spr:6,tt:true,note:'Test week — but only if the week is clear. If your status says rest, legs or overtraining, run them as normal sessions and test next week.'},
+  {adapt:true,ttS:'Time trial — 400 m',long:'3 × 1 mile at 5 km pace',ld:[1609],lp:[5000,1609],short:'5 × 300 m at 800 pace',sd:[300],sp:[800,300],spr:8},
   {adapt:true,long:'10 × 400 m at mile pace',ld:[400],lp:[1609,400],short:'4 × 400 m at 800 pace',sd:[400],sp:[800,400],spr:9},
   {adapt:true,long:'6 × 800 m at 5 km pace',ld:[800],lp:[5000,800],short:'3 × 600 m at 800 pace',sd:[600],sp:[800,600],spr:9},
   {adapt:true,long:'5 × 1 km at mile pace',ld:[1000],lp:[1609,1000],short:'2 × (3 × 200 m) fast',sd:[200],sp:[400,200],spr:9},
@@ -3189,11 +3192,12 @@ function adaptWeek(wk,ws,P){
     if(!x)x=CAMP_SESS[slot].filter(function(y){return !y.staple;})[0];
     return {s:x,why:'aimed at your '+repLabel(E)+' — '+Math.round(gapPct(E,asof)*100)+'% off its goal'+(E===ev[0]?', the furthest of '+events.map(repLabel).join(', '):' (the '+repLabel(ev[0])+' had its turn last week)')};
   };
-  var L=pick('long',[1000,1609,5000],1000),Sh=pick('short',[400,800],400);
+  var L=P.ttL?{s:{n:P.ttL,ld:[1000]},why:'one trial this week — the true read of your 1 km, run fresh on a 🟢 day'}:pick('long',[1000,1609,5000],1000),
+      Sh=P.ttS?{s:{n:P.ttS,sd:[400]},why:'this week’s one trial — the 400, run fresh on a 🟢 day'}:pick('short',[400,800],400);
   var lt=L.s.staple?lastRepTxt(1000,ws):'',st=Sh.s.staple?lastRepTxt(400,ws):'';
-  return {long:L.s.n,ld:L.s.ld,lp:L.s.lp,short:Sh.s.n,sd:Sh.s.sd,sp:Sh.s.sp,spr:P.spr,adapted:true,lastL:lt,lastS:st,
+  return {long:L.s.n,ld:L.s.ld,lp:L.s.lp,short:Sh.s.n,sd:Sh.s.sd,sp:Sh.s.sp,spr:P.spr,adapted:true,tt:!!P.tt,ttL:P.ttL,ttS:P.ttS,lastL:lt,lastS:st,
     why:{l:L.why,s:Sh.why},
-    note:'Picked for you this week: <b>'+L.s.n+'</b> — '+L.why+'; <b>'+Sh.s.n+'</b> — '+Sh.why+'.'};
+    note:((P.ttL||P.ttS)?'Test week — one trial, and only if the week is clear: otherwise run it as a normal session and test next week. ':'')+'Picked for you this week: <b>'+L.s.n+'</b> — '+L.why+'; <b>'+Sh.s.n+'</b> — '+Sh.why+'.'};
 }
 function planFor(wk,ws){var P=CUT_RUNS[wk];return P&&P.adapt?adaptWeek(wk,ws,P):P;}
 /* Rep-time guides. Dan asked for them outright (27 Sep), after years of the
@@ -3261,7 +3265,7 @@ function sessionDips(t){
     if(P.lp&&m.dm===P.lp[1])ev=P.lp[0];else if(P.sp&&m.dm===P.sp[1])ev=P.sp[0];
     if(d<C.start){}
     else if(ev){exp=fitnessAt(addD(d,-1),ev)*m.dm/ev;dip=m.repAvg>exp*1.03;why=secFmt(m.repAvg)+' a rep vs about '+secFmt(Math.round(exp))+' at your current '+repLabel(ev)+' pace';}
-    else if(P.tt&&n===1&&m.dm>=400){exp=fitnessAt(addD(d,-1),m.dm);dip=m.repAvg>exp*1.02;why=secFmt(m.repAvg)+' vs your current '+secFmt(Math.round(exp))+' '+repLabel(m.dm)+' fitness';}
+    else if((P.tt||P.ttL||P.ttS)&&n===1&&m.dm>=400){exp=fitnessAt(addD(d,-1),m.dm);dip=m.repAvg>exp*1.02;why=secFmt(m.repAvg)+' vs your current '+secFmt(Math.round(exp))+' '+repLabel(m.dm)+' fitness';}
     else{var pv=prev[m.dm];
       if(pv&&diffD(pv.d,d)<=35&&Math.abs(n-pv.n)<=2){/* 2% (+0.5% a rep more), and never under a second — GPS on a 200 is not finer than that */
         var tol=Math.max(pv.v*(0.02+0.005*Math.max(0,n-pv.n)),1);dip=m.repAvg>pv.v+tol;
@@ -3320,7 +3324,7 @@ function weekRunsModel(){
      10, never a race. The easy 5 km stays only as an option (or a walk).
      A week that needs less drops the fun run; a threshold week has the
      threshold as its fast run. */
-  if(t>=CFG.camp.start&&t<=CFG.camp.end){mix=(dipM.level||easeOff||thrOn)?[]:['fun'];easyTarget=mix.length;}
+  if(t>=CFG.camp.start&&t<=CFG.camp.end){mix=(dipM.level>=2||easeOff||thrOn)?[]:['fun'];easyTarget=mix.length;}
   return {mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
@@ -3444,7 +3448,8 @@ function weekRunsHTML(){
     '<div style="margin-top:2px">'+P.spr+' × ~100 m uphill — best at the end of an easy 5 miles</div>'+
     '<div class="tiny more">Explosive, walk back down, count the reps. Tacked onto an easy run they cost no extra day and very little recovery, and they keep the power and the leg shape you want while the weight comes off. Skip them on any week your legs feel heavy — nothing is lost.</div></div>';
   var ttNote=P.deload?'No time trials in a deload — that is the point of it.':
-    (P.tt&&!M.easeOff?'<b>Test week:</b> both hard runs can be time trials — at least 48 h apart, proper warm-up.':
+    ((P.ttL||P.ttS)&&!M.easeOff?'<b>Test week:</b> one time trial this week — the '+(P.ttL?'1 km':'400 m')+' — and the other hard run builds. Proper warm-up, on a 🟢 day.':
+    P.tt&&!M.easeOff?'<b>Test week:</b> both hard runs can be time trials — at least 48 h apart, proper warm-up.':
     (M.easeOff?'No time trials while something is flagged.':
     (ttUsed?'<b>You have had your time trial this week</b> — one a week is the limit, so the rest are sessions.':
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
@@ -4186,7 +4191,7 @@ function campGame(){
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. Fewer miles, fresher legs — the shape your bests came from. Back to normal once the times are back.'});
-    if(M.mix&&M.dip.level)changes[changes.length-1].t='Times dipping — no fun run this week, just the two hard runs';
+    if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?'Times dipping again — no fun run this week, just the two hard runs':'Times dipped — the fun run stays, kept truly 6–7 out of 10';
     else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:M.mix?'No fun run this week — recovery first':'One fewer 5-miler',why:'recovery first'});
     if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it is this week’s fast run in place of the fun run'});
     if(M.repeat)changes.push({e:'🔁',t:'Last week’s sessions again, not a step up',why:'last week felt like a 9–10'});
