@@ -3334,7 +3334,8 @@ function weekRunsModel(){
     /* the full week: 2 hard + a fun run + a Norwegian run = 4. A threshold week
        uses the threshold in place of the Norwegian run; a week that needs less
        keeps only the Norwegian run, because it costs the least. */
-    mix=(dipM.level>=2||easeOff)?['norw']:(thrOn?['fun']:['fun','norw']);easyTarget=mix.length;}
+    /* 19 Oct, later: two Norwegian runs, no fun run */
+    mix=(dipM.level>=2||easeOff||thrOn)?['norw']:['norw','norw'];easyTarget=mix.length;}
   return {mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
@@ -3465,11 +3466,11 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', a fun fast run and a Norwegian sub-threshold run. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and two short Norwegian sub-threshold runs. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
     ' <span class="tiny">Any days. Hard runs never back to back; the day after legs is fine if legs stayed short (6–10 sets, nothing to failure) — run it later in the day. One full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
-      (M.mix?tile('fun + Norwegian',campGame().quests.filter(function(x){return x[1]==='Fun fast run'||x[1]==='Norwegian sub-threshold';}).reduce(function(a,x){return a+x[2];},0)+' <span class="tiny">of '+M.easyTarget+'</span>','controlled, never a race'):
+      (M.mix?tile('Norwegian runs',campGame().quests.filter(function(x){return x[1]==='Fun fast run'||x[1]==='Norwegian sub-threshold';}).reduce(function(a,x){return a+x[2];},0)+' <span class="tiny">of '+M.easyTarget+'</span>','controlled, never a race'):
       tile('easy 5 miles',w.five+' <span class="tiny">of '+M.easyTarget+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off')))+
       tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?(T.runs-1)+'':(T.easy>1?T.runs+'':'3–4')))+
     '</div>'+
@@ -4016,7 +4017,7 @@ function setsWeekHTML(){
 function campPhase(t){
   var C=CFG.camp;t=t||today();
   if(t<C.start)return {k:'pre',n:'Starts '+fmtS(C.start)};
-  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs, a fun fast run and a Norwegian sub-threshold run. The cut carries on.'};
+  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs and two short Norwegian sub-threshold runs. The cut carries on.'};
   if(t<=CFG.cutEnd)return {k:'check',n:'Checkpoint',w:'Test week on the last of the cut — the 1 km or mile and the 400 or 200, only if the week is clear.'};
   if(t<C.window)return {k:'refuel',n:'Refuel',w:'The reverse starts: carbs back in, sessions controlled, no trials. Legs fill up and fresh up.'};
   if(t<=C.end)return {k:'pb',n:'PB window',w:'The trials are the hard sessions now — two a week at most, three days apart, easy runs between.'};
@@ -4034,7 +4035,7 @@ function runHow(x){
   if(x==='easy')return 'Chatty the whole way, about '+easyPaceTxt()+' a km for you right now — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
   if(/^Time trial/.test(x))return 'Calm, dry day. 15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy. Coffee 45–60 min before if before 2pm. Even pace (400: first 200 a touch quicker); finish strongest.';
   if(/at (mile|5 km|800) pace/.test(x))return '15 min easy, drills, 4 strides. Lock into the pace in the guide — every rep the same, relaxed and controlled, never faster than the range. Recover until ready. Stop if you cannot hold the pace.';
-  if(/^Norwegian sub-threshold/.test(x)){var np=norwPick();return np.how+' Controlled is the whole point — if it feels like 8 out of 10 you have slipped into threshold. Log it as Norwegian sub-threshold.';}
+  if(/^Norwegian sub-threshold/.test(x)){var np=norwPicks().filter(function(y){return x.indexOf(y.n)>=0;})[0]||norwPick();return np.how+(np.why?' Picked: '+np.why+'.':'')+' Controlled is the whole point — if it feels like 8 out of 10 you have slipped into threshold. Log it as Norwegian sub-threshold.';}
   if(/^Fun fast run/.test(x)){var fp=funPick();return fp.how+(fp.why?' Picked: '+fp.why+'.':'')+' Fast but fun — 6–7 out of 10, finishing like you could do more. Not the day before a hard run. Log it as a fun run.';}
   if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — about '+thrPaceTxt()+' a km for you right now, and you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
   var m=/(\d+) × (\d+) ?(k?m)/.exec(x),d=m?(+m[2])*(m[3]==='km'?1000:1):0;
@@ -4061,13 +4062,25 @@ function funMenu(){var p5=(fitnessEst(5000)||1085)/5,q=kmPace(p5*1.0)+'–'+kmPa
    a step under threshold (about 3–8% slower), 7 out of 10, short sentences.
    The zone that builds the engine at the lowest cost — he is fresh again in
    a day. Rotates, never the same two weeks running. */
-function norwMenu(){var p5=(fitnessEst(5000)||1085)/5,sub=kmPace(p5*1.09)+'–'+kmPace(p5*1.15);
+/* Dan, 19 Oct (later): "replace the fun run with a Norwegian run — but not 50
+   minutes of running, make it fun." So two a week, each 30–40 min door to
+   door: one SHORT-rep (rhythm, feeds the 800 and mile) and one LONG-rep
+   (engine, feeds the mile and 5 km), each picked for the event furthest from
+   its goal, rotating so no week repeats the last. */
+function norwMenu(){var p5=(fitnessEst(5000)||1085)/5,sub=kmPace(p5*1.09)+'–'+kmPace(p5*1.15),r4=Math.round(p5*1.09*0.4)+'–'+Math.round(p5*1.15*0.4)+' s';
   return [
-  {k:'n1k',n:'Sub-threshold 6 × 1 km',how:'10 min easy, then 6 × 1 km at about '+sub+' a km with 60 s easy jog between. 7 out of 10, short sentences. 10 min easy after.'},
-  {k:'n3m',n:'Sub-threshold 10 × 3 min',how:'10 min easy, then 10 × 3 min at about '+sub+' a km with 60 s easy jog between. Relaxed rhythm, never pushing.'},
-  {k:'n2k',n:'Sub-threshold 3 × 2 km',how:'10 min easy, then 3 × 2 km at about '+sub+' a km with 90 s easy jog between. Smooth and even — finish feeling you had another one.'},
-  {k:'n3015',n:'Norwegian 30/15s, 2 × 10',how:'10 min easy, then 2 sets of 10 × (30 s at about 5 km pace, 15 s easy jog), 3 min easy between sets. Light and quick, not a sprint.'}];}
-function norwPick(d){var M=norwMenu(),w=weekOf(mondayOf(d||today()));return M[w%M.length];}
+  {k:'n400',c:'short',n:'10 × 400 m at sub-threshold',feeds:[1609,800],how:'8 min easy, then 10 × 400 m in about '+r4+' with 30 s easy jog between. Quick rhythm, never straining. 5 min easy after — about 30 min all in.'},
+  {k:'n3015',c:'short',n:'Norwegian 30/15s, 2 × 10',feeds:[1000,800],how:'8 min easy, then 2 sets of 10 × (30 s at about 5 km pace, 15 s easy jog), 3 min easy between sets. Light and quick — about 30 min all in.'},
+  {k:'nhill',c:'short',n:'Hill sub-threshold 8 × 90 s',feeds:[800,1609,400],how:'8 min easy to a long gentle hill, then 8 × 90 s up at 7 out of 10, jog back down. Strong and springy — about 35 min all in.'},
+  {k:'n1k',c:'long',n:'Sub-threshold 5 × 1 km',feeds:[1609,5000,1000],how:'8 min easy, then 5 × 1 km at about '+sub+' a km with 60 s easy jog between. 7 out of 10, short sentences — about 35 min all in.'},
+  {k:'n3m',c:'long',n:'Sub-threshold 7 × 3 min',feeds:[1609,5000],how:'8 min easy, then 7 × 3 min at about '+sub+' a km with 60 s easy jog between. Relaxed rhythm — about 35 min all in.'},
+  {k:'n2k',c:'long',n:'Sub-threshold 3 × 2 km',feeds:[5000],how:'8 min easy, then 3 × 2 km at about '+sub+' a km with 90 s easy jog between. Smooth and even — about 38 min all in.'}];}
+function norwPicks(d){var ws=mondayOf(d||today()),asof=addD(ws,-1),w=weekOf(ws),M=norwMenu();
+  var evs=[800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);});
+  return ['short','long'].map(function(cat){var all=M.filter(function(x){return x.c===cat;});
+    for(var k=0;k<evs.length;k++){var c=all.filter(function(x){return x.feeds.indexOf(evs[k])>=0;});if(c.length){var x=c[w%c.length];x.why='aimed at your '+repLabel(evs[k]);return x;}}
+    return all[w%all.length];});}
+function norwPick(d){return norwPicks(d)[0];}
 function funKey(ws){var M=funMenu(),asof=addD(ws,-1),evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);}),w=weekOf(ws);
   var c=M.filter(function(x){return x.feeds.indexOf(evs[0])>=0;});if(!c.length)c=M;return c[w%c.length].k;}
 function funPick(d){var ws=mondayOf(d||today()),M=funMenu(),last=funKey(addD(ws,-7)),asof=addD(ws,-1),w=weekOf(ws);
@@ -4155,7 +4168,7 @@ function campGame(){
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
   var quests0=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.mix?['🔥','Fun fast run',Math.min(q.fun,1),Mq.mix.indexOf('fun')>=0?1:0]:['🏃','Easy 5-milers',q.five,eT]),
-    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,1),Mq.mix.indexOf('norw')>=0?1:0]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,Mq.mix.filter(function(k){return k==='norw';}).length),Mq.mix.filter(function(k){return k==='norw';}).length]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   var quests=quests0.filter(function(x){return x[3]>0;});
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
@@ -4193,7 +4206,10 @@ function campGame(){
   var easyL=[];
   if(M&&M.mix){
     if(M.mix.indexOf('fun')>=0&&!q.fun&&!walkSwap){var fp=funPick();easyL.push({e:'🔥',n:'Fun fast run — '+fp.n,how:runHow('Fun fast run')});}
-    if(M.mix.indexOf('norw')>=0&&!q.subt){var np=norwPick();easyL.push({e:'🌊',n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold')});}
+    var nN=M.mix.filter(function(k){return k==='norw';}).length,nP=norwPicks();
+    /* the long-rep one first (or the only one); the short-rep one is the second */
+    var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
+    for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
     /* four runs is the most — anything extra is a walk */
     easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
   }else

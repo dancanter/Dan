@@ -294,7 +294,7 @@ let cc = sq(await p.innerText('#campCard'));
 ok('the camp card shows the phases, PB targets and dates', /Race camp · PBs before Christmas/i.test(cc) && /Build:/.test(cc) && /400m/i.test(cc) && /5km|5 km|5000/i.test(cc) && /When/i.test(cc) && /PB window/.test(cc) && !/9 Dec/.test(cc), cc.slice(0, 500));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let rcw = sq(await p.innerText('#tRuns'));
-ok('the runs card says a camp week: two hard runs, a fun run and a Norwegian run', /A camp week, 4 runs/.test(rcw) && !/Ramp week/.test(rcw) && /a fun fast run and a Norwegian sub-threshold run/.test(rcw) && /FUN \+ NORWEGIAN 0 of 2/i.test(rcw), rcw.slice(0, 600));
+ok('the runs card says a camp week: two hard runs and two short Norwegian runs', /A camp week, 4 runs/.test(rcw) && !/Ramp week/.test(rcw) && /two short Norwegian sub-threshold runs/.test(rcw) && /NORWEGIAN RUNS 0 of 2/i.test(rcw), rcw.slice(0, 600));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-12-10'));
 await boot(st());
@@ -322,7 +322,7 @@ await boot(st({ days: {
 const G = await p.evaluate(() => campGame());
 ok('XP adds up from the sessions, sleep and phone-free nights', G.xp === (20 + 20 + 10 + 5) + (30 + 20 + 10) + (20 + 20), JSON.stringify({ xp: G.xp }));
 ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day === 4, JSON.stringify({ lv: G.lv, d: G.day }));
-ok('quests count the week: hard 1/2, fun fast run 0/1 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.filter(q => /^(Hard runs|Fun fast run|Gym)$/.test(q[1])).map(q => q[2] + '/' + q[3])) === '["1/2","0/1","3/4"]', JSON.stringify(G.quests));
+ok('quests count the week: hard 1/2, Norwegian 0/2 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.filter(q => /^(Hard runs|Norwegian sub-threshold|Gym)$/.test(q[1])).map(q => q[2] + '/' + q[3])) === '["1/2","0/2","3/4"]', JSON.stringify(G.quests));
 ok('the runs left are listed, never a day: one hard (6 × 200 m) with how to run it; two easy runs already fill the easy slots', G.left.filter(x => x.e === '⚡').length === 1 && /6 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 0, JSON.stringify(G.left));
 ok('seven bosses (200 added), none beaten yet', G.bosses.length === 7 && G.bosses.every(b => !b.won));
 ok('the goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00 800, sub-55 400', await p.evaluate(() => { const g = {}; CFG.camp.pb.forEach(x => g[x.dm] = x.goal); return g[5000] === 1020 && g[1609] === 290 && g[1000] === 165 && g[800] === 120 && g[400] === 55 && g[600] && g[200]; }));
@@ -667,10 +667,10 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-21'));   // before threshold runs start (26 Oct)
 await boot(st({ days: {} }));
 let FR = await p.evaluate(() => { const G = campGame(), M = weekRunsModel(); return { mix: M.mix, left: G.left.map(x => x.e + ' ' + x.n), q: G.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]) }; });
-ok('a normal camp week lists a fun run, a Norwegian run and an optional walk — no slow 5-miler', FR.mix.join() === 'fun,norw' && FR.left.some(n => /^🔥 Fun fast run — (Fartlek|Progression|Steady|Mona|30\/30s|Pyramid|Rolling hills|Strides run|Negative-split)/.test(n)) && FR.left.some(n => /^🌊 Norwegian sub-threshold — Sub-threshold|^🌊 Norwegian sub-threshold — Norwegian/.test(n)) && FR.left.some(n => /^➕ Optional: a brisk 45-min walk/.test(n)) && !FR.left.some(n => /Easy 5 miles/.test(n)) && FR.q.includes('Fun fast run 0/1'), JSON.stringify(FR));
+ok('a normal camp week: two short Norwegian runs (one short-rep, one long-rep) and an optional walk — no fun run, no slow 5-miler', FR.mix.join() === 'norw,norw' && FR.left.filter(n => /^🌊 Norwegian sub-threshold — /.test(n)).length === 2 && FR.left.some(n => /^➕ Optional: a brisk 45-min walk/.test(n)) && !FR.left.some(n => /Easy 5 miles|Fun fast run/.test(n)) && FR.q.includes('Norwegian sub-threshold 0/2'), JSON.stringify(FR));
 await boot(st({ days: { '2026-10-20': { runs: [{ km: 8.0, secs: 1980, type: 'fun' }] } } }));
 FR = await p.evaluate(() => { const G = campGame(), m = runMeta({ km: 8.0, secs: 1980, type: 'fun' }); return { hard: m.hard, fun: m.fun, q: G.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), left: G.left.map(x => x.n) }; });
-ok('a fast fun run (4:08/km) is never counted as a hard run, and ticks the quest', FR.hard === false && FR.fun === true && FR.q.includes('Fun fast run 1/1') && FR.q.includes('Hard runs 0/2') && !FR.left.some(n => /^Fun fast run/.test(n)), JSON.stringify(FR));
+ok('a fast fun run (4:08/km) is never counted as a hard run', FR.hard === false && FR.fun === true && FR.q.includes('Hard runs 0/2'), JSON.stringify(FR));
 ok('the fun runs are a wide menu, picked for the furthest event, never the same two weeks running', await p.evaluate(() => { const ks = ['2026-10-19','2026-10-26','2026-11-02','2026-11-09','2026-11-16'].map(d => funPick(d).k); return funMenu().length >= 9 && norwMenu().length >= 4 && norwMenu().filter(x => /^Sub-threshold/.test(x.n)).length >= 3 && ks.every((k, i) => i === 0 || k !== ks[i - 1]) && /aimed at your/.test(funPick('2026-10-26').why); }));
 ok('his own sessions are on the hard-run menu', await p.evaluate(() => CAMP_SESS.long.some(x => /3 × 1 km, the last one all out/.test(x.n)) && CAMP_SESS.long.some(x => /Ladder/.test(x.n)) && CAMP_SESS.short.some(x => /5 × 600 m/.test(x.n)) && CAMP_SESS.short.some(x => /3 × 300 m \+ 2 × 200 m/.test(x.n))));
 ok('the run form offers a fun fast run', await p.evaluate(() => [...document.querySelectorAll('option')].some(o => o.value === 'fun')));
@@ -725,6 +725,14 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-20'));
 await boot(st({ days: { '2026-09-30': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 582 }] }, '2026-10-16': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 802, nodip: true }] } } }));
 ok('the 16 Oct 4 × 1 km (day after a 5-miler) is not a dip once marked', await p.evaluate(() => timesDip().level === 0 && !campGame().changes.some(c => /Times dip/.test(c.t))));
+await ctx.close();
+
+// ===== two short Norwegian runs (19 Oct) =====
+({ ctx, p, boot } = await at('2026-10-21'));
+await boot(st({ days: { '2026-10-19': { runs: [{ km: 7.01, secs: 1628, type: 'subt' }] } } }));
+const NW = await p.evaluate(() => { const G = campGame(); return { left: G.left.map(x => x.n), q: G.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), m: norwMenu().map(x => x.how) }; });
+ok('one done: the second is the short-rep kind, and the quest is 1/2', NW.q.includes('Norwegian sub-threshold 1/2') && NW.left.filter(n => /^Norwegian sub-threshold — /.test(n)).length === 1 && NW.left.some(n => /^Norwegian sub-threshold — (10 × 400 m|Norwegian 30\/15s|Hill sub-threshold)/.test(n)), JSON.stringify(NW.left));
+ok('every Norwegian session is 30–40 min door to door', NW.m.every(h => /about 3\d min all in/.test(h)));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
