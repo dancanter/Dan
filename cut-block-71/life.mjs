@@ -720,6 +720,12 @@ SPL = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, 
 ok('next week: the 400 trial and a real longer session', SPL.s === 'Time trial — 400 m' && !/Time trial/.test(SPL.l), JSON.stringify(SPL));
 await ctx.close();
 
+// ===== a session marked not-a-dip is never judged (19 Oct) =====
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({ days: { '2026-09-30': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 582 }] }, '2026-10-16': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 802, nodip: true }] } } }));
+ok('the 16 Oct 4 × 1 km (day after a 5-miler) is not a dip once marked', await p.evaluate(() => timesDip().level === 0 && !campGame().changes.some(c => /Times dip/.test(c.t))));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

@@ -3261,6 +3261,8 @@ function sessionDips(t){
      comparison, but only camp sessions are judged */
   for(d=addD(C.start,-28);d<=t;d=addD(d,1))(((S.days[d]||{}).runs)||[]).forEach(function(r){var m=runMeta(r);
     if(m.empty||!m.hard||!m.dm||m.repAvg===null||m.kind!=='reps'||r.up)return;
+    /* a session he and I agree was not a real dip (r.nodip) still sets the
+       yardstick for next time, but is never judged itself */
     var P=planFor(weekOf(d),mondayOf(d))||{},ev=null,exp=null,why='',dip=false,n=m.n||1;
     if(P.lp&&m.dm===P.lp[1])ev=P.lp[0];else if(P.sp&&m.dm===P.sp[1])ev=P.sp[0];
     if(d<C.start){}
@@ -3272,7 +3274,7 @@ function sessionDips(t){
         why=secFmt(m.repAvg)+' a rep vs '+secFmt(pv.v)+' last time ('+pv.n+' × '+repLabel(m.dm)+')';}
       prev[m.dm]={v:m.repAvg,n:n,d:d};}
     if(d<C.start)prev[m.dm]={v:m.repAvg,n:n,d:d};
-    if(dip&&d>=from&&d>=C.start)out.push({d:d,label:m.label,why:why,rpe:r.rpe||null});});
+    if(dip&&d>=from&&d>=C.start&&!r.nodip)out.push({d:d,label:m.label,why:why,rpe:r.rpe||null});});
   return out;
 }
 function timesDip(t){var D=sessionDips(t);return {level:D.length>=2?2:(D.length?1:0),dips:D};}
