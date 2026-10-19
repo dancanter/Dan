@@ -3277,6 +3277,8 @@ function sessionDips(t){
     if(dip&&d>=from&&d>=C.start&&!r.nodip)out.push({d:d,label:m.label,why:why,rpe:r.rpe||null});});
   return out;
 }
+/* Dan, 19 Oct: "if my times dip you gotta say — and say what to do" */
+var DIP_DO='What to do: run the next hard session on a fully fresh 🟢 day — nothing hard or long the day before, legs at 10 sets or fewer if the gym is the day before, carbs 2–3 h before, and 8 h of sleep the night before. Keep the fun run 6–7 out of 10. If you know why it was slow (heat, wind, a run the day before), tell me and I will not count it.';
 function timesDip(t){var D=sessionDips(t);return {level:D.length>=2?2:(D.length?1:0),dips:D};}
 function weekRunsModel(){
   var t=today();if(t<WEIGH_START||t>(CFG.camp?CFG.camp.end:CFG.cutEnd))return null;
@@ -4192,7 +4194,7 @@ function campGame(){
   if(M){
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
-      why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. Fewer miles, fresher legs — the shape your bests came from. Back to normal once the times are back.'});
+      why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
     if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?'Times dipping again — no fun run this week, just the two hard runs':'Times dipped — the fun run stays, kept truly 6–7 out of 10';
     else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:M.mix?'No fun run this week — recovery first':'One fewer 5-miler',why:'recovery first'});
     if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it is this week’s fast run in place of the fun run'});

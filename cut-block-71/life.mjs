@@ -549,6 +549,7 @@ let TD = await p.evaluate(() => ({ d: timesDip(), e: weekRunsModel().easyTarget 
 ok('3:18 over 5 reps after 3 at 3:14 is not a dip; hill 200s are never the yardstick', TD.d.level === 0, JSON.stringify(TD.d));
 await boot(st({ days: Object.assign({}, base30, { '2026-10-14': { runs: [{ k: 'reps', dm: 1000, n: 5, secs: 1010 }], sleep: 8 } }) }));
 TD = await p.evaluate(() => { const G = campGame(); return { d: timesDip(), e: weekRunsModel().easyTarget, ch: G.changes.map(c => c.t + ' — ' + c.why) }; });
+ok('a dip says what to do', TD.ch.some(c => /What to do: run the next hard session on a fully fresh 🟢 day/.test(c) && /tell me and I will not count it/.test(c)));
 ok('3:22 is a dip: the fun run stays (the slow miles are already gone), kept 6–7/10, and it says why', TD.d.level === 1 && TD.e === 1 && TD.ch.some(c => /Times dipped — the fun run stays, kept truly 6–7 out of 10 — 5 × 1 km: 3:22 a rep vs 3:14 last time/.test(c)), JSON.stringify(TD));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-20'));
