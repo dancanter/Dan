@@ -4038,17 +4038,19 @@ function runHow(x){
 /* the fun fast run (Dan, 18 Oct: "give the fun runs limitless"): a wide menu,
    each one quick and playful but never a race, picked each week for the event
    furthest from its goal and never last week's. Paced from his fitness. */
-function funMenu(){var p5=(fitnessEst(5000)||1085)/5,q=kmPace(p5*1.0)+'–'+kmPace(p5*1.05),st=kmPace(p5*1.12)+'–'+kmPace(p5*1.20);
+/* Dan, 19 Oct: "I really like that Norwegian kind of training — I want my runs
+   that aren't hard runs, thresholds or sprints to be like that." So the fun
+   run is sub-threshold by default: controlled running a step under threshold
+   (about 3–8% slower), the zone that builds the engine at the lowest cost.
+   Effort is the guide — 7 out of 10, short sentences, never a strain. */
+function funMenu(){var p5=(fitnessEst(5000)||1085)/5,sub=kmPace(p5*1.09)+'–'+kmPace(p5*1.15),st=kmPace(p5*1.12)+'–'+kmPace(p5*1.18);
   return [
-  {k:'fartlek',n:'Fartlek, 30 min',feeds:[1609,5000],how:'10 min steady, then 8 × (1 min quick at about '+q+' a km, 1 min steady — keep running), 5 min easy.'},
-  {k:'progression',n:'Progression 5 miles',feeds:[5000],how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.12)+'. Never faster than that.'},
-  {k:'steady',n:'Steady 5 km',feeds:[5000,1609],how:'Comfortably quick the whole way — about '+st+' a km. Your 2025 “easy” pace.'},
-  {k:'mona',n:'Mona fartlek, 20 min',feeds:[1609,1000,800],how:'After a warm-up: 2 × 90 s, 4 × 60 s, 4 × 30 s, 4 × 15 s quick, each followed by the same time floating (steady, not walking). Quick bits at about '+q+' a km, the 15s quicker.'},
-  {k:'thirty',n:'30/30s, 12 rounds',feeds:[1000,800,1609],how:'Warm up 10 min, then 12 × (30 s quick, 30 s float). Quick at about mile pace, smooth and relaxed. 10 min easy after.'},
-  {k:'pyramid',n:'Pyramid fartlek 1-2-3-2-1',feeds:[1609,5000],how:'Warm up 10 min, then 1-2-3-2-1 minutes quick at about '+q+' a km, with half that time floating between. Cool down 5 min.'},
-  {k:'hills',n:'Rolling hills run, 35 min',feeds:[400,800,5000],how:'Somewhere with hills (the Lincoln Edge) — steady on the flat, push the climbs at about 7/10, float the descents.'},
-  {k:'strides',n:'Strides run, 6 km',feeds:[200,400,800],how:'6 km steady at about '+st+' a km, then 10 × 20 s strides — fast and loose, walk back. Speed without the fatigue.'},
-  {k:'negative',n:'Negative-split 5 km',feeds:[5000],how:'First 2.5 km at about '+kmPace(p5*1.20)+', second half at about '+kmPace(p5*1.10)+'. Finish feeling strong, never racing.'}];}
+  {k:'sub1k',n:'Sub-threshold 6 × 1 km',feeds:[1609,5000,1000],how:'10 min easy, then 6 × 1 km at about '+sub+' a km with 60 s easy jog between. Controlled — 7 out of 10, short sentences. 10 min easy after.'},
+  {k:'sub2k',n:'Sub-threshold 3 × 2 km',feeds:[5000,1609],how:'10 min easy, then 3 × 2 km at about '+sub+' a km with 90 s easy jog between. Smooth and even — finish feeling you had another one.'},
+  {k:'sub3m',n:'Sub-threshold 10 × 3 min',feeds:[1609,5000,800],how:'10 min easy, then 10 × 3 min at about '+sub+' a km with 60 s easy jog between. Relaxed rhythm, never pushing.'},
+  {k:'steady',n:'Steady 6 km + strides',feeds:[5000,1609,400,800],how:'6 km steady at about '+st+' a km, then 8–10 × 20 s strides, walking back. The one you ran on 19 Oct.'},
+  {k:'progression',n:'Progression 5 miles',feeds:[5000],how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.10)+'. Never faster than that.'},
+  {k:'thirty',n:'Norwegian 30/15s, 2 × 10',feeds:[1000,800,1609],how:'10 min easy, then 2 sets of 10 × (30 s at about 5 km pace, 15 s easy jog), 3 min easy between sets. Light and quick, not a sprint.'}];}
 function funKey(ws){var M=funMenu(),asof=addD(ws,-1),evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);}),w=weekOf(ws);
   var c=M.filter(function(x){return x.feeds.indexOf(evs[0])>=0;});if(!c.length)c=M;return c[w%c.length].k;}
 function funPick(d){var ws=mondayOf(d||today()),M=funMenu(),last=funKey(addD(ws,-7)),asof=addD(ws,-1),w=weekOf(ws);
