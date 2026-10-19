@@ -86,7 +86,7 @@ ok('with what actually splits them', /a five-mile threshold is a hard run, a fiv
 await p.click('[data-t="today"]');
 const filed = await p.$$eval('#inContType option', o => o.map(x => x.textContent));
 ok('the form files by effort, not distance', !filed.some(x => /5 mile/i.test(x)), filed.join(' | '));
-ok('and still offers the efforts, plus the fun fast run', filed.length === 3, filed.join(' | '));
+ok('and still offers the efforts, plus the fun fast run', filed.length === 4, filed.join(' | '));
 
 // ===== 3. the running deficit total on Wins ==============================
 await boot(REAL);

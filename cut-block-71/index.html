@@ -289,6 +289,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
           <option value="easy">Easy</option>
           <option value="threshold">Hard continuous / threshold</option>
           <option value="fun">Fun fast run</option>
+          <option value="subt">Norwegian sub-threshold</option>
         </select></div>
       <div class="f cont"><label for="inKm">Distance (km)</label><input type="number" step="0.01" min="0" max="60" id="inKm" placeholder="8.01"></div>
       <div class="f"><label for="inTime" id="labTime">Total rep time (mm:ss)</label><input type="text" id="inTime" placeholder="3:07" inputmode="numeric"></div>
@@ -725,7 +726,8 @@ var CFG={
   /* 18 Oct: camp easy runs are a 5-miler and a 5 km — runs = 21 + 3×1 + 7×2 = 38 */
   /* 18 Oct, later: the 5-miler became a fun fast run and the easy 5 km is
      optional — runs = 21 + 3×1 + 7×1 = 31 (more is a bonus) */
-  goals:{gym:42,hard:21,sprints:10,runs:31,steps:12800,weightLo:122,weightHi:123},
+  /* 19 Oct: a fun run AND a Norwegian run — runs = 21 + 3×1 + 7×2 = 38 */
+  goals:{gym:42,hard:21,sprints:10,runs:38,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -930,7 +932,7 @@ var CFG={
      hard runs and the gym), 2 LIGHT days (easy 5-milers, light stuff), and
      SATURDAY — fully stress-free: no runs, no weights, no study, steps only if
      they come naturally. */
-  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-06',end:'2026-12-23',tmpl:{hard:2,easy:1,easyMax:2,sprints:0,runs:3,gym:4},rampWeeks:0,rampEasy:2,
+  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-06',end:'2026-12-23',tmpl:{hard:2,easy:2,easyMax:2,sprints:0,runs:4,gym:4},rampWeeks:0,rampEasy:2,
     /* all-time bests, all 2025, from Strava's own best efforts and Dan (8 Oct):
        400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
        1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
@@ -1382,9 +1384,9 @@ function runMeta(r){
   }
   var p=paceOf(r);
   return {kind:'cont',km:r.km||null,secs:r.secs||null,pace:p,repAvg:null,n:null,dm:null,laps:null,
-          label:({easy:'easy run',fivemile:'easy run',threshold:'hard continuous',fun:'fun fast run'})[type]||type,
+          label:({easy:'easy run',fivemile:'easy run',threshold:'hard continuous',fun:'fun fast run',subt:'Norwegian sub-threshold'})[type]||type,
           /* a fun run is quick by design but never one of the hard runs */
-          hard:type==='fun'?false:(p!==null?(p<=effortLine()):(type==='threshold')),fun:type==='fun',sprint:false,judged:p!==null,
+          hard:(type==='fun'||type==='subt')?false:(p!==null?(p<=effortLine()):(type==='threshold')),fun:type==='fun',subt:type==='subt',sprint:false,judged:p!==null,
           empty:!(r.km>0||r.secs>0)};
 }
 function judge(r){return runMeta(r);}
@@ -3328,7 +3330,11 @@ function weekRunsModel(){
      10, never a race. The easy 5 km stays only as an option (or a walk).
      A week that needs less drops the fun run; a threshold week has the
      threshold as its fast run. */
-  if(t>=CFG.camp.start&&t<=CFG.camp.end){mix=(dipM.level>=2||easeOff||thrOn)?[]:['fun'];easyTarget=mix.length;}
+  if(t>=CFG.camp.start&&t<=CFG.camp.end){
+    /* the full week: 2 hard + a fun run + a Norwegian run = 4. A threshold week
+       uses the threshold in place of the Norwegian run; a week that needs less
+       keeps only the Norwegian run, because it costs the least. */
+    mix=(dipM.level>=2||easeOff)?['norw']:(thrOn?['fun']:['fun','norw']);easyTarget=mix.length;}
   return {mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
@@ -3459,11 +3465,11 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', and a fun fast run — an easy 5 km only if you fancy it. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
+    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', a fun fast run and a Norwegian sub-threshold run. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
     ' <span class="tiny">Any days. Hard runs never back to back; the day after legs is fine if legs stayed short (6–10 sets, nothing to failure) — run it later in the day. One full day a week with no session at all.</span></p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
-      (M.mix?tile('fun fast run',campGame().quests.filter(function(x){return x[1]==='Fun fast run';}).map(function(x){return x[2];})[0]+' <span class="tiny">of '+M.easyTarget+'</span>',M.easyTarget?'fast, never a race':'not this week'):
+      (M.mix?tile('fun + Norwegian',campGame().quests.filter(function(x){return x[1]==='Fun fast run'||x[1]==='Norwegian sub-threshold';}).reduce(function(a,x){return a+x[2];},0)+' <span class="tiny">of '+M.easyTarget+'</span>','controlled, never a race'):
       tile('easy 5 miles',w.five+' <span class="tiny">of '+M.easyTarget+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off')))+
       tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?(T.runs-1)+'':(T.easy>1?T.runs+'':'3–4')))+
     '</div>'+
@@ -3757,7 +3763,7 @@ function greenLight(){
   var C=coachModel(),ST=weekStatus(),RH=rhrModel(),NG=niggleModel();
   var inCamp=t>=CFG.camp.start&&t<=CFG.camp.end,G=inCamp?campGame():null;
   var hardLeft=G?G.left.filter(function(x){return x.e==='⚡'||x.e==='⏱';}).map(function(x){return x.n.replace(/ — .*/,'');}):[];
-  var easyLeft=G?G.left.filter(function(x){return x.e==='🏃'||x.e==='🚶'||x.e==='🔥';}).length:0,funLeft=G?G.left.some(function(x){return x.e==='🔥';}):false;
+  var easyLeft=G?G.left.filter(function(x){return x.e==='🏃'||x.e==='🚶'||x.e==='🔥'||x.e==='🌊';}).length:0,funLeft=G?G.left.some(function(x){return x.e==='🔥';}):false;
   var sl=typeof r.sleep==='number'?r.sleep:null,sly=typeof y.sleep==='number'?y.sleep:null;
   var facts=[];if(sl!==null)facts.push(hm(sl*60)+' sleep');if(typeof r.rhr==='number')facts.push('resting HR '+r.rhr);
   if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
@@ -3823,7 +3829,7 @@ function glanceHTML(){
       return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
-    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ')+' — you pick the days':'✅ week done','camp');})():'')+
+    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
     row('🏃','Runs this week',([w.hard+' hard',w.five?w.five+' × 5 mile easy':'',w.easy5k?w.easy5k+' × 5 km easy':'',w.sprints?w.sprints+' sprint'+(w.sprints===1?'':'s'):''].filter(Boolean).join(' · '))+(runIdea?' <span class="tiny dim">· still to pick from: '+esc(runIdea)+'</span>':''),'training')+
@@ -4010,7 +4016,7 @@ function setsWeekHTML(){
 function campPhase(t){
   var C=CFG.camp;t=t||today();
   if(t<C.start)return {k:'pre',n:'Starts '+fmtS(C.start)};
-  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs and a fun fast run. The cut carries on.'};
+  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs, a fun fast run and a Norwegian sub-threshold run. The cut carries on.'};
   if(t<=CFG.cutEnd)return {k:'check',n:'Checkpoint',w:'Test week on the last of the cut — the 1 km or mile and the 400 or 200, only if the week is clear.'};
   if(t<C.window)return {k:'refuel',n:'Refuel',w:'The reverse starts: carbs back in, sessions controlled, no trials. Legs fill up and fresh up.'};
   if(t<=C.end)return {k:'pb',n:'PB window',w:'The trials are the hard sessions now — two a week at most, three days apart, easy runs between.'};
@@ -4028,6 +4034,7 @@ function runHow(x){
   if(x==='easy')return 'Chatty the whole way, about '+easyPaceTxt()+' a km for you right now — slower is never wrong. Strides: 80 m fast but relaxed, walk back, 6–8 of them.';
   if(/^Time trial/.test(x))return 'Calm, dry day. 15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy. Coffee 45–60 min before if before 2pm. Even pace (400: first 200 a touch quicker); finish strongest.';
   if(/at (mile|5 km|800) pace/.test(x))return '15 min easy, drills, 4 strides. Lock into the pace in the guide — every rep the same, relaxed and controlled, never faster than the range. Recover until ready. Stop if you cannot hold the pace.';
+  if(/^Norwegian sub-threshold/.test(x)){var np=norwPick();return np.how+' Controlled is the whole point — if it feels like 8 out of 10 you have slipped into threshold. Log it as Norwegian sub-threshold.';}
   if(/^Fun fast run/.test(x)){var fp=funPick();return fp.how+(fp.why?' Picked: '+fp.why+'.':'')+' Fast but fun — 6–7 out of 10, finishing like you could do more. Not the day before a hard run. Log it as a fun run.';}
   if(/Threshold/.test(x))return '15 min easy first. Comfortably hard — about '+thrPaceTxt()+' a km for you right now, and you can say a few words, not a sentence. Even the whole way; it should feel like you could do 10 more minutes.';
   var m=/(\d+) × (\d+) ?(k?m)/.exec(x),d=m?(+m[2])*(m[3]==='km'?1000:1):0;
@@ -4038,19 +4045,29 @@ function runHow(x){
 /* the fun fast run (Dan, 18 Oct: "give the fun runs limitless"): a wide menu,
    each one quick and playful but never a race, picked each week for the event
    furthest from its goal and never last week's. Paced from his fitness. */
-/* Dan, 19 Oct: "I really like that Norwegian kind of training — I want my runs
-   that aren't hard runs, thresholds or sprints to be like that." So the fun
-   run is sub-threshold by default: controlled running a step under threshold
-   (about 3–8% slower), the zone that builds the engine at the lowest cost.
-   Effort is the guide — 7 out of 10, short sentences, never a strain. */
-function funMenu(){var p5=(fitnessEst(5000)||1085)/5,sub=kmPace(p5*1.09)+'–'+kmPace(p5*1.15),st=kmPace(p5*1.12)+'–'+kmPace(p5*1.18);
+function funMenu(){var p5=(fitnessEst(5000)||1085)/5,q=kmPace(p5*1.0)+'–'+kmPace(p5*1.05),st=kmPace(p5*1.12)+'–'+kmPace(p5*1.20);
   return [
-  {k:'sub1k',n:'Sub-threshold 6 × 1 km',feeds:[1609,5000,1000],how:'10 min easy, then 6 × 1 km at about '+sub+' a km with 60 s easy jog between. Controlled — 7 out of 10, short sentences. 10 min easy after.'},
-  {k:'sub2k',n:'Sub-threshold 3 × 2 km',feeds:[5000,1609],how:'10 min easy, then 3 × 2 km at about '+sub+' a km with 90 s easy jog between. Smooth and even — finish feeling you had another one.'},
-  {k:'sub3m',n:'Sub-threshold 10 × 3 min',feeds:[1609,5000,800],how:'10 min easy, then 10 × 3 min at about '+sub+' a km with 60 s easy jog between. Relaxed rhythm, never pushing.'},
-  {k:'steady',n:'Steady 6 km + strides',feeds:[5000,1609,400,800],how:'6 km steady at about '+st+' a km, then 8–10 × 20 s strides, walking back. The one you ran on 19 Oct.'},
-  {k:'progression',n:'Progression 5 miles',feeds:[5000],how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.10)+'. Never faster than that.'},
-  {k:'thirty',n:'Norwegian 30/15s, 2 × 10',feeds:[1000,800,1609],how:'10 min easy, then 2 sets of 10 × (30 s at about 5 km pace, 15 s easy jog), 3 min easy between sets. Light and quick, not a sprint.'}];}
+  {k:'fartlek',n:'Fartlek, 30 min',feeds:[1609,5000],how:'10 min steady, then 8 × (1 min quick at about '+q+' a km, 1 min steady — keep running), 5 min easy.'},
+  {k:'progression',n:'Progression 5 miles',feeds:[5000],how:'Start at about '+kmPace(p5*1.30)+' a km and get a little quicker every 2 km, finishing around '+kmPace(p5*1.12)+'. Never faster than that.'},
+  {k:'steady',n:'Steady 5 km',feeds:[5000,1609],how:'Comfortably quick the whole way — about '+st+' a km. Your 2025 “easy” pace.'},
+  {k:'mona',n:'Mona fartlek, 20 min',feeds:[1609,1000,800],how:'After a warm-up: 2 × 90 s, 4 × 60 s, 4 × 30 s, 4 × 15 s quick, each followed by the same time floating (steady, not walking). Quick bits at about '+q+' a km, the 15s quicker.'},
+  {k:'thirty',n:'30/30s, 12 rounds',feeds:[1000,800,1609],how:'Warm up 10 min, then 12 × (30 s quick, 30 s float). Quick at about mile pace, smooth and relaxed. 10 min easy after.'},
+  {k:'pyramid',n:'Pyramid fartlek 1-2-3-2-1',feeds:[1609,5000],how:'Warm up 10 min, then 1-2-3-2-1 minutes quick at about '+q+' a km, with half that time floating between. Cool down 5 min.'},
+  {k:'hills',n:'Rolling hills run, 35 min',feeds:[400,800,5000],how:'Somewhere with hills (the Lincoln Edge) — steady on the flat, push the climbs at about 7/10, float the descents.'},
+  {k:'strides',n:'Strides run, 6 km',feeds:[200,400,800],how:'6 km steady at about '+st+' a km, then 10 × 20 s strides — fast and loose, walk back. Speed without the fatigue.'},
+  {k:'negative',n:'Negative-split 5 km',feeds:[5000],how:'First 2.5 km at about '+kmPace(p5*1.20)+', second half at about '+kmPace(p5*1.10)+'. Finish feeling strong, never racing.'}];}
+/* Dan, 19 Oct: "the fun run could be anything — but I want a Norwegian type
+   run in there as well." So a second controlled run each week: sub-threshold,
+   a step under threshold (about 3–8% slower), 7 out of 10, short sentences.
+   The zone that builds the engine at the lowest cost — he is fresh again in
+   a day. Rotates, never the same two weeks running. */
+function norwMenu(){var p5=(fitnessEst(5000)||1085)/5,sub=kmPace(p5*1.09)+'–'+kmPace(p5*1.15);
+  return [
+  {k:'n1k',n:'Sub-threshold 6 × 1 km',how:'10 min easy, then 6 × 1 km at about '+sub+' a km with 60 s easy jog between. 7 out of 10, short sentences. 10 min easy after.'},
+  {k:'n3m',n:'Sub-threshold 10 × 3 min',how:'10 min easy, then 10 × 3 min at about '+sub+' a km with 60 s easy jog between. Relaxed rhythm, never pushing.'},
+  {k:'n2k',n:'Sub-threshold 3 × 2 km',how:'10 min easy, then 3 × 2 km at about '+sub+' a km with 90 s easy jog between. Smooth and even — finish feeling you had another one.'},
+  {k:'n3015',n:'Norwegian 30/15s, 2 × 10',how:'10 min easy, then 2 sets of 10 × (30 s at about 5 km pace, 15 s easy jog), 3 min easy between sets. Light and quick, not a sprint.'}];}
+function norwPick(d){var M=norwMenu(),w=weekOf(mondayOf(d||today()));return M[w%M.length];}
 function funKey(ws){var M=funMenu(),asof=addD(ws,-1),evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);}),w=weekOf(ws);
   var c=M.filter(function(x){return x.feeds.indexOf(evs[0])>=0;});if(!c.length)c=M;return c[w%c.length].k;}
 function funPick(d){var ws=mondayOf(d||today()),M=funMenu(),last=funKey(addD(ws,-7)),asof=addD(ws,-1),w=weekOf(ws);
@@ -4103,7 +4120,7 @@ function campGame(){
   for(var d=C.start;d<=t&&d<=C.end;d=addD(d,1)){
     var r=S.days[d]||{},ran=false;
     (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;ran=true;
-      if(m.hard)add(30);else if(m.fun||isFiveMiler(m))add(20);else add(10);});
+      if(m.hard)add(30);else if(m.fun||m.subt||isFiveMiler(m))add(20);else add(10);});
     if(r.gym)add(20);
     if(r.gym&&r.pr)add(15);                             /* beat last time on a main lift */
     if(!ran&&!r.gym&&d<t)add(dow(d)===C.offDay&&typeof r.study!=='number'?20:10);   /* rest counts; a stress-free Saturday counts double */
@@ -4129,15 +4146,16 @@ function campGame(){
   var lv=CAMP_LEVELS[0],nx=null;
   for(var i=0;i<CAMP_LEVELS.length;i++){if(xp>=CAMP_LEVELS[i][0])lv=CAMP_LEVELS[i];else{nx=CAMP_LEVELS[i];break;}}
   /* this week's quests */
-  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,fun:0,five:0,e5k:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0,reset:0},lastHard=null,legsY=false;
+  var ws=mondayOf(t),T=tmplFor(ws),q={hard:0,fun:0,subt:0,five:0,e5k:0,gym:0,rest:0,sleep:0,pr:0,spr:0,sat:0,med:0,reset:0},lastHard=null,legsY=false;
   for(var j=0;j<7;j++){var dd=addD(ws,j);if(dd>t)break;var rr=S.days[dd]||{},rn=false;
-    (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(m.fun)q.fun++;else if(isFiveMiler(m))q.five++;else if(m.km>=4.5)q.e5k++;});
+    (rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;rn=true;if(m.hard){q.hard++;lastHard=dd;}else if(m.fun)q.fun++;else if(m.subt)q.subt++;else if(isFiveMiler(m))q.five++;else if(m.km>=4.5)q.e5k++;});
     if(rr.gym)q.gym++;if(rr.gym&&rr.pr)q.pr++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty&&m.sprint)q.spr++;});if(!rn&&!rr.gym&&dd<t)q.rest++;if(dow(dd)===CFG.camp.offDay&&!rn&&!rr.gym&&typeof rr.study!=='number'&&dd<t)q.sat++;if(typeof rr.sleep==='number'&&rr.sleep>=CFG.sleep.line)q.sleep++;if(rr.medMin>=5)q.med++;if(rr.reset)q.reset++;}
   for(var k=1;k<=3&&!lastHard;k++){var pd=S.days[addD(t,-k)];if(pd&&(pd.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))lastHard=addD(t,-k);}
   var y=S.days[addD(t,-1)]||{};legsY=y.split==='legs';
   var wsSets=weekSets(t),allIn=CFG.sets.every(function(x){var rr=setsRange(x.m),v=wsSets[x.m]||0;return v>=rr[0]&&v<=rr[1];});
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
-  var quests0=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.mix?['🔥','Fun fast run',Math.min(q.fun,eT),eT]:['🏃','Easy 5-milers',q.five,eT]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+  var quests0=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.mix?['🔥','Fun fast run',Math.min(q.fun,1),Mq.mix.indexOf('fun')>=0?1:0]:['🏃','Easy 5-milers',q.five,eT]),
+    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,1),Mq.mix.indexOf('norw')>=0?1:0]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   var quests=quests0.filter(function(x){return x[3]>0;});
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
      and each one says how to run it */
@@ -4170,13 +4188,14 @@ function campGame(){
   var sl2=[1,2].map(function(i){var r=S.days[addD(t,-i)];return r&&typeof r.sleep==='number'?r.sleep:null;}).filter(function(x){return x!==null;});
   var walkSwap=!!((ST&&(ST.k==='legs'||ST.k==='rest'||ST.k==='warn'))||RH.state==='up'||RH.state==='high'||(sl2.length===2&&mean(sl2)<7));
   var walkWhy=ST&&ST.k!=='good'?ST.t.toLowerCase():((RH.state==='up'||RH.state==='high')?'resting HR is up':'two short nights');
-  var easyDone=M&&M.mix?q.fun:q.five;
+  var easyDone=M&&M.mix?q.fun+q.subt:q.five;
   if(walkSwap&&easyDone<(M?M.easyTarget:T.easy))left.push({e:'🚶',n:'Next easy run: make it a brisk walk instead, 45–60 min',how:'My call today — '+walkWhy+'. A walk burns most of the same calories with almost none of the stress, so your face and recovery both win. Back to running when the signs settle.'});
   var easyL=[];
   if(M&&M.mix){
     if(M.mix.indexOf('fun')>=0&&!q.fun&&!walkSwap){var fp=funPick();easyL.push({e:'🔥',n:'Fun fast run — '+fp.n,how:runHow('Fun fast run')});}
-    /* the easy 5 km is only ever an option — a walk does the same job */
-    if(!q.e5k&&!q.five)easyL.push({e:'➕',n:'Optional: an easy 5 km — or a brisk 45-min walk instead',how:'Only if you fancy it. Easy and short, or just walk — it adds to the burn without touching your recovery or the fast runs.'});
+    if(M.mix.indexOf('norw')>=0&&!q.subt){var np=norwPick();easyL.push({e:'🌊',n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold')});}
+    /* four runs is the most — anything extra is a walk */
+    easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
   }else
   for(var e5=q.five+(walkSwap?1:0);e5<(M?M.easyTarget:T.easy);e5++)easyL.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   /* Dan, 12 Oct: a separate sprints line read as a sixth run. They are not
@@ -4323,6 +4342,7 @@ function campWeekReview(ws){
     (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
       if(m.sprint||x.up){o.spr++;return;}
       if(m.fun){o.fun=(o.fun||0)+1;return;}
+      if(m.subt){o.subt=(o.subt||0)+1;return;}
       if(m.hard)o.hm.push({dm:m.dm,kind:m.kind,tt:!!(CUT_RUNS[weekOf(d)]||{}).tt});
       if(m.hard)o.hard.push(m.label+(m.repAvg!==null&&m.dm?' · '+secFmt(m.repAvg)+(m.n>1?' a rep':''):''));else if(isFiveMiler(m))o.five++;else if(m.km>=4.5)o.easy5k++;else o.walk++;});
     if(r.gym)o.gym++;if(r.gym&&r.pr)o.pr++;if(r.medMin>=5)o.med++;if(r.reset)o.reset=(o.reset||0)+1;
@@ -4353,6 +4373,7 @@ function reviewGains(o){
   if(has(function(m){return m.dm>=400&&m.dm<=800;}))g.push(['🔥','Speed endurance','Holding pace while it hurts — the skill the last 200 of an 800 and the third lap of a mile are made of.','800 · mile']);
   if(has(function(m){return m.dm>=1000&&!m.tt;})||has(function(m){return m.kind==='cont';}))g.push(['🫀','VO₂max — the engine','Reps at about mile-to-5 km pace push the top of your aerobic engine up. This is what lowers the mile and the 5 km.','1 km · mile · 5 km']);
   if(has(function(m){return m.tt;}))g.push(['⏱','A true read','Time trials show where you really are, so the next weeks’ paces fit you exactly.','all']);
+  if(o.subt)g.push(['🌊','The threshold engine','Norwegian sub-threshold work lifts the pace you can hold before lactate builds — the biggest single lever for the 5 km and mile, at a cost you recover from in a day.','5 km · mile · 1 km']);
   if(o.fun)g.push(['🔥','Cruising at pace','Comfortably fast running teaches your body to sit at speed relaxed — the 5 km and mile feel easier, and it is the run you enjoy.','5 km · mile']);
   if(o.five||o.easy5k)g.push(['🌱','Aerobic base','Easy miles grow the small blood vessels and the mitochondria in your legs — a faster 5 km, and quicker recovery between reps.','5 km · mile']);
   if(o.spr)g.push(['⛰️','Power and top speed','All-out hill sprints build stride power and stiffer tendons for very little fatigue.','200 · 400']);
@@ -4411,6 +4432,7 @@ function campReviewHTML(ws){
   if(gained.length)good.push('Fitter: '+gained.map(function(g){return repLabel(g.dm)+' '+(g.gain>=1?Math.round(g.gain)+' s':g.gain.toFixed(1)+' s')+' quicker';}).join(', ')+'.');
   if(o.hard.length)good.push(o.hard.length+' quality session'+(o.hard.length===1?'':'s')+': '+o.hard.join(' · '));
   if(o.fun)good.push('🔥 '+o.fun+' fun fast run'+(o.fun===1?'':'s'));
+  if(o.subt)good.push('🌊 '+o.subt+' Norwegian sub-threshold run'+(o.subt===1?'':'s'));
   if(o.five||o.easy5k)good.push([o.five?o.five+' easy 5-miler'+(o.five===1?'':'s'):'',o.easy5k?o.easy5k+' easy 5 km':''].filter(Boolean).join(' + ')+(o.spr?' · ⛰️ hill sprints':''));
   if(o.gym)good.push(o.gym+' gym session'+(o.gym===1?'':'s')+(o.pr?', 💪 beat last time '+o.pr+'×':''));
   if(o.slAvg!==null&&o.slAvg>=CFG.sleep.line)good.push('Sleep averaged '+hm(o.slAvg*60)+'.');
