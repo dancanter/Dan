@@ -735,6 +735,13 @@ ok('one done: the second is the short-rep kind, and the quest is 1/2', NW.q.incl
 ok('every Norwegian session is 30–40 min door to door', NW.m.every(h => /about 3\d min all in/.test(h)));
 await ctx.close();
 
+// ===== a new low morning is an achievement (20 Oct) =====
+({ ctx, p, boot } = await at('2026-10-20'));
+await boot(st({ weights: { '2026-09-20': 129.2, '2026-10-03': 127.2, '2026-10-14': 127.0, '2026-10-19': 127.4, '2026-10-20': 126.6 } }));
+const NL = await p.evaluate(() => ({ a: campAchievements().filter(a => a.tier === 'low').map(a => a.d + ' ' + a.sub), g: E('glanceCard').textContent }));
+ok('126.6 under the cut low of 127.0 is a NEW LOW, celebrated on Today', NL.a.length === 2 && NL.a.includes('2026-10-20 126.6 lb — lowest morning of the cut') && /NEW LOW/.test(NL.g), JSON.stringify(NL.a));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

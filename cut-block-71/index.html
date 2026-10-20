@@ -4153,6 +4153,7 @@ function campGame(){
   var wmS=weightModel(),cr0=cutReadings(),aN=avgWindow(t,7).avg,miles=[];
   var a0=wmS.baseline!==null?wmS.baseline:(cr0.length?cr0[0].lb:null);
   if(a0!==null&&aN!==null)MILESTONES.forEach(function(m){if(a0>m&&wUnder(aN,m)){miles.push(m);xp+=WBIG[m]?WBIG[m].xp:25;}});
+  xp+=newLows().length*10;   /* every new low morning of the cut, from camp start */
   /* muscle: +50 for every camp week with every muscle inside its set range */
   var setWeeks=0;
   for(var w0=mondayOf(C.start);w0<=t;w0=addD(w0,7)){var ss=weekSets(w0);
@@ -4278,6 +4279,11 @@ function campCallHTML(){
    of all time, 💎 goal smashed — plus weight milestones, stress-free
    Saturdays, beat-last-time and perfect weeks. The newest one gets a
    celebration, once, on Today and the Camp tab. */
+function newLows(){
+  var ks=Object.keys(S.weights).filter(function(k){return k>=CFG.cutStart&&k<=today();}).sort(),lo=null,out=[];
+  ks.forEach(function(k){var v=S.weights[k];if(typeof v!=='number')return;if(lo!==null&&v<lo-0.05&&k>=CFG.camp.start)out.push({d:k,lb:v});if(lo===null||v<lo)lo=v;});
+  return out;
+}
 function campAchievements(){
   var C=CFG.camp,t=today(),out=[],best={},k;
   for(k in C.base)best[k]=C.base[k];
@@ -4295,6 +4301,9 @@ function campAchievements(){
   if(a0!==null)for(var d2=WEIGH_START;d2<=t;d2=addD(d2,1)){var av=avgWindow(d2,7).avg;if(av===null)continue;
     MILESTONES.forEach(function(m){if(!hit[m]&&a0>m&&wUnder(av,m)){hit[m]=1;var B=WBIG[m];
       out.push({id:'w'+m,d:d2,tier:B?'wbig':'w',e:B?B.e:'🔪',n:B?B.n:'UNDER '+m+' LB',sub:'7-day average '+f1(av)+' lb'+(B?' · '+B.sub:''),xp:B?B.xp:25});}});}
+  /* Dan, 20 Oct: "whenever I add a new low, where's the achievement?" — every
+     morning lower than any before it in the cut, from camp start on */
+  newLows().forEach(function(x){out.push({id:'low'+x.d,d:x.d,tier:'low',e:'📉',n:'NEW LOW',sub:(S.settings.hideDaily?'Lowest morning of the cut':f1(x.lb)+' lb — lowest morning of the cut'),xp:10});});
   /* habits */
   var sat=0,pr=0,perfect=0;
   for(var d3=C.start;d3<t;d3=addD(d3,1)){var r=S.days[d3]||{},ran=(r.runs||[]).some(function(x){return !runMeta(x).empty;});
@@ -4317,7 +4326,7 @@ function celeHTML(){
     '<div style="font-weight:800;letter-spacing:.04em;margin-top:4px">'+a.n+'</div>'+
     '<div class="num" style="font-size:1.4em;margin:4px 0">'+a.sub+'</div>'+
     (a.xp?'<div class="pill g" style="display:inline-block">+'+a.xp+' XP</div>':'')+
-    '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':(a.tier==='wbig'?'Chiselled 🗿':'Nice! 🙌')))+'</button></div></div>';
+    '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':(a.tier==='wbig'?'Chiselled 🗿':(a.tier==='low'?'Lower 📉':'Nice! 🙌'))))+'</button></div></div>';
 }
 function achievementsHTML(){
   var A=campAchievements(),C=CFG.camp,got={};A.forEach(function(a){got[a.id.replace(/\d{4}-\d{2}-\d{2}$/,'')]=1;});
