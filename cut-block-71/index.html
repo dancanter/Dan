@@ -4213,6 +4213,8 @@ function campGame(){
     if(M.mix.indexOf('fun')>=0&&!q.fun&&!walkSwap){var fp=funPick();easyL.push({e:'🔥',n:'Fun fast run — '+fp.n,how:runHow('Fun fast run')});}
     var nN=M.mix.filter(function(k){return k==='norw';}).length,nP=norwPicks();
     /* the long-rep one first (or the only one); the short-rep one is the second */
+    /* never the same rep distance as this week's short hard session (e.g. 400s twice) */
+    if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
     for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
     /* four runs is the most — anything extra is a walk */
