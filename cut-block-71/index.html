@@ -4188,7 +4188,7 @@ function campGame(){
     if(M.P.pbwin)C.pb.filter(function(x){return x.on>=ws&&x.on<=addD(ws,6);}).forEach(function(x){var b=bestAt(x.dm,R[x.dm]).best;if(b&&b.date>=ws)return;
       left.push({e:'⏱',n:repLabel(x.dm)+' trial — goal '+campGoalTxt(x)+' (suggested '+DOWS[dow(x.on)]+' '+fmtS(x.on)+')',how:runHow('Time trial')});});
   }
-  if(M&&M.thrOn&&!M.thrDone)left.push({e:'⚡',n:'Threshold run, 20–25 min at about '+thrPaceTxt()+' a km — your 3rd quality session (in place of the fun run)',how:runHow('Threshold')});
+  if(M&&M.thrOn&&!M.thrDone)left.push({e:'⚡',n:'Threshold run, 20–25 min at about '+thrPaceTxt()+' a km — your 3rd quality session (in place of one Norwegian run)',how:runHow('Threshold')});
   /* uphill sprints: only when I say — in the build, recovery clear, not a
      test week, and not already done this week */
   var NGs=niggleModel(),ph=campPhase(t);
@@ -4217,14 +4217,19 @@ function campGame(){
     /* never the same rep distance as this week's short hard session (e.g. 400s twice) */
     if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
-    for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
+    for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
     /* four runs is the most — anything extra is a walk */
     easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
   }else
   for(var e5=q.five+(walkSwap?1:0);e5<(M?M.easyTarget:T.easy);e5++)easyL.push({e:'🏃',n:'Easy 5 miles'+(q.five===0&&e5===0?' — with 6–8 strides at the end':''),how:runHow('easy')});
   /* Dan, 12 Oct: a separate sprints line read as a sixth run. They are not
      one — they ride on the end of an easy 5-miler, so they live on that line. */
-  if(sprOn&&!q.spr){var hostE=easyL.length?easyL[easyL.length-1]:null;
+  /* Dan, 20 Oct: sprints ride on the end of the long-rep Norwegian run — no
+     fifth run day. Sub-threshold leaves the legs fresh enough for 8–10 s
+     all-out efforts with a full walk back. */
+  if(sprOn&&!q.spr){var hostN=easyL.filter(function(x){return x.e==='🌊'&&x.c==='long';})[0];
+    if(hostN){hostN.n+=' + ⛰️ '+spr.n+' hill sprints (~10 s) at the end';hostN.how+=' Then the hill sprints: '+sprHow;}}
+  if(sprOn&&!q.spr&&!easyL.some(function(x){return /hill sprints \(~10 s\) at the end/.test(x.n);})){var hostE=easyL.length?easyL[easyL.length-1]:null;
     if(hostE&&!/strides/.test(hostE.n)&&hostE.e==='🏃'){hostE.n='Easy 5 miles + ⛰️ '+spr.n+' uphill sprints (~10 s) at the end';hostE.how=runHow('easy')+' Then the sprints: '+sprHow;}
     else left.push({e:'⛰️',n:'Hill sprints — explosive: '+spr.n+' × ~10 s, after a short easy jog or a walk (a short session, not a full run)',how:sprHow});}
   left=left.concat(easyL);

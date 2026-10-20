@@ -345,7 +345,7 @@ const wts = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026,
 await boot(st({ weights: wts, days: { '2026-10-12': { gym: true, pr: true, split: 'back', sets: { Back: 14, Biceps: 8 } }, '2026-10-13': { runs: [{ km: 8.1, secs: 2500, type: 'easy' }] } } }));
 let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, left: g.left.map(x => x.n), q: g.quests.map(q => q[1] + ' ' + q[2] + '/' + q[3]), shred: g.shred, xp: g.xp }; });
 ok('sprints have their own quest when they are on', G2.q.some(x => /^Hill sprints, explosive 0\/1$/.test(x)), JSON.stringify(G2.q));
-ok('a clear build week turns uphill sprints ON, on the end of an easy run or a walk', G2.spr.on && G2.left.some(n => /^Hill sprints — explosive: \d+ × ~10 s, after a short easy jog or a walk/.test(n)), JSON.stringify(G2.spr));
+ok('a clear build week turns uphill sprints ON, on the end of an easy run or a walk', G2.spr.on && G2.left.some(n => /^Hill sprints — explosive: \d+ × ~10 s, after a short easy jog or a walk/.test(n) || /\+ ⛰️ \d+ hill sprints \(~10 s\) at the end/.test(n)), JSON.stringify(G2.spr));
 ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'), JSON.stringify(G2.q));
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
@@ -740,6 +740,13 @@ await ctx.close();
 await boot(st({ weights: { '2026-09-20': 129.2, '2026-10-03': 127.2, '2026-10-14': 127.0, '2026-10-19': 127.4, '2026-10-20': 126.6 } }));
 const NL = await p.evaluate(() => ({ a: campAchievements().filter(a => a.tier === 'low').map(a => a.d + ' ' + a.sub), g: E('glanceCard').textContent }));
 ok('126.6 under the cut low of 127.0 is a NEW LOW, celebrated on Today', NL.a.length === 2 && NL.a.includes('2026-10-20 126.6 lb — lowest morning of the cut') && /NEW LOW/.test(NL.g), JSON.stringify(NL.a));
+await ctx.close();
+
+// ===== hill sprints ride on the long Norwegian run (20 Oct) =====
+({ ctx, p, boot } = await at('2026-11-03'));
+await boot(st({ days: { '2026-11-02': { sleep: 7.0 }, '2026-11-03': { sleep: 7.1 } } }));
+const HS = await p.evaluate(() => { const G = campGame(); return { on: G.spr.on, left: G.left.map(x => x.n) }; });
+ok('when sprints are on they ride on the long Norwegian run, not a fifth run', !HS.on || (HS.left.some(n => /^Norwegian sub-threshold — .* \+ ⛰️ \d+ hill sprints \(~10 s\) at the end/.test(n)) && !HS.left.some(n => /^Hill sprints — explosive/.test(n))), JSON.stringify(HS));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
