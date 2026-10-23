@@ -605,6 +605,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="notesCard"></div>
   <div id="filmCard"></div>
   <div id="spotCard"></div>
+  <div id="longCard"></div>
 </section>
 
 <!-- ================= SKIN ================= -->
@@ -4945,10 +4946,38 @@ function spotsHTML(){
     '<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">'+chips+'</div>'+
     '<p class="tiny" style="margin-top:6px">Check the route on a map first — I cannot see live paths or conditions from here.</p></div>';
 }
+/* ===================== longevity, looks, cells (Dan, 23 Oct) =====================
+   VO2max estimated from race times with Daniels' VDOT formula — the 5 km is
+   the reliable read; a 1 km over-reads because sprint energy helps short
+   races. VO2max is one of the strongest predictors of a long life. */
+function vdot(dm,secs){var t=secs/60,v=dm/t,vo=-4.6+0.182258*v+0.000104*v*v,pc=0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);return vo/pc;}
+var LONGEVITY=[
+  ['🫀','VO₂max — the strongest single predictor','Higher fitness, longer life — the gap between the fittest and least fit is bigger than smoking. Your hard runs and Norwegian runs are building it.'],
+  ['🏋️','Muscle and strength','Muscle protects blood sugar, bones, hormones and independence as you age. Four gym sessions, beat last time, protein 135 g+.'],
+  ['😴','Sleep 8 h+, bed before 23:00','Deep sleep is when the brain clears waste and growth hormone repairs tissue. The cheapest anti-ageing there is.'],
+  ['🍽️','Real food, gluten-free, no sweeteners','Coeliac-safe every time; red meat and oily fish for iron, zinc, B12, omega-3 and vitamin D; berries, dark chocolate and colourful veg for polyphenols; kiwis and potatoes for potassium.'],
+  ['📉','A gentle deficit, never a crash','Slow fat loss protects hormones, thyroid, hair and bone. The reverse brings you back to full fuel.'],
+  ['🌿','Calm nervous system','Saturday off, a reset day, slow breathing, nature, people. Chronic stress ages cells faster — it shortens telomeres.'],
+  ['☀️','Daylight in, screens out','Morning daylight sets your body clock; dim, warm light at night; phone out of the bedroom.'],
+  ['🧴','Skin','SPF every morning (UV is most of visible skin ageing), retinol on the forehead as planned, water steady.'],
+  ['💧','Steady salt, water and carbs','Stable fluid means a sharper face and better performance; swings make you look puffy.'],
+  ['🚫','The big no’s','No smoking, no alcohol (or very little), no ultra-processed food, no hidden gluten.'],
+  ['🩸','Check in yearly','Bloods (ferritin, vitamin D, B12, lipids, HbA1c, thyroid, testosterone), dentist every 6 months, and an ECG if you ever want peace of mind.'],
+  ['👥','People and purpose','Strong relationships and something to work towards — your studies — are among the biggest longevity factors there are.']];
+function longevityHTML(){
+  var f5=fitnessEst(5000),v5=f5?vdot(5000,f5):null,b1=null;
+  (function(){for(var d in S.days)(S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty&&m.dm===1000&&m.n===1&&m.repAvg&&(!b1||m.repAvg<b1))b1=m.repAvg;});})();
+  var v1=b1?vdot(1000,b1):null;
+  return '<div class="p"><h2>🧬 Longevity, looks and your cells</h2>'+
+    (v5?'<div class="row" style="gap:10px;align-items:baseline;margin:0 0 6px"><b style="font-size:1.4em">VO₂max ≈ '+Math.round(v5)+(v1&&v1>v5+0.5?'–'+Math.round(v1):'')+'</b><span class="tiny">ml/kg/min · estimated from your 5 km fitness ('+secFmt(Math.round(f5))+')'+(v1?' and best 1 km ('+secFmt(b1)+')':'')+'</span></div>'+
+      '<p class="tiny" style="margin:0 0 8px">For a man in his 20s, over about 52 is excellent — roughly the top 5–10%. The 5 km figure is the reliable one; a 1 km reads high because sprint energy helps short races. A lab test can differ by a few points.</p>':'')+
+    LONGEVITY.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</div>';
+}
 function renderLife(){
   if(E('dayCard'))E('dayCard').innerHTML=routineHTML();
   if(E('filmCard'))E('filmCard').innerHTML=filmHTML();
   if(E('spotCard'))E('spotCard').innerHTML=spotsHTML();
+  if(E('longCard'))E('longCard').innerHTML=longevityHTML();
 }
 function wireLife(){
   E('dayCard').addEventListener('click',function(ev){

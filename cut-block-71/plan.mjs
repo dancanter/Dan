@@ -60,7 +60,8 @@ ok('500m is one of them', cold.some(c => c.dm === 500), JSON.stringify(cold.map(
 const freq = await p.evaluate(() => distFreq());
 ok('500m was last done in February', freq['500'].last === '2026-02-16', JSON.stringify(freq['500']));
 ok('and he has done two of them', freq['500'].n === 2, JSON.stringify(freq['500']));
-ok('400m is not cold', !cold.some(c => c.dm === 400), JSON.stringify(cold.map(c => c.dm)));
+// (was '400m is not cold' — that rotted with the real clock; the threshold check above covers it)
+ok('nothing done in the last 6 weeks is called cold', cold.every(c => c.age >= 42), JSON.stringify(cold.map(c => c.dm + ':' + c.age)));
 t = await p.textContent('#tPlan');
 ok('the cold list is shown with why each matters', /Sessions you used to do and have stopped/.test(t));
 ok('and framed as drift, not a telling-off', /Not a telling-off/.test(t));

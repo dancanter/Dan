@@ -749,6 +749,13 @@ const HS = await p.evaluate(() => { const G = campGame(); return { on: G.spr.on,
 ok('when sprints are on they ride on the long Norwegian run, not a fifth run', !HS.on || (HS.left.some(n => /^Norwegian sub-threshold — .* \+ ⛰️ \d+ hill sprints \(~10 s\) at the end/.test(n)) && !HS.left.some(n => /^Hill sprints — explosive/.test(n))), JSON.stringify(HS));
 await ctx.close();
 
+// ===== longevity card with a VO2max estimate (23 Oct) =====
+({ ctx, p, boot } = await at('2026-10-23'));
+await boot(st({ days: { '2026-10-23': { runs: [{ k: 'reps', dm: 1000, n: 1, secs: 179 }] } } }));
+const LG = await p.evaluate(() => ({ t: E('longCard').textContent, v5: vdot(5000, 1085), v1: vdot(1000, 179) }));
+ok('the Mind tab has a longevity card with a VO2max estimate from 5 km and the best 1 km', /Longevity, looks and your cells/.test(LG.t) && /VO₂max ≈ 5\d–\d\d/.test(LG.t) && LG.v5 > 54 && LG.v5 < 58 && LG.v1 > LG.v5 && /Sleep 8 h\+/.test(LG.t) && /gluten-free, no sweeteners/.test(LG.t), LG.t.slice(0, 300));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
