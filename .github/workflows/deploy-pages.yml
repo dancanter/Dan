@@ -31,6 +31,10 @@ jobs:
       # direct link to /article/some-id) 404 unless index.html is also
       # served as the 404 page — the client-side router then takes over.
       - run: cp dist/index.html dist/404.html
+      # The training tracker is a standalone single-file app, not part of the
+      # Vite build. Serving it from a real origin is what lets it save: it
+      # keeps its data in localStorage, which needs a stable origin to survive.
+      - run: mkdir -p dist/training-system && cp training-system/index.html dist/training-system/
       - uses: actions/configure-pages@v5
         with:
           enablement: true
