@@ -767,6 +767,16 @@ await p.fill('#inShoot', '2026-10-27'); await p.dispatchEvent('#inShoot', 'chang
 ok('setting the date saves it and the plan moves to the day before', await p.evaluate(() => S.settings.shoot === '2026-10-27' && /Shoot tomorrow/.test(E('modelCard').textContent) && /Bed by 22:30/.test(E('modelCard').textContent)));
 await ctx.close();
 
+// ===== clocks going back add an hour of sleep (25 Oct) =====
+({ ctx, p, boot } = await at('2026-10-25'));
+await boot(st({}));
+await p.click('[data-t="today"]');
+await p.fill('#inBed', '23:11'); await p.dispatchEvent('#inBed', 'change');
+await p.fill('#inWake', '07:58'); await p.dispatchEvent('#inWake', 'change'); await p.waitForTimeout(150);
+const CK = await p.evaluate(() => ({ r: S.days[today()], m: sleepMins(S.days[today()]), s1: clockShift('2026-10-25'), s2: clockShift('2027-03-28'), s3: clockShift('2026-10-18') }));
+ok('the night the clocks go back counts the extra hour (23:11–07:58 = 9.5 h asleep); March loses one', CK.r.sleep === 9.5 && CK.r.clk === 60 && CK.m === 572 && CK.s1 === 60 && CK.s2 === -60 && CK.s3 === 0, JSON.stringify(CK));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

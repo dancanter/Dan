@@ -6836,10 +6836,16 @@ function wireFood(){
 /* bed and wake times to hours asleep: time in bed minus about 15 minutes
    to fall asleep. Past midnight bedtimes and naps the wrong way round are
    handled; anything outside 1–14 h is treated as a typo and not saved. */
-function sleepFromTimes(bed,wake){
+/* UK clock changes (Dan, 25 Oct): the night ending on the last Sunday of
+   October is an hour longer than the clock says; the last Sunday of March,
+   an hour shorter. */
+function clockShift(d){if(!d)return 0;var y=+d.slice(0,4),m=+d.slice(5,7);if(m!==10&&m!==3)return 0;
+  var last=new Date(Date.UTC(y,m,0));last.setUTCDate(last.getUTCDate()-last.getUTCDay());
+  return d===last.toISOString().slice(0,10)?(m===10?60:-60):0;}
+function sleepFromTimes(bed,wake,shift){
   if(!bed||!wake)return null;
   var m=function(t){var q=t.split(':');return Number(q[0])*60+Number(q[1]);};
-  var inBed=m(wake)-m(bed);if(inBed<=0)inBed+=1440;
+  var inBed=m(wake)-m(bed);if(inBed<=0)inBed+=1440;inBed+=(shift||0);
   var h=Math.round((inBed-15)/6)/10;
   return (h>=1&&h<=14)?{h:h,inBed:inBed,min:inBed-15}:null;
 }
@@ -6847,7 +6853,7 @@ function sleepFromTimes(bed,wake){
    any, else from the logged hours. hm() writes them as hours and minutes. */
 function sleepMins(rec){
   if(!rec)return null;
-  var c=sleepFromTimes(rec.bed,rec.wake);
+  var c=sleepFromTimes(rec.bed,rec.wake,rec.clk||0);
   if(c)return c.min;
   return typeof rec.sleep==='number'?Math.round(rec.sleep*60):null;
 }
@@ -6862,7 +6868,7 @@ function hm(min,long){
 function sh(x){return x===null||x===undefined||!isFinite(x)?'—':(Math.round(x*60)===0?'0 h':hm(x*60));}
 function hDec(min){return (Math.round(min/6)/10).toFixed(1);}
 function sleepCalcText(rec){
-  var c=sleepFromTimes(rec.bed,rec.wake);
+  var c=sleepFromTimes(rec.bed,rec.wake,rec.clk||0);
   if(c)return '≈ <b>'+hDec(c.min)+' h · '+hm(c.min,true)+' asleep</b> · in bed '+hm(c.inBed)+(rec.phoneOut?' · 📵 phone-free ✓':' · phone in the room?');
   if(typeof rec.sleep==='number')return hDec(sleepMins(rec))+' h · '+hm(sleepMins(rec),true)+' logged';
   return 'Put in when you went to bed and woke — the hours work themselves out.';
@@ -7374,7 +7380,7 @@ function sleepNightHTML(d){
   var r=S.days[d]||{},night=addD(d,-1);
   var head='<b>'+DOWS[dow(night)]+' night</b> <span class="tiny dim">· logged '+DOWS[dow(d)]+' '+fmtS(d)+'</span>';
   if(typeof r.sleep!=='number')return '<div class="p" style="box-shadow:none;padding:10px">'+head+'<div class="note">Not logged — ignored, not judged.</div></div>';
-  var mins=sleepMins(r),gap=mins-Math.round(CFG.sleep.line*60),c=sleepFromTimes(r.bed,r.wake);
+  var mins=sleepMins(r),gap=mins-Math.round(CFG.sleep.line*60),c=sleepFromTimes(r.bed,r.wake,r.clk||0);
   return '<div class="p" style="box-shadow:none;padding:10px">'+head+
     '<div class="row" style="gap:10px;align-items:baseline;margin-top:4px"><b class="num" style="font-size:1.5em">'+hDec(mins)+' h</b>'+
     '<b id="slExact">'+hm(mins,true)+'</b>'+
@@ -8502,8 +8508,8 @@ function wire(){
     setDay(d,{sets:Object.keys(cur).length?cur:null});
   });
   ['inBed','inWake'].forEach(function(id){E(id).addEventListener('change',function(){
-    var d=E('logDate').value||today(),bed=E('inBed').value||null,wake=E('inWake').value||null,c=sleepFromTimes(bed,wake);
-    var o={bed:bed,wake:wake};if(c)o.sleep=c.h;
+    var d=E('logDate').value||today(),bed=E('inBed').value||null,wake=E('inWake').value||null,sh=clockShift(d),c=sleepFromTimes(bed,wake,sh);
+    var o={bed:bed,wake:wake,clk:sh||null};if(c)o.sleep=c.h;
     setDay(d,o);
   });});
   E('inCalisType').addEventListener('change',function(){
