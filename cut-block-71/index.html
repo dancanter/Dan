@@ -206,6 +206,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <button role="tab" data-t="reverse" aria-selected="false">Reverse</button>
     <button role="tab" data-t="wins" aria-selected="false">Wins</button>
     <button role="tab" data-t="review" aria-selected="false">Review</button>
+    <button role="tab" data-t="model" aria-selected="false">📸 Model</button>
     <button role="tab" data-t="skin" aria-selected="false">Skin</button>
     <button role="tab" data-t="data" aria-selected="false">Data</button>
   </nav>
@@ -606,6 +607,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="filmCard"></div>
   <div id="spotCard"></div>
   <div id="longCard"></div>
+</section>
+
+<!-- ================= MODEL ================= -->
+<section id="s-model" class="stack" hidden>
+  <div id="modelCard"></div>
 </section>
 
 <!-- ================= SKIN ================= -->
@@ -3829,6 +3835,7 @@ function glanceHTML(){
       if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
       var RW=revWatch();if(RW)calls.push(RW.e+' '+RW.t);
       return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
+    (function(){var sd=shootDays();if(sd===null||sd>7)return '';var pl=shootPlan(sd);return row('📸',pl.t,esc(pl.items[0]),'model');})()+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
@@ -3838,6 +3845,7 @@ function glanceHTML(){
     row('🏋️','Gym this week',w.gym+' session'+(w.gym===1?'':'s'),'training')+
     row('😴','Sleep last night',typeof r.sleep==='number'?hDec(sleepMins(r))+' h · '+hm(sleepMins(r))+(r.sleep>=CFG.sleep.line?' ✓':' · aim for '+f1(CFG.sleep.line)):'not logged','sleep')+
     (function(){var RM=retinolModel();if(!RM.area)return '';var nx=RM.nights.filter(function(x){return x>t;})[0]||addD(mondayOf(t),7+((RM.phase.days[0]+6)%7));
+      var sdR=shootDays();if(RM.tonight&&sdR!==null&&sdR<=2)return row('🌙','Retinol · forehead only','Skip tonight — shoot in '+(sdR===0?'the morning':sdR+' day'+(sdR===1?'':'s')),'model');
       return row('🌙','Retinol · forehead only',RM.tonight?(r.retinol?'✓ done tonight':'Tonight — a rice grain, forehead only'):'next: '+DOWS[dow(nx)]+' '+fmtS(nx),'skin');})()+
     row('🎬',film?'Tonight is film night':'Film nights',film?esc(film[0]):(next?'next: '+next:'none set'),'mind')+
     row('📚','Study-day routine',ticks?ticks+' step'+(ticks===1?'':'s')+' done':'not started','study')+
@@ -4973,13 +4981,91 @@ function longevityHTML(){
       '<p class="tiny" style="margin:0 0 8px">For a man in his 20s, over about 52 is excellent — roughly the top 5–10%. The 5 km figure is the reliable one; a 1 km reads high because sprint energy helps short races. A lab test can differ by a few points.</p>':'')+
     LONGEVITY.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</div>';
 }
+/* ===================== model mode (Dan, 25 Oct) =====================
+   "I'm modelling — my face has to be on point: chiselled, fresh, no bloat."
+   Everything that decides how he looks on camera, plus a shoot countdown so
+   the days before a job tell him exactly what to do. Never a water cut,
+   never a crash: those read as gaunt and flat on camera, and cost the
+   hormones and the camp. */
+var MODEL_SECTIONS=[
+  ['🗿','What makes a chiselled face',[
+    ['Low body fat — slowly','You are close. 122–123 at 1,899 a day gets there without the gaunt look a crash gives.'],
+    ['Low water under the skin','The difference between a soft and a sharp jaw on any given day. Steady salt, steady carbs, potassium, sleep, low stress.'],
+    ['Calm, clear skin','Barrier first: gentle cleanse, moisturiser, SPF. Inflamed skin reads puffy.'],
+    ['Sleep and cortisol','Short or late sleep shows on the face first — puffy eyes, flat skin.'],
+    ['Posture','Shoulders down, neck long, chin slightly forward. It changes the jawline more than anything you eat in a day.']]],
+  ['☀️','Daily face routine',[
+    ['On waking','A big glass of water; cold water on your face for 30–60 s; 2–3 min of gentle face massage — forehead out to temples, under the cheekbones out to the ears, then down the neck — to move overnight fluid.'],
+    ['Morning skin','Gentle cleanse or just water, niacinamide, moisturiser, Ultrasun SPF50 — every day, even cloudy.'],
+    ['Eyes','A cold spoon or cold flannel for a minute if they are puffy; the caffeine eye serum.'],
+    ['Lips and hands','Balm; keep them hydrated — they show in close-ups.'],
+    ['Evening','Cleanse, moisturiser; retinol on the forehead on its nights; Cicaplast if anything is tight.'],
+    ['Sleep position','On your back, head a little raised on an extra pillow — less fluid pools in the face overnight. Fresh pillowcase twice a week.']]],
+  ['🥗','Food for the face',[
+    ['Same salt, water and carbs every day','Swings are what make you puffy. Never cut salt or water to look leaner — it backfires.'],
+    ['Potassium daily','Potatoes with skins, kiwis, banana, yoghurt — it balances salt and pulls water out from under the skin.'],
+    ['Low-bloat foods','No onion, leek or garlic; no fizzy drinks before a shoot; no sweeteners; no granola or big fibre loads the day before.'],
+    ['Gluten-free, always','For you hidden gluten means inflammation and water.'],
+    ['No alcohol','The single biggest cause of a puffy face the next day.'],
+    ['Carbs at 200–250 g, not 300','Enough to look full, not so many that you spill over and look smooth.'],
+    ['Collagen support','Protein, vitamin C (kiwis, oranges), and homemade bone broth.']]],
+  ['🏋️','Training for the frame',[
+    ['Shoulders, especially side delts','Width makes the waist and face look leaner on camera.'],
+    ['Upper chest and lats','The V-taper.'],
+    ['Upper back and rear delts','Posture — shoulders that sit back and down.'],
+    ['Legs in proportion','Short, heavy leg days — 6–10 sets.'],
+    ['Controlled running','Hard runs and Norwegian kept honest; overcooked training shows as a tired, drawn face.']]],
+  ['✂️','Grooming',[
+    ['Haircut every 3–4 weeks','And 3–5 days before a shoot so it settles — never the day before.'],
+    ['Brows tidy, stubble or beard lined up','Clean edges sharpen the jaw.'],
+    ['Teeth','Brushing ×3 and floss; a white, healthy smile matters on camera.'],
+    ['Nails short and clean','Hands end up in shots.'],
+    ['Skin consistent','Nothing new in the two weeks before a job.']]],
+  ['📸','Posing and angles',[
+    ['Chin forward and slightly down','Pulls the jawline sharp; never pull the chin back.'],
+    ['Tongue on the roof of the mouth','Lifts the area under the chin.'],
+    ['Shoulders down, neck long','Breathe out before the shot.'],
+    ['Eyes','A slight squint of the lower lids — it reads confident, not wide.'],
+    ['Light from above or the side','Shadows under the cheekbones and jaw make the face sharper.'],
+    ['Angle the body, square the face','A 3/4 body angle with the face turned to camera.']]],
+  ['🚫','Never — they look worse on camera',[
+    ['Water cutting, diuretics, laxatives','Flat, gaunt, tired — and risky.'],
+    ['Crash dieting before a job','Muscle goes flat, face goes drawn, skin dulls.'],
+    ['Sunbeds, smoking, vaping','Skin ageing you cannot undo.'],
+    ['Big late meals and alcohol the night before','Puffy morning, guaranteed.'],
+    ['New skincare or retinol close to a shoot','Redness and peeling show up under lights.']]]];
+function shootPlan(days){
+  if(days<0)return null;
+  if(days===0)return {t:'📸 Shoot day',items:['Up 2–3 h before; a big glass of water, then sips — not litres','Cold water on the face 1 min, then 3 min face massage','Light breakfast: 2–3 eggs and a small bowl of GF oats or a banana — nothing fizzy, no big dairy, no high-fibre load','Coffee before, if it is the morning','Moisturise lightly (matte), SPF if outside, lip balm','Small carb snack 60–90 min before: rice cake and a teaspoon of honey — keeps you full, not flat','Body shots: a 5–10 min pump 20–30 min before — push-ups, pike push-ups, band rows, stopping short of failure','Posture cues ready: chin forward and down, tongue up, shoulders down','Afterwards: eat normally. Nothing to make up.']};
+  if(days===1)return {t:'📸 Shoot tomorrow',items:['Easy day — a walk or nothing; no hard run, no legs','Carbs 230–250 g, salt as normal, water 2.5–3 L — the same as always','Early, low-bloat tea: fish or chicken, potatoes, a soft veg; evening bowl smaller and earlier','No alcohol, no fizzy drinks, no onion or garlic','Trim stubble or line up the beard; nails; lay out clothes','Bed by 22:30 — on your back, head a little raised']};
+  if(days===2)return {t:'📸 Shoot in 2 days',items:['No retinol from tonight until after the shoot','No hard legs and no all-out session — keep inflammation down','Everything else normal: food, salt, water, sleep']};
+  if(days<=5)return {t:'📸 Shoot in '+days+' days',items:['Haircut in this window — 3–5 days before lets it settle','Bed before 23:00 every night','No new skincare, no alcohol','Food, salt and water exactly as normal — no cutting anything']};
+  if(days<=7)return {t:'📸 Shoot in '+days+' days',items:['Business as usual — sleep, food and training as planned','Book the haircut for 3–5 days before']};
+  return null;
+}
+function shootDays(){var s=S.settings&&S.settings.shoot;if(!s)return null;var d=diffD(today(),s);return d>=0?d:null;}
+function modelHTML(){
+  var sd=shootDays(),plan=sd!==null?shootPlan(sd):null;
+  return '<div class="p lift"><h2>📸 Model mode</h2>'+
+    '<p class="lede" style="margin:0 0 8px">Your face and frame at their sharpest — fresh, chiselled, no bloat. The healthy way: nothing here costs your hormones, your camp or your skin.</p>'+
+    '<div class="f" style="max-width:220px"><label for="inShoot">Next shoot or casting</label><input type="date" id="inShoot" value="'+esc((S.settings&&S.settings.shoot)||'')+'"></div>'+
+    (plan?'<div class="p flag" style="box-shadow:none;margin:10px 0 0"><b>'+plan.t+'</b><ul class="clean note" style="margin-top:6px">'+plan.items.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>':
+      (sd!==null?'<p class="tiny" style="margin-top:6px">Shoot in '+sd+' days — the countdown plan starts a week out.</p>':'<p class="tiny" style="margin-top:6px">Add a date and the week before tells you exactly what to do each day.</p>'))+'</div>'+
+    MODEL_SECTIONS.map(function(sec){return '<div class="p"><h2>'+sec[0]+' '+sec[1]+'</h2>'+sec[2].map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+'</b><div class="tiny">'+x[1]+'</div></div>';}).join('')+'</div>';}).join('');
+}
+function renderModel(){if(E('modelCard'))E('modelCard').innerHTML=modelHTML();}
 function renderLife(){
   if(E('dayCard'))E('dayCard').innerHTML=routineHTML();
   if(E('filmCard'))E('filmCard').innerHTML=filmHTML();
   if(E('spotCard'))E('spotCard').innerHTML=spotsHTML();
   if(E('longCard'))E('longCard').innerHTML=longevityHTML();
+  renderModel();
+}
+function wireModel(){
+  E('modelCard').addEventListener('change',function(ev){if(ev.target.id==='inShoot'){S.settings.shoot=ev.target.value||null;touch();}});
 }
 function wireLife(){
+  wireModel();
   E('dayCard').addEventListener('click',function(ev){
     var b=ev.target.closest('button[data-rt]');if(!b)return;
     var d=today(),i=Number(b.dataset.rt),t=((S.days[d]||{}).rt||[]).slice(),k=t.indexOf(i);
@@ -8374,7 +8460,7 @@ function renderData(w,tr,c){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','skin','data'].forEach(function(k){
+  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){

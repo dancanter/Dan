@@ -756,6 +756,17 @@ const LG = await p.evaluate(() => ({ t: E('longCard').textContent, v5: vdot(5000
 ok('the Mind tab has a longevity card with a VO2max estimate from 5 km and the best 1 km', /Longevity, looks and your cells/.test(LG.t) && /VO₂max ≈ 5\d–\d\d/.test(LG.t) && LG.v5 > 54 && LG.v5 < 58 && LG.v1 > LG.v5 && /Sleep 8 h\+/.test(LG.t) && /gluten-free, no sweeteners/.test(LG.t), LG.t.slice(0, 300));
 await ctx.close();
 
+// ===== model mode, with a shoot countdown (25 Oct) =====
+({ ctx, p, boot } = await at('2026-10-26'));
+await boot(st({ settings: { hideDaily: false, fiveK: 1085, shoot: '2026-10-28' } }));
+await p.click('[data-t="model"]'); await p.waitForTimeout(100);
+const MD = await p.evaluate(() => ({ t: E('modelCard').textContent, g: E('glanceCard').textContent }));
+ok('the Model tab: face, food, frame, grooming, posing, the never-list', /Model mode/.test(MD.t) && /What makes a chiselled face/.test(MD.t) && /Daily face routine/.test(MD.t) && /Food for the face/.test(MD.t) && /Training for the frame/.test(MD.t) && /Grooming/.test(MD.t) && /Posing and angles/.test(MD.t) && /Water cutting, diuretics, laxatives/.test(MD.t), MD.t.slice(0, 200));
+ok('two days out: no retinol, no hard legs — and Today says so', /Shoot in 2 days/.test(MD.t) && /No retinol from tonight/.test(MD.t) && /Shoot in 2 days/.test(MD.g));
+await p.fill('#inShoot', '2026-10-27'); await p.dispatchEvent('#inShoot', 'change'); await p.waitForTimeout(150);
+ok('setting the date saves it and the plan moves to the day before', await p.evaluate(() => S.settings.shoot === '2026-10-27' && /Shoot tomorrow/.test(E('modelCard').textContent) && /Bed by 22:30/.test(E('modelCard').textContent)));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
