@@ -4254,8 +4254,8 @@ function campGame(){
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
-    if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?'Times dipping again — no fun run this week, just the two hard runs':'Times dipped — the fun run stays, kept truly 6–7 out of 10';
-    else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:M.mix?'No fun run this week — recovery first':'One fewer 5-miler',why:'recovery first'});
+    if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?'Times dipping again — one Norwegian run this week, not two':'Times dipped — keep the Norwegian runs truly 7 out of 10';
+    else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:M.mix?'One Norwegian run this week, not two — recovery first':'One fewer 5-miler',why:'recovery first'});
     if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it is this week’s fast run in place of the fun run'});
     if(M.repeat)changes.push({e:'🔁',t:'Last week’s sessions again, not a step up',why:'last week felt like a 9–10'});
   }
