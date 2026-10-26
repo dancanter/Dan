@@ -777,6 +777,13 @@ const CK = await p.evaluate(() => ({ r: S.days[today()], m: sleepMins(S.days[tod
 ok('the night the clocks go back counts the extra hour (23:11–07:58 = 9.5 h asleep); March loses one', CK.r.sleep === 9.5 && CK.r.clk === 60 && CK.m === 572 && CK.s1 === 60 && CK.s2 === -60 && CK.s3 === 0, JSON.stringify(CK));
 await ctx.close();
 
+// ===== an eased week announces when recovery brings the runs back (26 Oct) =====
+({ ctx, p, boot } = await at('2026-10-28'));
+await boot(st({}));
+const BK = await p.evaluate(() => { localStorage.setItem(LS + '.ease', JSON.stringify({ ws: mondayOf(today()) })); return campGame().changes.map(c => c.t); });
+ok('once the flag lifts, it says what is back on', BK.some(c => /^Recovery is back — the second hard run \(.+\)/.test(c)), JSON.stringify(BK));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }

@@ -4251,6 +4251,12 @@ function campGame(){
   /* Dan, 11 Oct: make any change to the week obvious on Today, with why */
   var changes=[];
   if(M){
+    /* Dan, 26 Oct: "if they come back, say so" — remember an eased week and
+       announce it when recovery lifts it (per device, this week only) */
+    (function(){var k=LS+'.ease',ws=mondayOf(t),st=null;try{st=JSON.parse(localStorage.getItem(k)||'null');}catch(e){}
+      if(M.easeOff){try{localStorage.setItem(k,JSON.stringify({ws:ws}));}catch(e){}}
+      else if(st&&st.ws===ws){var back=[];if(M.P.long&&M.P.short)back.push('the second hard run ('+(M.P.long||'')+')');if(M.mix&&M.mix.length>1)back.push('the second Norwegian run');
+        if(back.length)changes.push({e:'✅',t:'Recovery is back — '+back.join(' and ')+' '+(back.length>1?'are':'is')+' on again',why:'your resting HR and sleep have settled'});}})();
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
