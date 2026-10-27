@@ -977,7 +977,21 @@ function upDay(is){
   for(var i=0;i<rs.length;i++){var m=runMeta(rs[i]);if(m.empty)continue;if(m.hard||isFiveMiler(m))return true;}
   return false;
 }
-function dayTarget(is){return upDay(is)?KCAL_UP:KCAL_DAY;}
+/* ===================== the London push (Dan, 27 Oct) =====================
+   "If I'm not under 126 by 7 November, give it a proper push for two weeks
+   before London on the 21st. If I weigh below 126 before then, don't bother."
+   Decided by the scale, on the morning of 7 Nov. During the push: 1,799 a
+   day with Saturday at 1,999 (the higher day), protein up, 14.5k steps, and
+   one hard run with two Norwegian runs instead of two hard. */
+var PUSH={check:'2026-11-07',from:'2026-11-07',to:'2026-11-20',under:126,trip:'London',tripDate:'2026-11-21'};
+function pushBroke(){var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-10-27'&&k<=PUSH.check&&typeof S.weights[k]==='number'&&S.weights[k]<PUSH.under&&!hit)hit=k;});return hit;}
+function pushState(is){is=is||today();var b=pushBroke();
+  if(b)return {k:'off',t:'No push needed',w:'You weighed under '+PUSH.under+' on '+fmtS(b)+' — carry on exactly as you are.'};
+  if(is<PUSH.check)return {k:'pending',t:'Push check on '+fmtS(PUSH.check),w:'Any morning under '+PUSH.under+'.0 before then and there is no push. If not, two weeks of push from '+fmtS(PUSH.from)+' to London on '+fmtS(PUSH.tripDate)+'.'};
+  if(is<=PUSH.to)return {k:'on',t:'🔥 Push fortnight — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'1,799 a day (Saturday 1,999), protein about 150–160 g, carbs 200 g or more, fat about 45 g, 14.5k steps, one hard run and two Norwegian runs a week. Sleep and recovery exactly the same.'};
+  return {k:'done',t:'Push done',w:'Back to 1,899.'};}
+function pushOn(is){return pushState(is).k==='on';}
+function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
   if(upDay(is))return ci(KCAL_UP)+' — '+(dow(is)===6&&!((S.days[is]||{}).runs||[]).length?'Saturday':'run day');
@@ -1021,7 +1035,7 @@ var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
 var WBIG={124:{e:'🗿',n:'SUB-124 CLUB',sub:'the chisel zone',xp:150},123:{e:'💎',n:'GOAL WEIGHT — IN THE 122–123 ZONE',sub:'you made it',xp:300}};
 function wUnder(av,m){return WBIG[m]?Math.round(av*10)/10<m:av<=m;}
 
-function stepTarget(is){if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
+function stepTarget(is){if(is>=REV_START)return CFG.rev.steps;if(typeof pushOn==='function'&&pushOn(is))return 14500;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
 function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
@@ -3303,11 +3317,13 @@ function weekRunsModel(){
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
   /* an easy week he chose to take on the Feedback tab */
   if(easyWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
-  if(easeOff&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false,lastS:use.lastS,why:use.why};
+  /* the push: one hard run (the shorter) and two Norwegian runs */
+  var pushNow=pushOn(t);
+  if((easeOff||pushNow)&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false,lastS:use.lastS,why:use.why};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
   var lng=0,sht=0,thrDone=0;
-  var thrOn=thresholdOK(t)&&!easeOff;
+  var thrOn=thresholdOK(t)&&!easeOff&&!pushOn(t);   /* no threshold during a push — two Norwegian runs instead */
   for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;
     (S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty||!m.hard)return;
       if(thrOn&&!thrDone&&m.kind==='cont'){thrDone=1;return;}
@@ -3834,6 +3850,7 @@ function glanceHTML(){
       if(['day','days','week','on'].indexOf(C.rest.k)>=0)calls.push('🛌 '+C.rest.t);
       if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
       var RW=revWatch();if(RW)calls.push(RW.e+' '+RW.t);
+      var PSg=pushState();if(PSg.k==='on')calls.push(PSg.t);
       return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
     (function(){var sd=shootDays();if(sd===null||sd>7)return '';var pl=shootPlan(sd);return row('📸',pl.t,esc(pl.items[0]),'model');})()+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
@@ -4257,6 +4274,7 @@ function campGame(){
       if(M.easeOff){try{localStorage.setItem(k,JSON.stringify({ws:ws}));}catch(e){}}
       else if(st&&st.ws===ws){var back=[];if(M.P.long&&M.P.short)back.push('the second hard run ('+(M.P.long||'')+')');if(M.mix&&M.mix.length>1)back.push('the second Norwegian run');
         if(back.length)changes.push({e:'✅',t:'Recovery is back — '+back.join(' and ')+' '+(back.length>1?'are':'is')+' on again',why:'your resting HR and sleep have settled'});}})();
+    if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:'Push fortnight: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery — 1,799 a day, 14.5k steps'});
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
@@ -4288,7 +4306,8 @@ function revWatch(){
 }
 function campCallHTML(){
   if(today()<CFG.cutStart)return '';
-  var CM=coachModel(),out='',RW=revWatch();
+  var CM=coachModel(),out='',RW=revWatch(),PS=pushState();
+  if(PS.k==='on'||PS.k==='pending')out+='<div class="p '+(PS.k==='on'?'flag':'')+'" style="box-shadow:none;margin:0 0 10px"><b>'+(PS.k==='on'?'':'🗓️ ')+PS.t+'.</b><div class="tiny" style="margin-top:4px">'+PS.w+'</div></div>';
   if(RW)out+='<div class="p '+(RW.k==='below'?'warn':'flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+RW.e+' '+RW.t+'.</b><div class="tiny" style="margin-top:4px">'+RW.w+'</div></div>';
   if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 I’m calling it: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
   if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';

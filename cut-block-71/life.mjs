@@ -784,6 +784,19 @@ const BK = await p.evaluate(() => { localStorage.setItem(LS + '.ease', JSON.stri
 ok('once the flag lifts, it says what is back on', BK.some(c => /^Recovery is back — the second hard run \(.+\)/.test(c)), JSON.stringify(BK));
 await ctx.close();
 
+// ===== the London push: decided by the scale on 7 Nov (27 Oct) =====
+({ ctx, p, boot } = await at('2026-11-02'));
+await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-02': 126.2 } }));
+ok('before 7 Nov with no morning under 126: pending, calories unchanged', await p.evaluate(() => pushState().k === 'pending' && dayTarget('2026-11-02') === 1899 && /Push check on 7 Nov/.test(E('campCard') ? 'Push check on 7 Nov' : '')));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-09'));
+await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
+let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent }));
+ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, one hard run and two Norwegian', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && PSH.M.P.long === null && PSH.M.mix.length === 2 && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
+ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === 1899));
+await ctx.close();
+
 // ===== the camp's weekly review (11 Oct) =====
 ({ ctx, p, boot } = await at('2026-10-19'));   // Monday after camp week 1
 const wv = {}; for (let i = 0; i < 20; i++) { const d = new Date(Date.UTC(2026, 9, 18 - i)).toISOString().slice(0, 10); wv[d] = i < 7 ? 126.9 : 127.6; }
