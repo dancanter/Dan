@@ -94,7 +94,7 @@ ok('naming the irritation window', /8 Oct to 5 Nov/.test(t), (t.match(/\d+ \w+ t
 // the old blanket ban is gone from both places
 await p.click('[data-t="data"]');
 const data = await p.textContent('#s-data');
-ok('the hard-constraint row reflects his decision', /Retinol — forehead only, his call/.test(data), data.slice(0, 400));
+ok('the hard-constraint row reflects his decision', /Retinol — stopped \(28 Oct\), his call/.test(data), data.slice(0, 400));
 ok('and still rules out tretinoin', /Tretinoin is still a no/.test(data));
 await p.click('[data-t="skin"]');
 ok('the skin tab no longer says never retinol', !/Never retinol or tretinoin/.test(await p.textContent('#s-skin')));
@@ -139,6 +139,16 @@ await p3.goto(FILE); await p3.evaluate(([k, v]) => { localStorage.clear(); local
 await p3.reload(); await p3.waitForTimeout(220);
 ok('on a Tuesday it says next Sunday', /next: Sun 18 Oct/.test(await p3.textContent('#glanceCard')), (await p3.textContent('#glanceCard')).match(/Retinol[^›]*/)?.[0]);
 await p3.close();
+
+// ---- 28 Oct: stopped for good ------------------------------------------------
+const p4 = await b.newPage(); await p4.clock.setFixedTime(new Date('2026-11-01T19:00:00'));
+await p4.goto(FILE); await p4.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p4.reload(); await p4.waitForTimeout(220);
+const SX = await p4.evaluate(() => ({ m: retinolModel(), g: E('glanceCard').textContent }));
+ok('from 28 Oct retinol is stopped: never tonight, no forehead row on Today', SX.m.paused && SX.m.paused.stopped && SX.m.tonight === false && !SX.m.area && !/Retinol · forehead only/.test(SX.g), JSON.stringify({ p: SX.m.paused, a: SX.m.area }));
+await p4.click('[data-t="skin"]');
+ok('the Skin tab says stopped, with the barrier repair', /Stopped on/.test(await p4.textContent('#skRetinol')) && /barrier repair/.test(await p4.textContent('#skRetinol')));
+await p4.close();
 
 for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
   await p.click(`[data-t="${tab}"]`);

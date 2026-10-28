@@ -667,7 +667,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div class="p"><h2>Hard constraints — the app will not break these</h2>
     <div class="scroll"><table class="tbl"><tbody>
       <tr><td>Celiac</td><td class="note">Every oat, grain and rice cake certified gluten-free</td></tr>
-      <tr><td>Retinol — forehead only, his call</td><td class="note">He reacted to one before, so it was a standing no. A restart on 24 Sep reacted on the face (26 Sep) and was paused. From 11 Oct he uses it on his forehead only, where it never irritated him, on a fresh slow ramp — the app follows the schedule on the Skin tab. Not on the rest of the face. Tretinoin is still a no.</td></tr>
+      <tr><td>Retinol — stopped (28 Oct), his call</td><td class="note">Reacted on the face in September; a forehead-only restart from 11 Oct still left his skin looking worse and the barrier damaged, so he stopped it for good on 28 Oct. Nothing schedules it. Tretinoin is still a no.</td></tr>
       <tr><td>No beta carotene, no biotin</td><td class="note">Stated exclusion</td></tr>
       <tr><td>No vitamin D tablets</td><td class="note">History of reactions. Sun and food only</td></tr>
       <tr><td>No high-dose vitamin C</td><td class="note">Food sources only</td></tr>
@@ -883,6 +883,9 @@ var CFG={
     /* 11 Oct: Dan is restarting it on his FOREHEAD ONLY — the one place it
        never irritated him. His call. A fresh, slow ramp from tonight; the
        pause above stays as history and stops applying from this date. */
+    /* 28 Oct: Dan stopped it for good — "not worth it, it makes me look
+       horrid and ruins my skin barrier". Nothing schedules it from here. */
+    stopped:{on:'2026-10-28',why:'it made his skin look worse and damaged the barrier — his call, and the right one'},
     restart:{on:'2026-10-11',area:'forehead',
       phases:[{wk:0,n:1,days:[0],label:'once a week'},
               {wk:2,n:2,days:[0,3],label:'twice a week'},
@@ -4992,7 +4995,7 @@ var LONGEVITY=[
   ['📉','A gentle deficit, never a crash','Slow fat loss protects hormones, thyroid, hair and bone. The reverse brings you back to full fuel.'],
   ['🌿','Calm nervous system','Saturday off, a reset day, slow breathing, nature, people. Chronic stress ages cells faster — it shortens telomeres.'],
   ['☀️','Daylight in, screens out','Morning daylight sets your body clock; dim, warm light at night; phone out of the bedroom.'],
-  ['🧴','Skin','SPF every morning (UV is most of visible skin ageing), retinol on the forehead as planned, water steady.'],
+  ['🧴','Skin','SPF every morning (UV is most of visible skin ageing), a calm barrier — gentle cleanse, moisturiser, Cicaplast — and water steady.'],
   ['💧','Steady salt, water and carbs','Stable fluid means a sharper face and better performance; swings make you look puffy.'],
   ['🚫','The big no’s','No smoking, no alcohol (or very little), no ultra-processed food, no hidden gluten.'],
   ['🩸','Check in yearly','Bloods (ferritin, vitamin D, B12, lipids, HbA1c, thyroid, testosterone), dentist every 6 months, and an ECG if you ever want peace of mind.'],
@@ -5024,7 +5027,7 @@ var MODEL_SECTIONS=[
     ['Morning skin','Gentle cleanse or just water, niacinamide, moisturiser, Ultrasun SPF50 — every day, even cloudy.'],
     ['Eyes','A cold spoon or cold flannel for a minute if they are puffy; the caffeine eye serum.'],
     ['Lips and hands','Balm; keep them hydrated — they show in close-ups.'],
-    ['Evening','Cleanse, moisturiser; retinol on the forehead on its nights; Cicaplast if anything is tight.'],
+    ['Evening','Cleanse, moisturiser; Cicaplast if anything is tight. No retinol — stopped for good on 28 Oct.'],
     ['Sleep position','On your back, head a little raised on an extra pillow — less fluid pools in the face overnight. Fresh pillowcase twice a week.']]],
   ['🥗','Food for the face',[
     ['Same salt, water and carbs every day','Swings are what make you puffy. Never cut salt or water to look leaner — it backfires.'],
@@ -5058,12 +5061,12 @@ var MODEL_SECTIONS=[
     ['Crash dieting before a job','Muscle goes flat, face goes drawn, skin dulls.'],
     ['Sunbeds, smoking, vaping','Skin ageing you cannot undo.'],
     ['Big late meals and alcohol the night before','Puffy morning, guaranteed.'],
-    ['New skincare or retinol close to a shoot','Redness and peeling show up under lights.']]]];
+    ['New skincare close to a shoot','Redness and peeling show up under lights.']]]];
 function shootPlan(days){
   if(days<0)return null;
   if(days===0)return {t:'📸 Shoot day',items:['Up 2–3 h before; a big glass of water, then sips — not litres','Cold water on the face 1 min, then 3 min face massage','Light breakfast: 2–3 eggs and a small bowl of GF oats or a banana — nothing fizzy, no big dairy, no high-fibre load','Coffee before, if it is the morning','Moisturise lightly (matte), SPF if outside, lip balm','Small carb snack 60–90 min before: rice cake and a teaspoon of honey — keeps you full, not flat','Body shots: a 5–10 min pump 20–30 min before — push-ups, pike push-ups, band rows, stopping short of failure','Posture cues ready: chin forward and down, tongue up, shoulders down','Afterwards: eat normally. Nothing to make up.']};
   if(days===1)return {t:'📸 Shoot tomorrow',items:['Easy day — a walk or nothing; no hard run, no legs','Carbs 230–250 g, salt as normal, water 2.5–3 L — the same as always','Early, low-bloat tea: fish or chicken, potatoes, a soft veg; evening bowl smaller and earlier','No alcohol, no fizzy drinks, no onion or garlic','Trim stubble or line up the beard; nails; lay out clothes','Bed by 22:30 — on your back, head a little raised']};
-  if(days===2)return {t:'📸 Shoot in 2 days',items:['No retinol from tonight until after the shoot','No hard legs and no all-out session — keep inflammation down','Everything else normal: food, salt, water, sleep']};
+  if(days===2)return {t:'📸 Shoot in 2 days',items:['No hard legs and no all-out session — keep inflammation down','Nothing new on your skin','Everything else normal: food, salt, water, sleep']};
   if(days<=5)return {t:'📸 Shoot in '+days+' days',items:['Haircut in this window — 3–5 days before lets it settle','Bed before 23:00 every night','No new skincare, no alcohol','Food, salt and water exactly as normal — no cutting anything']};
   if(days<=7)return {t:'📸 Shoot in '+days+' days',items:['Business as usual — sleep, food and training as planned','Book the haircut for 3–5 days before']};
   return null;
@@ -8289,7 +8292,7 @@ function renderReverse(){
    schedule is dates rather than advice so there is nothing to interpret at
    10pm: tonight is either on the list or it is not. */
 function retinolModel(){
-  var t=today(),R0=CFG.retinol,RS=R0.restart&&t>=R0.restart.on?R0.restart:null;
+  var t=today(),R0=CFG.retinol,ST0=R0.stopped&&t>=R0.stopped.on?R0.stopped:null,RS=!ST0&&R0.restart&&t>=R0.restart.on?R0.restart:null;
   var R=RS?{start:RS.on,phases:RS.phases}:R0;
   var started=t>=R.start,toStart=diffD(t,R.start);
   var wks=started?Math.floor(diffD(R.start,t)/7):0;
@@ -8299,7 +8302,7 @@ function retinolModel(){
   for(i=0;i<R.phases.length;i++)if(R.phases[i].wk>wks){next={p:R.phases[i],on:addD(R.start,R.phases[i].wk*7)};break;}
   /* the nights this week, and whether tonight is one */
   var wkStart=mondayOf(t),nights=ph.days.map(function(d){return addD(wkStart,(d+6)%7);}).sort();
-  var paused=RS?null:(CFG.retinol.paused||null);
+  var paused=ST0?{on:ST0.on,why:ST0.why,stopped:true}:(RS?null:(CFG.retinol.paused||null));
   var tonight=!paused&&nights.indexOf(t)>=0&&started;
   /* what he actually did */
   var done=0,lastDone=null,firstDone=null;
@@ -8318,7 +8321,8 @@ function renderRetinol(){
   var m=retinolModel(),t=today();
   var h='<div class="p '+(m.paused?'warn':(m.tonight?'lift':'flag'))+'"><h2>Retinol · '+esc(m.product)+(m.paused?' <span class="pill w">paused</span>':'')+(m.area?' <span class="pill a">'+esc(m.area)+' only</span>':'')+'</h2>';
   if(m.paused){
-    h+='<p class="lede"><b>Paused since '+fmtL(m.paused.on)+'.</b> Your skin reacted — '+esc(m.paused.why)+'. Do not apply it.</p>'+
+    h+=(m.paused.stopped?'<p class="lede"><b>Stopped on '+fmtL(m.paused.on)+'.</b> '+esc(m.paused.why).replace(/^./,function(c){return c.toUpperCase();})+'. The barrier repair below takes 2–4 weeks; after that your skin should look calmer and fresher than it did on it.</p>':
+      '<p class="lede"><b>Paused since '+fmtL(m.paused.on)+'.</b> Your skin reacted — '+esc(m.paused.why)+'. Do not apply it.</p>')+
       '<table class="tbl"><tbody>'+
       '<tr><td style="width:32%"><b>Wash</b></td><td class="note">Gentle, fragrance-free cleanser once a day, lukewarm water, pat dry. Just water in the morning is fine.</td></tr>'+
       '<tr><td><b>Moisturise</b></td><td class="note">A plain, thick moisturiser, generously, two or three times a day. Plain petroleum jelly on the stinging patches at night.</td></tr>'+
