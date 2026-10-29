@@ -3460,6 +3460,7 @@ function runDoes(o){
   if(/at mile pace/.test(o.t))return 'Teaches your body sub-4:50 rhythm — the most direct mile session there is.';
   if(/at 5 km pace/.test(o.t))return 'Sub-17 rhythm: holding 5 km pace for longer every time you do it.';
   if(/at 800 pace/.test(o.t))return 'Sub-2:00 rhythm: the speed endurance that carries you through the second lap.';
+  if(/^Timed 5 km/.test(o.t))return 'Your 5 km boss attempt — even pace, finish strongest. Counts as the 600 m+ hard run, and a new best earns the boss XP.';
   if(/^Time trial/.test(o.t))return 'Shows exactly where you are and practises racing — pacing, hurting, the finish. Great for confidence; costs more than a session.';
   if(/relaxed/.test(o.t))return 'Keeps the speed switched on without the fatigue.';
   if(!o.d)return 'Raises the effort you can hold without tying up — the biggest single lever for your 5 km, at low cost.';
@@ -3487,7 +3488,7 @@ function weekRunsHTML(){
   var longTTok=ttOK&&!ttUsed&&(P.tt||!lastTwo.some(function(x){return x.dm>=800;}));
   var shortTTok=ttOK&&!ttUsed;
   var slot=function(title,done,pickO,opts,kind,ttDms,ttAllowed,builds){
-    var others=opts.filter(function(o){return o.t!==pickO.t&&!(o.d&&pickO.d&&o.d[0]===pickO.d[0]&&!P.tt);});
+    var others=opts.filter(function(o){return o.t!==pickO.t&&!(o.d&&pickO.d&&o.d[0]===pickO.d[0]&&!P.tt&&!M.phys);});
     var tts=ttAllowed?ttDms.filter(function(dm){return !(P.tt&&pickO.d&&pickO.d.indexOf(dm)>=0);}).map(function(dm){return {t:'Time trial — '+(dm===1609?'a mile':(dm>=1000?(dm/1000)+' km':dm+' m')),d:[dm]};}):[];
     return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+tick(done)+'<b>'+title+'</b> <span class="tiny">pick one, if you fancy it</span></div>'+
       optLine(pickO,P.tt?'tt':kind,true)+others.map(function(o){return optLine(o,kind,false);}).join('')+
@@ -3496,7 +3497,14 @@ function weekRunsHTML(){
         '<div class="tiny dim more" style="margin-left:14px">'+runDoes(tts[0])+'</div></div>':'')+
       '</div>';
   };
-  var rows='',altO=P.alt?[{t:P.alt,d:P.altD,g:pacedOf(P.altP)}]:[];
+  var rows='';
+  /* Dan, 29 Oct: "the hard run can be a timed 5 km — and keep all the options
+     from before." In a physique week each slot lists the whole menu: every
+     camp session of its kind plus the classics, and the long one a timed 5 km. */
+  var uniq=function(a){var seen={};return a.filter(function(o){if(seen[o.t])return false;seen[o.t]=1;return true;});};
+  var b5=bestAt(5000,records()[5000]).best;
+  var longAll=M.phys?uniq([{t:'Timed 5 km, hard',d:[5000],g:'goal sub-17:00'+(b5?' · best now '+secFmt(b5.t):'')}].concat(CAMP_SESS.long.filter(function(y){return (y.ld||[0])[0]>=600;}).map(function(y){return {t:y.n,d:y.ld,g:pacedOf(y.lp)};}),LONG_OPTS)):LONG_OPTS;
+  var shortAll=M.phys?uniq(CAMP_SESS.short.filter(function(y){return (y.sd||[0])[0]<=400;}).map(function(y){return {t:y.n,d:y.sd,g:pacedOf(y.sp)};}).concat(SHORT_OPTS.filter(function(o){return o.d[0]<=400;}))):null;
   if(P.pbwin){
     var tw=CFG.camp.pb.filter(function(x){return x.on>=tr.wkStart&&x.on<=addD(tr.wkStart,6);});
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>⏱ This week’s trials</b>'+(tw.length?tw.map(function(x){var b=bestAt(x.dm,records()[x.dm]).best;
@@ -3504,11 +3512,11 @@ function weekRunsHTML(){
       '<div class="tiny dim more" style="margin-left:14px">'+runHow('Time trial')+'</div></div>';
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>Between trials</b><div class="tiny">Easy 5-milers, and 4 × 200 m fast-relaxed two days before a trial to stay sharp. No other hard running.</div></div>';
   }
-  if(!P.pbwin&&P.long)rows+=slot(M.phys?'Hard run · 600 m and up':'Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
+  if(!P.pbwin&&P.long)rows+=slot(M.phys?'Hard run · 600 m and up':'Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},longAll,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
   if(M.thrOn)rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+(M.thrDone?'<span class="pill g">✓ done</span>':'')+'<b>⚡ Threshold run — your 3rd quality session</b> <span class="tiny">on this week, because your recovery is green · it replaces one 5-miler</span></div>'+
     '<div style="margin-top:2px">20–25 min comfortably hard, about '+thrPaceTxt()+' a km</div>'+
     '<div class="tiny more">'+runHow('Threshold')+' The biggest single lever for sub-17 and sub-4:50, and the gentlest of the three on your legs.</div></div>';
-  if(!P.pbwin&&P.short)rows+=slot(M.phys&&P.long?'Hard run · speed, 200 to 400 m':(P.long?'Hard run · shorter':'Hard run'),M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},(P.deload?RELAXED_OPTS:SHORT_OPTS).filter(function(o){return !M.phys||!P.long||(o.d&&o.d[0]<=400);}),P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
+  if(!P.pbwin&&P.short)rows+=slot(M.phys&&P.long?'Hard run · speed, 200 to 400 m':(P.long?'Hard run · shorter':'Hard run'),M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},(P.deload?RELAXED_OPTS:(M.phys&&P.long?shortAll:SHORT_OPTS)),P.deload?'relaxed':'reps',M.phys&&P.long?[200,400]:[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
     (w.five>=M.easyTarget?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+M.easyTarget+' ✓</span>':''))+'<b>Easy 5 miles'+(M.easyTarget>1?' × '+M.easyTarget:'')+'</b>'+(M.easyTarget<T.easy?' <span class="tiny">(one fewer this week — recovery first)</span>':'')+' <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
@@ -3848,7 +3856,7 @@ function greenLight(){
     w:why.join(' · ').replace(/^./,function(c){return c.toUpperCase();})+'. '+(walk?'A brisk walk, or a gentle easy run if you feel good. No hard running.':(easyLeft?'An easy 5-miler is fine — save the hard run for a green day.':'A walk or a rest — no hard running.'))};
   var legsY=y.gym&&y.split==='legs';
   var tail=(sl===null?' Log last night’s sleep to confirm it.':'')+(legsY?' Legs yesterday: if they are properly sore once you have warmed up, go easy today and do it tomorrow.':'');
-  if(hardLeft.length)return {c:'green',e:'🟢',t:'Green light — good to go',sub:'Hard run is on: '+hardLeft.join(' or '),w:(facts.length?'Recovery is good — '+facts.join(', ')+'.':'Nothing says hold back.')+tail};
+  if(hardLeft.length)return {c:'green',e:'🟢',t:'Green light — good to go',sub:'Hard run is on: '+hardLeft.join(' or ')+(G&&weekRunsModel()&&weekRunsModel().phys?' — or any option on the Camp tab, a timed 5 km included':''),w:(facts.length?'Recovery is good — '+facts.join(', ')+'.':'Nothing says hold back.')+tail};
   if(easyLeft)return {c:'green',e:'🟢',t:funLeft?'Good to go — fun fast run':'Good to go — easy run',sub:funLeft?'Fun fast run — '+funPick().n:'An easy 5-miler',w:'The hard runs are done this week. '+(facts.length?facts.join(', ')+'.':'')};
   return {c:'green',e:'🟢',t:'All clear',sub:G?'This week’s runs are done — walk, gym or rest':'',w:facts.join(', ')};
 }
