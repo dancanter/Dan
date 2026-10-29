@@ -858,6 +858,12 @@ await boot(st({ days: { '2026-10-26': { runs: [{ km: 8.04, secs: 2459, type: 'ea
 PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return { l: M.P.long, s: M.P.short, thr: M.thrOn, left: G.left.map(x => x.n), ch: G.changes.map(x => x.t) }; });
 ok('this week: the 400 trial only, no mile reps, no threshold, no extra sprint outing', !PH.l && /400/.test(PH.s) && !PH.thr && !PH.left.some(n => /1 mile|Threshold|^Hill sprints/.test(n)) && PH.ch.some(t => /Physique camp from this week/.test(t)), JSON.stringify(PH));
 await ctx.close();
+// the green light offers the short-speed swap in a physique week
+({ ctx, p, boot } = await at('2026-11-03'));
+await boot(st());
+const GL = await p.evaluate(() => greenLight());
+ok('green light in a physique week offers 200s, 300s or 400s as the one hard run', GL.c !== 'green' || /8 × 200 m, 6 × 300 m or 5 × 400 m/.test(GL.sub), JSON.stringify(GL));
+await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
 await boot(st());

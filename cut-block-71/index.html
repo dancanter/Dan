@@ -3840,7 +3840,10 @@ function greenLight(){
     w:why.join(' · ').replace(/^./,function(c){return c.toUpperCase();})+'. '+(walk?'A brisk walk, or a gentle easy run if you feel good. No hard running.':(easyLeft?'An easy 5-miler is fine — save the hard run for a green day.':'A walk or a rest — no hard running.'))};
   var legsY=y.gym&&y.split==='legs';
   var tail=(sl===null?' Log last night’s sleep to confirm it.':'')+(legsY?' Legs yesterday: if they are properly sore once you have warmed up, go easy today and do it tomorrow.':'');
-  if(hardLeft.length)return {c:'green',e:'🟢',t:'Green light — good to go',sub:'Hard run is on: '+hardLeft.join(' or '),w:(facts.length?'Recovery is good — '+facts.join(', ')+'.':'Nothing says hold back.')+tail};
+  /* Dan, 29 Oct: "will it say green light for 200, 300 or 400 m hard?" — in a
+     physique week the one hard run can be the pick or a short speed session */
+  var Mw=weekRunsModel(),physSwap=Mw&&Mw.phys&&!Mw.P.pbwin&&!Mw.P.tt&&!Mw.P.ttS&&!Mw.P.ttL?' — or swap it for 8 × 200 m, 6 × 300 m or 5 × 400 m hard. One hard run this week, whichever you pick.':'';
+  if(hardLeft.length)return {c:'green',e:'🟢',t:'Green light — good to go',sub:'Hard run is on: '+hardLeft.join(' or ')+physSwap,w:(facts.length?'Recovery is good — '+facts.join(', ')+'.':'Nothing says hold back.')+tail};
   if(easyLeft)return {c:'green',e:'🟢',t:funLeft?'Good to go — fun fast run':'Good to go — easy run',sub:funLeft?'Fun fast run — '+funPick().n:'An easy 5-miler',w:'The hard runs are done this week. '+(facts.length?facts.join(', ')+'.':'')};
   return {c:'green',e:'🟢',t:'All clear',sub:G?'This week’s runs are done — walk, gym or rest':'',w:facts.join(', ')};
 }
