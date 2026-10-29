@@ -453,9 +453,9 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-28'));   // camp week 3
 await boot(st({ days: { '2026-10-27': { sleep: 8.2 }, '2026-10-26': { sleep: 8.1 } } }));
 let TH = await p.evaluate(() => { const m = weekRunsModel(); return { on: m.thrOn, easy: m.easyTarget, ok: thresholdOK() }; });
-ok('a green week from camp week 3 uses the threshold in place of the Norwegian run', TH.on && TH.easy === 1, JSON.stringify(TH));
+ok('physique camp (29 Oct): no threshold run even on a green week — one Norwegian', !TH.on && TH.easy === 1, JSON.stringify(TH));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
-ok('the runs card shows it with a pace', /Threshold run — your 3rd quality session/.test(sq(await p.innerText('#tRuns'))) && /\d:\d\d–\d:\d\d a km/.test(sq(await p.innerText('#tRuns'))));
+ok('and the runs card does not offer it', !/Threshold run — your 3rd quality session/.test(sq(await p.innerText('#tRuns'))));
 await boot(st({ days: { '2026-10-27': { sleep: 6.5 }, '2026-10-26': { sleep: 6.8 } } }));
 ok('short sleep keeps it off', await p.evaluate(() => !weekRunsModel().thrOn));
 await boot(st({ days: { '2026-10-21': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 300, rpe: 9 }] } } }));
@@ -781,7 +781,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-28'));
 await boot(st({}));
 const BK = await p.evaluate(() => { localStorage.setItem(LS + '.ease', JSON.stringify({ ws: mondayOf(today()) })); return campGame().changes.map(c => c.t); });
-ok('once the flag lifts, it says what is back on', BK.some(c => /^Recovery is back — the second hard run \(.+\)/.test(c)), JSON.stringify(BK));
+ok('once the flag lifts in a physique week, no second hard run comes back', !BK.some(c => /second hard run/.test(c)), JSON.stringify(BK));
 await ctx.close();
 
 // ===== the London push: decided by the scale on 7 Nov (27 Oct) =====
@@ -836,10 +836,10 @@ ok('an unlogged night says so, without judging', /Not logged — ignored, not ju
 await ctx.close();
 
 // ===== physique camp from 2 Nov (Dan, 29 Oct) =====
-({ ctx, p, boot } = await at('2026-10-29'));
+({ ctx, p, boot } = await at('2026-10-22'));
 await boot(st());
 let PH = await p.evaluate(() => { const M = weekRunsModel(); return { phys: M.phys, hard: tmplFor(mondayOf(today())).hard, mix: M.mix.length }; });
-ok('before 2 Nov the camp week is unchanged', !PH.phys && PH.hard === 2, JSON.stringify(PH));
+ok('before 26 Oct the camp week is unchanged', !PH.phys && PH.hard === 2, JSON.stringify(PH));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st());
@@ -848,9 +848,15 @@ PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return 
 ok('physique week: one hard run, one Norwegian, an optional second', PH.phys && PH.opt && PH.hard === 1 && PH.mix.join() === 'norw' && !!PH.l && !PH.s && !!PH.alt, JSON.stringify(PH).slice(0, 400));
 ok('the quests ask for one hard run and one Norwegian', PH.q.indexOf('Hard runs:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
 ok('the Norwegian carries the hill sprints and the 2nd is optional', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)) && PH.left.some(n => /^Optional: a 2nd Norwegian/.test(n)), JSON.stringify(PH.left));
-ok('the change is announced, with the plan open on Muscle max', PH.ch.some(t => /Physique camp from this week/.test(t)) && /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
+ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
 ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /physique week/.test(PH.push), PH.ph + ' | ' + PH.push);
 ok('the runs card offers the other session as the swap', /Hard run — your one this week/.test(PH.card) && PH.card.indexOf(PH.alt) >= 0, '');
+await ctx.close();
+// this week (26 Oct): the 400 trial is the one hard run — no 3 × 1 mile, no threshold
+({ ctx, p, boot } = await at('2026-10-29'));
+await boot(st({ days: { '2026-10-26': { runs: [{ km: 8.04, secs: 2459, type: 'easy' }] }, '2026-10-28': { runs: [{ km: 4.8, secs: 1012, type: 'subt' }] } } }));
+PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return { l: M.P.long, s: M.P.short, thr: M.thrOn, left: G.left.map(x => x.n), ch: G.changes.map(x => x.t) }; });
+ok('this week: the 400 trial only, no mile reps, no threshold, no extra sprint outing', !PH.l && /400/.test(PH.s) && !PH.thr && !PH.left.some(n => /1 mile|Threshold|^Hill sprints/.test(n)) && PH.ch.some(t => /Physique camp from this week/.test(t)), JSON.stringify(PH));
 await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));

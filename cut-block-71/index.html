@@ -735,8 +735,8 @@ var CFG={
      optional — runs = 21 + 3×1 + 7×1 = 31 (more is a bonus) */
   /* 19 Oct: a fun run AND a Norwegian run — runs = 21 + 3×1 + 7×2 = 38 */
   /* 29 Oct: the physique camp from 2 Nov — 1 hard + 1 Norwegian a week for
-     the rest of the cut — hard = 16 + the pre-block one = 17, runs = 17 + 13 = 30 */
-  goals:{gym:42,hard:17,sprints:10,runs:30,steps:12800,weightLo:122,weightHi:123},
+     the rest of the cut — hard = 15 + the pre-block one = 16, runs = 16 + 12 = 28 (from 26 Oct) */
+  goals:{gym:42,hard:16,sprints:10,runs:28,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -1004,7 +1004,10 @@ function pushOn(is){return pushState(is).k==='on';}
    test weeks, the shorter on even ones — he can swap), ONE Norwegian run (the
    long-rep one, the 5 km engine) with hill sprints at the end, an optional
    second Norwegian only on a green week, and the gym first. */
-var PHYS={from:'2026-11-02'};
+/* 29 Oct, later: from THIS week — with recovery back, the eased week was
+   about to return 3 × 1 mile and a threshold run on top of the 6 × 800 and
+   the 400 trial. Dan: "we said 400 m". So the one hard run is the trial. */
+var PHYS={from:'2026-10-26'};
 function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
 function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
@@ -4286,7 +4289,7 @@ function campGame(){
     if(hostN){hostN.n+=' + ⛰️ '+spr.n+' hill sprints (~10 s) at the end';hostN.how+=' Then the hill sprints: '+sprHow;}}
   if(sprOn&&!q.spr&&!easyL.some(function(x){return /hill sprints \(~10 s\) at the end/.test(x.n);})){var hostE=easyL.length?easyL[easyL.length-1]:null;
     if(hostE&&!/strides/.test(hostE.n)&&hostE.e==='🏃'){hostE.n='Easy 5 miles + ⛰️ '+spr.n+' uphill sprints (~10 s) at the end';hostE.how=runHow('easy')+' Then the sprints: '+sprHow;}
-    else left.push({e:'⛰️',n:'Hill sprints — explosive: '+spr.n+' × ~10 s, after a short easy jog or a walk (a short session, not a full run)',how:sprHow});}
+    else if(!(M&&M.phys))left.push({e:'⛰️',n:'Hill sprints — explosive: '+spr.n+' × ~10 s, after a short easy jog or a walk (a short session, not a full run)',how:sprHow});}
   left=left.concat(easyL);
   if(!q.reset&&!(dow(t)===0))left.push({e:'🌿',n:'Reset day — one light day, calm-system focus (tick 🌿 on Today)',how:resetHow()});
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
