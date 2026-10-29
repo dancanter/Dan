@@ -792,7 +792,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-09'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
 let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent }));
-ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, one hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && PSH.M.P.long === null && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
 await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
 ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === 1899));
 await ctx.close();
@@ -845,12 +845,12 @@ await ctx.close();
 await boot(st());
 PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return { phys: M.phys, opt: M.optN, hard: M.T.hard, mix: M.mix, l: M.P.long, s: M.P.short, alt: M.P.alt,
   left: G.left.map(x => x.n), q: G.quests.map(x => x[1] + ':' + x[3]), ch: G.changes.map(x => x.t), mm: muscleMaxHTML(), ph: campPhase().n, push: pushState('2026-11-10').w, card: weekRunsHTML() }; });
-ok('physique week: one hard run, one Norwegian, an optional second', PH.phys && PH.opt && PH.hard === 1 && PH.mix.join() === 'norw' && !!PH.l && !PH.s && !!PH.alt, JSON.stringify(PH).slice(0, 400));
-ok('the quests ask for one hard run and one Norwegian', PH.q.indexOf('Hard runs:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
-ok('the Norwegian carries the hill sprints and the 2nd is optional', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)) && PH.left.some(n => /^Optional: a 2nd Norwegian/.test(n)), JSON.stringify(PH.left));
+ok('physique week: a 600 m+ hard run, a 200–400 speed bonus, one Norwegian', PH.phys && PH.opt && PH.hard === 1 && PH.mix.join() === 'norw' && !!PH.l && !!PH.s && PH.left.some(n => /^Speed bonus — /.test(n)) && !PH.left.some(n => /2nd Norwegian/.test(n)), JSON.stringify(PH).slice(0, 400));
+ok('the quests ask for a 600 m+ hard run, the speed bonus and one Norwegian', PH.q.indexOf('Hard run, 600 m and up:1') >= 0 && PH.q.indexOf('Speed bonus, 200–400 m:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
+ok('the Norwegian carries the hill sprints', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)), JSON.stringify(PH.left));
 ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
 ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /physique week/.test(PH.push), PH.ph + ' | ' + PH.push);
-ok('the runs card offers the other session as the swap', /Hard run — your one this week/.test(PH.card) && PH.card.indexOf(PH.alt) >= 0, '');
+ok('the runs card has the 600 m+ run and the speed bonus', /Hard run — 600 m and up/.test(PH.card) && /Speed bonus — 200 to 400 m/.test(PH.card), '');
 await ctx.close();
 // this week (26 Oct): the 400 trial is the one hard run — no 3 × 1 mile, no threshold
 ({ ctx, p, boot } = await at('2026-10-29'));
@@ -862,7 +862,9 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-03'));
 await boot(st());
 const GL = await p.evaluate(() => greenLight());
-ok('green light in a physique week offers 200s, 300s or 400s as the one hard run', GL.c !== 'green' || /8 × 200 m, 6 × 300 m or 5 × 400 m/.test(GL.sub), JSON.stringify(GL));
+ok('green light in a physique week names the speed bonus too', GL.c !== 'green' || /speed bonus is on this week too/.test(GL.sub), JSON.stringify(GL));
+const PLG = await p.evaluate(() => weekRunsModel().P.long);
+ok('the physique hard run is 600 m and up', !/^\d+ × (200|300|400) m/.test(PLG), PLG);
 await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
