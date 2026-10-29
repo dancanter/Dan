@@ -851,7 +851,7 @@ ok('the Norwegian carries the hill sprints', PH.left.some(n => /^Norwegian sub-t
 ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
 ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /speed run comes back after the push/.test(PH.push), PH.ph + ' | ' + PH.push);
 ok('the runs card has the 600 m+ run and the speed run', /Hard run · 600 m and up/.test(PH.card) && /Hard run · speed, 200 to 400 m/.test(PH.card), '');
-ok('the 600 m+ menu has a timed 5 km and every long camp session', /Timed 5 km, hard/.test(PH.card) && /3 × 1 mile at 5 km pace/.test(PH.card) && /Ladder 800-600-400-200/.test(PH.card) && /Threshold run/.test(PH.card) && !/10 × 400 m at mile pace/.test(PH.card), '');
+ok('the 600 m+ menu has a timed 5 km and every long camp session', /Timed 5 km, hard/.test(PH.card) && /Hard 5 miles or 10 km/.test(PH.card) && /3 × 1 mile at 5 km pace/.test(PH.card) && /Ladder 800-600-400-200/.test(PH.card) && /Threshold run/.test(PH.card) && !/10 × 400 m at mile pace/.test(PH.card), '');
 ok('the speed menu has the 200–400 sessions and no 600s', /2 × \(3 × 200 m\) fast/.test(PH.card) && /6 × 200 m uphill/.test(PH.card) && /8 × 200 m/.test(PH.card) && !/4 × 600 m|3 × 600 m/.test(PH.card), '');
 await ctx.close();
 // this week (26 Oct): the 400 trial is the one hard run — no 3 × 1 mile, no threshold

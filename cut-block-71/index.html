@@ -3460,6 +3460,7 @@ function runDoes(o){
   if(/at mile pace/.test(o.t))return 'Teaches your body sub-4:50 rhythm — the most direct mile session there is.';
   if(/at 5 km pace/.test(o.t))return 'Sub-17 rhythm: holding 5 km pace for longer every time you do it.';
   if(/at 800 pace/.test(o.t))return 'Sub-2:00 rhythm: the speed endurance that carries you through the second lap.';
+  if(/^Hard 5 miles or 10 km/.test(o.t))return 'A long, honest effort for the 5 km engine. It costs more recovery than reps, so keep it rare and never the day before a speed run.';
   if(/^Timed 5 km/.test(o.t))return 'Your 5 km boss attempt — even pace, finish strongest. Counts as the 600 m+ hard run, and a new best earns the boss XP.';
   if(/^Time trial/.test(o.t))return 'Shows exactly where you are and practises racing — pacing, hurting, the finish. Great for confidence; costs more than a session.';
   if(/relaxed/.test(o.t))return 'Keeps the speed switched on without the fatigue.';
@@ -3503,7 +3504,9 @@ function weekRunsHTML(){
      camp session of its kind plus the classics, and the long one a timed 5 km. */
   var uniq=function(a){var seen={};return a.filter(function(o){if(seen[o.t])return false;seen[o.t]=1;return true;});};
   var b5=bestAt(5000,records()[5000]).best;
-  var longAll=M.phys?uniq([{t:'Timed 5 km, hard',d:[5000],g:'goal sub-17:00'+(b5?' · best now '+secFmt(b5.t):'')}].concat(CAMP_SESS.long.filter(function(y){return (y.ld||[0])[0]>=600;}).map(function(y){return {t:y.n,d:y.ld,g:pacedOf(y.lp)};}),LONG_OPTS)):LONG_OPTS;
+  var longAll=M.phys?uniq([{t:'Timed 5 km, hard',d:[5000],g:'goal sub-17:00'+(b5?' · best now '+secFmt(b5.t):'')},
+      /* Dan, 29 Oct: "even a 10 km or 5 mile hard — rare, only if I feel like it" */
+      {t:'Hard 5 miles or 10 km — rare, only when you fancy it',d:[8000],g:'about '+thrPaceTxt()+' a km, by feel'}].concat(CAMP_SESS.long.filter(function(y){return (y.ld||[0])[0]>=600;}).map(function(y){return {t:y.n,d:y.ld,g:pacedOf(y.lp)};}),LONG_OPTS)):LONG_OPTS;
   var shortAll=M.phys?uniq(CAMP_SESS.short.filter(function(y){return (y.sd||[0])[0]<=400;}).map(function(y){return {t:y.n,d:y.sd,g:pacedOf(y.sp)};}).concat(SHORT_OPTS.filter(function(o){return o.d[0]<=400;}))):null;
   if(P.pbwin){
     var tw=CFG.camp.pb.filter(function(x){return x.on>=tr.wkStart&&x.on<=addD(tr.wkStart,6);});
