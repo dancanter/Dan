@@ -868,6 +868,28 @@ ok('green light in a physique week offers both hard runs', GL.c !== 'green' || /
 const PLG = await p.evaluate(() => weekRunsModel().P.long);
 ok('the physique hard run is 600 m and up', !/^\d+ × (200|300|400) m/.test(PLG), PLG);
 await ctx.close();
+// the calorie call (29 Oct): hold, up when fast two weeks running, a small step down when flat two weeks
+const wtsC = (start, lbs) => { const o = {}; lbs.forEach((lb, i) => { const d = new Date(start + 'T12:00:00'); d.setDate(d.getDate() + i); o[d.toISOString().slice(0, 10)] = lb; }); return o; };
+({ ctx, p, boot } = await at('2026-10-29'));
+await boot(st({ weights: wtsC('2026-10-09', Array.from({ length: 21 }, (_, i) => 129 - i * 0.08)) }));
+let CCx = await p.evaluate(() => calCall());
+ok('a steady loss holds at 1,899', CCx.k === 'hold' && /1,899/.test(CCx.t), JSON.stringify(CCx));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-29'));
+await boot(st({ weights: wtsC('2026-10-09', Array.from({ length: 21 }, (_, i) => 131 - i * 0.22)) }));
+CCx = await p.evaluate(() => calCall());
+ok('losing fast two weeks running says eat more', CCx.k === 'up' && /1,999/.test(CCx.t), JSON.stringify(CCx));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-10-29'));
+await boot(st({ weights: wtsC('2026-10-09', Array.from({ length: 21 }, () => 127.2)) }));
+CCx = await p.evaluate(() => calCall());
+ok('flat two weeks before the push check: hold, the push covers it', CCx.k === 'hold' && /push check/.test(CCx.w), JSON.stringify(CCx));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-23'));
+await boot(st({ weights: Object.assign(wtsC('2026-11-02', Array.from({ length: 22 }, () => 125.6))) }));
+CCx = await p.evaluate(() => calCall());
+ok('flat two weeks after the push: steps first, then rest days to 1,799', CCx.k === 'down' && /2,000 more steps/.test(CCx.w) && /1,799/.test(CCx.w), JSON.stringify(CCx));
+await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
 await boot(st());
