@@ -4545,6 +4545,16 @@ var PHYS_PLAN=[
    '11–13k a day, most of it easy walking; 10 min after the biggest meal. Burns fat with no cortisol cost.'],
   ['🧬','Cellular health',
    'The Norwegian run truly 7 out of 10 — that is the zone that builds mitochondria for almost nothing. Never two hard days in a row. No deeper deficit than 1,899 outside the push. Muscle itself is longevity: keep beating last time.'],
+  ['🗿','The model face',
+   'The jaw and cheekbones come with the last 3–5 lb (123–124 for you) — the face leans out last, so the final fortnight shows most. Puffiness is water, not fat: 8–9 h sleep, salt and water the same every day, no alcohol, the last big meal 2–3 h before bed.'],
+  ['🧴','Skin and grooming',
+   'Morning: gentle cleanser, ceramide moisturiser, SPF 30+ (all year). Evening: cleanser and moisturiser; niacinamide if you want one more step. Exfoliate gently once a week at most. Haircut every 3–4 weeks, brows tidied, a clean neckline.'],
+  ['🧍','Posture — an instant jawline',
+   'Stand tall, chin slightly back, shoulders down. Face pulls and band pull-aparts, 2 sets on an upper-body day. On camera: chin a touch forward and down.'],
+  ['⚖️','Hormones',
+   'Sleep 8–9 h, fat at 48 g or more, carbs around training, no deeper deficit than 1,899 outside the push, oily fish, eggs and red meat for zinc, daylight every morning, never two hard days in a row, no alcohol. All of it keeps testosterone up and cortisol down — which is muscle, mood and a leaner face.'],
+  ['📸','Shoot day',
+   'The Model tab has the week. Day before: a little more carbs, same salt and water, early night. Morning: normal breakfast, 10–15 min of push-ups or bands, stay warm. Never cut water or salt hard — it looks flat, not shredded.'],
   ['🍂','Looking your best in autumn and winter',
    '10–15 min of daylight before noon, every day — mood, sleep and the face. 8–9 h in bed, same wake time. A barrier-friendly moisturiser morning and night now retinol has stopped, and SPF on the face on bright days. Veins show less in the cold — judge your look warm, after carbs and a session, not first thing.'],
   ['🎯','The times, honestly',
@@ -4564,7 +4574,7 @@ function muscleMaxHTML(){
     rows+
     '<details style="margin-top:8px"><summary><b>The rules that build muscle on a cut</b></summary>'+
     MUSCLE_RULES.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details>'+
-    (physOn(t)||t>=addD(PHYS.from,-7)?'<details style="margin-top:8px"'+(mondayOf(t)===PHYS.from?' open':'')+'><summary><b>💪 The physique camp — the whole plan</b></summary>'+
+    (physOn(t)||t>=addD(PHYS.from,-7)?'<details style="margin-top:8px"'+(mondayOf(t)===PHYS.from?' open':'')+'><summary><b>💪 The physique camp — the whole plan: muscle, the model look, hormones, runs</b></summary>'+
       PHYS_PLAN.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details>':'')+'</div>';
 }
 /* Dan, 16 Oct: the week's review lands on Sunday at 8 pm */
