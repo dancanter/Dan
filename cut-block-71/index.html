@@ -734,7 +734,9 @@ var CFG={
   /* 18 Oct, later: the 5-miler became a fun fast run and the easy 5 km is
      optional — runs = 21 + 3×1 + 7×1 = 31 (more is a bonus) */
   /* 19 Oct: a fun run AND a Norwegian run — runs = 21 + 3×1 + 7×2 = 38 */
-  goals:{gym:42,hard:21,sprints:10,runs:38,steps:12800,weightLo:122,weightHi:123},
+  /* 29 Oct: the physique camp from 2 Nov — 1 hard + 1 Norwegian a week for
+     the rest of the cut — hard = 16 + the pre-block one = 17, runs = 17 + 13 = 30 */
+  goals:{gym:42,hard:17,sprints:10,runs:30,steps:12800,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -914,7 +916,7 @@ var CFG={
   sets:[{m:'Chest',cut:[10,15],rev:[12,18],day:'chest'},
         {m:'Back',cut:[12,16],rev:[14,20],day:'back'},
         {m:'Shoulders',cut:[10,15],rev:[12,18],day:'delts'},   /* side delts on 2–3 days — width, for very little fatigue */
-        {m:'Legs',cut:[6,10],rev:[10,14],day:'legs'},
+        {m:'Legs',cut:[8,12],rev:[10,14],day:'legs'},   /* 29 Oct: up from 6–10 — one hard run a week leaves room for leg muscle */
         {m:'Biceps',cut:[6,10],rev:[8,14],day:'back'},
         {m:'Triceps',cut:[6,10],rev:[8,14],day:'chest'},
         {m:'Forearms',cut:[4,8],rev:[6,10],day:'delts'}],
@@ -991,9 +993,19 @@ function pushBroke(){var hit=null;Object.keys(S.weights).forEach(function(k){if(
 function pushState(is){is=is||today();var b=pushBroke();
   if(b)return {k:'off',t:'No push needed',w:'You weighed under '+PUSH.under+' on '+fmtS(b)+' — carry on exactly as you are.'};
   if(is<PUSH.check)return {k:'pending',t:'Push check on '+fmtS(PUSH.check),w:'Any morning under '+PUSH.under+'.0 before then and there is no push. If not, two weeks of push from '+fmtS(PUSH.from)+' to London on '+fmtS(PUSH.tripDate)+'.'};
-  if(is<=PUSH.to)return {k:'on',t:'🔥 Push fortnight — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'1,799 a day (Saturday 1,999), protein about 150–160 g, carbs 200 g or more, fat about 45 g, 14.5k steps, one hard run and two Norwegian runs a week. Sleep and recovery exactly the same.'};
+  if(is<=PUSH.to)return {k:'on',t:'🔥 Push fortnight — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'1,799 a day (Saturday 1,999), protein about 150–160 g, carbs 200 g or more, fat about 45 g, 14.5k steps. Runs stay the physique week: one hard run, one Norwegian run with hill sprints, the gym first. Sleep and recovery exactly the same.'};
   return {k:'done',t:'Push done',w:'Back to 1,899.'};}
 function pushOn(is){return pushState(is).k==='on';}
+/* ===================== physique camp (Dan, 29 Oct) =====================
+   "More focus on building muscle, getting shredded and cellular ageing — I
+   still want to improve my times, beat the 5 km, and keep every achievement."
+   From 2 Nov the camp keeps its sessions, trials, bosses and XP, but the week
+   is lighter on stress: ONE hard run (the longer slot on odd camp weeks and
+   test weeks, the shorter on even ones — he can swap), ONE Norwegian run (the
+   long-rep one, the 5 km engine) with hill sprints at the end, an optional
+   second Norwegian only on a green week, and the gym first. */
+var PHYS={from:'2026-11-02'};
+function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
 function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
@@ -1011,7 +1023,10 @@ function targetTxt(is){
    30% is the middle of the healthy 25–35% and still leaves ~4 g/kg carbs)
    by maintenance, and everything else goes to carbohydrate — which is what
    refills glycogen and lets the times come. The hold weeks are all carbs. */
-var MACRO={pro:135,fat:48,proRev:135,fatRevPct:0.30};
+/* Dan, 29 Oct (physique camp): protein 140 — 135–145 g, about 2.4 g/kg at
+   his weight, the top of the range for keeping and adding muscle on a cut.
+   Carbs still clear their 200 g floor. */
+var MACRO={pro:140,fat:48,proRev:135,fatRevPct:0.30};
 function fatTop(maint){return Math.max(MACRO.fat,Math.round(maint*MACRO.fatRevPct/9));}
 /* protein, fat and carbs for any rung of the reverse */
 function revMacros(k,first,maint){
@@ -1049,6 +1064,8 @@ function tmplFor(start){
   var T={hard:B.hard,sprints:B.sprints,runs:B.runs,gym:B.gym,easy:B.easy,deload:false};
   if(start>=cs&&diffD(cs,start)<7*CFG.camp.rampWeeks){T.easy=CFG.camp.rampEasy;T.runs=T.hard+T.easy;T.ramp=true;}
   if(start>=WEIGH_START&&isDeload(weekOf(start))){T.hard=1;T.runs=T.hard+T.easy+T.sprints;T.deload=true;}
+  /* physique camp: one hard run and one Norwegian (the PB window keeps its trials) */
+  if(physOn(start)&&!((typeof CUT_RUNS!=='undefined'&&CUT_RUNS[weekOf(start)])||{}).pbwin){T.hard=1;T.easy=1;T.runs=2;T.phys=true;}
   return T;
 }
 function inCut(is){return is>=CFG.cutStart&&is<=CFG.cutEnd;}
@@ -3315,6 +3332,11 @@ function weekRunsModel(){
   for(i=0;i<7;i++){d=addD(prevStart,i);(S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.hard&&!m.empty&&r.rpe>=9)heavy=true;});}
   var repeat=heavy&&wk>1&&!P.deload&&!P.tt&&CUT_RUNS[wk-1]&&!CUT_RUNS[wk-1].deload&&!CUT_RUNS[wk-1].tt;
   var use=repeat?planFor(wk-1,addD(mondayOf(t),-7)):P;
+  /* physique camp: one hard run — the longer on odd weeks and test weeks, the
+     shorter on even ones; the other stays on the menu as his swap */
+  var phys=physOn(t)&&!use.pbwin;
+  if(phys&&use.long&&use.short){var keepL=wk%2===1||!!use.tt;
+    use=keepL?Object.assign({},use,{short:null,alt:use.short,altD:use.sd,altP:use.sp}):Object.assign({},use,{long:null,alt:use.long,altD:use.ld,altP:use.lp});}
   /* in a deficit, stress is the thing to manage: if the week's status is
      flagging rest, legs or overtraining, one hard run only — the short one */
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
@@ -3322,11 +3344,11 @@ function weekRunsModel(){
   if(easyWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
   /* the push: one hard run (the shorter) and two Norwegian runs */
   var pushNow=pushOn(t);
-  if((easeOff||pushNow)&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false,lastS:use.lastS,why:use.why};
+  if(!phys&&(easeOff||pushNow)&&use.long)use={long:null,short:use.short,sd:use.sd,sp:use.sp,spr:use.spr,note:use.note,deload:use.deload,tt:false,lastS:use.lastS,why:use.why};
   /* which slot each hard run filled: reps of 400 m or less are the short
      speed session, anything longer (or a hard continuous run) the long one */
   var lng=0,sht=0,thrDone=0;
-  var thrOn=thresholdOK(t)&&!easeOff&&!pushOn(t);   /* no threshold during a push — two Norwegian runs instead */
+  var thrOn=thresholdOK(t)&&!easeOff&&!pushOn(t)&&!phys;   /* no threshold during a push — two Norwegian runs instead */
   for(i=0;i<7;i++){d=addD(tr.wkStart,i);if(d>t)break;
     (S.days[d]&&S.days[d].runs||[]).forEach(function(r){var m=runMeta(r);if(m.empty||!m.hard)return;
       if(thrOn&&!thrDone&&m.kind==='cont'){thrDone=1;return;}
@@ -3334,6 +3356,7 @@ function weekRunsModel(){
   /* a second session of the same kind still counts, toward the other slot */
   var longDone=lng>=1||(sht>=2&&!!use.long),shortDone=sht>=1||(lng>=2);
   if(!use.long)shortDone=lng+sht>=1;
+  if(phys)longDone=shortDone=lng+sht>=1;
   var aw=avgWindow(t,7),lb=aw&&aw.avg!==null?aw.avg:null;
   if(lb===null){var ws=Object.keys(S.weights).sort();if(ws.length)lb=S.weights[ws[ws.length-1]];}
   var kcal5=lb?Math.round(lb/2.2046*8.05/10)*10:null;
@@ -3361,8 +3384,10 @@ function weekRunsModel(){
        uses the threshold in place of the Norwegian run; a week that needs less
        keeps only the Norwegian run, because it costs the least. */
     /* 19 Oct, later: two Norwegian runs, no fun run */
-    mix=(dipM.level>=2||easeOff||thrOn)?['norw']:['norw','norw'];easyTarget=mix.length;}
-  return {mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
+    mix=(phys||dipM.level>=2||easeOff||thrOn)?['norw']:['norw','norw'];easyTarget=mix.length;}
+  /* physique: a second Norwegian is a bonus, only on a clear week */
+  var optN=phys&&!easeOff&&dipM.level<2;
+  return {phys:phys,optN:optN,mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3460,7 +3485,7 @@ function weekRunsHTML(){
         '<div class="tiny dim more" style="margin-left:14px">'+runDoes(tts[0])+'</div></div>':'')+
       '</div>';
   };
-  var rows='';
+  var rows='',altO=P.alt?[{t:P.alt,d:P.altD,g:pacedOf(P.altP)}]:[];
   if(P.pbwin){
     var tw=CFG.camp.pb.filter(function(x){return x.on>=tr.wkStart&&x.on<=addD(tr.wkStart,6);});
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>⏱ This week’s trials</b>'+(tw.length?tw.map(function(x){var b=bestAt(x.dm,records()[x.dm]).best;
@@ -3468,11 +3493,11 @@ function weekRunsHTML(){
       '<div class="tiny dim more" style="margin-left:14px">'+runHow('Time trial')+'</div></div>';
     rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>Between trials</b><div class="tiny">Easy 5-milers, and 4 × 200 m fast-relaxed two days before a trial to stay sharp. No other hard running.</div></div>';
   }
-  if(!P.pbwin&&P.long)rows+=slot('Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},LONG_OPTS,'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
+  if(!P.pbwin&&P.long)rows+=slot(M.phys?'Hard run — your one this week':'Hard run · longer',M.longDone,{t:P.long,d:P.ld,g:pacedOf(P.lp)},altO.concat(LONG_OPTS),'reps',P.tt&&M.wk===W_WEEKS?[800,1000,1609,5000]:[800,1000,1609],longTTok,'Builds your 800 m, 1 km, mile and 5 km.');
   if(M.thrOn)rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+(M.thrDone?'<span class="pill g">✓ done</span>':'')+'<b>⚡ Threshold run — your 3rd quality session</b> <span class="tiny">on this week, because your recovery is green · it replaces one 5-miler</span></div>'+
     '<div style="margin-top:2px">20–25 min comfortably hard, about '+thrPaceTxt()+' a km</div>'+
     '<div class="tiny more">'+runHow('Threshold')+' The biggest single lever for sub-17 and sub-4:50, and the gentlest of the three on your legs.</div></div>';
-  if(!P.pbwin)rows+=slot(P.long?'Hard run · shorter':'Hard run',M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},P.deload?RELAXED_OPTS:SHORT_OPTS,P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
+  if(!P.pbwin&&P.short)rows+=slot(M.phys?'Hard run — your one this week':(P.long?'Hard run · shorter':'Hard run'),M.shortDone,{t:P.short,d:P.sd,g:pacedOf(P.sp)},altO.concat(P.deload?RELAXED_OPTS:SHORT_OPTS),P.deload?'relaxed':'reps',[200,400,600],shortTTok,'Builds your 200, 400 and 600.');
   var legsFlag=M.easeOff&&M.ST&&(M.ST.k==='legs'||M.ST.k==='rest');
   rows+='<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
     (w.five>=M.easyTarget?'<span class="pill g">✓ done</span>':(w.five?'<span class="pill g">'+w.five+' of '+M.easyTarget+' ✓</span>':''))+'<b>Easy 5 miles'+(M.easyTarget>1?' × '+M.easyTarget:'')+'</b>'+(M.easyTarget<T.easy?' <span class="tiny">(one fewer this week — recovery first)</span>':'')+' <span class="tiny">'+(T.easy>1?'the engine for every distance · one with 6–8 strides or hill sprints at the end':'the fat-loss run · plus an easy 5 km only if you feel fresh')+'</span></div>'+
@@ -4046,7 +4071,7 @@ function setsWeekHTML(){
 function campPhase(t){
   var C=CFG.camp;t=t||today();
   if(t<C.start)return {k:'pre',n:'Starts '+fmtS(C.start)};
-  if(t<'2026-11-23')return {k:'build',n:'Build',w:'Quality over volume: two hard runs and two short Norwegian sub-threshold runs. The cut carries on.'};
+  if(t<'2026-11-23')return {k:'build',n:physOn(t)?'Build · physique':'Build',w:physOn(t)?'Physique camp: one hard run, one Norwegian run with hill sprints at the end, the gym first. Muscle, the shred and low stress lead; the times still come.':'Quality over volume: two hard runs and two short Norwegian sub-threshold runs. The cut carries on.'};
   if(t<=CFG.cutEnd)return {k:'check',n:'Checkpoint',w:'Test week on the last of the cut — the 1 km or mile and the 400 or 200, only if the week is clear.'};
   if(t<C.window)return {k:'refuel',n:'Refuel',w:'The reverse starts: carbs back in, sessions controlled, no trials. Legs fill up and fresh up.'};
   if(t<=C.end)return {k:'pb',n:'PB window',w:'The trials are the hard sessions now — two a week at most, three days apart, easy runs between.'};
@@ -4247,6 +4272,7 @@ function campGame(){
     if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
     for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
+    if(M.optN&&q.subt<2&&!walkSwap)easyL.push({e:'➕',c:'opt',n:'Optional: a 2nd Norwegian — '+nP[0].n+' (only on a 🟢 day, never a 4th run in a row)',how:runHow('Norwegian sub-threshold — '+nP[0].n)+' A bonus for the engine and the 5 km, never owed — skip it and nothing is lost.'});
     /* four runs is the most — anything extra is a walk */
     easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
   }else
@@ -4277,11 +4303,12 @@ function campGame(){
       if(M.easeOff){try{localStorage.setItem(k,JSON.stringify({ws:ws}));}catch(e){}}
       else if(st&&st.ws===ws){var back=[];if(M.P.long&&M.P.short)back.push('the second hard run ('+(M.P.long||'')+')');if(M.mix&&M.mix.length>1)back.push('the second Norwegian run');
         if(back.length)changes.push({e:'✅',t:'Recovery is back — '+back.join(' and ')+' '+(back.length>1?'are':'is')+' on again',why:'your resting HR and sleep have settled'});}})();
-    if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:'Push fortnight: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery — 1,799 a day, 14.5k steps'});
-    if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
+    if(M.phys&&mondayOf(t)===PHYS.from)changes.push({e:'💪',t:'Physique camp from this week: one hard run, one Norwegian run with hill sprints, the gym first',why:'more muscle, a sharper look and less stress — the trials, bosses and XP all stay'});
+    if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:M.phys?'Push fortnight: 1,799 a day and 14.5k steps — runs stay the physique week':'Push fortnight: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery'});
+    if(!M.phys&&M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
-    if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?'Times dipping again — one Norwegian run this week, not two':'Times dipped — keep the Norwegian runs truly 7 out of 10';
+    if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?(M.phys?'Times dipping again — no 2nd Norwegian this week':'Times dipping again — one Norwegian run this week, not two'):'Times dipped — keep the Norwegian runs truly 7 out of 10';
     else if(M.easyTarget<T.easy&&!M.thrOn)changes.push({e:'🏃',t:M.mix?'One Norwegian run this week, not two — recovery first':'One fewer 5-miler',why:'recovery first'});
     if(M.thrOn)changes.push({e:'⚡',t:'Threshold run added — your 3rd quality session',why:'your recovery is green; it is this week’s fast run in place of the fun run'});
     if(M.repeat)changes.push({e:'🔁',t:'Last week’s sessions again, not a step up',why:'last week felt like a 9–10'});
@@ -4474,12 +4501,33 @@ function reviewTimeline(o){
 var MUSCLE_RULES=[
   ['🎯','Sets in range, near failure','Main lifts 6–12 reps, stopping 1–2 reps short; the last set of an isolation move can go to failure. Inside the range builds; past it on a cut only costs recovery.'],
   ['📈','Beat last time, every session','One more rep or a little more weight on one main lift. That is the signal that builds muscle in a deficit — tick 💪 when you do.'],
-  ['🥩','Protein: 4 feeds of 30–40 g','Breakfast, lunch, tea and the evening bowl. About 135 g a day — 2.3 g per kg, the top of what the research supports on a cut.'],
+  ['🥩','Protein: 4 feeds of 30–40 g','Breakfast, lunch, tea and the evening bowl. About 140 g a day — 2.4 g per kg, the top of what the research supports on a cut.'],
   ['🌙','The evening yoghurt bowl stays — it is perfect','Greek yoghurt is mostly casein, the slow protein that feeds muscle through the night.'],
   ['🍌','The extra 100 kcal goes after the gym','Carbs plus protein within a couple of hours of lifting — a banana with your yoghurt, or extra potatoes with tea. Same day total, aimed at the muscle.'],
   ['⏱️','Run first, lift later','On a day with both, run in the morning and lift 6 h or more later where you can — the muscle signal stays cleaner. Easy runs barely interfere.'],
   ['🦵','Legs short','6–10 hard sets. Your running already loads your legs heavily; the extra sets past that only add swelling and slow the hard runs.'],
   ['😴','8 h or more','Muscle is built while you sleep, and short nights raise cortisol, which works against it.']];
+/* Dan, 29 Oct: "say everything — max shreds, muscle and times without ageing
+   or stress that takes from building muscle; what runs and gym; where the
+   protein comes from; looking my best in autumn and winter." The whole
+   physique camp in one place. */
+var PHYS_PLAN=[
+  ['🏃','The runs, every week',
+   'One hard run — the session picked on the Camp tab, flat out but controlled, on a 🟢 day. One Norwegian run, 30–40 min at 7 out of 10 (short sentences, never straining), with 6–10 hill sprints of about 10 s at the end, walking back down. A second Norwegian only on a green week, as a bonus. Trials, bosses and XP all stay, the 5 km included. Saturday stress-free.'],
+  ['🏋️','The gym, four days — the priority',
+   'Your split: shoulders + forearms, chest + triceps, back + biceps, legs. Main lifts 6–12 reps, stopping 1–2 short of failure; the last set of an isolation move can go to failure. Beat last time on one main lift every session. Side raises on 2–3 days for width. Legs now 8–12 hard sets (less running leaves room). Leave 24 h between legs and the hard run where you can.'],
+  ['🥩','Protein — 140 g, four feeds of about 35 g',
+   'Breakfast: 200 g skyr or Greek yoghurt + 2 eggs. Lunch: 120 g chicken or turkey, or a tin of salmon or sardines. Tea: 150 g lean beef, cod or salmon. Evening: the yoghurt or cottage cheese bowl — slow casein through the night. Oily fish (salmon, sardines, mackerel) 2–3 times a week for the skin and the cells. Oats certified GF.'],
+  ['🍚','Carbs and the full look',
+   '1,899 a day, carbs 200 g or more, aimed before and after training — that is what fills the muscle and brings the hardness and veins back. Potassium every day: potatoes with the skin, bananas, kiwi, yoghurt, salmon. Salt and water the same every day.'],
+  ['🚶','Steps — the stress-free shred',
+   '11–13k a day, most of it easy walking; 10 min after the biggest meal. Burns fat with no cortisol cost.'],
+  ['🧬','Cellular health',
+   'The Norwegian run truly 7 out of 10 — that is the zone that builds mitochondria for almost nothing. Never two hard days in a row. No deeper deficit than 1,899 outside the push. Muscle itself is longevity: keep beating last time.'],
+  ['🍂','Looking your best in autumn and winter',
+   '10–15 min of daylight before noon, every day — mood, sleep and the face. 8–9 h in bed, same wake time. A barrier-friendly moisturiser morning and night now retinol has stopped, and SPF on the face on bright days. Veins show less in the cold — judge your look warm, after carbs and a session, not first thing.'],
+  ['🎯','The times, honestly',
+   'The 400, 800 and 1 km should keep coming — they run on speed and strength, which this keeps. The 5 km gets a little less engine work, so it may move less this camp; the Norwegian run and the trial still give it a go.']];
 function muscleMaxHTML(){
   var t=today();if(t<CFG.camp.start||t>CFG.camp.end)return '';
   var ws=weekSets(t),pr=0,gy=0;
@@ -4494,7 +4542,9 @@ function muscleMaxHTML(){
     '<div class="row" style="gap:12px;margin:0 0 6px"><span><b>'+gy+'</b> <span class="tiny">gym sessions</span></span><span><b>'+pr+'</b> <span class="tiny">× beat last time</span></span></div>'+
     rows+
     '<details style="margin-top:8px"><summary><b>The rules that build muscle on a cut</b></summary>'+
-    MUSCLE_RULES.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details></div>';
+    MUSCLE_RULES.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details>'+
+    (physOn(t)||t>=addD(PHYS.from,-7)?'<details style="margin-top:8px"'+(mondayOf(t)===PHYS.from?' open':'')+'><summary><b>💪 The physique camp — the whole plan</b></summary>'+
+      PHYS_PLAN.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+'</details>':'')+'</div>';
 }
 /* Dan, 16 Oct: the week's review lands on Sunday at 8 pm */
 function reviewReady(){var t=today();return t>=CFG.camp.start&&t<=CFG.camp.end&&dow(t)===0&&new Date().getHours()>=20;}
@@ -4692,7 +4742,7 @@ var FACE_GROUPS=[
   f:['🐟 Salmon, mackerel, sardines, trout','🍓 Strawberries, blueberries, raspberries','🥝 Kiwi and 🍊 oranges','🌶️ Red and yellow peppers','🍅 Tomatoes, cooked','🌰 Hazelnuts — vitamin E','🥚 Egg yolks','🍫 85% dark chocolate, about 20 g','🥩 Red meat and 🦪 oysters — zinc for clear skin']},
  {k:'hormones',e:'⚡',n:'Hormones',w:'Testosterone and thyroid run on zinc, vitamin D, cholesterol, enough fat, enough carbs, selenium and iodine.',
   f:['🦪 Oysters — the most zinc of any food','🥩 Beef, lamb, venison — zinc, iron, B12','🥚 Whole eggs — cholesterol, choline, vitamin D','🐟 Oily fish — vitamin D, omega-3','🧈 Grass-fed butter and 🥛 A2 whole milk, in the reverse','🥛 Fage and kefir — iodine for thyroid','🎃 Pumpkin seeds — zinc and magnesium','🌰 Walnuts and hazelnuts','🥔 Potatoes, rice, GF oats — carbs keep cortisol down','🍓 Fruit every day']},
- {k:'muscle',e:'💪',n:'Muscle',w:'135 g protein a day over 3–4 meals of 30–40 g, from foods rich in leucine.',
+ {k:'muscle',e:'💪',n:'Muscle',w:'140 g protein a day over 3–4 meals of 30–40 g, from foods rich in leucine.',
   f:['🥩 Beef and lamb — creatine too','🐔 Chicken','🐟 Cod, salmon, prawns','🥚 Eggs','🥛 Fage 0%, 2%, 5%','🥛 Milk and kefir','🥔 Carbs around training — potatoes, rice, GF oats','🍯 Raw honey before a hard session']},
  {k:'limit',e:'🚫',n:'Limit',w:'What puffs a face up, or pulls hormones down.',
   f:['🍺 Alcohol — the biggest one','🧅 Onion, leek and garlic — they bloat you','🍎 Apples, pears, asparagus — if they bloat you','🍯 Big spoonfuls of honey','🍟 Takeaways, crisps, anything ultra-processed — salt spikes','🔥 Charred or burnt meat','🍬 Sugary drinks and sweets','🌙 Big meals late at night','☕ Caffeine after 2pm','🌿 Real liquorice — it holds water and lowers testosterone']}
@@ -4989,7 +5039,7 @@ function spotsHTML(){
 function vdot(dm,secs){var t=secs/60,v=dm/t,vo=-4.6+0.182258*v+0.000104*v*v,pc=0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);return vo/pc;}
 var LONGEVITY=[
   ['🫀','VO₂max — the strongest single predictor','Higher fitness, longer life — the gap between the fittest and least fit is bigger than smoking. Your hard runs and Norwegian runs are building it.'],
-  ['🏋️','Muscle and strength','Muscle protects blood sugar, bones, hormones and independence as you age. Four gym sessions, beat last time, protein 135 g+.'],
+  ['🏋️','Muscle and strength','Muscle protects blood sugar, bones, hormones and independence as you age. Four gym sessions, beat last time, protein 140 g.'],
   ['😴','Sleep 8 h+, bed before 23:00','Deep sleep is when the brain clears waste and growth hormone repairs tissue. The cheapest anti-ageing there is.'],
   ['🍽️','Real food, gluten-free, no sweeteners','Coeliac-safe every time; red meat and oily fish for iron, zinc, B12, omega-3 and vitamin D; berries, dark chocolate and colourful veg for polyphenols; kiwis and potatoes for potassium.'],
   ['📉','A gentle deficit, never a crash','Slow fat loss protects hormones, thyroid, hair and bone. The reverse brings you back to full fuel.'],

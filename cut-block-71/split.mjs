@@ -230,7 +230,7 @@ ok('and shows what it is made of', /chest 10–15/.test(chestRow[2]) && /triceps
 const backRow = perDay.filter(r => /Back/.test(r[0]))[0];
 ok('back day totals back plus biceps', backRow && backRow[1] === '18–26', JSON.stringify(backRow));
 const legRow = perDay.filter(r => /Legs/.test(r[0]))[0];
-ok('legs day is just legs', legRow && legRow[1] === '6–10', JSON.stringify(legRow));
+ok('legs day is just legs', legRow && legRow[1] === '8–12', JSON.stringify(legRow));
 ok('a second session beats more sets', /a second session beats adding sets to the first/.test(t));
 
 // on the reverse the growth column is the live one

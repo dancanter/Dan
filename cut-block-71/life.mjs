@@ -241,13 +241,13 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-03'));
 await boot(st());
 let bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs') }));
-ok('on the cut the sets are the cut ranges', bm.bw === 0 && bm.chest.join() === '10,15' && bm.legs.join() === '6,10', JSON.stringify(bm));
+ok('on the cut the sets are the cut ranges', bm.bw === 0 && bm.chest.join() === '10,15' && bm.legs.join() === '8,12', JSON.stringify(bm));
 await p.click('[data-t="reverse"]'); await p.waitForTimeout(120);
 let rt = sq(await p.innerText('#revTrain'));
 ok('the Reverse tab previews build mode and when it starts', /build mode, from 29 Nov/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
 ok('the Training tab has no build card yet', !/Build mode/.test(sq(await p.innerText('#tSets'))));
 await ctx.close();
-for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '10,15', '6,10', /crank up the weights/i], ['2026-12-14', 3, '11,17', '8,12', /add sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
+for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '10,15', '8,12', /crank up the weights/i], ['2026-12-14', 3, '11,17', '9,13', /add sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
   ({ ctx, p, boot } = await at(day));
   await boot(st());
   bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs'), sug: coachModel().sug[0] || '' }));
@@ -278,7 +278,7 @@ await boot(st({ days: { '2026-10-06': { runs: [{ k: 'reps', dm: 800, n: 5, secs:
   '2026-10-05': { runs: [{ km: 5, secs: 1463, type: 'easy' }] }, '2026-10-03': {} } }));
 const ud = await p.evaluate(() => ({ hard: dayTarget('2026-10-06'), five: dayTarget('2026-10-07'), k5: dayTarget('2026-10-05'), sat: dayTarget('2026-10-03'), rest: dayTarget('2026-10-08'), carbs: [CARB_AT, CARB_UP], txt: targetTxt('2026-10-08') }));
 ok('hard-run day, 5-mile day and Saturday are 1,899; easy 5 km and rest days 1,799', ud.hard === 1899 && ud.five === 1899 && ud.sat === 1899 && ud.k5 === 1799 && ud.rest === 1799, JSON.stringify(ud));
-ok('the extra 100 is all carbs: 207 -> 232 g', ud.carbs[0] === 207 && ud.carbs[1] === 232, JSON.stringify(ud.carbs));
+ok('the extra 100 is all carbs: 202 -> 227 g', ud.carbs[0] === 202 && ud.carbs[1] === 227, JSON.stringify(ud.carbs));
 ok('today without a run says 1,799, or 1,899 if you run hard or 5 miles', /1,799 · 1,899 if you run hard or 5 miles/.test(ud.txt), ud.txt);
 const fb8 = await p.evaluate(() => { S.days['2026-10-06'].kcal = 1890; return dayFeedback('2026-10-06').find(x => x[0] === 'Food')[2]; });
 ok('1,890 on a hard-run day is on budget', /On budget — a 1,899 day/.test(fb8), fb8);
@@ -390,7 +390,7 @@ await ctx.close();
 // ===== the goal plan (9 Oct) =====
 ({ ctx, p, boot } = await at('2026-11-04'));   // week 7: mile pace + 800 pace
 await boot(st({ days: { '2026-10-27': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 790 }] }, '2026-10-30': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 320 }] } } }));
-let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short, lg: pacedOf(m.P.lp), sg: pacedOf(m.P.sp) }; });
+let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short || m.P.alt, lg: pacedOf(m.P.lp), sg: pacedOf(m.P.sp || m.P.altP) }; });
 ok('a target week after the staples: paced sessions with goal-pace guides', /at (mile|5 km) pace/.test(M7.l) && /at 800 pace|fast/.test(M7.s) && /goal pace/.test(M7.lg) && /goal pace/.test(M7.sg), JSON.stringify(M7));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let r7 = sq(await p.innerText('#tRuns'));
@@ -643,7 +643,7 @@ ok('after the test week: a target week, never last week’s distances, and it sa
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st({ days: Object.assign({}, hist, { '2026-10-27': { runs: [{ k: 'reps', dm: 1609, n: 3, secs: 1000 }] }, '2026-10-30': { runs: [{ k: 'reps', dm: 300, n: 5, secs: 230 }] } }) }));
-AW = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short, left: campGame().left.map(x => x.n) }; });
+AW = await p.evaluate(() => { const M = weekRunsModel(); return { l: M.P.long, s: M.P.short || M.P.alt, left: campGame().left.map(x => x.n) }; });
 ok('then the staple week: 4 × 1 km and 5 × 400, with last time to beat', AW.l === '4 × 1 km' && AW.s === '5 × 400 m' && AW.left.some(n => /^4 × 1 km — last time 3:21 a rep \(4 × 1 km\)/.test(n)), JSON.stringify(AW));
 await ctx.close();
 
@@ -792,7 +792,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-09'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
 let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent }));
-ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, one hard run and two Norwegian', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && PSH.M.P.long === null && PSH.M.mix.length === 2 && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, one hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && PSH.M.P.long === null && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
 await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
 ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === 1899));
 await ctx.close();
@@ -833,6 +833,29 @@ await p.click('#slChart button[data-sd="2026-09-25"]'); await p.waitForTimeout(1
 ok('and highlights the bar', await p.evaluate(() => E('slChart').querySelector('button.sel').dataset.sd === '2026-09-25'));
 await p.click('#slChart button[data-sd="2026-09-20"]'); await p.waitForTimeout(100);
 ok('an unlogged night says so, without judging', /Not logged — ignored, not judged/.test(await p.innerText('#slPick')));
+await ctx.close();
+
+// ===== physique camp from 2 Nov (Dan, 29 Oct) =====
+({ ctx, p, boot } = await at('2026-10-29'));
+await boot(st());
+let PH = await p.evaluate(() => { const M = weekRunsModel(); return { phys: M.phys, hard: tmplFor(mondayOf(today())).hard, mix: M.mix.length }; });
+ok('before 2 Nov the camp week is unchanged', !PH.phys && PH.hard === 2, JSON.stringify(PH));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-02'));
+await boot(st());
+PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return { phys: M.phys, opt: M.optN, hard: M.T.hard, mix: M.mix, l: M.P.long, s: M.P.short, alt: M.P.alt,
+  left: G.left.map(x => x.n), q: G.quests.map(x => x[1] + ':' + x[3]), ch: G.changes.map(x => x.t), mm: muscleMaxHTML(), ph: campPhase().n, push: pushState('2026-11-10').w, card: weekRunsHTML() }; });
+ok('physique week: one hard run, one Norwegian, an optional second', PH.phys && PH.opt && PH.hard === 1 && PH.mix.join() === 'norw' && !!PH.l && !PH.s && !!PH.alt, JSON.stringify(PH).slice(0, 400));
+ok('the quests ask for one hard run and one Norwegian', PH.q.indexOf('Hard runs:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
+ok('the Norwegian carries the hill sprints and the 2nd is optional', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)) && PH.left.some(n => /^Optional: a 2nd Norwegian/.test(n)), JSON.stringify(PH.left));
+ok('the change is announced, with the plan open on Muscle max', PH.ch.some(t => /Physique camp from this week/.test(t)) && /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
+ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /physique week/.test(PH.push), PH.ph + ' | ' + PH.push);
+ok('the runs card offers the other session as the swap', /Hard run — your one this week/.test(PH.card) && PH.card.indexOf(PH.alt) >= 0, '');
+await ctx.close();
+// the PB window keeps its trials
+({ ctx, p, boot } = await at('2026-12-09'));
+await boot(st());
+ok('the PB window keeps two trials a week', await p.evaluate(() => tmplFor(mondayOf(today())).hard === 2));
 await ctx.close();
 
 await b.close();
