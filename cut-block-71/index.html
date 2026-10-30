@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Cut Block 71</title>
+<title>The Good Life</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
 <style>
 :root{
@@ -184,7 +184,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 </style>
 <header class="top">
   <div class="topin">
-    <div class="brand">CUT <span>BLOCK</span> 71</div>
+    <div class="brand">THE GOOD <span>LIFE</span></div>
     <div class="topstat mono">
       <div><i>day</i> <b id="hDay">—</b></div>
       <div><i>left</i> <b id="hLeft">—</b></div>
@@ -201,12 +201,13 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <button role="tab" data-t="training" aria-selected="false">Training</button>
     <button role="tab" data-t="times" aria-selected="false">Times</button>
     <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
-    <button role="tab" data-t="study" aria-selected="false">Study</button>
+    <button role="tab" data-t="study" aria-selected="false">🎓 Uni</button>
     <button role="tab" data-t="mind" aria-selected="false">Mind</button>
     <button role="tab" data-t="reverse" aria-selected="false">Reverse</button>
     <button role="tab" data-t="wins" aria-selected="false">Wins</button>
     <button role="tab" data-t="review" aria-selected="false">Review</button>
     <button role="tab" data-t="model" aria-selected="false">📸 Model</button>
+    <button role="tab" data-t="life" aria-selected="false">✨ Life</button>
     <button role="tab" data-t="skin" aria-selected="false">Skin</button>
     <button role="tab" data-t="data" aria-selected="false">Data</button>
   </nav>
@@ -304,6 +305,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
   <div id="tdeeCard"></div>
+  <div id="glCheckCard"></div>
   <div id="alertCard"></div>
   <div id="glanceCard"></div>
   <div id="campToday"></div>
@@ -332,6 +334,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= WEIGHT ================= -->
 <section id="s-weight" class="stack" hidden>
   <div id="wTop"></div>
+  <div id="physAssess"></div>
   <div class="p"><h2>The curve — daily mornings, 7-day average, and where the plan says he should be</h2>
     <div id="wChart"></div>
     <div class="row" style="margin-top:8px">
@@ -547,6 +550,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= STUDY ================= -->
 <section id="s-study" class="stack" hidden>
+  <div id="uniCard"></div>
   <div id="deepCard"></div>
   <div id="dayCard"></div>
   <div id="stTop"></div>
@@ -607,6 +611,11 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="filmCard"></div>
   <div id="spotCard"></div>
   <div id="longCard"></div>
+</section>
+
+<!-- ================= THE GOOD LIFE ================= -->
+<section id="s-life" class="stack" hidden>
+  <div id="lifeCard"></div>
 </section>
 
 <!-- ================= MODEL ================= -->
@@ -5840,6 +5849,7 @@ function render(){
   renderRetinol();
   renderWins();
   renderReview();
+  renderGoodLife();
   renderData(w,tr,c);
   paintStatus();
 }
@@ -8604,10 +8614,384 @@ function renderData(w,tr,c){
   });
 }
 
+/* ===================== THE GOOD LIFE (Dan, 30 Oct) =====================
+   "Make this into my personal operating system — keep everything, add what
+   benefits me." Built on top of the tracker, not instead of it: the daily
+   check-in and its three options, the physique assessment, the Open
+   University centre, and a Life tab for style, Vinted, cinema and enjoying
+   life. Everything Dan enters lives in the same store as the rest (S.uni,
+   S.style, S.vinted, S.cinema, S.life, S.waist, days[].feel). Nothing here
+   invents data: listings, ratings and streaming are never claimed. */
+function glId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function glStore(){
+  if(!S.uni||typeof S.uni!=='object')S.uni={};
+  if(!Array.isArray(S.uni.mods))S.uni.mods=[{code:'SK297',title:''},{code:'SK298',title:''}];
+  if(!Array.isArray(S.uni.tasks))S.uni.tasks=[];
+  if(!Array.isArray(S.uni.topics))S.uni.topics=[];
+  if(!S.style||typeof S.style!=='object')S.style={};
+  if(!Array.isArray(S.style.items))S.style.items=[];
+  if(!S.vinted||typeof S.vinted!=='object')S.vinted={};
+  if(!Array.isArray(S.vinted.wants))S.vinted.wants=[];
+  if(!S.cinema||typeof S.cinema!=='object')S.cinema={};
+  if(!S.life||typeof S.life!=='object')S.life={};
+  if(!S.waist||typeof S.waist!=='object')S.waist={};
+}
+var GL_UI={life:'style',cine:'all',sub:null};
+
+/* ---------- 1. the daily check-in: "I'm exhausted", "I feel brilliant"… ---------- */
+var FEELS=[['tired','😴','Exhausted'],['great','✨','Feel brilliant'],['legs','🦵','Legs heavy'],['short','⏱️','Only 45 min'],
+  ['deadline','📚','Uni deadline'],['sun','☀️','Want the sunshine'],['ill','🤒','Feeling unwell'],['low','🌧️','Feeling low']];
+function feelsToday(){var r=S.days[today()]||{};return Array.isArray(r.feel)?r.feel:[];}
+var GYM_NEXT=[['delts','Shoulders + forearms'],['chest','Chest + triceps'],['back','Back + biceps'],['legs','Legs']];
+function gymNext(){
+  var ms=mondayOf(today()),done={};
+  for(var i=0;i<7;i++){var r=S.days[addD(ms,i)];if(r&&r.gym&&r.split)done[r.split]=1;if(r&&r.split==='calis'&&r.calisType==='pull')done.back=1;}
+  var left=GYM_NEXT.filter(function(x){return !done[x[0]];});
+  return {left:left,done:Object.keys(done).length};
+}
+function uniDue(days){glStore();var t=today();return S.uni.tasks.filter(function(x){return !x.done&&x.due&&x.due>=t&&diffD(t,x.due)<=days;}).sort(function(a,b){return a.due<b.due?-1:1;});}
+function topicsDue(){glStore();var t=today();return S.uni.topics.filter(function(x){return !x.next||x.next<=t;});}
+function todayOptions(){
+  var t=today(),F=feelsToday(),has=function(k){return F.indexOf(k)>=0;};
+  var L=greenLight()||{c:'green'},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null;
+  var hard=G?G.left.filter(function(x){return x.e==='⚡'||x.e==='⏱';})[0]:null;
+  var norw=G?G.left.filter(function(x){return x.e==='🌊';})[0]:null;
+  /* never legs on the day of a hard run or the day before one */
+  var ranHard=(S.days[t]&&(S.days[t].runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}));
+  var gn=gymNext(),gymPick=gn.left.filter(function(x){return !((hard||ranHard)&&x[0]==='legs');})[0]||null;
+  var dl=uniDue(3),due=topicsDue().length,sat=dow(t)===6;
+  var red=L.c==='red'||has('ill')||has('tired'),runDone=L.c==='done';
+  var name=function(x){return x?x.n.replace(/ — .*/,''):'';};
+  var study=dl.length?('Two focused blocks on '+esc(dl[0].mod+' — '+dl[0].title)+' (due '+fmtS(dl[0].due)+')'):(due?'One block: '+due+' revision card'+(due===1?'':'s')+' due, then reading':'One or two focused blocks, phone in another room');
+  var o=[];
+  if(sat&&!has('deadline'))return [{k:'rest',n:'Saturday — the stress-free day',rec:true,run:'No running',gym:'No weights',food:'Eat normally — 1,899, carbs and protein as usual',uni:'No study',life:has('sun')?'Out in the daylight: a long walk, a café, somewhere you like':'Films, friends, a walk if it comes naturally',why:'Rest is where the fitness and the look are built. Nothing to earn today.'}];
+  /* optimal: the plan as it stands, only if the day allows it */
+  if(!red&&!runDone&&hard&&L.c==='green'&&!has('legs'))
+    o.push({k:'opt',n:'Performance',run:'⚡ '+esc(name(hard))+(has('short')?' — warm-up shortened to 10 min, fewer reps if needed':''),gym:gymPick&&gymPick[0]!=='legs'?esc(gymPick[1])+' later — 6 h after the run if you can':'No gym today',food:'Oats 60–90 min before; 30 g protein + carbs within the hour after',uni:study,life:'Early night — 8–9 h',why:'Your recovery is green, so the session lands. '+(has('great')?'Feeling brilliant is a reason to run it well, not to add more.':'')});
+  else if(!red&&!runDone&&norw&&!has('legs')&&L.c!=='amber')
+    o.push({k:'opt',n:'Performance',run:'🌊 '+esc(name(norw)),gym:gymPick?esc(gymPick[1]):'No gym today',food:'Normal day — carbs around the run',uni:study,life:'Early night',why:'The engine work for your 5 km, at a cost you recover from by tomorrow.'});
+  /* balanced */
+  o.push({k:'bal',n:'Balanced',run:has('legs')||L.c==='amber'?'An easy 30 min, or a brisk walk':(norw&&!runDone?'🌊 '+esc(name(norw)):'Brisk 45-min walk'),gym:gymPick&&!(has('legs')&&gymPick[0]==='legs')?esc(gymPick[1])+(has('short')?' — 4 exercises, 2 hard sets each, 40 min':''):(ranHard?'No gym — the run was today’s session':'Upper body only, or rest'),food:'1,899 — protein at every meal, Fage 0% included',uni:has('deadline')&&dl.length?'Three focused blocks on the deadline — it does not move, the run does':study,life:has('sun')?'Take the walk or the run outside while it is light':'An hour that is yours — a film, a friend, a book',why:'Gets the important work done and keeps something back for tomorrow.'});
+  /* recovery or lifestyle */
+  o.push({k:'rec',n:has('sun')?'Lifestyle':'Recovery',run:'No hard running — a walk in daylight',gym:has('ill')?'No gym':'Mobility 10–15 min, or nothing',food:'Eat normally — 1,899, carbs at 200 g or more. Not a day to eat less',uni:has('deadline')&&dl.length?'One block on the deadline, then stop':'Light reading only, or none',life:has('sun')?'Outside: a long walk, a café, somewhere new':'Slow breathing 5 min, an early night',why:has('ill')?'Unwell means rest — training through it costs more days than it saves.':(has('low')?'Low days are for daylight, people and kindness to yourself. If it lasts over 2 weeks, see your GP.':'Recovery is training too — it is where adaptation actually happens.')});
+  /* which one I recommend */
+  var rec=red||has('ill')?'rec':(has('legs')||has('deadline')||L.c==='amber'||runDone?'bal':(o[0].k==='opt'?'opt':'bal'));
+  if(has('low')&&!hard)rec='rec';
+  o.forEach(function(x){x.rec=x.k===rec;});
+  return o;
+}
+function checkinHTML(){
+  if(today()<CFG.cutStart)return '';
+  var F=feelsToday(),O=todayOptions();
+  return '<div class="p lift" id="glCheck"><h2>How are you today?</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Tap what is true — the plan below adapts. It never adds hard running because you feel motivated.</p>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">'+FEELS.map(function(f){var on=F.indexOf(f[0])>=0;
+      return '<button type="button" class="btn sm'+(on?'':' ghost')+'" data-feel="'+f[0]+'" aria-pressed="'+on+'">'+f[1]+' '+f[2]+'</button>';}).join('')+'</div>'+
+    O.map(function(x){return '<div class="p'+(x.rec?' flag':'')+'" style="box-shadow:none;margin:0 0 8px">'+
+      '<div class="row" style="gap:8px;align-items:baseline"><b>'+x.n+'</b>'+(x.rec?' <span class="pill g">my pick today</span>':'')+'</div>'+
+      '<div class="tiny" style="margin-top:4px;line-height:1.6">🏃 '+x.run+'<br>🏋️ '+x.gym+'<br>🍽️ '+x.food+'<br>🎓 '+x.uni+'<br>🌿 '+x.life+'</div>'+
+      '<div class="tiny dim" style="margin-top:4px">'+x.why+'</div></div>';}).join('')+'</div>';
+}
+
+/* ---------- 2. physique: is 123–124 right? (phases 1–4) ---------- */
+function physAssessHTML(){
+  if(today()<CFG.cutStart)return '';
+  glStore();
+  var t=today(),a=avgWindow(t,7).avg,h=CFG.w.heightM,bmi=function(lb){return lb*0.45359237/(h*h);};
+  var RW=revWatch(),R=rhrModel(),D=timesDip(t);
+  var phase=RW&&(RW.k==='goal'||RW.k==='below')?3:(t>CFG.cutEnd?4:2);
+  var flags=[];
+  if(R.state==='up'||R.state==='high')flags.push('Resting HR is up on your baseline');
+  if(D.level)flags.push('Session times dipping');
+  var sl=[1,2,3,4,5,6,7].map(function(i){var r=S.days[addD(t,-i)];return r&&typeof r.sleep==='number'?r.sleep:null;}).filter(function(x){return x!==null;});
+  if(sl.length>=4&&mean(sl)<7.5)flags.push('Sleep averaging '+f1(mean(sl))+' h');
+  var lows=[0,1,2,3,4,5,6].filter(function(i){var r=S.days[addD(t,-i)];return r&&Array.isArray(r.feel)&&(r.feel.indexOf('low')>=0||r.feel.indexOf('tired')>=0);}).length;
+  if(lows>=3)flags.push('Felt low or exhausted on '+lows+' of the last 7 days');
+  var wk=Object.keys(S.waist).sort(),wl=wk.length?S.waist[wk[wk.length-1]]:null,wf=wk.length>1?S.waist[wk[0]]:null;
+  return '<div class="p"><h2>Body assessment — is 123–124 right?</h2>'+
+    '<div class="tiles t3" style="margin:6px 0">'+
+      '<div class="t"><i>7-day average</i><b class="num">'+(a!==null?f1(a)+' lb':'—')+'</b><span class="tiny">BMI '+(a!==null?f1(bmi(a)):'—')+'</span></div>'+
+      '<div class="t"><i>target 123</i><b class="num">BMI '+f1(bmi(123))+'</b><span class="tiny">healthy range 18.5–24.9</span></div>'+
+      '<div class="t"><i>phase</i><b class="num">'+phase+' of 4</b><span class="tiny">'+(['','assess','approach the target','reassess','long-term physique'][phase])+'</span></div></div>'+
+    '<p class="tiny"><b>Honest view:</b> at 5\'8" you are already light. 123–124 is still a healthy weight (BMI about 18.7–18.9) and it is where your face and abs showed before — so a slow approach is reasonable. Below 122 (BMI 18.5) the costs start to outweigh the look: energy availability, hormones, bone health, mood and your running. The tracker stops the cut there on its own.</p>'+
+    '<p class="tiny"><b>At the target (phase 3):</b> my call will be to stop losing — reverse to maintenance and build muscle (recomposition) rather than chase a lower number. More muscle at 123–126 looks leaner than less muscle at 120.</p>'+
+    '<div class="'+(flags.length>=2?'note wn':'tiny')+'" style="margin-top:6px"><b>Low energy availability check:</b> '+(flags.length?flags.join(' · ')+'.'+(flags.length>=2?' Two or more together: hold the deficit, no push, more carbs, and sleep first. If it persists, see your GP.':' One sign alone is usually noise — watch it.'):'no warning signs right now.')+'</div>'+
+    '<div class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><div class="f" style="max-width:150px"><label for="glWaist">Waist at the navel (cm)</label><input type="number" step="0.1" min="50" max="110" id="glWaist" placeholder="'+(wl!==null?wl:'—')+'"></div>'+
+    '<button class="btn sm" type="button" data-gl="waist">Save today</button></div>'+
+    '<p class="tiny dim" style="margin-top:4px">'+(wl!==null?'Last: '+wl+' cm ('+fmtS(wk[wk.length-1])+')'+(wf!==null?' · first '+wf+' cm ('+fmtS(wk[0])+')':'')+'. Weekly, same time, relaxed. Waist down with weight steady = recomposition working.':'Measure once a week, morning, relaxed — with the weight it tells fat from muscle far better than the scale alone.')+'</p></div>';
+}
+
+/* ---------- 3. the Open University centre ---------- */
+var REV_STEPS=[1,3,7,14,30,60];
+var PEELC=[['Point','One clear claim that answers the question.'],['Evidence','The best source for it — WHO, NICE, NHS, peer-reviewed. Cite it (Harvard).'],
+  ['Explain','What the evidence shows and why it supports the point.'],['Limitations','Study design, sample, setting, bias — what it cannot show.'],
+  ['Compare','Another source or view: does it agree, conflict, or add nuance?'],['Evaluate','Weigh it up: how strong is the case, for whom, in what context?'],
+  ['Link','Back to the question, and on to the next paragraph.']];
+function uniHTML(){
+  glStore();var t=today(),U=S.uni;
+  var mods=U.mods.map(function(m){return m.code;});
+  var tasks=U.tasks.slice().sort(function(a,b){return (a.done-b.done)||((a.due||'9')<(b.due||'9')?-1:1);});
+  var td=topicsDue();
+  var opt=function(sel){return mods.map(function(c){return '<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>';}).join('');};
+  return '<div class="p lift"><h2>🎓 Open University — BSc Public Health and Wellbeing</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Distinction track: SDK100 87%, K119 distinction. Now '+U.mods.map(function(m){return '<b>'+esc(m.code)+'</b>'+(m.title?' '+esc(m.title):'');}).join(' and ')+'. Career aim: NHS public health → specialty training → consultant.</p>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+U.mods.map(function(m,i){return '<div class="f" style="min-width:200px;flex:1"><label for="glMod'+i+'">'+esc(m.code)+' title</label><input type="text" id="glMod'+i+'" data-glmod="'+i+'" value="'+esc(m.title)+'" placeholder="add the module title" maxlength="80"></div>';}).join('')+'</div>'+
+  '</div>'+
+  /* assignments */
+  '<div class="p"><h2>Assignments and deadlines</h2>'+
+    (tasks.length?tasks.map(function(x){var dl=x.due?diffD(t,x.due):null;
+      return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline">'+
+        '<button type="button" class="btn sm'+(x.done?'':' ghost')+'" data-gl="tdone" data-id="'+x.id+'">'+(x.done?'✓ done':'mark done')+'</button>'+
+        '<b>'+esc(x.mod)+' — '+esc(x.title)+'</b>'+(x.words?' <span class="tiny">'+ci(x.words)+' words</span>':'')+
+        '<span class="tiny" style="margin-left:auto">'+(x.done?'':(dl===null?'no date':(dl<0?'past':(dl===0?'due today':dl+' day'+(dl===1?'':'s')+' · '+fmtS(x.due)))))+'</span>'+
+        '<button type="button" class="btn sm ghost" data-gl="tdel" data-id="'+x.id+'" aria-label="Delete">✕</button></div>'+
+        (!x.done&&dl!==null&&dl>=0&&dl<=21?'<div class="tiny dim" style="margin-top:3px">'+(dl<=3?'Final checks: argument, references, word count, the question answered in every paragraph.':(dl<=10?'Drafting: one PEEL-CEL paragraph per study block.':'Reading and planning: sources, outline, the argument in one sentence.'))+'</div>':'')+
+        '<textarea data-gltask="'+x.id+'" rows="2" placeholder="Plan, argument, sources to find…" style="margin-top:4px">'+esc(x.notes||'')+'</textarea></div>';}).join(''):'<p class="tiny">No assignments yet — add the TMAs with their dates and the app plans backwards from them.</p>')+
+    '<div class="fgrid" style="margin-top:10px"><div class="f"><label for="glTMod">Module</label><select id="glTMod">'+opt(mods[0])+'</select></div>'+
+    '<div class="f"><label for="glTTitle">Assignment</label><input type="text" id="glTTitle" placeholder="TMA 02" maxlength="80"></div>'+
+    '<div class="f"><label for="glTDue">Due</label><input type="date" id="glTDue"></div>'+
+    '<div class="f"><label for="glTWords">Words</label><input type="number" id="glTWords" min="0" step="50" placeholder="—"></div></div>'+
+    '<button class="btn sm" type="button" data-gl="tadd" style="margin-top:6px">Add assignment</button></div>'+
+  /* spaced repetition */
+  '<div class="p"><h2>Active recall — topics to review</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Close the notes, write or say everything you remember, then check. <b>Got it</b> pushes the next review out (1 → 3 → 7 → 14 → 30 → 60 days); <b>Shaky</b> brings it back tomorrow.</p>'+
+    (td.length?'<div class="note" style="margin-bottom:8px"><b>'+td.length+' due today.</b></div>':'')+
+    (U.topics.length?U.topics.slice().sort(function(a,b){return (a.next||'')<(b.next||'')?-1:1;}).map(function(x){var isDue=!x.next||x.next<=t;
+      return '<div class="row" style="gap:8px;padding:6px 0;border-bottom:1px solid var(--rule-2);align-items:center">'+
+        '<span class="pill'+(isDue?' g':'')+'">'+(isDue?'due':fmtS(x.next))+'</span><b style="flex:1">'+esc(x.name)+'</b><span class="tiny">'+esc(x.mod)+'</span>'+
+        (isDue?'<button type="button" class="btn sm" data-gl="rgot" data-id="'+x.id+'">Got it</button><button type="button" class="btn sm ghost" data-gl="rshaky" data-id="'+x.id+'">Shaky</button>':'')+
+        '<button type="button" class="btn sm ghost" data-gl="rdel" data-id="'+x.id+'" aria-label="Delete">✕</button></div>';}).join(''):'<p class="tiny">Add each topic as you finish it in the module.</p>')+
+    '<div class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><div class="f" style="max-width:120px"><label for="glRMod">Module</label><select id="glRMod">'+opt(mods[0])+'</select></div>'+
+    '<div class="f" style="flex:1"><label for="glRName">Topic</label><input type="text" id="glRName" placeholder="e.g. social determinants of health" maxlength="90"></div>'+
+    '<button class="btn sm" type="button" data-gl="radd">Add topic</button></div></div>'+
+  /* writing framework */
+  '<div class="p"><h2>Writing for a distinction — PEEL-CEL</h2>'+
+    PEELC.map(function(x,i){return '<div style="margin:5px 0"><b>'+(i+1)+'. '+x[0]+'</b> <span class="tiny">— '+x[1]+'</span></div>';}).join('')+
+    '<p class="tiny" style="margin-top:8px">British English, Harvard referencing, the module’s own terms. Say what a source <i>shows</i> separately from what you <i>infer</i> from it. Never use a citation, statistic or quote you have not read in the source itself.</p>'+
+    '<p class="note">Academic integrity: use AI to plan, test your recall and check your understanding — the assessed writing has to be yours. Follow the Open University’s current guidance on generative AI and declare any use it asks you to.</p></div>';
+}
+
+/* ---------- 4. style — Riviera, old money, quiet luxury ---------- */
+var STYLE_CATS=['Tops','Knitwear','Trousers','Outerwear','Shoes','Accessories'];
+var CAPSULE={
+  aw:{n:'Autumn / winter capsule',items:[['Knitwear','Navy merino crew'],['Knitwear','Oatmeal or camel cashmere-blend crew'],['Knitwear','Charcoal half-zip or roll-neck'],['Tops','White Oxford shirt'],['Tops','Light-blue Oxford shirt'],
+    ['Trousers','Grey wool trousers, flat-front, tapered'],['Trousers','Dark indigo selvedge jeans, straight'],['Trousers','Stone or olive chinos'],['Outerwear','Navy or camel overcoat'],['Outerwear','Suede or waxed-cotton jacket'],
+    ['Shoes','Dark-brown suede loafers'],['Shoes','Brown suede chukka boots'],['Shoes','White minimal leather trainers'],['Accessories','Brown leather belt'],['Accessories','Simple steel watch on leather or bracelet']]},
+  ss:{n:'Spring / summer capsule — the Riviera',items:[['Tops','White linen shirt'],['Tops','Light-blue linen shirt'],['Tops','Navy knitted polo'],['Tops','White and navy crew-neck T-shirts, heavy cotton'],
+    ['Trousers','Cream or stone linen trousers'],['Trousers','Navy tailored shorts, 6–7" inseam'],['Shoes','Tan suede loafers'],['Shoes','Espadrilles'],['Accessories','Tortoiseshell or classic acetate sunglasses'],['Outerwear','Unstructured navy blazer']]}};
+var STYLE_RULES=[['Fit first','Shoulder seams on your shoulders, trousers with no break or a slight one, knitwear that skims rather than clings. A £20 Vinted piece tailored for £15 beats a £200 one off the peg.'],
+  ['Neutral palette','Navy, white, cream, camel, grey, brown, olive. Two neutrals and one texture is the whole formula.'],
+  ['Texture over logos','Linen, merino, cashmere, suede, flannel. No visible branding.'],
+  ['Proportion for your frame','At 5\'8" and lean: a slightly cropped jacket, tapered trousers, mid-rise, one colour top to bottom to lengthen.'],
+  ['Shoes and grooming carry it','Clean suede loafers, a fresh haircut and posture do more than anything else in the outfit.']];
+function outfitIdeas(){
+  glStore();var own=S.style.items,by={};own.forEach(function(x){(by[x.cat]=by[x.cat]||[]).push(x);});
+  var pick=function(c,i){var a=by[c]||[];return a.length?a[(hashStr(today()+c)+i)%a.length]:null;};
+  var out=[];
+  for(var i=0;i<3;i++){var top=pick(i===1?'Tops':'Knitwear',i)||pick('Tops',i),bot=pick('Trousers',i),sh=pick('Shoes',i),ow=pick('Outerwear',i);
+    if(top&&bot&&sh)out.push([top,bot,sh,ow].filter(Boolean));}
+  return out;
+}
+function styleHTML(){
+  glStore();var sea=['10','11','12','01','02','03'].indexOf(today().slice(5,7))>=0?'aw':'ss',C=CAPSULE[sea],own=S.style.items;
+  var ownNames=own.map(function(x){return x.name.toLowerCase();});
+  var O=outfitIdeas();
+  return '<div class="p"><h2>Today’s outfits — from your wardrobe</h2>'+
+    (O.length?O.map(function(o,i){return '<div style="margin:6px 0"><b>Look '+(i+1)+'</b> <span class="tiny">— '+o.map(function(x){return esc(x.name+(x.colour?' ('+x.colour+')':''));}).join(' · ')+'</span></div>';}).join(''):'<p class="tiny">Add what you own below — a top or knit, trousers and shoes at least — and the app builds outfits from it each day.</p>')+'</div>'+
+  '<div class="p"><h2>'+C.n+'</h2><p class="tiny" style="margin:0 0 6px">Tick off what you already own; the rest is the shopping (and Vinted) list.</p>'+
+    C.items.map(function(x){var have=ownNames.some(function(n){return x[1].toLowerCase().indexOf(n)>=0||n.indexOf(x[1].toLowerCase().split(',')[0])>=0;});
+      return '<div class="row" style="gap:8px;padding:4px 0;align-items:center">'+(have?'<span class="pill g">owned</span>':'<button type="button" class="btn sm ghost" data-gl="sown" data-cat="'+esc(x[0])+'" data-name="'+esc(x[1])+'">I own this</button>')+' <span>'+esc(x[1])+'</span> <span class="tiny dim">'+esc(x[0])+'</span>'+
+        (have?'':' <button type="button" class="btn sm ghost" data-gl="vwant" data-name="'+esc(x[1])+'" data-cat="'+esc(x[0])+'">→ Vinted list</button>')+'</div>';}).join('')+'</div>'+
+  '<div class="p"><h2>Your wardrobe</h2>'+
+    (own.length?STYLE_CATS.map(function(c){var a=own.filter(function(x){return x.cat===c;});if(!a.length)return '';
+      return '<div style="margin:6px 0"><b>'+c+'</b>'+a.map(function(x){return '<div class="row" style="gap:6px;padding:2px 0 2px 10px"><span class="tiny" style="flex:1">'+esc(x.name)+(x.colour?' · '+esc(x.colour):'')+(x.fabric?' · '+esc(x.fabric):'')+(x.brand?' · '+esc(x.brand):'')+'</span><button type="button" class="btn sm ghost" data-gl="sdel" data-id="'+x.id+'" aria-label="Remove">✕</button></div>';}).join('')+'</div>';}).join(''):'<p class="tiny">Nothing yet.</p>')+
+    '<div class="fgrid" style="margin-top:8px"><div class="f"><label for="glSCat">Category</label><select id="glSCat">'+STYLE_CATS.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>'+
+    '<div class="f"><label for="glSName">Item</label><input type="text" id="glSName" placeholder="Oxford shirt" maxlength="60"></div>'+
+    '<div class="f"><label for="glSColour">Colour</label><input type="text" id="glSColour" placeholder="light blue" maxlength="30"></div>'+
+    '<div class="f"><label for="glSFabric">Fabric</label><input type="text" id="glSFabric" placeholder="cotton" maxlength="30"></div>'+
+    '<div class="f"><label for="glSBrand">Brand</label><input type="text" id="glSBrand" placeholder="—" maxlength="30"></div></div>'+
+    '<button class="btn sm" type="button" data-gl="sadd" style="margin-top:6px">Add to wardrobe</button></div>'+
+  '<div class="p"><h2>The rules</h2>'+STYLE_RULES.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+'</b><div class="tiny">'+x[1]+'</div></div>';}).join('')+
+    '<p class="tiny dim">Grooming lives with the model plan: haircut every 3–4 weeks, brows tidied, SPF, posture.</p></div>';
+}
+
+/* ---------- 5. Vinted — the deal hunter ---------- */
+/* Rough UK second-hand ranges in good condition, £ — my estimates from how
+   these brands usually resell, not live data. Always check sold listings. */
+var VPRICE=[
+  ['Ralph Lauren','Oxford shirt',12,25],['Ralph Lauren','Knitwear (cotton or merino)',15,35],['Ralph Lauren','Cashmere jumper',35,70],['Ralph Lauren','Polo shirt',10,20],
+  ['Loro Piana','Cashmere jumper',120,300],['Brunello Cucinelli','Knitwear',120,300],['John Smedley','Merino knit',25,50],['Sunspel','T-shirt or polo',15,30],
+  ['Uniqlo','Merino or cashmere knit',8,20],['COS','Knitwear',15,35],['Arket','Knitwear',15,35],['Massimo Dutti','Linen shirt',10,22],
+  ['Barbour','Waxed jacket',50,110],['Crockett & Jones','Loafers or boots',90,180],['Loake','Loafers',35,70],['Common Projects','Minimal trainers',60,130],
+  ['Persol','Sunglasses',40,90],['Ray-Ban','Sunglasses',25,55]];
+var VCHECK=['Fabric label: 100% linen, merino, lambswool or cashmere beats blends — read the composition photo.','Look for made in Italy, Portugal, Scotland or England on knitwear and shoes.',
+  'Shoes: Goodyear-welted or Blake-stitched soles can be resoled for years.','Ask for photos of armpits, cuffs, collar and soles; check knitwear for moth holes and pilling.',
+  'Fakes: be wary of Loro Piana, Cucinelli and Ralph Lauren cashmere far below the range — check the labels against known real ones.','Measure a garment that fits you and ask for pit-to-pit and length — sizes vary by brand.'];
+function vintedURL(w){var q=[w.brand,w.item,w.size].filter(Boolean).join(' ');
+  return 'https://www.vinted.co.uk/catalog?search_text='+encodeURIComponent(q)+(w.max?'&price_to='+encodeURIComponent(w.max):'')+'&order=newest_first';}
+function vPrice(brand,item){var b=String(brand||'').toLowerCase(),it=String(item||'').toLowerCase();
+  var hits=VPRICE.filter(function(x){return b&&x[0].toLowerCase()===b;});
+  if(!hits.length)return null;
+  var best=hits.filter(function(x){return x[1].toLowerCase().split(/[ ()]+/).some(function(w){return w.length>3&&it.indexOf(w)>=0;});})[0]||hits[0];
+  return best;}
+function vintedHTML(){
+  glStore();var W=S.vinted.wants;
+  return '<div class="p"><h2>Your Vinted list</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Each item opens <b>Vinted’s own search</b> with your filters — the app does not see or check listings, so nothing here claims an item is available.</p>'+
+    (W.length?W.map(function(w){var g=vPrice(w.brand,w.item);
+      return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline;flex-wrap:wrap">'+
+        '<b>'+esc([w.brand,w.item].filter(Boolean).join(' '))+'</b><span class="tiny">'+esc([w.size?'size '+w.size:'',w.cond,w.max?'max £'+w.max:''].filter(Boolean).join(' · '))+'</span>'+
+        '<a class="btn sm" style="margin-left:auto;text-decoration:none" href="'+esc(vintedURL(w))+'" target="_blank" rel="noopener">Search Vinted ↗</a>'+
+        '<button type="button" class="btn sm ghost" data-gl="vdel" data-id="'+w.id+'" aria-label="Remove">✕</button></div>'+
+        (g?'<div class="tiny dim" style="margin-top:3px">Fair second-hand price, my estimate: £'+g[2]+'–'+g[3]+' ('+esc(g[0]+' '+g[1].toLowerCase())+')'+(w.max&&w.max<g[2]?' — your max is under that, so expect a wait or a flaw.':'')+'</div>':'')+'</div>';}).join(''):'<p class="tiny">Add what you are hunting for.</p>')+
+    '<div class="fgrid" style="margin-top:10px"><div class="f"><label for="glVItem">Item</label><input type="text" id="glVItem" placeholder="cashmere jumper" maxlength="60"></div>'+
+    '<div class="f"><label for="glVBrand">Brand</label><input type="text" id="glVBrand" placeholder="Ralph Lauren" maxlength="40"></div>'+
+    '<div class="f"><label for="glVSize">Size</label><input type="text" id="glVSize" placeholder="S" maxlength="12"></div>'+
+    '<div class="f"><label for="glVMax">Max £</label><input type="number" id="glVMax" min="0" step="1" placeholder="—"></div>'+
+    '<div class="f"><label for="glVCond">Condition</label><select id="glVCond"><option>Any</option><option>New with tags</option><option>Very good or better</option><option>Good or better</option></select></div>'+
+    '<div class="f"><label for="glVCat">Category</label><select id="glVCat">'+STYLE_CATS.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div></div>'+
+    '<button class="btn sm" type="button" data-gl="vadd" style="margin-top:6px">Add to list</button></div>'+
+  '<div class="p"><h2>Bargain or overpriced?</h2>'+
+    '<div class="fgrid"><div class="f"><label for="glBBrand">Brand</label><input type="text" id="glBBrand" list="glBrands" placeholder="Barbour" maxlength="40"><datalist id="glBrands">'+VPRICE.map(function(x){return x[0];}).filter(function(x,i,a){return a.indexOf(x)===i;}).map(function(x){return '<option value="'+esc(x)+'">';}).join('')+'</datalist></div>'+
+    '<div class="f"><label for="glBItem">Item</label><input type="text" id="glBItem" placeholder="waxed jacket" maxlength="60"></div>'+
+    '<div class="f"><label for="glBPrice">Price incl. fees £</label><input type="number" id="glBPrice" min="0" step="1" placeholder="—"></div></div>'+
+    '<button class="btn sm" type="button" data-gl="vcheck" style="margin-top:6px">Check it</button><div id="glBOut" class="tiny" style="margin-top:6px"></div>'+
+    '<p class="tiny dim" style="margin-top:6px">Ranges are rough estimates for good condition — the real test is the brand’s recently sold listings on Vinted.</p></div>'+
+  '<div class="p"><h2>Quality checks before you buy</h2>'+VCHECK.map(function(x){return '<div class="tiny" style="margin:4px 0">• '+x+'</div>';}).join('')+'</div>';
+}
+
+/* ---------- 6. cinema — Delon, Bond, Mikkelsen, European ---------- */
+/* title, year, director, tag, one line. Ratings and streaming are not shown:
+   they change and the app cannot verify them. */
+var CINEMA=[
+  ['Le Samouraï',1967,'Jean-Pierre Melville','delon','A contract killer with a code, a trench coat and almost no words. Delon at his coolest.'],
+  ['Purple Noon (Plein Soleil)',1960,'René Clément','delon','Delon as Tom Ripley on the Italian coast — sun, envy and a perfect crime.'],
+  ['La Piscine',1969,'Jacques Deray','delon','A Riviera villa, a swimming pool and slow-burning jealousy. Peak summer style.'],
+  ['Le Cercle Rouge',1970,'Jean-Pierre Melville','delon','A meticulous jewel heist with Delon and Yves Montand.'],
+  ['Rocco and His Brothers',1960,'Luchino Visconti','delon','A family from the south of Italy tested by Milan. Delon’s great dramatic role.'],
+  ['The Leopard',1963,'Luchino Visconti','delon','Burt Lancaster and Delon in Sicily as an old world ends. Lavish and elegant.'],
+  ['L’Eclisse',1962,'Michelangelo Antonioni','euro','Delon and Monica Vitti in a cool, modernist Rome — style as mood.'],
+  ['The Hunt (Jagten)',2012,'Thomas Vinterberg','mads','Mikkelsen as a teacher whose life collapses after a false accusation.'],
+  ['Another Round',2020,'Thomas Vinterberg','mads','Four teachers test a theory about alcohol; Mikkelsen’s final dance is unforgettable.'],
+  ['A Royal Affair',2012,'Nikolaj Arcel','mads','Mikkelsen as the doctor who reshaped 18th-century Denmark from the royal court.'],
+  ['Casino Royale',2006,'Martin Campbell','bond','Craig’s first Bond, with Mikkelsen as Le Chiffre. The modern benchmark.'],
+  ['From Russia with Love',1963,'Terence Young','bond','Connery’s Bond on the Orient Express — classic Cold War espionage.'],
+  ['Goldfinger',1964,'Guy Hamilton','bond','The template for every Bond since — the Aston Martin, the tailoring, the villain.'],
+  ['Skyfall',2012,'Sam Mendes','bond','Bond’s past and M’s secrets, shot by Roger Deakins.'],
+  ['The Talented Mr. Ripley',1999,'Anthony Minghella','euro','Ripley again, in 1950s Italy — the definitive Riviera wardrobe film.'],
+  ['Tinker Tailor Soldier Spy',2011,'Tomas Alfredson','spy','Gary Oldman’s Smiley hunts a mole inside British intelligence.'],
+  ['The Day of the Jackal',1973,'Fred Zinnemann','spy','A methodical assassin, a methodical detective, and a race across Europe.'],
+  ['Three Days of the Condor',1975,'Sydney Pollack','spy','Robert Redford as a CIA reader on the run from his own side.'],
+  ['The Conversation',1974,'Francis Ford Coppola','psych','A surveillance expert becomes consumed by a recording he made.'],
+  ['The Lives of Others',2006,'Florian Henckel von Donnersmarck','spy','A Stasi officer listening in on an East Berlin writer begins to change.'],
+  ['The Third Man',1949,'Carol Reed','classic','Post-war Vienna, Orson Welles and that zither theme.'],
+  ['Rififi',1955,'Jules Dassin','classic','The French heist film that set the rules — a near-silent half-hour robbery.'],
+  ['Contempt (Le Mépris)',1963,'Jean-Luc Godard','euro','Bardot, Capri and a marriage coming apart during a film shoot.'],
+  ['The Double Life of Véronique',1991,'Krzysztof Kieślowski','euro','Two identical women in Poland and France, linked by music.']];
+var CINE_TAGS={all:'All',delon:'Alain Delon',bond:'James Bond',mads:'Mads Mikkelsen',spy:'Espionage',psych:'Psychological',euro:'European',classic:'Classics'};
+function cinemaHTML(){
+  glStore();var C=S.cinema,g=GL_UI.cine;
+  var list=CINEMA.filter(function(x){return g==='all'||x[3]===g;});
+  var seen=CINEMA.filter(function(x){return C[x[0]]&&C[x[0]].seen;}).length;
+  var want=CINEMA.filter(function(x){return C[x[0]]&&C[x[0]].want&&!C[x[0]].seen;});
+  var pick=CINEMA.filter(function(x){return !(C[x[0]]&&C[x[0]].seen);});pick=pick.length?pick[hashStr(today())%pick.length]:null;
+  return '<div class="p"><h2>Tonight’s film</h2>'+(pick?'<b>'+esc(pick[0])+'</b> <span class="tiny">('+pick[1]+', '+esc(pick[2])+')</span><div class="tiny" style="margin-top:3px">'+esc(pick[4])+'</div>':'<p class="tiny">You have seen the lot — tell me what you loved and I will add more.</p>')+
+    '<p class="tiny dim" style="margin-top:6px">'+seen+' of '+CINEMA.length+' seen'+(want.length?' · watchlist: '+want.map(function(x){return esc(x[0]);}).join(', '):'')+'. Ratings and streaming are not shown — they change and the app cannot check them; JustWatch will tell you where it is on today.</p></div>'+
+  '<div class="p"><h2>Cinema — the list</h2><div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+Object.keys(CINE_TAGS).map(function(k){return '<button type="button" class="btn sm'+(k===g?'':' ghost')+'" data-gl="cine" data-k="'+k+'">'+CINE_TAGS[k]+'</button>';}).join('')+'</div>'+
+    list.map(function(x){var c=C[x[0]]||{};
+      return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(x[0])+'</b><span class="tiny">'+x[1]+' · '+esc(x[2])+'</span>'+
+        '<span style="margin-left:auto"></span><button type="button" class="btn sm'+(c.want?'':' ghost')+'" data-gl="cwant" data-ttl="'+esc(x[0])+'">'+(c.want?'★ watchlist':'+ watchlist')+'</button>'+
+        '<button type="button" class="btn sm'+(c.seen?'':' ghost')+'" data-gl="cseen" data-ttl="'+esc(x[0])+'">'+(c.seen?'✓ seen':'seen it')+'</button></div>'+
+        '<div class="tiny" style="margin-top:3px">'+esc(x[4])+'</div>'+
+        (c.seen?'<div class="row" style="gap:4px;margin-top:4px"><span class="tiny dim">your rating</span>'+[1,2,3,4,5].map(function(n){return '<button type="button" class="btn sm'+(c.r>=n?'':' ghost')+'" data-gl="crate" data-ttl="'+esc(x[0])+'" data-n="'+n+'" aria-label="'+n+' stars">★</button>';}).join('')+'</div>':'')+'</div>';}).join('')+'</div>';
+}
+
+/* ---------- 7. enjoying life ---------- */
+/* Real places within reach of Lincoln; costs are rough. Nothing here is a
+   booking or an opening time — check before you go. */
+var LIFE_IDEAS=[
+  ['culture','Lincoln Cathedral — the nave, then up Steep Hill to a café','£–££'],['culture','Lincoln Castle and the Magna Carta vault','££'],
+  ['culture','The Collection and the Usher Gallery — museum and art, an easy afternoon','free'],['culture','A classic at the cinema — check what is showing near you','£'],
+  ['culture','Kinema in the Woods, Woodhall Spa — a historic cinema in a pine wood','£'],
+  ['outdoors','Whisby Nature Park — lakes and woodland, a slow walk','free'],['outdoors','Hartsholme Country Park — loop the lake at golden hour','free'],
+  ['outdoors','A Lincolnshire Wolds walk — big skies, quiet lanes','free'],['outdoors','Belton House — the deer park and gardens (National Trust)','££'],
+  ['trip','Stamford for the day — honey-stone streets, cafés, Burghley House nearby','££'],['trip','York by train — the Minster, the walls, the Shambles','££'],
+  ['food','A long breakfast out — eggs, coffee, no phone','£'],['food','Cook something properly new on a Sunday — a GF recipe you have never tried','£'],
+  ['friends','A walk-and-coffee with a friend instead of a message','£'],['friends','Host a film night — one of the classics, good food','£'],
+  ['rest','A morning with nowhere to be: read, sun, slow breakfast','free'],['rest','Brayford Waterfront at sunset, then home early','free']];
+var LIFE_CAT={culture:'🏛️ Culture',outdoors:'🌳 Outdoors',trip:'🚆 Day trip',food:'☕ Food',friends:'👥 Friends',rest:'🌿 Slow'};
+function lifeHTML(){
+  glStore();var L=S.life,t=today(),ms=mondayOf(t);
+  var thisWk=Object.keys(L).filter(function(k){return L[k]&&L[k]>=ms;}).length;
+  var pool=LIFE_IDEAS.filter(function(x){return !(L[x[1]]&&diffD(L[x[1]],t)<28);});
+  var wkPick=pool.length?pool[hashStr(ms)%pool.length]:LIFE_IDEAS[0];
+  return '<div class="p lift"><h2>This weekend</h2><b>'+LIFE_CAT[wkPick[0]]+' — '+esc(wkPick[1])+'</b> <span class="tiny">'+wkPick[2]+'</span>'+
+    '<p class="tiny" style="margin-top:6px">Not everything is optimisation. '+(thisWk?'<b>'+thisWk+'</b> good thing'+(thisWk===1?'':'s')+' done this week — that counts.':'One good thing a week, just for you — it is what makes the rest sustainable.')+'</p></div>'+
+  '<div class="p"><h2>Ideas</h2>'+Object.keys(LIFE_CAT).map(function(c){
+    return '<div style="margin:8px 0"><b>'+LIFE_CAT[c]+'</b>'+LIFE_IDEAS.filter(function(x){return x[0]===c;}).map(function(x){var d=L[x[1]];
+      return '<div class="row" style="gap:8px;padding:3px 0 3px 10px;align-items:center"><span class="tiny" style="flex:1">'+esc(x[1])+' <span class="dim">· '+x[2]+'</span></span>'+
+        '<button type="button" class="btn sm'+(d?'':' ghost')+'" data-gl="ldone" data-k="'+esc(x[1])+'">'+(d?'✓ '+fmtS(d):'did it')+'</button></div>';}).join('')+'</div>';}).join('')+
+    '<p class="tiny dim">Places are real; prices are rough and opening times change — check before you go.</p></div>';
+}
+function goodLifeHTML(){
+  var tabs=[['style','👔 Style'],['vinted','🏷️ Vinted'],['cinema','🎬 Cinema'],['life','🌿 Enjoy life']];
+  var k=GL_UI.life,body=k==='vinted'?vintedHTML():(k==='cinema'?cinemaHTML():(k==='life'?lifeHTML():styleHTML()));
+  return '<div class="p lift"><h2>THE GOOD LIFE</h2><p class="tiny" style="margin:0 0 8px">Health, the look, the running and the degree live in the other tabs. This is the rest of a good life — how you dress, what you hunt for, what you watch, and actually enjoying it.</p>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap">'+tabs.map(function(x){return '<button type="button" class="btn sm'+(x[0]===k?'':' ghost')+'" data-gl="lt" data-k="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div>'+
+    '<p class="tiny dim" style="margin-top:8px">Coach: the advice here is built in and works offline. For a real conversation about your data, ask me in Claude — the page cannot call Claude itself on this account.</p></div>'+body;
+}
+function renderGoodLife(){
+  glStore();
+  if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
+  if(E('physAssess'))E('physAssess').innerHTML=physAssessHTML();
+  if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
+  if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
+}
+function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
+function wireGoodLife(){
+  document.addEventListener('click',function(ev){
+    var f=ev.target.closest&&ev.target.closest('button[data-feel]');
+    if(f){glStore();var t=today(),r=S.days[t]=S.days[t]||{},a=Array.isArray(r.feel)?r.feel:[],k=f.dataset.feel,i=a.indexOf(k);
+      if(i>=0)a.splice(i,1);else a.push(k);
+      if(k==='tired'&&i<0){var j=a.indexOf('great');if(j>=0)a.splice(j,1);}if(k==='great'&&i<0){var j2=a.indexOf('tired');if(j2>=0)a.splice(j2,1);}
+      r.feel=a;touch();return;}
+    var b=ev.target.closest&&ev.target.closest('button[data-gl]');if(!b)return;
+    glStore();var A=b.dataset.gl,id=b.dataset.id,U=S.uni;
+    if(A==='lt'){GL_UI.life=b.dataset.k;renderGoodLife();return;}
+    if(A==='cine'){GL_UI.cine=b.dataset.k;renderGoodLife();return;}
+    if(A==='waist'){var w=parseFloat(val('glWaist'));if(!(w>=50&&w<=110))return;S.waist[today()]=Math.round(w*10)/10;touch();return;}
+    if(A==='tadd'){var ti=val('glTTitle');if(!ti)return;U.tasks.push({id:glId(),mod:val('glTMod'),title:ti,due:val('glTDue')||null,words:parseInt(val('glTWords'),10)||null,done:false,notes:''});touch();return;}
+    if(A==='tdone'){U.tasks.forEach(function(x){if(x.id===id)x.done=!x.done;});touch();return;}
+    if(A==='tdel'){U.tasks=U.tasks.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='radd'){var nm=val('glRName');if(!nm)return;U.topics.push({id:glId(),mod:val('glRMod'),name:nm,step:0,next:today()});touch();return;}
+    if(A==='rgot'||A==='rshaky'){U.topics.forEach(function(x){if(x.id!==id)return;x.step=A==='rgot'?Math.min((x.step||0)+1,REV_STEPS.length-1):0;x.next=addD(today(),A==='rgot'?REV_STEPS[x.step]:1);x.last=today();});touch();return;}
+    if(A==='rdel'){U.topics=U.topics.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='sadd'){var sn=val('glSName');if(!sn)return;S.style.items.push({id:glId(),cat:val('glSCat'),name:sn,colour:val('glSColour'),fabric:val('glSFabric'),brand:val('glSBrand')});touch();return;}
+    if(A==='sown'){S.style.items.push({id:glId(),cat:b.dataset.cat,name:b.dataset.name,colour:'',fabric:'',brand:''});touch();return;}
+    if(A==='sdel'){S.style.items=S.style.items.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='vwant'){S.vinted.wants.push({id:glId(),item:b.dataset.name,brand:'',size:'',max:null,cond:'Very good or better',cat:b.dataset.cat});GL_UI.life='vinted';touch();return;}
+    if(A==='vadd'){var vi=val('glVItem');if(!vi)return;S.vinted.wants.push({id:glId(),item:vi,brand:val('glVBrand'),size:val('glVSize'),max:parseFloat(val('glVMax'))||null,cond:val('glVCond'),cat:val('glVCat')});touch();return;}
+    if(A==='vdel'){S.vinted.wants=S.vinted.wants.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='vcheck'){var g=vPrice(val('glBBrand'),val('glBItem')),p=parseFloat(val('glBPrice')),o=E('glBOut');if(!o)return;
+      if(!g){o.innerHTML='No guide for that brand yet — compare against its recently sold listings on Vinted.';return;}
+      if(!(p>0)){o.innerHTML='Fair range for '+esc(g[0]+' '+g[1].toLowerCase())+': £'+g[2]+'–'+g[3]+'.';return;}
+      o.innerHTML=(p<g[2]*0.8?'<b>Bargain</b> — under the usual £'+g[2]+'–'+g[3]+'. Check the photos and labels carefully; very cheap luxury can be fake or flawed.':(p<=g[3]?'<b>Fair</b> — inside the usual £'+g[2]+'–'+g[3]+'. Worth it if the condition and fit are right.':'<b>Overpriced</b> — above the usual £'+g[2]+'–'+g[3]+'. Offer lower or wait; another will come.'));return;}
+    if(A==='cwant'||A==='cseen'){var tt=b.dataset.ttl,c=S.cinema[tt]=S.cinema[tt]||{};if(A==='cwant')c.want=!c.want;else{c.seen=!c.seen;if(c.seen)c.when=today();}touch();return;}
+    if(A==='crate'){var c2=S.cinema[b.dataset.ttl]=S.cinema[b.dataset.ttl]||{};c2.r=parseInt(b.dataset.n,10);touch();return;}
+    if(A==='ldone'){var lk=b.dataset.k;if(S.life[lk])delete S.life[lk];else S.life[lk]=today();touch();return;}
+  });
+  document.addEventListener('change',function(ev){
+    var m=ev.target.closest&&ev.target.closest('input[data-glmod]');
+    if(m){glStore();var i=parseInt(m.dataset.glmod,10);if(S.uni.mods[i]){S.uni.mods[i].title=String(m.value||'').trim().slice(0,80);touch();}return;}
+    var ta=ev.target.closest&&ev.target.closest('textarea[data-gltask]');
+    if(ta){glStore();S.uni.tasks.forEach(function(x){if(x.id===ta.dataset.gltask)x.notes=String(ta.value||'').slice(0,2000);});touch();}
+  });
+}
+
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','skin','data'].forEach(function(k){
+  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
@@ -8617,6 +9001,7 @@ function tab(name){
   window.scrollTo(0,0);
 }
 function wire(){
+  wireGoodLife();
   document.getElementById('tabs').addEventListener('click',function(e){
     var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t);
   });
