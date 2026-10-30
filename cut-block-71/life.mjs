@@ -268,7 +268,7 @@ ok('with the reverse week: 2 hard, 2 easy, gym 5, 11,000 steps', /2 hard · 1–
 ok('the old "times held, a bit of muscle" plan is gone', !/Times held, not chased|A bit of muscle if it turns up/.test(rc));
 const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-01'), stc: stepTarget('2026-10-05') }; });
 ok('the ladder tops out at reverse-week activity, not cut activity', rv.a > 30 && rv.a < 150 && Math.abs(rv.mc - rv.a - rv.m) <= 10, JSON.stringify(rv));
-ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st === 11000 && rv.stc === 15000, JSON.stringify(rv));
+ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st === 11000 && rv.stc === 13000, JSON.stringify(rv));
 ok('grass-fed butter and A2 whole milk are on the healthy foods list', await p.evaluate(() => !!hfById('butter') && !!hfById('milkA2')));
 await ctx.close();
 
