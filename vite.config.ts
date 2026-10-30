@@ -42,6 +42,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: `${base}index.html`,
+        // The Good Life is a separate app published under /good-life/ on the
+        // same site. This worker's scope covers it, so without this its
+        // navigations would be answered with this app's index.html.
+        navigateFallbackDenylist: [/\/good-life\//],
         // Make a new deploy take over immediately instead of waiting for
         // every open tab to close — otherwise a redeployed app can keep
         // serving a stale cached version for a while after a fresh install.

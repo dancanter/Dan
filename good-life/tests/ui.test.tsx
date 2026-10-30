@@ -76,3 +76,15 @@ describe('interactions', () => {
     expect(await screen.findByText(/Threshold:/)).toBeInTheDocument();
   });
 });
+
+describe('profile link', () => {
+  it('decodes a compressed starting profile from the link', async () => {
+    const { readLinkImport } = await import('@/lib/linkImport');
+    const file = { app: 'the-good-life', kind: 'starting-profile', data: { profile: { name: 'Test' } } };
+    const packed = new Uint8Array(await new Response(new Response(JSON.stringify(file)).body!.pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
+    const z = btoa(String.fromCharCode(...packed)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const data = await readLinkImport(`#import=z.${z}`);
+    expect(data.profile?.name).toBe('Test');
+    await expect(readLinkImport('#import=j.bm9wZQ')).rejects.toThrow();
+  });
+});

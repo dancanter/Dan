@@ -20,6 +20,8 @@ First run offers three routes: set up a profile (about two minutes), import a fi
 
 **Use it every day.** `npm run build && npm start` serves the built app and the coach from one address (http://localhost:8787). In Chrome or Safari, *Install* / *Add to Dock* turns it into a standalone app that works offline (the coach needs the server running).
 
+**Online.** Each push to the default branch also publishes the app to GitHub Pages at `/good-life/`, beside the pregnancy guide. That copy is static: it has no coach server, so the offline coach answers. It holds no personal data; a starting profile can be loaded with a link of the form `…/good-life/#import=z.<data>`. The part after `#` is read by the browser and never sent to GitHub, but anyone holding the link can read the profile, so keep it private.
+
 **Phone.** The app is responsive and installable, but your data lives in the browser it is used in. To move between devices, export a backup in Settings and import it on the other one. Cloud sync is deliberately not built yet (see below).
 
 ## The sections

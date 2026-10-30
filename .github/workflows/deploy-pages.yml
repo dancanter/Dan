@@ -31,6 +31,14 @@ jobs:
       # direct link to /article/some-id) 404 unless index.html is also
       # served as the 404 page — the client-side router then takes over.
       - run: cp dist/index.html dist/404.html
+      # The Good Life (good-life/) is a separate app with its own
+      # dependencies; it is published alongside this one at /good-life/.
+      - name: Build The Good Life
+        working-directory: good-life
+        run: |
+          npm ci
+          npm run build
+      - run: cp -r good-life/dist dist/good-life
       - uses: actions/configure-pages@v5
         with:
           enablement: true

@@ -50,6 +50,9 @@ interface StoreState {
   data: AppData;
   hydrated: boolean;
   storageError: string | null;
+  /** A one-off message for the next screen (not saved). */
+  notice: string | null;
+  setNotice: (n: string | null) => void;
   /** Insert or replace by id. */
   upsert: <K extends ListKey>(key: K, item: ItemOf<K>) => void;
   remove: <K extends ListKey>(key: K, id: string) => void;
@@ -77,6 +80,8 @@ export const useStore = create<StoreState>()(
         data: emptyData(),
         hydrated: false,
         storageError: null,
+        notice: null,
+        setNotice: (n) => setState({ notice: n }),
         upsert: (key, item) =>
           mutate((d) => {
             const list = d[key] as unknown as { id: string }[];

@@ -69,7 +69,7 @@ export default function Today() {
             <div className="text-[11px] uppercase tracking-[0.16em] opacity-70">Today’s recommendation</div>
             <div className="mt-1 font-serif text-3xl">{opt.label}</div>
           </div>
-          <div className="flex flex-col items-end gap-1 text-right">
+          <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1 sm:text-right">
             <Badge tone={LEVEL_TONE[plan.level]}>{plan.readiness.band ? BAND_LABEL[plan.readiness.band] : 'No check-in'}</Badge>
             <span className="text-xs opacity-70">{plan.state.label}</span>
           </div>
@@ -77,7 +77,7 @@ export default function Today() {
         <div className="mt-4 flex flex-wrap gap-1 rounded-full bg-white/10 p-1">
           {plan.options.map((o) => (
             <button key={o.key} type="button" onClick={() => setChoice(o.key)} aria-pressed={active === o.key} className={cx('flex-1 rounded-full px-3 py-1.5 text-sm transition-colors', active === o.key ? 'bg-hero-ink text-hero font-medium' : 'opacity-80 hover:opacity-100')}>
-              {o.label}{o.key === plan.recommended ? ' ★' : ''}
+              <span className="sm:hidden">{o.label.split(' ')[0]}</span><span className="hidden sm:inline">{o.label}</span>{o.key === plan.recommended ? ' ★' : ''}
             </button>
           ))}
         </div>

@@ -36,6 +36,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const clearDemo = useStore((s) => s.clearDemo);
   const [quick, setQuick] = useState<QuickTab | null>(null);
   const [more, setMore] = useState(false);
+  const notice = useStore((s) => s.notice);
+  const setNotice = useStore((s) => s.setNotice);
   const loc = useLocation();
   const demo = hasDemoData(data);
   const lastBackup = data.settings.lastBackupAt?.slice(0, 10);
@@ -77,8 +79,14 @@ export function Shell({ children }: { children: ReactNode }) {
           <NavLink to="/settings" aria-label="Settings" className="grid h-9 w-9 place-items-center rounded-full hover:bg-surface-2"><SettingsIcon size={18} /></NavLink>
         </header>
 
-        {(demo || storageError || backupDue) && (
+        {(demo || storageError || backupDue || notice) && (
           <div className="space-y-2 px-4 pt-4 sm:px-8">
+            {notice && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-good-soft px-4 py-2.5 text-sm">
+                <span>✓ {notice}</span>
+                <Button size="sm" onClick={() => setNotice(null)}>OK</Button>
+              </div>
+            )}
             {demo && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-bronze-soft px-4 py-2.5 text-sm">
                 <span><strong>Demonstration data is showing.</strong> It is made up, so every screen has something to show. Your own logs are kept separately.</span>
