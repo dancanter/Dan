@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#14213d"/>
+  <circle cx="32" cy="32" r="17" fill="none" stroke="#e9dcc3" stroke-width="2.5"/>
+  <path d="M15 37c6-4 11-4 17 0s11 4 17 0" fill="none" stroke="#c8935a" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="32" y="30" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#e9dcc3" font-style="italic">GL</text>
+</svg>

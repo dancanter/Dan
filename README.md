@@ -172,3 +172,7 @@ npm run sources       # citation registry health — links, dates, evidence spre
 © 2026 Dan Canter. All rights reserved.
 
 The source code, written content and design of Field Notes are not open source. You can use the published app and read the code here, but you may not copy, modify, redistribute or reuse any of it without written permission. See [LICENSE](LICENSE) for the full terms, including the third-party material — NHS and other published guidance, open-source libraries and fonts — that belongs to its own owners.
+
+## Also in this repository
+
+[`good-life/`](good-life/) is a separate app — **The Good Life**, a personal training, health, study and lifestyle system. It has its own dependencies, tests and CI workflow, and does not change how this guide is built or deployed. See [`good-life/README.md`](good-life/README.md).

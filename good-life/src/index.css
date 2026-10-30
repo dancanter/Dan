@@ -1,0 +1,200 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Quiet luxury: warm paper, ink, a deep Riviera navy and one restrained
+   bronze accent. Every colour is a token so light and dark are each designed,
+   not inverted. */
+:root {
+  color-scheme: light;
+  --paper: #f5f2ec;
+  --surface: #fbf9f5;
+  --surface-2: #f0ece4;
+  --ink: #1b1a17;
+  --ink-2: #4a4740;
+  --muted: #7d786e;
+  --line: #e3ddd2;
+  --line-strong: #d2cbbd;
+  --navy: #14213d;
+  --navy-ink: #f5f2ec;
+  --hero: #14213d;
+  --hero-ink: #f5f2ec;
+  --bronze: #9a6a36;
+  --bronze-soft: #efe3d2;
+  --good: #2f7a3a;
+  --good-soft: #e3efe0;
+  --warn: #9a6a00;
+  --warn-soft: #f6ecd2;
+  --bad: #a83a32;
+  --bad-soft: #f6e1de;
+  --focus: #2a78d6;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --grid: #e7e2d8;
+  --shadow: 0 1px 2px rgb(27 26 23 / 0.04), 0 8px 24px -12px rgb(27 26 23 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --paper: #121110;
+  --surface: #1c1b19;
+  --surface-2: #252421;
+  --ink: #f0ede6;
+  --ink-2: #c9c4b8;
+  --muted: #918b7f;
+  --line: #2f2d29;
+  --line-strong: #3d3a35;
+  --navy: #c9d4ea;
+  --navy-ink: #121110;
+  --hero: #1a2742;
+  --hero-ink: #eef1f7;
+  --bronze: #d1a26c;
+  --bronze-soft: #2e261c;
+  --good: #6fbf7a;
+  --good-soft: #1d2a1e;
+  --warn: #e2b54a;
+  --warn-soft: #2c2616;
+  --bad: #e7837a;
+  --bad-soft: #2f1d1b;
+  --focus: #6da7ec;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --grid: #2b2a27;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-navy: var(--navy);
+  --color-navy-ink: var(--navy-ink);
+  --color-hero: var(--hero);
+  --color-hero-ink: var(--hero-ink);
+  --color-bronze: var(--bronze);
+  --color-bronze-soft: var(--bronze-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+html {
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+.font-serif {
+  font-feature-settings: normal;
+  letter-spacing: -0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+.prose-gl p {
+  margin: 0 0 0.6em;
+}
+.prose-gl ul {
+  margin: 0 0 0.6em;
+  padding-left: 1.1em;
+  list-style: disc;
+}
+.prose-gl strong {
+  font-weight: 600;
+}
+
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+}
+
+@layer components {
+.field {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  min-height: 2.5rem;
+  transition: border-color 120ms;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent);
+}
+textarea.field {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.recharts-cartesian-axis-tick text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.recharts-tooltip-cursor {
+  stroke: var(--line-strong);
+}

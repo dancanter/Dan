@@ -79,5 +79,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     css: true,
+    // good-life/ is a separate app with its own dependencies and test setup.
+    exclude: ['**/node_modules/**', '**/dist/**', 'good-life/**'],
   },
 });
