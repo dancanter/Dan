@@ -1,0 +1,284 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch();
+const errs = [], fails = [];
+const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + x : '')); else console.log('ok  ' + n); };
+const FILE = 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html';
+const LS = 'cutblock71.v1';
+const p = await b.newPage({ viewport: { width: 430, height: 2400 } });
+// The fixtures here describe the cut's first full week (21–27 Sep), so the
+// clock is pinned inside it; otherwise the suite rots as the real date moves on.
+await p.clock.setFixedTime(new Date('2026-09-26T12:00:00'));
+p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+p.on('console', m => { const x = m.text();
+  if (m.type() === 'error' && !/ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis/.test(x)) errs.push('CONSOLE: ' + x.slice(0, 220)); });
+const st = (o = {}) => Object.assign({ weights: {}, days: {}, bests: {}, settings: { hideDaily: false, fiveK: 1085 }, updatedAt: Date.now() }, o);
+const boot = async (s) => { await p.goto(FILE);
+  await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, s]);
+  await p.reload(); await p.waitForTimeout(220); };
+const ds = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const NOW = new Date('2026-09-26T12:00:00');   // the same moment the page clock is pinned to
+const back = n => { const d = new Date(NOW); d.setDate(d.getDate() - n); return ds(d); };
+
+// ===== 1. nothing logged: it explains itself, it does not accuse ==========
+await boot(st());
+let t = await p.textContent('#signalCard');
+ok('with no data it introduces the three boxes', /Three new boxes on the log/.test(t), t.slice(0, 120));
+ok('and says they need history before they mean anything', /read against your own history/.test(t));
+ok('it does not pretend to have a reading', !/resting HR is/i.test(t));
+// The one thing the label alone could not carry: effort is perceived, not
+// intended. Dan asked, which means it was ambiguous, which means it belongs
+// on the page rather than in a chat reply.
+ok('it defines effort as felt, not tried', /how hard it .?felt.?, not how hard you tried/i.test(t),
+  (t.match(/Effort means[^.]{0,80}/) || [''])[0]);
+ok('and gives the case that matters', /easy run that felt like an 8 is an 8/.test(t));
+ok('it says why that case is the useful one', /fatigue showing up before anything else/.test(t));
+ok('and warns that scoring by intent ruins it', /Score it by intent and the whole thing is worthless/.test(t));
+// The intro card disappears once anything is logged, so the definition has to
+// live beside the field as well, permanently.
+await p.click('[data-t="today"]');
+const formHint = (await p.textContent('#s-today')).replace(/\s+/g, ' ');
+ok('the definition also sits next to the field itself',
+  /Effort is how hard it felt, not how hard you tried/.test(formHint),
+  (formHint.match(/Effort is[^.]{0,70}/) || [''])[0]);
+
+// ===== 2. the fields exist and round-trip through the store ==============
+await boot(st());
+await p.click('[data-t="today"]');
+await p.fill('#inRhr', '48');
+await p.dispatchEvent('#inRhr', 'change');
+await p.click('#tgGym');
+await p.fill('#inGymRpe', '8');
+await p.dispatchEvent('#inGymRpe', 'change');
+await p.click('#tgNiggle');
+await p.fill('#inNiggle', 'left achilles');
+await p.dispatchEvent('#inNiggle', 'change');
+await p.waitForTimeout(150);
+let rec = await p.evaluate(() => S.days[today()]);
+ok('resting HR saves', rec.rhr === 48, JSON.stringify(rec));
+ok('gym effort saves', rec.gymRpe === 8, JSON.stringify(rec));
+ok('the niggle flag saves', rec.niggle === true);
+ok('and so does what hurts', rec.niggleWhat === 'left achilles', rec.niggleWhat);
+// The "where" box should not sit on the form as dead space on a day that is fine.
+await p.click('#tgNiggle');
+await p.waitForTimeout(150);
+ok('the where-box hides when nothing hurts',
+  await p.$eval('#inNiggle', e => e.closest('.f').hidden));
+ok('and the gym effort box hides when there was no gym',
+  await p.evaluate(async () => { document.getElementById('tgGym').click(); await new Promise(r => setTimeout(r, 120));
+    return document.getElementById('inGymRpe').parentNode.hidden; }));
+
+// ===== 3. a run carries its own effort score =============================
+await boot(st());
+await p.click('[data-t="today"]');
+await p.selectOption('#inKind', 'cont');
+await p.fill('#inKm', '5');
+await p.fill('#inTime', '25:00');
+await p.selectOption('#inRpe', '9');
+await p.click('#btnAddRun');
+await p.waitForTimeout(180);
+rec = await p.evaluate(() => S.days[today()]);
+ok('a run stores the effort it was given', rec.runs[0].rpe === 9, JSON.stringify(rec.runs));
+ok('and the effort selector offers 1 to 10',
+  (await p.$$eval('#inRpe option', o => o.length)) === 11);
+// Anchors describe a sensation, never an intention — "easy"/"hard" read as
+// how much he decided to push, which is the wrong question.
+const anchors = await p.$$eval('#inRpe option', o => o.map(x => x.textContent));
+ok('the anchors describe sensation, not intent',
+  /barely noticed it/.test(anchors.join(' ')) && /hanging on/.test(anchors.join(' ')) &&
+  !/ easy$| hard$/.test(anchors.join(' ')), anchors.filter(a => a.includes('·')).join(' | '));
+ok('the run label says felt', /felt/i.test(await p.$eval('label[for="inRpe"]', e => e.textContent)));
+ok('and so does the gym one', /felt/i.test(await p.$eval('label[for="inGymRpe"]', e => e.textContent)));
+
+// ===== 4. the RHR baseline: a single reading is never a verdict ==========
+// Five mornings is under the minimum, so it must say it is still building
+// rather than compare seven days against two.
+let days = {}; for (let i = 0; i < 5; i++) days[back(i)] = { rhr: 50 };
+await boot(st({ days }));
+let R = await p.evaluate(() => rhrModel());
+ok('a handful of mornings is not a baseline', R.ready === false && R.state === 'building', JSON.stringify(R.state));
+t = await p.textContent('#signalCard');
+ok('and it says so plainly', /needs about a fortnight/.test(t), t.slice(0, 200));
+ok('it calls the drift the signal, not the reading', /the drift is the signal/.test(t));
+
+// ===== 5. a real rise gets called, against his own numbers ===============
+// 21 baseline mornings at 48, then 7 recent at 54 — a 6-beat drift.
+days = {};
+for (let i = 7; i < 28; i++) days[back(i)] = { rhr: 48 };
+for (let i = 0; i < 7; i++) days[back(i)] = { rhr: 54 };
+await boot(st({ days }));
+R = await p.evaluate(() => rhrModel());
+ok('with enough mornings the baseline is ready', R.ready === true, JSON.stringify(R));
+ok('the drift is measured, not guessed', Math.abs(R.delta - 6) < 0.01, String(R.delta));
+ok('a 6-beat rise reads as high', R.state === 'high', R.state);
+t = await p.textContent('#signalCard');
+ok('it names the size of the rise', /up 6\.0 beats on your own baseline/.test(t), (t.match(/up [\d.]+ beats[^.]{0,40}/) || [''])[0]);
+ok('it says the fix, not just the finding', /Take the next hard day out/.test(t));
+ok('and escalates if it persists', /that is a rest week, not a rest day/.test(t));
+
+// A 3-beat rise is a nudge, not an alarm.
+days = {};
+for (let i = 7; i < 28; i++) days[back(i)] = { rhr: 48 };
+for (let i = 0; i < 7; i++) days[back(i)] = { rhr: 51 };
+await boot(st({ days }));
+R = await p.evaluate(() => rhrModel());
+ok('a 3-beat rise is a nudge', R.state === 'up', R.state);
+t = await p.textContent('#signalCard');
+ok('and is worded as one', /Not alarming on its own/.test(t));
+
+// Down is good news and should be said as good news.
+days = {};
+for (let i = 7; i < 28; i++) days[back(i)] = { rhr: 52 };
+for (let i = 0; i < 7; i++) days[back(i)] = { rhr: 47 };
+await boot(st({ days }));
+ok('a fall reads as fitness arriving', (await p.evaluate(() => rhrModel())).state === 'down');
+t = await p.textContent('#signalCard');
+ok('and is given as a green light', /green light for a hard session/.test(t));
+
+// Level is worth one quiet line, not a lecture.
+days = {}; for (let i = 0; i < 28; i++) days[back(i)] = { rhr: 49 };
+await boot(st({ days }));
+ok('steady reads as level', (await p.evaluate(() => rhrModel())).state === 'level');
+t = await p.textContent('#signalCard');
+ok('and gets one line', /level against your own baseline/.test(t) && !/rest week/.test(t));
+
+// ===== 6. hard RUNS, counted by his score, against his own rule =========
+// Dan's rule is about runs: two is the week, three is a ceiling for a week he
+// feels good in, four does not exist. A heavy leg day is a hard DAY but it is
+// not a hard run, and conflating the two was the bug this replaces.
+const wk = await p.evaluate(() => trainingModel().wkStart);
+const addD = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return ds(d); };
+const t0 = await p.evaluate(() => today());
+const inWeek = []; for (let i = 0; i < 7; i++) { const d = addD(wk, i); if (d <= t0) inWeek.push(d); }
+const HR = await p.evaluate(() => CFG.hardRuns);
+ok('the rule is two, ceiling three', HR.target === 2 && HR.cap === 3, JSON.stringify(HR));
+
+// Four hard runs plus a hard lift: over the ceiling on runs alone.
+days = {};
+days[inWeek[0]] = { gym: true, gymRpe: 9,
+  runs: [{ km: 6, secs: 1800, type: 'easy', rpe: 8 },
+          { km: 8, secs: 2700, type: 'easy', rpe: 3 }] };
+days[inWeek[inWeek.length - 1]] = { gym: true, gymRpe: 8,
+  runs: [{ k: 'reps', dm: 400, n: 5, secs: 320, rpe: 9 },
+          { k: 'reps', dm: 800, n: 4, secs: 600, rpe: 8 },
+          { km: 5, secs: 1500, type: 'easy' }] };
+await boot(st({ days }));
+let EF = await p.evaluate(() => effortWeek());
+ok('hard runs are counted by his own score', EF.hardRuns === 3, JSON.stringify(EF.sessions));
+ok('hard lifts are counted apart from them', EF.hardGym === 2, String(EF.hardGym));
+ok('and hard days is the sum', EF.hard === EF.hardRuns + EF.hardGym, JSON.stringify(EF));
+// The 8 km run scored 3 is NOT hard; the 6 km "easy" run scored 8 IS. Distance
+// and file-type do not get a vote — that is the whole reason for asking.
+ok('a long run he called easy does not count as hard',
+  !EF.sessions.some(x => x.rpe === 3 && x.rpe >= 7), JSON.stringify(EF.sessions));
+ok('an easy-filed run he called an 8 does count',
+  EF.sessions.some(x => x.rpe === 8), JSON.stringify(EF.sessions));
+ok('unscored sessions are counted separately, not assumed', EF.unscored === 1, String(EF.unscored));
+// Three is the ceiling, so three must read as "at your ceiling", not a breach.
+t = await p.textContent('#signalCard');
+ok('three hard runs is not treated as a breach', !/your ceiling is 3\./.test(t), t.slice(0, 200));
+ok('it is named as the ceiling rather than the target', /that is your ceiling, not your target/.test(t),
+  (t.match(/hard runs[^.]{0,60}/) || [''])[0]);
+ok('and warns what happens if it becomes normal', /four becomes the new three/.test(t));
+
+// A fourth hard run is the breach.
+days[inWeek[0]].runs.push({ k: 'reps', dm: 1000, n: 4, secs: 800, rpe: 9 });
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('a fourth hard run tips it over', EF.hardRuns === 4, String(EF.hardRuns));
+t = await p.textContent('#signalCard');
+ok('going over the ceiling is called out', /4 hard runs this week/.test(t), t.slice(0, 340));
+ok('it names the ceiling', new RegExp('your ceiling is ' + HR.cap).test(t));
+ok('and says there is no four', /there is no four/.test(t));
+ok('it ties back to what he asked for', /the exact thing you asked me to catch/.test(t));
+ok('and says which session to drop', /the speed session, not the easy one/.test(t));
+
+// Two hard runs is the normal week: reported, not scolded, and the heavy lift
+// is explicitly kept out of the count.
+days = {};
+days[inWeek[0]] = { gym: true, gymRpe: 9, runs: [{ k: 'reps', dm: 400, n: 5, secs: 320, rpe: 9 }] };
+days[inWeek[inWeek.length - 1]] = { runs: [{ km: 6, secs: 1500, type: 'threshold', rpe: 8 },
+                                            { km: 5, secs: 1500, type: 'easy' }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('the normal week is two hard runs', EF.hardRuns === 2 && EF.hardGym === 1, JSON.stringify(EF));
+t = await p.textContent('#signalCard');
+ok('under the ceiling it just reports', /2 hard runs this week/.test(t), t.slice(0, 320));
+ok('and does not warn', !/the exact thing you asked me to catch/.test(t));
+ok('the heavy lift is named as a hard day but not a hard run',
+  /hard day but not a hard run/.test(t), (t.match(/heavy lift[^.]{0,70}/) || [''])[0]);
+ok('an unscored easy run does not inflate the hard count', EF.hardRuns === 2 && EF.assumed === 0,
+  JSON.stringify({ hardRuns: EF.hardRuns, assumed: EF.assumed, unscored: EF.unscored }));
+ok('and nothing is claimed about it', !/judged on pace/.test(t), (t.match(/judged on pace[^.]{0,50}/) || [''])[0]);
+
+// ===== 6b. an unscored run is judged, not ignored ========================
+// The bug Dan found: the training panel called his 5 x 200 a hard run while
+// the Signals card said nought hard runs, because this count only looked at
+// RPE. Two numbers with the same name, disagreeing on the same screen.
+days = {};
+days[inWeek[inWeek.length - 1]] = { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150 }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+const wkHard = await p.evaluate(() => trainingModel().week.hard);
+ok('an unscored rep session still counts as a hard run', EF.hardRuns === 1, JSON.stringify(EF));
+ok('and the two counts agree', EF.hardRuns === wkHard, EF.hardRuns + ' vs ' + wkHard);
+ok('it is marked as judged rather than scored', EF.assumed === 1, String(EF.assumed));
+t = await p.textContent('#signalCard');
+ok('the card says it was judged on pace', /judged on pace rather than on your score/.test(t), t.slice(0, 300));
+ok('and that a score would override it', /add an effort and your word overrides mine/.test(t));
+
+// A score beats the pace in both directions.
+days = {};
+days[inWeek[inWeek.length - 1]] = { runs: [{ k: 'reps', dm: 200, n: 5, secs: 150, rpe: 4 }] };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('a rep session he scored a 4 is not a hard run', EF.hardRuns === 0, JSON.stringify(EF));
+ok('and nothing is assumed when he scored it', EF.assumed === 0, String(EF.assumed));
+
+// A lift has no pace to fall back on, so an unscored one stays uncounted and
+// the card says why rather than pretending.
+days = {};
+days[inWeek[0]] = { gym: true };
+await boot(st({ days }));
+EF = await p.evaluate(() => effortWeek());
+ok('an unscored lift is not guessed at', EF.hardGym === 0 && EF.gymUnscored === 1, JSON.stringify(EF));
+t = await p.textContent('#signalCard');
+ok('and the card explains that gap', /a lift has no pace to fall back on/.test(t), t.slice(0, 300));
+
+// ===== 7. the niggle: one day is information, three is an injury ========
+days = {}; days[back(0)] = { niggle: true, niggleWhat: 'left achilles' };
+await boot(st({ days }));
+let NG = await p.evaluate(() => niggleModel());
+ok('one flag is not persistent', NG.n === 1 && NG.persistent === false, JSON.stringify(NG));
+t = await p.textContent('#signalCard');
+ok('and it is worded as information', /One day is information, not a problem/.test(t));
+ok('it says what would change that', /I will say so/.test(t));
+
+days = {};
+for (const i of [0, 2, 5]) days[back(i)] = { niggle: true, niggleWhat: 'left achilles' };
+await boot(st({ days }));
+NG = await p.evaluate(() => niggleModel());
+ok('three flags in ten days is persistent', NG.persistent === true, JSON.stringify(NG));
+ok('and it knows what hurts', NG.top === 'left achilles', String(NG.top));
+t = await p.textContent('#signalCard');
+ok('it stops calling it a niggle', /not a niggle any more, it is an injury forming/.test(t));
+ok('it names the body part', /left achilles/.test(t));
+ok('and gives a real instruction with a cost attached',
+  /easy only until it has been quiet for a week/.test(t) && /cheaper than losing the block/.test(t));
+// Outside the window it must fall off rather than haunting him forever.
+days = {};
+for (const i of [12, 14, 17]) days[back(i)] = { niggle: true, niggleWhat: 'left achilles' };
+await boot(st({ days }));
+ok('old flags fall out of the window', (await p.evaluate(() => niggleModel())).n === 0);
+
+// ===== nothing broke ====================================================
+for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
+  await p.click(`[data-t="${tab}"]`);
+  ok('renders: ' + tab, await p.$eval('#s-' + tab, s => !s.hidden && s.textContent.trim().length > 50));
+}
+await p.click('[data-t="data"]');
+const checks = await p.$$eval('#dChecks tr', r => r.map(x => x.children[0].textContent.trim()));
+ok('every self-check passes', checks.every(x => x === 'ok'), checks.join(','));
+ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
+await b.close();
+if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n' + fails.map(f => ' - ' + f).join('\n')); process.exit(1); }
+console.log('\nall passed');

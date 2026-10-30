@@ -1,0 +1,163 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch();
+const errs = [], fails = [];
+const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + x : '')); else console.log('ok  ' + n); };
+const FILE = 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html';
+const LS = 'cutblock71.v1';
+const p = await b.newPage({ viewport: { width: 430, height: 2600 } });
+// Phase one is the first fortnight after 24 Sep; pin the clock inside it so the suite does not rot.
+await p.clock.setFixedTime(new Date('2026-09-28T12:00:00'));
+p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+p.on('console', m => { const x = m.text();
+  if (m.type() === 'error' && !/ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis/.test(x)) errs.push('CONSOLE: ' + x.slice(0, 220)); });
+const st = (o = {}) => Object.assign({ weights: {}, days: {}, bests: {}, settings: { hideDaily: false, fiveK: 1085, fiveKManual: false }, updatedAt: Date.now() }, o);
+const boot = async (s) => { await p.goto(FILE);
+  await p.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, s]);
+  await p.reload(); await p.waitForTimeout(220); await p.click('[data-t="skin"]'); };
+
+await boot(st({}));
+const m = await p.evaluate(() => retinolModel());
+ok('it starts Thursday 24 September', m.start === '2026-09-24', m.start);
+// Derived: this used to hardcode "2 days away" and broke the next morning.
+const toGo = await p.evaluate(() => diffD(today(), CFG.retinol.start));
+// Before 24 Sep it is counting down; from 24 Sep it has started. The suite has
+// to be true on either side of that line, since it runs on real dates.
+ok(toGo > 0 ? 'and has not started yet' : 'and it has started, on the day',
+  toGo > 0 ? (m.started === false && m.toStart === toGo) : (m.started === true),
+  JSON.stringify({ s: m.started, t: m.toStart, toGo }));
+ok('phase one is once a week', m.phase.n === 1 && m.phase.days.length === 1, JSON.stringify(m.phase));
+ok('on a Thursday', m.phase.days[0] === 4, String(m.phase.days[0]));
+
+let t = await p.textContent('#skRetinol');
+ok('the panel names the product', /CeraVe Resurfacing Retinol Serum/.test(t), t.slice(0, 160));
+// The long date is the countdown's wording; once started, the date lives in
+// the schedule table as "24 Sep". Either way it must be on the panel.
+ok('and the start date', toGo > 0 ? /Thursday 24 September/.test(t) : /24 Sep/.test(t), t.slice(0, 200));
+ok(toGo > 0 ? 'with the nights away' : 'and says tonight is a retinol night on day one',
+  toGo > 0 ? new RegExp(toGo + ' nights? away').test(t) : (toGo === 0 ? /Tonight is a retinol night/.test(t) : true),
+  (t.match(/\d+ nights? away|Tonight is[^.]{0,30}/) || [''])[0]);
+
+// ---- paused: his skin reacted after the first night (26 Sep) ------------
+// Red, stinging and puffy — his second reaction to a retinoid. While paused,
+// nothing may tell him to apply it, and the panel carries the calm-skin
+// routine and the reasons to see someone.
+const RP = await p.evaluate(() => retinolModel());
+ok('retinol is paused', !!RP.paused && RP.paused.on === '2026-09-26', JSON.stringify(RP.paused));
+ok('and while paused it is never "tonight"', RP.tonight === false);
+ok('the panel says paused and do not apply', /Paused since/.test(t) && /Do not apply it/.test(t), t.slice(0, 200));
+ok('it never says tonight is a retinol night', !/Tonight is a retinol night/.test(t));
+ok('it gives the calm-skin routine', /fragrance-free cleanser/.test(t) && /thick moisturiser/.test(t) && /cool water/.test(t) && /No acids/.test(t));
+ok('with SPF for his outdoor runs', /SPF 30\+ and a cap on runs/.test(t));
+ok('it says when it should settle', /clearly better within 2–3 days and gone within a week/.test(t));
+ok('and when to get help, including 999', /pharmacist or GP/.test(t) && /999/.test(t));
+ok('it recommends a dermatologist before any retry', /see a dermatologist/.test(t));
+// Unpausing brings the schedule back exactly as it was.
+await p.evaluate(() => { window.__rp = CFG.retinol.paused; CFG.retinol.paused = null; render(); });
+t = await p.textContent('#skRetinol');
+ok('with the pause lifted the schedule behaves as before', !/Paused since/.test(t) && await p.evaluate(() => retinolModel().paused === null));
+await p.evaluate(() => { CFG.retinol.paused = window.__rp; render(); });
+t = await p.textContent('#skRetinol');
+
+// the ramp has real dates and gets slower, not faster
+const ramp = await p.$$eval('#skRetinol table:has(thead) tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).slice(0, 4));
+ok('four phases with dates', ramp.length === 4, JSON.stringify(ramp));
+ok('starting 24 Sep at 1x', /24 Sep/.test(ramp[0]) && /1× a week/.test(ramp[0]), ramp[0]);
+ok('2x from 8 Oct', /8 Oct/.test(ramp[1]) && /2× a week/.test(ramp[1]), ramp[1]);
+ok('3x from 22 Oct', /22 Oct/.test(ramp[2]) && /3× a week/.test(ramp[2]), ramp[2]);
+ok('and it holds there, never nightly', /3× a week/.test(ramp[3]) && /Nightly is not the goal/.test(t), ramp[3]);
+ok('only moving up after a calm fortnight', /Only move up if the last fortnight was genuinely calm/.test(t));
+
+// application
+ok('a pea for the whole face', /A pea\. For the entire face/.test(t));
+ok('sandwiched in moisturiser', /Simple moisturiser first/.test(t) && /moisturiser again/.test(t));
+ok('on dry skin, not damp', /wait until the skin is properly dry/.test(t));
+ok('and kept off the places that go first', /eyelids and under-eyes/.test(t) && /corners of the mouth/.test(t));
+
+// what pairs and what does not
+ok('SPF is called non-optional', /without exception/.test(t) && /not optional/.test(t));
+ok('the tallow is excluded on retinol nights', /beef tallow and almond oil/.test(t) && /occlusive seal/.test(t));
+ok('acids are out', /Any acid — AHA, BHA/.test(t));
+ok('scrubs are out', /Scrubs, flannels/.test(t));
+ok('benzoyl peroxide is out', /Benzoyl peroxide/.test(t));
+ok('niacinamide is kept', /Niacinamide, in the morning/.test(t));
+ok('and Cicaplast is kept', /Cicaplast/.test(t));
+
+// stopping rules and the honest caveats
+ok('it says when to stop', /Stop for a week/.test(t));
+ok('and to restart a step lower', /restart <b>one step below<\/b>/.test(await p.innerHTML('#skRetinol')));
+ok('it names the deficit as a complication', /repairs a barrier more slowly/.test(t));
+ok('and that he reacted before', /already reacted to a retinoid once/.test(t));
+ok('without using that to refuse', /not a reason not to try again/.test(t));
+ok('and it does the birthday arithmetic', /clears 28 November by about three weeks/.test(t));
+ok('naming the irritation window', /8 Oct to 5 Nov/.test(t), (t.match(/\d+ \w+ to \d+ \w+/) || [])[0]);
+
+// the old blanket ban is gone from both places
+await p.click('[data-t="data"]');
+const data = await p.textContent('#s-data');
+ok('the hard-constraint row reflects his decision', /Retinol — stopped \(28 Oct\), his call/.test(data), data.slice(0, 400));
+ok('and still rules out tretinoin', /Tretinoin is still a no/.test(data));
+await p.click('[data-t="skin"]');
+ok('the skin tab no longer says never retinol', !/Never retinol or tretinoin/.test(await p.textContent('#s-skin')));
+
+// logging a night
+await p.click('[data-t="today"]');
+await p.click('#tgRet');
+await p.waitForTimeout(150);
+ok('a retinol night can be ticked',
+  (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].retinol)) === true);
+ok('and it counts', (await p.evaluate(() => retinolModel().done)) === 1);
+
+// once it has started, it knows whether tonight is one
+await p.evaluate(() => { CFG.retinol.start = addD(today(), -9); render(); });
+const live = await p.evaluate(() => retinolModel());
+ok('after starting it reports the week', live.started === true && live.weeks === 1, JSON.stringify({ s: live.started, w: live.weeks }));
+ok('and lists this week\'s nights as dates', live.nights.every(n => /^\d{4}-\d{2}-\d{2}$/.test(n)), JSON.stringify(live.nights));
+
+// ---- 11 Oct: restarted on the forehead only ------------------------------
+const p2 = await b.newPage({ viewport: { width: 430, height: 2600 } });
+await p2.clock.setFixedTime(new Date('2026-10-11T19:00:00'));
+p2.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+await p2.goto(FILE); await p2.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p2.reload(); await p2.waitForTimeout(220);
+const F = await p2.evaluate(() => retinolModel());
+ok('from 11 Oct the pause no longer applies', F.paused === null && F.area === 'forehead' && F.start === '2026-10-11', JSON.stringify({ p: F.paused, a: F.area, s: F.start }));
+ok('tonight (Sunday) is the first forehead night, once a week', F.tonight === true && F.phase.n === 1, JSON.stringify(F.phase));
+let g = await p2.textContent('#glanceCard');
+ok('Today says it, forehead only', /Retinol · forehead only/.test(g) && /Tonight — a rice grain, forehead only/.test(g), g.slice(0, 600));
+await p2.click('[data-t="skin"]');
+let f = await p2.textContent('#skRetinol');
+ok('the panel is forehead-only and not paused', /forehead only/.test(f) && !/Paused since/.test(f) && /Tonight is a retinol night/.test(f), f.slice(0, 300));
+ok('a rice grain, a gap above the brows, never before a run', /A rice grain/.test(f) && /finger-width gap above the eyebrows/.test(f) && /never before a run/.test(f));
+ok('the rest of the face stays off it', /rest of your face stays retinol-free/.test(f));
+const ramp2 = await p2.$$eval('#skRetinol table:has(thead) tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+ok('a fresh ramp from 11 Oct: 2x from 25 Oct, 3x from 8 Nov', /11 Oct/.test(ramp2[0]) && /25 Oct/.test(ramp2[1]) && /2× a week/.test(ramp2[1]) && /8 Nov/.test(ramp2[2]), JSON.stringify(ramp2));
+await p2.click('[data-t="today"]'); await p2.click('#tgRet'); await p2.waitForTimeout(150);
+ok('ticking it shows done on Today', /✓ done tonight/.test(await p2.textContent('#glanceCard')));
+await p2.close();
+const p3 = await b.newPage(); await p3.clock.setFixedTime(new Date('2026-10-13T19:00:00'));
+await p3.goto(FILE); await p3.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p3.reload(); await p3.waitForTimeout(220);
+ok('on a Tuesday it says next Sunday', /next: Sun 18 Oct/.test(await p3.textContent('#glanceCard')), (await p3.textContent('#glanceCard')).match(/Retinol[^›]*/)?.[0]);
+await p3.close();
+
+// ---- 28 Oct: stopped for good ------------------------------------------------
+const p4 = await b.newPage(); await p4.clock.setFixedTime(new Date('2026-11-01T19:00:00'));
+await p4.goto(FILE); await p4.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, JSON.stringify(v)); }, [LS, st({})]);
+await p4.reload(); await p4.waitForTimeout(220);
+const SX = await p4.evaluate(() => ({ m: retinolModel(), g: E('glanceCard').textContent }));
+ok('from 28 Oct retinol is stopped: never tonight, no forehead row on Today', SX.m.paused && SX.m.paused.stopped && SX.m.tonight === false && !SX.m.area && !/Retinol · forehead only/.test(SX.g), JSON.stringify({ p: SX.m.paused, a: SX.m.area }));
+await p4.click('[data-t="skin"]');
+ok('the Skin tab says stopped, with the barrier repair', /Stopped on/.test(await p4.textContent('#skRetinol')) && /barrier repair/.test(await p4.textContent('#skRetinol')));
+await p4.close();
+
+for (const tab of ['today', 'weight', 'food', 'training', 'times', 'sleep', 'study', 'reverse', 'wins', 'review', 'skin', 'data']) {
+  await p.click(`[data-t="${tab}"]`);
+  ok('renders: ' + tab, await p.$eval('#s-' + tab, s => !s.hidden && s.textContent.trim().length > 50));
+}
+await p.click('[data-t="data"]');
+const checks = await p.$$eval('#dChecks tr', r2 => r2.map(r => r.children[0].textContent.trim()));
+ok('every self-check passes', checks.every(x => x === 'ok'), checks.join(','));
+ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
+await b.close();
+if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n' + fails.map(f => ' - ' + f).join('\n')); process.exit(1); }
+console.log('\nall passed');
