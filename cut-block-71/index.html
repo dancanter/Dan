@@ -596,6 +596,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
+  <div id="decCard"></div>
   <div id="campCard"></div>
 </section>
 
@@ -721,7 +722,7 @@ function mondayOf(is){return addD(is,-fmod(dow(is)-1,7));}
 
 /* ===================== one config, everything derived ===================== */
 var CFG={
-  cutStart:'2026-09-19', cutEnd:'2026-11-28',
+  cutStart:'2026-09-19', cutEnd:'2026-12-02',   /* Dan, 31 Oct: strict to the trip on 3 Dec (was 28 Nov) */
   /* 29 Sep, Dan: no fixed deloads (every 4 weeks was too soon). Rest is
      judged from his data on the Feedback tab — days off, or an easy week. */
   deloadWeeks:[],
@@ -744,8 +745,8 @@ var CFG={
      optional — runs = 21 + 3×1 + 7×1 = 31 (more is a bonus) */
   /* 19 Oct: a fun run AND a Norwegian run — runs = 21 + 3×1 + 7×2 = 38 */
   /* 29 Oct: the physique camp from 2 Nov — 1 hard + 1 Norwegian a week for
-     the rest of the cut — then two hard runs again (Dan, 29 Oct) — hard = 20 + the pre-block one = 21, runs = 21 + 12 = 33 */
-  goals:{gym:42,hard:21,sprints:10,runs:33,steps:12500,weightLo:122,weightHi:123},
+     the rest of the cut — then two hard runs again (Dan, 29 Oct) — hard = 20 + the pre-block one = 21, runs = 21 + 12 = 33; 31 Oct, the cut to 2 Dec adds a week: hard 23, runs 36 */
+  goals:{gym:42,hard:23,sprints:10,runs:36,steps:12500,weightLo:122,weightHi:123},
   w:{target:122.5,floor:121.6,taperA:0.006,taperB:0.004,bandLo:0.003,bandHi:0.008,minReads:4,heightM:1.727},
   /* 8 Oct, Dan: 1,799 stays the base; UP days are 1,899, all of the extra as
      carbs (232 g) — a day with a hard run, a day with the 5 mile, and every
@@ -955,7 +956,7 @@ var CFG={
      hard runs and the gym), 2 LIGHT days (easy 5-milers, light stuff), and
      SATURDAY — fully stress-free: no runs, no weights, no study, steps only if
      they come naturally. */
-  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-06',end:'2026-12-23',tmpl:{hard:2,easy:2,easyMax:2,sprints:0,runs:4,gym:4},rampWeeks:0,rampEasy:2,
+  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-07',end:'2026-12-23',tmpl:{hard:2,easy:2,easyMax:2,sprints:0,runs:4,gym:4},rampWeeks:0,rampEasy:2,
     /* all-time bests, all 2025, from Strava's own best efforts and Dan (8 Oct):
        400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
        1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
@@ -966,7 +967,7 @@ var CFG={
     /* 9 Oct, Dan's goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00
        800, sub-55 400, better 600 and 200. Trial dates moved off Saturdays
        (his stress-free day). lo/hi stay as the December stepping stones. */
-    pb:[{dm:1000,lo:174,hi:178,goal:165,on:'2026-12-06'},{dm:400,lo:57.5,hi:58.5,goal:55,on:'2026-12-09'},{dm:5000,lo:1050,hi:1070,goal:1020,on:'2026-12-13'},
+    pb:[{dm:1000,lo:174,hi:178,goal:165,on:'2026-12-07'},{dm:400,lo:57.5,hi:58.5,goal:55,on:'2026-12-10'},{dm:5000,lo:1050,hi:1070,goal:1020,on:'2026-12-13'},
         {dm:800,lo:138,hi:142,goal:120,on:'2026-12-16'},{dm:1609,lo:312,hi:320,goal:290,on:'2026-12-20'},
         {dm:200,lo:27,hi:27.8,goal:26,on:'2026-12-23'},{dm:600,lo:95,hi:98,goal:90,on:'2026-12-23'}]}
 };
@@ -1007,6 +1008,14 @@ function pushState(is){is=is||today();var b=pushBroke();
   if(is<=PUSH.to)return {k:'on',t:'🔥 Push fortnight — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'1,799 a day (Saturday 1,999), protein about 150–160 g, carbs 200 g or more, fat about 45 g, 14.5k steps. Runs: one hard run (600 m+), one Norwegian run with hill sprints, the gym first — the speed run comes back after the push. Sleep and recovery exactly the same.'};
   return {k:'done',t:'Push done',w:'Back to 1,899.'};}
 function pushOn(is){return pushState(is).k==='on';}
+/* ===================== the finish (Dan, 31 Oct) =====================
+   "Starting tomorrow I'm getting this last weight off — strict, counting
+   everything — 122–124 by my trip on 3 Dec." After the push (or without
+   one), if the 7-day average on 20 Nov is still over 124, the last twelve
+   days run at 1,799 on days with no run and 1,899 on run days. Decided by
+   the scale, like the push. Carbs stay over 200 g either way. */
+var FINISH={from:'2026-11-21',to:'2026-12-02',over:124,trip:'2026-12-03',back:'2026-12-06'};
+function finishOn(is){is=is||today();if(is<FINISH.from||is>FINISH.to)return false;var a=avgWindow(addD(FINISH.from,-1),7);return a.n>=3&&a.avg>FINISH.over;}
 /* ===================== physique camp (Dan, 29 Oct) =====================
    "More focus on building muscle, getting shredded and cellular ageing — I
    still want to improve my times, beat the 5 km, and keep every achievement."
@@ -1020,7 +1029,7 @@ function pushOn(is){return pushState(is).k==='on';}
    the 400 trial. Dan: "we said 400 m". So the one hard run is the trial. */
 var PHYS={from:'2026-10-26'};
 function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
-function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;return upDay(is)?KCAL_UP:KCAL_DAY;}
+function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;if(finishOn(is)){var rr=(S.days[is]||{}).runs||[];return rr.some(function(x){return !runMeta(x).empty;})?1899:1799;}return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
   if(upDay(is))return ci(KCAL_UP)+' — '+(dow(is)===6&&!((S.days[is]||{}).runs||[]).length?'Saturday':'run day');
@@ -3192,8 +3201,8 @@ var CUT_RUNS=[null,
   {adapt:true,long:'10 × 400 m at mile pace',ld:[400],lp:[1609,400],short:'4 × 400 m at 800 pace',sd:[400],sp:[800,400],spr:9},
   {adapt:true,long:'6 × 800 m at 5 km pace',ld:[800],lp:[5000,800],short:'3 × 600 m at 800 pace',sd:[600],sp:[800,600],spr:9},
   {adapt:true,long:'5 × 1 km at mile pace',ld:[1000],lp:[1609,1000],short:'2 × (3 × 200 m) fast',sd:[200],sp:[400,200],spr:9},
-  {long:'Time trial — 1 km or a mile',ld:[1000,1609],short:'Time trial — 400 m or 200 m',sd:[400,200],spr:6,tt:true,note:'Last week of the cut: test if the week is clear, then the reverse starts and the real PB chase with it.'},
-  {long:'Threshold run — comfortably hard for 20 min, by feel',ld:null,short:'6 × 200 m, fast but relaxed',sd:[200],spr:6,note:'Refuel week: the reverse starts. Carbs back in, sessions controlled, no trials — your legs fill up and fresh up for the PB window.'},
+  {long:'Time trial — 1 km or a mile',ld:[1000,1609],short:'Time trial — 400 m or 200 m',sd:[400,200],spr:6,tt:true,note:'Checkpoint week: test if the week is clear. The cut runs to 2 Dec, then your trip, then the PB window.'},
+  {long:'Threshold run — comfortably hard for 20 min, by feel',ld:null,short:'6 × 200 m, fast but relaxed',sd:[200],spr:6,note:'The last three days of the cut, then your trip — sessions controlled, no trials. The trip is the refuel: legs fill up and fresh up for the PB window.'},
   {pbwin:true,spr:0,note:'PB window: the trials are the hard runs.'},
   {pbwin:true,spr:0,note:'PB window: the trials are the hard runs.'},
   {pbwin:true,spr:0,note:'PB window: the trials are the hard runs.'}
@@ -3917,6 +3926,7 @@ function glanceHTML(){
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
+    (decOn(t)?row('🎯','3 Dec optimisation · '+diffD(t,FINISH.trip)+' days',esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · 140 g protein · every gram logged'),'camp'):'')+
     (function(){var CC=calCall();return CC&&CC.k!=='push'&&CC.k!=='rev'?row(CC.e,'Calorie call',esc(CC.t.replace(/^Calories: /,'')),'food'):'';})()+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
@@ -4365,7 +4375,7 @@ function revWatch(){
   var a=avgWindow(t,7).avg,G=CFG.goals;if(a===null)return null;
   var nm=addD(mondayOf(t),7);
   if(a<G.weightLo-0.2)return {k:'below',e:'🛑',t:'Under your range — start the reverse now',w:'Your 7-day average is '+f1(a)+' lb, below 122. Going lower costs muscle, hormones and the face you are after. Say “start the reverse” and I set it up from tomorrow.'};
-  if(a<=G.weightHi)return {k:'goal',e:'🎯',t:'Goal weight — the reverse can start',w:'Your 7-day average is '+f1(a)+' lb, in the 122–123 zone. My call: start the reverse from Monday '+fmtS(nm)+' rather than waiting for '+fmtS(REV_START)+'. Say “start the reverse” and I set it up — the camp carries on, on more food.'};
+  if(a<=G.weightHi)return {k:'goal',e:'🎯',t:'Goal weight — now hold it',w:'Your 7-day average is '+f1(a)+' lb, in the 122–123 zone. Do not lose more: from tomorrow 1,999 a day, the extra as carbs, everything else the same, to your trip on 3 Dec. Say the word and I set it. The reverse proper starts when you are back.'};
   if(t>=REV_DECIDE){var a3=avgWindow(addD(t,-21),7).avg,rate=a3!==null?Math.max(0,(a3-a)/3):0,proj=a-rate*diffD(t,CFG.cutEnd)/7;
     if(proj>G.weightHi+0.5)return {k:'decide',e:'🗓️',t:'Reverse: a choice to make',w:'At your pace you land around '+f1(proj)+' lb on '+fmtS(CFG.cutEnd)+'. Two good options: start the reverse on '+fmtS(REV_START)+' anyway — best for the December PB window — or keep cutting a week or two at 1,899 and I move the PB window back. No wrong answer; tell me which.'};}
   return null;
@@ -8952,6 +8962,7 @@ function renderGoodLife(){
   if(E('physAssess'))E('physAssess').innerHTML=physAssessHTML();
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
+  if(E('decCard'))E('decCard').innerHTML=decOptHTML();
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
@@ -8994,6 +9005,49 @@ function wireGoodLife(){
   });
 }
 
+
+/* ===================== 3 December optimisation (Dan, 31 Oct) =====================
+   The last stretch to the trip: strict counting, 122–124, the most muscle and
+   the best look on 3 Dec — beside the camp, not instead of it. Shows every
+   day from 1 Nov to the trip, with today's non-negotiables ticked from what
+   he has logged, and the dates that decide the food. */
+function decOn(t){t=t||today();return t>='2026-11-01'&&t<FINISH.trip;}
+function decOptHTML(){
+  var t=today();if(!decOn(t))return '';
+  var A=avgWindow(t,7),a=A.n?A.avg:null,left=diffD(t,FINISH.trip),wk=Math.max(0.5,left/7);
+  var need=a!==null?Math.max(0,(a-124)/wk):null,PS=pushState(t),r=S.days[t]||{},y=S.days[addD(t,-1)]||{};
+  var kc=dayTarget(t),stepT=stepTarget(t);
+  var phase=pushOn(t)?'🔥 Push — 1,799 (Saturday 1,999), 14.5k steps':(finishOn(t)?'🎯 Finish — 1,799 on days with no run, 1,899 on run days':(t>=FINISH.from?'Hold — 1,899, you are on track':(PS.k==='pending'?'Strict counting at 1,899 — the scale decides the push on '+fmtS(PUSH.check):'Strict counting at 1,899')));
+  var tick=function(ok,txt){return '<div style="margin:3px 0">'+(ok?'✅':'⬜')+' '+txt+'</div>';};
+  var sleepOk=typeof r.sleep==='number'&&r.sleep>=8;
+  var list=[
+    tick(typeof S.weights[t]==='number','Weigh in — morning, after the toilet, before food'),
+    tick(typeof r.kcal==='number'&&r.kcal>0,'Every gram logged — '+ci(kc)+' kcal, protein 140 g, carbs 200 g+, fat 45–48 g+'),
+    tick(typeof r.steps==='number'&&r.steps>=stepT,ci(stepT)+' steps'),
+    tick(sleepOk,'8–9 h in bed last night'+(typeof r.sleep==='number'?' ('+f1(r.sleep)+' h)':'')),
+    tick(!!(r.skinAM&&r.skinPM),'Skin morning and night — SPF in the morning'),
+    tick(!!r.teeth,'Teeth'),
+    tick(!!r.gym||(r.runs||[]).length>0||dow(t)===6,dow(t)===6?'Saturday: stress-free — nothing to train':'Training as the green light says')];
+  return '<div class="p lift" id="decOpt"><h2>🎯 3 December optimisation</h2>'+
+    '<div class="tiles t3" style="margin:6px 0">'+
+      '<div class="t"><i>days to the trip</i><b class="num">'+left+'</b><span class="tiny">'+fmtS(FINISH.trip)+'</span></div>'+
+      '<div class="t"><i>7-day average</i><b class="num">'+(a!==null?f1(a):'—')+'</b><span class="tiny">target 122–124</span></div>'+
+      '<div class="t"><i>pace needed to 124</i><b class="num">'+(need===null?'—':(need<=0?'there':f1(need)+' lb/wk'))+'</b><span class="tiny">'+(need!==null&&need>1.1?'more than the plan can do safely — 124 may land a week after':'on the 7-day average')+'</span></div></div>'+
+    '<div class="note" style="margin:4px 0 8px"><b>Today’s food:</b> '+phase+'.</div>'+
+    '<b>Today’s non-negotiables</b>'+list.join('')+
+    '<details style="margin-top:8px"><summary><b>The plan to 3 Dec</b></summary>'+
+    '<div class="tiny" style="line-height:1.6;margin-top:6px">'+
+    '<b>1 Nov – 6 Nov · strict counting at 1,899.</b> Weigh everything raw on scales and log it before you eat. Count the oil, honey, squash, sauces and the bits. Same foods most days — Fage 0%, eggs, chicken, fish, venison, potatoes, rice, GF oats, fruit. Accurate counting is often the extra 100–200 a day on its own.<br>'+
+    '<b>7 Nov · push check.</b> Any morning under 126.0 before then = no push. Otherwise 7–20 Nov at 1,799 (Saturday 1,999), 14.5k steps, one 600 m+ hard run and the Norwegian.<br>'+
+    '<b>21 Nov – 2 Dec · the finish.</b> If the 7-day average on 20 Nov is over 124: 1,799 on days with no run, 1,899 on run days. Under it: 1,899 and hold. At 122–123: 1,999 and hold — do not lose more.<br>'+
+    '<b>1–2 Dec · sharpen, safely.</b> Nothing new to eat, carbs normal (they fill the muscle), salt and water exactly as usual, 9 h in bed, haircut, no alcohol. Never cut water or salt — it looks flat, not lean.<br>'+
+    '<b>3–5 Dec · away.</b> Eat well and enjoy it — that is the refuel. Gluten-free, protein at each meal, walk lots.<br>'+
+    '<b>Back 6 Dec · the camp again.</b> The reverse starts, and the PB window: 1 km 7 Dec, 400 10 Dec, 5 km 13 Dec, 800 16 Dec, mile 20 Dec, 200 and 600 23 Dec.'+
+    '</div></details>'+
+    '<details style="margin-top:6px"><summary><b>Muscle and the look, every day to the trip</b></summary><div class="tiny" style="line-height:1.6;margin-top:6px">'+
+    'Gym 4× at build volume for the upper body, 1–2 short of failure, beat last time. Protein 140 g in four feeds, Fage 0% before bed. Carbs around training. Two hard runs on 🟢 days only, the Norwegian at 7/10. Daylight before noon. No alcohol, little fizzy. Posture tall. Waist measured every Sunday.</div></details>'+
+    '<p class="tiny dim" style="margin-top:6px">Never: dehydration, water tablets, laxatives, skipping meals, or under 1,799. Two warning signs together (resting HR up, times dipping, sleep short, feeling low) and the deficit holds — the tracker says so.</p></div>';
+}
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;

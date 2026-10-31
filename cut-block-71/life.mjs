@@ -244,10 +244,10 @@ let bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), l
 ok('on the cut the sets are the cut ranges', bm.bw === 0 && bm.chest.join() === '10,15' && bm.legs.join() === '8,12', JSON.stringify(bm));
 await p.click('[data-t="reverse"]'); await p.waitForTimeout(120);
 let rt = sq(await p.innerText('#revTrain'));
-ok('the Reverse tab previews build mode and when it starts', /build mode, from 29 Nov/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
+ok('the Reverse tab previews build mode and when it starts', /build mode, from 3 Dec/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
 ok('the Training tab has no build card yet', !/Build mode/.test(sq(await p.innerText('#tSets'))));
 await ctx.close();
-for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '12,18', '8,12', /crank up the weights/i], ['2026-12-14', 3, '12,18', '9,13', /add leg sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
+for (const [day, wk, chest, legs, line] of [['2026-12-04', 1, '12,18', '8,12', /crank up the weights/i], ['2026-12-18', 3, '12,18', '9,13', /add leg sets/i], ['2027-01-01', 5, '12,18', '10,14', /full growth range/i]]) {
   ({ ctx, p, boot } = await at(day));
   await boot(st());
   bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs'), sug: coachModel().sug[0] || '' }));
@@ -266,7 +266,7 @@ let rc = sq(await p.innerText('#revCard'));
 ok('the reverse card leads with his order: lean, health, muscle, times', /1 Lean — the angular, chiselled face · 2 Health and recovery/.test(rc) && /3 Muscle · 4 Times/.test(rc), rc.slice(0, 300));
 ok('with the reverse week: 2 hard, 2 easy, gym 5, 11,000 steps', /2 hard · 1–2 easy/.test(rc) && /a 5 mile, a 5 km if fresh/.test(rc) && /4 days/.test(rc) && /About 11,000 a day/.test(rc), rc.slice(0, 600));
 ok('the old "times held, a bit of muscle" plan is gone', !/Times held, not chased|A bit of muscle if it turns up/.test(rc));
-const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-01'), stc: stepTarget('2026-10-05') }; });
+const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-05'), stc: stepTarget('2026-10-05') }; });
 ok('the ladder tops out at reverse-week activity, not cut activity', rv.a > 30 && rv.a < 150 && Math.abs(rv.mc - rv.a - rv.m) <= 10, JSON.stringify(rv));
 ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st === 11000 && rv.stc === 13000, JSON.stringify(rv));
 ok('grass-fed butter and A2 whole milk are on the healthy foods list', await p.evaluate(() => !!hfById('butter') && !!hfById('milkA2')));
@@ -302,7 +302,7 @@ ok('in December the camp is in the PB window', await p.evaluate(() => campPhase(
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-12-01'));
 await boot(st());
-ok('the first reverse week is refuel', await p.evaluate(() => campPhase().k === 'refuel'));
+ok('the last days of the cut are the checkpoint, the trip is the refuel', await p.evaluate(() => campPhase().k === 'check' && campPhase('2026-12-04').k === 'refuel'));
 await ctx.close();
 
 // ===== the fun part: XP, levels, quests, mission, bosses (8 Oct) =====
@@ -698,7 +698,7 @@ ok('above range before 15 Nov: nothing to call', await p.evaluate(() => revWatch
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-16'));
 await boot(st({ weights: wAt('2026-11-16', i => 126 + i * 0.01) }));
-ok('from 15 Nov, projecting well above 123: a calm choice, start anyway or cut a little longer', await p.evaluate(() => { const r = revWatch(); return r && r.k === 'decide' && /start the reverse on 29 Nov anyway/.test(r.w) && /move the PB window back/.test(r.w); }));
+ok('from 15 Nov, projecting well above 123: a calm choice, start anyway or cut a little longer', await p.evaluate(() => { const r = revWatch(); return r && r.k === 'decide' && /start the reverse on 3 Dec anyway/.test(r.w) && /move the PB window back/.test(r.w); }));
 await ctx.close();
 
 // ===== the run ceiling: 4 a week, sprints on top (18 Oct) =====
