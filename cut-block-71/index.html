@@ -4047,7 +4047,7 @@ function coachModel(){
   /* the reverse: the gym call comes first */
   var bw=buildWeek(t);
   if(bw>=1&&bw<=2)sug.unshift('<b>Build mode: crank up the weights.</b> Same sets as the cut, heavier — add a rep or 2.5 kg to every main lift this week.');
-  else if(bw>=3&&bw<=4)sug.unshift('<b>Build mode: add sets.</b> About 2 more hard sets per muscle than on the cut, and keep the weights climbing.');
+  else if(bw>=3&&bw<=4)sug.unshift('<b>Build mode: add leg sets.</b> Upper body is already at build volume; legs go up about 2 hard sets now, and keep the weights climbing.');
   else if(bw===5)sug.unshift('<b>Build mode: full growth range</b> from this week — the Training tab has the sets for each muscle.');
   return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
 }
@@ -4575,7 +4575,7 @@ var PHYS_PLAN=[
   ['🏃','The runs, every week',
    'Two hard runs on 🟢 days, never back to back: one of 600 m and up (800s, 1 km, mile reps) and one speed run of 200–400 m reps. One Norwegian run, 30–40 min at 7 out of 10 (short sentences, never straining), with 6–10 hill sprints of about 10 s at the end, walking back down. A 4th run — a second Norwegian — only when recovery is good. Trials, bosses and XP all stay, the 5 km included. Saturday stress-free.'],
   ['🏋️','The gym, four days — the priority',
-   'Your split: shoulders + forearms, chest + triceps, back + biceps, legs. Main lifts 6–12 reps, stopping 1–2 short of failure; the last set of an isolation move can go to failure. Beat last time on one main lift every session. Side raises on 2–3 days for width. Legs now 8–12 hard sets (less running leaves room). Leave 24 h between legs and the hard run where you can.'],
+   'Your split: shoulders + forearms, chest + triceps, back + biceps, legs — at build volume from 2 Nov: chest, shoulders 12–18 hard sets a week, back 14–20, biceps and triceps 8–14, forearms 6–10; legs stay 8–12 for the running. About 6–10 hard sets per muscle in one session is the useful limit, so the rest goes on a second day: side raises on 2–3 days, pull-ups on the calisthenics day, a few arm sets on another session. Main lifts 6–12 reps, 1–2 short of failure. Beat last time on one main lift every session. Leave 24 h between legs and the hard run where you can.'],
   ['🥩','Protein — 140 g, four feeds of about 35 g',
    'Fage 0% is the base — 200–300 g a day, the protein that got you shredded in 2024–25. Breakfast: 200 g Fage 0% + 2 eggs. Lunch: 120 g chicken or turkey, or a tin of salmon or sardines. Tea: 150 g lean beef, cod or salmon. Evening: the yoghurt or cottage cheese bowl — slow casein through the night. Oily fish (salmon, sardines, mackerel) 2–3 times a week for the skin and the cells. Oats certified GF.'],
   ['🍚','Carbs and the full look',
@@ -7612,10 +7612,16 @@ var SPLIT_MUSCLES={chest:['Chest','Triceps'],back:['Back','Biceps'],delts:['Shou
    sets follow: weeks 1–2 (the calorie hold) keep cut volume and push the
    load, weeks 3–4 sit halfway, and from week 5 it is the full growth range. */
 function buildWeek(t){t=t||today();return t>=REV_START?Math.floor(diffD(REV_START,t)/7)+1:0;}
+/* Dan, 31 Oct: "I want the build sets now." From 2 Nov every upper-body
+   muscle trains in its build (growth) range on the cut. Legs stay at 8–12
+   until the reverse — two hard runs a week already load them, and more leg
+   sets would cost the times. */
+var SETS_BUILD_FROM='2026-11-02';
 function setsRange(m){
   var bw=buildWeek();
   for(var i=0;i<CFG.sets.length;i++)if(CFG.sets[i].m===m){
     var c=CFG.sets[i].cut,r=CFG.sets[i].rev;
+    if(m!=='Legs'&&today()>=SETS_BUILD_FROM)return r;
     if(!bw)return c;
     if(bw<=2)return c;
     if(bw<=4)return [Math.round((c[0]+r[0])/2),Math.round((c[1]+r[1])/2)];
@@ -7629,7 +7635,7 @@ function buildHTML(preview){
   var bw=buildWeek(),stage=!bw?0:(bw<=2?1:(bw<=4?2:3));
   var rows=CFG.sets.map(function(x){return '<tr><td>'+x.m+'</td><td class="n">'+x.cut[0]+'–'+x.cut[1]+'</td><td class="n"><b>'+x.rev[0]+'–'+x.rev[1]+'</b></td></tr>';}).join('');
   var now=['','<b>Weeks 1–2: crank up the weights.</b> Same sets as the cut — the extra food goes into heavier lifts first. Glycogen is back, so you will be stronger within days: add weight wherever the reps allow.',
-    '<b>Weeks 3–4: add sets.</b> About 2 more hard sets per muscle than on the cut, and keep the weights climbing.',
+    '<b>Weeks 3–4: add leg sets.</b> Upper body is already at build volume from 2 Nov; legs go up about 2 hard sets, and keep the weights climbing.',
     '<b>Full build.</b> The growth range for every muscle — and the weights keep going up every week.'][stage];
   return '<div class="p lift"><h2>🏗️ '+(preview?'The reverse: build mode, from '+fmtS(REV_START):'Build mode · reverse week '+bw)+'</h2>'+
     (stage?'<p class="lede" style="margin:0 0 8px">'+now+'</p>':'<p class="lede" style="margin:0 0 8px">On '+fmtL(REV_START)+' the goal flips from keeping muscle to <b>building as much as you can while staying shredded</b>. This is when the weights go up.</p>')+

@@ -247,7 +247,7 @@ let rt = sq(await p.innerText('#revTrain'));
 ok('the Reverse tab previews build mode and when it starts', /build mode, from 29 Nov/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
 ok('the Training tab has no build card yet', !/Build mode/.test(sq(await p.innerText('#tSets'))));
 await ctx.close();
-for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '10,15', '8,12', /crank up the weights/i], ['2026-12-14', 3, '11,17', '9,13', /add sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
+for (const [day, wk, chest, legs, line] of [['2026-11-30', 1, '12,18', '8,12', /crank up the weights/i], ['2026-12-14', 3, '12,18', '9,13', /add leg sets/i], ['2026-12-28', 5, '12,18', '10,14', /full growth range/i]]) {
   ({ ctx, p, boot } = await at(day));
   await boot(st());
   bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs'), sug: coachModel().sug[0] || '' }));
@@ -889,6 +889,12 @@ await ctx.close();
 await boot(st({ weights: Object.assign(wtsC('2026-11-02', Array.from({ length: 22 }, () => 125.6))) }));
 CCx = await p.evaluate(() => calCall());
 ok('flat two weeks after the push: steps first, then rest days to 1,799', CCx.k === 'down' && /2,000 more steps/.test(CCx.w) && /1,799/.test(CCx.w), JSON.stringify(CCx));
+await ctx.close();
+// build sets now (31 Oct): upper body at build volume from 2 Nov, legs stay 8–12
+({ ctx, p, boot } = await at('2026-11-03'));
+await boot(st());
+const BS = await p.evaluate(() => ({ c: setsRange('Chest').join(), b: setsRange('Back').join(), l: setsRange('Legs').join() }));
+ok('from 2 Nov upper body trains at build volume, legs stay 8–12', BS.c === '12,18' && BS.b === '14,20' && BS.l === '8,12', JSON.stringify(BS));
 await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
