@@ -87,6 +87,10 @@ export function readiness(d: AppData, date: ISODate = todayISO()): Readiness {
   } else if (c.flags.includes('heavy-legs')) {
     score = Math.min(score, 62);
   }
+  if (c.niggle) {
+    score = Math.min(score, 58);
+    drivers.push({ label: `Something hurts (${c.niggle})`, effect: 'down' });
+  }
 
   const band: ReadinessBand = score >= 75 ? 'high' : score >= 60 ? 'normal' : score >= 45 ? 'reduced' : 'low';
   return { score: Math.round(score), band, drivers, missing, override };

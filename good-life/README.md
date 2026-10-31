@@ -28,7 +28,7 @@ First run offers three routes: set up a profile (about two minutes), import a fi
 
 | Section | What it does |
 | --- | --- |
-| **Today** | 20-second check-in; one-tap flags (*exhausted, brilliant, heavy legs, only 45 min, deadline, sunshine, social*); three options — optimal, balanced, recovery — with the recommended one marked and the trade-offs explained; nutrition, recovery, study and lifestyle lines for the day; the week at a glance |
+| **Today** | One daily log card that saves as you type — weight, resting HR, bed and wake times (time in bed worked out), energy, sleep quality, stress, legs, steps, kcal eaten, study hours per module, a gym tick, runs, habits, *something hurts* and *feeling ill*, and a note; the **+** button opens the same card from any screen; one-tap flags (*exhausted, brilliant, heavy legs, only 45 min, deadline, sunshine, social*); three options — optimal, balanced, recovery — with the recommended one marked and the trade-offs explained; nutrition, recovery, study and lifestyle lines for the day; the week at a glance |
 | **Performance → Running** | Current fitness (from *recent* results, not lifetime bests), pace zones, honest goal horizons, "soft PB" detection, session ladders that climb, repeat or step down from what you log, a post-run analysis, weekly volume by intensity |
 | **Performance → Gym** | Your four-day split, tuned for shoulders, upper chest, lat width, arms and abs; set-by-set logger pre-filled by double progression; weekly hard sets per muscle against target ranges; e1RM trends; a plateau check that looks at sleep, energy, running load and effort *before* suggesting more sets |
 | **Performance → Weekly plan** | Template week (Saturday rest; legs after the second quality run) plus this-week moves and swaps, with clash warnings |
@@ -69,7 +69,7 @@ Every cited source is in `src/data/sources.ts` with its year, type (meta-analysi
 
 ## Not built (yet), stated plainly
 
-- **Strava / watch import** — log runs manually; rep times can be pasted in one line ("3:24 3:25 3:23").
+- **Live Strava sync** — Strava's API terms rule out feeding its data to an AI coach from a third-party app, so the app does not connect to Strava. Past runs can arrive once inside a starting-profile link (each keeps its Strava id, so opening the link twice adds nothing); from then on, runs go in the daily log, with how hard they felt, which Strava does not record.
 - **Cloud sync and accounts** (e.g. Supabase) — use export/import between devices.
 - **Live Vinted listings** — Vinted has no public API; the app builds searches that open on Vinted and never invents listings.
 - **Streaming availability and critic ratings** — these change, so films link to JustWatch UK and Letterboxd instead.

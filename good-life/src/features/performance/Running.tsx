@@ -161,6 +161,7 @@ export function RunningTab() {
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="w-20 text-muted">{formatDay(r.date)}</span>
                         <span className="font-medium">{RUN_TYPE_LABEL[r.type]}</span>
+                        {r.title && <span className="min-w-0 max-w-full truncate text-muted">{r.title}</span>}
                         <span className="tabular text-ink-2">{r.distanceKm.toFixed(1)} km · {formatDuration(r.durationSec)}</span>
                         {r.reps?.length ? <span className="tabular text-xs text-muted">{r.reps.length} × {r.reps[0].distanceM} m</span> : null}
                         <Badge tone={a.verdict === 'progress' || a.verdict === 'easy-ok' ? 'good' : ['regress', 'too-fast', 'easy-too-fast'].includes(a.verdict) ? 'warn' : 'neutral'}>{a.verdict.replace(/-/g, ' ')}</Badge>

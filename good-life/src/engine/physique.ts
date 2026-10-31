@@ -131,7 +131,7 @@ export function exerciseEnergy(d: AppData, date: ISODate, kg: number): number {
 
 export function dayIntake(d: AppData, date: ISODate, kcalOf: (foodId: string, g: number) => number): number | null {
   const entries = d.food.filter((f) => f.date === date);
-  if (!entries.length) return null;
+  if (!entries.length) return d.checkIns[date]?.kcalEaten ?? null;
   return entries.reduce((s, f) => s + kcalOf(f.foodId, f.grams), 0);
 }
 

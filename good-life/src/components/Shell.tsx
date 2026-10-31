@@ -7,8 +7,8 @@ import {
 import { diffDays, todayISO } from '@/lib/dates';
 import { hasDemoData, useStore } from '@/store/store';
 import { ROADMAP } from '@/engine/review';
-import { CheckInForm, FoodAdder, LifeForm, RunForm, StudyForm, WeightForm } from './forms';
-import { Button, Sheet, Tabs, cx } from './ui';
+import { DayLog } from './DayLog';
+import { Button, Sheet, cx } from './ui';
 
 export const NAV = [
   { to: '/', label: 'Today', icon: Sun, group: 'Daily' },
@@ -28,13 +28,11 @@ export const NAV = [
 
 const MOBILE = ['/', '/performance', '/nutrition', '/university'];
 
-type QuickTab = 'checkin' | 'run' | 'weight' | 'food' | 'study' | 'life';
-
 export function Shell({ children }: { children: ReactNode }) {
   const data = useStore((s) => s.data);
   const storageError = useStore((s) => s.storageError);
   const clearDemo = useStore((s) => s.clearDemo);
-  const [quick, setQuick] = useState<QuickTab | null>(null);
+  const [quick, setQuick] = useState(false);
   const [more, setMore] = useState(false);
   const notice = useStore((s) => s.notice);
   const setNotice = useStore((s) => s.setNotice);
@@ -111,7 +109,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Quick log */}
       <button
         type="button"
-        onClick={() => setQuick('checkin')}
+        onClick={() => setQuick(true)}
         aria-label="Quick log"
         className="fixed bottom-20 right-4 z-30 grid h-14 w-14 place-items-center rounded-full bg-navy text-navy-ink shadow-card transition-transform hover:scale-105 lg:bottom-8 lg:right-8"
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
@@ -150,26 +148,11 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <Sheet open={quick != null} onClose={() => setQuick(null)} title="Quick log">
-        <Tabs<QuickTab>
-          value={quick ?? 'checkin'}
-          onChange={setQuick}
-          tabs={[
-            { value: 'checkin', label: 'Check-in' },
-            { value: 'run', label: 'Run' },
-            { value: 'weight', label: 'Weight' },
-            { value: 'food', label: 'Food' },
-            { value: 'study', label: 'Study' },
-            { value: 'life', label: 'Life' },
-          ]}
-        />
-        {quick === 'checkin' && <CheckInForm onDone={() => setQuick(null)} />}
-        {quick === 'run' && <RunForm onDone={() => setQuick(null)} />}
-        {quick === 'weight' && <WeightForm onDone={() => setQuick(null)} />}
-        {quick === 'food' && <FoodAdder onDone={() => setQuick(null)} />}
-        {quick === 'study' && <StudyForm onDone={() => setQuick(null)} />}
-        {quick === 'life' && <LifeForm onDone={() => setQuick(null)} />}
-        <p className="mt-4 text-center text-xs text-muted">Gym sessions are logged set-by-set in Performance → Gym.</p>
+      <Sheet open={quick} onClose={() => setQuick(false)} title="Daily log">
+        <DayLog compact />
+        <p className="mt-6 border-t border-line pt-4 text-center text-xs text-muted">
+          More detail when it is worth it: <NavLink to="/performance?tab=gym" onClick={() => setQuick(false)} className="underline">gym sets</NavLink> · <NavLink to="/nutrition" onClick={() => setQuick(false)} className="underline">food by item</NavLink> · <NavLink to="/university" onClick={() => setQuick(false)} className="underline">study by topic</NavLink> · <NavLink to="/lifestyle" onClick={() => setQuick(false)} className="underline">life</NavLink>
+        </p>
       </Sheet>
     </div>
   );

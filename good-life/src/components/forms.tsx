@@ -137,6 +137,7 @@ export function RunForm({ prescription, initial, onDone }: { prescription?: Pres
       id: initial?.id ?? uid('run-'),
       date,
       type,
+      title: initial?.title,
       distanceKm,
       durationSec,
       reps,
@@ -266,7 +267,7 @@ export function WeightForm({ onDone }: { onDone?: () => void }) {
   );
 }
 
-const ACTIVITY_LABEL: Record<StudyActivity, string> = { reading: 'Reading', notes: 'Detailed notes', recall: 'Active recall', flashcards: 'Flashcards', assignment: 'Assignment', revision: 'Revision', tutorial: 'Tutorial' };
+const ACTIVITY_LABEL: Record<StudyActivity, string> = { reading: 'Reading', notes: 'Detailed notes', recall: 'Active recall', flashcards: 'Flashcards', assignment: 'Assignment', revision: 'Revision', tutorial: 'Tutorial', daily: 'Daily total' };
 
 export function StudyForm({ onDone, preset }: { onDone?: () => void; preset?: { moduleCode?: string; activity?: string } }) {
   const modules = useStore((s) => s.data.modules);

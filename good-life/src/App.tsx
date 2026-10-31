@@ -63,7 +63,8 @@ function useLinkImport(hydrated: boolean) {
           return;
         }
         replaceAll({ ...mergeStartingProfile(data, incoming), settings: { ...data.settings, ...(incoming.settings ?? {}), onboarded: true } });
-        useStore.getState().setNotice('Your starting profile is loaded. Check-ins, runs and weigh-ins from here on are what make the coaching personal.');
+        const runs = incoming.runs?.length ? `, with ${incoming.runs.length} runs from Strava` : '';
+        useStore.getState().setNotice(`Your starting profile is loaded${runs}. What you log from here on is what makes the coaching personal.`);
         clearLinkImport();
         setState('idle');
       } catch (e) {

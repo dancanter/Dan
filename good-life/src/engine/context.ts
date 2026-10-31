@@ -75,7 +75,7 @@ export function buildContext(d: AppData, today: ISODate = todayISO()): string {
     const c = d.checkIns[dt];
     if (!c) continue;
     const rd = readiness(d, dt);
-    L.push(`- ${dt}: sleep ${c.sleepHours ?? '?'} h (quality ${c.sleepQuality ?? '?'}/5), energy ${c.energy ?? '?'}/5, soreness ${c.soreness ?? '?'}/5, legs ${c.legs ?? '?'}, stress ${c.stress ?? '?'}/5${c.restingHr ? `, MEASURED RHR ${c.restingHr}` : ''}${c.hrv ? `, MEASURED HRV ${c.hrv}` : ''}${c.flags.length ? `, flags: ${c.flags.join(', ')}` : ''}${c.illness && c.illness !== 'none' ? `, ILLNESS ${c.illness}` : ''}. ESTIMATED readiness ${rd.band ?? '?'}.`);
+    L.push(`- ${dt}: sleep ${c.sleepHours ?? '?'} h (quality ${c.sleepQuality ?? '?'}/5), energy ${c.energy ?? '?'}/5, soreness ${c.soreness ?? '?'}/5, legs ${c.legs ?? '?'}, stress ${c.stress ?? '?'}/5${c.restingHr ? `, MEASURED RHR ${c.restingHr}` : ''}${c.hrv ? `, MEASURED HRV ${c.hrv}` : ''}${c.flags.length ? `, flags: ${c.flags.join(', ')}` : ''}${c.illness && c.illness !== 'none' ? `, ILLNESS ${c.illness}` : ''}${c.niggle ? `, PAIN "${c.niggle.slice(0, 80)}"` : ''}${c.steps ? `, steps ${c.steps}` : ''}${c.kcalEaten ? `, REPORTED intake ${c.kcalEaten} kcal` : ''}. ESTIMATED readiness ${rd.band ?? '?'}.`);
   }
   const st = trainingState(d, today);
   L.push(`ESTIMATED training state: ${st.label}. ${st.evidence.join(' ')}`);

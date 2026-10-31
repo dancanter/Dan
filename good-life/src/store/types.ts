@@ -69,6 +69,7 @@ export type DayFlag =
   | 'social'
   | 'travel';
 export type Illness = 'none' | 'above-neck' | 'below-neck' | 'fever';
+export type Habit = 'no-phone' | 'meditation' | 'skin-am' | 'skin-pm' | 'teeth';
 
 export interface CheckIn {
   date: ISODate;
@@ -86,7 +87,12 @@ export interface CheckIn {
   hrv?: number;
   steps?: number;
   meditationMin?: number;
+  /** A day's total when food isn't logged item by item. */
+  kcalEaten?: number;
+  habits?: Habit[];
   illness?: Illness;
+  /** Something hurts: where and what, in Dan's words. */
+  niggle?: string;
   flags: DayFlag[];
   timeAvailableMin?: number | null;
   notes?: string;
@@ -240,7 +246,7 @@ export interface Assessment {
   notes?: string;
 }
 
-export type StudyActivity = 'reading' | 'notes' | 'recall' | 'flashcards' | 'assignment' | 'revision' | 'tutorial';
+export type StudyActivity = 'reading' | 'notes' | 'recall' | 'flashcards' | 'assignment' | 'revision' | 'tutorial' | 'daily';
 
 export interface StudySession extends Base {
   date: ISODate;

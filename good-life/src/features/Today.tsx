@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, BookOpen, Dumbbell, Footprints, Moon, Salad, Sparkles, Sun } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookOpen, Dumbbell, Footprints, Moon, Salad, Sun } from 'lucide-react';
 import { addDays, formatLong, todayISO, weekday, WEEKDAYS_SHORT } from '@/lib/dates';
 import { describeWeather, useWeather } from '@/lib/weather';
 import { useStore } from '@/store/store';
@@ -10,7 +10,8 @@ import { dayPlan, describeDay, weekDates, type Prescription } from '@/engine/pla
 import { ROADMAP } from '@/engine/review';
 import { DAY_TYPE_LABEL } from '@/engine/nutrition';
 import { HARD_TYPES } from '@/engine/running';
-import { CheckInForm, FlagChips, RunForm, StudyForm } from '@/components/forms';
+import { RunForm, StudyForm } from '@/components/forms';
+import { DayLog } from '@/components/DayLog';
 import { Badge, Button, Card, Note, Sheet, cx } from '@/components/ui';
 
 const LEVEL_TONE = { green: 'good', amber: 'warn', red: 'bad', unknown: 'neutral' } as const;
@@ -21,13 +22,12 @@ export default function Today() {
   const { weather } = useWeather(data.profile.location);
   const plan = useMemo(() => buildToday(data, today, weather), [data, today, weather]);
   const [choice, setChoice] = useState<OptionKey | null>(null);
-  const [sheet, setSheet] = useState<null | 'checkin' | 'run' | 'study'>(null);
+  const [sheet, setSheet] = useState<null | 'run' | 'study'>(null);
   const [runRx, setRunRx] = useState<Prescription | null>(null);
   const [studyPreset, setStudyPreset] = useState<{ moduleCode?: string; activity?: string }>();
   const nav = useNavigate();
   const active = choice ?? plan.recommended;
   const opt = plan.options.find((o) => o.key === active)!;
-  const checkIn = data.checkIns[today];
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const isReviewDay = weekday(today) === 1 && !data.reviews.some((r) => r.kind === 'weekly' && r.created.slice(0, 10) >= addDays(today, -1));
@@ -44,17 +44,9 @@ export default function Today() {
             {weather && <span className="text-muted">· {describeWeather(weather.code)}, {Math.round(weather.tempMax)}°C{weather.precipProb >= 40 ? `, ${weather.precipProb}% rain` : ''}</span>}
           </div>
         </div>
-        {!checkIn ? (
-          <Button variant="primary" onClick={() => setSheet('checkin')}><Sparkles size={16} /> 20-second check-in</Button>
-        ) : (
-          <Button onClick={() => setSheet('checkin')}>Edit check-in</Button>
-        )}
       </header>
 
-      <div>
-        <div className="mb-1.5 text-xs text-muted">How is today, really?</div>
-        <FlagChips date={today} />
-      </div>
+      <DayLog />
 
       {plan.warnings.length > 0 && (
         <Note tone="bad">
@@ -147,7 +139,6 @@ export default function Today() {
         </Card>
       )}
 
-      <Sheet open={sheet === 'checkin'} onClose={() => setSheet(null)} title="Morning check-in"><CheckInForm onDone={() => setSheet(null)} /></Sheet>
       <Sheet open={sheet === 'run'} onClose={() => setSheet(null)} title="Log run"><RunForm prescription={runRx} onDone={() => setSheet(null)} /></Sheet>
       <Sheet open={sheet === 'study'} onClose={() => setSheet(null)} title="Log study"><StudyForm preset={studyPreset} onDone={() => setSheet(null)} /></Sheet>
     </div>

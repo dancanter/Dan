@@ -263,3 +263,31 @@ describe('coach and reviews', () => {
     expect(r.highestValue.length).toBeGreaterThan(0);
   });
 });
+
+describe('daily log inputs', () => {
+  it('uses a typed kcal total when food is not logged item by item', () => {
+    const d = base();
+    const y = addDays(TODAY, -1);
+    d.checkIns[y] = { date: y, flags: [], kcalEaten: 1800 };
+    expect(energyAvailability(d, kcalOf(d), TODAY).daysWithIntake).toBe(1);
+  });
+  it('treats pain as a reason to hold back and says so', () => {
+    const d = base();
+    d.checkIns[TODAY] = { date: TODAY, flags: [], sleepHours: 9, energy: 5, legs: 'fresh', niggle: 'left achilles, tight' };
+    expect(readiness(d, TODAY).score!).toBeLessThanOrEqual(58);
+    const t = buildToday(d, TODAY);
+    expect(t.level).toBe('amber');
+    expect(t.warnings.join(' ')).toMatch(/left achilles/);
+  });
+});
+
+describe('run context from titles', () => {
+  it('reads heat and fuelling from a Strava title without mistaking hills for illness', () => {
+    const hot = analyseRun(run({ type: 'speed', title: '4x300 m in 28 degree suppose to be 5 but too hot' }), null);
+    expect(hot.points.join(' ')).toMatch(/heat/);
+    const hill = analyseRun(run({ type: 'speed', title: '2x200 m half uphill hill 3 x 200 m flat sprints' }), null);
+    expect(hill.points.join(' ')).not.toMatch(/unwell/);
+    const ill = analyseRun(run({ notes: 'felt ill' }), null);
+    expect(ill.points.join(' ')).toMatch(/unwell/);
+  });
+});

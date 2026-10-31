@@ -464,10 +464,10 @@ const LEG_COST: Record<LegFeel, number> = { fresh: 0, normal: 0, heavy: 1, sore:
 
 const CONTEXT_WORDS: [RegExp, string][] = [
   [/wind|windy|gust/i, 'You noted wind — a headwind can cost several seconds per km, so judge effort over pace.'],
-  [/heat|hot|\b2[5-9]\s?°?c?\b|\b3\d\s?°?c?\b|humid/i, 'You noted heat. Expect slower paces at the same effort; heat is a real cost, not a fitness problem.'],
+  [/heat|\bhot\b|\b2[5-9]\s?°?c?\b|\b3\d\s?°?c?\b|humid/i, 'You noted heat. Expect slower paces at the same effort; heat is a real cost, not a fitness problem.'],
   [/deficit|low carb|no carbs|not enough carbs|fasted|hungry|under.?fuel/i, 'You noted low fuelling. Quality sessions run on muscle glycogen; under-fuelled sessions feel harder and adapt less. Carbohydrate in the 2–4 h before is part of the session.'],
-  [/legs? (were|was|felt)? ?(sore|heavy|dead)|after legs|leg day/i, 'Your notes mention heavy or sore legs from lifting. Keep heavy lower-body work at least ~48 h away from the next quality run.'],
-  [/ill|cold|sick|sore throat/i, 'You noted feeling unwell. Below-the-neck symptoms or a temperature mean rest, not training.'],
+  [/legs? (were|was|felt|too)? ?(sore|heavy|dead)|after legs|leg day/i, 'Your notes mention heavy or sore legs from lifting. Keep heavy lower-body work at least ~48 h away from the next quality run.'],
+  [/\b(ill|unwell|cold|sick)\b|sore throat/i, 'You noted feeling unwell. Below-the-neck symptoms or a temperature mean rest, not training.'],
   [/gps|watch/i, 'GPS noted as unreliable — on a track, use lap counts rather than the watch.'],
 ];
 
@@ -492,7 +492,8 @@ export function analyseRun(run: RunLog, zones: PaceZones | null): RunAnalysis {
     actualPace = run.durationSec / run.distanceKm;
   }
 
-  for (const [re, msg] of CONTEXT_WORDS) if (run.notes && re.test(run.notes)) points.push(msg);
+  const said = [run.title, run.notes].filter(Boolean).join(' ');
+  for (const [re, msg] of CONTEXT_WORDS) if (said && re.test(said)) points.push(msg);
 
   if (run.type === 'race' || run.type === 'time-trial') {
     return {

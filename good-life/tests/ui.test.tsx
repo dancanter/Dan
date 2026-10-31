@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { ComponentType } from 'react';
 import { useStore } from '@/store/store';
@@ -19,6 +19,9 @@ import Lifestyle from '@/features/Lifestyle';
 import Analytics from '@/features/Analytics';
 import Coach from '@/features/Coach';
 import Settings from '@/features/Settings';
+import { hoursInBed } from '@/components/DayLog';
+import { mergeStartingProfile } from '@/lib/backup';
+import { todayISO } from '@/lib/dates';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline in tests'))));
@@ -86,5 +89,46 @@ describe('profile link', () => {
     const data = await readLinkImport(`#import=z.${z}`);
     expect(data.profile?.name).toBe('Test');
     await expect(readLinkImport('#import=j.bm9wZQ')).rejects.toThrow();
+  });
+});
+
+describe('daily log', () => {
+  it('works out time in bed across midnight', () => {
+    expect(hoursInBed('23:00', '07:15')).toBe(8.25);
+    expect(hoursInBed('00:30', '08:30')).toBe(8);
+    expect(hoursInBed(undefined, '07:00')).toBeUndefined();
+  });
+
+  it('saves as you type, with no Save button', () => {
+    page(Today);
+    const today = todayISO();
+    fireEvent.change(screen.getByLabelText(/^Weight/), { target: { value: '126.4' } });
+    fireEvent.change(screen.getByLabelText(/^Steps/), { target: { value: '13200' } });
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Energy' })).getByRole('radio', { name: '4' }));
+    const d = useStore.getState().data;
+    expect(d.weights.find((w) => w.date === today && !w.demo)?.kg).toBeCloseTo(126.4 * 0.45359237, 2);
+    expect(d.checkIns[today].steps).toBe(13200);
+    expect(d.checkIns[today].energy).toBe(4);
+    expect(screen.queryByRole('button', { name: /save check-in/i })).toBeNull();
+  });
+
+  it('logs a gym tick and a quick run', () => {
+    page(Today);
+    const today = todayISO();
+    fireEvent.click(screen.getByRole('button', { name: /^Gym/ }));
+    expect(useStore.getState().data.gym.some((g) => g.id === `gym-quick-${today}`)).toBe(true);
+    const before = useStore.getState().data.runs.length;
+    fireEvent.change(screen.getByPlaceholderText('8.0'), { target: { value: '8.04' } });
+    fireEvent.change(screen.getByPlaceholderText('40:30'), { target: { value: '41:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add run' }));
+    expect(useStore.getState().data.runs.length).toBe(before + 1);
+  });
+
+  it('merges imported runs once, however many times the link is opened', () => {
+    const d = emptyData();
+    const runs = [{ id: 'strava-1', date: '2026-10-28', type: 'threshold' as const, distanceKm: 4.8, durationSec: 1012 }];
+    const once = mergeStartingProfile(d, { runs });
+    const twice = mergeStartingProfile(once, { runs });
+    expect(twice.runs.filter((r) => r.id === 'strava-1')).toHaveLength(1);
   });
 });

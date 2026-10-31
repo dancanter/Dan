@@ -74,6 +74,10 @@ export function mergeStartingProfile(current: AppData, incoming: Partial<AppData
   if (incoming.modules?.length) out.modules = incoming.modules;
   if (incoming.foodTolerance) out.foodTolerance = { ...current.foodTolerance, ...incoming.foodTolerance };
   if (incoming.settings) out.settings = { ...current.settings, ...incoming.settings };
+  if (incoming.runs?.length) {
+    const have = new Set(current.runs.map((r) => r.id));
+    out.runs = [...current.runs, ...incoming.runs.filter((r) => !have.has(r.id))];
+  }
   if (incoming.weights?.length) {
     const have = new Set(current.weights.map((w) => w.id));
     out.weights = [...current.weights, ...incoming.weights.filter((w) => !have.has(w.id))];

@@ -66,13 +66,14 @@ export function buildToday(d: AppData, date: ISODate = todayISO(), weather?: Wea
   let level: TodayPlan['level'] = 'unknown';
   if (ill === 'fever' || ill === 'below-neck') level = 'red';
   else if (r.band === 'low' || hasFlag(flags, 'exhausted')) level = 'red';
-  else if (r.band === 'reduced' || s.kind === 'accumulated-fatigue' || s.kind === 'insufficient-recovery' || hasFlag(flags, 'heavy-legs')) level = 'amber';
+  else if (r.band === 'reduced' || s.kind === 'accumulated-fatigue' || s.kind === 'insufficient-recovery' || hasFlag(flags, 'heavy-legs') || c?.niggle) level = 'amber';
   else if (r.band === 'high' || r.band === 'normal') level = 'green';
 
-  if (!c) reasons.push('No check-in yet — the recommendation follows your plan. A 20-second check-in makes it adapt to how you actually are.');
+  if (!c) reasons.push('Nothing logged yet today, so the recommendation follows your plan. Sleep, energy and legs in today’s log make it adapt to how you actually are.');
   if (r.band) reasons.push(`Readiness: ${r.band}${r.drivers.length ? ` (${r.drivers.slice(0, 3).map((x) => x.label.toLowerCase()).join(', ')})` : ''}.`);
   if (s.kind !== 'steady' && s.kind !== 'insufficient-data') reasons.push(`${s.label}: ${s.summary}`);
   if (r.override) warnings.push(r.override);
+  if (c?.niggle) warnings.push(`You logged pain: ${c.niggle}. Nothing hard that loads it today. If it is sharp, getting worse, or changes how you run, stop and have it looked at by a GP or physio.`);
   if (ill === 'above-neck') warnings.push('Above-the-neck cold only: an easy run is acceptable if you feel fine once moving. Stop if you feel worse; no hard sessions until it clears.');
 
   // ── Should the next quality session come forward? ──

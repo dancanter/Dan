@@ -127,6 +127,8 @@ function SessionLogger({ split, onClose }: { split: Exclude<SplitId, 'other'>; o
       .map((d) => ({ exerciseId: d.exerciseId, sets: d.sets.filter((s) => s.done).map((s) => ({ reps: Number(s.reps), loadKg: Number(s.load) || 0, rir: s.rir === '' ? undefined : Number(s.rir) })) }))
       .filter((e) => e.sets.length);
     upsert('gym', { id: uid('gym-'), date, split, exercises, rpe: Number(rpe) || undefined, durationMin: Number(duration) || undefined });
+    // A tick in the daily log is a placeholder until the sets arrive.
+    useStore.getState().remove('gym', `gym-quick-${date}`);
     onClose();
   };
   const doneCount = drafts.reduce((a, d) => a + d.sets.filter((s) => s.done).length, 0);
