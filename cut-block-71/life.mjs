@@ -896,6 +896,24 @@ await boot(st());
 const BS = await p.evaluate(() => ({ c: setsRange('Chest').join(), b: setsRange('Back').join(), l: setsRange('Legs').join() }));
 ok('from 2 Nov upper body trains at build volume, legs stay 8–12', BS.c === '12,18' && BS.b === '14,20' && BS.l === '8,12', JSON.stringify(BS));
 await ctx.close();
+// 3 Dec optimisation (31 Oct): the card, the finish phase and the trials before Christmas
+({ ctx, p, boot } = await at('2026-11-02'));
+await boot(st({ weights: { '2026-11-01': 127.0, '2026-11-02': 126.8 }, days: { '2026-11-02': { kcal: 1899, steps: 13500 } } }));
+let DO = await p.evaluate(() => ({ h: decOptHTML(), g: E('glanceCard').innerText, k: dayTarget(today()) }));
+ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to the trip/.test(DO.h) && /Strict counting at 1,899/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1899, DO.h.slice(0, 300));
+ok('and Today has a row for it', /3 Dec optimisation · 31 days/i.test(DO.g), DO.g.slice(0, 400));
+await ctx.close();
+const fw = {}; for (let i = 0; i < 10; i++) { const d = new Date('2026-11-14T12:00:00'); d.setDate(d.getDate() + i); fw[d.toISOString().slice(0, 10)] = 125.0; }
+({ ctx, p, boot } = await at('2026-11-23'));
+await boot(st({ weights: fw, days: { '2026-11-23': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 330 }] } } }));
+DO = await p.evaluate(() => ({ on: finishOn(today()), run: dayTarget(today()), rest: dayTarget('2026-11-24') }));
+ok('over 124 on 20 Nov: the finish — 1,799 with no run, 1,899 on run days', DO.on && DO.run === 1899 && DO.rest === 1799, JSON.stringify(DO));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-11-23'));
+await boot(st({ weights: Object.fromEntries(Object.keys(fw).map(k => [k, 123.6])) }));
+ok('under 124 on 20 Nov: no finish, 1,899', await p.evaluate(() => !finishOn(today()) && dayTarget('2026-11-24') === 1899));
+ok('the trials sit just before Christmas: 5 km 13, 1 km 16, 400 18, mile 20, 800 22, 200 and 600 23 Dec', await p.evaluate(() => { const o = {}; CFG.camp.pb.forEach(x => o[x.dm] = x.on); return o[5000] === '2026-12-13' && o[1000] === '2026-12-16' && o[400] === '2026-12-18' && o[1609] === '2026-12-20' && o[800] === '2026-12-22' && o[200] === '2026-12-23' && o[600] === '2026-12-23' && CFG.cutEnd === '2026-12-02' && campPhase('2026-12-10').k === 'refuel' && campPhase('2026-12-13').k === 'pb'; }));
+await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
 await boot(st());
