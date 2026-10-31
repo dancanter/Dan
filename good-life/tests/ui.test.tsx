@@ -86,7 +86,7 @@ describe('profile link', () => {
     const file = { app: 'the-good-life', kind: 'starting-profile', data: { profile: { name: 'Test' } } };
     const packed = new Uint8Array(await new Response(new Response(JSON.stringify(file)).body!.pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
     const z = btoa(String.fromCharCode(...packed)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    const data = await readLinkImport(`#import=z.${z}`);
+    const { data } = await readLinkImport(`#import=z.${z}`);
     expect(data.profile?.name).toBe('Test');
     await expect(readLinkImport('#import=j.bm9wZQ')).rejects.toThrow();
   });
@@ -130,5 +130,22 @@ describe('daily log', () => {
     const once = mergeStartingProfile(d, { runs });
     const twice = mergeStartingProfile(once, { runs });
     expect(twice.runs.filter((r) => r.id === 'strava-1')).toHaveLength(1);
+  });
+});
+
+describe('moving data', () => {
+  it('round-trips everything through a data link', async () => {
+    const { makeDataLink, readLinkImport } = await import('@/lib/linkImport');
+    const d = useStore.getState().data;
+    const link = await makeDataLink(d);
+    const { kind, data } = await readLinkImport(link);
+    expect(kind).toBe('backup');
+    expect(data.runs?.length).toBe(d.runs.length);
+  });
+
+  it('shows the Wins page', async () => {
+    const { default: Wins } = await import('@/components/Wins');
+    page(Wins);
+    expect(screen.getByText('Earned, not given.')).toBeTruthy();
   });
 });

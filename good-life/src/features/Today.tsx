@@ -12,6 +12,8 @@ import { DAY_TYPE_LABEL } from '@/engine/nutrition';
 import { HARD_TYPES } from '@/engine/running';
 import { RunForm, StudyForm } from '@/components/forms';
 import { DayLog } from '@/components/DayLog';
+import { WinsStrip } from '@/components/Wins';
+import { InstallCard } from '@/components/Install';
 import { Badge, Button, Card, Note, Sheet, cx } from '@/components/ui';
 
 const LEVEL_TONE = { green: 'good', amber: 'warn', red: 'bad', unknown: 'neutral' } as const;
@@ -45,6 +47,8 @@ export default function Today() {
           </div>
         </div>
       </header>
+
+      <WinsStrip />
 
       <DayLog />
 
@@ -132,6 +136,8 @@ export default function Today() {
       </div>
 
       <WeekStrip />
+
+      <InstallCard dismissible />
 
       {isReviewDay && (
         <Card tone="quiet" title="Last week’s review is ready" action={<Button onClick={() => nav('/analytics?tab=reviews')}>Open review</Button>}>

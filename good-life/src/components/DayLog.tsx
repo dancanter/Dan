@@ -12,6 +12,7 @@ import { targets } from '@/engine/nutrition';
 import { analyseRun, currentFitness, EVENT_LABEL, paceZones, RUN_TYPE_LABEL } from '@/engine/running';
 import { FlagChips, RunForm } from './forms';
 import { Card, Chip, Input, Segmented, Select, cx } from './ui';
+import { DayScoreBar } from './Wins';
 
 // One card for the whole day, modelled on the tracker Dan already used:
 // everything on one screen, saved as it is typed, no Save buttons. The
@@ -191,6 +192,7 @@ function DayLogBody({ date }: { date: ISODate }) {
 
   return (
     <div className="space-y-5">
+      <DayScoreBar date={date} />
       <Section title="Morning" aside={inBed != null ? `${hm(inBed)} in bed` : undefined}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <NumField label="Weight" unit={unit} decimals value={wEntry ? Number(weightValue(wEntry.kg, unit).toFixed(1)) : undefined} min={unit === 'kg' ? 30 : 70} max={unit === 'kg' ? 200 : 440} onCommit={commitWeight} hint="On waking, after the loo" />

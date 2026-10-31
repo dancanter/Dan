@@ -2,17 +2,19 @@ import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Activity, BookOpen, Clapperboard, Compass, Dna, GraduationCap, HeartPulse, LayoutGrid, LineChart, MessageCircle, Moon, Plus,
-  Salad, Settings as SettingsIcon, Shirt, Sun, Tag, X,
+  Salad, Settings as SettingsIcon, Shirt, Sun, Tag, Trophy, X,
 } from 'lucide-react';
 import { diffDays, todayISO } from '@/lib/dates';
 import { hasDemoData, useStore } from '@/store/store';
 import { ROADMAP } from '@/engine/review';
 import { DayLog } from './DayLog';
+import { AchievementToaster } from './Wins';
 import { Button, Sheet, cx } from './ui';
 
 export const NAV = [
   { to: '/', label: 'Today', icon: Sun, group: 'Daily' },
   { to: '/coach', label: 'Coach', icon: MessageCircle, group: 'Daily' },
+  { to: '/wins', label: 'Wins', icon: Trophy, group: 'Daily' },
   { to: '/performance', label: 'Performance', icon: Activity, group: 'Body' },
   { to: '/physique', label: 'Physique', icon: HeartPulse, group: 'Body' },
   { to: '/nutrition', label: 'Nutrition', icon: Salad, group: 'Body' },
@@ -105,6 +107,8 @@ export function Shell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      <AchievementToaster />
 
       {/* Quick log */}
       <button

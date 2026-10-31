@@ -4,6 +4,7 @@ import { WEEKDAYS } from '@/lib/dates';
 import { formatHeight, heightFromFtIn, kgToLb, lbToKg, type WeightUnit } from '@/lib/units';
 import { formatDuration, parseTime } from '@/lib/time';
 import { exportData, mergeStartingProfile, parseImport, restorePhotos } from '@/lib/backup';
+import { InstallCard, MoveData } from '@/components/Install';
 import { buildDemo } from '@/lib/demo';
 import { aiStatus, type AiStatus } from '@/lib/ai';
 import { geocode } from '@/lib/weather';
@@ -106,6 +107,13 @@ export default function Settings() {
 
       <Card eyebrow="Appearance" title="Theme">
         <Segmented value={data.settings.theme} onChange={(v) => patch('settings', { theme: v })} options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} />
+      </Card>
+
+      <InstallCard />
+
+      <Card eyebrow="Move your data" title="To the phone app or another device">
+        <p className="mb-3 text-sm text-ink-2">Copy the link here, open or paste it in the other copy of the app, and everything arrives.</p>
+        <MoveData />
       </Card>
 
       <Card id="data" eyebrow="Data" title="Local-first, and yours">

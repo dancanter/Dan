@@ -291,3 +291,38 @@ describe('run context from titles', () => {
     expect(ill.points.join(' ')).toMatch(/unwell/);
   });
 });
+
+describe('achievements', () => {
+  it('scores a day from the log, with rest days rewarded for resting', async () => {
+    const { dayScore } = await import('@/engine/achievements');
+    const d = base();
+    d.profile.restDay = 6;
+    const sat = '2026-10-31';
+    d.checkIns[sat] = { date: sat, flags: [], sleepHours: 8.5, steps: 14000, habits: ['no-phone', 'skin-am', 'skin-pm', 'teeth'], meditationMin: 10 };
+    d.study.push({ id: 's', date: sat, moduleCode: 'SK297', minutes: 60, activity: 'daily' });
+    expect(dayScore(d, sat).score).toBe(100);
+    d.runs.push(run({ date: sat, type: 'vo2' }));
+    expect(dayScore(d, sat).score).toBe(85);
+  });
+  it('unlocks from logs only, ignores demo data, and never rewards intensity', async () => {
+    const { achievements } = await import('@/engine/achievements');
+    const d = base();
+    for (let i = 0; i < 20; i++) d.runs.push(run({ date: addDays(TODAY, -i), type: 'vo2', distanceKm: 6, demo: true }));
+    expect(achievements(d, TODAY).find((a) => a.id === 'km-100')!.unlocked).toBe(false);
+    for (let i = 0; i < 20; i++) d.runs.push(run({ date: addDays(TODAY, -i), distanceKm: 6 }));
+    const list = achievements(d, TODAY);
+    expect(list.find((a) => a.id === 'km-100')!.unlocked).toBe(true);
+    expect(list.find((a) => a.id === 'streak-7')!.unlocked).toBe(true);
+    expect(list.some((a) => /hard sessions|vo2|faster more/i.test(a.detail) && a.group === 'Running' && a.id !== 'in-control')).toBe(false);
+  });
+  it('unlocks a running goal only with a result at or under the target', async () => {
+    const { achievements } = await import('@/engine/achievements');
+    const d = base();
+    d.runGoals = [{ event: '5k', targetSec: 1019, label: 'Sub-17' }];
+    const g = () => achievements(d, TODAY).find((a) => a.group === 'Goals')!;
+    expect(g().unlocked).toBe(false);
+    expect(g().progressLabel).toMatch(/to go/);
+    d.performances.push({ id: 'p2', event: '5k', timeSec: 1015, date: TODAY, kind: 'race' });
+    expect(g().unlocked).toBe(true);
+  });
+});

@@ -429,6 +429,8 @@ export interface Settings {
   /** Manual fitness adjustment (VDOT points) accepted from a coach proposal. */
   vdotAdjustments: { date: ISODate; delta: number; reason: string }[];
   lastBackupAt?: string;
+  /** Achievements already celebrated, so each one pops only once. */
+  seenAchievements?: string[];
   volumeTargets?: Partial<Record<string, [number, number]>>;
   vintedFeePct: number;
   vintedFeeFixed: number;

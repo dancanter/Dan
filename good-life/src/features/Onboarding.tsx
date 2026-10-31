@@ -7,6 +7,7 @@ import { parseTime } from '@/lib/time';
 import { uid } from '@/lib/id';
 import { buildDemo } from '@/lib/demo';
 import { mergeStartingProfile, parseImport, restorePhotos } from '@/lib/backup';
+import { MoveData } from '@/components/Install';
 import type { Performance, RunEvent } from '@/store/types';
 import { Button, Card, Chip, Field, Input, Note, Select } from '@/components/ui';
 
@@ -98,6 +99,10 @@ export function Onboarding() {
 
       {mode === 'choose' ? (
         <div className="grid gap-4 sm:grid-cols-3">
+          <Card title="Paste a link" className="sm:col-span-3">
+            <p className="mb-3 text-sm text-ink-2">Got a Good Life link, or opening the phone app for the first time? Paste the link to bring your data in.</p>
+            <MoveData pasteOnly />
+          </Card>
           <Card title="Set up my profile" className="flex flex-col">
             <p className="mb-4 flex-1 text-sm text-ink-2">About two minutes. Everything stays in this browser.</p>
             <Button variant="primary" onClick={() => setMode('profile')}>Start</Button>

@@ -4,10 +4,10 @@ import { useStore } from '@/store/store';
 import { useApplyTheme } from '@/hooks/useTheme';
 import { Shell } from '@/components/Shell';
 import { Onboarding } from '@/features/Onboarding';
-import { mergeStartingProfile } from '@/lib/backup';
-import { clearLinkImport, hasLinkImport, readLinkImport } from '@/lib/linkImport';
+import { applyLinkImport, clearLinkImport, hasLinkImport } from '@/lib/linkImport';
 
 const Today = lazy(() => import('@/features/Today'));
+const Wins = lazy(() => import('@/components/Wins'));
 const Performance = lazy(() => import('@/features/Performance'));
 const Physique = lazy(() => import('@/features/Physique'));
 const Nutrition = lazy(() => import('@/features/Nutrition'));
@@ -55,16 +55,7 @@ function useLinkImport(hydrated: boolean) {
     if (!hydrated || state !== 'loading') return;
     (async () => {
       try {
-        const incoming = await readLinkImport();
-        const { data, replaceAll } = useStore.getState();
-        if (data.settings.onboarded && !confirm('Load the starting profile from this link into your data? Your logs are kept.')) {
-          clearLinkImport();
-          setState('idle');
-          return;
-        }
-        replaceAll({ ...mergeStartingProfile(data, incoming), settings: { ...data.settings, ...(incoming.settings ?? {}), onboarded: true } });
-        const runs = incoming.runs?.length ? `, with ${incoming.runs.length} runs from Strava` : '';
-        useStore.getState().setNotice(`Your starting profile is loaded${runs}. What you log from here on is what makes the coaching personal.`);
+        await applyLinkImport();
         clearLinkImport();
         setState('idle');
       } catch (e) {
@@ -113,6 +104,7 @@ export function App() {
               <Route path="/lifestyle" element={<Lifestyle />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/coach" element={<Coach />} />
+              <Route path="/wins" element={<Wins />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
