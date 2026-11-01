@@ -109,7 +109,7 @@ export function nextMoves(s: State, date: string): Move[] {
   const omegaDays = logged.filter((d) => dayResult(s, d).analysis.totals.omega3 >= 0.5).length;
   if (logged.length >= 4 && omegaDays < 2) moves.push({ w: 7, impact: 'medium', text: 'Oily fish only once or not at all this week. Salmon, mackerel or sardines 2–3 times calm inflammation and help your skin barrier.' });
   const plantsAvg = logged.length ? logged.reduce((a, d) => a + dayResult(s, d).analysis.plants, 0) / logged.length : undefined;
-  if (plantsAvg !== undefined && logged.length >= 3 && plantsAvg < 6) moves.push({ w: 6, impact: 'medium', text: `About ${Math.round(plantsAvg)} different plants a day. Aim for 8 (herbs, spices, berries and seeds all count) to feed your gut microbiome.` });
+  if (plantsAvg !== undefined && logged.length >= 3 && plantsAvg < 6) moves.push({ w: 6, impact: 'medium', text: `About ${Math.round(plantsAvg)} different plant${Math.round(plantsAvg) === 1 ? '' : 's'} a day. Aim for 8 (herbs, spices, berries and seeds all count) to feed your gut microbiome.` });
   const acid = logged.reduce((a, d) => a + (dayResult(s, d).analysis.tagServings.acidic ?? 0), 0) / Math.max(1, logged.length);
   if (acid >= 2.5) moves.push({ w: 5, impact: 'medium', text: 'Squash and diet drinks average 3 or more a day. Keep them to meals and drink water in between to protect your enamel (a bright smile is part of the look).' });
   if (!vit.rhr) moves.push({ w: 4, impact: 'low', text: 'Log your morning heart rate (30 seconds, before getting up). It’s your best early warning for over-training and illness.' });
