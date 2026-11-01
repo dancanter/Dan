@@ -19,6 +19,7 @@ import { LookSharp } from '@/components/LookSharp';
 import { FeelCard } from '@/components/Feel';
 import { RecoveryClock } from '@/components/RecoveryClock';
 import { DayPlanCard } from '@/components/DayPlan';
+import { IllToday } from '@/components/Illness';
 import { IdeasCard, WeeklyReviewCard } from '@/components/Review';
 import { describeQty } from '@/data/units';
 import { GAIN_LABEL, swapFor } from '@/data/swaps';
@@ -112,6 +113,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
       <IdeasCard date={date} />
       <NextMoves date={date} />
       <RecoveryClock date={date} />
+      <IllToday date={date} />
       <FeelCard date={date} />
       <LookSharp date={date} />
 

@@ -825,3 +825,34 @@ describe('goal reached, reverse and cellular progress', async () => {
     expect(rows.map((x) => x.kind)).toEqual(['cut', 'maintain']);
   });
 });
+
+describe('illness log', async () => {
+  const { episodes, illAdvice, illStats } = await import('@/engine/illness');
+  const { restCall: rc, easeCall: ec } = await import('@/engine/calls');
+  const { initial } = await import('@/store');
+  const { defaultSeason: ds } = await import('@/engine/season');
+  it('groups sick days into episodes and counts month and year', () => {
+    const s = initial();
+    s.profile = { ...s.profile, season: ds('2026-11-02') };
+    for (const d of ['2026-11-05', '2026-11-06', '2026-11-08', '2026-11-20', '2026-10-01']) s.days[d] = { items: [], rituals: [], ill: { kind: 'cold', severity: 1 } };
+    const eps = episodes(s);
+    expect(eps.map((e) => e.days)).toEqual([1, 3, 1]);
+    const st = illStats(s, '2026-11-25');
+    expect(st.monthDays).toBe(4);
+    expect(st.yearDays).toBe(5);
+    expect(st.yearEpisodes).toBe(3);
+    expect(st.daysSinceLast).toBe(5);
+    expect(st.byPhase.find((p) => p.label === 'Cutting')!.ill).toBe(4);
+  });
+  it('uses the neck check for training', () => {
+    expect(illAdvice({ kind: 'cold', severity: 1 }).train).toBe('easy');
+    expect(illAdvice({ kind: 'flu', severity: 1 }).train).toBe('none');
+    expect(illAdvice({ kind: 'cold', severity: 3 }).train).toBe('none');
+    const s = initial();
+    s.days['2026-11-10'] = { items: [], rituals: [], ill: { kind: 'chest', severity: 2 } };
+    expect(rc(s, '2026-11-10', 56).kind).toBe('rest');
+    s.days['2026-11-10'] = { items: [], rituals: [], ill: { kind: 'cold', severity: 1 } };
+    expect(rc(s, '2026-11-10', 56).kind).toBe('none');
+    expect(ec(s, '2026-11-10', 56).kind).toBe('ease');
+  });
+});

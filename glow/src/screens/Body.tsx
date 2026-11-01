@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { IllnessCard } from '@/components/Illness';
 import { Trash2 } from 'lucide-react';
 import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, fromDisplay, prettyDate, rolling, sleepHours, sleepScore, sortByDate, todayISO, toDisplay, weeklyRate } from '@/engine/body';
 import { actions, useStore } from '@/store';
@@ -47,7 +48,7 @@ export function Body() {
     </>
   );
   if (tab === 'training') return <div className="space-y-4">{header}<TrainingPanel /></div>;
-  if (tab === 'health') return <div className="space-y-4">{header}<HealthPanel /></div>;
+  if (tab === 'health') return <div className="space-y-4">{header}<HealthPanel /><IllnessCard /></div>;
 
   return (
     <div className="space-y-4">

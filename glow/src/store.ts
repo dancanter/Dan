@@ -27,6 +27,8 @@ export interface DayLog {
   refeed?: boolean;
   /** How you said you felt (ids from the feelings list). */
   feelings?: string[];
+  /** Ill today: what and how bad. */
+  ill?: import('./engine/illness').IllLog;
   /** Optional daily ideas you did. */
   extras?: string[];
 }
@@ -193,6 +195,9 @@ export const actions = {
       if (list === 'seen' && !cur.includes(id)) next.watchlist = next.watchlist.filter((x) => x !== id);
       return { ...s, films: next };
     });
+  },
+  setIll(date: string, ill: import('./engine/illness').IllLog | undefined) {
+    setState((s) => ({ ...s, days: { ...s.days, [date]: { ...day(s, date), ill } } }));
   },
   setRefeed(date: string, on: boolean) {
     setState((s) => ({ ...s, days: { ...s.days, [date]: { ...day(s, date), refeed: on || undefined } } }));

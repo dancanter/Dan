@@ -3,6 +3,7 @@ import { dayResult } from './game';
 import { phaseOn } from './season';
 import { assessLoad } from './training';
 import { rhrAnalysis } from './vitals';
+import { illAdvice } from './illness';
 import { resolveItems, type State } from '@/store';
 
 // The coach's judgement calls: when to refeed, when to take a full rest
@@ -72,6 +73,8 @@ export function refeedCall(s: State, date: string): Call {
 /** A complete rest day: no training, an easy walk at most. */
 export function restCall(s: State, date: string, kg: number): Call {
   const why: string[] = [];
+  const ill = s.days[date]?.ill;
+  if (ill && illAdvice(ill).train === 'none') why.push('You logged being ill today with symptoms below the neck or badly: no training until you’re 24–48 hours symptom-free.');
   const h = rhrAnalysis(date, s.vitals ?? {});
   if (h.delta !== undefined && h.delta >= 8) why.push(`Morning heart rate is ${h.delta} bpm above baseline: often the first sign of illness or deep fatigue.`);
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -3) && e.date <= date).map(sleepHours);
@@ -196,6 +199,7 @@ export function easeCall(s: State, date: string, kg: number): Call {
   if (h.delta !== undefined && h.delta >= 5) why.push(`Morning heart rate is up ${h.delta} bpm on baseline.`);
   const last = sortByDate(s.sleeps).filter((e) => e.date === date).map(sleepHours)[0];
   if (last !== undefined && last < 6.5) why.push(`Only ${last.toFixed(1)} h of sleep last night.`);
+  if (s.days[date]?.ill) why.push('You logged a mild, above-the-neck illness today: easy only, or rest if you feel worse once you start.');
   const feelings = s.days[date]?.feelings ?? [];
   if (feelings.includes('tired') || feelings.includes('sore')) why.push(`You logged feeling ${feelings.includes('tired') ? 'tired' : 'sore'} today.`);
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -7) && e.date <= date).map(sleepHours);

@@ -94,6 +94,7 @@ function weekStats(s: State, end: string) {
     sets: Object.values(sets).reduce((a, b) => a + b, 0) || undefined,
     deep: studyLoad(s, end).weekDeep || undefined,
     rituals: avg(ritualPts.filter((p) => p > 0)),
+    ill: days.filter((d) => s.days[d]?.ill).length,
     extras: days.reduce((a, d) => a + (s.days[d]?.extras?.length ?? 0), 0) || undefined,
     daysLogged: results.filter((r) => r.hasData).length,
     foodDays: foodDays.length,
@@ -126,6 +127,7 @@ export function weeklyReview(s: State, end: string): Review {
     { key: 'sets', label: 'Hard sets (all muscles)', now: now.sets, prev: prev.sets, unit: '', better: 'range', fmt: (v) => String(v) },
     { key: 'deep', label: 'Deep study', now: now.deep, prev: prev.deep, unit: 'h', better: 'range', fmt: (v) => v.toFixed(1), target: '12–20 h' },
     { key: 'rituals', label: 'Ritual points (avg)', now: now.rituals, prev: prev.rituals, unit: '', better: 'up', fmt: (v) => v.toFixed(1), target: '10' },
+    { key: 'ill', label: 'Sick days', now: now.daysLogged ? now.ill : undefined, prev: prev.daysLogged ? prev.ill : undefined, unit: '', better: 'down', fmt: (v) => String(v), target: '0' },
     { key: 'extras', label: 'Daily ideas done', now: now.extras, prev: prev.extras, unit: '', better: 'up', fmt: (v) => String(v) },
   ];
 
