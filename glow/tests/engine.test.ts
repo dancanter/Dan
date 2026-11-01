@@ -595,3 +595,15 @@ describe('too little deep study', () => {
     expect(studyLoad(s, '2026-11-15').level).toBe('ok');
   });
 });
+
+describe('study planner done', () => {
+  it('drops too-little when the planner is finished, but still flags too much', () => {
+    const s: State = { version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
+    for (let i = 0; i < 7; i++) s.vitals[addDays('2026-11-15', -i)] = { deepHours: 1 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('too-little');
+    s.vitals['2026-11-14'] = { ...s.vitals['2026-11-14'], studyOnPlan: true };
+    expect(studyLoad(s, '2026-11-15').level).toBe('ok');
+    s.vitals['2026-11-15'] = { deepHours: 7 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('too-much');
+  });
+});

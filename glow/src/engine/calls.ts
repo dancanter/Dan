@@ -144,7 +144,7 @@ export function studyVerdict(deepToday: number | undefined, weekDeep: number, we
 }
 
 // ── Is the study load too much? ──────────────────────────────────────────
-export interface StudyLoad { level: 'ok' | 'heavy' | 'too-much' | 'light' | 'too-little'; reasons: string[]; weekDeep: number; weekTotal: number; deepDays: number }
+export interface StudyLoad { level: 'ok' | 'heavy' | 'too-much' | 'light' | 'too-little'; reasons: string[]; weekDeep: number; weekTotal: number; deepDays: number; onPlan: boolean }
 
 /**
  * Looks across the week, not just today: focused work is limited to about
@@ -173,10 +173,12 @@ export function studyLoad(s: State, date: string): StudyLoad {
   const deepDays = days.filter((d) => deepOf(d) >= 1).length;
   const firstLog = Object.keys(s.vitals ?? {}).filter((d) => s.vitals[d]?.deepHours !== undefined || s.vitals[d]?.studyHours !== undefined).sort()[0];
   const fullWeek = firstLog !== undefined && firstLog <= addDays(date, -6);
-  if (level === 'ok' && fullWeek) {
+  // Following the study planner and finished its tasks? Then fewer hours means efficient, not behind.
+  const onPlan = days.some((d) => s.vitals?.[d]?.studyOnPlan);
+  if (level === 'ok' && fullWeek && !onPlan) {
     if (weekDeep < 8) { level = 'too-little'; reasons.push(`Only ${weekDeep} h of deep study in the last 7 days. For SK297 and SK298 that’s under half the OU’s 16–18 h a week, and distinction-level work needs about 12–20 deep hours.`); }
     else if (weekDeep < 12) { level = 'light'; reasons.push(`${weekDeep} h of deep study this week: enough to keep up, light for a distinction. About 12–20 h (2–3 h on 5–6 days) is the target.`); }
     else if (deepDays < 4) { level = 'light'; reasons.push(`Deep work on only ${deepDays} days this week. Spreading the same hours over 5–6 days (spaced practice) makes it stick far better than a few long sessions.`); }
   }
-  return { level, reasons, weekDeep, weekTotal, deepDays };
+  return { level, reasons, weekDeep, weekTotal, deepDays, onPlan };
 }

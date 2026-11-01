@@ -11,6 +11,8 @@ export interface Vitals {
   /** Study hours today, and how many of them were deep, focused work. */
   studyHours?: number;
   deepHours?: number;
+  /** Finished what the study planner set for this week: hours are no longer the measure. */
+  studyOnPlan?: boolean;
 }
 
 export type Tone = 'good' | 'ok' | 'warn' | 'bad';

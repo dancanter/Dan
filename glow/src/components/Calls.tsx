@@ -64,6 +64,13 @@ export function StudyCard({ date }: { date: string }) {
         <label className="text-xs text-muted">Total study (h)<input className="field num mt-1" inputMode="decimal" value={study} onChange={(e) => setStudy(e.target.value)} onBlur={() => save('studyHours', study)} /></label>
         <label className="text-xs text-muted">Of which deep work (h)<input className="field num mt-1" inputMode="decimal" value={deep} onChange={(e) => setDeep(e.target.value)} onBlur={() => save('deepHours', deep)} /></label>
       </div>
+      <label className="mt-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={!!v.studyOnPlan} onChange={(e) => actions.setVitals(date, { studyOnPlan: e.target.checked || undefined })} />
+        On track with my study planner this week
+      </label>
+      {studyLoad(s, date).onPlan && (
+        <p className="mt-2 rounded-xl bg-good-soft p-3 text-sm leading-relaxed">✓ <b>Planner done: that’s the goal met.</b> Finishing in fewer hours means you worked efficiently, not that you did too little. Spare time is best spent resting, or on 20–30 minutes of self-testing on earlier weeks (the most effective way to lock in what you’ve learned), or getting ahead on your next TMA. Don’t add hours for the sake of it.</p>
+      )}
       <div className="mt-3 text-sm"><Pill tone={verdict.tone}>{verdict.headline}</Pill><p className="mt-1.5 leading-relaxed text-ink-2">{verdict.text}</p></div>
       {(() => {
         const load = studyLoad(s, date);
