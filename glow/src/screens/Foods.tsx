@@ -107,7 +107,7 @@ export function Foods({ date }: { date: string }) {
       <p className="text-xs text-muted">Grades: A+ ≥ 90 · A ≥ 80 · B+ ≥ 70 · B ≥ 60 · C ≥ 50 · D ≥ 35 · F below. The score rewards micronutrients, protein, fibre and omega-3 per calorie (after bioavailability), plus protective compounds, and penalises ultra-processing, free sugar, alcohol, frying and processed meat. Fats and oils score low on density by design, because they’re nearly pure energy. Judge them by type: extra virgin olive oil is the best-evidenced.</p>
 
       <Sheet open={!!picked} onClose={() => setPicked(null)} title={picked?.name}>
-        {picked && <FoodDetail food={picked} date={date} onAdd={(g, m) => { actions.addItem(date, picked, g, m); setPicked(null); }} />}
+        {picked && <FoodDetail food={picked} date={date} onAdd={(g, m, q) => { actions.addItem(date, picked, g, m, q); setPicked(null); }} />}
       </Sheet>
       <AddFood open={online} onClose={() => setOnline(false)} date={date} />
     </div>

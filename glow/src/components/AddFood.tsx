@@ -7,15 +7,16 @@ import { searchOpenFoodFacts } from '@/engine/off';
 import { scoreFood, type Meal } from '@/engine/score';
 import { actions, useStore } from '@/store';
 import { Button, Grade, Segmented, Sheet } from './ui';
-import { FoodDetail, MEALS, defaultMeal } from './FoodDetail';
+import { FoodDetail, MEALS, defaultMeal, type Qty } from './FoodDetail';
 import { inClaude } from '@/cloud';
+import { describeQty } from '@/data/units';
 
 export function AddFood({ open, onClose, date }: { open: boolean; onClose: () => void; date: string }) {
   const [mode, setMode] = useState<'type' | 'search' | 'online' | 'custom'>('type');
   const [picked, setPicked] = useState<Food | null>(null);
 
-  const add = (food: Food, grams: number, meal: Meal) => {
-    actions.addItem(date, food, grams, meal);
+  const add = (food: Food, grams: number, meal: Meal, qty?: Qty) => {
+    actions.addItem(date, food, grams, meal, qty);
     setPicked(null);
   };
 
@@ -24,7 +25,7 @@ export function AddFood({ open, onClose, date }: { open: boolean; onClose: () =>
       {picked ? (
         <>
           <button className="mb-3 text-sm text-sea" onClick={() => setPicked(null)}>← Back</button>
-          <FoodDetail food={picked} date={date} onAdd={(g, m) => add(picked, g, m)} />
+          <FoodDetail food={picked} date={date} onAdd={(g, m, q) => add(picked, g, m, q)} />
         </>
       ) : (
         <>
@@ -75,13 +76,14 @@ function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
                   }}>
                     {[it.food, ...searchFoods(it.text.replace(/[\d.]+\s*(g|ml)?/g, ''), all, 8).filter((f) => f.id !== it.food!.id)].map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
-                  <input className="field num w-20 py-1" aria-label="Grams" inputMode="decimal" value={it.grams ?? ''} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, grams: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 } : x)))} />
+                  <input className="field num w-20 py-1" aria-label="Grams" inputMode="decimal" value={it.grams ?? ''} onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, grams: Number(e.target.value.replace(/[^\d.]/g, '')) || 0, qty: undefined } : x)))} />
                   <span className="text-xs text-muted">g</span>
                 </>
               ) : (
                 <span className="text-muted">“{it.text}”: no match yet. Try the Online or Custom tab.</span>
               )}
               <button aria-label="Remove" className="p-1 text-muted" onClick={() => setItems(items.filter((_, j) => j !== i))}><Trash2 size={15} /></button>
+              {it.qty && <span className="w-full pl-10 text-xs text-sea">{describeQty(it.qty.count, it.qty)} = {it.grams} g</span>}
               {it.cookedGrams && <span className="w-full pl-10 text-xs text-sea">Converted from {it.cookedGrams} g cooked to {it.grams} g raw</span>}
             </li>
           ))}
@@ -92,7 +94,7 @@ function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
           {MEALS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
         <Button className="flex-1" disabled={!ready.length} onClick={() => {
-          ready.forEach((i) => actions.addItem(date, i.food!, i.grams!, meal));
+          ready.forEach((i) => actions.addItem(date, i.food!, i.grams!, meal, i.qty));
           setText('');
           setItems([]);
           onDone();

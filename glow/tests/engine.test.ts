@@ -356,3 +356,32 @@ describe('season plan', () => {
     expect(prog?.verdict).toBe('too-fast');
   });
 });
+
+describe('counting items', () => {
+  it('logs eggs by size and number', () => {
+    const [a, b, c] = parseEntry('4 large eggs, 3 medium eggs, 2 eggs', ALL_FOODS);
+    expect([a.grams, b.grams, c.grams]).toEqual([240, 156, 120]);
+    expect(a.qty).toMatchObject({ count: 4, label: 'large egg' });
+    expect(b.qty?.label).toBe('medium egg');
+  });
+
+  it('finds Kallo lentil cakes and counts them', () => {
+    const [cakes, rice] = parseEntry('3 kallo lentil cakes, 2 kallo rice cakes', ALL_FOODS);
+    expect(cakes.food?.id).toBe('uk-kallo-lentil');
+    expect(cakes.grams).toBe(27);
+    expect(rice.food?.id).toBe('rice-cakes');
+    expect(rice.grams).toBe(16);
+  });
+
+  it('handles half an avocado', () => {
+    const [av] = parseEntry('half an avocado', ALL_FOODS);
+    expect(av.food?.id).toBe('avocado');
+    expect(av.grams).toBe(75);
+  });
+});
+
+describe('library data hygiene', () => {
+  it('no curated note is cut short by a stray semicolon', () => {
+    for (const f of FOODS) expect(f.alias === undefined || !/[.!?]$/.test(f.alias)).toBe(true);
+  });
+});

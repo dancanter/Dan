@@ -13,6 +13,7 @@ import { FoodDetail, MEALS } from '@/components/FoodDetail';
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
+import { describeQty } from '@/data/units';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
 import { Confetti } from '@/components/Confetti';
 import { coachLines, factFor } from '@/engine/coach';
@@ -130,7 +131,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
                       <button onClick={() => setDetail(i.food)} aria-label={`About ${i.food.name}`}><Grade grade={sc.grade} score={sc.score} /></button>
                       <button onClick={() => setDetail(i.food)} className="min-w-0 flex-1 text-left">
                         <div className="truncate text-sm">{i.food.name}</div>
-                        <div className="num text-xs text-muted">{Math.round((i.food.n.kcal * i.grams) / 100)} kcal · {((i.food.n.protein * i.grams) / 100).toFixed(1)} g protein</div>
+                        <div className="num text-xs text-muted">{i.qty ? `${describeQty(i.qty.count, i.qty)} · ` : ''}{Math.round((i.food.n.kcal * i.grams) / 100)} kcal · {((i.food.n.protein * i.grams) / 100).toFixed(1)} g protein</div>
                       </button>
                       <input aria-label="Grams" className="field num w-16 px-2 py-1 text-right text-sm" inputMode="decimal" defaultValue={i.grams} onBlur={(e) => { const g = Number(e.target.value); if (g > 0 && g !== i.grams) actions.updateItem(date, i.uid, g); }} />
                       <span className="text-xs text-muted">g</span>

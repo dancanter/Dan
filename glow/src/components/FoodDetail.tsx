@@ -10,6 +10,8 @@ import { todayISO } from '@/engine/body';
 import { Bar, Button, Grade, Pill, Segmented } from './ui';
 import { cookedToRaw, cookingYield, yieldNote } from '@/engine/cooking';
 import { foodPuff } from '@/engine/puff';
+import { defaultUnit, describeQty, unitsFor, type Unit } from '@/data/units';
+import { EditToMatch } from './EditToMatch';
 
 const SOURCE_LABEL: Record<string, string> = {
   library: 'Glow library: hand-checked typical values',
@@ -31,15 +33,22 @@ export function defaultMeal(): Meal {
   return h < 11 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks';
 }
 
-export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; onAdd?: (grams: number, meal: Meal) => void }) {
+export type Qty = { count: number; label: string; plural?: string };
+
+export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; onAdd?: (grams: number, meal: Meal, qty?: Qty) => void }) {
   const s = useStore((x) => x);
   const t = targetsFor(s.profile, weightOn(s, date ?? todayISO()));
   const sc = scoreFood(food, t);
   const [grams, setGrams] = useState(food.portion.g);
   const [meal, setMeal] = useState<Meal>(defaultMeal());
   const [weighed, setWeighed] = useState<'raw' | 'cooked'>('raw');
-  const yld = cookingYield(food);
-  const rawGrams = weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
+  const units = unitsFor(food);
+  const [mode, setMode] = useState<'count' | 'grams'>(units.length ? 'count' : 'grams');
+  const [unit, setUnit] = useState<Unit | undefined>(defaultUnit(food));
+  const [count, setCount] = useState(() => { const u = defaultUnit(food); return u ? Math.max(1, Math.round(food.portion.g / u.g)) : 1; });
+  const counting = mode === 'count' && !!unit;
+  const yld = counting ? undefined : cookingYield(food);
+  const rawGrams = counting ? Math.round(unit!.g * count) : weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
   const puff = foodPuff(food, rawGrams);
   const fav = s.favourites.includes(food.id);
   const factors = bioFactors(food);
@@ -105,21 +114,44 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
 
       {onAdd && (
         <div className="rounded-2xl bg-surface-2 p-3">
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {[food.portion.g, 50, 100, 150, 200].filter((v, i, a) => a.indexOf(v) === i).map((g) => (
-              <button key={g} onClick={() => setGrams(g)} className={`rounded-lg px-2.5 py-1 text-xs ${grams === g ? 'bg-navy text-navy-ink' : 'bg-surface'}`}>{g === food.portion.g ? food.portion.label : `${g} g`}</button>
-            ))}
-          </div>
+          {units.length > 0 && (
+            <div className="mb-3"><Segmented value={mode} onChange={setMode} options={[{ value: 'count', label: 'How many' }, { value: 'grams', label: 'Grams' }]} /></div>
+          )}
+          {counting ? (
+            <div className="mb-3 space-y-2">
+              {units.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {units.map((u) => (
+                    <button key={u.label} onClick={() => setUnit(u)} className={`rounded-lg px-2.5 py-1 text-xs ${unit?.label === u.label ? 'bg-navy text-navy-ink' : 'bg-surface'}`}>{u.label.replace(/ egg$/, '')} · {u.g} g</button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <button aria-label="One fewer" onClick={() => setCount(Math.max(0.5, count - 1))} className="grid h-10 w-10 place-items-center rounded-full bg-surface text-xl">−</button>
+                <input aria-label="How many" className="field num w-16 text-center text-lg" inputMode="decimal" value={count} onChange={(e) => setCount(Number(e.target.value.replace(/[^\d.]/g, '')) || 0)} />
+                <button aria-label="One more" onClick={() => setCount(count + 1)} className="grid h-10 w-10 place-items-center rounded-full bg-surface text-xl">+</button>
+                <div className="text-sm"><b>{describeQty(count, unit!)}</b><div className="num text-xs text-muted">= {rawGrams} g{unit!.label.includes('egg') ? ' to eat (shell off)' : ''}</div></div>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {[food.portion.g, 50, 100, 150, 200].filter((v, i, a) => a.indexOf(v) === i).map((g) => (
+                <button key={g} onClick={() => setGrams(g)} className={`rounded-lg px-2.5 py-1 text-xs ${grams === g ? 'bg-navy text-navy-ink' : 'bg-surface'}`}>{g === food.portion.g ? food.portion.label : `${g} g`}</button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-2">
-            <label className="flex flex-1 items-center gap-2">
-              <span className="sr-only">Grams</span>
-              <input className="field num" inputMode="decimal" value={grams} onChange={(e) => setGrams(Number(e.target.value.replace(/[^\d.]/g, '')) || 0)} />
-              <span className="text-sm text-muted">g {weighed}</span>
-            </label>
-            <select className="field w-auto" value={meal} onChange={(e) => setMeal(e.target.value as Meal)} aria-label="Meal">
+            {!counting && (
+              <label className="flex flex-1 items-center gap-2">
+                <span className="sr-only">Grams</span>
+                <input className="field num" inputMode="decimal" value={grams} onChange={(e) => setGrams(Number(e.target.value.replace(/[^\d.]/g, '')) || 0)} />
+                <span className="text-sm text-muted">g {weighed}</span>
+              </label>
+            )}
+            <select className={`field ${counting ? 'flex-1' : 'w-auto'}`} value={meal} onChange={(e) => setMeal(e.target.value as Meal)} aria-label="Meal">
               {MEALS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
-            <Button onClick={() => rawGrams > 0 && onAdd(rawGrams, meal)} disabled={rawGrams <= 0}><Plus size={16} />Add</Button>
+            <Button onClick={() => rawGrams > 0 && onAdd(rawGrams, meal, counting ? { count, label: unit!.label, plural: unit!.plural } : undefined)} disabled={rawGrams <= 0}><Plus size={16} />Add</Button>
           </div>
           {yld && (
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
@@ -130,13 +162,15 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
         </div>
       )}
 
+      <EditToMatch food={food} />
+
       <div>
         <h3 className="mb-2 text-sm font-semibold">In {rawGrams} g {yld ? (food.category === 'grains' || food.category === 'legumes' ? 'dry' : 'raw') : ''}</h3>
         <div className="mb-3 grid grid-cols-4 gap-2 text-center">
           {(['kcal', 'protein', 'carbs', 'fat'] as NKey[]).map((k) => (
             <div key={k} className="rounded-xl bg-surface-2 p-2">
               <div className="num font-serif text-lg">{Math.round(portion[k])}</div>
-              <div className="text-[10px] text-muted uppercase">{k === 'kcal' ? 'kcal' : `${NUTRIENTS[k].label} g`}</div>
+              <div className="text-[10px] text-muted uppercase">{({ kcal: 'kcal', protein: 'protein g', carbs: 'carbs g', fat: 'fat g' } as Record<string, string>)[k]}</div>
             </div>
           ))}
         </div>

@@ -81,6 +81,8 @@ export interface Food {
   unknown?: NKey[];
   /** Other names people search for (US names, cuts, preparations). */
   alias?: string;
+  /** Countable units (e.g. your pack's cake weight); otherwise Glow's list in units.ts applies. */
+  units?: import('./units').Unit[];
   /** Imported foods often only carry macros; micronutrients are then unknown, not zero. */
   limitedData?: boolean;
 }
@@ -104,7 +106,7 @@ chicken-liver;Chicken liver;offal;1;100;100 g;119 16.9 0.7 0 0 4.8 1.6 0.05 | 33
 beef-heart;Beef heart;offal;1;150;150 g;112 17.7 0.1 0 0 3.9 1.4 0.01 | 0 2 0 0.2 0 0.91 3 8.6 0 | 4.3 1.7 0.4 21.8 21 287 7 0 98;haem coq creat;Heart muscle is the richest food source of CoQ10, a molecule your mitochondria use to make energy. It tastes like lean steak, with none of liver's vitamin A limit.
 beef-kidney;Beef kidney;offal;1;100;100 g;99 17.4 0.3 0 0 3.1 0.9 0.03 | 419 9.4 1.1 0.2 0 2.84 98 27.5 0 | 4.6 1.9 0.4 141 17 262 13 0 182;haem coq;One of the best selenium and B12 foods. Selenium builds the enzymes that protect cells from oxidative damage.
 bone-marrow;Bone marrow;offal;1;30;1 tbsp (30 g);786 6.7 0 0 0 84.4 37 0 | 0 0 0 0 0 0 0 0.5 0 | 0.7 0.3 0 0 2 30 3 0 20;coll;Mostly fat. Lovely flavour, but calorie-heavy and not especially rich in micronutrients.
-bone-broth;Bone broth, homemade (per 100 ml);offal;1;300;1 mug (300 ml);15 3 0.4 0 0.2 0.4 0.1 0 | 0 0 0 0 0 0.03 2 0.1 4 | 0.2 0.1 0.01 1 2 50 4 1 150;coll;Provides glycine and proline, the amino acids that make up collagen. Whether drinking collagen reaches your skin is uncertain; trials of collagen peptides show modest skin elasticity gains, often industry-funded. Cheap, hydrating and fine to keep.
+bone-broth;Bone broth, homemade (per 100 ml);offal;1;300;1 mug (300 ml);15 3 0.4 0 0.2 0.4 0.1 0 | 0 0 0 0 0 0.03 2 0.1 4 | 0.2 0.1 0.01 1 2 50 4 1 150;coll;Provides glycine and proline, the amino acids that make up collagen. Whether drinking collagen reaches your skin is uncertain. Trials of collagen peptides show modest skin elasticity gains, often industry-funded. Cheap, hydrating and fine to keep.
 collagen-powder;Collagen peptides powder;offal;3;10;1 scoop (10 g);360 90 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 200;coll;An incomplete protein (no tryptophan), so it should not count much towards muscle-building protein. Modest, mostly industry-funded evidence for skin elasticity.
 beef-tallow;Beef tallow (for cooking);fats;2;10;1 tbsp (10 g);902 0 0 0 0 100 50 0 | 0 0 0 2.7 0 0 0 0 0 | 0 0 0 0.2 0 0 0 0 0;;Heat-stable for cooking, but half saturated fat, which raises LDL cholesterol. Olive oil gives you the cooking fat plus polyphenols.
 salmon-wild;Salmon, wild (sockeye);fish;1;150;1 fillet (150 g);131 22.3 0 0 0 4.7 0.8 0.86 | 58 0 11 1.2 0.1 0.15 7 4.9 79 | 0.5 0.4 0.06 32 29 367 7 20 75;astax creat;Wild salmon gets its red colour from astaxanthin, an antioxidant carotenoid from its diet of krill. It is leaner than farmed salmon and has fewer pollutants, but farmed often carries more total omega-3 per 100 g. Both count as oily fish.
@@ -147,7 +149,7 @@ mozzarella;Mozzarella;dairy;3;60;half a ball;280 22 2.2 0 1 21 13 0 | 180 0 0.4 
 butter;Butter, grass-fed;fats;2;10;1 tsp heaped (10 g);717 0.9 0.1 0 0.1 81 51 0 | 684 0 1.5 2.3 7 0.03 3 0.2 19 | 0 0.1 0 1 2 24 24 0 11;retinol;Grass-fed butter is more yellow because it carries more beta-carotene and some vitamin K2. Still about half saturated fat.
 ghee;Ghee;fats;2;10;1 tsp heaped;900 0.3 0 0 0 99.5 62 0 | 840 0 1.5 2.8 8.6 0 0 0 22 | 0 0 0 0 0 5 4 0 2;retinol;
 double-cream;Double cream;dairy;2;30;2 tbsp;449 1.7 2.7 0 2.7 48 30 0 | 411 0.6 1.2 1.4 3 0.12 4 0.2 17 | 0.03 0.2 0.01 0.6 7 79 66 15 30;retinol;
-whey;Whey protein isolate;dairy;3;30;1 scoop;370 85 3 0 2 1.5 1 0 | 0 0 0 0 0 0.5 0 0.5 0 | 0.5 0.5 0.1 5 50 500 500 0 300;;The highest-leucine protein, which is the amino acid that triggers muscle building. Handy, but it's a protein top-up rather than a nutrient-dense food. Technically processed; no evidence of harm.
+whey;Whey protein isolate;dairy;3;30;1 scoop;370 85 3 0 2 1.5 1 0 | 0 0 0 0 0 0.5 0 0.5 0 | 0.5 0.5 0.1 5 50 500 500 0 300;;The highest-leucine protein, which is the amino acid that triggers muscle building. Handy, but it's a protein top-up rather than a nutrient-dense food. Technically processed. No evidence of harm.
 oats;Oats (certified gluten-free if needed);grains;1;50;50 g dry;379 13.2 60 10.1 1 6.5 1.1 0 | 0 0 0 0.4 2 0.16 32 0 40 | 4.3 3.6 0.39 28.9 138 362 52 2 6;phy preb lowgi oats;Beta-glucan fibre lowers LDL cholesterol and feeds gut bacteria. Phytate (a mineral-binding compound) reduces the iron and zinc you absorb from them. Overnight soaking helps a little.
 white-rice;White rice (dry);grains;1;75;75 g dry;360 6.6 79 1.3 0.1 0.6 0.2 0 | 0 0 0 0.1 0 0.05 8 0 6 | 0.8 1.1 0.11 15 25 86 9 2 1;highgi;Clean, fast fuel around hard training, but low in micronutrients. Cooking, chilling and reheating creates resistant starch, which blunts the blood-sugar spike.
 basmati;Basmati rice (dry);grains;1;75;75 g dry;356 7.5 78 1.5 0.2 0.8 0.2 0 | 0 0 0 0.1 0 0.05 9 0 5 | 0.8 1.2 0.11 15 25 100 10 2 1;;Lower glycaemic index than most white rice.
@@ -161,7 +163,7 @@ white-bread;White bread, sliced;grains;4;80;2 slices;265 9 47 2.7 4 3.2 0.7 0 | 
 gf-bread;Gluten-free bread (typical);grains;4;70;2 slices;250 4 40 6 4 7 0.8 0 | 0 0 0 1 0 0.05 15 0 5 | 0.8 0.5 0.1 3 20 150 50 1 450;upf;Usually not fortified the way wheat flour is, and often ultra-processed. Use potatoes, rice, buckwheat and oats as your main gluten-free carbohydrates.
 pasta;Pasta, wheat (dry);grains;3;75;75 g dry;371 13 71 3.2 2.7 1.5 0.3 0 | 0 0 0 0.1 0 0.06 18 0 15 | 1.3 1.4 0.29 63 53 223 21 2 6;gluten lowgi;Cooked al dente, pasta has a lower GI than most people expect.
 gf-pasta;Pasta, gluten-free (rice/corn, dry);grains;3;75;75 g dry;357 7 79 2.5 0.5 1.5 0.3 0 | 0 0 0 0.1 0 0.03 10 0 5 | 0.8 1.1 0.1 10 30 120 10 1 5;;
-rice-cakes;Rice cakes;grains;3;20;2 cakes;387 8 80 4 0.9 2.8 0.6 0 | 0 0 0 0.5 0 0.05 20 0 20 | 1.5 2 0.4 20 130 290 11 2 80;highgi;Puffing makes the starch digest very fast. Fine before a session; otherwise not very filling.
+rice-cakes;Rice cakes;grains;3;20;2 cakes;387 8 80 4 0.9 2.8 0.6 0 | 0 0 0 0.5 0 0.05 20 0 20 | 1.5 2 0.4 20 130 290 11 2 80;highgi;Puffing makes the starch digest very fast. Fine before a session. Otherwise not very filling.
 corn-tortilla;Corn tortilla;grains;3;50;2 small;218 5.7 41 6.3 0.9 2.9 0.4 0 | 0 0 0 0.3 0 0.06 5 0 13 | 1.2 1.3 0.15 6 72 186 81 2 45;;Made with lime (nixtamalised), which unlocks niacin in the corn.
 cereal-sugary;Breakfast cereal, sugary;grains;4;40;40 g bowl;380 7 84 3 30 2 0.5 0 | 300 20 4 0 0 1 300 1.5 20 | 12 5 0.2 5 30 150 20 2 600;upf addsug highgi gluten;The vitamins are sprayed on. That makes it look good on a label without the food matrix (fibre, polyphenols, protein) of real food.
 granola;Granola (shop-bought);grains;4;50;50 g;471 10 56 7 22 22 4 0 | 0 0 0 4 2 0.15 30 0 30 | 3 2.5 0.4 10 120 400 50 2 20;upf addsug gluten;A health halo with roughly a quarter sugar. Make your own with oats, nuts and cinnamon.
@@ -173,7 +175,7 @@ tofu;Tofu, firm (calcium-set);legumes;3;150;150 g;144 17.3 1.2 2.3 0.6 8.7 1.3 0
 tempeh;Tempeh;legumes;3;100;100 g;192 20.3 6.4 4.8 0 10.8 2.2 0 | 0 0 0 0 0 0.36 24 0.1 40 | 2.7 1.1 0.56 0 81 412 111 2 9;ferm poly;Fermentation lowers phytate, so its minerals absorb better than tofu's.
 natto;Natto;legumes;3;50;1 pot;211 19.4 12.7 5.4 4.9 11 1.6 0 | 0 13 0 0 600 0.19 8 0 57 | 8.6 3 0.67 8.8 115 729 217 1 7;ferm sperm;The richest food source of vitamin K2 (MK-7), which directs calcium into bones and away from arteries, and one of the richest in spermidine. It's an acquired taste.
 hummus;Hummus;legumes;3;50;2 tbsp;166 7.9 11 6 0.3 9.6 1.4 0 | 1 0 0 1 3 0.06 83 0 30 | 2.4 1.8 0.4 2.4 71 228 38 2 379;phy preb;
-spinach;Spinach;veg;1;80;2 big handfuls;23 2.9 1.4 2.2 0.4 0.4 0.1 0 | 469 28 0 2 483 0.19 194 0 19 | 2.7 0.5 0.13 1 79 558 99 2 79;oxa lut nitr carot;Packed with folate, vitamin K, nitrate and lutein. Its calcium is mostly locked up by oxalate, so you absorb only about 5% of it; the iron absorbs poorly too. Valuable for everything else.
+spinach;Spinach;veg;1;80;2 big handfuls;23 2.9 1.4 2.2 0.4 0.4 0.1 0 | 469 28 0 2 483 0.19 194 0 19 | 2.7 0.5 0.13 1 79 558 99 2 79;oxa lut nitr carot;Packed with folate, vitamin K, nitrate and lutein. Its calcium is mostly locked up by oxalate, so you absorb only about 5% of it. The iron absorbs poorly too. Valuable for everything else.
 kale;Kale;veg;1;80;2 handfuls;49 4.3 5 2 2.3 0.9 0.1 0 | 241 93 0 1.5 390 0.13 141 0 0.4 | 1.5 0.4 0.29 0.9 47 491 150 2 38;sulf lut carot;Unlike spinach, kale is low in oxalate, so its calcium absorbs well (about as well as milk's).
 broccoli;Broccoli;veg;1;80;80 g;34 2.8 4 2.6 1.7 0.4 0 0 | 31 89 0 0.8 102 0.12 63 0 19 | 0.7 0.4 0.05 2.5 21 316 47 2 33;sulf;Contains glucoraphanin, which becomes sulforaphane when chopped. Sulforaphane activates Nrf2, a master switch for your cells' own antioxidant defences. Chop it and leave it 30–40 minutes before cooking, or add a pinch of mustard powder.
 broccoli-sprouts;Broccoli sprouts;veg;1;30;1 handful;35 2.5 3 2.5 0.5 0.5 0 0 | 0 60 0 0 100 0.1 60 0 0 | 0.8 0.5 0.05 1 25 300 60 2 30;sulf poly2 raw;Carry 10–100 times more glucoraphanin than mature broccoli. Best raw. Values approximate.
@@ -187,11 +189,11 @@ beetroot;Beetroot;veg;1;80;1 medium;43 1.6 7 2.8 6.8 0.2 0 0 | 2 4.9 0 0 0.2 0.0
 beet-juice;Beetroot juice shot (per 100 ml);drinks;1;70;1 shot (70 ml);45 1 9.5 0.5 9 0 0 0 | 0 2 0 0 0 0.02 20 0 0 | 0.5 0.2 0.05 0.3 15 300 15 1 80;nitr poly juice;Concentrated nitrate. Trials show small improvements in endurance performance, mostly in less-trained people. Take it 2–3 hours before a session.
 carrots;Carrots;veg;1;80;1 large;41 0.9 7.7 2.8 4.7 0.2 0 0 | 835 5.9 0 0.7 13.2 0.06 19 0 8.8 | 0.3 0.2 0.05 0.1 12 320 33 2 69;carot;Cooking carrots with a little fat makes their beta-carotene several times more absorbable than eating them raw.
 red-pepper;Red pepper;veg;1;80;half a pepper;31 1 4.6 2.1 4.2 0.3 0 0 | 157 128 0 1.6 4.9 0.09 46 0 5.6 | 0.4 0.3 0.02 0.1 12 211 7 1 4;carot;More vitamin C than an orange. Vitamin C is the cofactor your skin needs to build collagen.
-tomato;Tomatoes;veg;1;80;1 medium;18 0.9 2.7 1.2 2.6 0.2 0 0 | 42 13.7 0 0.5 7.9 0.02 15 0 6.7 | 0.3 0.2 0.06 0 11 237 10 1 5;carot;Lycopene. Small trials suggest tomato paste with olive oil may modestly protect skin against sunburn. It adds to sunscreen; it doesn't replace it.
+tomato;Tomatoes;veg;1;80;1 medium;18 0.9 2.7 1.2 2.6 0.2 0 0 | 42 13.7 0 0.5 7.9 0.02 15 0 6.7 | 0.3 0.2 0.06 0 11 237 10 1 5;carot;Lycopene. Small trials suggest tomato paste with olive oil may modestly protect skin against sunburn. It adds to sunscreen. It doesn't replace it.
 passata;Tomato passata;veg;1;100;100 g;30 1.4 5 1.5 4 0.2 0 0 | 40 10 0 1.5 5 0.05 10 0 8 | 0.8 0.2 0.1 0.3 18 400 18 1 20;carot;Cooked tomato releases far more lycopene than raw, especially with olive oil.
 avocado;Avocado;veg;1;75;half an avocado;160 2 1.8 6.7 0.7 14.7 2.1 0 | 7 10 0 2.1 21 0.13 81 0 14 | 0.6 0.6 0.19 0.4 29 485 12 1 7;mufa lut;Its fat helps you absorb the carotenoids from other vegetables in the meal. Very rich in fibre and potassium.
 garlic;Garlic;veg;1;6;2 cloves;149 6.4 31 2.1 1 0.5 0.1 0 | 0 31 0 0.1 1.7 0.11 3 0 23 | 1.7 1.2 0.3 14.2 25 401 181 2 17;sulf preb;Crush it and wait 10 minutes before heating to let allicin form. Prebiotic fibre (inulin) feeds gut bacteria.
-onion;Red onion;veg;1;80;1 small;40 1.1 7.6 1.7 4.2 0.1 0 0 | 0 7.4 0 0 0.4 0.03 19 0 6 | 0.2 0.2 0.04 0.5 10 146 23 1 4;poly preb;Red onions carry quercetin and anthocyanins; the outer layers hold the most.
+onion;Red onion;veg;1;80;1 small;40 1.1 7.6 1.7 4.2 0.1 0 0 | 0 7.4 0 0 0.4 0.03 19 0 6 | 0.2 0.2 0.04 0.5 10 146 23 1 4;poly preb;Red onions carry quercetin and anthocyanins. The outer layers hold the most.
 leek;Leek;veg;1;80;half a leek;61 1.5 12.4 1.8 3.9 0.3 0 0 | 83 12 0 0.9 47 0.03 64 0 9.5 | 2.1 0.1 0.12 1 28 180 59 1 20;preb;
 mushrooms;Mushrooms (chestnut/white);veg;1;80;80 g;22 3.1 0.3 1 2 0.3 0.1 0 | 0 2 0.2 0 0 0.4 17 0.04 17 | 0.5 0.5 0.32 9.3 9 318 3 3 5;sperm;Mushrooms are the richest dietary source of ergothioneine, an antioxidant your body actively transports into cells, plus spermidine. Leave them on a sunny windowsill gill-side up for an hour and they make vitamin D.
 mushrooms-uv;Mushrooms, UV-exposed (vitamin D);veg;1;80;80 g;22 3.1 0.3 1 2 0.3 0.1 0 | 0 2 10 0 0 0.4 17 0.04 17 | 0.5 0.5 0.32 9.3 9 318 3 3 5;sperm;Some UK supermarkets sell "vitamin D mushrooms" grown under UV light.
@@ -230,7 +232,7 @@ kiwi;Kiwi fruit;fruit;1;150;2 kiwis;61 1.1 10.1 3 9 0.5 0 0 | 4 92.7 0 1.5 40.3 
 orange;Orange;fruit;1;150;1 orange;47 0.9 8.6 2.4 9.4 0.1 0 0 | 11 53.2 0 0.2 0 0.04 30 0 8.4 | 0.1 0.1 0.05 0.5 10 181 40 1 0;poly;
 lemon;Lemon juice & zest;fruit;1;30;juice of half;29 1.1 3.2 2.8 2.5 0.3 0 0 | 1 53 0 0.2 0 0.02 11 0 5 | 0.6 0.1 0.04 0.4 8 138 26 1 2;poly;Vitamin C squeezed over lentils, spinach or seeds can roughly double non-haem iron absorption.
 banana;Banana;fruit;1;120;1 medium;89 1.1 20.3 2.6 12.2 0.3 0.1 0 | 3 8.7 0 0.1 0.5 0.07 20 0 9.8 | 0.3 0.2 0.08 1 27 358 5 1 1;;Easy pre-run fuel. Slightly green bananas carry resistant starch.
-apple;Apple (skin on);fruit;1;150;1 medium;52 0.3 11.8 2.4 10.4 0.2 0 0 | 3 4.6 0 0.2 2.2 0.03 3 0 3.4 | 0.1 0 0.03 0 5 107 6 1 1;poly preb lowgi;The skin holds most of the quercetin; pectin is a prebiotic fibre.
+apple;Apple (skin on);fruit;1;150;1 medium;52 0.3 11.8 2.4 10.4 0.2 0 0 | 3 4.6 0 0.2 2.2 0.03 3 0 3.4 | 0.1 0 0.03 0 5 107 6 1 1;poly preb lowgi;The skin holds most of the quercetin. Pectin is a prebiotic fibre.
 pomegranate;Pomegranate seeds;fruit;1;80;half a pomegranate;83 1.7 14.7 4 13.7 1.2 0.1 0 | 0 10.2 0 0.6 16.4 0.05 38 0 7.6 | 0.3 0.4 0.16 0.5 12 236 10 1 3;poly2;Ellagitannins that some people's gut bacteria convert to urolithin A. Urolithin A improved muscle endurance markers in small trials of the purified compound.
 mango;Mango;fruit;1;100;100 g;60 0.8 13.4 1.6 13.7 0.4 0.1 0 | 54 36.4 0 0.9 4.2 0.04 43 0 7.6 | 0.2 0.1 0.11 0.6 10 168 11 1 1;carot;
 grapes;Red grapes;fruit;1;80;1 handful;69 0.7 17.2 0.9 15.5 0.2 0 0 | 3 3.2 0 0.2 14.6 0.07 2 0 5.6 | 0.4 0.1 0.13 0.1 7 191 10 1 2;poly;
@@ -263,7 +265,7 @@ cola;Cola (per 100 ml);drinks;4;330;1 can;42 0 10.6 0 10.6 0 0 0 | 0 0 0 0 0 0 0
 diet-cola;Diet cola (per 100 ml);drinks;4;330;1 can;0.4 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 1 2 2 0 4;upf caff;Far better than full-sugar cola. Questions remain about sweeteners and the gut microbiome, but the evidence is mixed.
 energy-drink;Energy drink (per 100 ml);drinks;4;250;1 can;45 0 11 0 11 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 80;upf addsug caff;
 oj;Orange juice (per 100 ml);drinks;1;150;1 small glass;45 0.7 10.4 0.2 8.4 0.2 0 0 | 10 50 0 0 0.1 0.03 30 0 6 | 0.2 0.1 0.04 0.1 11 200 11 1 1;juice;Juicing turns the fruit's sugar into "free sugar" (the type to limit): no fibre, quick to drink. Eat the orange.
-kombucha;Kombucha (per 100 ml);drinks;3;250;1 bottle;13 0 3 0 3 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 10 0 0 5;ferm;Fewer studied benefits than kefir or yoghurt; check the label for added sugar.
+kombucha;Kombucha (per 100 ml);drinks;3;250;1 bottle;13 0 3 0 3 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 10 0 0 5;ferm;Fewer studied benefits than kefir or yoghurt. Check the label for added sugar.
 beer;Beer, lager (per 100 ml);drinks;3;568;1 pint;43 0.5 3.6 0 0 0 0 0 | 0 0 0 0 0 0.03 6 0 10 | 0 0 0 0.6 6 27 4 0 4;alc gluten;
 wine;Red wine (per 100 ml);drinks;3;175;1 medium glass;85 0.1 2.6 0 0.6 0 0 0 | 0 0 0 0 0.4 0.03 1 0 0 | 0.5 0.1 0.01 0.2 12 127 8 0 4;alc poly;The resveratrol in wine is a tiny fraction of the doses used in animal studies, and the alcohol works against everything you want here.
 spirits;Spirits (per 100 ml);drinks;3;25;1 single (25 ml);231 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 1 0 0 1;alc;
@@ -334,6 +336,7 @@ const ALIAS: Record<string, string> = {
   venison: 'diced venison deer haunch loin venison steak casserole',
   'beef-mince-lean': 'lean mince steak mince 5% mince ground beef',
   'beef-mince-20': 'mince 20% ground beef',
+  'rice-cakes': 'kallo rice cakes wholegrain rice cake',
   sirloin: 'steak rump diced beef fillet steak',
   'lamb-leg': 'diced lamb lamb leg steak',
   'chicken-breast': 'diced chicken chicken fillet',

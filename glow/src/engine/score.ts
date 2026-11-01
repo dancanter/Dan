@@ -160,6 +160,7 @@ export interface LoggedItem {
   food: Food;
   grams: number;
   meal: Meal;
+  qty?: { count: number; label: string; plural?: string };
 }
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snacks';
 

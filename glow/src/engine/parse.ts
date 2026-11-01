@@ -1,5 +1,6 @@
 import type { Food } from '@/data/foods';
 import { cookedToRaw, cookingYield } from './cooking';
+import { defaultUnit, unitsFor } from '@/data/units';
 
 // Turns "3 eggs, 150g wild salmon, handful blueberries, 1 brazil nut" into
 // foods and grams. Deliberately forgiving: you can type how you'd say it.
@@ -52,6 +53,8 @@ export interface ParsedItem {
   grams?: number;
   /** Set when you typed a cooked weight that was converted. */
   cookedGrams?: number;
+  /** Set when you counted items ("4 large eggs"). */
+  qty?: { count: number; label: string; plural?: string };
 }
 
 export function normalise(s: string): string {
@@ -63,7 +66,7 @@ const SOFT = new Set(['diced', 'sliced', 'chopped', 'fresh', 'raw', 'organic', '
   'skinless', 'fillet', 'fillets', 'loin', 'cubed', 'minced', 'whole', 'frozen', 'british', 'uk', 'scottish', 'local', 'butcher', 'butchers',
   'homemade', 'plain', 'natural', 'cooked', 'boiled', 'grilled', 'roasted', 'baked', 'steamed', 'poached', 'pan', 'fried', 'seared', 'large', 'medium', 'small', 'some', 'my', 'the', 'with', 'from', 'pieces', 'cut', 'cuts']);
 
-const SOURCE_BOOST: Record<string, number> = { library: 6, uk: 4, custom: 5, usda: 0, openfoodfacts: 0 };
+const SOURCE_BOOST: Record<string, number> = { library: 6, uk: 4, custom: 9, usda: 0, openfoodfacts: 0 };
 
 /** Ranked fuzzy search over a food list. Every "hard" word must match; soft words only lift the ranking. */
 export function searchFoods(q: string, foods: Food[], limit = 30): Food[] {
@@ -129,17 +132,27 @@ function parseChunk(chunk: string, foods: Food[]): ParsedItem {
       }
     }
   }
+  const size = normalise(chunk).match(/\b(very large|extra large|xl|large|medium|small|cherry|half|whole|king)\b/)?.[1]?.replace(/extra large|xl/, 'very large');
   if (/\bhandful\b/.test(s) && grams === undefined) grams = 30 * (count ?? 1);
   s = s.replace(/\b(handfuls?|of|portions?|servings?|slices?|pieces?|fillets?|tins?|cans?|pots?|glass(es)?|mugs?|cups?|bowls?|pints?|bottles?|shots?|scoops?|rashers?|cloves?|large|medium|small)\b/g, ' ').trim();
 
   const food = searchFoods(s, foods, 1)[0];
+  let qty: ParsedItem['qty'];
   if (food && grams === undefined) {
-    const each = EACH[food.id];
-    grams = count !== undefined ? (each ? each * count : food.portion.g * count) : food.portion.g;
+    const units = unitsFor(food);
+    const unit = (size && units.find((u) => u.label.startsWith(size))) || defaultUnit(food);
+    if (size === 'half' && count === 0.5 && unit?.label.startsWith('half')) count = 1;
+    if (count !== undefined && unit) {
+      grams = unit.g * count;
+      qty = { count, label: unit.label, plural: unit.plural };
+    } else {
+      const each = EACH[food.id];
+      grams = count !== undefined ? (each ? each * count : food.portion.g * count) : food.portion.g;
+    }
   }
   const cooked = /\b(cooked|boiled|grilled|roasted|roast|baked|steamed|poached|pan[- ]fried|seared|after cooking)\b/.test(normalise(chunk));
   if (food && grams !== undefined && cooked && cookingYield(food) && g) {
     return { text: chunk, food, grams: cookedToRaw(food, grams), cookedGrams: Math.round(grams) };
   }
-  return { text: chunk, food, grams: grams !== undefined ? Math.round(grams) : undefined };
+  return { text: chunk, food, grams: grams !== undefined ? Math.round(grams) : undefined, qty };
 }

@@ -13,6 +13,8 @@ export interface StoredItem {
   foodId: string;
   grams: number;
   meal: Meal;
+  /** How you entered it, e.g. 4 × large egg, so the log reads naturally. */
+  qty?: { count: number; label: string; plural?: string };
 }
 
 export interface DayLog {
@@ -102,7 +104,7 @@ export function resolveItems(log: DayLog | undefined, s: State = state): LoggedI
   if (!log) return [];
   return log.items.flatMap((it) => {
     const food = findFood(it.foodId, s);
-    return food ? [{ uid: it.uid, food, grams: it.grams, meal: it.meal }] : [];
+    return food ? [{ uid: it.uid, food, grams: it.grams, meal: it.meal, qty: it.qty }] : [];
   });
 }
 
@@ -113,17 +115,19 @@ function day(s: State, date: string): DayLog {
 }
 
 export const actions = {
-  addItem(date: string, food: Food, grams: number, meal: Meal) {
+  addItem(date: string, food: Food, grams: number, meal: Meal, qty?: StoredItem['qty']) {
     setState((s) => {
-      const customFoods = food.source !== 'library' && !s.customFoods.some((f) => f.id === food.id) ? [...s.customFoods, food] : s.customFoods;
+      // Only foods that don't ship with Glow need saving alongside your logs.
+      const external = food.source === 'custom' || food.source === 'openfoodfacts';
+      const customFoods = external && !s.customFoods.some((f) => f.id === food.id) ? [...s.customFoods, food] : s.customFoods;
       const d = day(s, date);
-      return { ...s, customFoods, days: { ...s.days, [date]: { ...d, items: [...d.items, { uid: uid(), foodId: food.id, grams, meal }] } } };
+      return { ...s, customFoods, days: { ...s.days, [date]: { ...d, items: [...d.items, { uid: uid(), foodId: food.id, grams, meal, ...(qty ? { qty } : {}) }] } } };
     });
   },
   updateItem(date: string, itemUid: string, grams: number) {
     setState((s) => {
       const d = day(s, date);
-      return { ...s, days: { ...s.days, [date]: { ...d, items: d.items.map((i) => (i.uid === itemUid ? { ...i, grams } : i)) } } };
+      return { ...s, days: { ...s.days, [date]: { ...d, items: d.items.map((i) => (i.uid === itemUid ? { ...i, grams, qty: undefined } : i)) } } };
     });
   },
   removeItem(date: string, itemUid: string) {
