@@ -9,7 +9,7 @@ A personal app for eating, sleeping and living for cellular health and looking y
 | Screen | |
 | --- | --- |
 | **Today** | Type what you ate the way you'd say it ("3 eggs, 150g wild salmon, handful blueberries"). You get a **Glow score** (nutrition 45%, sleep 25%, rituals 15%, vitality 15%), a **Glow coach** that reacts to your numbers, **vitals** (steps, minutes outdoors, morning resting HR against your own baseline, with what's enough and what's too much), a daily fun fact, confetti for wins, a daily quest, macros against your targets, the 8 cellular pillars, all 17 micronutrients (bioavailability-adjusted), and safety warnings for vitamin A, selenium, zinc, copper, iodine, free sugar, alcohol, gluten and low energy availability. There's also a morning weight and sleep check-in. |
-| **Foods** | Around 190 whole foods, values per 100 g raw. Each has an A+ to F **optimisation score** (how hard every calorie works), a plain-English "what it does for you", and notes on compounds and bioavailability. Rank by any nutrient. Online search covers 3 million+ packaged products through Open Food Facts, and you can add your own foods. |
+| **Foods** | 4,700+ foods: about 200 hand-checked Glow foods, 150 UK staples (hake, kippers, black pudding, crumpets, Quorn, UK cheeses, takeaway, drinks), and 4,395 foods from the USDA national database (SR28, public domain), renamed to UK terms. Values per 100 g raw. Missing values show as "not recorded", never zero. Each has an A+ to F **optimisation score** (how hard every calorie works), a plain-English "what it does for you", and notes on compounds and bioavailability. Rank by any nutrient. Online search covers 3 million+ packaged products through Open Food Facts, and you can add your own foods. |
 | **Cellular** | The 8 pillars, mapped to the 12 hallmarks of ageing (López-Otín 2023): mitochondria, inflammation, DNA, glycation, autophagy, gut, hormones, skin. Plus what to cut out and why, a coeliac guide (gluten to avoid, hidden gluten, cross-contamination, eating out), what blocks and boosts absorption (also checked meal by meal on Today), non-training boosters graded by evidence, a glossary and sources. |
 | **Body** | Weight trend (7-day average and weekly rate), BMI, resting HR and steps trends, and an honest energy-availability check of your cut. Sleep log with duration, quality and regularity scores. |
 | **Rituals** | Daily non-training habits with evidence grades, and a breathing pacer (resonance, box, 4-7-8). |
@@ -34,3 +34,15 @@ npm run build
 ```
 
 Data is stored in the browser (localStorage). Export a backup from **Me** to move devices.
+
+## Updating the USDA data
+
+`src/data/usda.json` is generated, not hand-edited:
+
+```bash
+npm pack fda-nutrient-database@1.0.2   # USDA SR28 ABBREV.txt + FOOD_DES.txt
+tar -xzf fda-nutrient-database-1.0.2.tgz
+python3 -I scripts/import-usda.py package/data src/data/usda.json
+```
+
+`npm run build:artifact` packs the app into one page (`dist-artifact/glow.html`) for publishing inside Claude.

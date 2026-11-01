@@ -9,6 +9,14 @@ import { weightOn } from '@/engine/game';
 import { todayISO } from '@/engine/body';
 import { Bar, Button, Grade, Pill } from './ui';
 
+const SOURCE_LABEL: Record<string, string> = {
+  library: 'Glow library: hand-checked typical values',
+  uk: 'Typical UK values (Glow estimate; brands vary)',
+  usda: 'USDA national food database (SR28)',
+  custom: 'Your own food',
+  openfoodfacts: 'Open Food Facts label data',
+};
+
 export const MEALS: { value: Meal; label: string }[] = [
   { value: 'breakfast', label: 'Breakfast' },
   { value: 'lunch', label: 'Lunch' },
@@ -41,6 +49,7 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
         <div className="flex-1">
           <div className="num text-sm text-ink-2"><b className="text-ink">{sc.score}/100</b> optimisation score</div>
           <div className="text-xs text-muted">{CATEGORY_LABEL[food.category]} · NOVA {food.nova} · per 100 g {food.category === 'drinks' ? '(100 ml)' : 'raw'}: {Math.round(food.n.kcal)} kcal</div>
+          <div className="mt-1 text-[11px] text-muted">{SOURCE_LABEL[food.source ?? 'library']}</div>
           {food.limitedData && <div className="mt-1"><Pill tone="warn">Limited data: label macros only</Pill></div>}
         </div>
         <button onClick={() => actions.toggleFavourite(food.id)} aria-label={fav ? 'Remove from favourites' : 'Add to favourites'} className="rounded-full p-2 hover:bg-surface-2">
@@ -114,13 +123,16 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
           <span>Fibre {portion.fibre.toFixed(1)} g</span>
           <span>Sugars {portion.sugar.toFixed(1)} g</span>
           <span>Sat fat {portion.satFat.toFixed(1)} g</span>
-          <span>Omega-3 {portion.omega3.toFixed(2)} g</span>
+          <span>Omega-3 {food.unknown?.includes('omega3') ? 'not recorded' : `${portion.omega3.toFixed(2)} g`}</span>
           <span>Sodium {Math.round(portion.sodium)} mg</span>
         </div>
         {!food.limitedData && (
           <ul className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">
             {MICROS.map((k) => {
               const pct = (effPortion[k] / t[k]) * 100;
+              if (food.unknown?.includes(k)) return (
+                <li key={k} className="text-xs"><div className="mb-0.5 flex justify-between gap-2"><span>{NUTRIENTS[k].label}</span><span className="text-muted">not recorded</span></div><Bar value={0} height={5} /></li>
+              );
               return (
                 <li key={k} className="text-xs">
                   <div className="mb-0.5 flex justify-between gap-2">

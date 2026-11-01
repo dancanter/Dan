@@ -114,12 +114,15 @@ export function scoreFood(f: Food, t: Targets = targetsFor(DEFAULT_PROFILE, 57))
     let raw: number;
     const protein = Math.min(1, (f.n.protein * per100kcal) / 10);
     const fibre = Math.min(1, (f.n.fibre * per100kcal) / 4);
-    if (f.limitedData) {
+    if (f.limitedData || MICROS.filter((k) => !f.unknown?.includes(k)).length < 8) {
       // Unknown micronutrients: judge mainly on processing and macros.
       const sugarPen = Math.min(0.3, (f.n.sugar / 100) * 0.6);
       raw = 0.3 + 0.25 * protein + 0.2 * fibre - sugarPen - (f.nova === 4 ? 0.3 : f.nova === 3 ? 0.08 : 0);
     } else {
-      const density = MICROS.reduce((s, k) => s + Math.min(1, (eff[k] / t[k]) * per100kcal), 0) / MICROS.length;
+      // Only nutrients the source actually records count, so a food isn't
+      // marked down for a gap in the database (USDA never lists iodine).
+      const known = MICROS.filter((k) => !f.unknown?.includes(k));
+      const density = known.reduce((s, k) => s + Math.min(1, (eff[k] / t[k]) * per100kcal), 0) / Math.max(known.length, 1);
       const omega = Math.min(1, (f.n.omega3 * per100kcal) / 0.4);
       raw = 0.55 * density + 0.2 * protein + 0.1 * fibre + 0.15 * omega;
       // "Superstar" foods cover a big share of a target in one normal portion
@@ -139,6 +142,7 @@ export function scoreFood(f: Food, t: Targets = targetsFor(DEFAULT_PROFILE, 57))
   }
 
   const stars = MICROS.concat(['protein', 'fibre', 'omega3'])
+    .filter((k) => !f.unknown?.includes(k))
     .map((k) => ({ key: k, pct: Math.round((portion[k] / t[k]) * 100) }))
     .filter((s) => s.pct >= 10)
     .sort((a, b) => b.pct - a.pct)

@@ -54,23 +54,38 @@ export function normalise(s: string): string {
   return s.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9%.\s-]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/** Ranked fuzzy search over a food list. */
+/** Preparation and buying words: they help ranking but aren't required to match. */
+const SOFT = new Set(['diced', 'sliced', 'chopped', 'fresh', 'raw', 'organic', 'free', 'range', 'grass', 'fed', 'grassfed', 'wild', 'boneless',
+  'skinless', 'fillet', 'fillets', 'loin', 'cubed', 'minced', 'whole', 'frozen', 'british', 'uk', 'scottish', 'local', 'butcher', 'butchers',
+  'homemade', 'plain', 'natural', 'large', 'medium', 'small', 'some', 'my', 'the', 'with', 'from', 'pieces', 'cut', 'cuts']);
+
+const SOURCE_BOOST: Record<string, number> = { library: 6, uk: 4, custom: 5, usda: 0, openfoodfacts: 0 };
+
+/** Ranked fuzzy search over a food list. Every "hard" word must match; soft words only lift the ranking. */
 export function searchFoods(q: string, foods: Food[], limit = 30): Food[] {
   const nq = normalise(q);
   if (!nq) return [];
-  const tokens = nq.split(' ').map((t) => t.replace(/(ies|es|s)$/, ''));
-  const scored = foods
-    .map((f) => {
-      const name = normalise(f.name);
-      let s = 0;
-      if (name.startsWith(nq)) s += 6;
-      if (name.includes(nq)) s += 4;
-      for (const t of tokens) if (t && (name.includes(t) || f.id.includes(t))) s += 2;
-      for (const [re, id] of ALIASES) if (id === f.id && re.test(nq)) s += 5;
-      return { f, s };
-    })
-    .filter((x) => x.s >= 2 * Math.min(tokens.length, 2))
-    .sort((a, b) => b.s - a.s || a.f.name.length - b.f.name.length);
+  // Cut plurals to a shared stem: blueberries/blueberry -> blueberr, potatoes -> potato, eggs -> egg.
+  const stem = (t: string) => (t.length <= 4 ? t : t.replace(/ies$|y$/, '').replace(/oes$/, 'o').replace(/(ches|shes|sses)$/, (m) => m.slice(0, -2)).replace(/([^s])s$/, '$1'));
+  const words = nq.split(' ').filter(Boolean);
+  const hard = words.filter((w) => !SOFT.has(w)).map(stem).filter((w) => w.length > 1);
+  const soft = words.filter((w) => SOFT.has(w));
+  if (!hard.length) return [];
+  const scored: { f: Food; s: number }[] = [];
+  for (const f of foods) {
+    const hay = normalise(`${f.name} ${f.alias ?? ''} ${f.id.replace(/-/g, ' ')}`);
+    if (!hard.every((t) => hay.includes(t))) continue;
+    const name = normalise(f.name);
+    let s = SOURCE_BOOST[f.source ?? 'library'] ?? 0;
+    if (name.startsWith(hard[0])) s += 4;
+    if (name.includes(nq)) s += 4;
+    for (const t of hard) if (new RegExp(`\\b${t}`).test(name)) s += 2;
+    for (const t of soft) if (hay.includes(t)) s += 1;
+    if (/\braw\b/.test(name)) s += 1;
+    for (const [re, id] of ALIASES) if (id === f.id && re.test(nq)) s += 6;
+    scored.push({ f, s });
+  }
+  scored.sort((a, b) => b.s - a.s || a.f.name.length - b.f.name.length);
   return scored.slice(0, limit).map((x) => x.f);
 }
 

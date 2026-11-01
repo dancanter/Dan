@@ -17,7 +17,9 @@
 // Tags drive bioavailability adjustments, the cellular pillars and the
 // warnings. They are listed and explained in TAGS below.
 
-import { NUTRIENT_KEYS, type Nutrients } from './nutrients';
+import { NUTRIENT_KEYS, type NKey, type Nutrients } from './nutrients';
+import usda from './usda.json';
+import { UK_RAW } from './ukFoods';
 
 export type Category =
   | 'meat'
@@ -74,7 +76,11 @@ export interface Food {
   tags: Tag[];
   note?: string;
   /** Where the food came from when it isn't in the built-in library. */
-  source?: 'library' | 'custom' | 'openfoodfacts';
+  source?: 'library' | 'uk' | 'usda' | 'custom' | 'openfoodfacts';
+  /** Nutrients the source doesn't record: shown as "not recorded", never as zero. */
+  unknown?: NKey[];
+  /** Other names people search for (US names, cuts, preparations). */
+  alias?: string;
   /** Imported foods often only carry macros; micronutrients are then unknown, not zero. */
   limitedData?: boolean;
 }
@@ -293,16 +299,20 @@ seitan;Seitan (wheat gluten);legumes;3;100;100 g;370 75 14 0.6 0 1.9 0.3 0 | 0 0
 acv;Apple cider vinegar;drinks;2;15;1 tbsp;22 0 0.9 0 0.4 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0.2 0 0 0.1 5 73 7 0 5;ferm;Slightly blunts the blood-sugar rise from a starchy meal in small studies. Always dilute it, because acid erodes tooth enamel.
 `;
 
-function parse(): Food[] {
-  return RAW.trim()
+/** Parses rows in the format described at the top of this file. "?" marks a value the source doesn't record. */
+export function parseRows(raw: string, source: Food['source']): Food[] {
+  return raw
+    .trim()
     .split('\n')
+    .filter((l) => l.trim() && !l.startsWith('#'))
     .map((line) => {
-      const [id, name, category, nova, pg, pl, nums, tags, note] = line.split(';');
-      const values = nums.replace(/\|/g, ' ').trim().split(/\s+/).map(Number);
-      if (values.length !== NUTRIENT_KEYS.length || values.some((v) => Number.isNaN(v))) {
-        throw new Error(`Food row "${id}" has ${values.length} numbers, expected ${NUTRIENT_KEYS.length}`);
+      const [id, name, category, nova, pg, pl, nums, tags, note, alias] = line.split(';');
+      const cells = nums.replace(/\|/g, ' ').trim().split(/\s+/);
+      if (cells.length !== NUTRIENT_KEYS.length || cells.some((c) => c !== '?' && Number.isNaN(Number(c)))) {
+        throw new Error(`Food row "${id}" has ${cells.length} values, expected ${NUTRIENT_KEYS.length}`);
       }
-      const n = Object.fromEntries(NUTRIENT_KEYS.map((k, i) => [k, values[i]])) as Nutrients;
+      const unknown = NUTRIENT_KEYS.filter((_, i) => cells[i] === '?');
+      const n = Object.fromEntries(NUTRIENT_KEYS.map((k, i) => [k, cells[i] === '?' ? 0 : Number(cells[i])])) as Nutrients;
       return {
         id,
         name,
@@ -312,10 +322,58 @@ function parse(): Food[] {
         n,
         tags: (tags ?? '').split(/\s+/).filter(Boolean) as Tag[],
         note: note?.trim() || undefined,
-        source: 'library' as const,
+        alias: alias?.trim() || ALIAS[id],
+        unknown: unknown.length ? unknown : undefined,
+        source,
       };
     });
 }
 
-export const FOODS: Food[] = parse();
-export const FOOD_BY_ID = new Map(FOODS.map((f) => [f.id, f]));
+/** Extra search words for library foods. */
+const ALIAS: Record<string, string> = {
+  venison: 'diced venison deer haunch loin venison steak casserole',
+  'beef-mince-lean': 'lean mince steak mince 5% mince ground beef',
+  'beef-mince-20': 'mince 20% ground beef',
+  sirloin: 'steak rump diced beef fillet steak',
+  'lamb-leg': 'diced lamb lamb leg steak',
+  'chicken-breast': 'diced chicken chicken fillet',
+  'chicken-thigh': 'diced thigh',
+  'salmon-wild': 'salmon fillet wild salmon',
+  cod: 'cod loin',
+  eggs: 'egg free range',
+  'greek-yogurt': 'yoghurt yogurt greek',
+  oysters: 'oyster rock oysters',
+  'beef-liver': 'ox liver liver',
+  'brazil-nuts': 'brazil nut',
+  evoo: 'olive oil extra virgin',
+  'bone-broth': 'broth stock',
+  prawns: 'shrimp king prawns',
+  rocket: 'arugula',
+  courgette: 'zucchini',
+  aubergine: 'eggplant',
+};
+
+export const FOODS: Food[] = parseRows(RAW, 'library');
+export const UK_FOODS: Food[] = parseRows(UK_RAW, 'uk');
+
+type UsdaRow = [string, string, string, Category, number, number, string, (number | null)[], string, string];
+export const USDA_FOODS: Food[] = (usda as unknown as { foods: UsdaRow[] }).foods.map(([id, name, alias, category, nova, pg, pl, vals, tags, note]) => {
+  const unknown = NUTRIENT_KEYS.filter((_, i) => vals[i] === null);
+  return {
+    id,
+    name,
+    category,
+    nova: nova as Food['nova'],
+    portion: { g: pg, label: pl },
+    n: Object.fromEntries(NUTRIENT_KEYS.map((k, i) => [k, vals[i] ?? 0])) as Nutrients,
+    tags: tags.split(' ').filter(Boolean) as Tag[],
+    note: note || undefined,
+    alias: alias || undefined,
+    unknown: unknown.length ? (unknown as NKey[]) : undefined,
+    source: 'usda' as const,
+  };
+});
+
+/** Everything searchable: Glow's curated library first, then UK staples, then the USDA database. */
+export const ALL_FOODS: Food[] = [...FOODS, ...UK_FOODS, ...USDA_FOODS];
+export const FOOD_BY_ID = new Map(ALL_FOODS.map((f) => [f.id, f]));

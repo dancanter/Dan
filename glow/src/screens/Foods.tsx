@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
-import { CATEGORY_LABEL, FOODS, type Category, type Food } from '@/data/foods';
+import { ALL_FOODS, CATEGORY_LABEL, FOODS, type Category, type Food } from '@/data/foods';
 import { NUTRIENTS, type NKey } from '@/data/nutrients';
 import { searchFoods } from '@/engine/parse';
 import { scoreFood } from '@/engine/score';
@@ -31,7 +31,8 @@ const SORTS: { value: Sort; label: string }[] = [
 
 export function Foods({ date }: { date: string }) {
   const s = useStore((x) => x);
-  const all = useMemo(() => [...FOODS, ...s.customFoods], [s.customFoods]);
+  const all = useMemo(() => [...s.customFoods, ...ALL_FOODS], [s.customFoods]);
+  const [source, setSource] = useState<'all' | 'glow'>('glow');
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<Category | 'all' | 'fav'>('all');
   const [sort, setSort] = useState<Sort>('score');
@@ -40,19 +41,21 @@ export function Foods({ date }: { date: string }) {
   const [online, setOnline] = useState(false);
 
   const scored = useMemo(() => new Map(all.map((f) => [f.id, scoreFood(f)])), [all]);
-  let list = q ? searchFoods(q, all, 300) : all;
+  let list = q ? searchFoods(q, all, 400) : source === 'glow' ? all.filter((f) => f.source !== 'usda') : all;
   if (cat === 'fav') list = list.filter((f) => s.favourites.includes(f.id));
   else if (cat !== 'all') list = list.filter((f) => f.category === cat);
   if (gf) list = list.filter((f) => !f.tags.includes('gluten'));
   const metric = (f: Food) =>
     sort === 'score' ? scored.get(f.id)!.score : sort === 'protein' ? (f.n.protein / Math.max(f.n.kcal, 1)) * 100 : (f.n[sort] / Math.max(f.n.kcal, 20)) * 100;
   if (!q || sort !== 'score') list = [...list].sort((a, b) => metric(b) - metric(a));
+  const total = list.length;
+  list = list.slice(0, 200);
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="font-serif text-2xl">Food library</h1>
-        <p className="text-sm text-ink-2">{FOODS.length} whole foods scored for how hard every calorie works, plus 3 million+ packaged products online.</p>
+        <p className="text-sm text-ink-2">{ALL_FOODS.length.toLocaleString('en-GB')} foods, every one scored for how hard its calories work: {FOODS.length} hand-checked Glow foods, UK staples, and the full USDA national food database.</p>
       </div>
 
       <Card>
@@ -74,6 +77,7 @@ export function Foods({ date }: { date: string }) {
             </select>
           </label>
           <label className="flex items-center gap-1.5"><input type="checkbox" checked={gf} onChange={(e) => setGf(e.target.checked)} />Gluten-free only</label>
+          {!q && <label className="flex items-center gap-1.5"><input type="checkbox" checked={source === 'all'} onChange={(e) => setSource(e.target.checked ? 'all' : 'glow')} />Include USDA database when browsing</label>}
           {!inClaude() && <button className="text-sea" onClick={() => setOnline(true)}>Search online →</button>}
         </div>
       </Card>
@@ -97,7 +101,8 @@ export function Foods({ date }: { date: string }) {
             </li>
           );
         })}
-        {!list.length && <li className="p-4 text-sm text-muted">No foods match. Try “Search online”.</li>}
+        {!list.length && <li className="p-4 text-sm text-muted">No foods match. Try fewer words, or add it as a Custom food.</li>}
+        {total > list.length && <li className="p-3 text-center text-xs text-muted">Showing the top {list.length} of {total.toLocaleString('en-GB')}. Search or pick a category to narrow it down.</li>}
       </ul>
       <p className="text-xs text-muted">Grades: A+ ≥ 90 · A ≥ 80 · B+ ≥ 70 · B ≥ 60 · C ≥ 50 · D ≥ 35 · F below. The score rewards micronutrients, protein, fibre and omega-3 per calorie (after bioavailability), plus protective compounds, and penalises ultra-processing, free sugar, alcohol, frying and processed meat. Fats and oils score low on density by design, because they’re nearly pure energy. Judge them by type: extra virgin olive oil is the best-evidenced.</p>
 

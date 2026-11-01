@@ -176,7 +176,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
                 );
               })}
             </ul>
-            <p className="mt-3 text-xs text-muted">Sodium {(r.analysis.totals.sodium / 1000).toFixed(1)} g · Plants today: {r.analysis.plants}</p>
+            <p className="mt-3 text-xs text-muted">Sodium {(r.analysis.totals.sodium / 1000).toFixed(1)} g · Plants today: {r.analysis.plants}{items.some((i) => i.food.unknown?.length) ? ' · Some foods today (USDA and UK estimates) don’t record every nutrient, iodine especially, so a few bars may read lower than the truth.' : ''}</p>
           </Card>
         </>
       )}

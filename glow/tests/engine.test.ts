@@ -1,4 +1,6 @@
-import { FOODS, FOOD_BY_ID } from '@/data/foods';
+import { ALL_FOODS, FOODS, FOOD_BY_ID, UK_FOODS, USDA_FOODS } from '@/data/foods';
+import { UK_RAW } from '@/data/ukFoods';
+import { searchFoods } from '@/engine/parse';
 import { CUT_OUT, PILLARS, SOURCES } from '@/data/science';
 import { ageOn, energyAvailability, sleepHours, sleepScore, weeklyRate } from '@/engine/body';
 import { parseEntry } from '@/engine/parse';
@@ -98,18 +100,18 @@ describe('day analysis', () => {
 
 describe('typing what you ate', () => {
   it('parses counts, grams and handfuls', () => {
-    const r = parseEntry('3 eggs, 150g wild salmon, handful blueberries, 1 brazil nut, 200ml kefir', FOODS);
+    const r = parseEntry('3 eggs, 150g wild salmon, handful blueberries, 1 brazil nut, 200ml kefir', ALL_FOODS);
     expect(r.map((x) => x.food?.id)).toEqual(['eggs', 'salmon-wild', 'blueberries', 'brazil-nuts', 'kefir']);
     expect(r.map((x) => x.grams)).toEqual([180, 150, 30, 5, 200]);
   });
 
   it('defaults bare "salmon" to wild and "steak" to sirloin', () => {
-    const r = parseEntry('salmon and steak', FOODS);
+    const r = parseEntry('salmon and steak', ALL_FOODS);
     expect(r.map((x) => x.food?.id)).toEqual(['salmon-wild', 'sirloin']);
   });
 
   it('understands spoons and words', () => {
-    const r = parseEntry('1 tbsp olive oil; two kiwis', FOODS);
+    const r = parseEntry('1 tbsp olive oil; two kiwis', ALL_FOODS);
     expect(r[0].food?.id).toBe('evoo');
     expect(r[0].grams).toBe(12);
     expect(r[1].food?.id).toBe('kiwi');
@@ -207,5 +209,52 @@ describe('vitals', () => {
     expect(a.verdict.tone).toBe('bad');
     all['2026-11-11'] = { rhr: 49 };
     expect(rhrAnalysis('2026-11-11', all).verdict.tone).toBe('good');
+  });
+});
+
+describe('the big library', () => {
+  it('has thousands of foods with unique ids', () => {
+    expect(ALL_FOODS.length).toBeGreaterThan(4500);
+    expect(UK_FOODS.length).toBeGreaterThan(100);
+    expect(new Set(ALL_FOODS.map((x) => x.id)).size).toBe(ALL_FOODS.length);
+  });
+
+  it('every UK row has 9 or 10 fields (no stray semicolons in notes)', () => {
+    for (const line of UK_RAW.trim().split('\n').filter((l) => l && !l.startsWith('#'))) {
+      expect([9, 10]).toContain(line.split(';').length);
+    }
+  });
+
+  it('finds what Dan actually buys', () => {
+    const top = (q: string) => searchFoods(q, ALL_FOODS, 3).map((f) => f.id);
+    expect(top('wild hake')[0]).toBe('uk-hake');
+    expect(top('diced venison')[0]).toBe('venison');
+    expect(top('venison mince')).toContain('usda-17343');
+    expect(top('kippers')[0]).toBe('uk-kippers');
+    expect(top('black pudding')[0]).toBe('uk-black-pudding');
+    expect(top('courgette')[0]).toBe('courgette');
+    expect(top('prawns')[0]).toBe('prawns');
+  });
+
+  it('USDA values match the source and use UK carbohydrate', () => {
+    const deer = FOOD_BY_ID.get('usda-17164')!;
+    expect(deer.name).toBe('Venison (deer), raw');
+    expect(deer.n.kcal).toBe(120);
+    expect(deer.n.protein).toBeCloseTo(22.96, 2);
+    expect(deer.unknown).toContain('iodine');
+    const oats = USDA_FOODS.find((f) => /^Oats/i.test(f.name) && f.n.fibre > 5)!;
+    expect(oats.n.carbs).toBeLessThan(oats.n.kcal / 4);
+  });
+
+  it('flags gluten and processed meat in USDA foods', () => {
+    const bread = USDA_FOODS.filter((f) => /^Bread, white/i.test(f.name));
+    expect(bread.length).toBeGreaterThan(0);
+    expect(bread.every((f) => f.tags.includes('gluten'))).toBe(true);
+    expect(USDA_FOODS.filter((f) => /^Bacon|^Pork, cured, bacon/i.test(f.name)).every((f) => f.tags.includes('procmeat'))).toBe(true);
+  });
+
+  it('does not mark a food down for nutrients its source never records', () => {
+    const hake = FOOD_BY_ID.get('uk-hake')!;
+    expect(scoreFood(hake, t).score).toBeGreaterThan(60);
   });
 });

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Globe, PencilLine, Search, Sparkles, Trash2 } from 'lucide-react';
-import { FOODS, type Food } from '@/data/foods';
+import { ALL_FOODS, type Food } from '@/data/foods';
 import { NUTRIENT_KEYS, type Nutrients } from '@/data/nutrients';
 import { parseEntry, searchFoods, type ParsedItem } from '@/engine/parse';
 import { searchOpenFoodFacts } from '@/engine/off';
@@ -48,7 +48,7 @@ export function AddFood({ open, onClose, date }: { open: boolean; onClose: () =>
 
 function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
   const custom = useStore((s) => s.customFoods);
-  const all = useMemo(() => [...FOODS, ...custom], [custom]);
+  const all = useMemo(() => [...custom, ...ALL_FOODS], [custom]);
   const [text, setText] = useState('');
   const [meal, setMeal] = useState<Meal>(defaultMeal());
   const [items, setItems] = useState<ParsedItem[]>([]);
@@ -118,7 +118,7 @@ function FoodRow({ f, onPick }: { f: Food; onPick: (f: Food) => void }) {
 
 function LibrarySearch({ onPick }: { onPick: (f: Food) => void }) {
   const s = useStore((x) => x);
-  const all = useMemo(() => [...FOODS, ...s.customFoods], [s.customFoods]);
+  const all = useMemo(() => [...s.customFoods, ...ALL_FOODS], [s.customFoods]);
   const [q, setQ] = useState('');
   const results = q ? searchFoods(q, all) : all.filter((f) => s.favourites.includes(f.id)).concat(s.customFoods.filter((f) => !s.favourites.includes(f.id))).slice(0, 30);
   return (
