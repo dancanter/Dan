@@ -4720,7 +4720,7 @@ function campHTML(){
     var at=C.allTime[x.dm];
     var smash=beat&&cur<x.goal;
     return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+(at?secFmt(at.t):'—')+'</td><td class="n"><b class="acc">'+campGoalTxt(x)+'</b></td><td class="tiny">'+(showDates?fmtS(x.on):'PB window')+'</td><td>'+(beat?'<span class="pill g">'+(smash?'💎':(at&&cur<at.t?'👑':'✓'))+'</span>':'')+'</td></tr>';}).join('');
-  var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23–28 Nov'],['refuel','Refuel','29 Nov – 5 Dec'],['pb','PB window','6–23 Dec']];
+  var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23 Nov – 2 Dec'],['refuel','Trip and refuel','3–12 Dec'],['pb','PB window','13–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+muscleMaxHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+

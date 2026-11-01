@@ -296,7 +296,7 @@ await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let rcw = sq(await p.innerText('#tRuns'));
 ok('the runs card says a camp week: two hard runs and two short Norwegian runs', /A camp week, 4 runs/.test(rcw) && !/Ramp week/.test(rcw) && /two short Norwegian sub-threshold runs/.test(rcw) && /NORWEGIAN RUNS 0 of 2/i.test(rcw), rcw.slice(0, 600));
 await ctx.close();
-({ ctx, p, boot } = await at('2026-12-10'));
+({ ctx, p, boot } = await at('2026-12-14'));
 await boot(st());
 ok('in December the camp is in the PB window', await p.evaluate(() => campPhase().k === 'pb'));
 await ctx.close();
@@ -350,7 +350,7 @@ ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/4'
 ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
-ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 123/.test(gx) && /the cut · day 26 of 71/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
+ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 123/.test(gx) && /the cut · day 26 of 75/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
 ok('milestones count from the start of the cut, not the camp', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - b) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
@@ -396,10 +396,10 @@ await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let r7 = sq(await p.innerText('#tRuns'));
 ok('the runs card shows the goal-pace guide and why the week was picked', /a rep · goal pace/.test(r7) && /Picked for you this week/.test(r7), r7.slice(0, 800));
 await ctx.close();
-({ ctx, p, boot } = await at('2026-12-07'));   // PB window, week 12
+({ ctx, p, boot } = await at('2026-12-14'));   // PB window, week 13
 await boot(st());
 const pb = await p.evaluate(() => { const g = campGame(); return { left: g.left.map(x => x.n), ph: campPhase().k }; });
-ok('in the PB window the week’s trials are the hard runs: 400 and 5 km', pb.ph === 'pb' && pb.left.some(n => /400m trial — goal sub-55/.test(n)) && pb.left.some(n => /5 km trial — goal sub-17:00/.test(n)), JSON.stringify(pb));
+ok('in the PB window the week’s trials are the hard runs: 1 km, 400 and the mile', pb.ph === 'pb' && pb.left.some(n => /400m trial — goal sub-55/.test(n)) && pb.left.some(n => /1 km trial — goal sub-2:45/.test(n)), JSON.stringify(pb));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 ok('and the runs card lists them', /This week’s trials/.test(sq(await p.innerText('#tRuns'))));
 await ctx.close();
@@ -411,10 +411,10 @@ ok('a flagged week drops the fun run and keeps the Norwegian run', await p.evalu
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 ok('and says why', /one fewer this week — recovery first/.test(sq(await p.innerText('#tRuns'))));
 await ctx.close();
-({ ctx, p, boot } = await at('2026-12-01'));
+({ ctx, p, boot } = await at('2026-12-07'));
 await boot(st());
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
-ok('the trial dates appear from the refuel week', /6 Dec/.test(sq(await p.innerText('#campCard'))));
+ok('the trial dates appear from the refuel week', /13 Dec/.test(sq(await p.innerText('#campCard'))));
 await ctx.close();
 
 // ===== current fitness moves the paces (9 Oct) =====
@@ -690,7 +690,7 @@ const wAt = (end, v) => { const o = {}; for (let i = 0; i < 28; i++) { const d =
 ({ ctx, p, boot } = await at('2026-11-04'));
 await boot(st({ weights: wAt('2026-11-04', 122.8) }));
 let RWa = await p.evaluate(() => ({ rw: revWatch(), g: E('glanceCard').textContent }));
-ok('at 122–123 early: goal weight, the reverse can start next Monday — on Today too', RWa.rw && RWa.rw.k === 'goal' && /start the reverse from Monday 9 Nov/.test(RWa.rw.w) && /Goal weight — the reverse can start/.test(RWa.g), JSON.stringify(RWa.rw));
+ok('at 122–123 early: goal weight, hold it to the trip — on Today too', RWa.rw && RWa.rw.k === 'goal' && /1,999 a day/.test(RWa.rw.w) && /Goal weight — now hold it/.test(RWa.g), JSON.stringify(RWa.rw));
 await boot(st({ weights: wAt('2026-11-04', 121.5) }));
 ok('under 122: start the reverse now', await p.evaluate(() => revWatch().k === 'below'));
 await boot(st({ weights: wAt('2026-11-04', 126) }));
