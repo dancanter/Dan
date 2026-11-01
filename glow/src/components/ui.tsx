@@ -123,7 +123,7 @@ export function Segmented<T extends string>({ value, options, onChange }: { valu
   return (
     <div className="inline-flex rounded-xl bg-surface-2 p-1" role="tablist">
       {options.map((o) => (
-        <button key={o.value} role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)} className={`rounded-lg px-3 py-1.5 text-sm transition ${value === o.value ? 'bg-surface font-medium shadow-sm' : 'text-ink-2'}`}>
+        <button key={o.value} role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)} className={`rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition ${value === o.value ? 'bg-surface font-medium shadow-sm' : 'text-ink-2'}`}>
           {o.label}
         </button>
       ))}

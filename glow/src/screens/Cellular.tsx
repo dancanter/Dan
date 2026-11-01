@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { FOODS, type Food } from '@/data/foods';
-import { BOOSTERS, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
+import { ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
 import { NUTRIENTS } from '@/data/nutrients';
 import { dayResult } from '@/engine/game';
 import { DEFAULT_PROFILE, scaleNutrients, targetsFor } from '@/engine/score';
 import { useStore } from '@/store';
 import { Bar, Card, EvidencePill, Pill, Segmented, scoreColour } from '@/components/ui';
 
-type Tab = 'pillars' | 'cut' | 'boost' | 'words' | 'sources';
+type Tab = 'pillars' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
 
 /** The foods that move a pillar most per normal portion, ignoring anything it penalises. */
 export function bestFoodsFor(p: Pillar, n = 6): Food[] {
@@ -47,6 +47,8 @@ export function Cellular({ date }: { date: string }) {
         <Segmented value={tab} onChange={setTab} options={[
           { value: 'pillars', label: '8 pillars' },
           { value: 'cut', label: 'Cut out' },
+          { value: 'coeliac', label: 'Coeliac' },
+          { value: 'absorb', label: 'Absorption' },
           { value: 'boost', label: 'Boosters' },
           { value: 'words', label: 'Glossary' },
           { value: 'sources', label: 'Sources' },
@@ -95,6 +97,46 @@ export function Cellular({ date }: { date: string }) {
               </div>
             </Card>
           ))}
+        </>
+      )}
+
+      {tab === 'coeliac' && (
+        <>
+          <Card eyebrow="Coeliac disease" title="Foods to stay away from">
+            <p className="text-sm leading-relaxed text-ink-2">Coeliac disease isn’t an intolerance. Gluten (a protein in wheat, barley and rye) triggers your immune system to damage your small intestine. The only treatment is strict, lifelong gluten avoidance, and “a little” still counts. Gluten-free mode is {s.profile.glutenFree ? 'on' : <b className="text-bad">off: turn it on in Me</b>}, so any food containing gluten shows in red on Today.</p>
+          </Card>
+          {COELIAC_AVOID.map((g) => (
+            <Card key={g.group} title={g.group} action={<Pill tone={g.level === 'never' ? 'bad' : g.level === 'check' ? 'warn' : 'gold'}>{g.level === 'never' ? 'never' : g.level === 'check' ? 'check label' : 'watch out'}</Pill>}>
+              <p className="text-sm leading-relaxed">{g.items}</p>
+              {g.note && <p className="mt-2 text-xs leading-relaxed text-ink-2">{g.note}</p>}
+            </Card>
+          ))}
+          <Card title="Safe to eat freely" eyebrow="Naturally gluten-free"><p className="rounded-xl bg-good-soft p-3 text-sm leading-relaxed">{COELIAC_SAFE}</p></Card>
+          {COELIAC_NUTRITION.map((n) => (
+            <Card key={n.title} title={n.title}><p className="text-sm leading-relaxed text-ink-2">{n.text}</p></Card>
+          ))}
+          <p className="px-1 text-xs text-muted">Sources: NICE NG20; Coeliac UK. See the Sources tab.</p>
+        </>
+      )}
+
+      {tab === 'absorb' && (
+        <>
+          <Card eyebrow="Bioavailability" title="What blocks absorption">
+            <p className="text-sm leading-relaxed text-ink-2">How much of a nutrient you absorb depends on what you eat it with. Glow checks each meal you log and flags these combinations on Today.</p>
+          </Card>
+          {ABSORPTION_BLOCKERS.map((b) => (
+            <Card key={b.blocker} title={b.blocker} action={<EvidencePill e={b.evidence} />}>
+              <div className="mb-2 flex flex-wrap gap-1.5"><Pill tone="bad">blocks: {b.blocks}</Pill></div>
+              <p className="text-xs text-muted">Found in: {b.where}</p>
+              <p className="mt-2 text-sm leading-relaxed">{b.size}</p>
+              <p className="mt-2 rounded-xl bg-good-soft p-3 text-sm"><b>Fix:</b> {b.fix}</p>
+            </Card>
+          ))}
+          <Card title="What boosts absorption" eyebrow="Pair these">
+            <ul className="space-y-3">
+              {ABSORPTION_BOOSTERS.map((b) => <li key={b.title}><div className="font-medium">{b.title}</div><div className="text-sm leading-relaxed text-ink-2">{b.text}</div></li>)}
+            </ul>
+          </Card>
         </>
       )}
 

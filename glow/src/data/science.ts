@@ -40,6 +40,10 @@ export const SOURCES: Source[] = [
   { id: 'estruch-2018', cite: 'Estruch R. et al. (2018) Primary prevention of cardiovascular disease with a Mediterranean diet supplemented with extra-virgin olive oil or nuts (PREDIMED). NEJM 378, e34.', url: 'https://doi.org/10.1056/NEJMoa1800389' },
   { id: 'uribarri-2010', cite: 'Uribarri J. et al. (2010) Advanced glycation end products in foods and a practical guide to their reduction in the diet. Journal of the American Dietetic Association 110, 911–916.', url: 'https://doi.org/10.1016/j.jada.2010.03.018' },
   { id: 'neelakantan-2020', cite: 'Neelakantan N. et al. (2020) Effect of coconut oil consumption on cardiovascular risk factors: systematic review and meta-analysis. Circulation 141, 803–814.', url: 'https://doi.org/10.1161/CIRCULATIONAHA.119.043052' },
+  { id: 'nice-ng20', cite: 'NICE (2015) Coeliac disease: recognition, assessment and management (NG20).', url: 'https://www.nice.org.uk/guidance/ng20' },
+  { id: 'coeliac-uk', cite: 'Coeliac UK. The gluten-free diet.', url: 'https://www.coeliac.org.uk/' },
+  { id: 'hurrell-2010', cite: 'Hurrell R. & Egli I. (2010) Iron bioavailability and dietary reference values. American Journal of Clinical Nutrition 91, 1461S–1467S.', url: 'https://doi.org/10.3945/ajcn.2010.28674F' },
+  { id: 'nhs-iron', cite: 'NHS. Iron.', url: 'https://www.nhs.uk/conditions/vitamins-and-minerals/iron/' },
   { id: 'efsa-ul', cite: 'EFSA (2024) Overview on Tolerable Upper Intake Levels.', url: 'https://www.efsa.europa.eu/en/topics/topic/dietary-reference-values' },
 ];
 
@@ -356,7 +360,7 @@ export const RITUALS: Ritual[] = [
 // ── Boosters (non-training extras worth knowing) ────────────────────────
 export const BOOSTERS: { title: string; text: string; evidence: Evidence }[] = [
   { title: 'Vitamin D, October to March', evidence: 'strong', text: 'The NHS advises 10 µg (400 IU) a day for everyone in the UK in autumn and winter, because the sun is too low for your skin to make it. This is the one supplement to start this week. It’s cheap, and a blood test can tell you if you need more.' },
-  { title: 'A blood panel once a year', evidence: 'strong', text: 'Ferritin (iron stores, often low in runners), vitamin D, B12, full blood count, lipids, HbA1c, thyroid (TSH) and, if your energy or libido dips during the cut, testosterone. Ask your GP, or use a reputable private lab. Measure, don’t guess.' },
+  { title: 'A blood panel once a year', evidence: 'strong', text: 'With coeliac disease, NICE recommends an annual review anyway. Ask for ferritin (iron stores, often low in runners and coeliacs), folate, vitamin D, B12, full blood count, the coeliac antibody test (tTG-IgA), lipids, HbA1c, thyroid (TSH) and, if your energy or libido dips during the cut, testosterone. Ask your GP, or use a reputable private lab. Measure, don’t guess.' },
   { title: 'Creatine monohydrate, 3–5 g a day', evidence: 'strong', text: 'The best-evidenced sports supplement for strength, sprint performance and lean mass, with emerging evidence for brain function when sleep-deprived. Optional: you already get 1–2 g a day from meat and fish.' },
   { title: 'Sleep regularity over sleep hacks', evidence: 'strong', text: 'Waking at the same time every day (within 30 minutes, weekends included) is linked with lower mortality and better metabolic health, independent of duration. It beats every gadget.' },
   { title: 'Cold water: timing matters', evidence: 'moderate', text: 'Cold plunges feel great and can lift mood and alertness. Don’t do them in the 4 hours after lifting: they blunted muscle growth in a controlled trial. Mornings or separate days are fine.' },
@@ -399,4 +403,87 @@ export const GLOSSARY: [string, string][] = [
   ['NOVA', 'A system that grades food by processing: 1 unprocessed, 2 culinary ingredients, 3 processed, 4 ultra-processed.'],
   ['Upper limit (UL)', 'The highest daily intake considered safe long-term. More is not better past this point.'],
   ['Spermidine', 'A compound in aged cheese, mushrooms, natto and wheat germ that triggers autophagy in animals.'],
+];
+
+// ── Coeliac disease ─────────────────────────────────────────────────────
+export const COELIAC_AVOID: { group: string; level: 'never' | 'check' | 'risk'; items: string; note?: string }[] = [
+  { group: 'Grains that always contain gluten', level: 'never',
+    items: 'Wheat in every form: spelt, kamut (khorasan), durum, semolina, einkorn, emmer, farro, freekeh, bulgur, couscous. Also barley, rye, triticale and seitan (pure wheat gluten).' },
+  { group: 'Foods that usually contain gluten', level: 'never',
+    items: 'Bread, wraps, pitta, naan, pasta, pastry, pies, pizza, cakes, biscuits, crackers, most breakfast cereals, udon and most egg noodles, batter and breadcrumbs (fish and chips, scampi, nuggets, schnitzel), beer, lager, ale and stout (unless labelled gluten-free).' },
+  { group: 'Hidden gluten: read every label', level: 'check',
+    items: 'Soy sauce (use gluten-free tamari), stock cubes and gravy granules, sauces, marinades and dressings, sausages and burgers (rusk), meatballs and fishcakes, ready meals and soups, flavoured crisps and nuts, barley malt extract (some cereals, chocolate, malted drinks), seasoning mixes, some sweets and liquorice.',
+    note: 'In the UK, wheat, barley, rye and oats must be in bold in the ingredients list, so check the bold words. Malt vinegar and distilled spirits (including whisky) are considered safe by Coeliac UK because the gluten doesn’t carry through in any meaningful amount.' },
+  { group: 'Oats', level: 'check',
+    items: 'Only oats labelled gluten-free. Ordinary oats are grown and milled alongside wheat and barley. A small minority of coeliacs also react to avenin, the protein in oats themselves. If symptoms continue on GF oats, drop them for a while and tell your GP.' },
+  { group: 'Cross-contamination: the gluten you can’t see', level: 'risk',
+    items: 'Shared toasters (use toaster bags), chip-shop fryers where chips share oil with battered fish, butter, jam and spreads with crumbs from someone else’s knife, shared colanders, wooden boards and sieves, flour in the air in bakeries and pizza places, "may contain gluten" labels.',
+    note: 'A crumb-sized amount (tens of milligrams a day) can keep the gut lining inflamed even without obvious symptoms.' },
+  { group: 'Eating out', level: 'risk',
+    items: 'Ask whether there’s a separate fryer and a gluten-free prep area. Look for Coeliac UK GF accreditation. Chinese and Japanese food: soy sauce is in almost everything. Indian: naan, and asafoetida (hing) is often cut with wheat flour. Thai: soy sauce and oyster sauce. Steak, fish and potatoes, or a rice dish without soy, are usually the safest orders.' },
+];
+
+export const COELIAC_SAFE =
+  'Naturally gluten-free: all fresh meat, fish, shellfish and eggs, milk, yoghurt, kefir and plain cheese, potatoes and sweet potatoes, rice, buckwheat, quinoa, millet, corn (maize), amaranth, teff, sorghum, beans and lentils, nuts and seeds, all fruit and vegetables, olive oil, butter, wine, cider and spirits. Your Glow staples are almost all in this list.';
+
+export const COELIAC_NUTRITION: { title: string; text: string }[] = [
+  { title: 'Gluten is your biggest absorption blocker', text: 'In coeliac disease, gluten makes your immune system attack the villi, the finger-like folds that line your small intestine and absorb nutrients. When they’re flattened (villous atrophy), you absorb less iron, folate, calcium, vitamin D, zinc, B12 and fat-soluble vitamins, however good your food is. Strict gluten-free eating lets the villi regrow. That takes months to a couple of years in adults, and repeated small exposures keep resetting it.' },
+  { title: 'The nutrients to watch', text: 'Iron (the most common deficiency at diagnosis), folate, vitamin D, calcium (bone density is often lower in coeliac disease), zinc and B12. Your diet of red meat, organ meats, oysters, eggs, salmon, dairy and leafy greens covers these unusually well. The question is whether you’re absorbing them, which only a blood test can tell you.' },
+  { title: 'Gluten-free products aren’t fortified the same way', text: 'UK wheat flour must have calcium, iron, thiamin and niacin added by law. Most gluten-free bread, pasta and flour doesn’t, and much of it is ultra-processed with less fibre and protein. Build carbohydrate around potatoes, rice, buckwheat, quinoa and certified GF oats instead.' },
+  { title: 'Annual review', text: 'NICE recommends an annual review for people with coeliac disease: weight, symptoms, diet and blood tests. Ask for full blood count, ferritin, folate, B12, vitamin D and the coeliac antibody test (tTG-IgA, which shows whether gluten is still getting in). In some areas you can also get GF staples on prescription.' },
+  { title: 'Fibre on a gluten-free diet', text: 'The easy fibre sources (wholemeal bread, bran cereals) are off the table, so be deliberate: raspberries, potatoes in their skins, lentils and beans, chia and ground flax, buckwheat, quinoa, certified GF oats, nuts and lots of veg.' },
+];
+
+// ── What blocks (and boosts) absorption ─────────────────────────────────
+export interface AbsorptionRule {
+  blocker: string;
+  blocks: string;
+  where: string;
+  size: string;
+  fix: string;
+  evidence: Evidence;
+}
+
+export const ABSORPTION_BLOCKERS: AbsorptionRule[] = [
+  { blocker: 'Tea and coffee with meals', blocks: 'Plant (non-haem) iron', where: 'Black and green tea, coffee, matcha',
+    size: 'A cup of tea or coffee with a meal can cut non-haem iron absorption by roughly 40–60%. Tannins and other polyphenols bind the iron in the gut.',
+    fix: 'Drink them at least an hour away from iron-rich meals. Your morning coffee is fine if breakfast isn’t your main iron meal.', evidence: 'strong' },
+  { blocker: 'Calcium in the same meal as iron', blocks: 'Both haem and non-haem iron', where: 'Milk, yoghurt, kefir, cheese, calcium supplements',
+    size: 'Around 300 mg or more of calcium with a meal reduces iron absorption in single-meal studies. Over weeks the effect looks smaller, but it matters if your ferritin is low.',
+    fix: 'Keep dairy (yoghurt, kefir) for snacks or breakfast, and eat red meat, liver or lentils at a separate meal.', evidence: 'moderate' },
+  { blocker: 'Phytate', blocks: 'Iron, zinc and calcium', where: 'Whole grains, oats, beans, lentils, nuts and seeds (including pumpkin seeds)',
+    size: 'It’s why plant zinc and iron count for less in Glow’s scores. Large effect on iron, moderate on zinc.',
+    fix: 'Soak, sprout or ferment (sourdough-style buckwheat, soaked oats, tempeh). Add vitamin C or meat to the meal. Don’t rely on seeds as your main zinc source; oysters and red meat are far better.', evidence: 'strong' },
+  { blocker: 'Oxalate', blocks: 'Calcium (and some iron)', where: 'Spinach, chard, beet greens, rhubarb, almonds, cocoa',
+    size: 'You absorb only about 5% of the calcium in spinach, against about 30% from milk and kale.',
+    fix: 'Keep eating spinach for its folate, vitamin K and nitrate, but don’t count it as a calcium source. Kale, pak choi, sardines with bones and dairy are the ones that count.', evidence: 'strong' },
+  { blocker: 'High-dose zinc supplements', blocks: 'Copper', where: 'Zinc tablets above about 25 mg a day for weeks',
+    size: 'Long-term high zinc causes copper deficiency (anaemia, nerve problems). Food zinc, even from oysters, rarely does.',
+    fix: 'Get zinc from food. If you supplement, stay at or under 25 mg and not long-term without a blood test.', evidence: 'strong' },
+  { blocker: 'Alcohol', blocks: 'Folate, B1 (thiamin), B12, zinc, magnesium', where: 'Any alcoholic drink',
+    size: 'It damages the gut lining, increases losses in urine and disrupts how the liver stores vitamins.',
+    fix: 'Another reason to keep alcohol rare.', evidence: 'strong' },
+  { blocker: 'Fat-free meals', blocks: 'Vitamins A, D, E, K and carotenoids (lycopene, beta-carotene, lutein)', where: 'Salads and vegetables eaten without any fat',
+    size: 'Carotenoid absorption from a salad can be several times higher with added fat than without.',
+    fix: 'Add olive oil, avocado, eggs or salmon to your vegetables. Cook tomatoes and carrots with a little olive oil.', evidence: 'strong' },
+  { blocker: 'Antacids and acid-reducing medicines', blocks: 'B12, iron, magnesium, calcium', where: 'Omeprazole, lansoprazole and other PPIs, long-term antacids',
+    size: 'Stomach acid frees B12 and iron from food. Long-term PPIs are linked with low B12 and magnesium.',
+    fix: 'If you take them regularly, mention it at your annual coeliac review and ask for B12 and magnesium checks.', evidence: 'moderate' },
+  { blocker: 'Raw egg whites (in quantity)', blocks: 'Biotin (B7)', where: 'Raw egg whites in shakes',
+    size: 'Avidin in raw white binds biotin. Cooking destroys it, and cooked egg protein is also absorbed about twice as well.',
+    fix: 'Cook your eggs. A runny yolk with a set white is perfect.', evidence: 'moderate' },
+  { blocker: 'Iron and zinc supplements taken together', blocks: 'Each other', where: 'Tablets on an empty stomach',
+    size: 'Large doses compete for the same transporters. Not an issue with food.',
+    fix: 'If you ever need both, take them at different times of day.', evidence: 'moderate' },
+];
+
+export const ABSORPTION_BOOSTERS: { title: string; text: string }[] = [
+  { title: 'Vitamin C + plant iron', text: 'Vitamin C in the same meal (red pepper, kiwi, lemon, tomato, broccoli) can roughly double to triple non-haem iron absorption and partly cancels out phytate.' },
+  { title: 'The "meat factor"', text: 'Meat, fish and poultry raise iron absorption from the plants eaten alongside them. Steak with spinach beats spinach alone.' },
+  { title: 'Fat + carotenoids and vitamins A, D, E, K', text: 'Olive oil on salad, eggs with greens, salmon with sweet potato.' },
+  { title: 'Cooking', text: 'Lycopene (tomato) and beta-carotene (carrot, sweet potato) absorb several times better cooked. Cooking also makes egg protein about twice as digestible.' },
+  { title: 'Chop-and-wait for brassicas', text: 'Chopping broccoli and leaving it 30–40 minutes before cooking lets sulforaphane form. Alternatively, add a pinch of mustard powder after cooking.' },
+  { title: 'Black pepper + turmeric', text: 'Piperine greatly increases curcumin absorption. Add fat too.' },
+  { title: 'Vitamin D + calcium', text: 'Vitamin D is what lets you absorb calcium at all, which is one reason the October–March vitamin D advice matters more in coeliac disease.' },
+  { title: 'A healed gut lining', text: 'For you, strict gluten-free eating is the absorption booster that beats everything else on this list.' },
 ];

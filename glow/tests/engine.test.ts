@@ -149,3 +149,28 @@ describe('Open Food Facts import', () => {
     expect(scoreFood(food!, t).score).toBeLessThan(30);
   });
 });
+
+describe('absorption and coeliac', () => {
+  const at = (id: string, grams: number, meal: LoggedItem['meal']): LoggedItem => ({ uid: id + meal, food: f(id), grams, meal });
+
+  it('flags tea or coffee with a plant-iron meal, but not at a separate meal', () => {
+    const same = analyseDay([at('lentils', 60, 'lunch'), at('spinach', 80, 'lunch'), at('coffee', 200, 'lunch')], t, { glutenFree: true });
+    expect(same.warnings.some((w) => w.text.includes('plant iron'))).toBe(true);
+    const apart = analyseDay([at('lentils', 60, 'lunch'), at('spinach', 80, 'lunch'), at('coffee', 200, 'breakfast')], t, { glutenFree: true });
+    expect(apart.warnings.some((w) => w.text.includes('plant iron'))).toBe(false);
+  });
+
+  it('credits vitamin C with a plant-iron meal and nudges fat with carotenoids', () => {
+    const a = analyseDay([at('lentils', 60, 'dinner'), at('red-pepper', 80, 'dinner'), at('carrots', 80, 'lunch')], t, { glutenFree: true });
+    expect(a.wins.some((w) => w.includes('Vitamin C boosting'))).toBe(true);
+    expect(a.warnings.some((w) => w.text.includes('carotenoid'))).toBe(true);
+  });
+
+  it('flags hidden-gluten foods in gluten-free mode', () => {
+    for (const id of ['soy-sauce', 'couscous', 'barley', 'rye-bread', 'seitan', 'beer', 'sausages']) {
+      const a = analyseDay([item(id, 50)], t, { glutenFree: true });
+      expect(a.warnings.some((w) => w.text.includes('gluten'))).toBe(true);
+    }
+    expect(analyseDay([item('tamari', 15)], t, { glutenFree: true }).warnings.some((w) => w.text.includes('Contains gluten'))).toBe(false);
+  });
+});

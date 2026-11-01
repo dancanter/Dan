@@ -283,8 +283,13 @@ sausages;Pork sausages;meat;4;100;2 sausages;300 13 9 0.5 1.5 25 9 0.05 | 0 0 0.
 ham;Ham (sliced);meat;3;60;3 slices;107 17 1.5 0 1 3.5 1.2 0 | 0 0 0.5 0.2 0 0.2 3 0.5 70 | 0.8 1.8 0.06 20 20 300 7 2 1100;procmeat;
 salami;Salami / chorizo;meat;3;30;6 slices;407 22.6 1.2 0 1 33.7 12 0 | 0 0 0.5 0.2 0 0.25 2 1.2 70 | 1.5 3.2 0.1 26 20 340 10 2 1800;procmeat;
 sushi;Salmon sushi / nigiri;fish;3;200;8 pieces;150 7 22 0.4 4 3 0.6 0.4 | 20 1 2 0.5 1 0.05 10 1 20 | 0.4 0.6 0.06 10 15 120 10 10 400;addsug;Sushi rice is seasoned with sugar and vinegar. Use tamari if you avoid gluten.
-tamari;Tamari / soy sauce;herbs;3;15;1 tbsp;60 10 5.6 0.8 0.4 0.1 0 0 | 0 0 0 0 0 0.15 18 0 0 | 2.4 0.4 0.1 0.8 40 212 20 1 5600;ferm;One tablespoon holds a third of a day's sodium. Standard soy sauce contains wheat; tamari usually doesn't.
+tamari;Tamari (gluten-free soy sauce);herbs;3;15;1 tbsp;60 10 5.6 0.8 0.4 0.1 0 0 | 0 0 0 0 0 0.15 18 0 0 | 2.4 0.4 0.1 0.8 40 212 20 1 5600;ferm;One tablespoon holds a third of a day's sodium. Check the bottle says gluten-free: most tamari is, but not all.
 miso;Miso (rice/soy);herbs;3;18;1 tbsp;198 12.8 25.4 5.4 6.2 6 1 0 | 4 0 0 0 29 0.23 19 0.1 72 | 2.5 2.6 0.42 7 48 210 57 1 3728;ferm;Barley miso contains gluten. Don't boil miso if you want live cultures.
+soy-sauce;Soy sauce (regular, brewed with wheat);herbs;3;15;1 tbsp;53 8.1 4.9 0.8 0.4 0.6 0.1 0 | 0 0 0 0 0 0.15 18 0 0 | 1.5 0.4 0.1 0.5 40 212 20 1 5500;gluten ferm;Standard soy sauce is brewed with wheat, and it's the most common hidden gluten in Chinese, Japanese and Thai food. Use tamari labelled gluten-free.
+couscous;Couscous (dry);grains;3;60;60 g dry;376 12.8 72.4 5 0 0.6 0.1 0 | 0 0 0 0.1 0.1 0.08 20 0 0 | 1.1 0.8 0.25 27.5 44 166 24 2 10;gluten;Made from wheat semolina. Swap for quinoa or buckwheat.
+barley;Pearl barley (dry);grains;1;60;60 g dry;352 9.9 62 15.6 0.8 1.2 0.2 0 | 1 0 0 0 2.2 0.11 23 0 38 | 2.5 2.1 0.42 37.7 79 280 29 2 9;gluten phy preb lowgi;Contains gluten (hordein). Barley malt and malt extract in cereals and some chocolate are hidden sources.
+rye-bread;Rye bread;grains;3;80;2 slices;259 8.5 41 5.8 3.9 3.3 0.6 0 | 1 0.4 0 0.3 1.2 0.33 110 0 15 | 2.8 1.1 0.19 30.9 40 166 73 2 600;gluten;Rye contains gluten (secalin). Not safe for coeliac disease.
+seitan;Seitan (wheat gluten);legumes;3;100;100 g;370 75 14 0.6 0 1.9 0.3 0 | 0 0 0 0 0 0.1 10 0 0 | 5.2 0.9 0.2 30 25 100 140 1 30;gluten;Seitan is pure wheat gluten, sold as "wheat meat". Coeliacs must never eat it.
 acv;Apple cider vinegar;drinks;2;15;1 tbsp;22 0 0.9 0 0.4 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0.2 0 0 0.1 5 73 7 0 5;ferm;Slightly blunts the blood-sugar rise from a starchy meal in small studies. Always dilute it, because acid erodes tooth enamel.
 `;
 

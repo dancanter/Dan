@@ -265,10 +265,34 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
   if ((tagServings.alc ?? 0) > 0) warnings.push({ level: 'caution', text: 'Alcohol logged. Expect lighter sleep, a lower readiness score and a puffier face tomorrow. Drink water and eat potassium-rich food.' });
   if ((tagServings.merc2 ?? 0) > 0) warnings.push({ level: 'caution', text: 'High-mercury fish today. Keep it to one portion a week.' });
   if ((tagServings.procmeat ?? 0) > 0) warnings.push({ level: 'info', text: 'Processed meat logged. Swap for fresh butcher meat where you can.' });
-  if (ctx.glutenFree && items.some((i) => i.food.tags.includes('gluten'))) warnings.push({ level: 'danger', text: 'Contains gluten, and gluten-free mode is on.' });
+  const glutenFoods = [...new Set(items.filter((i) => i.food.tags.includes('gluten')).map((i) => i.food.name))];
+  if (ctx.glutenFree && glutenFoods.length) warnings.push({ level: 'danger', text: `Contains gluten: ${glutenFoods.join(', ')}. Not safe with coeliac disease unless the label says gluten-free.` });
   if (ctx.glutenFree && items.some((i) => i.food.tags.includes('oats'))) warnings.push({ level: 'info', text: 'Oats: make sure they are certified gluten-free.' });
   if (!ctx.inProgress && items.length && ctx.energyAvailability !== undefined && ctx.energyAvailability < 30)
     warnings.push({ level: 'danger', text: `Energy availability about ${Math.round(ctx.energyAvailability)} kcal/kg fat-free mass, which is in the low zone (under 30). This is what suppresses hormones, sleep and skin quality. Add 200–400 kcal, mostly carbohydrate around training.` });
+
+  // Meal-level absorption checks: what you eat together matters.
+  const MEAL_LABEL: Record<Meal, string> = { breakfast: 'breakfast', lunch: 'lunch', dinner: 'dinner', snacks: 'snacks' };
+  for (const meal of ['breakfast', 'lunch', 'dinner', 'snacks'] as Meal[]) {
+    const its = items.filter((i) => i.meal === meal);
+    if (!its.length) continue;
+    const sum = (fn: (i: LoggedItem) => number) => its.reduce((a, i) => a + fn(i), 0);
+    const plantIron = sum((i) => (i.food.tags.includes('haem') ? 0 : (i.food.n.iron * i.grams) / 100));
+    const allIron = sum((i) => (i.food.n.iron * i.grams) / 100);
+    const calcium = sum((i) => (i.food.n.calcium * i.grams) / 100);
+    const vitC = sum((i) => (i.food.n.vitC * i.grams) / 100);
+    const fat = sum((i) => (i.food.n.fat * i.grams) / 100);
+    const brew = its.find((i) => i.food.tags.includes('caff') && i.food.category === 'drinks' && i.food.tags.some((t) => t === 'poly' || t === 'poly2'));
+    const carot = its.some((i) => i.food.tags.includes('carot') && i.grams >= 40);
+    const m = MEAL_LABEL[meal];
+    if (brew && plantIron >= 2)
+      warnings.push({ level: 'info', text: `Absorption: ${brew.food.name.split(/[(,]/)[0].trim().toLowerCase()} with ${m} can cut the plant iron in that meal by roughly half. Have it an hour before or after.` });
+    if (calcium >= 300 && allIron >= 3)
+      warnings.push({ level: 'info', text: `Absorption: about ${Math.round(calcium)} mg calcium alongside ${allIron.toFixed(1)} mg iron at ${m}. Calcium reduces iron uptake in the same meal, so keep dairy for a different meal if your ferritin runs low.` });
+    if (carot && fat < 3)
+      warnings.push({ level: 'info', text: `Absorption: carotenoid-rich veg at ${m} with almost no fat. Add olive oil, avocado or eggs to absorb several times more.` });
+    if (plantIron >= 2 && vitC >= 25) wins.push(`Vitamin C boosting plant iron at ${m}`);
+  }
 
   if (totals.omega3 >= 0.5) wins.push('Omega-3 target hit');
   if (totals.fibre >= 30) wins.push('30 g fibre');
