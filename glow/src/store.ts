@@ -27,6 +27,8 @@ export interface DayLog {
   refeed?: boolean;
   /** How you said you felt (ids from the feelings list). */
   feelings?: string[];
+  /** Optional daily ideas you did. */
+  extras?: string[];
 }
 
 export interface State {
@@ -56,7 +58,7 @@ const KEY = 'glow-state-v1';
 export const EMPTY_OBJ = Object.freeze({}) as Record<string, never>;
 export const EMPTY_ARR = Object.freeze([]) as unknown as never[];
 
-function initial(): State {
+export function initial(): State {
   return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
 }
 
@@ -173,6 +175,9 @@ export const actions = {
       const rituals = on ? [...new Set([...d.rituals, id])] : d.rituals.filter((r) => r !== id);
       return { ...s, days: { ...s.days, [date]: { ...d, rituals } } };
     });
+  },
+  toggleExtra(date: string, id: string) {
+    setState((s) => { const d = day(s, date); const x = d.extras ?? []; return { ...s, days: { ...s.days, [date]: { ...d, extras: x.includes(id) ? x.filter((i) => i !== id) : [...x, id] } } }; });
   },
   logFeeling(date: string, id: string) {
     setState((s) => { const d = day(s, date); const f = d.feelings ?? []; return { ...s, days: { ...s.days, [date]: { ...d, feelings: f.includes(id) ? f : [...f, id] } } }; });

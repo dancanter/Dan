@@ -755,3 +755,28 @@ describe('today’s plan', () => {
     expect(days).toBe(4);
   });
 });
+
+describe('daily ideas and weekly review', async () => {
+  const { ideasFor, IDEAS } = await import('@/data/ideas');
+  const { weeklyReview } = await import('@/engine/review');
+  it('gives 3 ideas from different areas, stable per day, seasonal-aware', () => {
+    const a = ideasFor('2026-11-02', 'autumn');
+    expect(a).toHaveLength(3);
+    expect(new Set(a.map((i) => i.area)).size).toBe(3);
+    expect(ideasFor('2026-11-02', 'autumn').map((i) => i.id)).toEqual(a.map((i) => i.id));
+    for (let d = 1; d <= 28; d++) for (const i of ideasFor(`2026-07-${String(d).padStart(2, '0')}`, 'summer')) expect(!i.seasons || i.seasons.includes('summer')).toBe(true);
+    expect(new Set(IDEAS.map((i) => i.id)).size).toBe(IDEAS.length);
+  });
+  it('weekly review handles an empty state and spots sleep improvement', async () => {
+    const { initial } = await import('@/store'); const EMPTY_STATE = initial();
+    const empty = weeklyReview(EMPTY_STATE, '2026-11-08');
+    expect(empty.daysLogged).toBe(0);
+    const sleeps = [];
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(Date.UTC(2026, 10, 8 - i)).toISOString().slice(0, 10);
+      sleeps.push(i < 7 ? { date: d, bed: '22:30', wake: '07:00', quality: 4 } : { date: d, bed: '00:30', wake: '07:00', quality: 3 });
+    }
+    const r = weeklyReview({ ...EMPTY_STATE, sleeps } as never, '2026-11-08');
+    expect(r.wins.some((w) => w.startsWith('Sleep'))).toBe(true);
+  });
+});
