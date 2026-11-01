@@ -8,6 +8,7 @@ import { actions, useStore } from '@/store';
 import { FoodDetail } from '@/components/FoodDetail';
 import { AddFood } from '@/components/AddFood';
 import { Card, Grade, Pill, Sheet } from '@/components/ui';
+import { inClaude } from '@/cloud';
 
 type Sort = 'score' | NKey;
 const SORTS: { value: Sort; label: string }[] = [
@@ -73,7 +74,7 @@ export function Foods({ date }: { date: string }) {
             </select>
           </label>
           <label className="flex items-center gap-1.5"><input type="checkbox" checked={gf} onChange={(e) => setGf(e.target.checked)} />Gluten-free only</label>
-          <button className="text-sea" onClick={() => setOnline(true)}>Search online →</button>
+          {!inClaude() && <button className="text-sea" onClick={() => setOnline(true)}>Search online →</button>}
         </div>
       </Card>
 

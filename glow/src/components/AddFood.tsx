@@ -8,6 +8,7 @@ import { scoreFood, type Meal } from '@/engine/score';
 import { actions, useStore } from '@/store';
 import { Button, Grade, Segmented, Sheet } from './ui';
 import { FoodDetail, MEALS, defaultMeal } from './FoodDetail';
+import { inClaude } from '@/cloud';
 
 export function AddFood({ open, onClose, date }: { open: boolean; onClose: () => void; date: string }) {
   const [mode, setMode] = useState<'type' | 'search' | 'online' | 'custom'>('type');
@@ -150,6 +151,9 @@ function OnlineSearch({ onPick }: { onPick: (f: Food) => void }) {
       setState('error');
     }
   };
+  if (inClaude()) return (
+    <p className="rounded-xl bg-surface-2 p-3 text-sm text-ink-2">Pages inside Claude can’t reach outside websites, so the packaged-food search only works on the website version of Glow. Here, use the <b>Custom</b> tab and copy the per-100 g values from the label.</p>
+  );
   return (
     <div>
       <form className="mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void run(); }}>

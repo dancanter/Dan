@@ -4,6 +4,7 @@ import { ageOn, daysBetween, fromDisplay, todayISO, toDisplay } from '@/engine/b
 import { RANKS, badges, rankFor, xpTotal } from '@/engine/game';
 import { actions, getState, useStore } from '@/store';
 import { Bar, Button, Card } from '@/components/ui';
+import { inClaude, saveBackup, useCloudStatus } from '@/cloud';
 
 export function Me() {
   const s = useStore((x) => x);
@@ -21,6 +22,8 @@ export function Me() {
   })();
   const file = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const cloud = useCloudStatus();
 
   const num = (v: string) => Number(v.replace(/[^\d.]/g, ''));
 
@@ -72,15 +75,15 @@ export function Me() {
         <p className="mt-3 text-xs text-muted">Training energy: four lifts (about 250–350 kcal each) plus 3–4 runs (a 5 km is about 300 kcal at your weight) averages roughly 550–750 kcal a day. Your 13k steps are counted separately in the maintenance estimate. Protein of 2.0 g/kg is the evidence-backed level for keeping muscle on a cut (gains plateau around 1.6 g/kg at maintenance; deficits justify more).</p>
       </Card>
 
-      <Card title="Your data" eyebrow="Stored only in this browser">
-        <p className="mb-3 text-sm text-ink-2">Nothing leaves this device except the food words you search online. Export a backup now and then, and import it to move to another phone or laptop.</p>
+      <Card title="Your data" eyebrow={inClaude() ? 'Saved privately to your Claude account' : 'Stored only in this browser'}>
+        <p className="mb-3 text-sm text-ink-2">{inClaude()
+          ? 'Inside Claude, your logs save to a private space only you can read, so they follow you to any device where you open this page. Nothing else leaves it.'
+          : 'Nothing leaves this device except the food words you search online. Export a backup now and then, and import it to move to another phone or laptop.'}</p>
+        {inClaude() && <p className="mb-3 text-xs text-muted">Sync: <b className={cloud === 'error' || cloud === 'offline' ? 'text-bad' : 'text-good'}>{({ local: 'this browser only (sign in to sync)', connecting: 'connecting…', synced: 'all changes saved', saving: 'saving…', offline: 'can’t reach your saved data yet, changes are kept in this browser', error: 'last save failed, changes are kept in this browser' } as const)[cloud]}</b></p>}
         <div className="flex flex-wrap gap-2">
-          <Button tone="ghost" onClick={() => {
-            const blob = new Blob([JSON.stringify(getState(), null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `glow-backup-${todayISO()}.json`;
-            a.click();
+          <Button tone="ghost" onClick={async () => {
+            const r = await saveBackup(`glow-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2));
+            setMsg(r === 'saved' ? 'Backup saved.' : 'Backup not saved.');
           }}><Download size={16} />Export backup</Button>
           <Button tone="ghost" onClick={() => file.current?.click()}><Upload size={16} />Import backup</Button>
           <input ref={file} type="file" accept="application/json" className="hidden" onChange={async (e) => {
@@ -88,7 +91,12 @@ export function Me() {
             if (!f) return;
             try { actions.importState(await f.text()); setMsg('Backup imported.'); } catch (err) { setMsg((err as Error).message); }
           }} />
-          <Button tone="danger" onClick={() => { if (confirm('Delete every log, weigh-in and setting on this device? Export a backup first if you might want it.')) actions.reset(); }}>Reset everything</Button>
+          {!confirmReset
+            ? <Button tone="danger" onClick={() => setConfirmReset(true)}>Reset everything</Button>
+            : <span className="flex flex-wrap items-center gap-2 rounded-xl bg-bad-soft p-2 text-sm text-bad">Delete every log, weigh-in and setting?
+                <Button tone="danger" onClick={() => { actions.reset(); setConfirmReset(false); setMsg('Everything deleted.'); }}>Yes, delete</Button>
+                <Button tone="ghost" onClick={() => setConfirmReset(false)}>Cancel</Button>
+              </span>}
         </div>
         {msg && <p className="mt-2 text-sm text-sea">{msg}</p>}
       </Card>

@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "build:artifact": "vite build && node scripts/artifact.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.65.0",

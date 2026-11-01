@@ -69,6 +69,17 @@ export function setState(fn: (s: State) => State) {
   listeners.forEach((l) => l());
 }
 
+/** Listen for any state change (used by cloud sync). */
+export function subscribe(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+/** Replace everything, e.g. with data loaded from the cloud store. */
+export function replaceState(next: State) {
+  setState(() => ({ ...initial(), ...next, profile: { ...DEFAULT_PROFILE, ...next.profile }, vitals: next.vitals ?? {} }));
+}
+
 export function getState() {
   return state;
 }
