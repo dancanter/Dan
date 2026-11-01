@@ -644,11 +644,24 @@ describe('ease off, deload, feelings and films', () => {
     expect(restCall(s, '2026-11-11', 57).kind).toBe('rest');
   });
 
-  it('suggests a deload after 6+ weeks of training, then backs off for a week', () => {
+  it('ignores synced history before the plan, then deloads after 6+ unbroken weeks', () => {
     const s = st();
-    for (let i = 0; i < 45; i += 2) s.training[addDays('2026-12-20', -i)] = [{ id: `r${i}`, source: 'manual', kind: 'run', name: 'Easy', minutes: 40, km: 8, intensity: 'easy' }];
+    // Six weeks of Strava history, 4 runs a week, but no plan started yet.
+    for (let i = 0; i < 45; i++) if (i % 7 < 4) s.training[addDays('2026-11-01', -i)] = [{ id: `h${i}`, source: 'strava', kind: 'run', name: 'Easy', minutes: 40, km: 8, intensity: 'easy' }];
+    expect(deloadCall(s, '2026-11-01', 57).kind).toBe('none');
+    // Plan starts 2 Nov; 7 weeks of steady training later, a deload is due.
+    s.profile.season = defaultSeason('2026-11-02');
+    for (let i = 0; i < 49; i++) if (i % 7 < 4) s.training[addDays('2026-12-20', -i)] = [{ id: `r${i}`, source: 'manual', kind: 'run', name: 'Easy', minutes: 40, km: 8, intensity: 'easy' }];
+    expect(deloadCall(s, '2026-11-20', 57).kind).toBe('none');
     expect(deloadCall(s, '2026-12-20', 57).kind).toBe('deload');
     s.profile.deloads = ['2026-12-18'];
+    expect(deloadCall(s, '2026-12-20', 57).kind).toBe('none');
+  });
+
+  it('a week with a natural break resets the count', () => {
+    const s = st();
+    s.profile.season = defaultSeason('2026-11-02');
+    for (let i = 0; i < 49; i++) if (i % 7 < 4 && !(i >= 14 && i < 21)) s.training[addDays('2026-12-20', -i)] = [{ id: `b${i}`, source: 'manual', kind: 'run', name: 'Easy', minutes: 40, km: 8, intensity: 'easy' }];
     expect(deloadCall(s, '2026-12-20', 57).kind).toBe('none');
   });
 

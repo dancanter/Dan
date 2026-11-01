@@ -220,9 +220,21 @@ export function deloadCall(s: State, date: string, kg: number): Call {
   const trainedDays = Object.keys(s.training ?? {}).filter((d) => d <= date && (s.training[d] ?? []).some((x) => x.kind !== 'walk')).sort();
   if (trainedDays.length < 6) return { kind: 'none', title: '', why: [], how: [] };
   const why: string[] = [];
-  const firstHard = since ?? trainedDays[0];
-  const weeks = Math.floor(daysBetween(firstHard, date) / 7);
-  if (weeks >= 6) why.push(`${weeks} weeks of training since ${since ? 'your last deload' : 'you started logging'}.`);
+  // Time-based: count only unbroken weeks of real training (3+ sessions every week),
+  // starting no earlier than your plan start or last deload. Synced history from
+  // before you started Glow, or weeks with a natural break, don't count.
+  const planStart = s.profile.season?.map((p) => p.start).sort()[0];
+  const floor = [since, planStart].filter((x): x is string => !!x).sort().at(-1);
+  let weeks = 0;
+  for (let w = 0; w < 26; w++) {
+    const end = addDays(date, -7 * w);
+    const start = addDays(end, -6);
+    if (floor && start < floor) break;
+    const sessions = Array.from({ length: 7 }, (_, i) => (s.training?.[addDays(end, -i)] ?? []).filter((x) => x.kind !== 'walk').length).reduce((a, b) => a + b, 0);
+    if (sessions < 3) break;
+    weeks++;
+  }
+  if (floor && weeks >= 6) why.push(`${weeks} unbroken weeks of training since ${since ? 'your last deload' : 'your plan started'}.`);
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -7) && e.date <= date).map(sleepHours);
   const strainDays = Array.from({ length: 7 }, (_, i) => addDays(date, -i)).filter((d) => {
     const l = assessLoad(d, s.training ?? {}, { kg, vitals: s.vitals ?? {}, sleepHours: sleeps, inDeficit: true });
