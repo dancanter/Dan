@@ -4,7 +4,7 @@ import { ageOn, daysBetween, fromDisplay, todayISO, toDisplay } from '@/engine/b
 import { RANKS, badges, rankFor, xpTotal } from '@/engine/game';
 import { actions, getState, useStore } from '@/store';
 import { Bar, Button, Card } from '@/components/ui';
-import { WeeklyReviewCard } from '@/components/Review';
+import { PhaseCompareCard, WeeklyReviewCard } from '@/components/Review';
 import { inClaude, saveBackup, useCloudStatus } from '@/cloud';
 
 export function Me() {
@@ -36,6 +36,7 @@ export function Me() {
       </div>
 
       <WeeklyReviewCard browse />
+      <PhaseCompareCard />
       <Card eyebrow="Your rank" title={rank.name}>
         <p className="mb-3 text-sm text-ink-2">{rank.line}</p>
         <Bar value={progress * 100} colour="var(--gold)" />

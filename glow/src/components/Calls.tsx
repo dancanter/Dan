@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Compass, UtensilsCrossed, BedDouble } from 'lucide-react';
 import { addDays, sortByDate } from '@/engine/body';
-import { deloadCall, easeCall, nextMoves, refeedCall, restCall, studyLoad, studyVerdict } from '@/engine/calls';
+import { deloadCall, easeCall, goalCall, nextMoves, refeedCall, restCall, studyLoad, studyVerdict } from '@/engine/calls';
 import { actions, useStore } from '@/store';
 import { Button, Card, Pill } from './ui';
 
 export function CoachCalls({ date }: { date: string }) {
   const s = useStore((x) => x);
   const kg = sortByDate(s.weights).at(-1)?.kg ?? 57;
-  const calls = [restCall(s, date, kg), easeCall(s, date, kg), deloadCall(s, date, kg), refeedCall(s, date)].filter((c) => c.kind !== 'none');
+  const calls = [goalCall(s, date), restCall(s, date, kg), easeCall(s, date, kg), deloadCall(s, date, kg), refeedCall(s, date)].filter((c) => c.kind !== 'none');
   const isRefeed = !!s.days[date]?.refeed;
   return (
     <>
@@ -19,6 +19,7 @@ export function CoachCalls({ date }: { date: string }) {
           <ul className="mt-1 space-y-1 text-sm text-ink-2">{c.why.map((w) => <li key={w}>• {w}</li>)}</ul>
           <div className="mt-2 rounded-xl bg-surface-2 p-3 text-sm"><ul className="space-y-1">{c.how.map((h) => <li key={h}>✦ {h}</li>)}</ul></div>
           {c.kind === 'refeed' && !isRefeed && <Button tone="gold" className="mt-3" onClick={() => actions.setRefeed(date, true)}>Make today a refeed day</Button>}
+          {c.kind === 'goal' && <Button tone="gold" className="mt-3" onClick={() => actions.setProfile({ reverseFrom: date })}>Start adding calories back</Button>}
           {c.kind === 'deload' && <Button tone="gold" className="mt-3" onClick={() => actions.startDeload(date)}>Start deload week</Button>}
         </div>
       ))}

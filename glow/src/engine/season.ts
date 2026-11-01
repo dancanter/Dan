@@ -44,9 +44,18 @@ export function nextPhase(season: Phase[] | undefined, date: string, kinds: Phas
  * by ~150 kcal a week from your cut target to maintenance (a "reverse"), so
  * hormones recover without a rebound.
  */
+/** Calories added back each week after the cut: slow enough that weight barely moves. */
+export const REVERSE_STEP = 100;
+
 export function kcalForDate(p: Profile, date: string, kg: number | undefined): { kcal: number; why: string } {
   const phase = phaseOn(p.season, date);
   const base = p.kcalTarget;
+  if (p.reverseFrom && date >= p.reverseFrom && phase?.kind !== 'travel' && kg) {
+    const maint = estimatedMaintenance(kg, p, ageOn(p.dob, date));
+    const weeks = Math.floor(daysBetween(p.reverseFrom, date) / 7) + 1;
+    const kcal = Math.min(maint, base + weeks * REVERSE_STEP);
+    return { kcal, why: kcal < maint ? `Goal reached, reverse week ${weeks}: +${REVERSE_STEP} kcal a week (${base + REVERSE_STEP} → ${maint}) while your weight holds steady.` : `At maintenance (about ${maint} kcal), staying shredded. Now watch the health numbers climb.` };
+  }
   if (!phase) return { kcal: base, why: 'Your calorie target from Me.' };
   if (phase.kind === 'cut' || phase.kind === 'peak') return { kcal: base, why: `${phase.name}: your cut target. Lose about 0.5% a week, no faster.` };
   if (!kg) return { kcal: base, why: `${phase.name}: log a weigh-in so Glow can estimate your maintenance calories.` };
@@ -54,8 +63,8 @@ export function kcalForDate(p: Profile, date: string, kg: number | undefined): {
   if (phase.kind === 'travel') return { kcal: maint, why: `${phase.name}: eat at maintenance (about ${maint} kcal). Enjoy it. 3 days won’t undo a month of work.` };
   if (phase.kind === 'maintain') {
     const weeks = Math.floor(daysBetween(phase.start, date) / 7) + 1;
-    const kcal = Math.min(maint, base + weeks * 150);
-    return { kcal, why: kcal < maint ? `Reverse diet, week ${weeks}: +150 kcal a week until maintenance (about ${maint}).` : `At maintenance (about ${maint} kcal). Hormones, sleep and recovery come first now.` };
+    const kcal = Math.min(maint, base + weeks * REVERSE_STEP);
+    return { kcal, why: kcal < maint ? `Reverse diet, week ${weeks}: +${REVERSE_STEP} kcal a week until maintenance (about ${maint}).` : `At maintenance (about ${maint} kcal). Hormones, sleep and recovery come first now.` };
   }
   return { kcal: base, why: `${phase.name}.` };
 }

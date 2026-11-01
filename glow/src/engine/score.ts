@@ -29,6 +29,8 @@ export interface Profile {
   bloatProne?: boolean;
   /** Start dates of deload weeks you’ve taken. */
   deloads?: string[];
+  /** The day you hit goal weight and began adding calories back (+100 kcal a week). */
+  reverseFrom?: string;
 }
 
 export type Targets = Record<NKey, number>;

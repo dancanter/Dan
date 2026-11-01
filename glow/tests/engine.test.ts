@@ -347,8 +347,8 @@ describe('season plan', () => {
     const wk3 = kcalForDate(p, '2027-01-09', 55.5).kcal;
     expect(cut).toBe(1799);
     expect(france).toBeGreaterThan(2400);
-    expect(wk1).toBe(1799 + 150);
-    expect(wk3).toBe(1799 + 450);
+    expect(wk1).toBe(1799 + 100);
+    expect(wk3).toBe(1799 + 300);
   });
 
   it('warns when weight drops faster than 0.75% a week', () => {
@@ -778,5 +778,50 @@ describe('daily ideas and weekly review', async () => {
     }
     const r = weeklyReview({ ...EMPTY_STATE, sleeps } as never, '2026-11-08');
     expect(r.wins.some((w) => w.startsWith('Sleep'))).toBe(true);
+  });
+});
+
+describe('goal reached, reverse and cellular progress', async () => {
+  const { goalCall } = await import('@/engine/calls');
+  const { phaseCompare, weeklyReview } = await import('@/engine/review');
+  const { kcalForDate: kfd } = await import('@/engine/season');
+  const { initial } = await import('@/store'); const { DEFAULT_PROFILE: DP } = await import('@/engine/score');
+  const { defaultSeason: ds } = await import('@/engine/season');
+  const mk = () => { const s = initial(); s.profile = { ...DP, unit: 'lb', kcalTarget: 1799, season: ds('2026-11-02') }; return s; };
+  const lbKg = (lb: number) => lb / 2.20462;
+
+  it('offers the reverse once the clean 7-day average is at 124 lb or under', () => {
+    const s = mk();
+    s.weights = [10, 11, 12, 13].map((d, i) => ({ date: `2026-11-${d}`, kg: lbKg(125 - i * 0.1) }));
+    expect(goalCall(s, '2026-11-13').kind).toBe('none');
+    s.weights = [10, 11, 12, 13].map((d) => ({ date: `2026-11-${d}`, kg: lbKg(123.6) }));
+    expect(goalCall(s, '2026-11-13').kind).toBe('goal');
+    s.profile.reverseFrom = '2026-11-13';
+    expect(goalCall(s, '2026-11-13').kind).toBe('none');
+  });
+
+  it('adds 100 kcal a week from the reverse start, capped at maintenance', () => {
+    const s = mk();
+    s.profile.reverseFrom = '2026-11-14';
+    const kg = lbKg(123.5);
+    expect(kfd(s.profile, '2026-11-13', kg).kcal).toBe(1799);
+    expect(kfd(s.profile, '2026-11-14', kg).kcal).toBe(1899);
+    expect(kfd(s.profile, '2026-11-21', kg).kcal).toBe(1999);
+    const late = kfd(s.profile, '2027-03-01', kg).kcal;
+    expect(late).toBeGreaterThan(2000);
+    expect(late).toBeLessThan(3500);
+  });
+
+  it('builds a cellular view and compares cut with reverse phases', () => {
+    const s = mk();
+    const meal = (d: string) => { s.days[d] = { rituals: [], items: ['salmon-wild', 'eggs', 'blueberries', 'spinach', 'greek-yogurt'].map((id, i) => ({ uid: d + i, foodId: id, grams: 150, meal: 'lunch' as const })) }; };
+    for (let d = 2; d <= 15; d++) meal(`2026-11-${String(d).padStart(2, '0')}`);
+    const r = weeklyReview(s, '2026-11-15');
+    expect(r.cellular.pillars).toHaveLength(8);
+    expect(r.cellular.coverage.now).toBeGreaterThan(0);
+    expect(r.cellular.verdict).toMatch(/pillar average/);
+    s.profile.reverseFrom = '2026-11-10';
+    const rows = phaseCompare(s, '2026-11-15');
+    expect(rows.map((x) => x.kind)).toEqual(['cut', 'maintain']);
   });
 });

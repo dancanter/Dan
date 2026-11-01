@@ -22,7 +22,7 @@ export function cleanWeights(s: State): WeightEntry[] {
   return sortByDate(s.weights).filter((w) => !noisy.has(w.date));
 }
 
-export interface Call { kind: 'refeed' | 'rest' | 'ease' | 'deload' | 'none'; title: string; why: string[]; how: string[] }
+export interface Call { kind: 'refeed' | 'rest' | 'ease' | 'deload' | 'goal' | 'none'; title: string; why: string[]; how: string[] }
 
 function lastRefeed(s: State, date: string): string | undefined {
   return Object.keys(s.days).filter((d) => d <= date && s.days[d].refeed).sort().at(-1);
@@ -38,7 +38,7 @@ function lastRefeed(s: State, date: string): string | undefined {
  */
 export function refeedCall(s: State, date: string): Call {
   const phase = phaseOn(s.profile.season, date);
-  if (!phase || phase.kind !== 'cut') return { kind: 'none', title: '', why: [], how: [] };
+  if (!phase || phase.kind !== 'cut' || (s.profile.reverseFrom && s.profile.reverseFrom <= date)) return { kind: 'none', title: '', why: [], how: [] };
   const last = lastRefeed(s, date) ?? phase.start;
   const since = daysBetween(last, date);
   const why: string[] = [];
@@ -253,6 +253,31 @@ export function deloadCall(s: State, date: string, kg: number): Call {
       'Keep protein high and sleep long. Eating at maintenance this week also helps.',
       travel ? `Your trip to ${travel.name} starts soon. Travel weeks make a natural deload, so line it up with that.` : 'You’ll usually come back stronger. Fitness and muscle don’t fade in a week.',
       'Tap “Start deload week” and Glow will stop suggesting one for 7 days.',
+    ],
+  };
+}
+
+/** Goal weight reached on a 7-day average of clean weigh-ins: stop cutting and start the reverse. */
+export const DEFAULT_GOAL_KG = 124 / 2.20462;
+export function goalCall(s: State, date: string): Call {
+  const none: Call = { kind: 'none', title: '', why: [], how: [] };
+  const phase = phaseOn(s.profile.season, date);
+  if (!phase || phase.kind !== 'cut' || s.profile.reverseFrom) return none;
+  const recent = cleanWeights(s).filter((w) => w.date <= date && w.date > addDays(date, -7));
+  if (recent.length < 4) return none;
+  const avgKg = recent.reduce((a, w) => a + w.kg, 0) / recent.length;
+  const goal = s.profile.goalWeightKg ? s.profile.goalWeightKg + 0.23 : DEFAULT_GOAL_KG;
+  if (avgKg > goal) return none;
+  const lb = (avgKg * 2.20462).toFixed(1);
+  return {
+    kind: 'goal',
+    title: 'Goal weight reached: time to eat more',
+    why: [`Your 7-day average is ${lb} lb, inside your 122–124 lb target (refeed days excluded).`, 'Staying in a deficit now only costs muscle, hormones, sleep and facial fullness. The cut has done its job.'],
+    how: [
+      `Add ${100} kcal a week (1,899 next week, then about 2,000…) until you reach maintenance. Glow raises your target automatically.`,
+      'Put the extra mostly into carbs around training, plus a little more fat (olive oil, salmon, egg yolks).',
+      'Watch the 7-day average: a gain of up to 1–1.5 lb in the first fortnight is glycogen and water, not fat. You will look fuller, not softer.',
+      'If the average climbs more than 0.5 lb a week after week 2, hold calories there for a week.',
     ],
   };
 }
