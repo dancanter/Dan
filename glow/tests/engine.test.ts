@@ -580,3 +580,18 @@ describe('study load', () => {
     expect(studyLoad(s, '2026-11-15').reasons[0]).toContain('7 h');
   });
 });
+
+describe('too little deep study', () => {
+  const st = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+  it('only judges after a full week, then flags under 8 deep hours', () => {
+    const s = st();
+    s.vitals['2026-11-15'] = { deepHours: 1 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('ok');
+    for (let i = 0; i < 7; i++) s.vitals[addDays('2026-11-15', -i)] = { deepHours: 1 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('too-little');
+    for (let i = 0; i < 7; i++) s.vitals[addDays('2026-11-15', -i)] = { deepHours: 1.5 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('light');
+    for (let i = 0; i < 7; i++) s.vitals[addDays('2026-11-15', -i)] = { deepHours: i < 6 ? 2.5 : 0 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('ok');
+  });
+});

@@ -69,16 +69,18 @@ export function StudyCard({ date }: { date: string }) {
         const load = studyLoad(s, date);
         if (load.level === 'ok') return null;
         return (
-          <div className={`mt-3 rounded-xl p-3 text-sm ${load.level === 'too-much' ? 'bg-bad-soft' : 'bg-warn-soft'}`}>
-            <b>{load.level === 'too-much' ? 'You’re doing too much deep work' : 'Heavy study week'}</b>
+          <div className={`mt-3 rounded-xl p-3 text-sm ${load.level === 'too-much' || load.level === 'too-little' ? 'bg-bad-soft' : 'bg-warn-soft'}`}>
+            <b>{({ 'too-much': 'You’re doing too much deep work', heavy: 'Heavy study week', 'too-little': 'Not enough deep study', light: 'Deep study on the light side' } as const)[load.level]}</b>
             <ul className="mt-1 space-y-1 text-ink-2">{load.reasons.map((r) => <li key={r}>• {r}</li>)}</ul>
-            <p className="mt-1.5">Cap deep work at 3–4 h a day in 60–90-minute blocks, take real breaks (walk, daylight), and stop 1–2 h before bed.</p>
+            <p className="mt-1.5">{load.level === 'too-much' || load.level === 'heavy'
+              ? 'Cap deep work at 3–4 h a day in 60–90-minute blocks, take real breaks (walk, daylight), and stop 1–2 h before bed.'
+              : 'Aim for 2–3 deep hours on 5–6 days a week: two 60–90-minute blocks, phone in another room, ending each with 10 minutes of self-testing.'}</p>
           </div>
         );
       })()}
       <details className="mt-2 text-xs text-ink-2">
-        <summary className="cursor-pointer text-sea">How much deep work is optimal?</summary>
-        <p className="mt-2 leading-relaxed">Focus is the limit, not time. In the classic studies of expert musicians, even the best practised in focused blocks totalling about 4 hours a day, and rested a lot. Most people do their best thinking in 60–90-minute blocks with real breaks. For you: <b>2–4 hours of deep work a day</b>, about 16–18 hours a week in total for your two 30-credit modules (the OU’s own guide). More than about 5–6 deep hours a day, or studying into the time you should be sleeping, gives worse retention, not better. Sleep is when the day’s learning gets stored. The best methods by far are retrieval practice (testing yourself) and spacing reviews over days, both better than re-reading or highlighting.</p>
+        <summary className="cursor-pointer text-sea">How much deep work is optimal, too much or too little?</summary>
+        <p className="mt-2 leading-relaxed">Focus is the limit, not time. In the classic studies of expert musicians, even the best practised in focused blocks totalling about 4 hours a day, and rested a lot. Most people do their best thinking in 60–90-minute blocks with real breaks. For you: <b>2–4 hours of deep work a day on 5–6 days</b>, about 12–20 deep hours a week, in line with the OU’s 16–18 h guide for your two 30-credit modules. <b>Too little</b> is under about 8 deep hours a week (or deep work on fewer than 4 days): enough to fall behind, not enough for a distinction. More than about 5–6 deep hours a day, or studying into the time you should be sleeping, gives worse retention, not better. Sleep is when the day’s learning gets stored. The best methods by far are retrieval practice (testing yourself) and spacing reviews over days, both better than re-reading or highlighting.</p>
       </details>
     </Card>
   );

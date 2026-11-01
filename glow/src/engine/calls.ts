@@ -120,6 +120,8 @@ export function nextMoves(s: State, date: string): Move[] {
   if (r.analysis.totals.kcal > 0 && r.analysis.plants < 3) moves.push({ w: 3, impact: 'low', text: 'Add a colourful veg or berries to your next meal.' });
   const study = studyLoad(s, date);
   if (study.level === 'too-much') moves.push({ w: 9, impact: 'high', text: `Too much deep work: ${study.reasons[0]} Cap it at 3–4 focused hours a day in 60–90-minute blocks, then switch to light review or rest.` });
+  else if (study.level === 'too-little') moves.push({ w: 8, impact: 'high', text: `Not enough deep study: ${study.reasons[0]} Book two 90-minute focus blocks tomorrow, phone in another room.` });
+  else if (study.level === 'light') moves.push({ w: 5, impact: 'medium', text: `${study.reasons[0]}` });
   else if (study.level === 'heavy') moves.push({ w: 6, impact: 'medium', text: `Heavy study week: ${study.reasons[0]} Protect your 8 hours. Stop deep work 1–2 h before bed.` });
   return moves.sort((a, b) => b.w - a.w).slice(0, 3).map(({ text, impact }) => ({ text, impact }));
 }
@@ -142,7 +144,7 @@ export function studyVerdict(deepToday: number | undefined, weekDeep: number, we
 }
 
 // ── Is the study load too much? ──────────────────────────────────────────
-export interface StudyLoad { level: 'ok' | 'heavy' | 'too-much'; reasons: string[]; weekDeep: number; weekTotal: number }
+export interface StudyLoad { level: 'ok' | 'heavy' | 'too-much' | 'light' | 'too-little'; reasons: string[]; weekDeep: number; weekTotal: number; deepDays: number }
 
 /**
  * Looks across the week, not just today: focused work is limited to about
@@ -167,5 +169,14 @@ export function studyLoad(s: State, date: string): StudyLoad {
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -4) && e.date <= date).map(sleepHours);
   const sleepAvg = sleeps.length ? sleeps.reduce((a, b) => a + b, 0) / sleeps.length : undefined;
   if (sleepAvg !== undefined && sleepAvg < 7.5 && weekDeep >= 14) { if (level === 'ok') level = 'heavy'; reasons.push(`Sleep is averaging ${sleepAvg.toFixed(1)} h during a heavy study week. Late study costs more than it gains, because sleep is when learning is stored.`); }
-  return { level, reasons, weekDeep, weekTotal };
+  // Too little: only judged once a full week has been logged, so day one never nags.
+  const deepDays = days.filter((d) => deepOf(d) >= 1).length;
+  const firstLog = Object.keys(s.vitals ?? {}).filter((d) => s.vitals[d]?.deepHours !== undefined || s.vitals[d]?.studyHours !== undefined).sort()[0];
+  const fullWeek = firstLog !== undefined && firstLog <= addDays(date, -6);
+  if (level === 'ok' && fullWeek) {
+    if (weekDeep < 8) { level = 'too-little'; reasons.push(`Only ${weekDeep} h of deep study in the last 7 days. For SK297 and SK298 that’s under half the OU’s 16–18 h a week, and distinction-level work needs about 12–20 deep hours.`); }
+    else if (weekDeep < 12) { level = 'light'; reasons.push(`${weekDeep} h of deep study this week: enough to keep up, light for a distinction. About 12–20 h (2–3 h on 5–6 days) is the target.`); }
+    else if (deepDays < 4) { level = 'light'; reasons.push(`Deep work on only ${deepDays} days this week. Spreading the same hours over 5–6 days (spaced practice) makes it stick far better than a few long sessions.`); }
+  }
+  return { level, reasons, weekDeep, weekTotal, deepDays };
 }
