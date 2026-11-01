@@ -85,7 +85,7 @@ const BONUS: Partial<Record<Tag, number>> = {
   nitr: 0.06, coll: 0.03, mufa: 0.06, evoo: 0.3, ala: 0.05, preb: 0.06, creat: 0.04, coq: 0.04,
 };
 const PENALTY: Partial<Record<Tag, number>> = {
-  upf: 0.35, addsug: 0.2, procmeat: 0.35, fried: 0.2, alc: 0.5, trans: 0.5, juice: 0.12, merc: 0.05, merc2: 0.45, iodHigh: 0.3,
+  upf: 0.35, addsug: 0.2, procmeat: 0.35, fried: 0.2, alc: 0.5, trans: 0.5, juice: 0.12, merc: 0.05, merc2: 0.45, iodHigh: 0.3, sweetener: 0.06, acidic: 0.04,
 };
 
 export function gradeFor(score: number): string {
@@ -276,6 +276,10 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
   if (freeSugar > 30) warnings.push({ level: 'caution', text: `About ${Math.round(freeSugar)} g free sugar (limit 30 g).` });
   if (totals.sodium > 3500) warnings.push({ level: 'caution', text: `Sodium about ${(totals.sodium / 1000).toFixed(1)} g. A jump above your usual intake shows as puffiness tomorrow.` });
   if ((tagServings.alc ?? 0) > 0) warnings.push({ level: 'caution', text: 'Alcohol logged. Expect lighter sleep, a lower readiness score and a puffier face tomorrow. Drink water and eat potassium-rich food.' });
+  const sweet = tagServings.sweetener ?? 0;
+  const acid = tagServings.acidic ?? 0;
+  if (acid >= 3) warnings.push({ level: 'info', text: `About ${Math.round(acid)} acidic drinks today. Sipped through the day, squash, juice or diet fizzy keeps tooth enamel soft (saliva needs 30–60 minutes to re-harden it). Have them with meals, use a straw, and make the rest water.` });
+  else if (sweet >= 4) warnings.push({ level: 'info', text: `Sweeteners ${Math.round(sweet)} times today. Not dangerous at these amounts, but all-day sweetness keeps cravings high and may nudge some people’s gut bacteria. Try swapping half for water with lemon or cold green tea.` });
   if ((tagServings.merc2 ?? 0) > 0) warnings.push({ level: 'caution', text: 'High-mercury fish today. Keep it to one portion a week.' });
   if ((tagServings.procmeat ?? 0) > 0) warnings.push({ level: 'info', text: 'Processed meat logged. Swap for fresh butcher meat where you can.' });
   const glutenFoods = [...new Set(items.filter((i) => i.food.tags.includes('gluten')).map((i) => i.food.name))];

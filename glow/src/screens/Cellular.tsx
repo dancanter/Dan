@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { FOODS, type Food } from '@/data/foods';
-import { ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
+import { STRESS_TOPICS, SWEETENER_VERDICT, ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
 import { NUTRIENTS } from '@/data/nutrients';
 import { dayResult } from '@/engine/game';
 import { DEFAULT_PROFILE, scaleNutrients, targetsFor } from '@/engine/score';
 import { useStore } from '@/store';
 import { Bar, Card, EvidencePill, Pill, Segmented, scoreColour } from '@/components/ui';
 
-type Tab = 'pillars' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
+type Tab = 'pillars' | 'stress' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
 
 /** The foods that move a pillar most per normal portion, ignoring anything it penalises. */
 export function bestFoodsFor(p: Pillar, n = 6): Food[] {
@@ -46,6 +46,7 @@ export function Cellular({ date }: { date: string }) {
       <div className="-mx-1 overflow-x-auto px-1">
         <Segmented value={tab} onChange={setTab} options={[
           { value: 'pillars', label: '8 pillars' },
+          { value: 'stress', label: 'Stress & AGEs' },
           { value: 'cut', label: 'Cut out' },
           { value: 'coeliac', label: 'Coeliac' },
           { value: 'absorb', label: 'Absorption' },
@@ -80,6 +81,29 @@ export function Cellular({ date }: { date: string }) {
               </Card>
             );
           })}
+        </>
+      )}
+
+      {tab === 'stress' && (
+        <>
+          <Card><p className="text-sm leading-relaxed text-ink-2">Ageing at the cellular level is mostly a story of <b>damage versus repair</b>. Some stress makes you stronger; too much, or too little recovery, wears you down. These are the processes behind it, what they mean for you specifically, and what to do.</p></Card>
+          {STRESS_TOPICS.map((t) => (
+            <Card key={t.id} title={t.title} action={<EvidencePill e={t.evidence} />}>
+              <p className="text-sm leading-relaxed">{t.what}</p>
+              <p className="mt-2 rounded-xl bg-surface-2 p-3 text-sm leading-relaxed"><b>For you:</b> {t.you}</p>
+              <ul className="mt-2 space-y-1 text-sm text-ink-2">{t.do.map((d) => <li key={d}>• {d}</li>)}</ul>
+              <div className="mt-2 flex flex-wrap gap-2">{t.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}</div>
+            </Card>
+          ))}
+          <Card eyebrow="Your habits" title={SWEETENER_VERDICT.title}>
+            <p className="rounded-xl bg-gold-soft p-3 text-sm leading-relaxed">{SWEETENER_VERDICT.summary}</p>
+            <div className="mt-3 space-y-3">
+              {SWEETENER_VERDICT.points.map((p) => <div key={p.h}><div className="text-sm font-medium">{p.h}</div><p className="text-sm leading-relaxed text-ink-2">{p.t}</p></div>)}
+            </div>
+            <div className="mt-4 text-sm font-medium">A 2-week plan that doesn’t feel like a sacrifice</div>
+            <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-ink-2">{SWEETENER_VERDICT.plan.map((p) => <li key={p}>{p}</li>)}</ol>
+            <div className="mt-2 flex flex-wrap gap-2">{SWEETENER_VERDICT.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}</div>
+          </Card>
         </>
       )}
 

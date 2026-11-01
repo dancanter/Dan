@@ -44,6 +44,12 @@ export const SOURCES: Source[] = [
   { id: 'coeliac-uk', cite: 'Coeliac UK. The gluten-free diet.', url: 'https://www.coeliac.org.uk/' },
   { id: 'hurrell-2010', cite: 'Hurrell R. & Egli I. (2010) Iron bioavailability and dietary reference values. American Journal of Clinical Nutrition 91, 1461S–1467S.', url: 'https://doi.org/10.3945/ajcn.2010.28674F' },
   { id: 'nhs-iron', cite: 'NHS. Iron.', url: 'https://www.nhs.uk/conditions/vitamins-and-minerals/iron/' },
+  { id: 'epel-2004', cite: 'Epel E.S. et al. (2004) Accelerated telomere shortening in response to life stress. PNAS 101, 17312–17315.', url: 'https://doi.org/10.1073/pnas.0407162101' },
+  { id: 'ristow-2009', cite: 'Ristow M. et al. (2009) Antioxidants prevent health-promoting effects of physical exercise in humans. PNAS 106, 8665–8670.', url: 'https://doi.org/10.1073/pnas.0903485106' },
+  { id: 'gkogkolou-2012', cite: 'Gkogkolou P. & Böhm M. (2012) Advanced glycation end products: key players in skin aging? Dermato-Endocrinology 4, 259–270.', url: 'https://doi.org/10.4161/derm.22028' },
+  { id: 'suez-2022', cite: 'Suez J. et al. (2022) Personalized microbiome-driven effects of non-nutritive sweeteners on human glucose tolerance. Cell 185, 3307–3328.', url: 'https://doi.org/10.1016/j.cell.2022.07.016' },
+  { id: 'who-nss-2023', cite: 'WHO (2023) Use of non-sugar sweeteners: WHO guideline.', url: 'https://www.who.int/publications/i/item/9789240073616' },
+  { id: 'who-aspartame-2023', cite: 'WHO/IARC/JECFA (2023) Aspartame hazard and risk assessment results released.', url: 'https://www.who.int/news/item/14-07-2023-aspartame-hazard-and-risk-assessment-results-released' },
   { id: 'efsa-ul', cite: 'EFSA (2024) Overview on Tolerable Upper Intake Levels.', url: 'https://www.efsa.europa.eu/en/topics/topic/dietary-reference-values' },
 ];
 
@@ -262,6 +268,8 @@ export const TAG_INFO: Partial<Record<Tag, { label: string; good: boolean; text:
   seHigh: { label: 'Selenium bomb', good: true, text: 'One or two a day, not a handful.' },
   iodHigh: { label: 'Extreme iodine', good: false, text: 'Can exceed the safe upper limit in a few grams.' },
   raw: { label: 'Eaten raw', good: false, text: 'Raw shellfish carries a small food-poisoning risk.' },
+  sweetener: { label: 'Sweeteners', good: false, text: 'Zero sugar, which beats sugar. But the WHO advises against relying on them, sucralose and saccharin altered gut bacteria and glucose response in some people in a 2022 trial, and all-day sweetness keeps cravings tuned high. Low risk in moderation; not something to sip all day.' },
+  acidic: { label: 'Acidic drink', good: false, text: 'Citric and phosphoric acid soften tooth enamel. Sipping all day never gives saliva the 30–60 minutes it needs to re-harden it. Drink with meals or through a straw, and rinse with water after.' },
 };
 
 // ── Things to cut out, and why ───────────────────────────────────────────
@@ -343,6 +351,8 @@ export const RITUALS: Ritual[] = [
     why: 'Bright light at night delays melatonin. The point is the stimulation and light, not blue light alone.' },
   { id: 'lastmeal', title: 'Last meal 2–3 hours before bed', points: 1, evidence: 'emerging',
     why: 'Large late meals can disturb sleep and keep insulin raised overnight. A protein snack (Greek yoghurt) is fine for recovery.' },
+  { id: 'nosip', title: 'Squash and diet drinks only with meals, water in between', points: 1, evidence: 'moderate',
+    why: 'Gives your enamel time to re-harden between acid hits, and turns down the all-day sweetness. Lemon, lime or cucumber water and cold green tea fill the gap.' },
   { id: 'hydrate', title: '2+ litres of fluid (pale-yellow urine)', points: 1, evidence: 'emerging',
     why: 'Mostly about performance and puffiness. Being dehydrated makes you hold water. The evidence that extra water improves skin is weak.' },
   { id: 'social', title: 'Real connection: a call, a meal, a laugh with someone', points: 2, evidence: 'strong', sources: ['holt-lunstad-2010'],
@@ -487,3 +497,57 @@ export const ABSORPTION_BOOSTERS: { title: string; text: string }[] = [
   { title: 'Vitamin D + calcium', text: 'Vitamin D is what lets you absorb calcium at all, which is one reason the October–March vitamin D advice matters more in coeliac disease.' },
   { title: 'A healed gut lining', text: 'For you, strict gluten-free eating is the absorption booster that beats everything else on this list.' },
 ];
+
+// ── Stress, oxidation and AGEs ──────────────────────────────────────────
+export interface StressTopic {
+  id: string;
+  title: string;
+  what: string;
+  you: string;
+  do: string[];
+  evidence: Evidence;
+  sources: string[];
+}
+
+export const STRESS_TOPICS: StressTopic[] = [
+  { id: 'hormesis', title: 'Good stress vs too much stress (hormesis)', evidence: 'moderate', sources: ['ristow-2009'],
+    what: 'Your cells get stronger from small, recoverable doses of stress. A hard run, a sauna, cold water or the polyphenols in berries each cause a little damage or alarm, and the cell answers by building more mitochondria, more antioxidant enzymes and better repair machinery. That’s hormesis: the dose makes it medicine or poison.',
+    you: 'Your training is the biggest hormetic dose you take. It only works if recovery (sleep, food, easy days) is big enough to answer it. In a calorie deficit, the same training is a bigger relative dose.',
+    do: ['Hard days hard, easy days genuinely easy.', 'Recovery is when adaptation happens. Treat sleep as part of training.', 'Don’t stack every stressor at once: cold plunge + fasting + hard intervals + a big deficit is too much signal.'] },
+  { id: 'oxidative', title: 'Oxidative stress', evidence: 'moderate', sources: ['ristow-2009'],
+    what: 'Every time you burn food for energy, mitochondria leak a little oxygen as reactive oxygen species (free radicals). In small amounts these are signals that tell cells to adapt. Oxidative stress is when they outpace your defences and start damaging fats in cell membranes, proteins and DNA.',
+    you: 'High training volume raises free-radical production. Your own defences (glutathione, superoxide dismutase, catalase) are far more powerful than any pill, and they’re built from selenium, zinc, copper, manganese, protein and the polyphenols and sulforaphane that switch on Nrf2.',
+    do: ['Feed your own defences: Brazil nut (selenium), oysters or red meat (zinc, copper), brassicas (sulforaphane), berries and cocoa (polyphenols).', 'Skip high-dose vitamin C and E pills around training. In trials they blunted the adaptations exercise is meant to cause.', 'Biggest outside sources to cut: smoking or vaping, alcohol, unprotected UV, fried and burnt food.'] },
+  { id: 'ages', title: 'AGEs (advanced glycation end-products)', evidence: 'moderate', sources: ['uribarri-2010', 'gkogkolou-2012'],
+    what: 'AGEs form when sugars bond to proteins and fats. Your body makes them from blood glucose, and food adds more, especially protein and fat cooked with dry high heat (grilling, roasting, frying, charring). In skin, AGEs cross-link collagen and elastin: fibres that should glide become stiff and yellowish, which shows as lost bounce, sagging and dullness. Collagen lasts for years, so AGEs accumulate.',
+    you: 'Your diet is low in sugar, which already keeps the body-made AGEs down. The lever left for you is cooking method: grilled steak, roasted meats, crispy skin and seared salmon carry several times the AGEs of the same food stewed, poached or steamed.',
+    do: ['Cook with moisture more often: stews, poaching, steaming, slow-cooking, sous-vide.', 'Marinate meat in lemon juice or vinegar with herbs before grilling. Acid cut AGE formation substantially in lab tests.', 'Lower heat and shorter time. Don’t eat the charred or blackened bits.', 'Keep free sugar low (you already do) and protect sleep, which helps blood sugar control.', 'SPF: UV and AGEs damage collagen together.'] },
+  { id: 'psych', title: 'Psychological stress and cortisol', evidence: 'moderate', sources: ['epel-2004'],
+    what: 'Chronic stress keeps cortisol high. Over time that breaks down muscle, raises blood sugar, disturbs sleep, holds water (a puffy face) and suppresses testosterone and repair. In a well-known study, women under the highest long-term caregiving stress had telomeres equivalent to about a decade of extra ageing.',
+    you: 'Deadlines, a cut, high training volume and study all draw on the same stress budget. Calm isn’t a luxury here: it’s how the training and diet actually pay off.',
+    do: ['10 minutes of slow breathing (in Rituals) on hard days. It measurably lowers stress arousal.', 'Morning daylight and a regular wake time anchor a healthy cortisol rhythm.', 'Time with people you like. Social connection is one of the strongest health predictors there is.', 'Plan the week so a hard training day doesn’t land on a big deadline.'] },
+  { id: 'inflammation', title: 'When stress becomes inflammation', evidence: 'moderate', sources: [],
+    what: 'Short inflammation after training is how muscle rebuilds. The problem is the constant low-grade kind (inflammaging) that comes from stacking stressors without recovery: poor sleep, alcohol, ultra-processed food, chronic stress and under-fuelling.',
+    you: 'Your signs to watch: a morning heart rate above baseline, poor sleep, lingering soreness, getting colds, and puffy skin. Glow tracks most of these.',
+    do: ['Omega-3 (oily fish 2–3 times a week), colourful plants daily, olive oil.', 'If the training load says "pushing it", drop intensity, not food.'] },
+];
+
+export const SWEETENER_VERDICT = {
+  title: 'Your squash and sweetener habit: the honest verdict',
+  summary: 'Not dangerous, not optimal, and worth changing gradually. It’s far better than drinking sugar. The two real issues are teeth and all-day sweetness. The cancer headlines are weaker than they sound.',
+  points: [
+    { h: 'The biggest concrete issue is your teeth', t: 'No-added-sugar squash is still acidic (citric acid). Sipping it all day keeps enamel soft, because saliva needs 30–60 minutes between acid hits to re-harden it. Enamel erosion is permanent and makes teeth look duller and more yellow, which matters for the look you’re going for.' },
+    { h: 'Sweeteners and your gut', t: 'In a 2022 trial (Suez et al., Cell), sucralose and saccharin changed gut bacteria and glucose response in some people within two weeks. Stevia and aspartame had smaller effects. The effect was personal: some people showed it, others didn’t.' },
+    { h: 'Cravings and taste', t: 'Constant sweetness keeps your palate set to "very sweet", which can make whole foods taste flat. The evidence on weight is mixed. The WHO (2023) advises against relying on sweeteners for weight control, partly because long-term studies link heavy use with worse outcomes (observational, so not proof).' },
+    { h: 'Cancer worries, in proportion', t: 'In 2023 the WHO’s cancer agency classed aspartame as “possibly carcinogenic” (the weakest category, alongside aloe vera extract), while the WHO’s food safety committee kept the safe daily limit at 40 mg per kg: about 2,300 mg for you, many litres of squash. Not a reason to panic, just not a reason to drink it all day.' },
+    { h: 'Sweetener drops in meals', t: 'A few drops of stevia is the lowest-concern option. Sucralose drops are fine occasionally. Cinnamon, vanilla, berries or a little cocoa can replace most of them.' },
+  ],
+  plan: [
+    'Week 1: dilute squash to half strength and drink it only with meals.',
+    'Week 2: swap the between-meal glasses for water with fresh lemon, lime, cucumber or mint, or cold-brewed green tea (polyphenols, no acid load).',
+    'Keep one or two glasses a day if you enjoy them. That’s fine.',
+    'Use a straw, and rinse with water after. Don’t brush for 30–60 minutes after acidic drinks, because softened enamel brushes away.',
+    'Swap sweetener drops in oats or yoghurt for cinnamon and berries most days.',
+  ],
+  sources: ['suez-2022', 'who-nss-2023', 'who-aspartame-2023'],
+};

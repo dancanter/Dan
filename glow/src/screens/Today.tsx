@@ -14,6 +14,7 @@ import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/comp
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
 import { describeQty } from '@/data/units';
+import { GAIN_LABEL, swapFor } from '@/data/swaps';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
 import { Confetti } from '@/components/Confetti';
 import { coachLines, factFor } from '@/engine/coach';
@@ -163,6 +164,25 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
             </div>
             {r.ea !== undefined && <p className="mt-3 text-xs text-muted">Energy availability so far: <b className="num" style={{ color: r.ea < 30 ? 'var(--bad)' : r.ea < 45 ? 'var(--warn)' : 'var(--good)' }}>{Math.round(r.ea)}</b> kcal per kg fat-free mass (healthy ≥ 45, low &lt; 30). Set your training estimate in Me.</p>}
           </Card>
+
+          {(() => {
+            const order = { big: 0, medium: 1, small: 2 } as const;
+            const seen = new Set<string>();
+            const swaps = items.map((i) => ({ i, sw: swapFor(i.food) })).filter((x) => x.sw && !seen.has(x.i.food.id) && seen.add(x.i.food.id)).sort((a, b) => order[a.sw!.gain] - order[b.sw!.gain]).slice(0, 3);
+            if (!swaps.length) return null;
+            return (
+              <Card eyebrow="Make it even better" title="Swap ideas from today">
+                <ul className="space-y-3">
+                  {swaps.map(({ i, sw }) => (
+                    <li key={i.food.id} className="text-sm">
+                      <div className="flex flex-wrap items-center gap-2"><b>{i.food.name.split(/ \(/)[0].trim()}</b> → {sw!.targets.slice(0, 2).map((t) => t.name.split(/ \(/)[0].trim()).join(' or ')}<Pill tone={sw!.gain === 'big' ? 'gold' : sw!.gain === 'medium' ? 'sea' : 'neutral'}>{GAIN_LABEL[sw!.gain]}</Pill></div>
+                      <p className="mt-0.5 text-xs leading-relaxed text-ink-2">{sw!.why}{sw!.keep ? ` ${sw!.keep}` : ''}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            );
+          })()}
 
           <PuffCard date={date} sleepHours={r.sleep?.hours} />
 

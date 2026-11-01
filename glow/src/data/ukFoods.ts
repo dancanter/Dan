@@ -149,9 +149,10 @@ uk-bolognese;Bolognese sauce (meat);treats;3;250;1 portion;105 8 4 1 3 6 2.5 0 |
 uk-shepherds-pie;Shepherd’s / cottage pie;treats;3;350;1 portion;112 6 9 1 1.2 5.5 2.5 0 | ? ? ? ? ? ? ? ? ? | 0.8 1.2 ? ? 15 300 20 ? 300;;Check that the gravy is gluten-free.;shepherds pie cottage pie
 uk-sandwich;Meal-deal sandwich (chicken & bacon);treats;4;190;1 sandwich;240 13 22 2 2 11 2.5 0 | ? ? ? ? ? ? ? ? ? | 1 ? ? ? ? ? 80 ? 500;procmeat upf gluten;;meal deal sandwich tesco boots
 # Drinks (per 100 ml)
-uk-lucozade;Lucozade Energy (per 100 ml);drinks;4;380;1 bottle;70 0 17 0 17 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 30;upf addsug caff;;lucozade
-uk-ribena;Ribena (per 100 ml, ready to drink);drinks;4;250;1 glass;41 0 10 0 10 0 0 0 | 0 20 0 0 0 0 0 0 0 | 0 0 0 0 0 30 0 0 5;upf addsug;;ribena
-uk-squash;Squash, no added sugar (diluted, per 100 ml);drinks;4;250;1 glass;2 0 0.2 0 0.2 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 5 0 0 5;upf;Fine for hydration. Sweetened with sweeteners.;squash robinsons cordial
+uk-lucozade;Lucozade Energy (per 100 ml);drinks;4;380;1 bottle;70 0 17 0 17 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 30;upf addsug caff acidic;;lucozade
+uk-ribena;Ribena (per 100 ml, ready to drink);drinks;4;250;1 glass;41 0 10 0 10 0 0 0 | 0 20 0 0 0 0 0 0 0 | 0 0 0 0 0 30 0 0 5;upf addsug acidic;;ribena
+uk-squash;Squash, no added sugar (diluted, per 100 ml);drinks;4;250;1 glass;2 0 0.2 0 0.2 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 5 0 0 5;upf sweetener acidic;Fine for hydration. Sweetened with sweeteners.;squash robinsons cordial
+uk-sweetener-drops;Sweetener drops (sucralose or stevia);herbs;4;0.5;5 drops;0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0;sweetener;Zero calories. Stevia has the least concerning evidence of the common sweeteners. Sucralose may alter gut bacteria and glucose response in some people (2022 trial). A few drops a day is low concern, but all-day use keeps your taste set to “very sweet”.;sweetener drops flavdrops stevia sucralose sweetener
 uk-guinness;Stout / Guinness (per 100 ml);drinks;3;568;1 pint;35 0.3 3 0 0 0 0 0 | 0 0 0 0 0 0.02 4 0 ? | 0 0 0 0 5 30 4 ? 4;alc gluten;Made from barley, so not gluten-free.;guinness stout porter
 uk-ale;Ale / bitter (per 100 ml);drinks;3;568;1 pint;34 0.3 2.2 0 0 0 0 0 | 0 0 0 0 0 0.02 6 0 ? | 0 0 0 0 7 32 8 ? 6;alc gluten;;bitter ale ipa pint
 uk-cider;Cider (per 100 ml);drinks;3;568;1 pint;40 0 3 0 3 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0.4 0 0 0 3 70 8 0 7;alc;Naturally gluten-free.;cider strongbow

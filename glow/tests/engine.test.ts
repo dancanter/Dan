@@ -444,3 +444,33 @@ describe('training load', () => {
     expect(bad.reasons.length).toBeGreaterThan(2);
   });
 });
+
+import { SWAPS, swapFor } from '@/data/swaps';
+import { STRESS_TOPICS, SWEETENER_VERDICT } from '@/data/science';
+
+describe('swaps, sweeteners and stress', () => {
+  it('every swap points at real foods', () => {
+    for (const s of SWAPS) {
+      expect(FOOD_BY_ID.get(s.from), s.from).toBeTruthy();
+      for (const t of s.to) expect(FOOD_BY_ID.get(t), `${s.from} -> ${t}`).toBeTruthy();
+    }
+    expect(swapFor(f('beef-mince-20'))?.gain).toBe('big');
+    expect(swapFor(f('spinach'))?.gain).toBe('small');
+  });
+
+  it('flags all-day squash sipping, not one glass', () => {
+    const squash = (n: number) => Array.from({ length: n }, (_, i) => ({ uid: `s${i}`, food: f('uk-squash'), grams: 250, meal: 'snacks' as const }));
+    const allDay = analyseDay(squash(6), t, { glutenFree: true });
+    expect(allDay.warnings.some((w) => w.text.includes('enamel'))).toBe(true);
+    const one = analyseDay(squash(1), t, { glutenFree: true });
+    expect(one.warnings.some((w) => w.text.includes('enamel'))).toBe(false);
+    expect(scoreFood(f('uk-squash'), t).score).toBeLessThan(scoreFood(f('water'), t).score);
+  });
+
+  it('finds sweetener drops and every stress source exists', () => {
+    expect(parseEntry('5 sweetener drops', ALL_FOODS)[0].food?.id).toBe('uk-sweetener-drops');
+    const ids = new Set(SOURCES.map((x) => x.id));
+    for (const topic of STRESS_TOPICS) for (const sid of topic.sources) expect(ids.has(sid)).toBe(true);
+    for (const sid of SWEETENER_VERDICT.sources) expect(ids.has(sid)).toBe(true);
+  });
+});

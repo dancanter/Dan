@@ -63,7 +63,7 @@ export type Tag =
   | 'poly' | 'poly2' | 'carot' | 'lut' | 'sulf' | 'sperm' | 'ferm' | 'preb' | 'coll'
   | 'creat' | 'coq' | 'astax' | 'nitr' | 'ala' | 'mufa' | 'evoo' | 'lowgi' | 'highgi'
   | 'upf' | 'addsug' | 'juice' | 'procmeat' | 'fried' | 'alc' | 'trans' | 'merc' | 'merc2'
-  | 'gluten' | 'oats' | 'caff' | 'retinol' | 'seHigh' | 'iodHigh' | 'raw';
+  | 'gluten' | 'oats' | 'caff' | 'retinol' | 'seHigh' | 'iodHigh' | 'raw' | 'sweetener' | 'acidic';
 
 export interface Food {
   id: string;
@@ -261,11 +261,11 @@ water;Water;drinks;1;250;1 glass;0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0
 coffee;Coffee, black (per 100 ml);drinks;1;200;1 mug;1 0.1 0 0 0 0 0 0 | 0 0 0 0 0.1 0.08 2 0 2.6 | 0 0 0 0 3 49 2 0 2;poly caff;The biggest polyphenol source in most diets. 3–4 cups a day is linked with lower mortality in cohort studies. Caffeine's half-life is about 5 hours, so a 3pm coffee is still a quarter there at 1am.
 green-tea;Green tea (per 100 ml);drinks;1;250;1 mug;1 0.2 0 0 0 0 0 0 | 0 0 0 0 0 0.06 1 0 0 | 0 0 0 0 1 8 0 0 1;poly2 caff;EGCG and L-theanine, which smooths the caffeine. Drink it between meals, because tea tannins reduce iron absorption.
 matcha;Matcha (powder);drinks;1;2;1 tsp;324 30 21 38 0 5 1 0 | 2400 60 0 28 1000 1.35 120 0 0 | 17 6.3 0.6 2 230 2700 420 1 6;poly2 caff;You drink the whole leaf, so it carries more catechins than steeped green tea. Values approximate.
-cola;Cola (per 100 ml);drinks;4;330;1 can;42 0 10.6 0 10.6 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 2 2 0 4;upf addsug caff;35 g of free sugar per can: more than a whole day's limit. Liquid sugar doesn't fill you up.
-diet-cola;Diet cola (per 100 ml);drinks;4;330;1 can;0.4 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 1 2 2 0 4;upf caff;Far better than full-sugar cola. Questions remain about sweeteners and the gut microbiome, but the evidence is mixed.
-energy-drink;Energy drink (per 100 ml);drinks;4;250;1 can;45 0 11 0 11 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 80;upf addsug caff;
-oj;Orange juice (per 100 ml);drinks;1;150;1 small glass;45 0.7 10.4 0.2 8.4 0.2 0 0 | 10 50 0 0 0.1 0.03 30 0 6 | 0.2 0.1 0.04 0.1 11 200 11 1 1;juice;Juicing turns the fruit's sugar into "free sugar" (the type to limit): no fibre, quick to drink. Eat the orange.
-kombucha;Kombucha (per 100 ml);drinks;3;250;1 bottle;13 0 3 0 3 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 10 0 0 5;ferm;Fewer studied benefits than kefir or yoghurt. Check the label for added sugar.
+cola;Cola (per 100 ml);drinks;4;330;1 can;42 0 10.6 0 10.6 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 2 2 0 4;upf addsug caff acidic;35 g of free sugar per can: more than a whole day's limit. Liquid sugar doesn't fill you up.
+diet-cola;Diet cola (per 100 ml);drinks;4;330;1 can;0.4 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 1 2 2 0 4;upf caff sweetener acidic;Far better than full-sugar cola. Questions remain about sweeteners and the gut microbiome, but the evidence is mixed.
+energy-drink;Energy drink (per 100 ml);drinks;4;250;1 can;45 0 11 0 11 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 80;upf addsug caff acidic;
+oj;Orange juice (per 100 ml);drinks;1;150;1 small glass;45 0.7 10.4 0.2 8.4 0.2 0 0 | 10 50 0 0 0.1 0.03 30 0 6 | 0.2 0.1 0.04 0.1 11 200 11 1 1;juice acidic;Juicing turns the fruit's sugar into "free sugar" (the type to limit): no fibre, quick to drink. Eat the orange.
+kombucha;Kombucha (per 100 ml);drinks;3;250;1 bottle;13 0 3 0 3 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 10 0 0 5;ferm acidic;Fewer studied benefits than kefir or yoghurt. Check the label for added sugar.
 beer;Beer, lager (per 100 ml);drinks;3;568;1 pint;43 0.5 3.6 0 0 0 0 0 | 0 0 0 0 0 0.03 6 0 10 | 0 0 0 0.6 6 27 4 0 4;alc gluten;
 wine;Red wine (per 100 ml);drinks;3;175;1 medium glass;85 0.1 2.6 0 0.6 0 0 0 | 0 0 0 0 0.4 0.03 1 0 0 | 0.5 0.1 0.01 0.2 12 127 8 0 4;alc poly;The resveratrol in wine is a tiny fraction of the doses used in animal studies, and the alcohol works against everything you want here.
 spirits;Spirits (per 100 ml);drinks;3;25;1 single (25 ml);231 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 1 0 0 1;alc;

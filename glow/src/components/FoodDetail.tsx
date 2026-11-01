@@ -12,6 +12,7 @@ import { cookedToRaw, cookingYield, yieldNote } from '@/engine/cooking';
 import { foodPuff } from '@/engine/puff';
 import { defaultUnit, describeQty, unitsFor, type Unit } from '@/data/units';
 import { EditToMatch } from './EditToMatch';
+import { GAIN_LABEL, swapFor } from '@/data/swaps';
 
 const SOURCE_LABEL: Record<string, string> = {
   library: 'Glow library: hand-checked typical values',
@@ -74,6 +75,19 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
 
       {glutenClash && <div className="rounded-xl bg-bad-soft p-3 text-sm text-bad">Contains gluten, and you have gluten-free mode on.</div>}
       {food.note && <p className="text-sm leading-relaxed text-ink-2">{food.note}</p>}
+
+      {(() => {
+        const sw = swapFor(food);
+        if (!sw) return null;
+        return (
+          <div className={`rounded-xl p-3 text-sm ${sw.gain === 'big' ? 'bg-gold-soft' : 'bg-surface-2'}`}>
+            <div className="mb-1 flex flex-wrap items-center gap-2"><b>Better swap?</b><Pill tone={sw.gain === 'big' ? 'gold' : sw.gain === 'medium' ? 'sea' : 'neutral'}>{GAIN_LABEL[sw.gain]}</Pill></div>
+            <div className="mb-1 font-medium">{sw.targets.map((t) => t.name.split(/ \(/)[0].trim()).join(' · ')}</div>
+            <p className="leading-relaxed text-ink-2">{sw.why}</p>
+            {sw.keep && <p className="mt-1 text-xs text-muted">{sw.keep}</p>}
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-2 gap-2">
         {([['Face puffiness', puff.face, puff.faceWhy], ['Gut bloat', puff.gut, puff.gutWhy]] as const).map(([label, lvl, why]) => (
