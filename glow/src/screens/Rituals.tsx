@@ -3,6 +3,7 @@ import { Check, Pause, Play } from 'lucide-react';
 import { RITUALS, SOURCES } from '@/data/science';
 import { actions, useStore } from '@/store';
 import { Button, Card, EvidencePill, Segmented } from '@/components/ui';
+import { BigDaySetup } from '@/components/LookGood';
 
 const PATTERNS = {
   resonance: { label: 'Resonance 5.5', steps: [['Breathe in', 5.5], ['Breathe out', 5.5]] as [string, number][], about: 'About 5.5 breaths a minute, close to the rate that maximises heart-rate variability in most adults. Your everyday calm-down.' },
@@ -47,6 +48,8 @@ export function Rituals({ date }: { date: string }) {
           })}
         </ul>
       </Card>
+
+      <BigDaySetup />
 
       <Breathing date={date} minutesToday={s.breathMinutes[date] ?? 0} />
     </div>

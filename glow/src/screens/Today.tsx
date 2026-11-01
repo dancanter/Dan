@@ -10,6 +10,7 @@ import { FoodDetail, MEALS } from '@/components/FoodDetail';
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
+import { BigDayCountdown, PuffCard } from '@/components/LookGood';
 import { Confetti } from '@/components/Confetti';
 import { coachLines, factFor } from '@/engine/coach';
 
@@ -61,6 +62,8 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           {r.analysis.wins.slice(0, 3).map((w) => <Pill key={w} tone="good">✓ {w}</Pill>)}
         </div>
       </Card>
+
+      <BigDayCountdown />
 
       <div className={`card rise flex items-start gap-3 p-4 ${questDone ? 'ring-2 ring-good' : ''}`}>
         <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${questDone ? 'pop bg-good text-white' : 'bg-gold-soft text-gold'}`}>{questDone ? '✓' : <Sparkles size={18} />}</div>
@@ -148,6 +151,8 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
             </div>
             {r.ea !== undefined && <p className="mt-3 text-xs text-muted">Energy availability so far: <b className="num" style={{ color: r.ea < 30 ? 'var(--bad)' : r.ea < 45 ? 'var(--warn)' : 'var(--good)' }}>{Math.round(r.ea)}</b> kcal per kg fat-free mass (healthy ≥ 45, low &lt; 30). Set your training estimate in Me.</p>}
           </Card>
+
+          <PuffCard date={date} sleepHours={r.sleep?.hours} />
 
           <Card title="Your 8 cellular pillars" eyebrow="Today">
             <ul className="space-y-2.5">

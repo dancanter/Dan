@@ -15,6 +15,8 @@ export interface Profile {
   bodyFatPct: number;
   glutenFree: boolean;
   goalWeightKg?: number;
+  /** An upcoming event to look your best for. */
+  bigDay?: { label: string; date: string };
 }
 
 export type Targets = Record<NKey, number>;

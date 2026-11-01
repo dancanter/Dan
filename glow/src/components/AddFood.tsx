@@ -60,12 +60,12 @@ function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
   const ready = items.filter((i) => i.food && i.grams);
   return (
     <div className="space-y-3">
-      <label className="block text-sm text-ink-2" htmlFor="type-it">Write it how you’d say it, using raw weights where you know them.</label>
+      <label className="block text-sm text-ink-2" htmlFor="type-it">Write it how you’d say it. Weights are taken as raw; add “cooked” (e.g. “200g cooked rice”) and Glow converts it.</label>
       <textarea id="type-it" className="field min-h-24" placeholder="3 eggs, 150g wild salmon, handful blueberries, 1 brazil nut, 200ml kefir" value={text} onChange={(e) => parse(e.target.value)} />
       {items.length > 0 && (
         <ul className="divide-y divide-line rounded-xl border border-line">
           {items.map((it, i) => (
-            <li key={i} className="flex items-center gap-2 p-2.5 text-sm">
+            <li key={i} className="flex flex-wrap items-center gap-2 p-2.5 text-sm">
               {it.food ? (
                 <>
                   <Grade grade={scoreFood(it.food).grade} score={scoreFood(it.food).score} />
@@ -82,6 +82,7 @@ function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
                 <span className="text-muted">“{it.text}”: no match yet. Try the Online or Custom tab.</span>
               )}
               <button aria-label="Remove" className="p-1 text-muted" onClick={() => setItems(items.filter((_, j) => j !== i))}><Trash2 size={15} /></button>
+              {it.cookedGrams && <span className="w-full pl-10 text-xs text-sea">Converted from {it.cookedGrams} g cooked to {it.grams} g raw</span>}
             </li>
           ))}
         </ul>

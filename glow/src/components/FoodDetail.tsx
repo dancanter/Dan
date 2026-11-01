@@ -7,7 +7,9 @@ import { bioFactors, scaleNutrients, scoreFood, targetsFor, type Meal } from '@/
 import { actions, useStore } from '@/store';
 import { weightOn } from '@/engine/game';
 import { todayISO } from '@/engine/body';
-import { Bar, Button, Grade, Pill } from './ui';
+import { Bar, Button, Grade, Pill, Segmented } from './ui';
+import { cookedToRaw, cookingYield, yieldNote } from '@/engine/cooking';
+import { foodPuff } from '@/engine/puff';
 
 const SOURCE_LABEL: Record<string, string> = {
   library: 'Glow library: hand-checked typical values',
@@ -35,9 +37,13 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
   const sc = scoreFood(food, t);
   const [grams, setGrams] = useState(food.portion.g);
   const [meal, setMeal] = useState<Meal>(defaultMeal());
+  const [weighed, setWeighed] = useState<'raw' | 'cooked'>('raw');
+  const yld = cookingYield(food);
+  const rawGrams = weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
+  const puff = foodPuff(food, rawGrams);
   const fav = s.favourites.includes(food.id);
   const factors = bioFactors(food);
-  const portion = scaleNutrients(food.n, grams);
+  const portion = scaleNutrients(food.n, rawGrams);
   const effPortion: Record<string, number> = { ...portion };
   for (const [k, v] of Object.entries(factors)) effPortion[k] = portion[k as NKey] * (v as number);
   const glutenClash = s.profile.glutenFree && food.tags.includes('gluten');
@@ -59,6 +65,15 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
 
       {glutenClash && <div className="rounded-xl bg-bad-soft p-3 text-sm text-bad">Contains gluten, and you have gluten-free mode on.</div>}
       {food.note && <p className="text-sm leading-relaxed text-ink-2">{food.note}</p>}
+
+      <div className="grid grid-cols-2 gap-2">
+        {([['Face puffiness', puff.face, puff.faceWhy], ['Gut bloat', puff.gut, puff.gutWhy]] as const).map(([label, lvl, why]) => (
+          <div key={label} className={`rounded-xl p-2.5 text-xs ${lvl === 'high' ? 'bg-bad-soft' : lvl === 'medium' ? 'bg-warn-soft' : 'bg-good-soft'}`}>
+            <div className="font-semibold">{label}: <span className={lvl === 'high' ? 'text-bad' : lvl === 'medium' ? 'text-warn' : 'text-good'}>{lvl}</span></div>
+            <div className="mt-0.5 leading-snug text-ink-2">{why}</div>
+          </div>
+        ))}
+      </div>
 
       {sc.stars.length > 0 && (
         <div>
@@ -99,18 +114,24 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
             <label className="flex flex-1 items-center gap-2">
               <span className="sr-only">Grams</span>
               <input className="field num" inputMode="decimal" value={grams} onChange={(e) => setGrams(Number(e.target.value.replace(/[^\d.]/g, '')) || 0)} />
-              <span className="text-sm text-muted">g raw</span>
+              <span className="text-sm text-muted">g {weighed}</span>
             </label>
             <select className="field w-auto" value={meal} onChange={(e) => setMeal(e.target.value as Meal)} aria-label="Meal">
               {MEALS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
-            <Button onClick={() => grams > 0 && onAdd(grams, meal)} disabled={grams <= 0}><Plus size={16} />Add</Button>
+            <Button onClick={() => rawGrams > 0 && onAdd(rawGrams, meal)} disabled={rawGrams <= 0}><Plus size={16} />Add</Button>
           </div>
+          {yld && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+              <Segmented value={weighed} onChange={setWeighed} options={[{ value: 'raw', label: 'Weighed raw' }, { value: 'cooked', label: 'Weighed cooked' }]} />
+              {weighed === 'cooked' && <span>≈ <b className="num text-ink">{rawGrams} g raw</b>. {yieldNote(food)}</span>}
+            </div>
+          )}
         </div>
       )}
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold">In {grams} g</h3>
+        <h3 className="mb-2 text-sm font-semibold">In {rawGrams} g {yld ? (food.category === 'grains' || food.category === 'legumes' ? 'dry' : 'raw') : ''}</h3>
         <div className="mb-3 grid grid-cols-4 gap-2 text-center">
           {(['kcal', 'protein', 'carbs', 'fat'] as NKey[]).map((k) => (
             <div key={k} className="rounded-xl bg-surface-2 p-2">

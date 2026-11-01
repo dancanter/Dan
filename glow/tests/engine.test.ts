@@ -258,3 +258,62 @@ describe('the big library', () => {
     expect(scoreFood(hake, t).score).toBeGreaterThan(60);
   });
 });
+
+import { cookedToRaw, cookingYield } from '@/engine/cooking';
+import { dayPuff, foodPuff } from '@/engine/puff';
+
+describe('raw or cooked weights', () => {
+  it('converts cooked weights back to raw', () => {
+    expect(cookedToRaw(f('sirloin'), 144)).toBe(200);       // steak loses ~28%
+    expect(cookedToRaw(f('white-rice'), 280)).toBe(100);    // rice absorbs water
+    expect(cookedToRaw(f('salmon-wild'), 120)).toBe(150);
+    expect(cookingYield(f('blueberries'))).toBeUndefined();
+    expect(cookingYield(f('salmon-tinned'))).toBeUndefined();
+  });
+
+  it('understands "cooked" when typed', () => {
+    const [rice, steak, eggs] = parseEntry('280g cooked rice, 150g steak, 2 eggs', ALL_FOODS);
+    expect(rice.food?.id).toBe('white-rice');
+    expect(rice.grams).toBe(100);
+    expect(rice.cookedGrams).toBe(280);
+    expect(steak.grams).toBe(150);
+    expect(steak.cookedGrams).toBeUndefined();
+    expect(eggs.grams).toBe(120);
+  });
+
+  it('finds the unhomogenised milks', () => {
+    expect(searchFoods('estate unhomogenised semi skimmed', ALL_FOODS, 1)[0].id).toBe('uk-milk-unhomog-semi');
+    expect(searchFoods('unhomogenised whole milk', ALL_FOODS, 1)[0].id).toBe('uk-milk-unhomog-whole');
+  });
+});
+
+describe('puffiness and bloat', () => {
+  it('rates salty food, alcohol and fizzy drinks', () => {
+    expect(foodPuff(f('bacon')).face).toBe('high');
+    expect(foodPuff(f('wine')).face).toBe('high');
+    expect(foodPuff(f('avocado')).face).toBe('low');
+    expect(foodPuff(f('cola')).gut).toBe('high');
+    expect(foodPuff(f('lentils')).gut).toBe('medium');
+    expect(foodPuff(f('kefir')).gut).toBe('low');
+  });
+
+  it('flags a sodium jump against your usual intake, not salt itself', () => {
+    const usual = [item('eggs', 120), item('salmon-wild', 150), item('potato', 250), item('spinach', 80)];
+    const salty = [...usual, item('salami', 60), item('olives', 60), item('tamari', 30)];
+    const history = Array.from({ length: 5 }, () => usual);
+    expect(dayPuff(usual, history).score).toBeGreaterThanOrEqual(85);
+    const p = dayPuff(salty, history, 6);
+    expect(p.jump!).toBeGreaterThan(1000);
+    expect(p.score).toBeLessThan(70);
+  });
+});
+
+describe('drinks by the glass', () => {
+  it('understands glasses, pints and cans', () => {
+    const [wine, beer, cola] = parseEntry('2 glasses wine, a pint of guinness, 1 can cola', ALL_FOODS);
+    expect(wine.food?.id).toBe('wine');
+    expect(wine.grams).toBe(350);
+    expect(beer.food?.id).toBe('uk-guinness');
+    expect(cola.food?.id).toBe('cola');
+  });
+});
