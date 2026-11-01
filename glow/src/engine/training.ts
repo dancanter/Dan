@@ -9,6 +9,10 @@ import type { Vitals } from './vitals';
 export type SessionKind = 'run' | 'lift' | 'walk' | 'ride' | 'other';
 export type Intensity = 'easy' | 'moderate' | 'hard';
 
+export const MUSCLES = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'calves', 'abs', 'neck'] as const;
+export type Muscle = (typeof MUSCLES)[number];
+export const MUSCLE_LABEL: Record<Muscle, string> = { chest: 'Chest', back: 'Back & lats', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps', quads: 'Quads', hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', abs: 'Abs', neck: 'Neck' };
+
 export interface Session {
   id: string;
   source: 'strava' | 'manual';
@@ -20,6 +24,8 @@ export interface Session {
   intensity: Intensity;
   /** True once you've corrected the intensity by hand (a re-sync keeps it). */
   intensitySet?: boolean;
+  /** Hard working sets per muscle group (sets taken within about 1–3 reps of failure). */
+  sets?: Partial<Record<Muscle, number>>;
 }
 
 const FACTOR: Record<Intensity, number> = { easy: 3, moderate: 5, hard: 8 };
@@ -149,4 +155,35 @@ export function trainingKcalOn(training: Record<string, Session[]> | undefined, 
   const day = training?.[date];
   if (!day?.length) return undefined;
   return day.filter((s) => s.kind !== 'walk').reduce((a, s) => a + sessionKcal(s, kg), 0);
+}
+
+// ── Weekly sets per muscle ───────────────────────────────────────────────
+/**
+ * Muscle growth rises with weekly hard sets per muscle up to roughly 10–20
+ * (dose-response meta-analyses). In a calorie deficit the job is mostly to
+ * KEEP muscle, which takes less: about 6–8 hard sets a week per muscle
+ * maintains it, and 10–16 can still build some in trained lifters. Running
+ * already gives the legs a lot of work, so leg targets sit lower.
+ */
+export const SET_TARGETS: Record<Muscle, { min: number; max: number; note?: string }> = {
+  chest: { min: 8, max: 16 }, back: { min: 10, max: 18 }, shoulders: { min: 10, max: 18, note: 'Side delts build the width that frames a lean face and waist.' },
+  biceps: { min: 6, max: 14 }, triceps: { min: 6, max: 14 }, quads: { min: 6, max: 12, note: 'Your running adds a lot of leg work already.' },
+  hamstrings: { min: 6, max: 12 }, glutes: { min: 6, max: 12 }, calves: { min: 4, max: 10, note: 'Running loads calves daily.' }, abs: { min: 4, max: 12 },
+  neck: { min: 0, max: 8, note: 'Optional: a little neck work adds the thicker neck that sharpens a jawline in photos.' },
+};
+
+export function weeklySets(training: Record<string, Session[]>, date: string): Record<Muscle, number> {
+  const out = Object.fromEntries(MUSCLES.map((m) => [m, 0])) as Record<Muscle, number>;
+  for (let i = 0; i < 7; i++) for (const s of training[addDays(date, -i)] ?? []) for (const [m, n] of Object.entries(s.sets ?? {})) out[m as Muscle] += n ?? 0;
+  return out;
+}
+
+export function setsVerdict(m: Muscle, n: number): { label: string; tone: 'good' | 'sea' | 'warn' | 'bad' } {
+  const t = SET_TARGETS[m];
+  if (n === 0 && t.min === 0) return { label: 'optional', tone: 'sea' };
+  if (n < t.min * 0.75) return { label: 'too few to keep muscle', tone: 'bad' };
+  if (n < t.min) return { label: 'a bit low', tone: 'warn' };
+  if (n <= t.max) return { label: 'in range', tone: 'good' };
+  if (n <= t.max + 4) return { label: 'high for a cut', tone: 'warn' };
+  return { label: 'too much to recover from', tone: 'bad' };
 }

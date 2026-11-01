@@ -351,6 +351,8 @@ export const RITUALS: Ritual[] = [
     why: 'Bright light at night delays melatonin. The point is the stimulation and light, not blue light alone.' },
   { id: 'lastmeal', title: 'Last meal 2–3 hours before bed', points: 1, evidence: 'emerging',
     why: 'Large late meals can disturb sleep and keep insulin raised overnight. A protein snack (Greek yoghurt) is fine for recovery.' },
+  { id: 'yoga', title: '10 minutes of yoga, mobility or body-scan rest', points: 2, evidence: 'moderate',
+    why: 'Yoga lowers perceived stress and anxiety in meta-analyses and improves sleep quality. The runner’s flow also keeps hips and upper back moving, which shows in your posture. Guided routines below.' },
   { id: 'joy', title: 'One thing from the joy menu (below)', points: 2, evidence: 'moderate',
     why: 'Real, lasting rewards (mastery, connection, nature, anticipation) instead of the cheap dopamine of scrolling.' },
   { id: 'nosip', title: 'Squash and diet drinks only with meals, water in between', points: 1, evidence: 'moderate',

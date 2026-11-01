@@ -204,6 +204,9 @@ export const actions = {
   addSession(date: string, session: Session) {
     setState((s) => ({ ...s, training: { ...s.training, [date]: [...(s.training[date] ?? []).filter((x) => x.id !== session.id), session] } }));
   },
+  setSessionSets(date: string, id: string, sets: Session['sets']) {
+    setState((s) => ({ ...s, training: { ...s.training, [date]: (s.training[date] ?? []).map((x) => (x.id === id ? { ...x, sets } : x)) } }));
+  },
   removeSession(date: string, id: string) {
     setState((s) => ({ ...s, training: { ...s.training, [date]: (s.training[date] ?? []).filter((x) => x.id !== id) } }));
   },
@@ -217,7 +220,7 @@ export const actions = {
       for (const { date, session } of items) {
         const day = training[date] ?? [];
         const old = day.find((x) => x.id === session.id) as (Session & { intensitySet?: boolean }) | undefined;
-        const merged = old?.intensitySet ? { ...session, intensity: old.intensity, intensitySet: true } : session;
+        const merged = { ...(old?.intensitySet ? { ...session, intensity: old.intensity, intensitySet: true } : session), ...(old?.sets ? { sets: old.sets } : {}) };
         training[date] = [...day.filter((x) => x.id !== session.id), merged];
       }
       return { ...s, training, stravaSyncedAt: at };

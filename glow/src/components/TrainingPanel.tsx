@@ -6,6 +6,7 @@ import { dayResult, weightOn } from '@/engine/game';
 import { stravaAvailable, syncStrava } from '@/strava';
 import { actions, useStore } from '@/store';
 import { Bar, Button, Card, Pill, Segmented } from './ui';
+import { KeepMuscleGuide, SetsEditor, WeeklySetsCard } from './Muscle';
 
 const KIND_LABEL: Record<SessionKind, string> = { run: 'Run', lift: 'Weights', walk: 'Walk', ride: 'Ride', other: 'Other' };
 const LEVEL_TONE = { fresh: 'neutral', balanced: 'good', pushing: 'warn', 'too-much': 'bad' } as const;
@@ -29,6 +30,7 @@ export function TrainingPanel() {
 
   return (
     <div className="space-y-4">
+      <WeeklySetsCard date={today} />
       <Card eyebrow="Training load" title={assessment.headline} action={<Pill tone={LEVEL_TONE[assessment.level]}>{assessment.level.replace('-', ' ')}</Pill>}>
         <div className="grid grid-cols-4 gap-2 text-center text-xs">
           <Stat v={assessment.week.runs} l="runs" />
@@ -61,7 +63,7 @@ export function TrainingPanel() {
               <div className="mb-1 text-xs font-semibold tracking-wide text-muted uppercase">{prettyDate(d)}</div>
               <ul className="space-y-1.5">
                 {(s.training[d] ?? []).map((x) => (
-                  <li key={x.id} className="flex items-center gap-2 rounded-xl bg-surface-2 p-2.5 text-sm">
+                  <li key={x.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 p-2.5 text-sm">
                     {x.kind === 'lift' ? <Dumbbell size={16} className="text-gold" /> : <Footprints size={16} className="text-sea" />}
                     <div className="min-w-0 flex-1">
                       <div className="truncate">{x.name}</div>
@@ -71,6 +73,7 @@ export function TrainingPanel() {
                       <option value="easy">easy</option><option value="moderate">moderate</option><option value="hard">hard</option>
                     </select>
                     <button aria-label="Remove session" className="p-1 text-muted hover:text-bad" onClick={() => actions.removeSession(d, x.id)}><Trash2 size={14} /></button>
+                    {x.kind === 'lift' && <div className="w-full pl-6"><SetsEditor date={d} session={x} /></div>}
                   </li>
                 ))}
               </ul>
@@ -80,6 +83,7 @@ export function TrainingPanel() {
         </div>
         <p className="mt-3 text-xs text-muted">Glow guesses intensity from the session name (“intervals”, “threshold”, “trial” = hard; “easy”, “zone 2” = easy). Correct it with the dropdown and a re-sync won’t overwrite your choice. Training calories feed your daily energy availability automatically.</p>
       </Card>
+      <KeepMuscleGuide />
     </div>
   );
 }

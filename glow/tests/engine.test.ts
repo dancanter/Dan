@@ -607,3 +607,21 @@ describe('study planner done', () => {
     expect(studyLoad(s, '2026-11-15').level).toBe('too-much');
   });
 });
+
+import { setsVerdict, weeklySets } from '@/engine/training';
+
+describe('sets per muscle', () => {
+  it('totals the last 7 days and judges them for a cut', () => {
+    const tr: Record<string, Session[]> = {
+      '2026-11-10': [{ id: 'a', source: 'manual', kind: 'lift', name: 'Upper', minutes: 60, intensity: 'moderate', sets: { chest: 6, shoulders: 6, triceps: 4 } }],
+      '2026-11-13': [{ id: 'b', source: 'manual', kind: 'lift', name: 'Upper 2', minutes: 60, intensity: 'moderate', sets: { chest: 5, shoulders: 6 } }],
+      '2026-11-01': [{ id: 'old', source: 'manual', kind: 'lift', name: 'Old', minutes: 60, intensity: 'moderate', sets: { chest: 20 } }],
+    };
+    const w = weeklySets(tr, '2026-11-14');
+    expect(w.chest).toBe(11);
+    expect(w.shoulders).toBe(12);
+    expect(setsVerdict('chest', 11).tone).toBe('good');
+    expect(setsVerdict('back', 0).tone).toBe('bad');
+    expect(setsVerdict('chest', 30).tone).toBe('bad');
+  });
+});

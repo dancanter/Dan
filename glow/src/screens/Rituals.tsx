@@ -4,6 +4,7 @@ import { FACE_GUIDE, JOY_MENU, RITUALS, SOURCES, STRAIGHT_ANSWERS } from '@/data
 import { actions, useStore } from '@/store';
 import { Button, Card, EvidencePill, Segmented } from '@/components/ui';
 import { BigDaySetup } from '@/components/LookGood';
+import { YogaCard } from '@/components/Yoga';
 
 const PATTERNS = {
   resonance: { label: 'Resonance 5.5', steps: [['Breathe in', 5.5], ['Breathe out', 5.5]] as [string, number][], about: 'About 5.5 breaths a minute, close to the rate that maximises heart-rate variability in most adults. Your everyday calm-down.' },
@@ -65,6 +66,8 @@ export function Rituals({ date }: { date: string }) {
       <BigDaySetup />
 
       <Breathing date={date} minutesToday={s.breathMinutes[date] ?? 0} />
+
+      <YogaCard date={date} />
 
       <Card eyebrow="Asked and answered" title="Straight answers">
         {STRAIGHT_ANSWERS.map((x) => (
