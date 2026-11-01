@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, fromDisplay, prettyDate, rolling, sleepHours, sleepScore, sortByDate, todayISO, toDisplay, weeklyRate } from '@/engine/body';
 import { actions, useStore } from '@/store';
+import { rhrAnalysis } from '@/engine/vitals';
 import { Bar, Button, Card, LineChart, Pill } from '@/components/ui';
 
 export function Body() {
@@ -75,6 +76,25 @@ export function Body() {
           <p className="mt-2 text-xs text-muted">Estimates only: maintenance uses Mifflin–St Jeor and your settings in Me (training energy {s.profile.exerciseKcal} kcal/day). Your real maintenance shows up after 2–3 weeks of logged intake against the weight trend.</p>
         </Card>
       )}
+
+      {(() => {
+        const vs = Object.entries(s.vitals ?? {}).sort(([a], [b]) => a.localeCompare(b));
+        const hr = vs.filter(([, v]) => v.rhr).slice(-42);
+        const st = vs.filter(([, v]) => v.steps !== undefined).slice(-30);
+        const lastHr = hr.at(-1);
+        const ana = lastHr ? rhrAnalysis(lastHr[0], s.vitals) : undefined;
+        const avgSteps = st.slice(-7).reduce((a, [, v]) => a + (v.steps ?? 0), 0) / Math.max(1, st.slice(-7).length);
+        return (
+          <Card title="Heart & steps" eyebrow={ana?.baseline ? `Resting HR baseline ${ana.baseline} bpm` : 'Log morning HR on Today'}>
+            <div className="mb-1 text-xs text-muted">Morning resting heart rate (gold line = your baseline)</div>
+            <LineChart points={hr.map(([d, v]) => ({ x: prettyDate(d), y: v.rhr! }))} unit=" bpm" target={ana?.baseline} colour="var(--bad)" />
+            <div className="mt-4 mb-1 text-xs text-muted">Daily steps, thousands (gold line = 10k)</div>
+            <LineChart points={st.map(([d, v]) => ({ x: prettyDate(d), y: (v.steps ?? 0) / 1000 }))} unit="k" target={10} colour="var(--sea)" />
+            {st.length > 0 && <p className="mt-2 text-xs text-ink-2">7-day average <b className="num">{Math.round(avgSteps).toLocaleString('en-GB')}</b> steps. {avgSteps > 16000 ? 'That’s above where extra health benefit stops. On a cut, consider 10–13k.' : avgSteps >= 8000 ? 'Right in the sweet spot.' : 'Some short post-meal walks would lift this into the sweet spot.'}</p>}
+            <p className="mt-2 text-xs text-muted">A resting HR that falls slowly over months while you feel good means fitness. A sudden rise means you’re not recovering. Read it with sleep and how you feel, never on its own.</p>
+          </Card>
+        );
+      })()}
 
       <Card title="Sleep" eyebrow={avgHours ? `7-night average ${avgHours.toFixed(1)} h · score ${avgScore}` : 'No nights logged yet'}>
         <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); actions.logSleep(sl); }}>

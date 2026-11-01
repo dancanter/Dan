@@ -3,12 +3,14 @@ import { addDays, ageOn, energyAvailability, sleepHours, sleepScore, sortByDate,
 import { analyseDay, targetsFor, type DayAnalysis } from './score';
 import { resolveItems, type State } from '@/store';
 import { PLANT_CATEGORIES } from '@/data/foods';
+import { vitalityScore } from './vitals';
 
 export interface DayResult {
   date: string;
   analysis: DayAnalysis;
   sleep?: ReturnType<typeof sleepScore>;
   ritualScore?: number;
+  vitality?: number;
   glow: number;
   hasData: boolean;
   weightKg?: number;
@@ -40,13 +42,15 @@ export function dayResult(s: State, date: string): DayResult {
   // Ten good points out of the full list counts as a perfect rituals day.
   const ritualScore = log?.rituals.length ? Math.min(100, Math.round((done / Math.min(totalPts, 10)) * 100)) : undefined;
 
+  const vitality = vitalityScore(date, s.vitals ?? {}, kg);
   const parts: [number, number][] = [];
-  if (items.length) parts.push([analysis.nutritionScore, 0.55]);
+  if (items.length) parts.push([analysis.nutritionScore, 0.45]);
   if (sleep) parts.push([sleep.score, 0.25]);
-  if (ritualScore !== undefined) parts.push([ritualScore, 0.2]);
+  if (ritualScore !== undefined) parts.push([ritualScore, 0.15]);
+  if (vitality !== undefined) parts.push([vitality, 0.15]);
   const w = parts.reduce((a, p) => a + p[1], 0);
   const glow = w ? Math.round(parts.reduce((a, p) => a + p[0] * p[1], 0) / w) : 0;
-  return { date, analysis, sleep, ritualScore, glow, hasData: parts.length > 0, weightKg: kg, ea };
+  return { date, analysis, sleep, ritualScore, vitality, glow, hasData: parts.length > 0, weightKg: kg, ea };
 }
 
 // ── Ranks ───────────────────────────────────────────────────────────────
@@ -72,7 +76,7 @@ export function rankFor(xp: number) {
 }
 
 export function allDates(s: State): string[] {
-  const set = new Set<string>([...Object.keys(s.days), ...s.sleeps.map((e) => e.date)]);
+  const set = new Set<string>([...Object.keys(s.days), ...s.sleeps.map((e) => e.date), ...Object.keys(s.vitals ?? {})]);
   return [...set].sort();
 }
 
@@ -108,6 +112,9 @@ export const QUESTS: Quest[] = [
   { id: 'breath10', title: '10 minutes of slow breathing', hint: 'Use the pacer in Rituals.', done: (r, s) => (s.breathMinutes[r.date] ?? 0) >= 10 },
   { id: 'cvit', title: '150 mg vitamin C for collagen', hint: 'A red pepper plus two kiwis.', done: (r) => r.analysis.totals.vitC >= 150 },
   { id: 'nitrate', title: 'Nitrate hit for your mitochondria', hint: 'Rocket, beetroot or spinach.', done: (r) => (r.analysis.tagServings.nitr ?? 0) >= 1 },
+  { id: 'steps', title: 'Land in the step sweet spot (8–14k)', hint: 'A 10-minute walk after each meal does most of it.', done: (r, s) => { const v = s.vitals?.[r.date]?.steps ?? 0; return v >= 8000 && v <= 14000; } },
+  { id: 'outside30', title: '30 minutes outside, some of it before 10am', hint: 'Morning daylight on your eyes sets tonight’s sleep.', done: (r, s) => (s.vitals?.[r.date]?.outdoorMin ?? 0) >= 30 },
+  { id: 'postmeal', title: 'Rainbow + walk: 5 plants and 10k steps', hint: 'Gut and glucose in one quest.', done: (r, s) => r.analysis.plants >= 5 && (s.vitals?.[r.date]?.steps ?? 0) >= 10000 },
   { id: 'sugar10', title: 'Under 10 g free sugar', hint: 'No juice, no honey, no sweets.', done: (r, s) => resolveItems(s.days[r.date], s).length >= 2 && r.analysis.freeSugar <= 10 },
 ];
 
@@ -170,6 +177,10 @@ export function badges(s: State): Badge[] {
     { id: 'zen', emoji: '🧘', title: 'Still water', how: '60 minutes of slow breathing in total', earned: breathTotal >= 60 },
     { id: 'clean', emoji: '🛡️', title: 'Clean week', how: '7 logged days with no ultra-processed food', earned: count((r) => r.analysis.wins.includes('Zero ultra-processed food')) >= 7 },
     { id: 'coverage', emoji: '🎯', title: 'Full spectrum', how: '100% average micronutrient coverage in a day', earned: results.some((r) => r.analysis.coverage >= 0.99) },
+    { id: 'sun', emoji: '🌤️', title: 'Sun chaser', how: '30+ minutes outdoors on 7 days', earned: Object.values(s.vitals ?? {}).filter((v) => (v.outdoorMin ?? 0) >= 30).length >= 7 },
+    { id: 'stepper', emoji: '👟', title: 'Sweet-spot strider', how: '8–14k steps on 10 days', earned: Object.values(s.vitals ?? {}).filter((v) => (v.steps ?? 0) >= 8000 && (v.steps ?? 0) <= 14000).length >= 10 },
+    { id: 'heart', emoji: '🫀', title: 'Know your heart', how: '14 morning heart rates logged', earned: Object.values(s.vitals ?? {}).filter((v) => v.rhr).length >= 14 },
+    { id: 'all4', emoji: '🌟', title: 'Full house', how: 'Food, sleep, rituals and vitals all logged in one day', earned: results.some((r) => r.analysis.totals.kcal > 0 && r.sleep && r.ritualScore !== undefined && r.vitality !== undefined) },
     { id: 'weigh', emoji: '⚖️', title: 'Data, not drama', how: '14 weigh-ins logged', earned: s.weights.length >= 14 },
   ];
 }

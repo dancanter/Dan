@@ -9,6 +9,9 @@ import { AddFood } from '@/components/AddFood';
 import { FoodDetail, MEALS } from '@/components/FoodDetail';
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
+import { VitalsCard } from '@/components/Vitals';
+import { Confetti } from '@/components/Confetti';
+import { coachLines, factFor } from '@/engine/coach';
 
 export function Today({ date, setDate }: { date: string; setDate: (d: string) => void }) {
   const s = useStore((x) => x);
@@ -25,6 +28,8 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
   const isToday = date === todayISO();
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const coach = coachLines(r, s.vitals ?? {}, { isToday, hour });
+  const celebrate = questDone ? `quest-${date}` : r.glow >= 80 ? `glow-${date}` : '';
 
   return (
     <div className="space-y-4">
@@ -47,6 +52,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
             <MiniScore label="Nutrition" value={items.length ? r.analysis.nutritionScore : undefined} />
             <MiniScore label="Sleep" value={r.sleep?.score} />
             <MiniScore label="Rituals" value={r.ritualScore} />
+            <MiniScore label="Vitality" value={r.vitality} />
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -65,7 +71,20 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </div>
       </div>
 
+      {coach.length > 0 && (
+        <Card eyebrow="Glow coach" title="Here’s your day">
+          <ul className="space-y-2.5">
+            {coach.map((c) => (
+              <li key={c.text} className={`rise flex gap-3 rounded-2xl p-3 text-sm leading-relaxed ${c.tone === 'good' ? 'bg-good-soft' : c.tone === 'alert' ? 'bg-bad-soft' : 'bg-gold-soft'}`}>
+                <span className="text-xl leading-none">{c.emoji}</span><span>{c.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <CheckIn date={date} />
+      <VitalsCard date={date} kg={r.weightKg} />
 
       {r.analysis.warnings.length > 0 && (
         <div className="space-y-2">
@@ -162,6 +181,12 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </>
       )}
 
+      <div className="card rise flex gap-3 p-4">
+        <span className="text-2xl">🧠</span>
+        <div><div className="text-[11px] font-semibold tracking-[0.14em] text-gold uppercase">Did you know?</div><p className="text-sm leading-relaxed">{factFor(date)}</p></div>
+      </div>
+
+      <Confetti fireKey={celebrate} />
       <AddFood open={adding} onClose={() => setAdding(false)} date={date} />
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail?.name}>
         {detail && <FoodDetail food={detail} date={date} />}

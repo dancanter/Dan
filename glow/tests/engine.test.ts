@@ -174,3 +174,38 @@ describe('absorption and coeliac', () => {
     expect(analyseDay([item('tamari', 15)], t, { glutenFree: true }).warnings.some((w) => w.text.includes('Contains gluten'))).toBe(false);
   });
 });
+
+import { parseVitals, rhrAnalysis, stepsVerdict, outdoorVerdict } from '@/engine/vitals';
+
+describe('vitals', () => {
+  it('parses a sentence about the day', () => {
+    expect(parseVitals('12k steps, 40 min outside, HR 48')).toEqual({ steps: 12000, outdoorMin: 40, rhr: 48 });
+    expect(parseVitals('walked 14,200 steps and 1.5 hours outdoors, 51 bpm')).toEqual({ steps: 14200, outdoorMin: 90, rhr: 51 });
+    expect(parseVitals('resting heart rate was 46')).toEqual({ rhr: 46 });
+  });
+
+  it('puts 8–14k in the sweet spot and flags 20k as too much on a cut', () => {
+    expect(stepsVerdict(11000).tone).toBe('good');
+    expect(stepsVerdict(3000).tone).toBe('bad');
+    expect(stepsVerdict(21000).tone).toBe('warn');
+    expect(stepsVerdict(21000).score).toBeLessThan(stepsVerdict(12000).score);
+  });
+
+  it('rewards outdoor time and mentions vitamin D season correctly', () => {
+    expect(outdoorVerdict(5, 11).detail).toContain('too low');
+    expect(outdoorVerdict(45, 6).detail).toContain('vitamin D');
+    expect(outdoorVerdict(45, 6).score).toBe(100);
+  });
+
+  it('compares morning HR to your own baseline', () => {
+    const all: Record<string, { rhr: number }> = {};
+    for (let d = 1; d <= 10; d++) all[`2026-11-${String(d).padStart(2, '0')}`] = { rhr: 48 };
+    all['2026-11-11'] = { rhr: 57 };
+    const a = rhrAnalysis('2026-11-11', all);
+    expect(a.baseline).toBe(48);
+    expect(a.delta).toBe(9);
+    expect(a.verdict.tone).toBe('bad');
+    all['2026-11-11'] = { rhr: 49 };
+    expect(rhrAnalysis('2026-11-11', all).verdict.tone).toBe('good');
+  });
+});

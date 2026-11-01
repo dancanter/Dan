@@ -3,6 +3,7 @@ import type { Food } from '@/data/foods';
 import { FOOD_BY_ID } from '@/data/foods';
 import { DEFAULT_PROFILE, type LoggedItem, type Meal, type Profile } from '@/engine/score';
 import type { SleepEntry, WeightEntry } from '@/engine/body';
+import type { Vitals } from '@/engine/vitals';
 
 // Everything lives in this browser's localStorage. Nothing is sent anywhere,
 // except food searches you choose to run against Open Food Facts.
@@ -30,12 +31,14 @@ export interface State {
   customFoods: Food[];
   favourites: string[];
   breathMinutes: Record<string, number>;
+  /** Steps, minutes outdoors and morning resting HR, by date. */
+  vitals: Record<string, Vitals>;
 }
 
 const KEY = 'glow-state-v1';
 
 function initial(): State {
-  return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {} };
+  return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {} };
 }
 
 function load(): State {
@@ -162,6 +165,13 @@ export const actions = {
   },
   saveCustomFood(f: Food) {
     setState((s) => ({ ...s, customFoods: [...s.customFoods.filter((x) => x.id !== f.id), f] }));
+  },
+  setVitals(date: string, v: Vitals) {
+    setState((s) => {
+      const merged = { ...s.vitals[date], ...v };
+      for (const k of Object.keys(merged) as (keyof Vitals)[]) if (merged[k] === undefined || Number.isNaN(merged[k])) delete merged[k];
+      return { ...s, vitals: { ...s.vitals, [date]: merged } };
+    });
   },
   addBreath(date: string, minutes: number) {
     setState((s) => ({ ...s, breathMinutes: { ...s.breathMinutes, [date]: (s.breathMinutes[date] ?? 0) + minutes } }));
