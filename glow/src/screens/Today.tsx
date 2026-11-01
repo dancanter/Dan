@@ -13,6 +13,7 @@ import { FoodDetail, MEALS } from '@/components/FoodDetail';
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
+import { MealRhythm } from '@/components/MealRhythm';
 import { describeQty } from '@/data/units';
 import { GAIN_LABEL, swapFor } from '@/data/swaps';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
@@ -183,6 +184,8 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
               </Card>
             );
           })()}
+
+          <MealRhythm items={items} kg={r.weightKg ?? 57} />
 
           <PuffCard date={date} sleepHours={r.sleep?.hours} />
 

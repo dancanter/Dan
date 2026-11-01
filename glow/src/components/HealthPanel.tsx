@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Activity, HeartPulse, TestTube } from 'lucide-react';
 import { addDays, ageOn, bmi, prettyDate, sleepHours, sortByDate, todayISO } from '@/engine/body';
-import { LAB_MARKERS, RACE_DISTANCES, bpCategory, fitnessAge, glowAge, vo2Band, vo2FromRaces } from '@/engine/health';
+import { LAB_MARKERS, POPULATION, RACE_DISTANCES, bpCategory, fitnessAge, glowAge, healthRank, vo2Band, vo2FromRaces } from '@/engine/health';
 import { allDates, dayResult } from '@/engine/game';
 import { actions, resolveItems, useStore } from '@/store';
 import { Button, Card, LineChart, Pill } from './ui';
@@ -25,7 +25,10 @@ export function HealthPanel() {
   }, [s, today]);
   const alcoholDays = Array.from({ length: 14 }, (_, i) => resolveItems(s.days[addDays(today, -i)], s).some((it) => it.food.tags.includes('alc'))).filter(Boolean).length;
   const kg = sortByDate(s.weights).at(-1)?.kg;
-  const ga = glowAge(age, { vo2, rhr, bp: lastBp, sleepAvg, nutritionAvg, bmi: kg ? bmi(kg, s.profile.heightCm) : undefined, alcoholDays: Object.keys(s.days).length >= 7 ? alcoholDays : undefined });
+  const ga = glowAge(age, { vo2, rhr, bp: lastBp, sleepAvg, nutritionAvg, bmi: kg ? bmi(kg, s.profile.heightCm) : undefined, alcoholDays: Object.keys(s.days).length >= 7 ? alcoholDays : undefined, dailySpf: s.profile.dailySpf });
+  const trainMin = Array.from({ length: 7 }, (_, i) => (s.training?.[addDays(today, -i)] ?? []).reduce((a, x) => a + x.minutes, 0)).reduce((a, b) => a + b, 0);
+  const bmiNow = kg ? bmi(kg, s.profile.heightCm) : undefined;
+  const rank = healthRank({ vo2, rhr, habits: { nonSmoker: true, activeEnough: trainMin >= 150 || !Object.keys(s.training ?? {}).length, dietGood: (nutritionAvg ?? 0) >= 60, leanHealthy: bmiNow === undefined || (bmiNow >= 18.5 && bmiNow < 25), sleepGood: (sleepAvg ?? 0) >= 7.5, lowAlcohol: alcoholDays <= 1, dailySpf: !!s.profile.dailySpf } });
 
   return (
     <div className="space-y-4">
@@ -40,6 +43,31 @@ export function HealthPanel() {
           ))}
         </ul>
         {ga.lines.length < 5 && <p className="mt-3 text-xs text-muted">Log blood pressure, morning heart rate, sleep and a week of food to fill in the rest.</p>}
+      </Card>
+
+      <Card eyebrow="Your health rank" title={rank.rarest !== undefined ? <span>Roughly the <span className="num font-serif text-3xl text-gold">top {rank.rarest < 1 ? rank.rarest.toFixed(1) : Math.round(rank.rarest)}%</span> of men your age</span> : 'Log a few markers to see your rank'}>
+        {rank.rarest !== undefined && (
+          <p className="mb-3 text-sm text-ink-2">That’s about <b>1 in {Math.round(100 / rank.rarest).toLocaleString('en-GB')}</b>: roughly {Math.round((POPULATION.ukMen20s * rank.rarest) / 100).toLocaleString('en-GB')} UK men in their 20s and {(Math.round((POPULATION.worldMen20s * rank.rarest) / 100 / 100_000) / 10).toLocaleString('en-GB')} million worldwide are as fit or fitter. Being rare on several markers at once is rarer still, so this is a floor, not a ceiling.</p>
+        )}
+        <ul className="space-y-2 text-sm">
+          {rank.lines.map((l) => (
+            <li key={l.label} className="flex items-baseline justify-between gap-3">
+              <span>{l.label}<span className="block text-xs text-muted">{l.note}</span></span>
+              <b className="num shrink-0 text-good">top {l.topPct < 1 ? l.topPct.toFixed(1) : Math.round(l.topPct)}%</b>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
+          <Pill tone={s.profile.dailySpf ? 'good' : 'neutral'}>{s.profile.dailySpf ? '✓' : '○'} Daily SPF50</Pill>
+          <Pill tone={(sleepAvg ?? 0) >= 7.5 ? 'good' : 'neutral'}>{(sleepAvg ?? 0) >= 7.5 ? '✓' : '○'} 7.5 h+ sleep</Pill>
+          <Pill tone={alcoholDays <= 1 ? 'good' : 'neutral'}>{alcoholDays <= 1 ? '✓' : '○'} Little or no alcohol</Pill>
+          <Pill tone={(nutritionAvg ?? 0) >= 60 ? 'good' : 'neutral'}>{(nutritionAvg ?? 0) >= 60 ? '✓' : '○'} Nutrition score 60+</Pill>
+        </div>
+        <details className="mt-3 text-xs text-ink-2">
+          <summary className="cursor-pointer text-sea">Could I be top 10,000 in the world?</summary>
+          <p className="mt-2 leading-relaxed">Honestly, no ranking can measure that. There’s no global database of everyone’s health, and “healthiest” mixes things that can’t be fairly combined. Top 10,000 out of 8 billion would be 0.0001%, a level held by Olympic endurance athletes with lab-tested VO2 maxes in the 80s. What the data <i>can</i> say: your fitness, resting heart rate and habits each put you in roughly the top few percent of men your age, and combining them makes you rarer still. Bloodwork, body composition and a lab VO2 test would sharpen this.</p>
+        </details>
+        <p className="mt-2 text-[11px] text-muted">Percentiles use approximate population curves for men in their 20s. Your Strava and logged data feed them, and they update as you log more.</p>
       </Card>
 
       <Card eyebrow="Engine" title={<span className="flex items-center gap-2"><Activity size={18} className="text-sea" />VO2 max</span>} action={vo2 ? <span className="num font-serif text-3xl">{vo2}</span> : undefined}>

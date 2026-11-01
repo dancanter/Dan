@@ -104,7 +104,7 @@ export interface AgeLine { label: string; years: number; why: string }
  * direction the evidence points. The amounts are deliberately simple and
  * capped, and every line is shown so you can see exactly how it's built.
  */
-export function glowAge(age: number, m: { vo2?: number; rhr?: number; bp?: BP; sleepAvg?: number; nutritionAvg?: number; bmi?: number; alcoholDays?: number }): { age: number; lines: AgeLine[] } {
+export function glowAge(age: number, m: { vo2?: number; rhr?: number; bp?: BP; sleepAvg?: number; nutritionAvg?: number; bmi?: number; alcoholDays?: number; dailySpf?: boolean }): { age: number; lines: AgeLine[] } {
   const lines: AgeLine[] = [];
   if (m.vo2 !== undefined) {
     const gap = Math.max(-6, Math.min(6, (fitnessAge(m.vo2) - age) / 3));
@@ -119,6 +119,44 @@ export function glowAge(age: number, m: { vo2?: number; rhr?: number; bp?: BP; s
   if (m.nutritionAvg !== undefined) lines.push({ label: `Nutrition score ${Math.round(m.nutritionAvg)}`, years: m.nutritionAvg >= 75 ? -1.5 : m.nutritionAvg >= 60 ? -0.5 : m.nutritionAvg < 45 ? 1 : 0, why: 'Diet quality is linked with slower epigenetic ageing in cohort studies.' });
   if (m.bmi !== undefined) lines.push({ label: `BMI ${m.bmi.toFixed(1)}`, years: m.bmi < 18.5 ? 1 : m.bmi < 25 ? -0.5 : m.bmi < 30 ? 1 : 2.5, why: 'Both under- and over-weight carry costs. Under 18.5 means lower bone density and hormones.' });
   if (m.alcoholDays !== undefined) lines.push({ label: `Alcohol on ${m.alcoholDays} of the last 14 days`, years: m.alcoholDays === 0 ? -0.5 : m.alcoholDays <= 2 ? 0 : m.alcoholDays <= 5 ? 1 : 2, why: 'Alcohol disrupts sleep and repair, and damages DNA directly.' });
+  if (m.dailySpf) lines.push({ label: 'SPF50 every day', years: -1, why: 'Daily broad-spectrum sunscreen stopped measurable skin ageing over 4.5 years in a randomised trial. It’s the single best-evidenced habit for how your face ages.' });
   const total = lines.reduce((a, l) => a + l.years, 0);
   return { age: Math.round((age + total) * 10) / 10, lines };
 }
+
+// ── How rare is your health? ─────────────────────────────────────────────
+// Rough population percentiles for men in their 20s. These are deliberately
+// approximate normal curves fitted to typical published norms; real data
+// varies by country and study. They're for perspective, not diagnosis.
+
+function normalCdf(z: number): number {
+  // Abramowitz–Stegun approximation
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp((-z * z) / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+}
+
+export interface RankLine { label: string; topPct: number; note: string }
+
+/** "Top X%" for one marker, given a typical mean and spread for men in their 20s. */
+const topPct = (value: number, mean: number, sd: number, higherIsBetter: boolean) => {
+  const z = (value - mean) / sd;
+  const better = higherIsBetter ? 1 - normalCdf(z) : normalCdf(z);
+  return Math.max(0.1, Math.round(better * 1000) / 10);
+};
+
+export function healthRank(m: { vo2?: number; rhr?: number; habits: { nonSmoker: boolean; activeEnough: boolean; dietGood: boolean; leanHealthy: boolean; sleepGood: boolean; lowAlcohol: boolean; dailySpf: boolean } }) {
+  const lines: RankLine[] = [];
+  if (m.vo2 !== undefined) lines.push({ label: `VO2 max ${m.vo2}`, topPct: topPct(m.vo2, 45, 7, true), note: 'Against men aged 20–29 (average about 45).' });
+  if (m.rhr !== undefined) lines.push({ label: `Resting heart rate ${m.rhr}`, topPct: topPct(m.rhr, 68, 10, false), note: 'Against young men in general (average about 65–70 bpm).' });
+  const h = m.habits;
+  const core = [h.nonSmoker, h.activeEnough, h.dietGood, h.leanHealthy].filter(Boolean).length;
+  if (core === 4) lines.push({ label: 'All 4 core healthy habits', topPct: 3, note: 'Not smoking, enough activity, a healthy diet and a healthy body-fat level: in a large US study only about 2.7% of adults met all four.' });
+  const extras = [h.sleepGood, h.lowAlcohol, h.dailySpf].filter(Boolean).length;
+  const rarest = lines.length ? Math.min(...lines.map((l) => l.topPct)) : undefined;
+  return { lines, rarest, core, extras };
+}
+
+/** Rough counts for perspective: UK and worldwide men aged 20–29. */
+export const POPULATION = { ukMen20s: 4_500_000, worldMen20s: 600_000_000 };

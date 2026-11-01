@@ -474,3 +474,22 @@ describe('swaps, sweeteners and stress', () => {
     for (const sid of SWEETENER_VERDICT.sources) expect(ids.has(sid)).toBe(true);
   });
 });
+
+import { healthRank } from '@/engine/health';
+
+describe('health rank', () => {
+  it('puts a VO2 max of 59 in roughly the top few percent', () => {
+    const r = healthRank({ vo2: 59, rhr: 48, habits: { nonSmoker: true, activeEnough: true, dietGood: true, leanHealthy: true, sleepGood: true, lowAlcohol: true, dailySpf: true } });
+    const vo2 = r.lines.find((l) => l.label.startsWith('VO2'))!;
+    expect(vo2.topPct).toBeGreaterThan(1);
+    expect(vo2.topPct).toBeLessThan(5);
+    expect(r.core).toBe(4);
+    expect(r.rarest).toBeLessThan(3);
+  });
+
+  it('daily SPF takes a year off Glow age', () => {
+    const without = glowAge(25, { vo2: 59 });
+    const withSpf = glowAge(25, { vo2: 59, dailySpf: true });
+    expect(withSpf.age).toBeCloseTo(without.age - 1, 5);
+  });
+});
