@@ -727,3 +727,31 @@ describe('recovery clock', () => {
     expect(recoveryStatus(s, '2026-11-10').systems.every((x) => x.readyInDays === 0)).toBe(true);
   });
 });
+
+import { dayPlan, fishToday } from '@/engine/dayplan';
+
+describe('today’s plan', () => {
+  const st = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+  it('builds an ordered day from the wake time with 8.5 h of sleep', () => {
+    const s = st();
+    s.sleeps = [{ date: '2026-11-02', bed: '23:00', wake: '07:00', quality: 4 }];
+    const p = dayPlan(s, '2026-11-02');
+    expect(p.season).toBe('autumn');
+    expect(p.items[0].time).toBe('07:00');
+    expect(p.items.at(-1)!.title).toBe('Lights out');
+    expect(p.items.at(-1)!.time).toBe('22:15');
+    expect(p.items.some((i) => i.title.startsWith('Daylight walk'))).toBe(true);
+  });
+  it('turns training into rest when the coach calls it, and walking in France', () => {
+    const s = st();
+    for (let d = 1; d <= 10; d++) s.vitals[`2026-11-${String(d).padStart(2, '0')}`] = { rhr: 48 };
+    s.vitals['2026-11-11'] = { rhr: 58 };
+    expect(dayPlan(s, '2026-11-11').items.some((i) => i.title === 'Full rest day')).toBe(true);
+    s.profile.season = defaultSeason('2026-11-02');
+    expect(dayPlan(s, '2026-12-04').items.some((i) => i.title === 'Explore on foot')).toBe(true);
+  });
+  it('schedules 4 oily-fish days a week in winter', () => {
+    const days = Array.from({ length: 7 }, (_, i) => addDays('2026-11-02', i)).filter(fishToday).length;
+    expect(days).toBe(4);
+  });
+});
