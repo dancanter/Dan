@@ -632,6 +632,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
+  <div id="raceCard"></div>
   <div id="decCard"></div>
   <div id="campCard"></div>
 </section>
@@ -9020,6 +9021,7 @@ function renderGoodLife(){
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
+  if(E('raceCard'))E('raceCard').innerHTML=raceCardHTML();
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
@@ -9206,6 +9208,34 @@ function missionHTML(){
   '</div>';
 }
 
+
+/* ===================== race readiness (Dan, 1 Nov) =====================
+   "More training and running focused, very professional — check whether I'm
+   on for my times." Per event: today's fitness from his own best-times
+   curve, the December projection, and an honest status. The projection is
+   an estimate: about 1.5–3% from fresh, fuelled trials after the cut,
+   adjusted for the weight still to lose. Measured bests and estimates are
+   labelled as such. */
+function raceReady(){
+  var R=records(),C=CFG.camp,t=today(),A=avgWindow(t,7),w=A.n?A.avg:null;
+  var wf=w!==null&&w>123.5?Math.min(0.02,(w-123.5)/w*0.6):0;
+  return C.pb.slice().sort(function(a,b){return a.dm-b.dm;}).map(function(x){
+    /* below 400 m the curve is extrapolated, so the measured best is the honest fitness */
+    var b=bestAt(x.dm,R[x.dm]).best,fit=x.dm<400&&b?b.t:fitnessEst(x.dm);if(!fit)return null;
+    var lo=fit*(1-0.03-wf),hi=fit*(1-0.015-wf/2),gap=(fit-x.goal)/x.goal;
+    var st=x.goal>=hi?['g','On for it']:(x.goal>=lo?['w','Stretch — needs a great day']:(gap<0.07?['','Close — all-time best is the target']:['','Spring camp target']));
+    return {dm:x.dm,best:b?b.t:null,fit:fit,lo:lo,hi:hi,goal:x.goal,gap:gap,st:st,on:x.on,at:C.allTime[x.dm]};}).filter(Boolean);
+}
+function raceCardHTML(){
+  var t=today();if(t<CFG.camp.start||t>CFG.camp.end)return '';
+  var RR=raceReady(),f=function(s){return s===null?'—':(s>=60?mmss(Math.round(s)):f1(s)+' s');};
+  return '<div class="p lift"><h2>🏁 Race readiness</h2>'+
+    '<p class="tiny" style="margin:0 0 8px">Fitness now is estimated from your own bests; December is my projection for fresh, fuelled trials after the cut. Both are estimates — the trials are the truth.</p>'+
+    '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Event</th><th class="n">Best 2026</th><th class="n">Fitness now</th><th class="n">December</th><th class="n">Goal</th><th>Status</th></tr></thead><tbody>'+
+    RR.map(function(x){return '<tr><td><b>'+repLabel(x.dm)+'</b><div class="tiny dim">'+fmtS(x.on)+'</div></td><td class="n">'+f(x.best)+'</td><td class="n">'+f(x.fit)+'</td><td class="n">'+f(x.lo)+'–'+f(x.hi)+'</td><td class="n"><b class="acc">'+campGoalTxt({goal:x.goal})+'</b></td><td><span class="pill '+x.st[0]+'">'+x.st[1]+'</span></td></tr>';}).join('')+
+    '</tbody></table></div>'+
+    '<p class="tiny" style="margin-top:8px"><b>What moves these:</b> the 600 m+ session builds the 800 m to 5 km; the speed session builds the 200 to 800; the Norwegian builds the engine under all of it. Every pound lost before the trials is roughly 0.4–0.6% off the 800 m to 5 km.</p></div>';
+}
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;

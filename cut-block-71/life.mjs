@@ -926,6 +926,12 @@ await ctx.close();
   await boot(st({ weights: w })); }
 ok('at 123 or under: 1,999 and hold — lose no more', await p.evaluate(() => dayTarget('2026-12-10') === 1999));
 await ctx.close();
+// race readiness (1 Nov): a professional table, honest below 400 m
+({ ctx, p, boot } = await at('2026-11-02'));
+await boot(st());
+const RRx = await p.evaluate(() => ({ h: raceCardHTML(), r: raceReady().map(x => [x.dm, Math.round(x.fit * 10) / 10, x.st[1]]) }));
+ok('race readiness lists every event with fitness, a December projection, goal and status', /Race readiness/.test(RRx.h) && RRx.r.length === 7 && RRx.r.every(x => x[1] > 0 && x[2]), JSON.stringify(RRx.r));
+await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
 await boot(st());
