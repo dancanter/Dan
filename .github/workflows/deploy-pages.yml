@@ -39,6 +39,14 @@ jobs:
           npm ci
           npm run build
       - run: cp -r good-life/dist dist/good-life
+      # Glow (glow/) is a third, separate app: cellular nutrition, sleep and
+      # rituals. Published at /glow/.
+      - name: Build Glow
+        working-directory: glow
+        run: |
+          npm ci
+          npm run build
+      - run: cp -r glow/dist dist/glow
       - uses: actions/configure-pages@v5
         with:
           enablement: true

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint --ignore-pattern 'good-life/**'",
+    "lint": "oxlint --ignore-pattern 'good-life/**' --ignore-pattern 'glow/**'",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
