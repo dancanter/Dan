@@ -563,3 +563,20 @@ describe('bloat-prone mode', () => {
     expect(a.effective.iron / a.totals.iron).toBeCloseTo(0.4, 2);
   });
 });
+
+import { studyLoad } from '@/engine/calls';
+
+describe('study load', () => {
+  const st = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+  it('is fine at OU pace and flags too much deep work', () => {
+    const s = st();
+    for (let i = 0; i < 7; i++) s.vitals[addDays('2026-11-15', -i)] = { studyHours: 3, deepHours: 2.5 };
+    expect(studyLoad(s, '2026-11-15').level).toBe('ok');
+    for (let i = 0; i < 4; i++) s.vitals[addDays('2026-11-15', -i)] = { studyHours: 6, deepHours: 5 };
+    const heavy = studyLoad(s, '2026-11-15');
+    expect(heavy.level).toBe('too-much');
+    expect(nextMoves(s, '2026-11-15').some((m) => m.text.startsWith('Too much deep work'))).toBe(true);
+    s.vitals['2026-11-15'] = { deepHours: 7 };
+    expect(studyLoad(s, '2026-11-15').reasons[0]).toContain('7 h');
+  });
+});

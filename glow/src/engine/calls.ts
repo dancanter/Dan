@@ -118,6 +118,9 @@ export function nextMoves(s: State, date: string): Move[] {
   if (!(s.bp ?? []).length) moves.push({ w: 3, impact: 'low', text: 'Take a blood pressure reading this week (Body → Health age). It completes your Glow age.' });
   if (logged.some((d) => resolveItems(s.days[d], s).some((i) => i.food.tags.includes('alc')))) moves.push({ w: 7, impact: 'high', text: 'Alcohol this week. Even small amounts cost deep sleep and show as puffiness. Skipping it until Christmas Eve is a quick win.' });
   if (r.analysis.totals.kcal > 0 && r.analysis.plants < 3) moves.push({ w: 3, impact: 'low', text: 'Add a colourful veg or berries to your next meal.' });
+  const study = studyLoad(s, date);
+  if (study.level === 'too-much') moves.push({ w: 9, impact: 'high', text: `Too much deep work: ${study.reasons[0]} Cap it at 3–4 focused hours a day in 60–90-minute blocks, then switch to light review or rest.` });
+  else if (study.level === 'heavy') moves.push({ w: 6, impact: 'medium', text: `Heavy study week: ${study.reasons[0]} Protect your 8 hours. Stop deep work 1–2 h before bed.` });
   return moves.sort((a, b) => b.w - a.w).slice(0, 3).map(({ text, impact }) => ({ text, impact }));
 }
 
@@ -136,4 +139,33 @@ export function studyVerdict(deepToday: number | undefined, weekDeep: number, we
   if (weekTotal >= 16 && weekTotal <= 22) return { headline: 'On the OU pace', tone: 'good', text: `${weekTotal} h this week, in line with the Open University’s 16–18 h for 60 credits.` };
   if (weekTotal > 25) return { headline: 'Heavy week', tone: 'warn', text: `${weekTotal} h this week. Above about 25 h on top of 7+ training sessions, recovery and sleep start to suffer. Make sure it isn’t coming out of your 8 hours.` };
   return { headline: 'Log today’s study', tone: 'sea', text: `${weekDeep} h of deep work this week. The OU plans about 16–18 h a week for your two modules, of which 2–4 focused hours a day is plenty.` };
+}
+
+// ── Is the study load too much? ──────────────────────────────────────────
+export interface StudyLoad { level: 'ok' | 'heavy' | 'too-much'; reasons: string[]; weekDeep: number; weekTotal: number }
+
+/**
+ * Looks across the week, not just today: focused work is limited to about
+ * 4 hours a day even in expert performers, the OU plans 16–18 hours a week
+ * for 60 credits, and study that eats into sleep undoes itself, because
+ * sleep is when memories are consolidated.
+ */
+export function studyLoad(s: State, date: string): StudyLoad {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(date, -i));
+  const deepOf = (d: string) => s.vitals?.[d]?.deepHours ?? s.vitals?.[d]?.studyHours ?? 0;
+  const totalOf = (d: string) => s.vitals?.[d]?.studyHours ?? s.vitals?.[d]?.deepHours ?? 0;
+  const weekDeep = Math.round(days.reduce((a, d) => a + deepOf(d), 0) * 10) / 10;
+  const weekTotal = Math.round(days.reduce((a, d) => a + totalOf(d), 0) * 10) / 10;
+  const reasons: string[] = [];
+  let level: StudyLoad['level'] = 'ok';
+  const today = deepOf(date) || deepOf(addDays(date, -1));
+  if (today > 6) { level = 'too-much'; reasons.push(`${today} h of deep work in a day is past what focus can sustain (about 4 h, even for experts). Retention drops after that.`); }
+  const longDays = days.slice(0, 4).filter((d) => deepOf(d) > 4).length;
+  if (longDays >= 3) { level = 'too-much'; reasons.push(`${longDays} of the last 4 days had over 4 h of deep work. That’s a pace for a deadline sprint, not a normal week.`); }
+  if (weekDeep > 24) { level = 'too-much'; reasons.push(`${weekDeep} h of deep work this week. Over about 20–24 h, on top of 7+ training sessions in a deficit, sleep, recovery and mood start to pay.`); }
+  else if (weekTotal > 25) { if (level === 'ok') level = 'heavy'; reasons.push(`${weekTotal} h of study this week, well above the OU’s 16–18 h guide for your two modules.`); }
+  const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -4) && e.date <= date).map(sleepHours);
+  const sleepAvg = sleeps.length ? sleeps.reduce((a, b) => a + b, 0) / sleeps.length : undefined;
+  if (sleepAvg !== undefined && sleepAvg < 7.5 && weekDeep >= 14) { if (level === 'ok') level = 'heavy'; reasons.push(`Sleep is averaging ${sleepAvg.toFixed(1)} h during a heavy study week. Late study costs more than it gains, because sleep is when learning is stored.`); }
+  return { level, reasons, weekDeep, weekTotal };
 }
