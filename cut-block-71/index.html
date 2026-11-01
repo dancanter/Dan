@@ -1070,9 +1070,21 @@ function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
    124.9 early, raise it to 1,899." From 2 Nov to the trip: 1,799 a day and
    1,999 on Saturday, and 1,899 (Saturday 1,999) once the 7-day average to
    the day before is 124.9 or under. Carbs stay over 200 g at 1,799. */
-var STRICT={from:'2026-11-02',to:'2026-12-02',raiseAt:124.9};
-function strictKcal(is){if(is<STRICT.from||is>STRICT.to)return null;if(dow(is)===6)return 1999;
-  var a=avgWindow(addD(is,-1),7);return (a.n>=3&&a.avg<=STRICT.raiseAt)?1899:1799;}
+/* Dan, 1 Nov, later: "after France I still want to continue it till Christmas,
+   then relax a bit and maintain." So the strict block runs to 24 Dec, with the
+   trip (3–5 Dec) free. The scale still decides: at 124.9 or under it is 1,899,
+   at 123 or under 1,999 (hold, lose no more), under 122 2,199 (stop). Trial
+   days and the day before are 1,999 — the trials are fuelled. From 25 Dec,
+   maintenance at about 2,199. */
+var STRICT={from:'2026-11-02',to:'2026-12-24',raiseAt:124.9,holdAt:123,floor:122,tripFrom:'2026-12-03',tripTo:'2026-12-05',maint:2199,xmas:'2026-12-25'};
+function strictKcal(is){if(is>=STRICT.xmas)return STRICT.maint;if(is<STRICT.from||is>STRICT.to)return null;if(is>=STRICT.tripFrom&&is<=STRICT.tripTo)return null;
+  var a=avgWindow(addD(is,-1),7),av=a.n>=3?a.avg:null;
+  if(av!==null&&av<STRICT.floor)return 2199;
+  var trial=(CFG.camp.pb||[]).some(function(x){return x.on===is||addD(x.on,-1)===is;});
+  if(trial||dow(is)===6)return 1999;
+  if(av!==null&&av<=STRICT.holdAt)return 1999;
+  return (av!==null&&av<=STRICT.raiseAt)?1899:1799;}
+function shredGoal(t){t=t||today();return t<STRICT.tripFrom?{d:STRICT.tripFrom,n:'France'}:{d:STRICT.xmas,n:'Christmas'};}
 function dayTarget(is){var sk=strictKcal(is);if(sk!==null)return sk;if(pushOn(is))return dow(is)===6?1999:1799;if(finishOn(is)){var rr=(S.days[is]||{}).runs||[];return rr.some(function(x){return !runMeta(x).empty;})?1899:1799;}return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
@@ -3970,7 +3982,7 @@ function glanceHTML(){
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
-    (decOn(t)?row('🎯','3 Dec optimisation · '+diffD(t,FINISH.trip)+' days',esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · 140 g protein · every gram logged'),'camp'):'')+
+    (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',(shredGoal(t).n==='France'?'3 Dec optimisation · ':'Shred to Christmas · ')+diffD(t,shredGoal(t).d)+' days',esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · 140 g protein · every gram logged'),'camp'):'')+
     (function(){var CC=calCall();return CC&&CC.k!=='push'&&CC.k!=='rev'?row(CC.e,'Calorie call',esc(CC.t.replace(/^Calories: /,'')),'food'):'';})()+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
@@ -9058,10 +9070,10 @@ function wireGoodLife(){
    the best look on 3 Dec — beside the camp, not instead of it. Shows every
    day from 1 Nov to the trip, with today's non-negotiables ticked from what
    he has logged, and the dates that decide the food. */
-function decOn(t){t=t||today();return t>='2026-11-01'&&t<FINISH.trip;}
+function decOn(t){t=t||today();return t>='2026-11-01'&&t<=STRICT.to&&!(t>=STRICT.tripFrom&&t<=STRICT.tripTo);}
 function decOptHTML(){
   var t=today();if(!decOn(t))return '';
-  var A=avgWindow(t,7),a=A.n?A.avg:null,left=diffD(t,FINISH.trip),wk=Math.max(0.5,left/7);
+  var SG=shredGoal(t),A=avgWindow(t,7),a=A.n?A.avg:null,left=diffD(t,SG.d),wk=Math.max(0.5,left/7);
   var need=a!==null?Math.max(0,(a-124)/wk):null,PS=pushState(t),r=S.days[t]||{},y=S.days[addD(t,-1)]||{};
   var kc=dayTarget(t),stepT=stepTarget(t);
   var sk=strictKcal(t),phase=sk===null?'Strict counting at 1,899 — the strict block starts '+fmtS(STRICT.from):(dow(t)===6?'Saturday — 1,999, the higher day':(sk===1899?'1,899 — your average is at 124.9 or under, so it goes up':'Strict — 1,799, every gram counted'))+(pushOn(t)?' · push steps 14.5k':'');
@@ -9075,9 +9087,9 @@ function decOptHTML(){
     tick(!!(r.skinAM&&r.skinPM),'Skin morning and night — SPF in the morning'),
     tick(!!r.teeth,'Teeth'),
     tick(!!r.gym||(r.runs||[]).length>0||dow(t)===6,dow(t)===6?'Saturday: stress-free — nothing to train':'Training as the green light says')];
-  return '<div class="p lift" id="decOpt"><h2>🎯 3 December optimisation</h2>'+
+  return '<div class="p lift" id="decOpt"><h2>'+(SG.n==='France'?'🎯 3 December optimisation':'🎄 Shred to Christmas')+'</h2>'+
     '<div class="tiles t3" style="margin:6px 0">'+
-      '<div class="t"><i>days to the trip</i><b class="num">'+left+'</b><span class="tiny">'+fmtS(FINISH.trip)+'</span></div>'+
+      '<div class="t"><i>days to '+SG.n+'</i><b class="num">'+left+'</b><span class="tiny">'+fmtS(SG.d)+'</span></div>'+
       '<div class="t"><i>7-day average</i><b class="num">'+(a!==null?f1(a):'—')+'</b><span class="tiny">target 122–124</span></div>'+
       '<div class="t"><i>pace needed to 124</i><b class="num">'+(need===null?'—':(need<=0?'there':f1(need)+' lb/wk'))+'</b><span class="tiny">'+(need!==null&&need>1.1?'more than the plan can do safely — 124 may land a week after':'on the 7-day average')+'</span></div></div>'+
     '<div class="note" style="margin:4px 0 8px"><b>Today’s food:</b> '+phase+'.</div>'+
@@ -9089,7 +9101,8 @@ function decOptHTML(){
     '<b>7 Nov · push check.</b> Any morning under 126.0 before then = no push. Otherwise 7–20 Nov: 14.5k steps, one 600 m+ hard run and the Norwegian.<br>'+
     '<b>1–2 Dec · sharpen, safely.</b> Nothing new to eat, carbs normal (they fill the muscle), salt and water exactly as usual, 9 h in bed, haircut, no alcohol. Never cut water or salt — it looks flat, not lean.<br>'+
     '<b>3–5 Dec · away.</b> Eat well and enjoy it — that is the refuel. Gluten-free, protein at each meal, walk lots.<br>'+
-    '<b>Back 6 Dec · the camp again.</b> The reverse goes on and the legs sharpen, then the trials just before Christmas: 5 km 13 Dec, 1 km 16 Dec, 400 18 Dec, mile 20 Dec, 800 22 Dec, 200 and 600 23 Dec.'+
+    '<b>Back 6 Dec · on to Christmas.</b> Same rules: 1,799 (Saturday 1,999), 1,899 at a 124.9 average, 1,999 at 123 — lose no more — and 2,199 under 122. Trial days and the day before are 1,999 so the trials are fuelled: 5 km 13 Dec, 1 km 16 Dec, 400 18 Dec, mile 20 Dec, 800 22 Dec, 200 and 600 23 Dec.<br>'+
+    '<b>From 25 Dec · relax and maintain.</b> About 2,199 a day — the scale says if it needs nudging. Enjoy Christmas.'+
     '</div></details>'+
     '<details style="margin-top:6px"><summary><b>🍽️ The menu — 1,799, fine dining</b></summary><div class="tiny" style="line-height:1.6;margin-top:6px">'+
     '<b>Your day from your own shop — about 1,810 kcal · 141 g protein · 201 g carbs · 45 g fat</b> (estimates from typical values — your diary has the exact numbers; weigh everything raw):<br>'+
@@ -9157,7 +9170,7 @@ function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
   var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
   /* trip countdown and shred meter */
-  var trip=typeof FINISH!=='undefined'?FINISH.trip:CFG.cutEnd,left=diffD(t,trip);
+  var SG=shredGoal(t),left=diffD(t,SG.d);
   var wm=weightModel(),start=wm.baseline!==null?wm.baseline:null;
   var A=avgWindow(t,7),now=A.n?A.avg:null;
   if(now===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length)now=S.weights[ks[ks.length-1]];}
@@ -9177,7 +9190,7 @@ function missionHTML(){
     '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
       (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
     '<div class="cc-hero">'+
-      '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>France</span></div>'+
+      '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
       '<div class="cc-shred"><div class="cc-gh"><b>Shred meter</b><span>'+(now!==null?f1(now)+' lb':'weigh in')+' → <b class="acc">122–124</b></span></div>'+
         '<div class="cc-bar big"><i style="width:'+Math.round(shredPct*100)+'%"></i></div>'+
         '<div class="cc-gs">'+(start!==null?'from '+f1(start)+' at the start of the cut · ':'')+Math.round(shredPct*100)+'% of the way · '+ci(kT)+' kcal today</div></div></div>'+

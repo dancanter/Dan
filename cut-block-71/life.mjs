@@ -900,7 +900,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st({ weights: { '2026-11-01': 127.0, '2026-11-02': 126.8 }, days: { '2026-11-02': { kcal: 1899, steps: 13500 } } }));
 let DO = await p.evaluate(() => ({ h: decOptHTML(), g: E('glanceCard').innerText, k: dayTarget(today()) }));
-ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to the trip/.test(DO.h) && /Strict — 1,799/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1799, DO.h.slice(0, 300));
+ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to France/.test(DO.h) && /Strict — 1,799/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1799, DO.h.slice(0, 300));
 ok('and Today has a row for it', /3 Dec optimisation · 31 days/i.test(DO.g), DO.g.slice(0, 400));
 await ctx.close();
 const fw = {}; for (let i = 0; i < 10; i++) { const d = new Date('2026-11-14T12:00:00'); d.setDate(d.getDate() + i); fw[d.toISOString().slice(0, 10)] = 125.0; }
@@ -913,6 +913,18 @@ await ctx.close();
 await boot(st({ weights: Object.fromEntries(Object.keys(fw).map(k => [k, 123.6])) }));
 ok('at 124.9 or under the 7-day average raises it to 1,899', await p.evaluate(() => dayTarget('2026-11-24') === 1899), JSON.stringify(await p.evaluate(() => [dayTarget('2026-11-24'), avgWindow('2026-11-23', 7), Object.keys(S.weights).length])));
 ok('the trials sit just before Christmas: 5 km 13, 1 km 16, 400 18, mile 20, 800 22, 200 and 600 23 Dec', await p.evaluate(() => { const o = {}; CFG.camp.pb.forEach(x => o[x.dm] = x.on); return o[5000] === '2026-12-13' && o[1000] === '2026-12-16' && o[400] === '2026-12-18' && o[1609] === '2026-12-20' && o[800] === '2026-12-22' && o[200] === '2026-12-23' && o[600] === '2026-12-23' && CFG.cutEnd === '2026-12-02' && campPhase('2026-12-10').k === 'refuel' && campPhase('2026-12-13').k === 'pb'; }));
+await ctx.close();
+// on to Christmas (1 Nov): strict to 24 Dec, the trip free, trials fuelled, maintenance from 25 Dec
+({ ctx, p, boot } = await at('2026-12-08'));
+{ const w = {}; for (let i = 0; i < 7; i++) { const d = new Date('2026-12-01T12:00:00'); d.setDate(d.getDate() + i); w[d.toISOString().slice(0, 10)] = 125.6; }
+  await boot(st({ weights: w })); }
+const XM = await p.evaluate(() => ({ trip: strictKcal('2026-12-04'), wk: dayTarget('2026-12-08'), sat: dayTarget('2026-12-12'), pre: dayTarget('2026-12-15'), trial: dayTarget('2026-12-16'), xmas: dayTarget('2026-12-25'), card: decOptHTML(), sg: shredGoal().n }));
+ok('after France: strict on to Christmas, trials and the day before fuelled at 1,999, maintenance from 25 Dec', XM.trip === null && XM.wk === 1799 && XM.sat === 1999 && XM.pre === 1999 && XM.trial === 1999 && XM.xmas === 2199 && XM.sg === 'Christmas' && /Shred to Christmas/.test(XM.card), JSON.stringify({ ...XM, card: XM.card.slice(0, 80) }));
+await ctx.close();
+({ ctx, p, boot } = await at('2026-12-10'));
+{ const w = {}; for (let i = 0; i < 7; i++) { const d = new Date('2026-12-03T12:00:00'); d.setDate(d.getDate() + i); w[d.toISOString().slice(0, 10)] = 122.8; }
+  await boot(st({ weights: w })); }
+ok('at 123 or under: 1,999 and hold — lose no more', await p.evaluate(() => dayTarget('2026-12-10') === 1999));
 await ctx.close();
 // the PB window keeps its trials
 ({ ctx, p, boot } = await at('2026-12-09'));
