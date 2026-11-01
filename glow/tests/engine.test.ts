@@ -664,3 +664,20 @@ describe('ease off, deload, feelings and films', () => {
     expect(new Set(FILMS.map((f) => f.id)).size).toBe(FILMS.length);
   });
 });
+
+import { FILMS as ALL_FILMS, seasonOf } from '@/data/films';
+
+describe('seasons and vitamin D', () => {
+  it('has 500+ films with seasons and maps months to seasons', () => {
+    expect(ALL_FILMS.length).toBeGreaterThan(500);
+    expect(seasonOf('2026-11-02')).toBe('autumn');
+    expect(seasonOf('2026-12-24')).toBe('winter');
+    expect(ALL_FILMS.filter((f) => f.seasons.includes('winter')).length).toBeGreaterThan(50);
+  });
+
+  it('nudges food vitamin D in winter months when intake is low', () => {
+    const s: State = { version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
+    for (let i = 1; i <= 5; i++) s.days[addDays('2026-11-20', -i)] = { rituals: [], items: [{ uid: `e${i}`, foodId: 'eggs', grams: 120, meal: 'breakfast' }, { uid: `c${i}`, foodId: 'chicken-breast', grams: 170, meal: 'lunch' }, { uid: `p${i}`, foodId: 'potato', grams: 250, meal: 'dinner' }] };
+    expect(nextMoves(s, '2026-11-20').some((m) => m.text.startsWith('Vitamin D from food'))).toBe(true);
+  });
+});

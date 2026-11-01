@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Clapperboard, Dices } from 'lucide-react';
-import { FILMS, MOOD_LABEL, letterboxdUrl, type Mood } from '@/data/films';
+import { FILMS, MOOD_LABEL, SEASON_LABEL, letterboxdUrl, seasonOf, type Mood, type Season } from '@/data/films';
+import { todayISO } from '@/engine/body';
 import { actions, useStore } from '@/store';
 import { Button, Card, Pill } from './ui';
 
@@ -10,14 +11,22 @@ const NO_FILMS = { seen: [] as string[], watchlist: [] as string[] };
 export function MovieNight() {
   const films = useStore((s) => s.films ?? NO_FILMS);
   const [mood, setMood] = useState<Mood | 'all' | 'watchlist'>('all');
+  const [season, setSeason] = useState<Season | 'all'>(seasonOf(todayISO()));
   const [pick, setPick] = useState<string | null>(null);
   const [showSeen, setShowSeen] = useState(false);
-  const list = useMemo(() => FILMS.filter((f) => (mood === 'all' ? true : mood === 'watchlist' ? films.watchlist.includes(f.id) : f.moods.includes(mood))).filter((f) => showSeen || !films.seen.includes(f.id)), [mood, films, showSeen]);
+  const list = useMemo(() => FILMS.filter((f) => season === 'all' || mood === 'watchlist' || f.seasons.includes(season)).filter((f) => (mood === 'all' ? true : mood === 'watchlist' ? films.watchlist.includes(f.id) : f.moods.includes(mood))).filter((f) => showSeen || !films.seen.includes(f.id)), [mood, season, films, showSeen]);
   const unseen = list.filter((f) => !films.seen.includes(f.id));
   const picked = FILMS.find((f) => f.id === pick);
   return (
     <Card eyebrow="Joy menu" title={<span className="flex items-center gap-2"><Clapperboard size={18} className="text-gold" />Movie night</span>} action={<span className="text-xs text-muted">{films.seen.length} seen</span>}>
-      <p className="mb-3 text-sm text-ink-2">{FILMS.length} acclaimed films, the kind that keep topping Letterboxd lists. Tick off what you’ve seen and Glow only suggests the rest. Tap a title for its current Letterboxd rating.</p>
+      <p className="mb-3 text-sm text-ink-2">{FILMS.length} acclaimed films, the kind that keep topping Letterboxd lists, sorted by the season they suit best (cosy winter nights, summer Riviera, autumn thrillers). Tick off what you’ve seen and Glow only suggests the rest. Tap a title for its current Letterboxd rating.</p>
+      <div className="-mx-1 mb-2 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {(['winter', 'spring', 'summer', 'autumn', 'all'] as (Season | 'all')[]).map((x) => (
+          <button key={x} onClick={() => { setSeason(x); setPick(null); }} className={`shrink-0 rounded-full px-3 py-1 text-xs ${season === x ? 'bg-gold text-white' : 'bg-gold-soft text-ink-2'}`}>
+            {x === 'all' ? 'Any season' : `${{ winter: '❄️', spring: '🌸', summer: '☀️', autumn: '🍂' }[x]} ${SEASON_LABEL[x]}`}
+          </button>
+        ))}
+      </div>
       <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {(['all', 'watchlist', ...Object.keys(MOOD_LABEL)] as (Mood | 'all' | 'watchlist')[]).map((m) => (
           <button key={m} onClick={() => { setMood(m); setPick(null); }} className={`shrink-0 rounded-full px-3 py-1 text-xs ${mood === m ? 'bg-navy text-navy-ink' : 'bg-surface-2 text-ink-2'}`}>

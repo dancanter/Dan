@@ -203,7 +203,7 @@ export const PILLARS: Pillar[] = [
       { kind: 'special', key: 'sleep', w: 2 },
     ],
     penalties: [{ tag: 'alc', points: 10 }],
-    topTip: 'Eat enough, sleep 8+ hours, oysters or red meat for zinc, and take vitamin D from October to March.',
+    topTip: 'Eat enough, sleep 8+ hours, oysters or red meat for zinc, and oily fish 3–4 times a week for vitamin D from October to March.',
   },
   {
     id: 'skin', name: 'Skin, collagen & glow', emoji: '✨',
@@ -373,7 +373,7 @@ export const RITUALS: Ritual[] = [
 
 // ── Boosters (non-training extras worth knowing) ────────────────────────
 export const BOOSTERS: { title: string; text: string; evidence: Evidence }[] = [
-  { title: 'Vitamin D, October to March', evidence: 'strong', text: 'The NHS advises 10 µg (400 IU) a day for everyone in the UK in autumn and winter, because the sun is too low for your skin to make it. This is the one supplement to start this week. It’s cheap, and a blood test can tell you if you need more.' },
+  { title: 'Vitamin D, October to March', evidence: 'strong', text: 'The NHS advises 10 µg (400 IU) a day for everyone in the UK in autumn and winter, because the sun is too low to make it. You don’t tolerate supplements, so get it from food: mackerel or trout twice a week plus wild salmon twice covers it, with eggs and UV mushrooms on top (full plan in Cellular → Seasons). A January blood test will confirm it’s working.' },
   { title: 'A blood panel once a year', evidence: 'strong', text: 'With coeliac disease, NICE recommends an annual review anyway. Ask for ferritin (iron stores, often low in runners and coeliacs), folate, vitamin D, B12, full blood count, the coeliac antibody test (tTG-IgA), lipids, HbA1c, thyroid (TSH) and, if your energy or libido dips during the cut, testosterone. Ask your GP, or use a reputable private lab. Measure, don’t guess.' },
   { title: 'Creatine monohydrate, 3–5 g a day', evidence: 'strong', text: 'The best-evidenced sports supplement for strength, sprint performance and lean mass, with emerging evidence for brain function when sleep-deprived. Optional: you already get 1–2 g a day from meat and fish.' },
   { title: 'Sleep regularity over sleep hacks', evidence: 'strong', text: 'Waking at the same time every day (within 30 minutes, weekends included) is linked with lower mortality and better metabolic health, independent of duration. It beats every gadget.' },

@@ -48,7 +48,7 @@ export function outdoorVerdict(min: number, month = new Date().getMonth() + 1): 
   const vitD = month >= 4 && month <= 9;
   const dNote = vitD
     ? ' April to September, 10–20 minutes of midday sun on your arms (SPF on your face) lets your skin make vitamin D.'
-    : ' October to March the UK sun is too low to make vitamin D, so take 10 µg, but the daylight still sets your body clock.';
+    : ' October to March the UK sun is too low to make vitamin D, so get it from oily fish 3–4 times a week (Cellular → Seasons), but the daylight still sets your body clock.';
   if (min < 10) return { score: 20, tone: 'bad', headline: 'Barely saw the sky', detail: `Even overcast UK daylight is roughly 10–50 times brighter than indoor light. Ten minutes outside before 10am anchors your body clock: earlier sleepiness tonight, a better cortisol rhythm tomorrow.${dNote}` };
   if (min < 30) return { score: 65, tone: 'ok', headline: 'A taste of daylight', detail: `Good start. Make one block of it the morning for the biggest body-clock effect.${dNote}` };
   if (min < 120) return { score: 100, tone: 'good', headline: 'Sun-fed', detail: `Daylight, fresh air and a mood lift. Two hours a week in green space or by water is the threshold linked with better health.${dNote}` };

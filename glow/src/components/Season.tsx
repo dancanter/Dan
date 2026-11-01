@@ -176,7 +176,7 @@ export function TravelGuide({ date }: { date: string }) {
         </div>
         <div>
           <div className="mb-1 font-medium">Pack</div>
-          <p className="text-ink-2">Gluten-free oatcakes, nuts, a couple of protein bars you know you tolerate, and your vitamin D. French pharmacies and Monoprix/Carrefour stock “sans gluten” bread and crackers.</p>
+          <p className="text-ink-2">Gluten-free oatcakes, nuts, a couple of protein bars you know you tolerate, and a tin or two of mackerel or sardines (vitamin D and protein on the go). French pharmacies and Monoprix/Carrefour stock “sans gluten” bread and crackers.</p>
         </div>
         <ul className="space-y-1 text-ink-2">{PHASE_GUIDE.travel.points.map((p) => <li key={p}>• {p}</li>)}</ul>
       </div>

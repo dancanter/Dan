@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
 import { FOODS, type Food } from '@/data/foods';
+import { SEASON_GUIDE, VITD_NO_SUPPLEMENT } from '@/data/seasons';
+import { seasonOf } from '@/data/films';
 import { BLOATING_GUIDE, STRAIGHT_FACTS, STRESS_TOPICS, SWEETENER_VERDICT, ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
 import { NUTRIENTS } from '@/data/nutrients';
 import { dayResult } from '@/engine/game';
+import { addDays } from '@/engine/body';
 import { DEFAULT_PROFILE, scaleNutrients, targetsFor } from '@/engine/score';
 import { useStore } from '@/store';
 import { Bar, Card, EvidencePill, Pill, Segmented, scoreColour } from '@/components/ui';
 
-type Tab = 'pillars' | 'stress' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
+type Tab = 'pillars' | 'seasons' | 'stress' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
 
 /** The foods that move a pillar most per normal portion, ignoring anything it penalises. */
 export function bestFoodsFor(p: Pillar, n = 6): Food[] {
@@ -46,6 +49,7 @@ export function Cellular({ date }: { date: string }) {
       <div className="-mx-1 overflow-x-auto px-1">
         <Segmented value={tab} onChange={setTab} options={[
           { value: 'pillars', label: '8 pillars' },
+          { value: 'seasons', label: 'Seasons' },
           { value: 'stress', label: 'Stress & AGEs' },
           { value: 'cut', label: 'Cut out' },
           { value: 'coeliac', label: 'Coeliac' },
@@ -83,6 +87,37 @@ export function Cellular({ date }: { date: string }) {
           })}
         </>
       )}
+
+      {tab === 'seasons' && (() => {
+        const now = seasonOf(date);
+        const order = ['winter', 'spring', 'summer', 'autumn'] as const;
+        const week = Array.from({ length: 7 }, (_, i) => dayResult(s, addDays(date, -i))).filter((d) => d.analysis.totals.kcal > 0);
+        const vitD = week.length ? week.reduce((a, d) => a + d.analysis.totals.vitD, 0) / week.length : undefined;
+        return (
+          <>
+            <Card eyebrow="Your vitamin D" title={VITD_NO_SUPPLEMENT.title} action={vitD !== undefined ? <span className="num font-serif text-2xl" style={{ color: vitD >= 10 ? 'var(--good)' : 'var(--warn)' }}>{vitD.toFixed(1)} µg</span> : undefined}>
+              <p className="text-sm leading-relaxed text-ink-2">{VITD_NO_SUPPLEMENT.intro}</p>
+              {vitD !== undefined && <p className="mt-2 text-sm">Your 7-day average from food: <b className="num">{vitD.toFixed(1)} µg/day</b> {vitD >= 10 ? '✓ on target.' : '(target 10). Add oily fish.'}</p>}
+              <ul className="mt-3 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">{VITD_NO_SUPPLEMENT.foods.map(([f, v]) => <li key={f} className="flex justify-between rounded-lg bg-surface-2 px-2.5 py-1.5"><span>{f}</span><b className="num">{v}</b></li>)}</ul>
+              <p className="mt-3 rounded-xl bg-gold-soft p-3 text-sm"><b>Your plan:</b> {VITD_NO_SUPPLEMENT.plan}</p>
+              <p className="mt-2 text-xs leading-relaxed text-ink-2">{VITD_NO_SUPPLEMENT.sideEffects}</p>
+            </Card>
+            {[now, ...order.filter((x) => x !== now)].map((k) => {
+              const g = SEASON_GUIDE[k];
+              return (
+                <Card key={k} eyebrow={k === now ? 'Right now' : 'Coming up'} title={g.title}>
+                  <p className="text-sm leading-relaxed"><b>In season:</b> {g.produce}</p>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                    <div><div className="text-xs font-semibold text-gold uppercase">Eat</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.eat.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                    <div><div className="text-xs font-semibold text-gold uppercase">Do</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.do.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                    <div><div className="text-xs font-semibold text-gold uppercase">Watch</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.watch.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                  </div>
+                </Card>
+              );
+            })}
+          </>
+        );
+      })()}
 
       {tab === 'stress' && (
         <>

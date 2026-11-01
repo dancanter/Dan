@@ -118,6 +118,11 @@ export function nextMoves(s: State, date: string): Move[] {
   if (!(s.bp ?? []).length) moves.push({ w: 3, impact: 'low', text: 'Take a blood pressure reading this week (Body → Health age). It completes your Glow age.' });
   if (logged.some((d) => resolveItems(s.days[d], s).some((i) => i.food.tags.includes('alc')))) moves.push({ w: 7, impact: 'high', text: 'Alcohol this week. Even small amounts cost deep sleep and show as puffiness. Skipping it until Christmas Eve is a quick win.' });
   if (r.analysis.totals.kcal > 0 && r.analysis.plants < 3) moves.push({ w: 3, impact: 'low', text: 'Add a colourful veg or berries to your next meal.' });
+  const month = Number(date.slice(5, 7));
+  if ((month >= 10 || month <= 3) && logged.length >= 4) {
+    const vitD = logged.reduce((a, d) => a + dayResult(s, d).analysis.totals.vitD, 0) / logged.length;
+    if (vitD < 10) moves.push({ w: 7, impact: 'high', text: `Vitamin D from food is averaging ${vitD.toFixed(1)} µg a day (target 10, and the sun can’t make it until April). Mackerel or trout twice and wild salmon twice this week covers it. See Cellular → Seasons.` });
+  }
   const study = studyLoad(s, date);
   if (study.level === 'too-much') moves.push({ w: 9, impact: 'high', text: `Too much deep work: ${study.reasons[0]} Cap it at 3–4 focused hours a day in 60–90-minute blocks, then switch to light review or rest.` });
   else if (study.level === 'too-little') moves.push({ w: 8, impact: 'high', text: `Not enough deep study: ${study.reasons[0]} Book two 90-minute focus blocks tomorrow, phone in another room.` });
