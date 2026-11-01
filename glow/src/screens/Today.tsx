@@ -14,6 +14,7 @@ import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/comp
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
 import { MealRhythm } from '@/components/MealRhythm';
+import { CoachCalls, NextMoves, StudyCard } from '@/components/Calls';
 import { describeQty } from '@/data/units';
 import { GAIN_LABEL, swapFor } from '@/data/swaps';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
@@ -100,8 +101,12 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </Card>
       )}
 
+      <CoachCalls date={date} />
+      <NextMoves date={date} />
+
       <CheckIn date={date} />
       <VitalsCard date={date} kg={r.weightKg} />
+      <StudyCard date={date} />
 
       {r.analysis.warnings.length > 0 && (
         <div className="space-y-2">

@@ -366,9 +366,9 @@ describe('counting items', () => {
   });
 
   it('finds Kallo lentil cakes and counts them', () => {
-    const [cakes, rice] = parseEntry('3 kallo lentil cakes, 2 kallo rice cakes', ALL_FOODS);
+    const [cakes, rice] = parseEntry('3 kallo lentil rice cakes, 2 rice cakes', ALL_FOODS);
     expect(cakes.food?.id).toBe('uk-kallo-lentil');
-    expect(cakes.grams).toBe(27);
+    expect(cakes.grams).toBe(15.9);
     expect(rice.food?.id).toBe('rice-cakes');
     expect(rice.grams).toBe(16);
   });
@@ -491,5 +491,57 @@ describe('health rank', () => {
     const without = glowAge(25, { vo2: 59 });
     const withSpf = glowAge(25, { vo2: 59, dailySpf: true });
     expect(withSpf.age).toBeCloseTo(without.age - 1, 5);
+  });
+});
+
+import { cleanWeights, nextMoves, noisyDates, refeedCall, restCall, studyVerdict } from '@/engine/calls';
+import type { State } from '@/store';
+
+describe('coach calls', () => {
+  const base = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+
+  it('treats the two mornings after a refeed as noise', () => {
+    const s = base();
+    s.days['2026-11-01'] = { items: [], rituals: [], refeed: true };
+    s.weights = [{ date: '2026-11-01', kg: 57.4 }, { date: '2026-11-02', kg: 58.3 }, { date: '2026-11-03', kg: 58.0 }, { date: '2026-11-04', kg: 57.3 }];
+    expect([...noisyDates(s)].sort()).toEqual(['2026-11-02', '2026-11-03']);
+    expect(cleanWeights(s).map((w) => w.date)).toEqual(['2026-11-01', '2026-11-04']);
+  });
+
+  it('calls a refeed after 12+ days of cutting, and not outside a cut', () => {
+    const s = base();
+    s.profile.season = defaultSeason('2026-11-02');
+    expect(refeedCall(s, '2026-11-08').kind).toBe('none');
+    expect(refeedCall(s, '2026-11-15').kind).toBe('refeed');
+    s.days['2026-11-14'] = { items: [], rituals: [], refeed: true };
+    expect(refeedCall(s, '2026-11-15').kind).toBe('none');
+    expect(refeedCall(s, '2026-12-04').kind).toBe('none'); // France
+  });
+
+  it('calls a rest day when morning HR jumps 8+', () => {
+    const s = base();
+    for (let d = 1; d <= 10; d++) s.vitals[`2026-11-${String(d).padStart(2, '0')}`] = { rhr: 48 };
+    s.vitals['2026-11-11'] = { rhr: 57 };
+    expect(restCall(s, '2026-11-11', 57).kind).toBe('rest');
+    s.vitals['2026-11-11'] = { rhr: 49 };
+    expect(restCall(s, '2026-11-11', 57).kind).toBe('none');
+  });
+
+  it('judges deep work sensibly and ranks next moves', () => {
+    expect(studyVerdict(3, 15, 17).tone).toBe('good');
+    expect(studyVerdict(7, 30, 32).tone).toBe('warn');
+    const moves = nextMoves(base(), '2026-11-02');
+    expect(moves.length).toBeGreaterThan(0);
+    expect(moves.length).toBeLessThanOrEqual(3);
+    expect(moves[0].text).toContain('season plan');
+  });
+
+  it('has Fage, Clarence Court eggs and 20 kcal Kallo cakes', () => {
+    expect(searchFoods('fage 0%', ALL_FOODS, 1)[0].id).toBe('uk-fage-0');
+    expect(searchFoods('clarence eggs', ALL_FOODS, 1)[0].id).toBe('uk-clarence-eggs');
+    const [kallo] = parseEntry('1 kallo lentil cake', ALL_FOODS);
+    expect(Math.round((kallo.food!.n.kcal * kallo.grams!) / 100)).toBe(20);
+    const [cc] = parseEntry('3 large clarence eggs', ALL_FOODS);
+    expect(cc.grams).toBe(180);
   });
 });

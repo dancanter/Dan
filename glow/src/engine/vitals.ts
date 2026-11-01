@@ -8,6 +8,9 @@ export interface Vitals {
   outdoorMin?: number;
   /** Morning resting heart rate, bpm: on waking, lying down, before getting up. */
   rhr?: number;
+  /** Study hours today, and how many of them were deep, focused work. */
+  studyHours?: number;
+  deepHours?: number;
 }
 
 export type Tone = 'good' | 'ok' | 'warn' | 'bad';

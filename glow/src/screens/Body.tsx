@@ -4,6 +4,7 @@ import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, from
 import { actions, useStore } from '@/store';
 import { rhrAnalysis } from '@/engine/vitals';
 import { SeasonCard, TravelGuide } from '@/components/Season';
+import { cleanWeights, noisyDates } from '@/engine/calls';
 import { Bar, Button, Card, LineChart, Pill, Segmented } from '@/components/ui';
 import { TrainingPanel } from '@/components/TrainingPanel';
 import { HealthPanel } from '@/components/HealthPanel';
@@ -12,7 +13,10 @@ export function Body() {
   const [tab, setTab] = useState<'weight' | 'training' | 'health'>(() => (location.hash === '#training' ? 'training' : 'weight'));
   const s = useStore((x) => x);
   const unit = s.profile.unit;
-  const weights = sortByDate(s.weights);
+  const allWeights = sortByDate(s.weights);
+  const noisy = noisyDates(s);
+  // Trends ignore the water-heavy mornings after a refeed; the history still shows them.
+  const weights = cleanWeights(s);
   const roll = rolling(weights);
   const latest = roll[roll.length - 1];
   const rate = weeklyRate(weights);
@@ -142,8 +146,8 @@ export function Body() {
       <Card title="History">
         <div className="grid gap-4 sm:grid-cols-2">
           <ul className="space-y-1 text-sm">
-            {[...weights].reverse().slice(0, 30).map((x) => (
-              <li key={x.date} className="flex items-center justify-between"><span className="text-ink-2">{prettyDate(x.date)}</span><span className="num">{d(x.kg)} {unit}<button aria-label="Delete weight" className="ml-2 text-muted hover:text-bad" onClick={() => actions.removeWeight(x.date)}><Trash2 size={13} /></button></span></li>
+            {[...allWeights].reverse().slice(0, 30).map((x) => (
+              <li key={x.date} className="flex items-center justify-between"><span className="text-ink-2">{prettyDate(x.date)}</span><span className="num">{noisy.has(x.date) && <span className="mr-1 text-[10px] text-gold">refeed water</span>}{d(x.kg)} {unit}<button aria-label="Delete weight" className="ml-2 text-muted hover:text-bad" onClick={() => actions.removeWeight(x.date)}><Trash2 size={13} /></button></span></li>
             ))}
             {!weights.length && <li className="text-muted">No weigh-ins.</li>}
           </ul>

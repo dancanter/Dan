@@ -49,7 +49,7 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
   const [count, setCount] = useState(() => { const u = defaultUnit(food); return u ? Math.max(1, Math.round(food.portion.g / u.g)) : 1; });
   const counting = mode === 'count' && !!unit;
   const yld = counting ? undefined : cookingYield(food);
-  const rawGrams = counting ? Math.round(unit!.g * count) : weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
+  const rawGrams = counting ? (unit!.g * count < 20 ? Math.round(unit!.g * count * 10) / 10 : Math.round(unit!.g * count)) : weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
   const puff = foodPuff(food, rawGrams);
   const fav = s.favourites.includes(food.id);
   const factors = bioFactors(food);

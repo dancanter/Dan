@@ -60,7 +60,12 @@ export const UNITS: Record<string, Unit[]> = {
   'white-bread': one('slice', 'slices', 40),
   'gf-bread': one('slice', 'slices', 35),
   'rice-cakes': one('rice cake', 'rice cakes', 8),
-  'uk-kallo-lentil': one('lentil cake', 'lentil cakes', 9),
+  // 20 kcal per cake at about 380 kcal per 100 g.
+  'uk-kallo-lentil': one('lentil cake', 'lentil cakes', 5.3),
+  'uk-clarence-eggs': EGG_SIZES,
+  'uk-fage-0': one('pot (170 g)', 'pots', 170),
+  'uk-fage-2': one('pot (170 g)', 'pots', 170),
+  'uk-fage-5': one('pot (170 g)', 'pots', 170),
   'uk-oatcakes-gf': one('oatcake', 'oatcakes', 10),
   'uk-oatcakes': one('oatcake', 'oatcakes', 10),
   'uk-crumpet': one('crumpet', 'crumpets', 55),

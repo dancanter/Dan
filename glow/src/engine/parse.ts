@@ -154,5 +154,7 @@ function parseChunk(chunk: string, foods: Food[]): ParsedItem {
   if (food && grams !== undefined && cooked && cookingYield(food) && g) {
     return { text: chunk, food, grams: cookedToRaw(food, grams), cookedGrams: Math.round(grams) };
   }
-  return { text: chunk, food, grams: grams !== undefined ? Math.round(grams) : undefined, qty };
+  // Keep a decimal for small items (a 5.3 g cake), whole grams otherwise.
+  const g1 = grams === undefined ? undefined : grams < 20 ? Math.round(grams * 10) / 10 : Math.round(grams);
+  return { text: chunk, food, grams: g1, qty };
 }

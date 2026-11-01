@@ -23,6 +23,8 @@ export interface DayLog {
   items: StoredItem[];
   rituals: string[];
   note?: string;
+  /** A planned refeed day: the next two weigh-ins are treated as water-weight noise. */
+  refeed?: boolean;
 }
 
 export interface State {
@@ -164,6 +166,9 @@ export const actions = {
       const rituals = on ? [...new Set([...d.rituals, id])] : d.rituals.filter((r) => r !== id);
       return { ...s, days: { ...s.days, [date]: { ...d, rituals } } };
     });
+  },
+  setRefeed(date: string, on: boolean) {
+    setState((s) => ({ ...s, days: { ...s.days, [date]: { ...day(s, date), refeed: on || undefined } } }));
   },
   setNote(date: string, note: string) {
     setState((s) => ({ ...s, days: { ...s.days, [date]: { ...day(s, date), note } } }));

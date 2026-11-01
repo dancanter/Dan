@@ -351,6 +351,8 @@ export const RITUALS: Ritual[] = [
     why: 'Bright light at night delays melatonin. The point is the stimulation and light, not blue light alone.' },
   { id: 'lastmeal', title: 'Last meal 2–3 hours before bed', points: 1, evidence: 'emerging',
     why: 'Large late meals can disturb sleep and keep insulin raised overnight. A protein snack (Greek yoghurt) is fine for recovery.' },
+  { id: 'joy', title: 'One thing from the joy menu (below)', points: 2, evidence: 'moderate',
+    why: 'Real, lasting rewards (mastery, connection, nature, anticipation) instead of the cheap dopamine of scrolling.' },
   { id: 'nosip', title: 'Squash and diet drinks only with meals, water in between', points: 1, evidence: 'moderate',
     why: 'Gives your enamel time to re-harden between acid hits, and turns down the all-day sweetness. Lemon, lime or cucumber water and cold green tea fill the gap.' },
   { id: 'hydrate', title: '2+ litres of fluid (pale-yellow urine)', points: 1, evidence: 'emerging',
@@ -551,3 +553,37 @@ export const SWEETENER_VERDICT = {
   ],
   sources: ['suez-2022', 'who-nss-2023', 'who-aspartame-2023'],
 };
+
+// ── Joy menu: lasting happiness, not cheap dopamine ─────────────────────
+// Cheap dopamine (short-form video, endless scrolling, junk food) spikes
+// and crashes, and trains you to need more. These build lasting wellbeing:
+// mastery, connection, nature, movement, meaning and anticipation.
+export const JOY_MENU: { title: string; why: string }[] = [
+  { title: 'Morning daylight walk, no phone', why: 'Light, movement and a quiet head: the best start to the day there is.' },
+  { title: 'Learn something with your hands or voice', why: 'Guitar, piano, French for the trip, cooking a new dish. Mastery and flow give the kind of reward that grows with practice.' },
+  { title: 'See or call someone you love', why: 'Social connection is one of the strongest happiness and longevity predictors ever measured.' },
+  { title: 'Help someone', why: 'Your ward-buddy volunteering counts. Kindness reliably lifts the giver’s mood.' },
+  { title: 'Plan something to look forward to', why: 'Anticipation is a large part of the joy of a trip. Plan France: restaurants, outfits, the walk you’ll take.' },
+  { title: 'Time by water, in woods or under big sky', why: 'Nature lowers stress hormones and lifts mood within 20 minutes.' },
+  { title: 'Cook a beautiful meal from scratch', why: 'Creative, sensory and nourishing. Make it a ritual, not a chore.' },
+  { title: 'Read fiction or a great biography for 20 minutes', why: 'Deep attention instead of fragmented attention. It also helps wind-down before sleep.' },
+  { title: 'Dress well for no reason', why: 'Putting together a good outfit is self-expression and a small confidence lift.' },
+  { title: 'Cold shower finish (30–90 s) or a sauna', why: 'Cold water raises noradrenaline and dopamine for hours and gives a clean mood lift. Not within 4 hours after lifting.' },
+  { title: 'Finish one study block properly', why: 'Visible progress on meaningful work (“the progress principle”) is one of the strongest everyday mood boosters.' },
+  { title: 'First hour of the day without short-form video', why: 'Protects your focus and keeps your reward system sensitive to things that matter.' },
+];
+
+export const STRAIGHT_ANSWERS: { q: string; a: string }[] = [
+  { q: 'Should I masturbate?', a: 'It’s normal and healthy, and there’s no good evidence it lowers testosterone. One small study saw a brief bump around day 7 of abstinence that then returned to baseline. The big claims made for abstaining (“NoFap”) aren’t supported by trials. Large observational studies even link more frequent ejaculation with a slightly lower prostate cancer risk. The only things worth watching are compulsive use (feeling you can’t stop, or it crowding out sleep, study or people) and heavy porn use, which some people find drags on mood and motivation. Practical rule: it’s fine, keep your phone out of bed so it never costs you sleep, and if it ever feels compulsive, talk to your GP.' },
+  { q: 'Is cheap dopamine actually a problem?', a: '“Dopamine detox” is pop science, but the core idea holds: very easy, fast rewards (endless scrolling, constant snacking) make slower rewards like study, reading and training feel flatter in comparison. You don’t need to ban them. Just make the good stuff easier (book by the bed, phone charging outside the bedroom, gym bag packed).' },
+];
+
+// ── The chiselled-face guide ─────────────────────────────────────────────
+export const FACE_GUIDE: { title: string; text: string; evidence: Evidence }[] = [
+  { title: 'Body fat sets the jawline, and you’re already there', evidence: 'moderate', text: 'Jaw and cheekbone definition in men usually shows from roughly 10–12% body fat. Going much lower mostly hollows the cheeks and under-eyes, which reads tired and older, not sharper. Your cut to 122–124 lb is about the limit for the look you want.' },
+  { title: 'Water is the day-to-day difference', evidence: 'moderate', text: 'The same face looks sharp or soft depending on sleep, alcohol, sudden salt and cortisol. Use the De-puff check: 8+ hours of sleep, steady salt with plenty of potassium, no alcohol before big days.' },
+  { title: 'Posture shapes the jawline in photos', evidence: 'emerging', text: 'A forward head (from phone and desk time) softens the jaw-to-neck angle. Chin tucks, upper-back strength (rows, face pulls) and a screen at eye level help how you hold yourself, and so how your jaw reads. Neck training adds a little thickness, a classic "model" proportion.' },
+  { title: 'Skip the gimmicks', evidence: 'speculative', text: '“Mewing” (tongue posture) has no good evidence of reshaping an adult face. Jawline exercisers and constant hard gum chewing can strain the jaw joint (TMJ). Facial "fat loss" exercises don’t spot-reduce fat. Spend that effort on sleep and posture.' },
+  { title: 'Grooming does a lot of the work', evidence: 'emerging', text: 'A haircut with structure at the sides, tidy brows and a short, crisp stubble line along the jaw can define a jawline visually. Shave with the grain to avoid the breakouts you get. A cold rinse or chilled gua sha in the morning de-puffs for a few hours.' },
+  { title: 'Skin is the finish', evidence: 'strong', text: 'Daily SPF50 (you’re doing it), retinol 2–3 nights a week, carotenoid-rich food for a warm tone, and sleep. Clear, even skin is the “glow”.' },
+];

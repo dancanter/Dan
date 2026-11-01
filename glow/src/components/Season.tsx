@@ -3,6 +3,7 @@ import { Copy, Plane } from 'lucide-react';
 import { addDays, prettyDate, rolling, sortByDate, todayISO, toDisplay, weeklyRate } from '@/engine/body';
 import { KIND_LABEL, defaultSeason, kcalForDate, phaseDayInfo, phaseOn, plannedWeight, seasonProgress, type Phase, type PhaseKind } from '@/engine/season';
 import { actions, useStore } from '@/store';
+import { cleanWeights } from '@/engine/calls';
 import { Button, Card, LineChart, Pill } from './ui';
 
 const KIND_COLOUR: Record<PhaseKind, string> = { cut: 'var(--sea)', peak: 'var(--gold)', travel: 'var(--gold)', maintain: 'var(--good)' };
@@ -60,7 +61,8 @@ export function SeasonCard() {
   const today = todayISO();
   const season = s.profile.season;
   const unit = s.profile.unit;
-  const weights = sortByDate(s.weights);
+  // Ignore the water-heavy mornings after a refeed.
+  const weights = cleanWeights(s);
   const roll = rolling(weights);
   const proposal = useMemo(() => defaultSeason(today), [today]);
   const startKg = season ? (weights.find((w) => w.date >= season[0].start)?.kg ?? weights.at(-1)?.kg ?? 126.6 / 2.20462) : 126.6 / 2.20462;

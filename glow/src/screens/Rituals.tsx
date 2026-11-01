@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Pause, Play } from 'lucide-react';
-import { RITUALS, SOURCES } from '@/data/science';
+import { FACE_GUIDE, JOY_MENU, RITUALS, SOURCES, STRAIGHT_ANSWERS } from '@/data/science';
 import { actions, useStore } from '@/store';
 import { Button, Card, EvidencePill, Segmented } from '@/components/ui';
 import { BigDaySetup } from '@/components/LookGood';
@@ -49,9 +49,31 @@ export function Rituals({ date }: { date: string }) {
         </ul>
       </Card>
 
+      <Card eyebrow="Lasting happiness" title="Joy menu">
+        <p className="mb-3 text-sm text-ink-2">Things that build real, lasting good mood, unlike the quick spike and crash of scrolling. Pick one a day and tick the joy ritual above.</p>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {JOY_MENU.map((j) => <li key={j.title} className="rounded-xl bg-surface-2 p-3 text-sm"><div className="font-medium">{j.title}</div><div className="mt-0.5 text-xs leading-relaxed text-ink-2">{j.why}</div></li>)}
+        </ul>
+      </Card>
+
+      <Card eyebrow="Model look" title="The chiselled-face guide">
+        <ul className="space-y-3">
+          {FACE_GUIDE.map((g) => <li key={g.title} className="text-sm"><div className="flex flex-wrap items-center gap-2 font-medium">{g.title}<EvidencePill e={g.evidence} /></div><p className="mt-0.5 leading-relaxed text-ink-2">{g.text}</p></li>)}
+        </ul>
+      </Card>
+
       <BigDaySetup />
 
       <Breathing date={date} minutesToday={s.breathMinutes[date] ?? 0} />
+
+      <Card eyebrow="Asked and answered" title="Straight answers">
+        {STRAIGHT_ANSWERS.map((x) => (
+          <details key={x.q} className="mb-2 rounded-xl bg-surface-2 p-3 text-sm">
+            <summary className="cursor-pointer font-medium">{x.q}</summary>
+            <p className="mt-2 leading-relaxed text-ink-2">{x.a}</p>
+          </details>
+        ))}
+      </Card>
     </div>
   );
 }
