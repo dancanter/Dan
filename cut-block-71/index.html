@@ -15,6 +15,41 @@
   --shadow:none;
 }
 *{box-sizing:border-box}
+/* Mission Control (1 Nov) */
+.cc{background:linear-gradient(160deg,#0F1F1E 0%,var(--panel) 55%);border:1px solid var(--rule);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;animation:ccIn .5s ease both}
+@keyframes ccIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.cc-k{font:600 11px "IBM Plex Sans Condensed",sans-serif;letter-spacing:.14em;color:var(--accent)}
+.cc-date{font-size:20px;font-weight:600;margin-top:2px}
+.cc-lv{min-width:150px;flex:0 1 220px;text-align:right}.cc-lv span{font-weight:600}.cc-lv small{display:block;color:var(--ink-3);font-size:11px;margin-top:3px}
+.cc-hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cc-count{display:flex;align-items:center;gap:8px}.cc-count b{font:600 52px/1 "IBM Plex Mono",monospace;color:var(--ink)}.cc-count span{font-size:12px;color:var(--ink-2);line-height:1.2;text-transform:uppercase;letter-spacing:.08em}
+.cc-shred{flex:1 1 220px;min-width:0}
+.cc-gh{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:5px;flex-wrap:wrap}.cc-gh span{color:var(--ink-2)}
+.cc-bar{height:8px;background:var(--rule);border-radius:99px;overflow:hidden}.cc-bar.big{height:12px}.cc-bar.sm{height:5px;margin-top:5px}
+.cc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:99px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.cc-gs{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+.cc-ready{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--panel-2);border:1px solid var(--rule)}
+.cc-ready b{display:block}.cc-ready small{display:block;color:var(--ink-2);font-size:12px;margin-top:2px}
+.cc-dot{flex:0 0 12px;height:12px;border-radius:50%;background:var(--ink-3);box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+.cc-ready.go .cc-dot{background:var(--good);box-shadow:0 0 12px var(--good)}.cc-ready.easy .cc-dot{background:var(--warn);box-shadow:0 0 12px var(--warn)}.cc-ready.stop .cc-dot{background:var(--bad);box-shadow:0 0 12px var(--bad)}.cc-ready.done .cc-dot{background:var(--accent)}
+.cc-rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cc-ring{text-align:center;min-width:0}.cc-ring svg{display:block;margin:0 auto;max-width:100%}
+.cc-arc{transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)}
+.cc-ringv{fill:var(--ink);font:600 13px "IBM Plex Mono",monospace}
+.cc-rl{font:600 10.5px "IBM Plex Sans Condensed",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.cc-rv{font-weight:600;font-size:13px}.cc-rs{font-size:10.5px;color:var(--ink-3)}
+.cc-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cc-chip{background:var(--panel-2);border:1px solid var(--rule);border-radius:10px;padding:9px 6px;text-align:center}.cc-chip b{display:block;font:600 18px "IBM Plex Mono",monospace}.cc-chip small{color:var(--ink-3);font-size:11px}
+.cc-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cc-day{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:8px;padding:6px 2px;text-align:center;font-size:11px;min-width:0}.cc-day b{display:block;color:var(--ink-3);font-size:10px}.cc-day span{display:block;font-size:13px;min-height:18px;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.cc-day.now{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.cc-more summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-2)}
+.cc-goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
+.cc-foot{font-size:11px;color:var(--ink-3);margin:0}
+@media (prefers-reduced-motion:reduce){.cc,.cc-bar i,.cc-arc{animation:none;transition:none}}
+@media (max-width:420px){.cc{padding:12px}.cc-count b{font-size:44px}.cc-ring svg{width:64px;height:64px}}
+
 [hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%}
@@ -218,6 +253,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 <!-- ================= TODAY ================= -->
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
+  <div id="ccCard"></div>
   <!-- 29 Sep: log first, then calories in and burned, then everything else -->
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
@@ -8966,6 +9002,7 @@ function goodLifeHTML(){
 }
 function renderGoodLife(){
   glStore();
+  if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
   if(E('physAssess'))E('physAssess').innerHTML=physAssessHTML();
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
@@ -9070,6 +9107,89 @@ function decOptHTML(){
     'Gym 4× at build volume for the upper body, 1–2 short of failure, beat last time. Protein 140 g in four feeds, Fage 0% before bed. Carbs around training. Two hard runs on 🟢 days only, the Norwegian at 7/10. Daylight before noon. No alcohol, little fizzy. Posture tall. Waist measured every Sunday.</div></details>'+
     '<p class="tiny dim" style="margin-top:6px">Never: dehydration, water tablets, laxatives, skipping meals, or under 1,799. Two warning signs together (resting HR up, times dipping, sleep short, feeling low) and the deficit holds — the tracker says so.</p></div>';
 }
+/* ===================== Mission Control (Dan, 1 Nov) =====================
+   "Make the dashboard 1000 times more professional and more fun." One
+   screen at the top of Today: the trip countdown and shred meter, today's
+   rings, the readiness call, the daily score and streak, the level, the
+   week at a glance and every race goal. Everything is read from what he
+   has logged — nothing is invented, and an empty ring says so. */
+function ccRing(pct,label,val,sub,tone){
+  var r=30,c=2*Math.PI*r,p=Math.max(0,Math.min(1,pct||0)),off=c*(1-p);
+  var col=tone==='warn'?'var(--warn)':(tone==='good'?'var(--good)':'var(--accent)');
+  return '<div class="cc-ring"><svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true">'+
+    '<circle cx="38" cy="38" r="'+r+'" fill="none" stroke="var(--rule)" stroke-width="7"/>'+
+    '<circle class="cc-arc" cx="38" cy="38" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 38 38)"/>'+
+    '<text x="38" y="42" text-anchor="middle" class="cc-ringv">'+Math.round(p*100)+'%</text></svg>'+
+    '<div class="cc-rl">'+label+'</div><div class="cc-rv">'+val+'</div><div class="cc-rs">'+sub+'</div></div>';
+}
+function ccDayScore(d){
+  var r=S.days[d]||{},it=[typeof S.weights[d]==='number',typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
+    typeof r.steps==='number'&&r.steps>=stepTarget(d)*0.9,typeof r.sleep==='number'&&r.sleep>=8,!!(r.skinAM&&r.skinPM)];
+  return it.filter(Boolean).length;
+}
+function ccStreak(){
+  var t=today(),n=0,d=ccDayScore(t)>=4?t:addD(t,-1);
+  while(n<400&&ccDayScore(d)>=4){n++;d=addD(d,-1);}
+  return n;
+}
+function ccWeek(){
+  var ms=mondayOf(today()),t=today(),out=[];
+  for(var i=0;i<7;i++){var d=addD(ms,i),r=S.days[d]||{},ic=[];
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;ic.push(m.sprint?'⛰️':(m.hard?'⚡':(m.subt?'🌊':'🏃')));});
+    if(r.gym)ic.push('🏋️');
+    if(!ic.length&&d<t)ic.push(dow(d)===6?'🧘':'·');
+    out.push('<div class="cc-day'+(d===t?' now':'')+'"><b>'+'MTWTFSS'[i]+'</b><span>'+(ic.join('')||'&nbsp;')+'</span></div>');}
+  return out.join('');
+}
+function ccGoals(){
+  var R=records(),C=CFG.camp;
+  return C.pb.slice().sort(function(a,b){return a.dm-b.dm;}).map(function(x){
+    var b=bestAt(x.dm,R[x.dm]).best,cur=b?b.t:null,base=C.base[x.dm]||cur,at=C.allTime[x.dm];
+    var pct=cur!==null&&base&&base>x.goal?Math.max(0,Math.min(1,(base-cur)/(base-x.goal))):0;
+    var fmt=function(s){return s===null?'—':(s>=60?mmss(Math.round(s)):(Math.round(s*10)/10)+'s');};
+    return '<div class="cc-goal"><div class="cc-gh"><b>'+repLabel(x.dm)+'</b><span>'+fmt(cur)+' → <b class="acc">'+campGoalTxt(x)+'</b></span></div>'+
+      '<div class="cc-bar"><i style="width:'+Math.round(pct*100)+'%"></i></div>'+
+      '<div class="cc-gs">'+(at?'all-time '+fmt(at.t)+' · ':'')+'trial '+fmtS(x.on)+'</div></div>';}).join('');
+}
+function missionHTML(){
+  var t=today();if(t<CFG.cutStart)return '';
+  var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
+  /* trip countdown and shred meter */
+  var trip=typeof FINISH!=='undefined'?FINISH.trip:CFG.cutEnd,left=diffD(t,trip);
+  var wm=weightModel(),start=wm.baseline!==null?wm.baseline:null;
+  var A=avgWindow(t,7),now=A.n?A.avg:null;
+  if(now===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length)now=S.weights[ks[ks.length-1]];}
+  var tgt=123.5,shredPct=start!==null&&now!==null&&start>tgt?Math.max(0,Math.min(1,(start-now)/(start-tgt))):0;
+  /* rings */
+  var kT=dayTarget(t),et=eatenTotals(r),kc=et.n?et.kcal:(typeof r.kcal==='number'?r.kcal:null),pro=et.n?et.pro:null;
+  var stT=stepTarget(t),st=typeof r.steps==='number'?r.steps:null,sl=typeof r.sleep==='number'?r.sleep:null;
+  var rings=ccRing(kc!==null?kc/kT:0,'Calories',kc!==null?ci(kc):'—','of '+ci(kT),kc!==null&&kc>kT+50?'warn':'')+
+    ccRing(pro!==null?pro/MACRO.pro:0,'Protein',pro!==null?ci(pro)+' g':'—','of '+MACRO.pro+' g',pro!==null&&pro>=MACRO.pro?'good':'')+
+    ccRing(st!==null?st/stT:0,'Steps',st!==null?ci(st):'—','of '+ci(stT),st!==null&&st>=stT?'good':'')+
+    ccRing(sl!==null?sl/9:0,'Sleep',sl!==null?f1(sl)+' h':'—','aim 8–9 h',sl!==null&&sl>=8?'good':'');
+  /* score, streak, level */
+  var sc=ccDayScore(t),sk=ccStreak();
+  var lv=G?G.lv:null,nx=G?G.nx:null,xp=G?G.xp:0,lvPct=lv&&nx?(xp-lv[0])/(nx[0]-lv[0]):1;
+  var dl=L.c==='green'?'go':(L.c==='red'?'stop':(L.c==='amber'?'easy':'done'));
+  return '<div class="cc">'+
+    '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
+      (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
+    '<div class="cc-hero">'+
+      '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>France</span></div>'+
+      '<div class="cc-shred"><div class="cc-gh"><b>Shred meter</b><span>'+(now!==null?f1(now)+' lb':'weigh in')+' → <b class="acc">122–124</b></span></div>'+
+        '<div class="cc-bar big"><i style="width:'+Math.round(shredPct*100)+'%"></i></div>'+
+        '<div class="cc-gs">'+(start!==null?'from '+f1(start)+' at the start of the cut · ':'')+Math.round(shredPct*100)+'% of the way · '+ci(kT)+' kcal today</div></div></div>'+
+    '<div class="cc-ready '+dl+'"><span class="cc-dot"></span><div><b>'+esc(L.t||'')+'</b>'+(L.sub?'<small>'+esc(L.sub)+'</small>':'')+'</div></div>'+
+    '<div class="cc-rings">'+rings+'</div>'+
+    '<div class="cc-row"><div class="cc-chip"><b>'+sc+'/5</b><small>today’s score</small></div>'+
+      '<div class="cc-chip"><b>'+(sk?'🔥 '+sk:'—')+'</b><small>day streak</small></div>'+
+      '<div class="cc-chip"><b>'+(G?G.quests.filter(function(q){return q[2]>=q[3];}).length+'/'+G.quests.length:'—')+'</b><small>quests done</small></div></div>'+
+    '<div class="cc-week">'+ccWeek()+'</div>'+
+    (G?'<details class="cc-more"><summary>Race goals</summary><div class="cc-goals">'+ccGoals()+'</div></details>':'')+
+    '<p class="cc-foot">Score: weigh-in, food logged, steps, 8 h sleep, skin. Four of five keeps the streak alive.</p>'+
+  '</div>';
+}
+
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
