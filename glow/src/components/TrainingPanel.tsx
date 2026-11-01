@@ -7,6 +7,7 @@ import { stravaAvailable, syncStrava } from '@/strava';
 import { actions, useStore } from '@/store';
 import { Bar, Button, Card, Pill, Segmented } from './ui';
 import { KeepMuscleGuide, SetsEditor, WeeklySetsCard } from './Muscle';
+import { RecoveryClock } from './RecoveryClock';
 
 const KIND_LABEL: Record<SessionKind, string> = { run: 'Run', lift: 'Weights', walk: 'Walk', ride: 'Ride', other: 'Other' };
 const LEVEL_TONE = { fresh: 'neutral', balanced: 'good', pushing: 'warn', 'too-much': 'bad' } as const;
@@ -30,6 +31,7 @@ export function TrainingPanel() {
 
   return (
     <div className="space-y-4">
+      <RecoveryClock date={today} />
       <WeeklySetsCard date={today} />
       <Card eyebrow="Training load" title={assessment.headline} action={<Pill tone={LEVEL_TONE[assessment.level]}>{assessment.level.replace('-', ' ')}</Pill>}>
         <div className="grid grid-cols-4 gap-2 text-center text-xs">

@@ -17,6 +17,7 @@ import { MealRhythm } from '@/components/MealRhythm';
 import { CoachCalls, NextMoves, StudyCard } from '@/components/Calls';
 import { LookSharp } from '@/components/LookSharp';
 import { FeelCard } from '@/components/Feel';
+import { RecoveryClock } from '@/components/RecoveryClock';
 import { describeQty } from '@/data/units';
 import { GAIN_LABEL, swapFor } from '@/data/swaps';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
@@ -105,6 +106,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
 
       <CoachCalls date={date} />
       <NextMoves date={date} />
+      <RecoveryClock date={date} />
       <FeelCard date={date} />
       <LookSharp date={date} />
 

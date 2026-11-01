@@ -694,3 +694,36 @@ describe('seasons and vitamin D', () => {
     expect(nextMoves(s, '2026-11-20').some((m) => m.text.startsWith('Vitamin D from food'))).toBe(true);
   });
 });
+
+import { recoveryStatus } from '@/engine/recovery';
+
+describe('recovery clock', () => {
+  const st = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+  const get = (s: State, d: string, sys: string) => recoveryStatus(s, d).systems.find((x) => x.system === sys)!.readyInDays;
+
+  it('needs about 2 days after intervals and 3 after a time trial', () => {
+    const s = st();
+    s.training['2026-11-10'] = [{ id: 'i', source: 'manual', kind: 'run', name: '8 x 400 m', minutes: 30, km: 6, intensity: 'hard' }];
+    expect(get(s, '2026-11-11', 'quality')).toBe(1);
+    expect(get(s, '2026-11-12', 'quality')).toBe(0);
+    s.training['2026-11-10'] = [{ id: 't', source: 'manual', kind: 'run', name: '5k time trial', minutes: 18, km: 5, intensity: 'hard' }];
+    expect(get(s, '2026-11-11', 'quality')).toBe(2);
+    expect(get(s, '2026-11-13', 'quality')).toBe(0);
+  });
+
+  it('heavy leg day needs 3 days; a deficit and short sleep stretch it', () => {
+    const s = st();
+    s.training['2026-11-10'] = [{ id: 'l', source: 'manual', kind: 'lift', name: 'Legs', minutes: 60, intensity: 'moderate', sets: { quads: 6, hamstrings: 4, glutes: 3 } }];
+    expect(get(s, '2026-11-12', 'legs')).toBe(1);
+    expect(get(s, '2026-11-13', 'legs')).toBe(0);
+    s.profile.season = defaultSeason('2026-11-02');
+    s.sleeps = [{ date: '2026-11-13', bed: '01:00', wake: '06:30', quality: 2 }];
+    expect(get(s, '2026-11-13', 'legs')).toBe(1);
+  });
+
+  it('easy runs need no recovery', () => {
+    const s = st();
+    s.training['2026-11-10'] = [{ id: 'e', source: 'manual', kind: 'run', name: 'Easy 5 mile', minutes: 40, km: 8, intensity: 'easy' }];
+    expect(recoveryStatus(s, '2026-11-10').systems.every((x) => x.readyInDays === 0)).toBe(true);
+  });
+});
