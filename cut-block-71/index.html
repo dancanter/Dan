@@ -9012,6 +9012,8 @@ function renderGoodLife(){
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
   document.addEventListener('click',function(ev){
+    var pl=ev.target.closest&&ev.target.closest('button[data-plan]');
+    if(pl){var td=today(),rr=S.days[td]=S.days[td]||{};rr.plan=!rr.plan;touch();return;}
     var f=ev.target.closest&&ev.target.closest('button[data-feel]');
     if(f){glStore();var t=today(),r=S.days[t]=S.days[t]||{},a=Array.isArray(r.feel)?r.feel:[],k=f.dataset.feel,i=a.indexOf(k);
       if(i>=0)a.splice(i,1);else a.push(k);
@@ -9067,7 +9069,7 @@ function decOptHTML(){
   var sleepOk=typeof r.sleep==='number'&&r.sleep>=8;
   var list=[
     tick(typeof S.weights[t]==='number','Weigh in — morning, after the toilet, before food'),
-    tick(typeof r.kcal==='number'&&r.kcal>0,'Every gram logged — '+ci(kc)+' kcal, protein 140 g, carbs 200 g+, fat 45–48 g+'),
+    tick(!!r.plan||typeof r.kcal==='number'&&r.kcal>0,'Ate to plan — 4 plates, protein at each, about '+ci(kc)+' kcal (logging is optional)'),
     tick(typeof r.steps==='number'&&r.steps>=stepT,ci(stepT)+' steps'),
     tick(sleepOk,'8–9 h in bed last night'+(typeof r.sleep==='number'?' ('+f1(r.sleep)+' h)':'')),
     tick(!!(r.skinAM&&r.skinPM),'Skin morning and night — SPF in the morning'),
@@ -9123,7 +9125,7 @@ function ccRing(pct,label,val,sub,tone){
     '<div class="cc-rl">'+label+'</div><div class="cc-rv">'+val+'</div><div class="cc-rs">'+sub+'</div></div>';
 }
 function ccDayScore(d){
-  var r=S.days[d]||{},it=[typeof S.weights[d]==='number',typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
+  var r=S.days[d]||{},it=[typeof S.weights[d]==='number',!!r.plan||typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
     typeof r.steps==='number'&&r.steps>=stepTarget(d)*0.9,typeof r.sleep==='number'&&r.sleep>=8,!!(r.skinAM&&r.skinPM)];
   return it.filter(Boolean).length;
 }
@@ -9186,7 +9188,8 @@ function missionHTML(){
       '<div class="cc-chip"><b>'+(G?G.quests.filter(function(q){return q[2]>=q[3];}).length+'/'+G.quests.length:'—')+'</b><small>quests done</small></div></div>'+
     '<div class="cc-week">'+ccWeek()+'</div>'+
     (G?'<details class="cc-more"><summary>Race goals</summary><div class="cc-goals">'+ccGoals()+'</div></details>':'')+
-    '<p class="cc-foot">Score: weigh-in, food logged, steps, 8 h sleep, skin. Four of five keeps the streak alive.</p>'+
+    '<button type="button" class="btn sm'+(r.plan?'':' ghost')+'" data-plan="1" style="align-self:flex-start">'+(r.plan?'✓ Ate to plan today':'🍽️ Ate to plan today?')+'</button>'+
+    '<p class="cc-foot">Score: weigh-in, ate to plan (or logged), steps, 8 h sleep, skin. Four of five keeps the streak alive. Plan: 4 meals, each a palm-and-a-half of protein, 1–2 fists of carbs (more on training days), 2 fists of colourful veg or fruit, a thumb of fat.</p>'+
   '</div>';
 }
 
