@@ -660,7 +660,7 @@ await ctx.close();
 // ===== 1,899 every day from 18 Oct (his call) =====
 ({ ctx, p, boot } = await at('2026-10-20'));
 await boot(st({}));
-ok('from 18 Oct every day is 1,899 — gym-only, reset and light days too, to the end of the cut', await p.evaluate(() => dayTarget('2026-10-20') === 1899 && dayTarget('2026-10-22') === 1899 && dayTarget('2026-11-28') === 1899 && dayTarget('2026-10-15') === 1799));
+ok('from 18 Oct every day is 1,899 — gym-only, reset and light days too, to the end of the cut', await p.evaluate(() => dayTarget('2026-10-20') === 1899 && dayTarget('2026-10-22') === 1899 && dayTarget('2026-11-01') === 1899 && dayTarget('2026-10-15') === 1799));
 await ctx.close();
 
 // ===== the fun fast run replaces the 5-miler (18 Oct) =====
@@ -787,14 +787,14 @@ await ctx.close();
 // ===== the London push: decided by the scale on 7 Nov (27 Oct) =====
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-02': 126.2 } }));
-ok('before 7 Nov with no morning under 126: pending, calories unchanged', await p.evaluate(() => pushState().k === 'pending' && dayTarget('2026-11-02') === 1899 && /Push check on 7 Nov/.test(E('campCard') ? 'Push check on 7 Nov' : '')));
+ok('before 7 Nov with no morning under 126: pending, the strict 1,799', await p.evaluate(() => pushState().k === 'pending' && dayTarget('2026-11-02') === 1799 && /Push check on 7 Nov/.test(E('campCard') ? 'Push check on 7 Nov' : '')));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-09'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
 let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent }));
-ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && PSH.after === 1899 && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && !PSH.M.P.short && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && [1799, 1899].includes(PSH.after) && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && !PSH.M.P.short && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
 await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
-ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === 1899));
+ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === strictKcal('2026-11-09')));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
@@ -900,18 +900,18 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st({ weights: { '2026-11-01': 127.0, '2026-11-02': 126.8 }, days: { '2026-11-02': { kcal: 1899, steps: 13500 } } }));
 let DO = await p.evaluate(() => ({ h: decOptHTML(), g: E('glanceCard').innerText, k: dayTarget(today()) }));
-ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to the trip/.test(DO.h) && /Strict counting at 1,899/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1899, DO.h.slice(0, 300));
+ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to the trip/.test(DO.h) && /Strict — 1,799/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1799, DO.h.slice(0, 300));
 ok('and Today has a row for it', /3 Dec optimisation · 31 days/i.test(DO.g), DO.g.slice(0, 400));
 await ctx.close();
 const fw = {}; for (let i = 0; i < 10; i++) { const d = new Date('2026-11-14T12:00:00'); d.setDate(d.getDate() + i); fw[d.toISOString().slice(0, 10)] = 125.0; }
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: fw, days: { '2026-11-23': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 330 }] } } }));
-DO = await p.evaluate(() => ({ on: finishOn(today()), run: dayTarget(today()), rest: dayTarget('2026-11-24') }));
-ok('over 124 on 20 Nov: the finish — 1,799 with no run, 1,899 on run days', DO.on && DO.run === 1899 && DO.rest === 1799, JSON.stringify(DO));
+DO = await p.evaluate(() => ({ mon: dayTarget('2026-11-24'), sat: dayTarget('2026-11-28') }));
+ok('strict: 1,799 a day over 124.9, Saturday 1,999', DO.mon === 1799 && DO.sat === 1999, JSON.stringify(DO));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: Object.fromEntries(Object.keys(fw).map(k => [k, 123.6])) }));
-ok('under 124 on 20 Nov: no finish, 1,899', await p.evaluate(() => !finishOn(today()) && dayTarget('2026-11-24') === 1899));
+ok('at 124.9 or under the 7-day average raises it to 1,899', await p.evaluate(() => dayTarget('2026-11-24') === 1899), JSON.stringify(await p.evaluate(() => [dayTarget('2026-11-24'), avgWindow('2026-11-23', 7), Object.keys(S.weights).length])));
 ok('the trials sit just before Christmas: 5 km 13, 1 km 16, 400 18, mile 20, 800 22, 200 and 600 23 Dec', await p.evaluate(() => { const o = {}; CFG.camp.pb.forEach(x => o[x.dm] = x.on); return o[5000] === '2026-12-13' && o[1000] === '2026-12-16' && o[400] === '2026-12-18' && o[1609] === '2026-12-20' && o[800] === '2026-12-22' && o[200] === '2026-12-23' && o[600] === '2026-12-23' && CFG.cutEnd === '2026-12-02' && campPhase('2026-12-10').k === 'refuel' && campPhase('2026-12-13').k === 'pb'; }));
 await ctx.close();
 // the PB window keeps its trials

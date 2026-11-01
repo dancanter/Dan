@@ -1030,7 +1030,14 @@ function finishOn(is){is=is||today();if(is<FINISH.from||is>FINISH.to)return fals
    the 400 trial. Dan: "we said 400 m". So the one hard run is the trial. */
 var PHYS={from:'2026-10-26'};
 function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
-function dayTarget(is){if(pushOn(is))return dow(is)===6?1999:1799;if(finishOn(is)){var rr=(S.days[is]||{}).runs||[];return rr.some(function(x){return !runMeta(x).empty;})?1899:1799;}return upDay(is)?KCAL_UP:KCAL_DAY;}
+/* Dan, 1 Nov: "1,799 to see, Saturday 1,899–1,999; if I hit 124 or even
+   124.9 early, raise it to 1,899." From 2 Nov to the trip: 1,799 a day and
+   1,999 on Saturday, and 1,899 (Saturday 1,999) once the 7-day average to
+   the day before is 124.9 or under. Carbs stay over 200 g at 1,799. */
+var STRICT={from:'2026-11-02',to:'2026-12-02',raiseAt:124.9};
+function strictKcal(is){if(is<STRICT.from||is>STRICT.to)return null;if(dow(is)===6)return 1999;
+  var a=avgWindow(addD(is,-1),7);return (a.n>=3&&a.avg<=STRICT.raiseAt)?1899:1799;}
+function dayTarget(is){var sk=strictKcal(is);if(sk!==null)return sk;if(pushOn(is))return dow(is)===6?1999:1799;if(finishOn(is)){var rr=(S.days[is]||{}).runs||[];return rr.some(function(x){return !runMeta(x).empty;})?1899:1799;}return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
   if(upDay(is))return ci(KCAL_UP)+' — '+(dow(is)===6&&!((S.days[is]||{}).runs||[]).length?'Saturday':'run day');
@@ -9018,7 +9025,7 @@ function decOptHTML(){
   var A=avgWindow(t,7),a=A.n?A.avg:null,left=diffD(t,FINISH.trip),wk=Math.max(0.5,left/7);
   var need=a!==null?Math.max(0,(a-124)/wk):null,PS=pushState(t),r=S.days[t]||{},y=S.days[addD(t,-1)]||{};
   var kc=dayTarget(t),stepT=stepTarget(t);
-  var phase=pushOn(t)?'🔥 Push — 1,799 (Saturday 1,999), 14.5k steps':(finishOn(t)?'🎯 Finish — 1,799 on days with no run, 1,899 on run days':(t>=FINISH.from?'Hold — 1,899, you are on track':(PS.k==='pending'?'Strict counting at 1,899 — the scale decides the push on '+fmtS(PUSH.check):'Strict counting at 1,899')));
+  var sk=strictKcal(t),phase=sk===null?'Strict counting at 1,899 — the strict block starts '+fmtS(STRICT.from):(dow(t)===6?'Saturday — 1,999, the higher day':(sk===1899?'1,899 — your average is at 124.9 or under, so it goes up':'Strict — 1,799, every gram counted'))+(pushOn(t)?' · push steps 14.5k':'');
   var tick=function(ok,txt){return '<div style="margin:3px 0">'+(ok?'✅':'⬜')+' '+txt+'</div>';};
   var sleepOk=typeof r.sleep==='number'&&r.sleep>=8;
   var list=[
@@ -9038,13 +9045,24 @@ function decOptHTML(){
     '<b>Today’s non-negotiables</b>'+list.join('')+
     '<details style="margin-top:8px"><summary><b>The plan to 3 Dec</b></summary>'+
     '<div class="tiny" style="line-height:1.6;margin-top:6px">'+
-    '<b>1 Nov – 6 Nov · strict counting at 1,899.</b> Weigh everything raw on scales and log it before you eat. Count the oil, honey, squash, sauces and the bits. Same foods most days — Fage 0%, eggs, chicken, fish, venison, potatoes, rice, GF oats, fruit. Accurate counting is often the extra 100–200 a day on its own.<br>'+
-    '<b>7 Nov · push check.</b> Any morning under 126.0 before then = no push. Otherwise 7–20 Nov at 1,799 (Saturday 1,999), 14.5k steps, one 600 m+ hard run and the Norwegian.<br>'+
-    '<b>21 Nov – 2 Dec · the finish.</b> If the 7-day average on 20 Nov is over 124: 1,799 on days with no run, 1,899 on run days. Under it: 1,899 and hold. At 122–123: 1,999 and hold — do not lose more.<br>'+
+    '<b>2 Nov – 2 Dec · strict at 1,799, Saturday 1,999.</b> Weigh everything raw on scales and log it before you eat — the oil, honey, squash, sauces and the bits too. Protein 140 g, carbs 200 g+, fat 48 g+.<br>'+
+    '<b>The moment the 7-day average is 124.9 or under:</b> up to 1,899 (Saturday stays 1,999) — the tracker does it on its own. At 122–123: 1,999 and hold — do not lose more.<br>'+
+    '<b>7 Nov · push check.</b> Any morning under 126.0 before then = no push. Otherwise 7–20 Nov: 14.5k steps, one 600 m+ hard run and the Norwegian.<br>'+
     '<b>1–2 Dec · sharpen, safely.</b> Nothing new to eat, carbs normal (they fill the muscle), salt and water exactly as usual, 9 h in bed, haircut, no alcohol. Never cut water or salt — it looks flat, not lean.<br>'+
     '<b>3–5 Dec · away.</b> Eat well and enjoy it — that is the refuel. Gluten-free, protein at each meal, walk lots.<br>'+
     '<b>Back 6 Dec · the camp again.</b> The reverse goes on and the legs sharpen, then the trials just before Christmas: 5 km 13 Dec, 1 km 16 Dec, 400 18 Dec, mile 20 Dec, 800 22 Dec, 200 and 600 23 Dec.'+
     '</div></details>'+
+    '<details style="margin-top:6px"><summary><b>🍽️ The menu — 1,799, fine dining</b></summary><div class="tiny" style="line-height:1.6;margin-top:6px">'+
+    '<b>A day, about 1,800 kcal · 145 g protein · 48 g fat · 200 g carbs</b> (estimates from typical values — your diary has the exact numbers):<br>'+
+    '☀️ <b>Riviera breakfast</b> — 2 eggs, 40 g GF oats with 150 g Fage 0%, berries, cinnamon and 1 tsp honey (~460)<br>'+
+    '🥗 <b>Déjeuner</b> — 130 g chicken, 200 g new potatoes with herbs and a little butter, peppers and carrots, ¼ avocado (~440)<br>'+
+    '🥤 <b>Recovery smoothie</b> — 200 ml kefir, a banana, frozen berries, 100 g Fage 0% (~300)<br>'+
+    '🍽️ <b>Dîner</b> — 150 g venison seared pink, parsnip purée, green beans (~350)<br>'+
+    '🌙 <b>The evening bowl</b> — 200 g Fage 0%, strawberries, 15 g walnuts, 1 tsp honey (~260)<br>'+
+    '<b>Dinners to rotate:</b> salmon en papillote with herbed new potatoes and peas · steak and oven chips with tomatoes · cod in beurre noisette, crushed potatoes, green beans · chicken Provençal with peppers, tomatoes, herbs and rice · venison with roast parsnips · mackerel with beetroot and potatoes · GF turkey meatballs in tomato sauce with rice.<br>'+
+    '<b>Lunches:</b> herb omelette with potatoes and a kiwi · tinned salmon, potato salad with a Fage-and-dill dressing · leftover venison or chicken with rice and carrots.<br>'+
+    '<b>Why it works:</b> protein at every meal for muscle; oily fish 2–3 times a week for omega-3; berries, grapes and kiwi for polyphenols and vitamin C (with eggs and greens it helps iron absorption); a little fat with carrots and peppers to absorb their carotenoids; kefir and Fage for the gut. Sweeten with berries, cinnamon, vanilla or honey — not sweetener.<br>'+
+    '<b>Salt:</b> 9 salted meals a week — dinner every day, and lunch on the two hard-run days (you lose more in sweat). The same amount each time.</div></details>'+
     '<details style="margin-top:6px"><summary><b>Muscle and the look, every day to the trip</b></summary><div class="tiny" style="line-height:1.6;margin-top:6px">'+
     'Gym 4× at build volume for the upper body, 1–2 short of failure, beat last time. Protein 140 g in four feeds, Fage 0% before bed. Carbs around training. Two hard runs on 🟢 days only, the Norwegian at 7/10. Daylight before noon. No alcohol, little fizzy. Posture tall. Waist measured every Sunday.</div></details>'+
     '<p class="tiny dim" style="margin-top:6px">Never: dehydration, water tablets, laxatives, skipping meals, or under 1,799. Two warning signs together (resting HR up, times dipping, sleep short, feeling low) and the deficit holds — the tracker says so.</p></div>';
