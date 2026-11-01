@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Footprints, HeartPulse, Sparkles, TreePine } from 'lucide-react';
 import { outdoorVerdict, parseVitals, rhrAnalysis, stepsVerdict, type Tone, type Verdict } from '@/engine/vitals';
-import { actions, useStore } from '@/store';
+import { actions, useStore, EMPTY_OBJ } from '@/store';
 import { Bar, Button, Card } from './ui';
 
 const TONE: Record<Tone, string> = { good: 'var(--good)', ok: 'var(--sea)', warn: 'var(--warn)', bad: 'var(--bad)' };
 
 export function VitalsCard({ date, kg }: { date: string; kg?: number }) {
-  const all = useStore((s) => s.vitals ?? {});
+  const all = useStore((s) => s.vitals ?? EMPTY_OBJ);
   const v = all[date] ?? {};
   const [text, setText] = useState('');
   const [steps, setSteps] = useState(v.steps?.toString() ?? '');

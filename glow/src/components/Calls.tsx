@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Compass, UtensilsCrossed, BedDouble } from 'lucide-react';
 import { addDays, sortByDate } from '@/engine/body';
-import { nextMoves, refeedCall, restCall, studyLoad, studyVerdict } from '@/engine/calls';
+import { deloadCall, easeCall, nextMoves, refeedCall, restCall, studyLoad, studyVerdict } from '@/engine/calls';
 import { actions, useStore } from '@/store';
 import { Button, Card, Pill } from './ui';
 
 export function CoachCalls({ date }: { date: string }) {
   const s = useStore((x) => x);
   const kg = sortByDate(s.weights).at(-1)?.kg ?? 57;
-  const calls = [restCall(s, date, kg), refeedCall(s, date)].filter((c) => c.kind !== 'none');
+  const calls = [restCall(s, date, kg), easeCall(s, date, kg), deloadCall(s, date, kg), refeedCall(s, date)].filter((c) => c.kind !== 'none');
   const isRefeed = !!s.days[date]?.refeed;
   return (
     <>
       {calls.map((c) => (
-        <div key={c.kind} className={`card rise p-4 ${c.kind === 'rest' ? 'ring-2 ring-bad/40' : 'ring-2 ring-gold/50'}`}>
+        <div key={c.kind} className={`card rise p-4 ${c.kind === 'rest' ? 'ring-2 ring-bad/40' : c.kind === 'ease' ? 'ring-2 ring-warn/40' : 'ring-2 ring-gold/50'}`}>
           <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-gold uppercase">{c.kind === 'rest' ? <BedDouble size={14} /> : <UtensilsCrossed size={14} />}Coach’s call</div>
           <div className="font-serif text-lg">{c.title}</div>
           <ul className="mt-1 space-y-1 text-sm text-ink-2">{c.why.map((w) => <li key={w}>• {w}</li>)}</ul>
           <div className="mt-2 rounded-xl bg-surface-2 p-3 text-sm"><ul className="space-y-1">{c.how.map((h) => <li key={h}>✦ {h}</li>)}</ul></div>
           {c.kind === 'refeed' && !isRefeed && <Button tone="gold" className="mt-3" onClick={() => actions.setRefeed(date, true)}>Make today a refeed day</Button>}
+          {c.kind === 'deload' && <Button tone="gold" className="mt-3" onClick={() => actions.startDeload(date)}>Start deload week</Button>}
         </div>
       ))}
       <label className="flex items-center gap-2 px-1 text-sm text-ink-2">

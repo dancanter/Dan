@@ -22,7 +22,7 @@ export function cleanWeights(s: State): WeightEntry[] {
   return sortByDate(s.weights).filter((w) => !noisy.has(w.date));
 }
 
-export interface Call { kind: 'refeed' | 'rest' | 'none'; title: string; why: string[]; how: string[] }
+export interface Call { kind: 'refeed' | 'rest' | 'ease' | 'deload' | 'none'; title: string; why: string[]; how: string[] }
 
 function lastRefeed(s: State, date: string): string | undefined {
   return Object.keys(s.days).filter((d) => d <= date && s.days[d].refeed).sort().at(-1);
@@ -181,4 +181,61 @@ export function studyLoad(s: State, date: string): StudyLoad {
     else if (deepDays < 4) { level = 'light'; reasons.push(`Deep work on only ${deepDays} days this week. Spreading the same hours over 5–6 days (spaced practice) makes it stick far better than a few long sessions.`); }
   }
   return { level, reasons, weekDeep, weekTotal, deepDays, onPlan };
+}
+
+/** Ease off today: lighter, not off. For smaller warning signs than a full rest day. */
+export function easeCall(s: State, date: string, kg: number): Call {
+  if (restCall(s, date, kg).kind === 'rest') return { kind: 'none', title: '', why: [], how: [] };
+  const why: string[] = [];
+  const h = rhrAnalysis(date, s.vitals ?? {});
+  if (h.delta !== undefined && h.delta >= 5) why.push(`Morning heart rate is up ${h.delta} bpm on baseline.`);
+  const last = sortByDate(s.sleeps).filter((e) => e.date === date).map(sleepHours)[0];
+  if (last !== undefined && last < 6.5) why.push(`Only ${last.toFixed(1)} h of sleep last night.`);
+  const feelings = s.days[date]?.feelings ?? [];
+  if (feelings.includes('tired') || feelings.includes('sore')) why.push(`You logged feeling ${feelings.includes('tired') ? 'tired' : 'sore'} today.`);
+  const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -7) && e.date <= date).map(sleepHours);
+  const load = assessLoad(date, s.training ?? {}, { kg, vitals: s.vitals ?? {}, sleepHours: sleeps, inDeficit: phaseOn(s.profile.season, date)?.kind === 'cut' });
+  if (load.level === 'pushing') why.push('Training load is “pushing it”.');
+  if (!why.length) return { kind: 'none', title: '', why: [], how: [] };
+  return {
+    kind: 'ease', title: 'Ease off today', why,
+    how: ['Swap any quality run for an easy, conversational one, or 20–30 minutes of walking.', 'If you lift: keep the weights, cut sets by about a third, and stop 3 reps short of failure.', 'Eat your full target, and get to bed early.'],
+  };
+}
+
+/**
+ * Deload week: a planned easier week (about half the sets, easy running
+ * only) every 4–8 weeks of hard training, or sooner when fatigue builds
+ * across a whole week. Fitness and muscle are kept; fatigue clears, and you
+ * usually come back stronger. Travel weeks make natural deloads.
+ */
+export function deloadCall(s: State, date: string, kg: number): Call {
+  const since = (s.profile.deloads ?? []).filter((d) => d <= date).sort().at(-1);
+  if (since && daysBetween(since, date) < 7) return { kind: 'none', title: '', why: [], how: [] };
+  const trainedDays = Object.keys(s.training ?? {}).filter((d) => d <= date && (s.training[d] ?? []).some((x) => x.kind !== 'walk')).sort();
+  if (trainedDays.length < 6) return { kind: 'none', title: '', why: [], how: [] };
+  const why: string[] = [];
+  const firstHard = since ?? trainedDays[0];
+  const weeks = Math.floor(daysBetween(firstHard, date) / 7);
+  if (weeks >= 6) why.push(`${weeks} weeks of training since ${since ? 'your last deload' : 'you started logging'}.`);
+  const sleeps = sortByDate(s.sleeps).filter((e) => e.date > addDays(date, -7) && e.date <= date).map(sleepHours);
+  const strainDays = Array.from({ length: 7 }, (_, i) => addDays(date, -i)).filter((d) => {
+    const l = assessLoad(d, s.training ?? {}, { kg, vitals: s.vitals ?? {}, sleepHours: sleeps, inDeficit: true });
+    return l.level === 'pushing' || l.level === 'too-much';
+  }).length;
+  if (strainDays >= 4) why.push(`Your load has been “pushing it” or higher on ${strainDays} of the last 7 days.`);
+  const rhrUp = Array.from({ length: 7 }, (_, i) => rhrAnalysis(addDays(date, -i), s.vitals ?? {}).delta ?? 0).filter((d) => d >= 5).length;
+  if (rhrUp >= 3) why.push(`Morning heart rate has been raised on ${rhrUp} of the last 7 days.`);
+  if (!why.length) return { kind: 'none', title: '', why: [], how: [] };
+  const travel = s.profile.season?.find((p) => p.kind === 'travel' && p.start > date && daysBetween(date, p.start) <= 10);
+  return {
+    kind: 'deload', title: 'Plan a deload week', why,
+    how: [
+      'For 5–7 days: lift with your normal weights but about half the sets, stopping well short of failure.',
+      'Running: easy runs only, about 60–70% of your usual distance. Strides are fine; skip intervals and time trials.',
+      'Keep protein high and sleep long. Eating at maintenance this week also helps.',
+      travel ? `Your trip to ${travel.name} starts soon. Travel weeks make a natural deload, so line it up with that.` : 'You’ll usually come back stronger. Fitness and muscle don’t fade in a week.',
+      'Tap “Start deload week” and Glow will stop suggesting one for 7 days.',
+    ],
+  };
 }

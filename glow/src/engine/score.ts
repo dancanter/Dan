@@ -27,6 +27,8 @@ export interface Profile {
   dailySpf?: boolean;
   /** Gets bloated easily: high-FODMAP foods are rated more strictly and low-FODMAP swaps offered. */
   bloatProne?: boolean;
+  /** Start dates of deload weeks you’ve taken. */
+  deloads?: string[];
 }
 
 export type Targets = Record<NKey, number>;

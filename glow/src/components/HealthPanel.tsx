@@ -3,7 +3,7 @@ import { Activity, HeartPulse, TestTube } from 'lucide-react';
 import { addDays, ageOn, bmi, prettyDate, sleepHours, sortByDate, todayISO } from '@/engine/body';
 import { LAB_MARKERS, POPULATION, RACE_DISTANCES, bpCategory, fitnessAge, glowAge, healthRank, vo2Band, vo2FromRaces } from '@/engine/health';
 import { allDates, dayResult } from '@/engine/game';
-import { actions, resolveItems, useStore } from '@/store';
+import { actions, resolveItems, useStore, EMPTY_ARR } from '@/store';
 import { Button, Card, LineChart, Pill } from './ui';
 
 export function HealthPanel() {
@@ -98,7 +98,7 @@ export function HealthPanel() {
 }
 
 function BloodPressure() {
-  const bps = sortByDate(useStore((x) => x.bp ?? []));
+  const bps = sortByDate(useStore((x) => x.bp ?? EMPTY_ARR));
   const [sys, setSys] = useState('');
   const [dia, setDia] = useState('');
   const last = bps.at(-1);
@@ -124,7 +124,7 @@ function BloodPressure() {
 }
 
 function Labs() {
-  const labs = useStore((x) => x.labs ?? []);
+  const labs = useStore((x) => x.labs ?? EMPTY_ARR);
   const [key, setKey] = useState(LAB_MARKERS[0].key);
   const [value, setValue] = useState('');
   const [date, setDate] = useState(todayISO());

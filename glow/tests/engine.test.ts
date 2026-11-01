@@ -625,3 +625,42 @@ describe('sets per muscle', () => {
     expect(setsVerdict('chest', 30).tone).toBe('bad');
   });
 });
+
+import { deloadCall, easeCall } from '@/engine/calls';
+import { FEELINGS, adviceFor } from '@/engine/feelings';
+import { FILMS } from '@/data/films';
+
+describe('ease off, deload, feelings and films', () => {
+  const st = (): State => ({ version: 1, profile: { ...DEFAULT_PROFILE }, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] });
+
+  it('eases off at +5–7 bpm, rests at +8', () => {
+    const s = st();
+    for (let d = 1; d <= 10; d++) s.vitals[`2026-11-${String(d).padStart(2, '0')}`] = { rhr: 48 };
+    s.vitals['2026-11-11'] = { rhr: 54 };
+    expect(easeCall(s, '2026-11-11', 57).kind).toBe('ease');
+    expect(restCall(s, '2026-11-11', 57).kind).toBe('none');
+    s.vitals['2026-11-11'] = { rhr: 57 };
+    expect(easeCall(s, '2026-11-11', 57).kind).toBe('none');
+    expect(restCall(s, '2026-11-11', 57).kind).toBe('rest');
+  });
+
+  it('suggests a deload after 6+ weeks of training, then backs off for a week', () => {
+    const s = st();
+    for (let i = 0; i < 45; i += 2) s.training[addDays('2026-12-20', -i)] = [{ id: `r${i}`, source: 'manual', kind: 'run', name: 'Easy', minutes: 40, km: 8, intensity: 'easy' }];
+    expect(deloadCall(s, '2026-12-20', 57).kind).toBe('deload');
+    s.profile.deloads = ['2026-12-18'];
+    expect(deloadCall(s, '2026-12-20', 57).kind).toBe('none');
+  });
+
+  it('gives advice for every feeling, and safety info for low mood', () => {
+    const s = st();
+    for (const f of FEELINGS) expect(adviceFor(f.id, s, '2026-11-02').steps.length).toBeGreaterThan(2);
+    expect(adviceFor('low', s, '2026-11-02').note).toContain('116 123');
+    expect(adviceFor('bored-eating', s, '2026-11-02').steps[0]).toContain('apple');
+  });
+
+  it('has a big unique film list', () => {
+    expect(FILMS.length).toBeGreaterThan(120);
+    expect(new Set(FILMS.map((f) => f.id)).size).toBe(FILMS.length);
+  });
+});

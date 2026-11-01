@@ -5,6 +5,7 @@ import { actions, useStore } from '@/store';
 import { Button, Card, EvidencePill, Segmented } from '@/components/ui';
 import { BigDaySetup } from '@/components/LookGood';
 import { YogaCard } from '@/components/Yoga';
+import { MovieNight } from '@/components/Movies';
 
 const PATTERNS = {
   resonance: { label: 'Resonance 5.5', steps: [['Breathe in', 5.5], ['Breathe out', 5.5]] as [string, number][], about: 'About 5.5 breaths a minute, close to the rate that maximises heart-rate variability in most adults. Your everyday calm-down.' },
@@ -56,6 +57,8 @@ export function Rituals({ date }: { date: string }) {
           {JOY_MENU.map((j) => <li key={j.title} className="rounded-xl bg-surface-2 p-3 text-sm"><div className="font-medium">{j.title}</div><div className="mt-0.5 text-xs leading-relaxed text-ink-2">{j.why}</div></li>)}
         </ul>
       </Card>
+
+      <MovieNight />
 
       <Card eyebrow="Model look" title="The chiselled-face guide">
         <ul className="space-y-3">

@@ -25,6 +25,8 @@ export interface DayLog {
   note?: string;
   /** A planned refeed day: the next two weigh-ins are treated as water-weight noise. */
   refeed?: boolean;
+  /** How you said you felt (ids from the feelings list). */
+  feelings?: string[];
 }
 
 export interface State {
@@ -45,9 +47,14 @@ export interface State {
   /** Blood test results: marker key -> dated values. */
   labs: { date: string; key: string; value: number }[];
   stravaSyncedAt?: string;
+  films?: { seen: string[]; watchlist: string[] };
 }
 
 const KEY = 'glow-state-v1';
+
+/** Stable empty values for selectors (a fresh {} or [] on every read would make useStore loop). */
+export const EMPTY_OBJ = Object.freeze({}) as Record<string, never>;
+export const EMPTY_ARR = Object.freeze([]) as unknown as never[];
 
 function initial(): State {
   return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
@@ -165,6 +172,21 @@ export const actions = {
       const d = day(s, date);
       const rituals = on ? [...new Set([...d.rituals, id])] : d.rituals.filter((r) => r !== id);
       return { ...s, days: { ...s.days, [date]: { ...d, rituals } } };
+    });
+  },
+  logFeeling(date: string, id: string) {
+    setState((s) => { const d = day(s, date); const f = d.feelings ?? []; return { ...s, days: { ...s.days, [date]: { ...d, feelings: f.includes(id) ? f : [...f, id] } } }; });
+  },
+  startDeload(date: string) {
+    setState((s) => ({ ...s, profile: { ...s.profile, deloads: [...(s.profile.deloads ?? []), date] } }));
+  },
+  toggleFilm(list: 'seen' | 'watchlist', id: string) {
+    setState((s) => {
+      const f = s.films ?? { seen: [], watchlist: [] };
+      const cur = f[list];
+      const next = { ...f, [list]: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id] };
+      if (list === 'seen' && !cur.includes(id)) next.watchlist = next.watchlist.filter((x) => x !== id);
+      return { ...s, films: next };
     });
   },
   setRefeed(date: string, on: boolean) {

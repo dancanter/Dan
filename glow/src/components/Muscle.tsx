@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MUSCLES, MUSCLE_LABEL, SET_TARGETS, setsVerdict, weeklySets, type Muscle, type Session } from '@/engine/training';
-import { actions, useStore } from '@/store';
+import { actions, useStore, EMPTY_OBJ } from '@/store';
 import { Bar, Button, Card, EvidencePill, Pill } from './ui';
 import type { Evidence } from '@/data/science';
 
@@ -34,7 +34,7 @@ export function SetsEditor({ date, session }: { date: string; session: Session }
 }
 
 export function WeeklySetsCard({ date }: { date: string }) {
-  const training = useStore((s) => s.training ?? {});
+  const training = useStore((s) => s.training ?? EMPTY_OBJ);
   const sets = weeklySets(training, date);
   const any = Object.values(sets).some((n) => n > 0);
   return (
