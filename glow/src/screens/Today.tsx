@@ -174,7 +174,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           {(() => {
             const order = { big: 0, medium: 1, small: 2 } as const;
             const seen = new Set<string>();
-            const swaps = items.map((i) => ({ i, sw: swapFor(i.food) })).filter((x) => x.sw && !seen.has(x.i.food.id) && seen.add(x.i.food.id)).sort((a, b) => order[a.sw!.gain] - order[b.sw!.gain]).slice(0, 3);
+            const swaps = items.map((i) => ({ i, sw: swapFor(i.food, !!s.profile.bloatProne) })).filter((x) => x.sw && !seen.has(x.i.food.id) && seen.add(x.i.food.id)).sort((a, b) => order[a.sw!.gain] - order[b.sw!.gain]).slice(0, 3);
             if (!swaps.length) return null;
             return (
               <Card eyebrow="Make it even better" title="Swap ideas from today">

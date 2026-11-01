@@ -545,3 +545,21 @@ describe('coach calls', () => {
     expect(cc.grams).toBe(180);
   });
 });
+
+import { BLOAT_SWAPS } from '@/data/swaps';
+import { foodPuff as puffOf } from '@/engine/puff';
+
+describe('bloat-prone mode', () => {
+  it('rates FODMAP foods high and offers low-FODMAP swaps', () => {
+    expect(puffOf(f('lentils'), 60, true).gut).toBe('high');
+    expect(puffOf(f('lentils'), 60, false).gut).toBe('medium');
+    expect(swapFor(f('lentils'), true)?.targets.map((x) => x.id)).toContain('quinoa');
+    expect(swapFor(f('lentils'), false)).toBeUndefined();
+    for (const s of BLOAT_SWAPS) for (const id of [s.from, ...s.to]) expect(FOOD_BY_ID.get(id), id).toBeTruthy();
+  });
+
+  it('counts spinach iron at a heavily reduced rate', () => {
+    const a = analyseDay([item('spinach', 100)], t, { glutenFree: true });
+    expect(a.effective.iron / a.totals.iron).toBeCloseTo(0.4, 2);
+  });
+});

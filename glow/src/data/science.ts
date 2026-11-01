@@ -587,3 +587,22 @@ export const FACE_GUIDE: { title: string; text: string; evidence: Evidence }[] =
   { title: 'Grooming does a lot of the work', evidence: 'emerging', text: 'A haircut with structure at the sides, tidy brows and a short, crisp stubble line along the jaw can define a jawline visually. Shave with the grain to avoid the breakouts you get. A cold rinse or chilled gua sha in the morning de-puffs for a few hours.' },
   { title: 'Skin is the finish', evidence: 'strong', text: 'Daily SPF50 (you’re doing it), retinol 2–3 nights a week, carotenoid-rich food for a warm tone, and sleep. Clear, even skin is the “glow”.' },
 ];
+
+export const BLOATING_GUIDE = {
+  title: 'Why you bloat, and what to do',
+  intro: 'Bloating after lentils, beans, onion, garlic, wheat or some fruit is usually FODMAPs: short-chain carbohydrates your small intestine absorbs poorly, so gut bacteria ferment them into gas. They’re good for your microbiome, which is why the aim is to find your personal threshold, not to cut them forever.',
+  points: [
+    'Biggest culprits: lentils, beans and chickpeas (GOS); onion, garlic and wheat (fructans); apples, pears, mango and watermelon (fructose); mushrooms, cauliflower and sugar-free products (polyols); milk (lactose, for some).',
+    'Gentle swaps: quinoa, potatoes, rice, firm tofu; courgette, carrot, green beans, peppers, pak choi, spinach; kiwi, strawberries, oranges, a small handful of blueberries; garlic-infused olive oil; spring-onion green tops and chives.',
+    'Tinned lentils and chickpeas, rinsed well, in small portions (around 40–45 g drained) are much better tolerated than dried-and-boiled.',
+    'Fizzy drinks, chewing gum, sugar alcohols (protein bars, sugar-free sweets) and eating fast all add gas. Slow down and chew well.',
+    'Your Fage and kefir are low in lactose, so they’re fine for most people even if milk isn’t.',
+    'With coeliac disease, bloating that persists despite strict gluten-free eating can mean hidden gluten (cross-contamination), lactose intolerance or IBS. Worth raising with your GP, and a coeliac antibody test shows whether gluten is still getting in.',
+    'The proper way to find your triggers is a low-FODMAP elimination for 2–6 weeks, then reintroducing one group at a time, ideally with a dietitian. Strict long-term low-FODMAP isn’t recommended, because it starves good gut bacteria.',
+  ],
+};
+
+export const STRAIGHT_FACTS: { q: string; a: string }[] = [
+  { q: 'Is spinach a good iron source?', a: 'Not really, and you’re right. Spinach iron is non-haem iron bound up by oxalate and polyphenols, so you absorb only a few percent of it. Glow counts it at a heavily reduced rate. Red meat, venison, liver, oysters and mussels give haem iron that absorbs several times better. Keep spinach for what it’s brilliant at: folate, vitamin K, magnesium, nitrate and lutein. Vitamin C in the same meal helps whatever iron is there.' },
+  { q: 'Do grass-fed animal fats boost testosterone?', a: 'Partly true, mostly oversold. What the evidence shows: very low-fat diets (under about 20% of calories) lower testosterone by roughly 10–15% compared with moderate-fat diets. So enough fat matters, and Glow targets about 25–30%. What it doesn’t show: that saturated or animal fat raises testosterone above an adequate-fat diet, or that grass-fed fat does anything special. Grass-fed fat has a bit more omega-3 and CLA, but still small amounts. On your cut, the things that actually move testosterone are energy availability, 8+ hours of sleep, not dropping too lean, zinc and vitamin D, and low alcohol. Eat grass-fed beef, lamb and eggs for the zinc, B12, iron and creatine. Use olive oil as your main added fat, and tallow or butter for flavour, not as a testosterone strategy, since they raise LDL.' },
+];

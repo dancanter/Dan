@@ -36,7 +36,7 @@ export interface FoodPuff {
 }
 
 /** Puffiness and bloat risk for one portion of a food. */
-export function foodPuff(f: Food, grams = f.portion.g): FoodPuff {
+export function foodPuff(f: Food, grams = f.portion.g, bloatProne = false): FoodPuff {
   const na = (f.n.sodium * grams) / 100;
   const k = (f.n.potassium * grams) / 100;
   let face: Level = 'low';
@@ -49,6 +49,7 @@ export function foodPuff(f: Food, grams = f.portion.g): FoodPuff {
   let gutWhy = 'Unlikely to cause gas.';
   if (isFizzy(f)) { gut = 'high'; gutWhy = 'Carbonation puts gas straight into your gut.'; }
   else if (f.tags.includes('upf') && /bar|sugar free|protein/i.test(f.name)) { gut = 'medium'; gutWhy = 'Often contains sugar alcohols (maltitol, sorbitol), which ferment and cause gas.'; }
+  else if (isFodmapHeavy(f) && bloatProne) { gut = 'high'; gutWhy = 'High in FODMAPs, the fermentable carbs most likely to cause your bloating. Check the swap below, or keep portions small and build up slowly.'; }
   else if (isFodmapHeavy(f)) { gut = 'medium'; gutWhy = 'High in FODMAPs: fermentable carbs that feed gut bacteria. That’s healthy, but they can cause gas and a bloated stomach in some people. Only limit them if they bloat you, or the day before a big event.'; }
   return { face, faceWhy, gut, gutWhy };
 }

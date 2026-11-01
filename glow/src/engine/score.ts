@@ -25,6 +25,8 @@ export interface Profile {
   vo2Measured?: number;
   /** Wears SPF every day (Dan: Ultrasun anti-pigmentation SPF50). */
   dailySpf?: boolean;
+  /** Gets bloated easily: high-FODMAP foods are rated more strictly and low-FODMAP swaps offered. */
+  bloatProne?: boolean;
 }
 
 export type Targets = Record<NKey, number>;
@@ -49,7 +51,7 @@ export function bioFactors(f: Pick<Food, 'tags' | 'category'>): Partial<Record<N
   const animal = ['meat', 'offal', 'fish', 'shellfish', 'eggs', 'dairy'].includes(f.category);
   const out: Partial<Record<NKey, number>> = {};
   if (has('haem')) out.iron = 1.5;
-  else if (!animal) out.iron = has('phy') ? 0.5 : 0.7;
+  else if (!animal) out.iron = has('oxa') ? 0.4 : has('phy') ? 0.5 : 0.7;
   if (!animal) out.zinc = has('phy') ? 0.6 : 0.8;
   if (has('phy')) out.calcium = 0.8;
   if (has('oxa')) out.calcium = 0.1;
@@ -345,5 +347,6 @@ export const DEFAULT_PROFILE: Profile = {
   glutenFree: true,
   races: { mile: '4:57', k5: '17:17', k10: '36:55' },
   dailySpf: true,
+  bloatProne: true,
 };
 

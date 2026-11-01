@@ -14,6 +14,8 @@ export interface Swap {
   why: string;
   /** When the swap isn't worth it, or when to keep the original. */
   keep?: string;
+  /** Only offered in bloat-prone mode: a lower-FODMAP alternative. */
+  bloat?: boolean;
 }
 
 export const SWAPS: Swap[] = [
@@ -63,10 +65,32 @@ export const SWAPS: Swap[] = [
   { from: 'uk-sweetener-drops', to: ['cinnamon', 'blueberries'], gain: 'small', why: 'Cinnamon, vanilla or berries sweeten without sweeteners, and gradually reset how sweet things need to be.', keep: 'A few stevia drops a day is low concern.' },
 ];
 
-const BY_FROM = new Map(SWAPS.map((s) => [s.from, s]));
+export const BLOAT_SWAPS: Swap[] = [
+  { bloat: true, from: 'lentils', to: ['quinoa', 'potato', 'tofu'], gain: 'medium', why: 'Lentils are rich in GOS, a fermentable fibre that commonly causes gas. Quinoa, potatoes or firm tofu give the protein and carbs without it.', keep: 'If you love them: tinned lentils, rinsed well, in a small portion (about 45 g drained) are much better tolerated, because the GOS leaches into the water.' },
+  { bloat: true, from: 'chickpeas', to: ['quinoa', 'tofu', 'potato'], gain: 'medium', why: 'Chickpeas are high in GOS. Firm tofu (low-FODMAP) or quinoa swap in easily.', keep: 'A small portion of tinned, rinsed chickpeas (about 40 g) is usually tolerated.' },
+  { bloat: true, from: 'black-beans', to: ['tofu', 'quinoa'], gain: 'medium', why: 'Beans are among the gassiest foods. Firm tofu or quinoa are gentler.' },
+  { bloat: true, from: 'hummus', to: ['uk-guacamole', 'uk-tzatziki'], gain: 'small', why: 'Chickpeas and garlic make hummus a double FODMAP hit. A small spoon of guacamole or tzatziki is gentler (if lactose is fine for you).' },
+  { bloat: true, from: 'uk-baked-beans', to: ['eggs', 'potato'], gain: 'medium', why: 'Beans in sauce, often with onion: a classic bloater.' },
+  { bloat: true, from: 'onion', to: ['usda-11156', 'leek'], gain: 'medium', why: 'Onion is the biggest fructan source in most diets. Use the green tops of spring onions or leeks, or chives, for the flavour without the fructans.' },
+  { bloat: true, from: 'garlic', to: ['evoo'], gain: 'medium', why: 'Fructans in garlic don’t dissolve in oil, so garlic-infused olive oil gives you the flavour safely. Fry garlic in oil, then remove it.' },
+  { bloat: true, from: 'apple', to: ['kiwi', 'strawberries', 'orange'], gain: 'small', why: 'Apples are high in fructose and sorbitol. Kiwi, strawberries and oranges are low-FODMAP, and kiwi even helps regularity.' },
+  { bloat: true, from: 'mango', to: ['pineapple', 'kiwi'], gain: 'small', why: 'Mango is high in excess fructose. Pineapple and kiwi are gentler.' },
+  { bloat: true, from: 'watermelon', to: ['strawberries', 'orange'], gain: 'small', why: 'Watermelon is high in fructose and polyols.' },
+  { bloat: true, from: 'mushrooms', to: ['courgette', 'aubergine'], gain: 'small', why: 'Mushrooms carry mannitol, a polyol that ferments. Courgette or aubergine fill the same role.' },
+  { bloat: true, from: 'cauliflower', to: ['broccoli', 'green-beans'], gain: 'small', why: 'Cauliflower is high in mannitol. Broccoli heads (not stalks) and green beans are lower.' },
+  { bloat: true, from: 'cashews', to: ['macadamia', 'walnuts', 'brazil-nuts'], gain: 'small', why: 'Cashews and pistachios are high-FODMAP nuts. Macadamias, walnuts and Brazil nuts are low.' },
+  { bloat: true, from: 'pistachios', to: ['macadamia', 'walnuts'], gain: 'small', why: 'Pistachios are high-FODMAP. Macadamias and walnuts are low.' },
+  { bloat: true, from: 'uk-kallo-lentil', to: ['rice-cakes', 'uk-oatcakes-gf'], gain: 'small', why: 'Lentil cakes contain lentil flour (GOS). If they bloat you, plain rice cakes or GF oatcakes are gentler.', keep: 'A couple of cakes is a small dose, so test how you feel with them.' },
+  { bloat: true, from: 'artichoke', to: ['green-beans', 'courgette'], gain: 'small', why: 'Artichokes are very high in fructans.' },
+  { bloat: true, from: 'asparagus', to: ['green-beans', 'courgette'], gain: 'small', why: 'Asparagus is high in fructans and fructose.' },
+];
 
-export function swapFor(food: Food): (Swap & { targets: Food[] }) | undefined {
-  const s = BY_FROM.get(food.id) ?? BY_FROM.get(food.id.replace(/^custom-/, ''));
+const BY_FROM = new Map(SWAPS.map((s) => [s.from, s]));
+const BLOAT_BY_FROM = new Map(BLOAT_SWAPS.map((s) => [s.from, s]));
+
+export function swapFor(food: Food, bloatProne = false): (Swap & { targets: Food[] }) | undefined {
+  const id = food.id.replace(/^custom-/, '');
+  const s = (bloatProne ? BLOAT_BY_FROM.get(id) : undefined) ?? BY_FROM.get(id);
   if (!s) return undefined;
   return { ...s, targets: s.to.map((id) => FOOD_BY_ID.get(id)).filter((f): f is Food => !!f) };
 }

@@ -22,7 +22,7 @@ export function PuffCard({ date, sleepHours }: { date: string; sleepHours?: numb
       </div>
       <ul className="mt-3 space-y-1.5 text-sm">{p.tips.map((t) => <li key={t} className="leading-relaxed">• {t}</li>)}</ul>
       {p.fodmapFoods.length > 0 && (
-        <p className="mt-3 text-xs leading-relaxed text-ink-2"><b>Gut-bloat watch:</b> {p.fodmapFoods.join(', ')} are high in FODMAPs. They’re healthy fibre, so only cut them if they bloat <i>you</i>, or the day before a big event.</p>
+        <p className={`mt-3 text-xs leading-relaxed ${s.profile.bloatProne ? 'rounded-xl bg-warn-soft p-2.5 text-ink' : 'text-ink-2'}`}><b>Gut-bloat watch:</b> {p.fodmapFoods.join(', ')} {p.fodmapFoods.length === 1 ? 'is' : 'are'} high in FODMAPs{s.profile.bloatProne ? ', the most likely cause of your bloating. Each one’s food page has a low-FODMAP swap.' : '. They’re healthy fibre, so only cut them if they bloat you, or the day before a big event.'}</p>
       )}
       <p className="mt-2 text-[11px] text-muted">Facial puffiness is water, not fat, and it’s gone within a day or two. The biggest levers are sleep, alcohol, and keeping sodium steady (a sudden rise, not salt itself) with plenty of potassium.</p>
     </Card>

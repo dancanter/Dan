@@ -50,7 +50,7 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
   const counting = mode === 'count' && !!unit;
   const yld = counting ? undefined : cookingYield(food);
   const rawGrams = counting ? (unit!.g * count < 20 ? Math.round(unit!.g * count * 10) / 10 : Math.round(unit!.g * count)) : weighed === 'cooked' && yld ? cookedToRaw(food, grams) : grams;
-  const puff = foodPuff(food, rawGrams);
+  const puff = foodPuff(food, rawGrams, !!s.profile.bloatProne);
   const fav = s.favourites.includes(food.id);
   const factors = bioFactors(food);
   const portion = scaleNutrients(food.n, rawGrams);
@@ -77,7 +77,7 @@ export function FoodDetail({ food, onAdd, date }: { food: Food; date?: string; o
       {food.note && <p className="text-sm leading-relaxed text-ink-2">{food.note}</p>}
 
       {(() => {
-        const sw = swapFor(food);
+        const sw = swapFor(food, !!s.profile.bloatProne);
         if (!sw) return null;
         return (
           <div className={`rounded-xl p-3 text-sm ${sw.gain === 'big' ? 'bg-gold-soft' : 'bg-surface-2'}`}>

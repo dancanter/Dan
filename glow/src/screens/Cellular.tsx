@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FOODS, type Food } from '@/data/foods';
-import { STRESS_TOPICS, SWEETENER_VERDICT, ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
+import { BLOATING_GUIDE, STRAIGHT_FACTS, STRESS_TOPICS, SWEETENER_VERDICT, ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
 import { NUTRIENTS } from '@/data/nutrients';
 import { dayResult } from '@/engine/game';
 import { DEFAULT_PROFILE, scaleNutrients, targetsFor } from '@/engine/score';
@@ -95,6 +95,18 @@ export function Cellular({ date }: { date: string }) {
               <div className="mt-2 flex flex-wrap gap-2">{t.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}</div>
             </Card>
           ))}
+          <Card eyebrow="Your gut" title={BLOATING_GUIDE.title}>
+            <p className="text-sm leading-relaxed">{BLOATING_GUIDE.intro}</p>
+            <ul className="mt-2 space-y-1.5 text-sm text-ink-2">{BLOATING_GUIDE.points.map((p) => <li key={p}>• {p}</li>)}</ul>
+          </Card>
+          <Card eyebrow="Myth check" title="Your questions, answered">
+            {STRAIGHT_FACTS.map((x) => (
+              <details key={x.q} className="mb-2 rounded-xl bg-surface-2 p-3 text-sm" open>
+                <summary className="cursor-pointer font-medium">{x.q}</summary>
+                <p className="mt-2 leading-relaxed text-ink-2">{x.a}</p>
+              </details>
+            ))}
+          </Card>
           <Card eyebrow="Your habits" title={SWEETENER_VERDICT.title}>
             <p className="rounded-xl bg-gold-soft p-3 text-sm leading-relaxed">{SWEETENER_VERDICT.summary}</p>
             <div className="mt-3 space-y-3">
