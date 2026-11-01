@@ -317,3 +317,42 @@ describe('drinks by the glass', () => {
     expect(cola.food?.id).toBe('cola');
   });
 });
+
+import { defaultSeason, kcalForDate, phaseOn, plannedWeight, seasonProgress } from '@/engine/season';
+
+describe('season plan', () => {
+  const season = defaultSeason('2026-11-01');
+  const start = 126.6 / 2.20462;
+
+  it('builds Dan’s winter: cut, France, Christmas finish, recover', () => {
+    expect(season.map((p) => p.kind)).toEqual(['cut', 'travel', 'cut', 'maintain']);
+    expect(phaseOn(season, '2026-12-04')?.name).toBe('France');
+    expect(phaseOn(season, '2026-12-24')?.name).toBe('Christmas finish');
+  });
+
+  it('lands inside the 122–124 lb target at 0.5% a week', () => {
+    const france = plannedWeight(season, start, '2026-12-02')! * 2.20462;
+    const xmas = plannedWeight(season, start, '2026-12-24')! * 2.20462;
+    expect(france).toBeGreaterThan(123);
+    expect(france).toBeLessThan(124.5);
+    expect(xmas).toBeGreaterThan(121.5);
+    expect(xmas).toBeLessThan(123);
+  });
+
+  it('eats at maintenance in France and reverses up after Christmas', () => {
+    const p = { ...DEFAULT_PROFILE, season };
+    const cut = kcalForDate(p, '2026-11-10', 57).kcal;
+    const france = kcalForDate(p, '2026-12-04', 56).kcal;
+    const wk1 = kcalForDate(p, '2026-12-26', 55.5).kcal;
+    const wk3 = kcalForDate(p, '2027-01-09', 55.5).kcal;
+    expect(cut).toBe(1799);
+    expect(france).toBeGreaterThan(2400);
+    expect(wk1).toBe(1799 + 150);
+    expect(wk3).toBe(1799 + 450);
+  });
+
+  it('warns when weight drops faster than 0.75% a week', () => {
+    const prog = seasonProgress(season, start, '2026-11-20', start - 2, -0.6);
+    expect(prog?.verdict).toBe('too-fast');
+  });
+});

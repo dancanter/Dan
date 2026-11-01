@@ -4,6 +4,9 @@ import { MICROS, NUTRIENTS, format, type NKey } from '@/data/nutrients';
 import { addDays, fromDisplay, prettyDate, todayISO, toDisplay } from '@/engine/body';
 import { dayResult, questFor, rankFor, streak, xpTotal } from '@/engine/game';
 import { scoreFood, targetsFor } from '@/engine/score';
+import { kcalForDate } from '@/engine/season';
+import { PhaseBanner, TravelGuide } from '@/components/Season';
+import { phaseOn } from '@/engine/season';
 import { actions, getState, resolveItems, useStore } from '@/store';
 import { AddFood } from '@/components/AddFood';
 import { FoodDetail, MEALS } from '@/components/FoodDetail';
@@ -18,7 +21,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
   const s = useStore((x) => x);
   const r = useMemo(() => dayResult(s, date), [s, date]);
   const items = resolveItems(s.days[date], s);
-  const t = targetsFor(s.profile, r.weightKg);
+  const t = targetsFor({ ...s.profile, kcalTarget: kcalForDate(s.profile, date, r.weightKg).kcal }, r.weightKg);
   const [adding, setAdding] = useState(false);
   const [detail, setDetail] = useState<Food | null>(null);
   const quest = questFor(date);
@@ -63,7 +66,9 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </div>
       </Card>
 
-      <BigDayCountdown />
+      <PhaseBanner date={date} />
+      {phaseOn(s.profile.season, date)?.kind === 'travel' && <TravelGuide date={date} />}
+      <BigDayCountdown date={date} />
 
       <div className={`card rise flex items-start gap-3 p-4 ${questDone ? 'ring-2 ring-good' : ''}`}>
         <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${questDone ? 'pop bg-good text-white' : 'bg-gold-soft text-gold'}`}>{questDone ? '✓' : <Sparkles size={18} />}</div>

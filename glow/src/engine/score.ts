@@ -17,6 +17,8 @@ export interface Profile {
   goalWeightKg?: number;
   /** An upcoming event to look your best for. */
   bigDay?: { label: string; date: string };
+  /** Phases with dates: cut, travel, maintain. */
+  season?: import('./season').Phase[];
 }
 
 export type Targets = Record<NKey, number>;

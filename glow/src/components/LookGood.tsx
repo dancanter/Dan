@@ -32,6 +32,13 @@ export function PuffCard({ date, sleepHours }: { date: string; sleepHours?: numb
 interface Step { when: string; items: [string, Evidence][] }
 
 const PLAN: Step[] = [
+  { when: '14 to 8 days out: dial in', items: [
+    ['Lock the routine: same wake time, same meals you know, same training. Consistency is what makes you look sharp', 'moderate'],
+    ['Book the haircut for 5–7 days before, so it looks fresh but settled, not just-cut', 'speculative'],
+    ['Plan the outfits now and try them on, including shoes. Fit beats brand: one well-cut knit and a good coat beat a suitcase of options', 'speculative'],
+    ['Daylight walk every morning. You sleep better, and the skin and eyes show it', 'moderate'],
+    ['Find 2–3 safe gluten-free restaurants for the trip and save them', 'strong'],
+  ] },
   { when: '7 to 4 days out', items: [
     ['Sleep 8–9 hours every night, same wake time', 'strong'],
     ['Keep eating and training normally. No crash diet: under-fuelling flattens muscles and hollows the face', 'moderate'],
@@ -58,12 +65,18 @@ const PLAN: Step[] = [
   ] },
 ];
 
-export function BigDayCountdown() {
-  const big = useStore((s) => s.profile.bigDay);
+export function BigDayCountdown({ date = todayISO() }: { date?: string }) {
+  const p = useStore((s) => s.profile);
+  // The next event: a Big Day you set, or the start of a travel/peak phase in your season plan.
+  const events = [
+    ...(p.bigDay ? [{ label: p.bigDay.label, date: p.bigDay.date }] : []),
+    ...(p.season ?? []).filter((ph) => ph.kind === 'travel' || ph.kind === 'peak').map((ph) => ({ label: ph.name, date: ph.start })),
+  ].filter((e) => e.date >= date).sort((a, b) => a.date.localeCompare(b.date));
+  const big = events[0];
   if (!big) return null;
-  const left = daysBetween(todayISO(), big.date);
-  if (left < 0 || left > 7) return null;
-  const stage = left >= 4 ? 0 : left === 3 ? 1 : left === 2 ? 2 : left === 1 ? 3 : 4;
+  const left = daysBetween(date, big.date);
+  if (left < 0 || left > 14) return null;
+  const stage = left >= 8 ? 0 : left >= 4 ? 1 : left === 3 ? 2 : left === 2 ? 3 : left === 1 ? 4 : 5;
   return (
     <div className="card rise overflow-hidden p-4" style={{ background: 'linear-gradient(135deg, var(--navy), var(--sea))', color: 'var(--navy-ink)' }}>
       <div className="flex items-center justify-between">
@@ -85,7 +98,7 @@ export function BigDaySetup() {
   const [date, setDate] = useState(big?.date ?? addDays(todayISO(), 7));
   return (
     <Card eyebrow="Look your sharpest" title={<span className="flex items-center gap-2"><CalendarHeart size={18} className="text-gold" />Big day mode</span>}>
-      <p className="mb-3 text-sm text-ink-2">A date, a photo, an event, an interview. Set it and Glow runs a 7-day countdown on Today, telling you exactly what to do each day so you wake up de-puffed, rested and glowing.</p>
+      <p className="mb-3 text-sm text-ink-2">A date, a photo, an event, an interview. Set it and Glow runs a 14-day countdown on Today, telling you exactly what to do each day so you wake up de-puffed, rested and glowing.</p>
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex-1 text-xs text-muted">What’s happening<input className="field mt-1" value={label} placeholder="e.g. Monaco weekend" onChange={(e) => setLabel(e.target.value)} /></label>
         <label className="text-xs text-muted">Date<input type="date" className="field mt-1" value={date} min={todayISO()} onChange={(e) => setDate(e.target.value)} /></label>
@@ -94,7 +107,7 @@ export function BigDaySetup() {
       </div>
       {big && <p className="mt-2 text-sm"><Pill tone="gold">{big.label} · {prettyDate(big.date)}</Pill></p>}
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-sea">See the full 7-day plan</summary>
+        <summary className="cursor-pointer text-sea">See the full 14-day plan</summary>
         <div className="mt-2 space-y-3">
           {PLAN.map((st) => (
             <div key={st.when}>
@@ -102,7 +115,7 @@ export function BigDaySetup() {
               <ul className="mt-1 space-y-1.5">{st.items.map(([t, e]) => <li key={t} className="flex flex-wrap items-baseline gap-2 text-ink-2"><span>{t}</span><EvidencePill e={e} /></li>)}</ul>
             </div>
           ))}
-          <p className="text-xs text-muted">What actually makes people look better long term: 8–9 hours of sleep, daily SPF, enough protein, not cutting so hard your face goes gaunt, colourful food (carotenoids warm skin tone in about 6 weeks), low alcohol and a regular routine. The 7-day plan is the finishing polish on top of that.</p>
+          <p className="text-xs text-muted">What actually makes people look better long term: 8–9 hours of sleep, daily SPF, enough protein, not cutting so hard your face goes gaunt, colourful food (carotenoids warm skin tone in about 6 weeks), low alcohol and a regular routine. The 14-day plan is the finishing polish on top of that. Travel phases in your season plan get the same countdown automatically.</p>
         </div>
       </details>
     </Card>

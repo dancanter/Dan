@@ -4,6 +4,7 @@ import { analyseDay, targetsFor, type DayAnalysis } from './score';
 import { resolveItems, type State } from '@/store';
 import { PLANT_CATEGORIES } from '@/data/foods';
 import { vitalityScore } from './vitals';
+import { kcalForDate } from './season';
 
 export interface DayResult {
   date: string;
@@ -26,7 +27,7 @@ export function dayResult(s: State, date: string): DayResult {
   const log = s.days[date];
   const items = resolveItems(log, s);
   const kg = weightOn(s, date);
-  const t = targetsFor(s.profile, kg);
+  const t = targetsFor({ ...s.profile, kcalTarget: kcalForDate(s.profile, date, kg).kcal }, kg);
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date <= date);
   const sleepEntry = sleeps.find((e) => e.date === date);
   const sleep = sleepEntry ? sleepScore(sleepEntry, sleeps.slice(-7)) : undefined;

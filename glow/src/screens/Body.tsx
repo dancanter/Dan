@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, fromDisplay, prettyDate, rolling, sleepHours, sleepScore, sortByDate, todayISO, toDisplay, weeklyRate } from '@/engine/body';
 import { actions, useStore } from '@/store';
 import { rhrAnalysis } from '@/engine/vitals';
+import { SeasonCard, TravelGuide } from '@/components/Season';
 import { Bar, Button, Card, LineChart, Pill } from '@/components/ui';
 
 export function Body() {
@@ -35,6 +36,9 @@ export function Body() {
         <h1 className="font-serif text-2xl">Body</h1>
         <p className="text-sm text-ink-2">Weight and sleep, read as trends, never as single days.</p>
       </div>
+
+      <SeasonCard />
+      <TravelGuide date={todayISO()} />
 
       <Card title="Weight" eyebrow={latest ? `7-day average ${d(latest.avg)} ${unit}` : 'No weigh-ins yet'}>
         <form className="mb-4 flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); const v = Number(w); if (v > 0) { actions.logWeight(wDate, fromDisplay(v, unit)); setW(''); } }}>
