@@ -19,6 +19,10 @@ export interface Profile {
   bigDay?: { label: string; date: string };
   /** Phases with dates: cut, travel, maintain. */
   season?: import('./season').Phase[];
+  /** Race times (m:ss) for the VO2 max estimate. */
+  races?: { mile?: string; k5?: string; k10?: string };
+  /** VO2 max from a watch or lab test, if you have one. */
+  vo2Measured?: number;
 }
 
 export type Targets = Record<NKey, number>;
@@ -333,5 +337,6 @@ export const DEFAULT_PROFILE: Profile = {
   exerciseKcal: 650,
   bodyFatPct: 10,
   glutenFree: true,
+  races: { mile: '4:57', k5: '17:17', k10: '36:55' },
 };
 

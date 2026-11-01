@@ -5,6 +5,7 @@ import { resolveItems, type State } from '@/store';
 import { PLANT_CATEGORIES } from '@/data/foods';
 import { vitalityScore } from './vitals';
 import { kcalForDate } from './season';
+import { trainingKcalOn } from './training';
 
 export interface DayResult {
   date: string;
@@ -31,7 +32,10 @@ export function dayResult(s: State, date: string): DayResult {
   const sleeps = sortByDate(s.sleeps).filter((e) => e.date <= date);
   const sleepEntry = sleeps.find((e) => e.date === date);
   const sleep = sleepEntry ? sleepScore(sleepEntry, sleeps.slice(-7)) : undefined;
-  const ea = kg && items.length ? energyAvailability(items.reduce((a, i) => a + (i.food.n.kcal * i.grams) / 100, 0), s.profile, kg) : undefined;
+  // Energy availability uses the day's actual training energy when sessions are logged.
+  const trainKcal = kg ? trainingKcalOn(s.training, date, kg) : undefined;
+  const eaProfile = trainKcal !== undefined ? { ...s.profile, exerciseKcal: trainKcal } : s.profile;
+  const ea = kg && items.length ? energyAvailability(items.reduce((a, i) => a + (i.food.n.kcal * i.grams) / 100, 0), eaProfile, kg) : undefined;
   const analysis = analyseDay(items, t, {
     sleepScore: sleep?.score,
     energyAvailability: ea,

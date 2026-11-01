@@ -26,7 +26,7 @@ export function defaultSeason(today: string): Phase[] {
     { id: 'cut1', name: 'Cut to France', kind: 'cut', start: today < `${year}-12-03` ? today : `${year}-11-01`, end: `${year}-12-02`, ratePct: -0.5 },
     { id: 'france', name: 'France', kind: 'travel', start: `${year}-12-03`, end: `${year}-12-05`, ratePct: 0 },
     { id: 'cut2', name: 'Christmas finish', kind: 'cut', start: `${year}-12-06`, end: `${year}-12-24`, ratePct: -0.5 },
-    { id: 'maintain', name: 'Recover & rebuild', kind: 'maintain', start: `${year}-12-25`, end: `${year + 1}-01-31`, ratePct: 0 },
+    { id: 'maintain', name: 'Recover & rebuild', kind: 'maintain', start: `${year}-12-25`, end: `${year + 1}-03-31`, ratePct: 0 },
   ];
 }
 

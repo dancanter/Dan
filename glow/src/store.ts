@@ -4,6 +4,8 @@ import { FOOD_BY_ID } from '@/data/foods';
 import { DEFAULT_PROFILE, type LoggedItem, type Meal, type Profile } from '@/engine/score';
 import type { SleepEntry, WeightEntry } from '@/engine/body';
 import type { Vitals } from '@/engine/vitals';
+import type { Session } from '@/engine/training';
+import type { BP } from '@/engine/health';
 
 // Everything lives in this browser's localStorage. Nothing is sent anywhere,
 // except food searches you choose to run against Open Food Facts.
@@ -35,12 +37,18 @@ export interface State {
   breathMinutes: Record<string, number>;
   /** Steps, minutes outdoors and morning resting HR, by date. */
   vitals: Record<string, Vitals>;
+  /** Runs, lifts and other sessions by date (synced from Strava or added by hand). */
+  training: Record<string, Session[]>;
+  bp: BP[];
+  /** Blood test results: marker key -> dated values. */
+  labs: { date: string; key: string; value: number }[];
+  stravaSyncedAt?: string;
 }
 
 const KEY = 'glow-state-v1';
 
 function initial(): State {
-  return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {} };
+  return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
 }
 
 function load(): State {
@@ -79,7 +87,7 @@ export function subscribe(fn: () => void): () => void {
 
 /** Replace everything, e.g. with data loaded from the cloud store. */
 export function replaceState(next: State) {
-  setState(() => ({ ...initial(), ...next, profile: { ...DEFAULT_PROFILE, ...next.profile }, vitals: next.vitals ?? {} }));
+  setState(() => ({ ...initial(), ...next, profile: { ...DEFAULT_PROFILE, ...next.profile }, vitals: next.vitals ?? {}, training: next.training ?? {}, bp: next.bp ?? [], labs: next.labs ?? [] }));
 }
 
 export function getState() {
@@ -187,6 +195,40 @@ export const actions = {
       for (const k of Object.keys(merged) as (keyof Vitals)[]) if (merged[k] === undefined || Number.isNaN(merged[k])) delete merged[k];
       return { ...s, vitals: { ...s.vitals, [date]: merged } };
     });
+  },
+  addSession(date: string, session: Session) {
+    setState((s) => ({ ...s, training: { ...s.training, [date]: [...(s.training[date] ?? []).filter((x) => x.id !== session.id), session] } }));
+  },
+  removeSession(date: string, id: string) {
+    setState((s) => ({ ...s, training: { ...s.training, [date]: (s.training[date] ?? []).filter((x) => x.id !== id) } }));
+  },
+  setSessionIntensity(date: string, id: string, intensity: Session['intensity']) {
+    setState((s) => ({ ...s, training: { ...s.training, [date]: (s.training[date] ?? []).map((x) => (x.id === id ? { ...x, intensity, intensitySet: true } : x)) } }));
+  },
+  /** Merge synced sessions, keeping any intensity you corrected by hand. */
+  mergeStrava(items: { date: string; session: Session }[], at: string) {
+    setState((s) => {
+      const training = { ...s.training };
+      for (const { date, session } of items) {
+        const day = training[date] ?? [];
+        const old = day.find((x) => x.id === session.id) as (Session & { intensitySet?: boolean }) | undefined;
+        const merged = old?.intensitySet ? { ...session, intensity: old.intensity, intensitySet: true } : session;
+        training[date] = [...day.filter((x) => x.id !== session.id), merged];
+      }
+      return { ...s, training, stravaSyncedAt: at };
+    });
+  },
+  logBP(entry: BP) {
+    setState((s) => ({ ...s, bp: [...s.bp.filter((b) => b.date !== entry.date), entry] }));
+  },
+  removeBP(date: string) {
+    setState((s) => ({ ...s, bp: s.bp.filter((b) => b.date !== date) }));
+  },
+  logLab(date: string, key: string, value: number) {
+    setState((s) => ({ ...s, labs: [...s.labs.filter((l) => !(l.date === date && l.key === key)), { date, key, value }] }));
+  },
+  removeLab(date: string, key: string) {
+    setState((s) => ({ ...s, labs: s.labs.filter((l) => !(l.date === date && l.key === key)) }));
   },
   addBreath(date: string, minutes: number) {
     setState((s) => ({ ...s, breathMinutes: { ...s.breathMinutes, [date]: (s.breathMinutes[date] ?? 0) + minutes } }));

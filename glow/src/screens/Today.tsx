@@ -17,6 +17,8 @@ import { describeQty } from '@/data/units';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
 import { Confetti } from '@/components/Confetti';
 import { coachLines, factFor } from '@/engine/coach';
+import { assessLoad } from '@/engine/training';
+import { sleepHours } from '@/engine/body';
 
 export function Today({ date, setDate }: { date: string; setDate: (d: string) => void }) {
   const s = useStore((x) => x);
@@ -33,7 +35,11 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
   const isToday = date === todayISO();
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const coach = coachLines(r, s.vitals ?? {}, { isToday, hour });
+  const load = useMemo(() => assessLoad(date, s.training ?? {}, { kg: r.weightKg ?? 57, vitals: s.vitals ?? {}, sleepHours: s.sleeps.filter((e) => e.date > addDays(date, -7) && e.date <= date).map(sleepHours), ea: r.ea, inDeficit: true }), [s, date, r.weightKg, r.ea]);
+  const coach = [
+    ...(load.level === 'too-much' || load.level === 'pushing' ? [{ emoji: load.level === 'too-much' ? '🛑' : '⚠️', tone: (load.level === 'too-much' ? 'alert' : 'nudge') as 'alert' | 'nudge', text: `Training load: ${load.headline.toLowerCase()}. ${load.actions[0] ?? ''} (Details in Body → Training.)` }] : []),
+    ...coachLines(r, s.vitals ?? {}, { isToday, hour }),
+  ].slice(0, 5);
   const celebrate = questDone ? `quest-${date}` : r.glow >= 80 ? `glow-${date}` : '';
 
   return (

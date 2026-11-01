@@ -385,3 +385,62 @@ describe('library data hygiene', () => {
     for (const f of FOODS) expect(f.alias === undefined || !/[.!?]$/.test(f.alias)).toBe(true);
   });
 });
+
+import { assessLoad, fromStrava, type Session } from '@/engine/training';
+import { addDays } from '@/engine/body';
+import { bpCategory, fitnessAge, glowAge, vdot, vo2FromRaces } from '@/engine/health';
+
+describe('VO2 max and health markers', () => {
+  it('matches Daniels VDOT for Dan’s races', () => {
+    expect(vdot(5000, 17 * 60 + 17)).toBeCloseTo(59.0, 0);
+    expect(vdot(10000, 36 * 60 + 55)).toBeCloseTo(57.1, 0);
+    const est = vo2FromRaces({ mile: '4:57', k5: '17:17', k10: '36:55' })!;
+    expect(est.vo2).toBeGreaterThan(58);
+    expect(est.vo2).toBeLessThan(60);
+    expect(fitnessAge(est.vo2)).toBe(18);
+    expect(fitnessAge(45)).toBe(25);
+  });
+
+  it('classifies blood pressure by NHS thresholds', () => {
+    expect(bpCategory(115, 72).label).toBe('Ideal');
+    expect(bpCategory(128, 78).label).toBe('Slightly raised');
+    expect(bpCategory(142, 85).label).toBe('High');
+    expect(bpCategory(88, 58).label).toBe('Low');
+  });
+
+  it('builds a transparent Glow age', () => {
+    const g = glowAge(25, { vo2: 59, rhr: 48, bp: { date: '2026-11-01', sys: 115, dia: 70 }, sleepAvg: 8.2 });
+    expect(g.age).toBeLessThan(25);
+    expect(g.lines).toHaveLength(4);
+  });
+});
+
+describe('training load', () => {
+  const run = (id: string, intensity: Session['intensity'], minutes = 40): Session => ({ id, source: 'manual', kind: 'run', name: id, minutes, km: 8, intensity });
+  const lift = (id: string): Session => ({ id, source: 'manual', kind: 'lift', name: 'lift', minutes: 60, intensity: 'moderate' });
+
+  it('maps Strava activities and guesses intensity from the name', () => {
+    const a = fromStrava({ id: '1', name: '800m x 6 subthreshold', sport_type: 'Run', start_local: '2026-10-28T15:40:11', summary: { distance: 4801.6, moving_time: 1012, total_calories: 342, avg_speed: 4.74 } });
+    expect(a.date).toBe('2026-10-28');
+    expect(a.session).toMatchObject({ kind: 'run', intensity: 'hard', minutes: 17, kcal: 342 });
+    expect(fromStrava({ id: '2', name: 'Easy 5 mile run', sport_type: 'Run', start_local: '2026-10-26T14:31:50', summary: { distance: 8041, moving_time: 2459 } }).session.intensity).toBe('easy');
+    expect(fromStrava({ id: '3', name: 'Push day', sport_type: 'WeightTraining', start_local: '2026-10-26T09:00:00', summary: { moving_time: 3600 } }).session.kind).toBe('lift');
+  });
+
+  it('calls a sensible week balanced and a stacked week too much', () => {
+    const base = '2026-11-30';
+    const sensible: Record<string, Session[]> = {};
+    const stacked: Record<string, Session[]> = {};
+    for (let i = 0; i < 28; i++) {
+      const d = addDays(base, -i);
+      const wd = i % 7;
+      sensible[d] = wd === 1 || wd === 4 ? [run(`q${i}`, 'hard')] : wd === 0 ? [] : [run(`e${i}`, 'easy'), ...(wd % 2 ? [lift(`l${i}`)] : [])];
+      stacked[d] = i < 7 ? [run(`h${i}`, 'hard', 60), lift(`L${i}`)] : wd % 2 ? [run(`e${i}`, 'easy', 30)] : [];
+    }
+    const ctx = { kg: 57, vitals: {}, sleepHours: [8, 8.5, 8], inDeficit: true };
+    expect(assessLoad(base, sensible, ctx).level).toBe('balanced');
+    const bad = assessLoad(base, stacked, { ...ctx, ea: 24 });
+    expect(bad.level).toBe('too-much');
+    expect(bad.reasons.length).toBeGreaterThan(2);
+  });
+});

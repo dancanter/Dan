@@ -4,9 +4,12 @@ import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, from
 import { actions, useStore } from '@/store';
 import { rhrAnalysis } from '@/engine/vitals';
 import { SeasonCard, TravelGuide } from '@/components/Season';
-import { Bar, Button, Card, LineChart, Pill } from '@/components/ui';
+import { Bar, Button, Card, LineChart, Pill, Segmented } from '@/components/ui';
+import { TrainingPanel } from '@/components/TrainingPanel';
+import { HealthPanel } from '@/components/HealthPanel';
 
 export function Body() {
+  const [tab, setTab] = useState<'weight' | 'training' | 'health'>(() => (location.hash === '#training' ? 'training' : 'weight'));
   const s = useStore((x) => x);
   const unit = s.profile.unit;
   const weights = sortByDate(s.weights);
@@ -30,12 +33,21 @@ export function Body() {
   const goal = s.profile.goalWeightKg;
   const d = (x: number) => toDisplay(x, unit).toFixed(1);
 
-  return (
-    <div className="space-y-4">
+  const header = (
+    <>
       <div>
         <h1 className="font-serif text-2xl">Body</h1>
-        <p className="text-sm text-ink-2">Weight and sleep, read as trends, never as single days.</p>
+        <p className="text-sm text-ink-2">Weight, sleep, training load and health markers, read as trends, never as single days.</p>
       </div>
+      <Segmented value={tab} onChange={setTab} options={[{ value: 'weight', label: 'Weight & sleep' }, { value: 'training', label: 'Training' }, { value: 'health', label: 'Health age' }]} />
+    </>
+  );
+  if (tab === 'training') return <div className="space-y-4">{header}<TrainingPanel /></div>;
+  if (tab === 'health') return <div className="space-y-4">{header}<HealthPanel /></div>;
+
+  return (
+    <div className="space-y-4">
+      {header}
 
       <SeasonCard />
       <TravelGuide date={todayISO()} />
