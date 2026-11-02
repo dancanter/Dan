@@ -37,7 +37,7 @@ export function bingeDates(s: State): string[] {
 }
 
 /** What to do straight after: the opposite of compensating. */
-export function afterBinge(log: BingeLog, s: State, date: string): string[] {
+export function afterBinge(log: BingeLog, _s?: State, _date?: string): string[] {
   const extra = BINGE_KCAL[log.size];
   const fatG = Math.round((extra / 7700) * 1000);
   return [
