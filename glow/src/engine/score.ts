@@ -29,6 +29,8 @@ export interface Profile {
   bloatProne?: boolean;
   /** Start dates of deload weeks you’ve taken. */
   deloads?: string[];
+  /** Your usual times: walk/run and gym (HH:MM). */
+  routine?: { run: string; gym: string };
   /** The day you hit goal weight and began adding calories back (+100 kcal a week). */
   reverseFrom?: string;
 }
@@ -297,7 +299,7 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
     warnings.push({ level: 'danger', text: `Energy availability about ${Math.round(ctx.energyAvailability)} kcal/kg fat-free mass, which is in the low zone (under 30). This is what suppresses hormones, sleep and skin quality. Add 200–400 kcal, mostly carbohydrate around training.` });
 
   // Meal-level absorption checks: what you eat together matters.
-  const MEAL_LABEL: Record<Meal, string> = { breakfast: 'breakfast', lunch: 'lunch', dinner: 'dinner', snacks: 'snacks' };
+  const MEAL_LABEL: Record<Meal, string> = { breakfast: 'breakfast', lunch: 'your 2pm meal', dinner: 'your post-gym meal', snacks: 'your pre-gym meal' };
   for (const meal of ['breakfast', 'lunch', 'dinner', 'snacks'] as Meal[]) {
     const its = items.filter((i) => i.meal === meal);
     if (!its.length) continue;

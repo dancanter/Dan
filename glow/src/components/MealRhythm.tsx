@@ -15,7 +15,7 @@ export function MealRhythm({ items, kg }: { items: LoggedItem[]; kg: number }) {
     return { ...m, protein: its.reduce((a, i) => a + (i.food.n.protein * i.grams) / 100, 0), any: its.length > 0 };
   }).filter((m) => m.any);
   const hits = meals.filter((m) => m.protein >= dose - 3).length;
-  const casein = items.some((i) => i.meal === 'snacks' && /greek|skyr|cottage|quark|kefir|milk/i.test(i.food.name));
+  const casein = items.some((i) => i.meal === 'dinner' && /greek|skyr|cottage|quark|kefir|milk/i.test(i.food.name));
   if (!items.length) return null;
   return (
     <Card eyebrow="How often to eat" title={<span>Protein rhythm: <span className="num">{hits}</span> of 4 feedings</span>} action={<Pill tone={hits >= 4 ? 'good' : hits >= 3 ? 'sea' : 'warn'}>{hits >= 4 ? 'ideal' : hits >= 3 ? 'good' : 'add one'}</Pill>}>
@@ -32,9 +32,9 @@ export function MealRhythm({ items, kg }: { items: LoggedItem[]; kg: number }) {
         })}
       </div>
       <ul className="mt-3 space-y-1.5 text-sm text-ink-2">
-        <li>• <b>3 meals + 1–2 planned snacks</b> suits you best: 4 protein feedings of about <b>{dose}–{dose + 10} g</b>, roughly 3–5 hours apart. That’s the pattern trials show maximises muscle protein building, which matters more on a cut.</li>
-        <li>• <b>Before bed:</b> Greek yoghurt, skyr or cottage cheese (slow casein protein) helps overnight repair.{casein ? ' ✓ You had one today.' : ''}</li>
-        <li>• <b>Around runs:</b> a carb-based snack 1–3 hours before quality sessions (banana, rice cakes, oats), then a protein and carb meal within a couple of hours after.</li>
+        <li>• <b>Your rhythm is already close to ideal:</b> breakfast, 2pm, pre-gym and post-gym gives 4 protein feedings, 3–5 hours apart. Aim for <b>{dose}–{dose + 10} g</b> protein in each. That’s the pattern trials show maximises muscle protein building, which matters more on a cut.</li>
+        <li>• <b>The one weak spot:</b> breakfast to 2pm can be 6+ hours. That’s fine for an easy walk or run, but before a quality run add a small carb snack 60–90 minutes before (a banana, or 2 Kallo cakes with 1 tsp honey).</li>
+        <li>• <b>Pre-gym (5:30–6):</b> protein plus easy carbs, light on fat and fibre. <b>Post-gym:</b> your biggest meal. It’s close enough to bed to double as your overnight protein, so you don’t need a separate pre-bed snack.{casein ? ' ✓ Dairy protein in it today.' : ''}</li>
         <li>• <b>Overnight:</b> a natural 12-hour gap (say 8pm to 8am) is plenty. Longer fasting adds little and makes fuelling 7+ sessions a week harder.</li>
         <li>• <b>Frequency doesn’t speed up metabolism.</b> 3 meals or 6 gives the same fat loss for the same calories. Pick what keeps you least hungry.</li>
       </ul>

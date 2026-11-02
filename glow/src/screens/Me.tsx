@@ -4,6 +4,7 @@ import { ageOn, daysBetween, fromDisplay, todayISO, toDisplay } from '@/engine/b
 import { RANKS, badges, rankFor, xpTotal } from '@/engine/game';
 import { actions, getState, useStore } from '@/store';
 import { Bar, Button, Card } from '@/components/ui';
+import { DEFAULT_ROUTINE } from '@/engine/dayplan';
 import { PhaseCompareCard, WeeklyReviewCard } from '@/components/Review';
 import { inClaude, saveBackup, useCloudStatus } from '@/cloud';
 
@@ -73,6 +74,8 @@ export function Me() {
           <Field label="Training energy (kcal/day avg)"><input className="field num" inputMode="numeric" defaultValue={p.exerciseKcal} onBlur={(e) => actions.setProfile({ exerciseKcal: num(e.target.value) })} /></Field>
           <Field label="Body fat % (estimate)"><input className="field num" inputMode="decimal" defaultValue={p.bodyFatPct} onBlur={(e) => num(e.target.value) && actions.setProfile({ bodyFatPct: num(e.target.value) })} /></Field>
           <Field label={`Goal weight (${p.unit})`}><input className="field num" inputMode="decimal" defaultValue={p.goalWeightKg ? toDisplay(p.goalWeightKg, p.unit).toFixed(1) : ''} placeholder="e.g. 123" onBlur={(e) => actions.setProfile({ goalWeightKg: num(e.target.value) ? fromDisplay(num(e.target.value), p.unit) : undefined })} /></Field>
+          <Field label="Usual walk/run time"><input className="field num" type="time" defaultValue={p.routine?.run ?? DEFAULT_ROUTINE.run} onBlur={(e) => e.target.value && actions.setProfile({ routine: { ...(p.routine ?? DEFAULT_ROUTINE), run: e.target.value } })} /></Field>
+          <Field label="Usual gym time"><input className="field num" type="time" defaultValue={p.routine?.gym ?? DEFAULT_ROUTINE.gym} onBlur={(e) => e.target.value && actions.setProfile({ routine: { ...(p.routine ?? DEFAULT_ROUTINE), gym: e.target.value } })} /></Field>
           <Field label="Gluten"><label className="field flex items-center gap-2"><input type="checkbox" checked={p.glutenFree} onChange={(e) => actions.setProfile({ glutenFree: e.target.checked })} />Gluten-free mode</label></Field>
           <Field label="Digestion"><label className="field flex items-center gap-2"><input type="checkbox" checked={!!p.bloatProne} onChange={(e) => actions.setProfile({ bloatProne: e.target.checked })} />I get bloated easily</label></Field>
           <Field label="Sun protection"><label className="field flex items-center gap-2"><input type="checkbox" checked={!!p.dailySpf} onChange={(e) => actions.setProfile({ dailySpf: e.target.checked })} />SPF50 every day</label></Field>

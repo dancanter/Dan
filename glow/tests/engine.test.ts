@@ -740,13 +740,20 @@ describe('today’s plan', () => {
     expect(p.items[0].time).toBe('07:00');
     expect(p.items.at(-1)!.title).toBe('Lights out');
     expect(p.items.at(-1)!.time).toBe('22:15');
-    expect(p.items.some((i) => i.title.startsWith('Daylight walk'))).toBe(true);
+    expect(p.items.some((i) => i.title.startsWith('Morning daylight'))).toBe(true);
+    const order = p.items.map((i) => i.title);
+    expect(order.indexOf('Meal 1: breakfast')).toBeLessThan(order.indexOf('Meal 2: after your walk or run'));
+    expect(order.indexOf('Meal 3: pre-gym')).toBeLessThan(order.indexOf('Gym'));
+    expect(p.items.find((i) => i.title === 'Gym')!.time).toBe('18:00');
+    expect(p.items.find((i) => i.title === 'Meal 4: post-gym dinner')!.time).toBe('19:40');
   });
   it('turns training into rest when the coach calls it, and walking in France', () => {
     const s = st();
     for (let d = 1; d <= 10; d++) s.vitals[`2026-11-${String(d).padStart(2, '0')}`] = { rhr: 48 };
     s.vitals['2026-11-11'] = { rhr: 58 };
-    expect(dayPlan(s, '2026-11-11').items.some((i) => i.title === 'Full rest day')).toBe(true);
+    const restDay = dayPlan(s, '2026-11-11').items;
+    expect(restDay.some((i) => i.title === 'Easy walk only')).toBe(true);
+    expect(restDay.some((i) => i.title.startsWith('Gym'))).toBe(false);
     s.profile.season = defaultSeason('2026-11-02');
     expect(dayPlan(s, '2026-12-04').items.some((i) => i.title === 'Explore on foot')).toBe(true);
   });

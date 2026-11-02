@@ -24,14 +24,15 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export const MEALS: { value: Meal; label: string }[] = [
   { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-  { value: 'snacks', label: 'Snacks' },
+  { value: 'lunch', label: '2pm (after walk/run)' },
+  { value: 'snacks', label: 'Pre-gym' },
+  { value: 'dinner', label: 'Post-gym' },
 ];
 
 export function defaultMeal(): Meal {
   const h = new Date().getHours();
-  return h < 11 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks';
+  // Dan's day: breakfast on waking, 2pm after the walk/run, pre-gym 5:30–6, post-gym ~7:30.
+  return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 19 ? 'snacks' : 'dinner';
 }
 
 export type Qty = { count: number; label: string; plural?: string };
