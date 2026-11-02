@@ -14,6 +14,7 @@ export const FEELINGS: Feeling[] = [
   { id: 'hungry', label: 'Really hungry', emoji: '🍽️' },
   { id: 'bored-eating', label: 'Want to eat out of boredom', emoji: '🍪' },
   { id: 'cravings', label: 'Craving something sweet', emoji: '🍫' },
+  { id: 'urge-binge', label: 'Urge to binge', emoji: '🌊' },
   { id: 'lazy', label: 'Lazy / unmotivated', emoji: '🛋️' },
   { id: 'tired', label: 'Tired / drained', emoji: '🥱' },
   { id: 'stressed', label: 'Stressed', emoji: '😤' },
@@ -48,6 +49,17 @@ export function adviceFor(id: string, s: State, date: string): { headline: strin
       steps.push('Drink a large glass of water. Thirst often reads as hunger, especially after training.');
       if (lastSleep !== undefined && lastSleep < 7) steps.push(`You slept ${lastSleep.toFixed(1)} h. Short sleep raises the hunger hormone ghrelin and lowers leptin. Expect more hunger today and plan an early night.`);
       return { headline: 'Hungry on a cut: fuel it smartly', steps };
+    }
+    case 'urge-binge': {
+      const steps: string[] = [];
+      if (items.length && kcal < target - 400) steps.push(`First, the honest check: you’re at ${kcal} of ${target} kcal. Some of this urge is real hunger. Eat a proper planned meal now (protein + carbs), and the urge usually halves.`);
+      if (y.ea !== undefined && y.ea < 30) steps.push('Yesterday was under-fuelled (energy availability under 30). Binge urges after low days are biology, not weakness. Eat your full target today.');
+      steps.push('Surf the urge: urges rise, peak and fade within about 10–20 minutes if you don’t feed them. Set a 15-minute timer and leave the kitchen.');
+      steps.push('While it runs: a walk outside, a shower, call someone, or 10 slow breaths (out longer than in). Anything that takes your hands and attention.');
+      steps.push('Still want it after 15 minutes? Have a planned portion on purpose: 50 g oats with 1 tsp raw honey and berries, or a Fage pot with fruit and cinnamon. Weigh it, put the packet away, eat it sitting down, slowly.');
+      steps.push('Go easy on sweetener drops in that bowl: very sweet, unlimited-volume food is what keeps a binge going.');
+      if (lastSleep !== undefined && lastSleep < 7) steps.push(`You slept ${lastSleep.toFixed(1)} h: short sleep makes sweet food more rewarding. An early night tonight makes tomorrow easier.`);
+      return { headline: 'The urge will pass: ride it out, then eat on purpose', steps, note: 'If it happens anyway, log it in “Had a binge?” on Today. No judgement, it’s just data for spotting your pattern.' };
     }
     case 'bored-eating':
       return { headline: 'Boredom, not hunger: give your brain what it’s actually asking for', steps: [

@@ -21,6 +21,7 @@ const ALIASES: [RegExp, string][] = [
   [/\bsalmon\b(?!.*(farm|tin|can|roe|sushi))/, 'salmon-wild'],
   [/\b(mince|ground beef|beef)\b(?!.*(liver|heart|kidney|tallow|broth))/, 'beef-mince-lean'],
   [/\bsteak\b/, 'sirloin'],
+  [/\bhoney\b(?!.*(roll|sausage|mustard|ham|glaze))/, 'uk-raw-honey'],
   [/\b(yog(h)?urt|greek)\b(?!.*0)/, 'greek-yogurt'],
   [/\beggs?\b(?!.*(duck|quail))/, 'eggs'],
   [/\bliver\b(?!.*(chicken|lamb|cod))/, 'beef-liver'],
@@ -108,16 +109,18 @@ function parseChunk(chunk: string, foods: Food[]): ParsedItem {
   let s = normalise(chunk);
   let grams: number | undefined;
   let count: number | undefined;
+  let spoon: { n: number; tsp: boolean } | undefined;
 
   const g = s.match(/(\d+(?:\.\d+)?)\s*(kg|g|grams?|ml)\b/);
   if (g) {
     grams = Number(g[1]) * (g[2] === 'kg' ? 1000 : 1);
     s = s.replace(g[0], ' ');
   } else {
-    const spoon = s.match(/(\d+(?:\.\d+)?)?\s*(tbsp|tablespoons?|tsp|teaspoons?)\b/);
-    if (spoon) {
-      grams = (spoon[1] ? Number(spoon[1]) : 1) * (/^(tsp|teaspoon)/.test(spoon[2]) ? 5 : 12);
-      s = s.replace(spoon[0], ' ');
+    const spoon_ = s.match(/(\d+(?:\.\d+)?)?\s*(tbsp|tablespoons?|tsp|teaspoons?)\b/);
+    if (spoon_) {
+      spoon = { n: spoon_[1] ? Number(spoon_[1]) : 1, tsp: /^(tsp|teaspoon)/.test(spoon_[2]) };
+      grams = spoon.n * (spoon.tsp ? 5 : 12);
+      s = s.replace(spoon_[0], ' ');
     } else {
       const n = s.match(/^(\d+(?:\.\d+)?)\s*x?\s+/) ?? s.match(/\s(\d+(?:\.\d+)?)$/);
       if (n) {
@@ -138,6 +141,11 @@ function parseChunk(chunk: string, foods: Food[]): ParsedItem {
 
   const food = searchFoods(s, foods, 1)[0];
   let qty: ParsedItem['qty'];
+  // Spoons of a food with its own spoon units (honey is denser than water: 7 g a teaspoon).
+  if (food && spoon) {
+    const u = unitsFor(food).find((x) => x.label === (spoon!.tsp ? 'tsp' : 'tbsp'));
+    if (u) { grams = u.g * spoon.n; qty = { count: spoon.n, label: u.label, plural: u.plural }; }
+  }
   if (food && grams === undefined) {
     const units = unitsFor(food);
     const unit = (size && units.find((u) => u.label.startsWith(size))) || defaultUnit(food);

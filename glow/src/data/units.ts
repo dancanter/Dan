@@ -61,6 +61,8 @@ export const UNITS: Record<string, Unit[]> = {
   'gf-bread': one('slice', 'slices', 35),
   'rice-cakes': one('rice cake', 'rice cakes', 8),
   // 20 kcal per cake at about 380 kcal per 100 g.
+  'uk-raw-honey': [{ label: 'tsp', plural: 'tsp', g: 7, default: true }, { label: 'tbsp', plural: 'tbsp', g: 21 }],
+  honey: [{ label: 'tsp', plural: 'tsp', g: 7, default: true }, { label: 'tbsp', plural: 'tbsp', g: 21 }],
   'uk-kallo-lentil': one('lentil cake', 'lentil cakes', 5.3),
   'uk-clarence-eggs': EGG_SIZES,
   'uk-fage-0': one('pot (170 g)', 'pots', 170),
@@ -74,9 +76,9 @@ export const UNITS: Record<string, Unit[]> = {
   'dark-choc-70': one('square', 'squares', 10),
   whey: one('scoop', 'scoops', 30),
   'collagen-powder': one('scoop', 'scoops', 10),
-  evoo: [{ label: 'tbsp', plural: 'tbsp', g: 10, default: true }, { label: 'tsp', plural: 'tsp', g: 4 }],
+  evoo: [{ label: 'tbsp', plural: 'tbsp', g: 13.5, default: true }, { label: 'tsp', plural: 'tsp', g: 4.5 }],
   butter: [{ label: 'tsp', plural: 'tsp', g: 5, default: true }, { label: 'tbsp', plural: 'tbsp', g: 14 }],
-  'beef-tallow': one('tbsp', 'tbsp', 10),
+  'beef-tallow': one('tbsp', 'tbsp', 13),
   garlic: one('clove', 'cloves', 3),
 };
 

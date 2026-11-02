@@ -27,6 +27,8 @@ export interface DayLog {
   refeed?: boolean;
   /** How you said you felt (ids from the feelings list). */
   feelings?: string[];
+  /** Binges logged today (no judgement: it's for spotting patterns). */
+  binges?: import('./engine/binge').BingeLog[];
   /** Ill today: what and how bad. */
   ill?: import('./engine/illness').IllLog;
   /** Optional daily ideas you did. */
@@ -195,6 +197,12 @@ export const actions = {
       if (list === 'seen' && !cur.includes(id)) next.watchlist = next.watchlist.filter((x) => x !== id);
       return { ...s, films: next };
     });
+  },
+  addBinge(date: string, b: import('./engine/binge').BingeLog) {
+    setState((s) => { const d = day(s, date); return { ...s, days: { ...s.days, [date]: { ...d, binges: [...(d.binges ?? []), b] } } }; });
+  },
+  removeBinge(date: string, i: number) {
+    setState((s) => { const d = day(s, date); const b = (d.binges ?? []).filter((_, k) => k !== i); return { ...s, days: { ...s.days, [date]: { ...d, binges: b.length ? b : undefined } } }; });
   },
   setIll(date: string, ill: import('./engine/illness').IllLog | undefined) {
     setState((s) => ({ ...s, days: { ...s.days, [date]: { ...day(s, date), ill } } }));

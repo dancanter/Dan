@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { IllnessCard } from '@/components/Illness';
+import { BingeCard } from '@/components/Binge';
 import { Trash2 } from 'lucide-react';
 import { ageOn, bmi, energyAvailability, estimatedMaintenance, fatFreeMass, fromDisplay, prettyDate, rolling, sleepHours, sleepScore, sortByDate, todayISO, toDisplay, weeklyRate } from '@/engine/body';
 import { actions, useStore } from '@/store';
@@ -160,6 +161,7 @@ export function Body() {
           </ul>
         </div>
       </Card>
+      <BingeCard />
     </div>
   );
 }

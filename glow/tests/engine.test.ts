@@ -113,7 +113,7 @@ describe('typing what you ate', () => {
   it('understands spoons and words', () => {
     const r = parseEntry('1 tbsp olive oil; two kiwis', ALL_FOODS);
     expect(r[0].food?.id).toBe('evoo');
-    expect(r[0].grams).toBe(12);
+    expect(r[0].grams).toBe(13.5);
     expect(r[1].food?.id).toBe('kiwi');
     expect(r[1].grams).toBe(150);
   });
@@ -854,5 +854,34 @@ describe('illness log', async () => {
     s.days['2026-11-10'] = { items: [], rituals: [], ill: { kind: 'cold', severity: 1 } };
     expect(rc(s, '2026-11-10', 56).kind).toBe('none');
     expect(ec(s, '2026-11-10', 56).kind).toBe('ease');
+  });
+});
+
+describe('binges and honey', async () => {
+  const { bingeStats, afterBinge } = await import('@/engine/binge');
+  const { noisyDates: nd, refeedCall: rf } = await import('@/engine/calls');
+  const { initial } = await import('@/store');
+  const { defaultSeason: ds } = await import('@/engine/season');
+  const { FOOD_BY_ID } = await import('@/data/foods');
+  const { unitsFor } = await import('@/data/units');
+  it('counts binges, finds triggers, and marks the next weigh-ins as noise', () => {
+    const s = initial();
+    s.profile = { ...s.profile, season: ds('2026-11-02') };
+    for (const d of ['2026-11-05', '2026-11-12']) s.days[d] = { items: [], rituals: [], binges: [{ kind: 'yoghurt', size: 2, when: 'evening', triggers: ['restricted', 'sweet'] }] };
+    const st = bingeStats(s, '2026-11-14');
+    expect(st.month).toBe(2);
+    expect(st.daysSince).toBe(2);
+    expect(st.triggers[0].count).toBe(2);
+    expect(st.plan.some((p) => p.includes('sweetener'))).toBe(true);
+    expect(st.flag).toBeUndefined();
+    expect(nd(s).has('2026-11-13')).toBe(true);
+    expect(rf(s, '2026-11-14').why.some((w) => w.includes('binges'))).toBe(true);
+    expect(afterBinge(s.days['2026-11-05'].binges![0], s, '2026-11-05')[1]).toMatch(/compensate/);
+  });
+  it('has raw local honey by the teaspoon', () => {
+    const h = FOOD_BY_ID.get('uk-raw-honey')!;
+    expect(h.name).toBe('Raw local honey');
+    expect(unitsFor(h)[0]).toMatchObject({ label: 'tsp', g: 7 });
+    expect(Math.round(h.n.kcal * 0.07)).toBe(21);
   });
 });

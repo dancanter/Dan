@@ -13,7 +13,7 @@ import { resolveItems, type State } from '@/store';
 export function noisyDates(s: State): Set<string> {
   const out = new Set<string>();
   for (const [d, log] of Object.entries(s.days)) {
-    if (log.refeed) { out.add(addDays(d, 1)); out.add(addDays(d, 2)); }
+    if (log.refeed || log.binges?.length) { out.add(addDays(d, 1)); out.add(addDays(d, 2)); }
   }
   return out;
 }
@@ -54,6 +54,8 @@ export function refeedCall(s: State, date: string): Call {
   if (sleeps.length >= 3 && sleeps.reduce((a, b) => a + b, 0) / sleeps.length < 7) why.push('Sleep has dropped below 7 hours on average (a common sign of a deficit biting).');
   const h = rhrAnalysis(date, s.vitals ?? {});
   if (h.delta !== undefined && h.delta >= 5) why.push(`Morning heart rate is up ${h.delta} bpm on your baseline.`);
+  const binges = Array.from({ length: 14 }, (_, i) => s.days[addDays(date, -i)]?.binges?.length ?? 0).reduce((a, b) => a + b, 0);
+  if (binges >= 2) why.push(`${binges} binges in the last 2 weeks: often a sign the deficit is biting. A planned refeed usually prevents unplanned ones.`);
   const due = since >= 12;
   if (due) why.unshift(`It’s been ${since} days since your last refeed.`);
   if (!due && why.length < 2) return { kind: 'none', title: '', why: [], how: [] };
