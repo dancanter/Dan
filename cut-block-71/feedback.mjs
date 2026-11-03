@@ -83,9 +83,13 @@ ok('no day off in 8 days: next day fully off', c.rest.k === 'day' || c.rest.k ==
 
 // ===== lots of strain at once: an easy week, taken by a tap =====
 d = clean(); for (let i = 0; i < 12; i++) { d[iso(i)].gym = true; d[iso(i)].sleep = 6.2; d[iso(i)].mood = 2; }
-for (const i of [0, 1, 2]) { d[iso(i)].niggle = true; d[iso(i)].niggleWhat = 'calf'; }
 await boot(st({ weights: fast, days: d }));
 c = await C();
+{ const d2 = clean(); for (const i of [0, 1, 2]) { d2[iso(i)].niggle = true; d2[iso(i)].niggleWhat = 'calf'; }
+  for (let i = 0; i < 12; i++) { d2[iso(i)].gym = true; d2[iso(i)].sleep = 6.2; }
+  await boot(st({ weights: good, days: d2 })); const c2 = await C();
+  ok('something that keeps hurting calls a run-free week (3 Nov)', c2.rest.k === 'walkweek' && /run-free week/.test(c2.rest.t), JSON.stringify(c2.rest));
+  await boot(st({ weights: fast, days: d })); c = await C(); }
 ok('many strains at once: take an easy week', c.rest.k === 'week' && /Take an easy week/.test(c.rest.t) && /Not a scheduled one/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
 await p.click('[data-t="feedback"]'); await p.waitForTimeout(100);
 await p.click('#btnEasyWk'); await p.waitForTimeout(150);

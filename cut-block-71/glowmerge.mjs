@@ -84,6 +84,13 @@ L = await p.evaluate(() => { const r = S.days['2026-11-03'], y = S.days['2026-11
 ok('after 21 sets of legs the hard run waits a day', L.c === 'amber' && /big legs day yesterday \(21 sets\)/.test(L.w), JSON.stringify(L));
 ok('and the paces are on the Camp tab', await p.evaluate(() => /Hard: long reps/.test(paceGuideHTML(false)) && /Jan → Mar/.test(paceGuideHTML(false))));
 
+// ---- when not to run: a run-free week (3 Nov) ---------------------------------
+L = await p.evaluate(() => { const keep = JSON.stringify(S); ['2026-10-25', '2026-10-30'].forEach((d) => { S.days[d] = Object.assign(S.days[d] || {}, { ill: { kind: 'cold', severity: 1 } }); });
+  const r = S.days['2026-11-03'], ill = r.ill; delete r.ill; const c = coachModel().rest.k, g = greenLight().t;
+  S.settings.walkFrom = '2026-11-03'; const on = coachModel().rest.k, g2 = greenLight().t; Object.assign(S, JSON.parse(keep)); return { c, g, on, g2 }; });
+ok('two sick days in a fortnight calls a run-free week', L.c === 'walkweek' && /run-free week/.test(L.g), JSON.stringify(L));
+ok('and once started, today is walk, steps and gym', L.on === 'walkon' && /Run-free week — walk, steps and gym/.test(L.g2), JSON.stringify(L));
+
 // ---- 📓 journal ------------------------------------------------------------------
 await p.click('#btJournal'); await p.waitForTimeout(200);
 await p.click('button[data-jr="mood"][data-n="4"]'); await p.click('button[data-jr="energy"][data-n="3"]');

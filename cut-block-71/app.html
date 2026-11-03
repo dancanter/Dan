@@ -3580,7 +3580,7 @@ function weekRunsModel(){
      flagging rest, legs or overtraining, one hard run only — the short one */
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
   /* an easy week he chose to take on the Feedback tab */
-  if(easyWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
+  if(easyWeekOn(t)||walkWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
   /* the push: one hard run (the shorter) and two Norwegian runs */
   var pushNow=pushOn(t);
   /* a physique push keeps the 600 m+ run and drops the speed run */
@@ -4079,6 +4079,8 @@ function greenLight(){
   if(r.ill){var below=['flu','chest','stomach'].indexOf(r.ill.kind)>=0;
     if(below||r.ill.severity>=3)return {c:'red',e:'🔴',t:'Sick day — no run, no gym',sub:'Rest is the training today',w:'Below the neck (fever, chest or stomach) or properly unwell: training now makes it last longer. Fluids, food, sleep. Back when you have been symptom-free for a day.',todo:RECOVERY_DAY};
     return {c:'amber',e:'🟡',t:'Easy only — you are under the weather',sub:'A walk or a gentle easy run if you feel up to it',w:'Above the neck and mild: easy movement is fine, nothing hard. If it moves to your chest or you get a temperature, stop.'};}
+  if(C.rest.k==='walkon')return {c:'amber',e:'🚶',t:'Run-free week — walk, steps and gym',sub:C.rest.t.replace('Run-free week — ',''),w:C.rest.w};
+  if(C.rest.k==='walkweek')return {c:'amber',e:'🚶',t:'No run today — I suggest a run-free week',sub:'Start it from Home or the Feedback tab',w:C.rest.w};
   if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:C.rest.k==='week'?'Easy week — recovery first':'Recovery day today',sub:C.rest.t,w:(C.rest.w||''),todo:RECOVERY_DAY};
   if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
     w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night. ☕ One coffee, with breakfast, before 11.'};
@@ -4175,6 +4177,8 @@ function wireGlance(){
    going well, and at most three suggestions. Simple, in his words. */
 var EASY_WK_DAYS=7;
 function easyWeekOn(t){var f=S.settings.easyFrom;return !!(f&&f<=t&&diffD(f,t)<EASY_WK_DAYS);}
+/* Dan, 3 Nov: "factor in when I shouldn't run, or need a week of just steps, walking and gym" */
+function walkWeekOn(t){var f=S.settings.walkFrom;return !!(f&&f<=t&&diffD(f,t)<EASY_WK_DAYS);}
 function coachModel(){
   var t=today(),i,d,rec,R=rhrModel(),NG=niggleModel(),w=weightModel(),ST=weekStatus();
   var o={sessDays:0,runs:0,hard:0,easy:0,five:0,gym:0,heavy14:0,steps:[],sl:[],mood:[],study:0,deep:0,phone:0,slN:0,def:0,defN:0,lastOff:null};
@@ -4200,6 +4204,15 @@ function coachModel(){
     var x=tdeeFor(d);if(typeof rec.kcal==='number'){o.def+=x.deficit;o.defN++;}
   }
   if(o.lastOff===null)o.lastOff=Math.min(14,diffD(CFG.cutStart,t)+1);
+  /* more signals (3 Nov): journal energy, sick days, binges, leg volume, run load from Strava */
+  var X={en:[],ill:0,bin:0,legs:0,km7:0,km28:0};
+  for(i=0;i<28;i++){d=addD(t,-i);rec=S.days[d]||{};
+    var km=0;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty)km+=m.km||0;});
+    if(i<7)X.km7+=km;else X.km28+=km;
+    if(i<14&&rec.ill)X.ill++;
+    if(i<7){if(rec.journal&&rec.journal.energy)X.en.push(rec.journal.energy);X.bin+=(rec.binges||[]).length;}}
+  var wsL=mondayOf(t);for(i=0;i<7;i++){rec=S.days[addD(wsL,i)]||{};X.legs+=(rec.sets&&+rec.sets.Legs)||0;}
+  var kmAvg=X.km28/3,enAvg=X.en.length>=3?mean(X.en):null;
   var slAvg=o.sl.length>=3?mean(o.sl):null,stAvg=o.steps.length>=3?mean(o.steps):null,moodAvg=o.mood.length>=3?mean(o.mood):null;
   /* weeks since the last easy week: a finished week with at most one hard
      run and three gym sessions counts, and so does one he chose to take */
@@ -4224,11 +4237,22 @@ function coachModel(){
   if(o.lastOff>=10)add(1,'no full day off in '+o.lastOff+' days');
   if(stAvg!==null&&stAvg>16500&&o.runs>=5)add(1,'big steps on top of '+o.runs+' runs');
   if(sinceEasy>=6)add(1,sinceEasy+' hard weeks since your last easy one');
+  if(enAvg!==null&&enAvg<=2.5)add(1,'your journal energy is averaging '+enAvg.toFixed(1)+' out of 5');
+  if(X.ill>=2)add(2,X.ill+' sick days in the last fortnight');else if(X.ill)add(1,'a sick day in the last fortnight');
+  if(X.bin>=2)add(1,X.bin+' binges this week, usually a sign of too little fuel for the training');
+  if(X.legs>16)add(1,X.legs+' sets of legs this week on top of the running');
+  if(kmAvg>=3&&X.km7>kmAvg*1.4)add(1,'running '+f1(X.km7)+' km this week against your usual '+f1(kmAvg));
+  try{var FN=paceGuide().form.N;if(FN!==null&&FN<0.94)add(1,'Norwegian runs going much faster than planned, so even the easy sessions are hard');}catch(e){}
   /* the rest call */
   var rest;
-  if(easyWeekOn(t)){
+  if(walkWeekOn(t)){
+    var leftW=EASY_WK_DAYS-diffD(S.settings.walkFrom,t);
+    rest={k:'walkon',t:'Run-free week — '+leftW+' day'+(leftW===1?'':'s')+' to go',w:'No runs. Walk every day: 12–13k steps, 10,500 or so on Saturday. Gym as normal with your usual sets, but nothing to failure and no strength challenge. Food stays exactly the same, protein 140 g. Sleep 8–9 h.'};
+  }else if(easyWeekOn(t)){
     var left=EASY_WK_DAYS-diffD(S.settings.easyFrom,t);
     rest={k:'on',t:'Easy week — '+left+' day'+(left===1?'':'s')+' to go',w:'One hard run, kept controlled. The easy miles and steps stay. Same gym sessions with about a third fewer sets, nothing to failure. No time trials. Food stays exactly the same.'};
+  }else if(pts>=6||NG.persistent||X.ill>=2){
+    rest={k:'walkweek',t:'Take a run-free week',w:'Your body is asking for more than an easy week: '+strain.slice(0,3).join(', ')+'. Seven days of steps, walking and the gym, no running. Walking keeps the fat loss and your health going while the legs, joints and hormones catch up. You come back to running faster and leaner.'};
   }else if(pts>=4||(R.state==='high'&&slAvg!==null&&slAvg<7)){
     rest={k:'week',t:'Take an easy week',w:'Not a scheduled one — your body is asking: '+strain.slice(0,3).join(', ')+'. Seven days: one hard run kept controlled, the easy miles and steps stay, the gym stays with about a third fewer sets. Food stays the same. You come out of it faster, not slower.'};
   }else if(ST&&(ST.k==='rest'||ST.k==='legs')){
@@ -4284,11 +4308,11 @@ function coachModel(){
 function feedbackHTML(){
   var t=today();if(t<CFG.cutStart)return '<div class="p"><h2>Feedback</h2><p class="note">Starts when the cut does.</p></div>';
   var C=coachModel();
-  var restTone={go:'good',day:'warn',days:'warn',week:'bad',on:'flag'}[C.rest.k];
+  var restTone={go:'good',day:'warn',days:'warn',week:'bad',on:'flag',walkweek:'bad',walkon:'flag'}[C.rest.k];
   var h='<div class="p lift"><h2>Feedback</h2>'+
     '<div class="p '+restTone+'" style="box-shadow:none;margin:8px 0"><div class="tiny dim">🛌 Rest</div><p class="lede" style="margin:2px 0"><b>'+C.rest.t+'</b></p><p class="note keep" style="margin:2px 0">'+C.rest.w+'</p>'+
       (C.rest.k==='week'?'<button type="button" class="btn sm" id="btnEasyWk" style="margin-top:6px">I’m taking it — start today</button>':'')+
-      (C.rest.k==='on'?'<button type="button" class="btn ghost sm" id="btnEasyOff" style="margin-top:6px">End it early</button>':'')+'</div>'+
+      (C.rest.k==='on'?'<button type="button" class="btn ghost sm" id="btnEasyOff" style="margin-top:6px">End it early</button>':'')+walkBtns(C.rest.k)+'</div>'+
     '<div class="p '+(C.refeed.k==='yes'?'flag':'good')+'" style="box-shadow:none;margin:8px 0"><div class="tiny dim">🍚 Refeed</div><p class="lede" style="margin:2px 0"><b>'+C.refeed.t+'</b></p><p class="note keep" style="margin:2px 0">'+C.refeed.w+'</p>'+
       (C.refeed.size?'<p style="margin:4px 0"><b>'+C.refeed.size+'</b></p>':'')+'</div>'+
     '<h3 style="margin-top:12px">What’s good</h3>'+
@@ -4296,11 +4320,15 @@ function feedbackHTML(){
     '<h3 style="margin-top:12px">What I suggest</h3>'+
     (C.sug.length?C.sug.map(function(x,i){return '<p style="margin:4px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join(''):'<p style="margin:4px 0"><b>Nothing to change. Run the same week again.</b></p>')+
     '<details style="margin-top:10px"><summary class="tiny">How the calls are made</summary>'+
-    '<p class="tiny" style="margin-top:6px">No rest weeks on a calendar. Rest is judged from your last one to two weeks: resting HR, sleep, mood, sessions that felt 9–10, the weight rate, study hours, niggles, days since a day off, steps on top of runs, and how long since your last easy week. One or two of those: a day or two off. Several at once: an easy week. A refeed only when you are losing too fast, or recovery is struggling and the deficit is doing it — never when the weight has slowed.</p>'+
+    '<p class="tiny" style="margin-top:6px">No rest weeks on a calendar. Rest is judged from your last one to two weeks: resting HR, sleep, mood, sessions that felt 9–10, the weight rate, study hours, niggles, days since a day off, steps on top of runs, and how long since your last easy week. One or two of those: a day or two off. Several at once: an easy week. A refeed only when you are losing too fast, or recovery is struggling and the deficit is doing it — never when the weight has slowed. Also: journal energy, sick days, binges, sets of legs, how much you ran this week against your usual (from Strava), and Norwegian runs going too fast. When it piles up, or something keeps hurting, or you have been ill twice, I call a run-free week: steps, walking and the gym, no running.</p>'+
     '<p class="tiny">'+(C.lastOff===0?'':'Last full day off: '+(C.lastOff===1?'yesterday':C.lastOff+' days ago')+'. ')+(C.sinceEasy?C.sinceEasy+' full week'+(C.sinceEasy===1?'':'s')+' since an easy one.':'')+'</p></details>'+
     '</div>';
   return h;
 }
+function walkBtns(k){return k==='walkweek'?'<button type="button" class="btn sm" data-rw="start" style="margin-top:6px">🚶 Start the run-free week today</button>':
+  (k==='walkon'?'<button type="button" class="btn ghost sm" data-rw="stop" style="margin-top:6px">End it early</button>':'');}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-rw]');if(!b)return;
+  if(b.dataset.rw==='start')S.settings.walkFrom=today();else delete S.settings.walkFrom;touch();});
 function renderFeedback(){if(E('fbCard'))E('fbCard').innerHTML=feedbackHTML();}
 function wireFeedback(){
   E('fbCard').addEventListener('click',function(ev){
@@ -4629,6 +4657,7 @@ function campCallHTML(){
   if(PS.k==='on'||PS.k==='pending')out+='<div class="p '+(PS.k==='on'?'flag':'')+'" style="box-shadow:none;margin:0 0 10px"><b>'+(PS.k==='on'?'':'🗓️ ')+PS.t+'.</b><div class="tiny" style="margin-top:4px">'+PS.w+'</div></div>';
   var CC=calCall();if(CC&&CC.k!=='push'&&CC.k!=='rev')out+='<div class="p'+(CC.k==='hold'?'':' flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+CC.e+' '+CC.t+'.</b><div class="tiny" style="margin-top:4px">'+CC.w+'</div></div>';
   if(RW)out+='<div class="p '+(RW.k==='below'?'warn':'flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+RW.e+' '+RW.t+'.</b><div class="tiny" style="margin-top:4px">'+RW.w+'</div></div>';
+  if(CM.rest.k==='walkweek'||CM.rest.k==='walkon')out+='<div class="p '+(CM.rest.k==='walkon'?'flag':'warn')+'" style="box-shadow:none;margin:0 0 10px"><b>🚶 '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+walkBtns(CM.rest.k)+'</div>';
   if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 I’m calling it: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
   if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
   return out;
@@ -9504,7 +9533,9 @@ function homeHTML(){
   /* the long view: since the cut started */
   var lifts=Object.keys(lb).length,long='Since '+fmtS(CFG.cutStart)+': '+(w0!==null&&now!==null?(now<=w0?'−':'+')+f1(Math.abs(w0-now))+' lb':'weigh in to see the trend')+
     (lifts?' · '+lifts+' lift'+(lifts===1?'':'s')+' tracked, '+ups+' stronger than 2 weeks ago':'');
-  return '<div class="p hm"><h2>🎯 Your goals</h2><div class="hm-grid">'+tiles.join('')+'</div>'+
+  var CMh=null;try{CMh=coachModel();}catch(e){}
+  var restBox=CMh&&['walkweek','walkon','week','days','day'].indexOf(CMh.rest.k)>=0?'<div class="p '+(CMh.rest.k==='walkon'?'flag':'warn')+'" style="box-shadow:none;margin:0 0 10px"><b>'+(CMh.rest.k.indexOf('walk')===0?'🚶 ':'🛌 ')+CMh.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CMh.rest.w+'</div>'+walkBtns(CMh.rest.k)+'</div>':'';
+  return '<div class="p hm"><h2>🎯 Your goals</h2>'+restBox+'<div class="hm-grid">'+tiles.join('')+'</div>'+
     '<h3 style="margin:12px 0 4px">👉 Do next</h3>'+next.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x)+'</p>';}).join('')+
     '<details style="margin-top:10px"><summary><b>🎯 Your run paces this week</b></summary>'+paceGuideHTML(true)+'<button type="button" class="btn sm ghost" data-t="camp">Full guide and the road to your times →</button></details>'+
     '<details style="margin-top:6px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}

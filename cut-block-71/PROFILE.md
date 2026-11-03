@@ -47,7 +47,7 @@ throughout.
 - **Saturday is stress-free:** no runs, no weights, no study.
 - **Never name days for runs.** Reveal a week's runs only when the week starts — Dan picks the days.
 - No prescribed rest intervals; effort over the watch. Paces are given as ranges from his own fitness (Camp tab, `paceGuide`), a little quicker each week, never past goal pace, and moved by his last three runs of each kind (hard long, speed, Norwegian) (Dan asked for them, 3 Nov). Run records store the total time of all reps in `secs`; mark time trials `tt:true`.
-- No hard run the day after a big legs session (10+ sets). Health, shred and muscle come before the times (Dan, 3 Nov).
+- No hard run the day after a big legs session (10+ sets). When the signs pile up (`coachModel`: resting HR, sleep, journal mood and energy, sick days, binges, leg volume, run load against his usual, Norwegian runs too fast, niggles), call a day off, an easy week, or a **run-free week** (`S.settings.walkFrom`: steps, walking and gym, no runs). Health, shred and muscle come before the times (Dan, 3 Nov).
 - Never flag a rest day as missed.
 
 **Tone**
