@@ -5,6 +5,7 @@ import { bpCategory, LAB_MARKERS } from '@/engine/health';
 import { dayResult } from '@/engine/game';
 import { useStore } from '@/store';
 import { healthSnapshot } from './HealthPanel';
+import { eatNext } from '@/engine/eatnext';
 import { AddFood } from './AddFood';
 import { Pill, Ring } from './ui';
 
@@ -16,6 +17,7 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
   const [adding, setAdding] = useState(false);
   const h = useMemo(() => healthSnapshot(s, date), [s, date]);
   const day = useMemo(() => dayResult(s, date), [s, date]);
+  const next = useMemo(() => eatNext(s, date), [s, date]);
   const logged = (s.days[date]?.items ?? []).length;
   const bp = h.lastBp ? bpCategory(h.lastBp.sys, h.lastBp.dia) : undefined;
   const labs = LAB_MARKERS.map((m) => {
@@ -38,6 +40,16 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
       <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-left text-sm text-ink-2">
         <Search size={16} className="text-gold" /> <span className="flex-1">Add food: search 4,000+ foods</span><Plus size={16} />
       </button>
+      {next.length > 0 && (
+        <div className="rounded-xl bg-gold/10 p-3">
+          <div className="mb-1 text-[11px] font-semibold tracking-wide text-gold uppercase">What to eat next</div>
+          <ul className="space-y-2 text-sm">
+            {next.map((x) => (
+              <li key={x.title}><b>{x.emoji} {x.title}</b><div className="text-ink">{x.foods.join(' · ')}</div><div className="text-xs text-ink-2">{x.why}</div></li>
+            ))}
+          </ul>
+        </div>
+      )}
       {logged > 0 && (
         <div className="text-sm text-ink-2">
           Today: <b className="text-ink">{Math.round(day.analysis.totals.kcal)}</b> kcal · <b className="text-ink">{Math.round(day.analysis.totals.protein)} g</b> protein · nutrition <b className="text-ink">{Math.round(day.analysis.nutritionScore)}</b> · {day.analysis.plants} plants

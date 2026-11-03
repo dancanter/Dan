@@ -12,7 +12,7 @@ import { initial } from '@/store';
 import * as science from '@/data/science';
 import * as seasons from '@/data/seasons';
 
-const AVOID_WORDS = /\b(broccoli|sprouts?|cabbage|kale|rocket|watercress|spinach|olive oil|evoo|green tea|matcha|brazil nuts?|lentils?|onions?|leeks?|garlic|liver)\b/i;
+const AVOID_WORDS = /\b(broccoli|sprouts?|cabbage|spring greens|kale|rocket|watercress|spinach|olive oil|evoo|green tea|matcha|brazil nuts?|lentils?|onions?|leeks?|garlic|liver)\b/i;
 const BANNED = /2–3 drops|drops per bowl|drops of sweetener|stevia drops? a day|retinol \d|retinol nights|keep liver|olive oil as|garlic-infused|tinned lentils/i;
 
 describe('Dan’s avoid list', () => {
@@ -62,5 +62,17 @@ describe('the day plan', () => {
     for (const d of ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05']) {
       for (const it of dayPlan(s, d).items) expect(`${it.title} ${it.detail}`).not.toMatch(/\brun today\b|today is a run day/i);
     }
+  });
+});
+
+describe('what to eat next', () => {
+  it('only names allowed foods, and covers recovery and protein after a hard run', async () => {
+    const { eatNext } = await import('@/engine/eatnext');
+    const s = { ...initial(), training: { '2026-11-03': [{ id: 'r', source: 'manual' as const, kind: 'run' as const, name: 'Hard run', minutes: 20, intensity: 'hard' as const }] } };
+    const out = eatNext(s, '2026-11-03');
+    expect(out.length).toBeGreaterThan(1);
+    expect(out[0].title).toMatch(/Recover/);
+    expect(out.some((x) => /protein to go/.test(x.title))).toBe(true);
+    for (const x of out) for (const f of x.foods) expect(f).not.toMatch(AVOID_WORDS);
   });
 });
