@@ -710,6 +710,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= STUDY ================= -->
 <section id="s-study" class="stack" hidden>
+  <div id="studyCoach"></div>
   <div id="uniCard"></div>
   <div id="deepCard"></div>
   <div id="dayCard"></div>
@@ -755,10 +756,12 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="glowCalm"></div>
 </section>
 <section id="s-phys" class="stack" hidden>
+  <div id="liftCoach"></div>
   <div id="liftCard"></div>
   <div id="muscleFun"></div>
 </section>
 <section id="s-longev" class="stack" hidden>
+  <div id="longCoach"></div>
   <div id="longCardTop"></div>
   <div id="glowHealth"></div>
   <div id="benchCard"></div>
@@ -9444,6 +9447,9 @@ function renderGoodLife(){
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
   if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML();
+  if(E('liftCoach'))E('liftCoach').innerHTML=liftCoachHTML();
+  if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();
+  if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   if(E('runWins'))E('runWins').innerHTML=runWinsHTML();
   if(E('muscleFun'))E('muscleFun').innerHTML=muscleFunHTML();
   if(E('paceCard'))E('paceCard').innerHTML=paceGuideHTML(false);
@@ -10173,6 +10179,64 @@ function benchHTML(){
     'Compare with your own all-time bests and goals instead (Goals & PBs).');
   return '<div class="p"><h2>📊 How you compare</h2><p class="tiny keep" style="margin:0 0 6px">Only where a published, age- and sex-matched reference exists. No single number, and no combination of them, ranks how healthy you are, so there is no overall score here.</p>'+h+'</div>';
 }
+
+/* ===================== three more coaches (Dan, 3 Nov) =====================
+   "I have a running coach; I want a longevity coach, a weight-lifting coach and a
+   study coach." Same shape as the running coach: how it went, this week, next,
+   and the goal. Suggestions, never orders, each with how much it matters. */
+function coachCard(e,title,parts){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+'</div>';}
+var IMP={big:'<span class="pill g" style="font-size:10px">big difference</span>',medium:'<span class="pill" style="font-size:10px">helps</span>',small:'<span class="pill" style="font-size:10px">small extra</span>'};
+function liftCoachHTML(){
+  var t=today(),last=null,ld=null;for(var i=0;i<14;i++){var d=addD(t,-i),r=S.days[d]||{};if(r.gym){last=r;ld=d;break;}}
+  var ws=weekSets(t),under=[],inr=0,over=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(x.m==='Legs'&&S.days&&Object.keys(S.days).some(function(k){return k>=mondayOf(t)&&S.days[k].legs;})){inr++;return;}
+    if(v<rg[0])under.push([x.m,rg[0]-v]);else if(v>rg[1])over.push(x.m);else inr++;});
+  var gyms=0;for(var j=0;j<7;j++){var dd=addD(mondayOf(t),j);if(dd>t)break;if((S.days[dd]||{}).gym)gyms++;}
+  var fb='Nothing logged in the last two weeks.';
+  if(last){var ms=Object.keys(last.sets||{}).map(function(k){return k+' '+last.sets[k];}).join(' · '),rpe=last.gymRpe;
+    fb=(ld===t?'Today':(ld===addD(t,-1)?'Yesterday':DOWS[dow(ld)]+' '+fmtS(ld)))+': <b>'+esc(({chest:'Chest & triceps',back:'Back & biceps',delts:'Shoulders',legs:'Legs',arms:'Arms',calis:'Calisthenics',other:'Full body'})[last.split]||last.split||'Gym')+'</b>'+(ms?' · '+ms:'')+'. '+
+      (last.pr?'💪 You beat last time: that is the clearest sign of muscle being built on a cut.':(rpe&&rpe<=6?'Felt easy ('+rpe+'/10): next time add a rep or 2.5 kg on your main lift.':'Keep the weights heavy and the reps clean; adding a rep next time is the goal.'));}
+  under.sort(function(a,b){return b[1]-a[1];});
+  var L=greenLight()||{},legsNo=hardRunSoon();
+  var nx=under.length?'<b>'+under[0][0]+'</b> is '+under[0][1]+' set'+(under[0][1]===1?'':'s')+' short of its growing range'+(under[1]?', then '+under[1][0]:'')+'. A session for it would '+(under[0][1]>=8?'make a big difference':'help')+'.':'Every muscle is in range this week: repeat the plan, or rest.';
+  if(under.length&&under[0][0]==='Legs'&&legsNo)nx+=' Not the day before a hard run.';
+  if(L.c==='red')nx='Recovery day suggested: if you train, keep it light and nothing to failure. '+nx;
+  var C=null;try{var c=chalWeek(t),done=false;for(var k=0;k<7;k++){var cr=(S.days[addD(mondayOf(t),k)]||{}).challenge;if(cr&&cr.ex===c.k)done=true;}C=done?'This week’s challenge ('+c.n+') is done.':'This week’s strength challenge: <b>'+c.n+'</b>, '+chalTarget(c).replace(/^./,function(z){return z.toLowerCase();})+'.';}catch(e){}
+  var phase=t<STRICT.xmas?'In the shred: keep the weights heavy and trim sets, never intensity. Holding your strength means you are keeping muscle.':(t<=STRICT.resetTo?'Reset cut: same as the shred, heavy and short.':'The build: add a set a week to your weakest muscles, and weight when the reps allow.');
+  return coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],['👉 Next',nx+(C?'<br>'+C:'')],['🎯 Goal',phase]]);}
+function hardRunSoon(){try{var G=campGame();return G.left.some(function(x){return x.e==='⚡'||x.e==='⏱';});}catch(e){return false;}}
+function longCoachHTML(){
+  var t=today(),W=bankWeek(mondayOf(t)),X=stressScore(),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+  var miss=W.habits.filter(function(h){return !h[2];});
+  var bpN=0;try{bpN=(S.glow&&S.glow.bp||[]).length;}catch(e){}var labs=(S.glow&&S.glow.labs||[]).length;
+  var nx=[];
+  if(X.score>=50)nx.push(['Bring stress down: '+X.parts[0].fix,'big']);
+  if(bpN<3)nx.push(['Home blood pressure, a few mornings and evenings (your one reading was 134/82)','big']);
+  if(miss.length)nx.push([miss[0][0]+' '+miss[0][1],'medium']);
+  if(!labs)nx.push(['A baseline blood test when it suits: ferritin, vitamin D, B12, folate, cholesterol, HbA1c, thyroid','medium']);
+  nx.push(['SPF on your face every day, and daylight in the morning','small']);
+  var how=H?'Health age <b>'+H.glowAge+'</b> (you’re '+H.age+')'+(H.vo2?' · VO₂ about '+Math.round(H.vo2):'')+(H.rhr?' · resting HR '+H.rhr:'')+'. Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.':'Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.';
+  var phase=t<STRICT.xmas?'In the shred the longevity risk is under-fuelling for too long: keep protein at 140 g, carbs around hard sessions, and take the easy weeks. The cut ends on time.':(t<=STRICT.resetTo?'Short reset cut, then the build: the build is where hormones, bone and recovery come back to full.':'The build: eat enough, train hard, sleep long. This is your healthiest phase.');
+  return coachCard('🧬','Your longevity coach',[['How you’re doing',how],['This week','<b>'+W.score+' of 6</b> longevity habits'+(miss.length?' · still open: '+miss.map(function(h){return h[1].toLowerCase();}).join(', '):' · all six')],
+    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 The long game',phase]]);}
+function studyCoachHTML(){
+  var t=today();glStore();var U=S.uni,ws=mondayOf(t),tot=0,deep=0,last=null,ld=null;
+  for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var r=S.days[d]||{};if(typeof r.study==='number')tot+=r.study;if(typeof r.deep==='number')deep+=r.deep;}
+  for(var j=0;j<14;j++){var d2=addD(t,-j),r2=S.days[d2]||{};if(typeof r2.study==='number'&&r2.study>0){last=r2;ld=d2;break;}}
+  var open=U.tasks.filter(function(x){return !x.done&&x.due;}).sort(function(a,b){return a.due<b.due?-1:1;}),nxT=open[0];
+  var marked=U.tasks.filter(function(x){return x.done&&typeof x.mark==='number';}),avg=marked.length?mean(marked.map(function(x){return x.mark;})):null;
+  var due=(U.topics||[]).filter(function(x){return x.next&&x.next<=t;}).length;
+  var fb=last?(ld===t?'Today':(ld===addD(t,-1)?'Yesterday':DOWS[dow(ld)]+' '+fmtS(ld)))+': <b>'+sh(last.study)+'</b>'+(typeof last.deep==='number'?' ('+sh(last.deep)+' deep)':'')+'. '+(last.deep>=2.5?'A proper deep block: that is what moves the marks.':'Next time, one 90-minute deep block (phone out) is worth more than hours of light work.'):'No study logged in the last two weeks.';
+  var nx=[];
+  if(dow(t)===6)nx.push(['Saturday is stress-free: no study today.','big']);
+  else{if(nxT){var stg=null;try{var st=nxT.st||{};for(var k=0;k<TMA_STAGES.length;k++){if(!st[k]){stg=TMA_STAGES[k];break;}}}catch(e){}
+      nx.push([(nxT.mod?nxT.mod+' ':'')+nxT.title+' is due '+fmtS(nxT.due)+' ('+diffD(t,nxT.due)+' days)'+(stg?'. Next stage: '+stg[0]+' by '+fmtS(addD(nxT.due,-stg[1])):''),diffD(t,nxT.due)<=10?'big':'medium']);}
+    else nx.push(['Add your TMA deadlines (below) and the coach plans backwards from them.','medium']);
+    if(due)nx.push([due+' topic'+(due===1?'':'s')+' due for active recall: 10 minutes of testing yourself','medium']);
+    if(deep<8)nx.push(['One 90-minute deep block today would move the week ('+sh(deep)+' deep so far, aim 8–12)','medium']);
+    else if(deep>15)nx.push(['Deep study is past 15 h: more now costs recovery more than it adds marks','big']);}
+  return coachCard('🎓','Your study coach',[['Last session',fb],['This week',sh(tot)+' studied · <b>'+sh(deep)+' deep</b> (aim 8–12 h deep)'],
+    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],
+    ['🎯 Goal','Distinction-level work in SK297 and SK298'+(avg!==null?' · your marks average <b>'+Math.round(avg)+'%</b> ('+ouBand(avg)+')':' · marks appear here once you enter them')+'. Evaluate, don’t describe: every paragraph needs a judgement.']]);}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
