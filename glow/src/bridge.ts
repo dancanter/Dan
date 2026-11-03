@@ -29,7 +29,7 @@ function publish() {
     const sleeps: Record<string, { bed: string; wake: string }> = {};
     for (const e of s.sleeps) sleeps[e.date] = { bed: e.bed, wake: e.wake };
     localStorage.setItem(OUT, JSON.stringify({ at: Date.now(), days, weights, sleeps }));
-    if (window.parent !== window) window.parent.postMessage({ type: 'glow-bridge', days, weights, sleeps }, '*');
+    (window.parent !== window ? window.parent : window).postMessage({ type: 'glow-bridge', days, weights, sleeps }, '*');
   } catch {
     /* storage blocked: the tracker just shows its own numbers */
   }

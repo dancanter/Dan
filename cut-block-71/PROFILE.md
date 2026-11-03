@@ -155,7 +155,7 @@ Sub-17 and sub-4:50 are honestly more likely in the **spring 2026–27 camp** (A
 - **Source:** `cut-block-71/index.html` (single file). Branch `claude/training-recovery-nutrition-system-stt0sj`.
 - **Data:** artifact database `state/main` — read, edit, then `set` with `if_version`. Weights in `weights`, days in `days[YYYY-MM-DD]` (`runs`, `gym`, `split`, `sets`, `sleep`, `bed`, `wake`, `rhr`, `steps`, `kcal`, `skinAM`/`skinPM`, `teeth`, `phoneOut`, `reset`).
 - **Run records:** reps `{k:'reps', dm, n, secs, tt?, up?, nodip?}`; continuous `{km, secs, type: easy|threshold|fun|subt}`. Reps are hard (except 100 m sprints); `fun` and `subt` are never hard.
-- **Republish** with `file_path` + `url` only, so capabilities carry forward.
+- **Publish `app.html`, not `index.html`.** `index.html` is the tracker source; `node build-app.mjs` (after `npx vite build` in `../glow`) folds Glow into it and writes `app.html`, which is what goes live. Republish with `file_path` + `url` only, so capabilities carry forward.
 - **Tests:** `python3 mktest.py <out>/cb71.test.html`, copy `*.mjs` beside it, run each with `node` (skip `peek*`/`dbg*`), and grep for FAIL or Error.
 - **Key pieces:** `CFG` (goals, camp, sets, steps), `PUSH`/`pushState`, `PHYS`/`physOn`, `weekRunsModel`, `campGame` (quests, runs left, XP), `greenLight`, `calCall` (when to eat more or less), `revWatch`, `campWeekReview` (Sunday 8 pm review), `muscleMaxHTML` + `PHYS_PLAN`, `CAMP_SESS`, `norwMenu`.
 - **Achievements are computed from his data** — never reset them. Bosses: a camp PB is +100 XP, all-time +250, goal +500.

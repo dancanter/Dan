@@ -275,7 +275,7 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
 #bnav button span{font-size:19px;line-height:1;filter:grayscale(.6);opacity:.75}
 #bnav button.on{color:var(--gold)}#bnav button.on span{filter:none;opacity:1}
 body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
-#glowFrame{height:calc(100dvh - 210px)!important}
+#glow-host{display:block;margin:0 -12px}
 
 .topin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .topstat{display:flex;gap:14px;flex-wrap:wrap}.topstat>div{white-space:nowrap}
@@ -729,9 +729,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= GLOW (cellular nutrition, 3 Nov) ================= -->
 <section id="s-glow" class="stack" hidden>
-  <div class="p" style="padding:0;overflow:hidden">
-    <iframe id="glowFrame" title="Glow — cellular nutrition" style="display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:0;background:var(--bg)"></iframe>
-  </div>
+  <div id="glow-host"></div>
+  <p id="glowWait" class="tiny dim" style="margin:12px 4px">Loading Glow…</p>
   
 </section>
 
@@ -9343,12 +9342,20 @@ function raceCardHTML(){
 /* ===================== events ===================== */
 /* one app (3 Nov): Glow's screens are tabs of the tracker; the frame stays
    loaded and is told which screen to show */
-var GLOW_SUB='today';
+var GLOW_SUB='today',GLOW_ON=false;
+/* Glow's code travels inside this page (frames are not allowed when it is
+   published) and mounts the first time one of its tabs is opened */
+function startGlow(){
+  if(GLOW_ON){try{window.postMessage({type:'glow-screen',id:GLOW_SUB},'*');}catch(e){}return;}
+  var code=E('glowCode');
+  if(!code){if(E('glowWait'))E('glowWait').textContent='Glow is part of the published app — open it from the link.';return;}
+  GLOW_ON=true;trackerBridge();window.__GLOW_START__=GLOW_SUB;
+  var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
+  if(E('glowWait'))E('glowWait').hidden=true;
+}
 function tab(name,sub){
   CUR=name;
-  if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;var gf=E('glowFrame');
-    if(gf&&!gf.getAttribute('src')){trackerBridge();gf.setAttribute('src','glow.html#'+GLOW_SUB);}
-    else if(gf&&gf.contentWindow){try{gf.contentWindow.postMessage({type:'glow-screen',id:GLOW_SUB},'*');}catch(e){}}}
+  if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;startGlow();}
   ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });

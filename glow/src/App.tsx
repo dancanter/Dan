@@ -20,9 +20,13 @@ type TabId = (typeof TABS)[number]['id'];
 
 // Inside The Good Life, Glow is one part of a single app: the tracker draws
 // the header and the navigation, and tells Glow which screen to show.
-const embedded = (() => { try { return window.parent !== window; } catch { return true; } })();
+export const embedded = (() => {
+  if ((window as unknown as { __GLOW_EMBED__?: boolean }).__GLOW_EMBED__) return true;
+  try { return window.parent !== window; } catch { return true; }
+})();
 
 function readHash(): TabId {
+  if (embedded) return ((window as unknown as { __GLOW_START__?: TabId }).__GLOW_START__) ?? 'today';
   const h = location.hash.replace('#', '') as TabId;
   return TABS.some((t) => t.id === h) ? h : 'today';
 }
@@ -46,7 +50,7 @@ export function App() {
     return () => window.removeEventListener('message', onMsg);
   }, []);
   useEffect(() => {
-    if (location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
+    if (!embedded && location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
     window.scrollTo({ top: 0 });
   }, [tab]);
   // If the app is left open overnight and you were on "today", follow it to the new day.
