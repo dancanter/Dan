@@ -135,9 +135,9 @@ await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30
   days: { '2026-09-29': { runs: [{ k: 'reps', dm: 300, n: 6, secs: 276 }], gym: true, split: 'back' }, '2026-09-30': { sleep: 8.2, rt: [0, 1] } } }));
 await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
 await p.click('[data-t="today"]'); await p.waitForTimeout(200);
-ok('Today opens with the log, then calories in and burned', await p.evaluate(() => {
-  const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn' && c.id !== 'ccCard' && !['homeCard', 'glowHome', 'liftCard', 'calmCard', 'glowCalm'].includes(c.id));
-  return /Log ·/.test(kids[0].querySelector('h2').textContent) && kids[1].id === 'tdeeCard' && /Burn and deficit/.test(kids[1].textContent);
+ok('Today opens with Mission Control, then the log; calories in and burned sit in More for today (3 Nov)', await p.evaluate(() => {
+  const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn');
+  return kids[0].id === 'ccCard' && /Log ·/.test(kids[1].querySelector('h2').textContent) && !!E('moreToday').querySelector('#tdeeCard') && /Burn and deficit/.test(E('tdeeCard').textContent);
 }));
 let g = sq(await p.innerText('#glanceCard'));
 ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
@@ -310,7 +310,7 @@ await ctx.close();
 await boot(st());
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 ok('before camp it counts down to Monday', /Camp starts in 4 days/.test(sq(await p.innerText('#campCard'))));
-ok('the camp has its own tab, next to Today', await p.evaluate(() => { const b = [...document.querySelectorAll('#tabs button')].map(x => x.dataset.t); return b[1] === 'camp'; }));
+ok('the camp opens the Running section (3 Nov)', await p.evaluate(() => { const b = document.querySelector('#tabs button[data-sec="run"]'); return !!document.querySelector('#secs button[data-sec="run"]') && b && b.dataset.t === 'camp'; }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('Today at a glance says when the camp starts, and taps through to it', /Race camp starts in 4 days — Mon 12 Oct/.test(sq(await p.innerText('#glanceCard'))) && await p.evaluate(() => !!document.querySelector('#glanceCard button[data-goto="camp"]')));
 await ctx.close();

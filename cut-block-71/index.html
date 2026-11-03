@@ -67,6 +67,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .topstat{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
 .topstat b{font-family:"IBM Plex Mono",monospace;font-weight:600}
 .topstat i{font-style:normal;color:var(--ink-3);text-transform:uppercase;font-size:10px;letter-spacing:.09em;font-family:"IBM Plex Sans Condensed",sans-serif}
+details.fold{margin:6px 0 12px}details.fold>summary{cursor:pointer;padding:12px 14px;border:1px solid var(--rule);border-radius:14px;background:var(--panel);list-style:none}details.fold[open]>summary{margin-bottom:10px}
+nav.secs{max-width:1080px;margin:0 auto;padding:6px 8px 0;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.secs::-webkit-scrollbar{display:none}
+nav.secs button{display:flex;align-items:center;gap:5px;background:none;border:1px solid transparent;border-radius:999px;padding:7px 12px;color:var(--ink-2);cursor:pointer;white-space:nowrap;font:500 13px/1 "IBM Plex Sans",sans-serif}
+nav.secs button[aria-selected="true"]{background:var(--panel-2);border-color:var(--rule);color:var(--ink)}
+nav.tabs button{display:none}nav.tabs button.insec,html.all-tabs nav.tabs button{display:inline-block}
+nav.tabs.solo{display:none}html.all-tabs nav.tabs.solo{display:flex}
 nav.tabs{max-width:1080px;margin:0 auto;padding:0 8px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 10px;color:var(--ink-2);cursor:pointer;white-space:nowrap;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:14px;letter-spacing:.02em}
@@ -218,30 +225,30 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 .six .rank{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* ===== The Good Life × Glow design (3 Nov): Riviera at golden hour — warm
-   linen, deep navy, sea teal, one gold accent; serif headings, soft cards.
+/* ===== The Good Life × Glow design (3 Nov): Human Performance OS (3 Nov): warm ivory, charcoal,
+   muted olive, subtle bronze; serif headings, soft cards.
    Light by default, a designed dark mode, and the old tokens mapped onto it. */
 :root{color-scheme:light;
-  --bg:#f6f1e7;--panel:#fffcf6;--panel-2:#efe8da;--panel-3:#e4dccb;
-  --ink:#161b26;--ink-2:#48505f;--ink-3:#7c7f86;
+  --bg:#f7f3ea;--panel:#fffdf8;--panel-2:#efe8da;--panel-3:#e4dccb;
+  --ink:#1e1d1a;--ink-2:#4d4a43;--ink-3:#85806f;
   --rule:#e4dccb;--rule-2:#ece5d6;
-  --accent:#1f7a8c;--accent-2:#2c93a7;--accent-soft:#dcedf0;
+  --accent:#6b7a45;--accent-2:#7d8c55;--accent-soft:#e9ecdc;
   --good:#2e7d4f;--good-soft:#dff0e4;--warn:#9a6a00;--warn-soft:#f7ecd0;--bad:#b23b33;--bad-soft:#f8e0dd;
-  --on-accent:#ffffff;--gold:#b8893b;--gold-soft:#f3e6cc;--navy:#13294b;
+  --on-accent:#ffffff;--gold:#9c7442;--gold-soft:#efe4d0;--navy:#2b2a25;
   --shadow:0 1px 2px rgb(22 27 38 / .05),0 10px 28px -14px rgb(22 27 38 / .18)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
-  --bg:#0e1624;--panel:#152033;--panel-2:#1c2a40;--panel-3:#26354d;
-  --ink:#f1ece2;--ink-2:#c4c2bd;--ink-3:#8f96a3;--rule:#26354d;--rule-2:#1f2d44;
-  --accent:#4fb3c4;--accent-2:#6cc6d5;--accent-soft:#16323c;
+  --bg:#141412;--panel:#1c1c19;--panel-2:#24241f;--panel-3:#33322b;
+  --ink:#f3eee3;--ink-2:#c9c4b8;--ink-3:#948f82;--rule:#33322b;--rule-2:#2a2a24;
+  --accent:#a3b07a;--accent-2:#b8c48f;--accent-soft:#2a2e1f;
   --good:#5fc68a;--good-soft:#193526;--warn:#e2b54e;--warn-soft:#3a3018;--bad:#ef7d73;--bad-soft:#3d1f1f;
-  --on-accent:#0e1624;--gold:#e0b468;--gold-soft:#3a3020;--navy:#1d3a66;
+  --on-accent:#141412;--gold:#c9a26b;--gold-soft:#3a3123;--navy:#3d3a2f;
   --shadow:0 1px 2px rgb(0 0 0 / .3),0 10px 28px -14px rgb(0 0 0 / .6)}}
 :root[data-theme="dark"]{color-scheme:dark;
-  --bg:#0e1624;--panel:#152033;--panel-2:#1c2a40;--panel-3:#26354d;
-  --ink:#f1ece2;--ink-2:#c4c2bd;--ink-3:#8f96a3;--rule:#26354d;--rule-2:#1f2d44;
-  --accent:#4fb3c4;--accent-2:#6cc6d5;--accent-soft:#16323c;
+  --bg:#141412;--panel:#1c1c19;--panel-2:#24241f;--panel-3:#33322b;
+  --ink:#f3eee3;--ink-2:#c9c4b8;--ink-3:#948f82;--rule:#33322b;--rule-2:#2a2a24;
+  --accent:#a3b07a;--accent-2:#b8c48f;--accent-soft:#2a2e1f;
   --good:#5fc68a;--good-soft:#193526;--warn:#e2b54e;--warn-soft:#3a3018;--bad:#ef7d73;--bad-soft:#3d1f1f;
-  --on-accent:#0e1624;--gold:#e0b468;--gold-soft:#3a3020;--navy:#1d3a66}
+  --on-accent:#141412;--gold:#c9a26b;--gold-soft:#3a3123;--navy:#3d3a2f}
 body{background:var(--bg);font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14.5px}
 .brand{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;font-size:22px;letter-spacing:0}
 .brand span{color:var(--gold)}
@@ -292,37 +299,47 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
       <div><i>steps / target</i> <b id="hSteps">—</b></div>
     </div>
   </div>
+  <nav class="secs" id="secs" aria-label="Sections">
+    <button type="button" data-sec="over" aria-selected="true"><span>☀️</span>Overview</button>
+    <button type="button" data-sec="run"><span>🏃</span>Running</button>
+    <button type="button" data-sec="phys"><span>💪</span>Physique</button>
+    <button type="button" data-sec="food"><span>🍽️</span>Nutrition</button>
+    <button type="button" data-sec="long"><span>🧬</span>Longevity</button>
+    <button type="button" data-sec="rec"><span>🌙</span>Recovery</button>
+    <button type="button" data-sec="uni"><span>🎓</span>University</button>
+    <button type="button" data-sec="goals"><span>🏆</span>Goals & PBs</button>
+  </nav>
   <nav class="tabs" id="tabs" role="tablist">
-    <button role="tab" data-t="today" aria-selected="true">Today</button>
-    <button role="tab" data-t="camp" aria-selected="false">🏁 Camp</button>
-    <button role="tab" data-t="glow" data-g="today" aria-selected="false">🍽️ Food</button>
-    <button role="tab" data-t="glow" data-g="foods" aria-selected="false">🥗 Foods</button>
-    <button role="tab" data-t="glow" data-g="cellular" aria-selected="false">🧬 Cells</button>
-    <button role="tab" data-t="glow" data-g="body" aria-selected="false">🌙 Body</button>
-    <button role="tab" data-t="glow" data-g="rituals" aria-selected="false">✨ Rituals</button>
-    <button role="tab" data-t="feedback" aria-selected="false">Feedback</button>
-    <button role="tab" data-t="weight" aria-selected="false">Weight</button>
-    <button role="tab" data-t="food" aria-selected="false">📒 Diary</button>
-    <button role="tab" data-t="training" aria-selected="false">Training</button>
-    <button role="tab" data-t="times" aria-selected="false">Times</button>
-    <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
-    <button role="tab" data-t="study" aria-selected="false">🎓 Uni</button>
-    <button role="tab" data-t="mind" aria-selected="false">Mind</button>
-    <button role="tab" data-t="reverse" aria-selected="false">Reverse</button>
-    <button role="tab" data-t="wins" aria-selected="false">Wins</button>
-    <button role="tab" data-t="review" aria-selected="false">Review</button>
-    <button role="tab" data-t="model" aria-selected="false">📸 Model</button>
-    <button role="tab" data-t="life" aria-selected="false">✨ Life</button>
-    <button role="tab" data-t="skin" aria-selected="false">Skin</button>
-    <button role="tab" data-t="data" aria-selected="false">Data</button>
+    <button role="tab" data-t="today" data-sec="over" aria-selected="true">Today</button>
+    <button role="tab" data-t="review" data-sec="over" aria-selected="false">Review · week & month</button>
+    <button role="tab" data-t="feedback" data-sec="over" aria-selected="false">Coach</button>
+    <button role="tab" data-t="data" data-sec="over" aria-selected="false">Data & backup</button>
+    <button role="tab" data-t="camp" data-sec="run" aria-selected="false">Camp</button>
+    <button role="tab" data-t="times" data-sec="run" aria-selected="false">Times & PBs</button>
+    <button role="tab" data-t="training" data-sec="run" aria-selected="false">Training log</button>
+    <button role="tab" data-t="weight" data-sec="phys" aria-selected="false">Weight</button>
+    <button role="tab" data-t="model" data-sec="phys" aria-selected="false">The look</button>
+    <button role="tab" data-t="skin" data-sec="phys" aria-selected="false">Skin</button>
+    <button role="tab" data-t="glow" data-g="today" data-sec="food" aria-selected="false">Food</button>
+    <button role="tab" data-t="glow" data-g="foods" data-sec="food" aria-selected="false">Foods</button>
+    <button role="tab" data-t="food" data-sec="food" aria-selected="false">Diary & seasons</button>
+    <button role="tab" data-t="reverse" data-sec="food" aria-selected="false">Calories & reverse</button>
+    <button role="tab" data-t="glow" data-g="cellular" data-sec="long" aria-selected="false">Cells</button>
+    <button role="tab" data-t="glow" data-g="body" data-sec="long" aria-selected="false">Body & health</button>
+    <button role="tab" data-t="sleep" data-sec="rec" aria-selected="false">Sleep</button>
+    <button role="tab" data-t="mind" data-sec="rec" aria-selected="false">Mind & journal</button>
+    <button role="tab" data-t="glow" data-g="rituals" data-sec="rec" aria-selected="false">Breathing & rituals</button>
+    <button role="tab" data-t="life" data-sec="rec" aria-selected="false">Life</button>
+    <button role="tab" data-t="study" data-sec="uni" aria-selected="false">Uni</button>
+    <button role="tab" data-t="wins" data-sec="goals" aria-selected="false">Wins & records</button>
   </nav>
 </header>
 <nav id="bnav" aria-label="Main sections">
-  <button type="button" data-t="today" class="on"><span>☀️</span>Today</button>
-  <button type="button" data-t="camp"><span>🏁</span>Train</button>
+  <button type="button" data-t="today" class="on"><span>☀️</span>Overview</button>
+  <button type="button" data-t="camp"><span>🏃</span>Running</button>
+  <button type="button" data-t="weight"><span>💪</span>Physique</button>
   <button type="button" data-t="glow" data-g="today"><span>🍽️</span>Food</button>
-  <button type="button" data-t="glow" data-g="cellular"><span>🧬</span>Cells</button>
-  <button type="button" data-t="life"><span>✨</span>Life</button>
+  <button type="button" data-t="glow" data-g="cellular"><span>🧬</span>Health</button>
 </nav>
 
 <main>
@@ -331,12 +348,6 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
-  <div id="homeCard"></div>
-  <div id="glowHome"></div>
-  <div id="liftCard"></div>
-  <div id="calmCard"></div>
-  <div id="glowCalm"></div>
-  <!-- 29 Sep: log first, then calories in and burned, then everything else -->
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
     <div class="row" style="margin-bottom:12px">
@@ -425,14 +436,21 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
-  <div id="tdeeCard"></div>
+  <div id="homeCard"></div>
+  <div id="glowHome"></div>
+  <div id="alertCard"></div>
   <div id="glowBinge"></div>
   <div id="glowIll"></div>
   <div id="jrnlCard"></div>
+  <div id="calmCard"></div>
+  <div id="liftCard"></div>
+  <details class="fold" id="moreToday"><summary><b>More for today</b> <span class="tiny dim">breathing &amp; pillars, your day plan, fuel, runs, calories, signals</span></summary>
+  <div id="glowCalm"></div>
+  <!-- 29 Sep: log first, then calories in and burned, then everything else -->
+  <div id="tdeeCard"></div>
   <div id="glowIdeas"></div>
   <details class="p" id="planWrap"><summary><b>🕰️ Today, hour by hour</b> <span class="tiny dim">your day plan</span></summary><div id="glowPlan" style="margin-top:8px"></div></details>
   <div id="glCheckCard"></div>
-  <div id="alertCard"></div>
   <div id="glanceCard"></div>
   <div id="campToday"></div>
   <div id="refeedCard"></div>
@@ -455,6 +473,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="hfPanel"></div>
   <div id="goalsPanel"></div>
   <div id="todaySummary"></div>
+
+  </details>
 </section>
 
 <!-- ================= WEIGHT ================= -->
@@ -4350,6 +4370,7 @@ function feedbackHTML(){
 }
 function walkBtns(k){return k==='walkweek'?'<button type="button" class="btn sm" data-rw="start" style="margin-top:6px">🚶 Start the run-free week today</button>':
   (k==='walkon'?'<button type="button" class="btn ghost sm" data-rw="stop" style="margin-top:6px">End it early</button>':'');}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-breathe]');if(!b)return;var m=E('moreToday');if(m)m.open=true;var g=E('glowCalm');if(g)g.scrollIntoView({behavior:'smooth',block:'start'});});
 document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-rw]');if(!b)return;
   if(b.dataset.rw==='start')S.settings.walkFrom=today();else delete S.settings.walkFrom;touch();});
 function renderFeedback(){if(E('fbCard'))E('fbCard').innerHTML=feedbackHTML();}
@@ -9706,6 +9727,7 @@ function calmHTML(){
     '<p style="margin:2px 0"><b>'+lv[1]+' Stress load: '+lv[2]+'.</b> <span class="tiny">'+lv[3]+'</span></p>'+
     (C&&C.strain.length?'<p class="tiny dim" style="margin:2px 0 6px">From: '+esc(C.strain.slice(0,2).join(' · '))+'</p>':'')+
     pick.map(function(x){return '<div style="margin:5px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+
+    '<button type="button" class="btn sm" data-breathe="1" style="margin:6px 0">🌬️ Breathe now · your 8 pillars</button>'+
     (SZ?'<h3 style="margin:10px 0 2px">'+(SZ.e||'')+' This season</h3><p style="margin:2px 0">🍽️ '+esc(SZ.eat.slice(0,3).join(' · '))+'</p><p style="margin:2px 0">✨ '+esc(SZ.doo.slice(0,2).join(' · '))+'</p>'+
       '<button type="button" class="btn sm ghost" data-t="food">Seasonal meals →</button>':'')+
     '<p style="margin:10px 0 0">🎬 '+(film?'<b>Film night: '+esc(film[0])+'</b>':(next?'Next film night: '+next:'No film night set'))+' <span class="tiny dim">· a proper switch-off counts as recovery</span></p></div>';}
@@ -9880,12 +9902,21 @@ function tab(name,sub){
     var on=b.dataset.t===name&&(name!=='glow'||!b.dataset.g||b.dataset.g===GLOW_SUB);
     if(b.closest('#bnav'))b.classList.toggle('on',on);else b.setAttribute('aria-selected',on?'true':'false');
   });
+  /* Dan, 3 Nov: eight sections; the row under them shows only the current section's pages */
+  var curB=document.querySelector('#tabs button[data-t="'+name+'"]'+(name==='glow'?'[data-g="'+GLOW_SUB+'"]':''))||document.querySelector('#tabs button[data-t="'+name+'"]');
+  var sec=curB?curB.dataset.sec:'over',n=0;
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){var on=b.dataset.sec===sec;b.classList.toggle('insec',on);if(on)n++;});
+  E('tabs').classList.toggle('solo',n<2);
+  Array.prototype.forEach.call(document.querySelectorAll('#secs button'),function(b){b.setAttribute('aria-selected',b.dataset.sec===sec?'true':'false');});
   try{localStorage.setItem(LS+'.tab',name);}catch(e){}
   window.scrollTo(0,0);
 }
 function wire(){
   wireGoodLife();
   document.getElementById('bnav').addEventListener('click',function(e){var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t,b.dataset.g);});
+  if(window.__FULL||window.__ALLTABS){document.documentElement.classList.add('all-tabs');if(E('moreToday'))E('moreToday').open=true;}
+  E('secs').addEventListener('click',function(e){var b=e.target.closest('button[data-sec]');if(!b)return;
+    var first=document.querySelector('#tabs button[data-sec="'+b.dataset.sec+'"]');if(first)tab(first.dataset.t,first.dataset.g);});
   document.getElementById('tabs').addEventListener('click',function(e){
     var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t,b.dataset.g);
   });

@@ -141,6 +141,13 @@ await p.evaluate(() => { const st = window.__GLOW_HOST__.load(); st.breathMinute
 ok('breathing in Glow counts as meditation in the tracker', (await p.evaluate(() => S.days['2026-11-03'].medMin)) === 10);
 ok('the month review is on the Review tab', await p.evaluate(() => /November 2026/.test(monthReviewHTML('2026-11')) && /Ideas for next month/.test(monthReviewHTML('2026-11')) && /France in/.test(monthReviewHTML('2026-11'))));
 
+// ---- eight sections (3 Nov) -------------------------------------------------------
+ok('eight sections on top', (await p.$$eval('#secs button', (b) => b.map((x) => x.textContent))).join('|') === '☀️Overview|🏃Running|💪Physique|🍽️Nutrition|🧬Longevity|🌙Recovery|🎓University|🏆Goals & PBs');
+await p.click('#secs button[data-sec="run"]'); await p.waitForTimeout(200);
+ok('a section opens its first page and shows only its own pages', await p.evaluate(() => CUR === 'camp' && [...document.querySelectorAll('#tabs button.insec')].map((b) => b.dataset.t).join() === 'camp,times,training'));
+await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
+ok('the Overview keeps the extras in one fold', await p.evaluate(() => CUR === 'today' && !!E('moreToday') && !!E('moreToday').querySelector('#glanceCard')));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });
