@@ -113,12 +113,14 @@ await tapIn(p, 'glowHome', 'search 4,000'); await p.waitForTimeout(400);
 ok('the food search opens from Home', /Add food|Search/i.test(await shadow(p, 'glowHome')));
 await p.keyboard.press('Escape');
 ok('this week’s strength challenge is the bench press, with no weights-and-reps log', /Strength challenge · Bench press/.test(await p.innerText('#liftCard')) && !(await p.$('#lfKg')));
+await p.click('#tabs button[data-t="phys"]'); await p.waitForTimeout(200);
 await p.fill('#chKg', '60'); await p.fill('#chReps', '8'); await p.click('button[data-chal="save"]'); await p.waitForTimeout(200);
 ok('the result is saved', JSON.stringify(await p.evaluate(() => S.days['2026-11-03'].challenge)) === '{"ex":"bench","kg":60,"reps":8}');
 let lc = await p.innerText('#liftCard');
 ok('and rated, with health feedback and how to improve', /Very strong for a man your weight/.test(lc) && /healthy ageing/.test(lc) && /To improve/.test(lc), lc.slice(0, 400));
 await p.evaluate(() => { S.days['2026-10-19'] = Object.assign(S.days['2026-10-19'] || {}, { challenge: { ex: 'bench', kg: 57.5, reps: 6 } }); E('liftCard').innerHTML = liftHTML(); });
 ok('next time it says how much stronger', /% stronger than/.test(await p.innerText('#liftCard')));
+await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
 ok('paces follow recent runs, Norwegian included', await p.evaluate(() => { const g = paceGuide(); return 'N' in g.form && 'L' in g.form; }));
 
 // ---- bug sweep (3 Nov) ------------------------------------------------------------
@@ -145,6 +147,7 @@ ok('the month review is on the Review tab', await p.evaluate(() => /November 202
 ok('eight sections on top', (await p.$$eval('#secs button', (b) => b.map((x) => x.textContent))).join('|') === '☀️Overview|🏃Running|💪Physique|🍽️Nutrition|🧬Longevity|🌙Recovery|🎓University|🏆Goals & PBs');
 await p.click('#secs button[data-sec="run"]'); await p.waitForTimeout(200);
 ok('a section opens its first page and shows only its own pages', await p.evaluate(() => CUR === 'camp' && [...document.querySelectorAll('#tabs button.insec')].map((b) => b.dataset.t).join() === 'camp,times,training'));
+ok('food, calm and strength live in their own sections; the run form is folded (runs come from sync)', await p.evaluate(() => !!document.querySelector('#s-nutri #glowHome') && !!document.querySelector('#s-calm #calmCard') && !!document.querySelector('#s-phys #liftCard') && !!document.querySelector('#runEntry #btnAddRun') && !document.querySelector('#s-today #calmCard')));
 await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 ok('the Overview keeps the extras in one fold', await p.evaluate(() => CUR === 'today' && !!E('moreToday') && !!E('moreToday').querySelector('#glanceCard')));
 
@@ -176,7 +179,7 @@ hist = await p.innerText('#jrnlHist');
 ok('and the search finds an entry', /Long walk/.test(hist) && !/Good back session/.test(hist), hist.slice(0, 300));
 
 // ---- 🍽️ the Glow tab: no second set of boxes --------------------------------------
-await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(1200);
+await p.click('#tabs button[data-t="glow"][data-g="today"]'); await p.waitForTimeout(1200);
 const gt = await shadow(p, 'glow-host');
 ok('Glow’s Food screen opens in the app', gt.length > 200, gt.slice(0, 120));
 ok('it has no steps or heart-rate boxes of its own', await p.evaluate(() => !document.getElementById('glow-host').shadowRoot.querySelector('input[aria-label*="Steps" i], input[aria-label*="heart" i]')));

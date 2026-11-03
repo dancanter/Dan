@@ -7,7 +7,7 @@ await p.clock.setFixedTime(new Date('2026-11-03T12:00:00'));
 await p.goto('http://localhost:8765/index.html'); await p.evaluate(s=>{localStorage.clear();localStorage.setItem('cutblock71.v1',JSON.stringify(s));},S); await p.reload(); await p.waitForTimeout(1000);
 await p.evaluate(()=>{const w=document.getElementById('storeWarn');if(w)w.innerHTML='';});
 await p.screenshot({path:SP+'/one-today.png'});
-await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(3000); await p.screenshot({path:SP+'/one-food.png'});
+await p.click('#tabs button[data-t="glow"][data-g="today"]'); await p.waitForTimeout(3000); await p.screenshot({path:SP+'/one-food.png'});
 const fr=p.frames().find(f=>/glow\.html/.test(f.url()));
 const hasNav = fr ? await fr.evaluate(()=>!!document.querySelector('nav[aria-label="Sections"]')) : 'noframe';
 await p.click('#tabs button[data-g="cellular"]'); await p.waitForTimeout(1200);

@@ -135,9 +135,9 @@ await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30
   days: { '2026-09-29': { runs: [{ k: 'reps', dm: 300, n: 6, secs: 276 }], gym: true, split: 'back' }, '2026-09-30': { sleep: 8.2, rt: [0, 1] } } }));
 await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
 await p.click('[data-t="today"]'); await p.waitForTimeout(200);
-ok('Today opens with Mission Control, then the log; calories in and burned sit in More for today (3 Nov)', await p.evaluate(() => {
+ok('Today opens with Mission Control, Today & your numbers, the health bank, then the log (3 Nov)', await p.evaluate(() => {
   const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn');
-  return kids[0].id === 'ccCard' && /Log ·/.test(kids[1].querySelector('h2').textContent) && !!E('moreToday').querySelector('#tdeeCard') && /Burn and deficit/.test(E('tdeeCard').textContent);
+  return kids[0].id === 'ccCard' && kids[1].id === 'homeCard' && kids[2].id === 'bankCard' && /Log ·/.test(kids[3].querySelector('h2').textContent) && !!E('moreToday').querySelector('#tdeeCard');
 }));
 let g = sq(await p.innerText('#glanceCard'));
 ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);

@@ -326,9 +326,11 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <button role="tab" data-t="camp" data-sec="run" aria-selected="false">Camp</button>
     <button role="tab" data-t="times" data-sec="run" aria-selected="false">Times & PBs</button>
     <button role="tab" data-t="training" data-sec="run" aria-selected="false">Training log</button>
+    <button role="tab" data-t="phys" data-sec="phys" aria-selected="false">Muscle &amp; strength</button>
     <button role="tab" data-t="weight" data-sec="phys" aria-selected="false">Weight</button>
     <button role="tab" data-t="model" data-sec="phys" aria-selected="false">The look</button>
     <button role="tab" data-t="skin" data-sec="phys" aria-selected="false">Skin</button>
+    <button role="tab" data-t="nutri" data-sec="food" aria-selected="false">Today’s food</button>
     <button role="tab" data-t="glow" data-g="today" data-sec="food" aria-selected="false">Food</button>
     <button role="tab" data-t="glow" data-g="foods" data-sec="food" aria-selected="false">Foods</button>
     <button role="tab" data-t="food" data-sec="food" aria-selected="false">Diary & seasons</button>
@@ -336,6 +338,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <button role="tab" data-t="longev" data-sec="long" aria-selected="false">Health &amp; longevity</button>
     <button role="tab" data-t="glow" data-g="cellular" data-sec="long" aria-selected="false">Cells</button>
     <button role="tab" data-t="glow" data-g="body" data-sec="long" aria-selected="false">Body & health</button>
+    <button role="tab" data-t="calm" data-sec="rec" aria-selected="false">Stress &amp; calm</button>
     <button role="tab" data-t="sleep" data-sec="rec" aria-selected="false">Sleep</button>
     <button role="tab" data-t="mind" data-sec="rec" aria-selected="false">Mind & journal</button>
     <button role="tab" data-t="glow" data-g="rituals" data-sec="rec" aria-selected="false">Breathing & rituals</button>
@@ -347,8 +350,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <nav id="bnav" aria-label="Main sections">
   <button type="button" data-t="today" class="on"><span>☀️</span>Overview</button>
   <button type="button" data-t="camp"><span>🏃</span>Running</button>
-  <button type="button" data-t="weight"><span>💪</span>Physique</button>
-  <button type="button" data-t="glow" data-g="today"><span>🍽️</span>Food</button>
+  <button type="button" data-t="phys"><span>💪</span>Physique</button>
+  <button type="button" data-t="nutri"><span>🍽️</span>Food</button>
   <button type="button" data-t="longev"><span>🧬</span>Health</button>
 </nav>
 
@@ -358,6 +361,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
+  <div id="homeCard"></div>
+  <div id="bankCard"></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
     <div class="row" style="margin-bottom:12px">
@@ -402,7 +407,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     </div>
     <hr class="d">
     <h2>Runs on this day</h2>
-    <div id="runList" class="note" style="margin-bottom:10px"></div>
+    <div id="runList" class="note" style="margin-bottom:6px"></div>
+    <details class="fold" id="runEntry"><summary class="tiny">Add a run by hand <span class="dim">(usually not needed: say “sync” and Claude logs it from Strava)</span></summary>
     <div class="fgrid">
       <div class="f"><label for="inKind">Session</label>
         <select id="inKind">
@@ -445,18 +451,14 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <p class="tiny" style="margin-top:8px">Effort is <b>how hard it felt</b>, not how hard you tried — an easy run that felt like an 8 is an 8.</p>
     <div class="row" style="margin-top:10px"><button class="btn" id="btnAddRun" type="button">Add session</button><span class="tiny bd" id="runMsg"></span></div>
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
+    </details>
   </div>
-  <div id="homeCard"></div>
-  <div id="glowHome"></div>
-  <div id="bankCard"></div>
   <div id="alertCard"></div>
   <div id="glowBinge"></div>
   <div id="glowIll"></div>
   <div id="jrnlCard"></div>
-  <div id="calmCard"></div>
-  <div id="liftCard"></div>
   <details class="fold" id="moreToday"><summary><b>More for today</b> <span class="tiny dim">breathing &amp; pillars, your day plan, fuel, runs, calories, signals</span></summary>
-  <div id="glowCalm"></div>
+  
   <!-- 29 Sep: log first, then calories in and burned, then everything else -->
   <div id="tdeeCard"></div>
   <div id="glowIdeas"></div>
@@ -745,6 +747,17 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 </section>
 
 <!-- ================= REVIEW ================= -->
+<section id="s-nutri" class="stack" hidden>
+  <div id="glowHome"></div>
+</section>
+<section id="s-calm" class="stack" hidden>
+  <div id="calmCard"></div>
+  <div id="glowCalm"></div>
+</section>
+<section id="s-phys" class="stack" hidden>
+  <div id="liftCard"></div>
+  <div id="muscleFun"></div>
+</section>
 <section id="s-longev" class="stack" hidden>
   <div id="longCardTop"></div>
   <div id="glowHealth"></div>
@@ -763,7 +776,6 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <section id="s-camp" class="stack" hidden>
   <div id="runCoach"></div>
   <div id="runWins"></div>
-  <div id="muscleFun"></div>
 </section>
 
 <!-- ================= FEEDBACK ================= -->
@@ -4391,7 +4403,7 @@ function feedbackHTML(){
 }
 function walkBtns(k){return k==='walkweek'?'<button type="button" class="btn sm" data-rw="start" style="margin-top:6px">🚶 Start the run-free week today</button>':
   (k==='walkon'?'<button type="button" class="btn ghost sm" data-rw="stop" style="margin-top:6px">End it early</button>':'');}
-document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-breathe]');if(!b)return;var m=E('moreToday');if(m)m.open=true;var g=E('glowCalm');if(g)g.scrollIntoView({behavior:'smooth',block:'start'});});
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-breathe]');if(!b)return;if(CUR!=='calm')tab('calm');var g=E('glowCalm');if(g)setTimeout(function(){g.scrollIntoView({behavior:'smooth',block:'start'});},50);});
 document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-rw]');if(!b)return;
   if(b.dataset.rw==='start')S.settings.walkFrom=today();else delete S.settings.walkFrom;touch();});
 function renderFeedback(){if(E('fbCard'))E('fbCard').innerHTML=feedbackHTML();}
@@ -4497,6 +4509,14 @@ function norwPicks(d){var ws=mondayOf(d||today()),asof=addD(ws,-1),w=weekOf(ws),
     for(var k=0;k<evs.length;k++){var c=all.filter(function(x){return x.feeds.indexOf(evs[k])>=0;});if(c.length){var x=c[w%c.length];x.why='aimed at your '+repLabel(evs[k]);return x;}}
     return all[w%all.length];});}
 function norwPick(d){return norwPicks(d)[0];}
+/* Dan, 3 Nov: "adapt the Norwegian runs to where I'm at". When his recent Norwegian runs
+   came out much quicker than the sub-threshold range (paceGuide form under 0.94), the main
+   Norwegian becomes a format that is naturally easier to hold back on: longer reps,
+   steady running or hill reps. Back to the normal rotation once they sit in range. */
+var NORW_CALM=['n5m','n2k','n3m','nsteady','nhill'];
+function norwTooFast(){try{var f=paceGuide().form.N;return f!==null&&f<0.94;}catch(e){return false;}}
+function norwCalmPick(d){var M=norwMenu(),w=weekOf(mondayOf(d||today())),c=M.filter(function(x){return NORW_CALM.indexOf(x.k)>=0;});var x=c[w%c.length];
+  x.why='your recent Norwegian runs came out quick, so this week is a format that is easier to keep at 7 out of 10';return x;}
 function funKey(ws){var M=funMenu(),asof=addD(ws,-1),evs=[400,800,1000,1609,5000].sort(function(a,b){return gapPct(b,asof)-gapPct(a,asof);}),w=weekOf(ws);
   var c=M.filter(function(x){return x.feeds.indexOf(evs[0])>=0;});if(!c.length)c=M;return c[w%c.length].k;}
 function funPick(d){var ws=mondayOf(d||today()),M=funMenu(),last=funKey(addD(ws,-7)),asof=addD(ws,-1),w=weekOf(ws);
@@ -4628,6 +4648,7 @@ function campGame(){
     var nN=M.mix.filter(function(k){return k==='norw';}).length,nP=norwPicks();
     /* the long-rep one first (or the only one); the short-rep one is the second */
     /* never the same rep distance as this week's short hard session (e.g. 400s twice) */
+    if(norwTooFast()){var cA=norwCalmPick(t),cB=norwCalmPick(addD(t,7));nP=[cB.k!==cA.k?cB:nP[0],cA];}
     if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
     for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
@@ -9604,7 +9625,7 @@ function idStripHTML(t){
   var A=avgWindow(t,7),w=A.n?A.avg:null,lbl='7-day avg';
   if(w===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length){w=S.weights[ks[ks.length-1]];lbl='last, '+fmtS(ks[ks.length-1]);}}
   var P=campPhase(t),h=CFG.w.heightM,cm=Math.round(h*1000)/10;
-  var ph=t<=CFG.cutEnd?'Cut · '+P.n:(P.k==='done'?'After the camp':P.n);
+  var ph=(SEASON.filter(function(x){return t>=x[0]&&t<=x[1];})[0]||[0,0,(P.k==='done'?'After the camp':P.n)])[2];
   var cell=function(k,v,s2){return '<div class="cc-chip" style="text-align:left;padding:8px 10px"><small>'+k+'</small><b style="font-size:15px">'+v+'</b>'+(s2?'<small>'+s2+'</small>':'')+'</div>';};
   return '<div class="cc-id" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px">'+
     cell('Dan',ageOn(t)+' yrs','born 28 Nov 2000')+cell('Height','5′8″',cm+' cm')+
@@ -9643,14 +9664,9 @@ function missionHTML(){
         '<div class="cc-gs">'+(start!==null?'from '+f1(start)+' at the start of the cut · ':'')+Math.round(shredPct*100)+'% of the way · '+ci(kT)+' kcal today</div></div></div>'+
     '<div class="cc-ready '+dl+'"><span class="cc-dot"></span><div><b>'+esc(L.t||'')+'</b>'+(L.sub?'<small>'+esc(L.sub)+'</small>':'')+'</div></div>'+
     '<div class="cc-rings">'+rings+'</div>'+
-    '<div class="cc-row"><div class="cc-chip"><b>'+sc+'/5</b><small>today’s score</small></div>'+
-      '<div class="cc-chip"><b>'+(sk?'🔥 '+sk:'—')+'</b><small>day streak</small></div>'+
-      '<div class="cc-chip"><b>'+(G?G.quests.filter(function(q){return q[2]>=q[3];}).length+'/'+G.quests.length:'—')+'</b><small>quests done</small></div></div>'+
-    (gd?'<div class="cc-ready done"><span class="cc-dot"></span><div><b>🌱 Glow '+gd.glow+' · nutrition '+gd.nutrition+'</b><small>from what you logged in Glow</small></div></div>':'')+
     '<div class="cc-week">'+ccWeek()+'</div>'+
-    (G?'<details class="cc-more"><summary>Race goals</summary><div class="cc-goals">'+ccGoals()+'</div></details>':'')+
     '<button type="button" class="btn sm'+(r.plan?'':' ghost')+'" data-plan="1" style="align-self:flex-start">'+(r.plan?'✓ Ate to plan today':'🍽️ Ate to plan today?')+'</button>'+
-    '<p class="cc-foot">Score: weigh-in, ate to plan (or logged), steps, 8 h sleep, skin. Four of five keeps the streak alive. Plan: 4 meals, each a palm-and-a-half of protein, 1–2 fists of carbs (more on training days), 2 fists of colourful veg or fruit, a thumb of fat.</p>'+
+    ''+
   '</div>';
 }
 
@@ -9807,6 +9823,8 @@ function homeHTML(){
   tiles.push(homeTile('✨','Looks',lkN+'/6','today: '+(lk.filter(function(x){return !x[0];}).map(function(x){return x[1];}).slice(0,2).join(', ')||'all done'),lkN/6,lkN>=5?'good':''));
   /* 📚 study and 😊 happy */
   tiles.push(homeTile('📚','Study',f1(W.study)+' h','this week · aim '+CFG.study.lo+'–'+CFG.study.hi,W.study/CFG.study.lo,W.study>=CFG.study.lo?'good':''));
+  var gdF=glowDay(t);
+  tiles.push('<button type="button" class="hm-t" data-t="nutri" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><div class="hm-h">🍽️ Food today</div><b>'+(gdF?ci(gdF.kcal)+' kcal':'—')+'</b><small>'+(gdF?gdF.protein+' g protein of '+MACRO.pro+' · food options →':'log food · food options →')+'</small>'+(gdF?'<div class="cc-bar sm"><i style="width:'+Math.min(100,Math.round(gdF.protein/MACRO.pro*100))+'%"></i></div>':'')+'</button>');
   tiles.push(stressTile());
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
@@ -9830,8 +9848,9 @@ function homeHTML(){
     (lifts?' · '+lifts+' lift'+(lifts===1?'':'s')+' tracked, '+ups+' stronger than 2 weeks ago':'');
   var CMh=null;try{CMh=coachModel();}catch(e){}
   var restBox=CMh&&['walkweek','walkon','week','days','day'].indexOf(CMh.rest.k)>=0?'<div class="p '+(CMh.rest.k==='walkon'?'flag':'warn')+'" style="box-shadow:none;margin:0 0 10px"><b>'+(CMh.rest.k.indexOf('walk')===0?'🚶 ':'🛌 ')+CMh.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CMh.rest.w+'</div>'+walkBtns(CMh.rest.k)+'</div>':'';
-  return '<div class="p hm"><h2>🎯 Your goals</h2>'+restBox+'<div class="hm-grid">'+tiles.join('')+'</div>'+
-    '<h3 style="margin:12px 0 4px">👉 Worth doing next</h3><p class="tiny dim" style="margin:0 0 4px">Suggestions, not rules. Each says how much difference it makes.</p>'+next.sort(function(a,b){var o={big:0,medium:1,small:2};return o[a[1]]-o[b[1]];}).slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x[0])+' <span class="pill'+(x[1]==='big'?' g':'')+'" style="font-size:10px">'+({big:'big difference',medium:'helps',small:'small extra'}[x[1]])+'</span></p>';}).join('')+
+  return '<div class="p hm"><h2>👉 Today</h2>'+restBox+
+    '<h3 style="margin:4px 0 4px">Worth doing next</h3><p class="tiny dim" style="margin:0 0 4px">Suggestions, not rules. Each says how much difference it makes.</p>'+next.sort(function(a,b){var o={big:0,medium:1,small:2};return o[a[1]]-o[b[1]];}).slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x[0])+' <span class="pill'+(x[1]==='big'?' g':'')+'" style="font-size:10px">'+({big:'big difference',medium:'helps',small:'small extra'}[x[1]])+'</span></p>';}).join('')+
+    '<h3 style="margin:14px 0 6px">🎯 Your numbers</h3><div class="hm-grid">'+tiles.join('')+'</div>'+
     '<details style="margin-top:10px"><summary><b>🎯 Your run paces this week</b></summary>'+paceGuideHTML(true)+'<button type="button" class="btn sm ghost" data-t="camp">Full guide and the road to your times →</button></details>'+
     '<details style="margin-top:6px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}
 /* Dan, 3 Nov: "don't have the weights and reps I did, just the sets — but give me a
@@ -10055,7 +10074,7 @@ function runCoachHTML(){
     (G&&(hardLeft.length||norLeft.length)?'<p style="margin:6px 0 2px"><b>Still to come, on green days:</b></p>'+hardLeft.concat(norLeft).map(function(x){
       var nm=x.n.replace(/^Norwegian sub-threshold — /,'');
       var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
-      return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+'</p>';}).join(''):'')+
+      return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+(x.e==='🌊'&&norwTooFast()?'<br><span class="tiny">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</span>':'')+'</p>';}).join(''):'')+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
     (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+'</div>';}
 
@@ -10277,7 +10296,7 @@ function startGlow(){
 function tab(name,sub){
   CUR=name;
   if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;startGlow();}
-  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data','longev'].forEach(function(k){
+  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data','longev','nutri','calm','phys'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button,#bnav button'),function(b){

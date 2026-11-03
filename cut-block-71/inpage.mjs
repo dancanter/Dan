@@ -8,7 +8,7 @@ await p.goto('http://localhost:8765/app.html');
 await p.evaluate(()=>{localStorage.clear();localStorage.setItem('cutblock71.v1',JSON.stringify({weights:{'2026-11-02':129.6},days:{'2026-11-02':{bed:'22:36',wake:'08:26'}},settings:{}}));
  localStorage.setItem('glow-state-v1',JSON.stringify({version:1,days:{'2026-11-03':{items:[{uid:'a',foodId:'salmon-wild',grams:150,meal:'lunch'}],rituals:[]}},weights:[],sleeps:[]}));});
 await p.reload(); await p.waitForTimeout(800);
-await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(2500);
+await p.click('#tabs button[data-t="glow"][data-g="today"]'); await p.waitForTimeout(2500);
 const t1 = await p.evaluate(()=>{const h=document.getElementById('glow-host');return h&&h.shadowRoot?h.shadowRoot.textContent.slice(0,120):'NO SHADOW';});
 await p.screenshot({path:SP+'/in-food-'+scheme+'.png'});
 await p.click('#tabs button[data-g="cellular"]'); await p.waitForTimeout(800);
