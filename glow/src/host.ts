@@ -6,7 +6,8 @@ import type { State } from '@/store';
 // keeps a second copy. On its own, none of this exists and Glow uses the
 // browser's storage as before.
 
-export interface DaySum { kcal: number; protein: number; nutrition: number; glow: number; plants: number }
+/** names: the foods logged that day, so the tracker can read its food groups. */
+export interface DaySum { kcal: number; protein: number; nutrition: number; glow: number; plants: number; carbs?: number; fat?: number; fibre?: number; names?: string[] }
 export interface Verdict { c: string; t: string; sub?: string }
 
 export interface GlowHost {

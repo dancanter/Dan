@@ -57,6 +57,10 @@ const open = async (mode, local) => {
 const txt = async (p, sel) => (await p.textContent(sel)).replace(/\s+/g, ' ');
 
 // ===== fresh food: pick, amount, add ======================================
+// One diary (3 Nov): entries land in Glow's diary, days[d].glow.items, each
+// with its own custom food holding the portion's numbers. eaten[] is gone.
+const gl = (p) => p.evaluate(() => { const r = S.days[today()] || {}, cf = (S.glow && S.glow.customFoods) || [];
+  return ((r.glow && r.glow.items) || []).map(i => { const f = cf.find(c => c.id === i.foodId) || { n: {} }; return { kcal: f.n.kcal, pro: f.n.protein, meal: i.meal, g: i.grams, name: f.name }; }); });
 let { ctx, p } = await open(null);
 const T = await p.evaluate(() => today());
 const opts = await p.$$eval('#inFood option', o => o.map(x => x.textContent));
@@ -69,8 +73,9 @@ await p.selectOption('#inMeal', 'lunch');
 await p.click('#btnAddFood');
 await p.waitForTimeout(150);
 let rec = await p.evaluate(() => S.days[today()]);
-ok('the entry is saved with its own numbers', rec.eaten && rec.eaten[0].kcal === 206 && rec.eaten[0].pro === 38.8 && rec.eaten[0].m === 'lunch', JSON.stringify(rec.eaten));
-ok('and the day kcal comes from the diary', rec.kcal === 206, String(rec.kcal));
+let G = await gl(p);
+ok('the entry goes into Glow’s diary with its own numbers', G.length === 1 && G[0].kcal === 206 && G[0].pro === 38.8 && G[0].meal === 'lunch' && G[0].g === 100, JSON.stringify(G));
+ok('no second diary is kept', !rec.eaten && rec.kcalFrom === 'glow', JSON.stringify(rec));
 await p.selectOption('#inFood', 'x:egg');
 ok('eggs are counted, not weighed', /How many/.test(await p.textContent('#labAmt')));
 await p.fill('#inAmt', '2');
@@ -78,25 +83,14 @@ await p.selectOption('#inMeal', 'breakfast');
 await p.click('#btnAddFood');
 await p.waitForTimeout(150);
 rec = await p.evaluate(() => S.days[today()]);
-ok('two eggs are 156 kcal', rec.eaten[1].kcal === 156 && rec.kcal === 362, JSON.stringify(rec));
+G = await gl(p);
+ok('two eggs are 156 kcal, at breakfast', G.length === 2 && G[1].kcal === 156 && G[1].meal === 'breakfast', JSON.stringify(G));
 let fl = await txt(p, '#foodList');
-ok('the diary groups by meal', fl.indexOf('Breakfast') < fl.indexOf('Lunch') && /Egg, large/.test(fl), fl);
-ok('it totals kcal against the budget', /362 kcal of your 1,[78]99/.test(fl), fl);
-ok('and counts protein toward 135', /53 g protein/.test(fl) && /87 g to 140/.test(fl), fl);
-ok('the kcal box shows the diary total', (await p.$eval('#inKcal', e => e.value)) === '362');
+ok('the old list points to the one Food diary', /Food diary/.test(fl), fl);
 // nothing picked / nothing entered: said plainly
 await p.selectOption('#inFood', '');
 await p.click('#btnAddFood');
 ok('no food picked says so', /Pick a food first/.test(await p.textContent('#foodMsg')));
-// removing
-await p.click('#foodList button[data-eat="1"]');
-await p.waitForTimeout(150);
-rec = await p.evaluate(() => S.days[today()]);
-ok('removing an entry recalculates the day', rec.eaten.length === 1 && rec.kcal === 206, JSON.stringify(rec));
-await p.click('#foodList button[data-eat="0"]');
-await p.waitForTimeout(150);
-rec = await p.evaluate(() => S.days[today()] || {});
-ok('an emptied diary takes its kcal with it', !rec.eaten && rec.kcal === undefined, JSON.stringify(rec));
 // with no Claude, the scan button is still there and says exactly why it cannot scan
 ok('the scan button is always on show', !(await p.$eval('#btnScan', e => e.hidden)));
 ok('without Claude it says scanning is off and why', /Scanning is off here/.test(await p.textContent('#scanNote')) && /open inside Claude/.test(await p.textContent('#scanNote')));
@@ -116,7 +110,8 @@ const foods = await p.evaluate(() => S.foods);
 const lent = Object.values(foods).find(f => f.name === 'Lentil cakes');
 ok('a hand-added food is saved to your foods', lent && lent.kcal === 370 && lent.src === 'you', JSON.stringify(foods));
 rec = await p.evaluate(() => S.days[today()]);
-ok('and 30 g of it lands in the diary', rec.eaten && rec.eaten[0].kcal === 111, JSON.stringify(rec.eaten));
+G = await gl(p);
+ok('and 30 g of it lands in the diary', G.length === 3 && G[2].kcal === 111, JSON.stringify(G));
 ok('it is now on the menu', (await p.$$eval('#inFood option', o => o.map(x => x.textContent))).some(x => /Lentil cakes/.test(x)));
 // impossible numbers are refused
 await p.click('#btnNewFood');
@@ -126,8 +121,8 @@ ok('macros over 100 per 100 are refused', /more than 100 per 100/.test(await p.t
 await p.click('#scanBox button[data-rv="cancel"]');
 // editing a food keeps old diary entries as they were
 await p.evaluate(() => { const id = Object.keys(S.foods)[0]; S.foods[id].kcal = 999; touch(); });
-rec = await p.evaluate(() => S.days[today()]);
-ok('editing a food never rewrites a logged day', rec.eaten[0].kcal === 111, JSON.stringify(rec.eaten[0]));
+G = await gl(p);
+ok('editing a food never rewrites a logged day', G[2].kcal === 111, JSON.stringify(G[2]));
 await ctx.close();
 
 // ===== scanning a label ==================================================
@@ -152,7 +147,8 @@ await p.waitForTimeout(150);
 const fage = await p.evaluate(() => Object.values(S.foods).find(f => /Fage/.test(f.name)));
 ok('the scanned food is saved as from a label', fage && fage.src === 'label' && fage.gluten === 'free', JSON.stringify(fage));
 rec = await p.evaluate(() => S.days[today()]);
-ok('170 g of it is 124 kcal and 17 g protein', rec.eaten[0].kcal === 124 && rec.eaten[0].pro === 17, JSON.stringify(rec.eaten[0]));
+G = await gl(p);
+ok('170 g of it is 124 kcal and 17 g protein', G[0].kcal === 124 && G[0].pro === 17, JSON.stringify(G[0]));
 ok('next time it is one tap from the menu', (await p.$$eval('#inFood option', o => o.map(x => x.textContent))).some(x => /Fage Total 2%/.test(x)));
 // the feedback card picks up protein from the diary
 const fb = await p.evaluate(() => dayFeedback(today()).find(r => r[0] === 'Food'));
@@ -245,7 +241,8 @@ ok('naturally gluten free is said as such', /Naturally gluten free/.test(sb));
 await p.fill('#rvAmt', '50');
 await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
 rec = await p.evaluate(() => S.days[today()]);
-ok('50 g of halloumi lands in the diary', rec.eaten && rec.eaten[0].kcal === 158, JSON.stringify(rec.eaten));
+G = await gl(p);
+ok('50 g of halloumi lands in the diary', G.length && G[G.length - 1].kcal === 158, JSON.stringify(G));
 L = { msg: '' };
 await p.fill('#inLookup', 'halloumi'); await p.click('#btnLookup'); await p.waitForTimeout(150);
 ok('next time it is found in his own foods, no second look-up', (await p.evaluate(() => window.__calls.length)) === 1 && /Found Halloumi/.test(await p.textContent('#lookupMsg')));
@@ -269,29 +266,10 @@ await add('x:salmonraw', 150, 'tea');
 await add('x:spinach', 50, 'lunch');
 await add('x:egg', 2, 'breakfast');
 await add('x:oats', 60, 'breakfast');
-let E1 = await p.evaluate(() => S.days[today()].eaten);
-const salmon = E1.find(e => e.id === 'x:salmonraw');
-ok('an entry carries its micronutrients, scaled', salmon.mic && salmon.mic.o3 === 3225 && Math.abs(salmon.mic.b12 - 4.8) < 0.01, JSON.stringify(salmon.mic));
-ok('fresh-food values are not marked as estimates', !salmon.me);
-const oatsE = E1.find(e => e.id === 'x:oats');
-ok('and its fibre', oatsE.fib === 6, String(oatsE.fib));
-fl = await txt(p, '#foodList');
-ok('the day shows fibre against 30 g', /\d+ g fibre of 30/.test(fl), fl.slice(0, 400));
+let E1 = await gl(p);
+const salmon = E1.find(e => /salmon/i.test(e.name)), oatsE = E1.find(e => /oats/i.test(e.name));
+ok('each entry keeps its scaled numbers in Glow’s diary', E1.length === 4 && salmon && oatsE && salmon.meal === 'snacks' && oatsE.meal === 'breakfast', JSON.stringify(E1));
 ok('the food groups light up from what was eaten', await p.evaluate(() => { const g = dayGroups(S.days[today()]); return g.oily && g.green && g.egg && !g.red; }));
-ok('and show as ticks', /✓ Oily fish/.test(fl) && /✓ Leafy greens/.test(fl) && /✓ Eggs/.test(fl) && !/✓ Red meat/.test(fl));
-ok('vitamins and minerals open as a fold', /Vitamins and minerals — typical values/.test(fl) && /\(4 of 4 items counted\)/.test(fl), fl.slice(fl.indexOf('Vitamins'), fl.indexOf('Vitamins') + 90));
-ok('omega-3 is shown against 450 mg (salmon plus two eggs)', /Omega-3 \(EPA\+DHA\)\s*3,285 mg\s*730%/.test(fl), (fl.match(/Omega-3[^%]*%/) || [''])[0]);
-ok('the ten nutrients are there and vitamins A and D are not', await p.evaluate(() => NUTRI.length === 10 && !NUTRI.some(n => /vitamin (a|d)\b/i.test(n.n))));
-ok('it says one day is noise', /One day is noise/.test(fl));
-// a hand-added food has no micros and the day says so instead of pretending
-await p.click('#btnNewFood');
-await p.fill('#rvName', 'Lentil cakes'); await p.fill('#rvKcal', '370'); await p.fill('#rvPro', '25'); await p.fill('#rvCarb', '60'); await p.fill('#rvFat', '2');
-await p.fill('#rvFib', '7'); await p.fill('#rvAmt', '30');
-await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
-const lc = await p.evaluate(() => Object.values(S.foods).find(f => f.name === 'Lentil cakes'));
-ok('a typed-in food keeps its fibre', lc.fib === 7 && !lc.mic, JSON.stringify(lc));
-fl = await txt(p, '#foodList');
-ok('and the micronutrient fold admits the gap', /\(4 of 5 items counted\)/.test(fl) && /1 item has no vitamin or mineral data/.test(fl) && /real totals are higher/.test(fl), fl.slice(fl.indexOf('Vitamins'), fl.indexOf('Vitamins') + 400));
 // the week reads food groups back as a whole
 await p.click('[data-t="wins"]');
 const wk2 = await txt(p, '#winWeek');
@@ -309,11 +287,8 @@ await p.click('#scanBox button[data-rv="add"]'); await p.waitForTimeout(150);
 const fg = await p.evaluate(() => Object.values(S.foods).find(f => /Fage/.test(f.name)));
 ok('the saved food keeps the estimate, flagged', fg.micEst === 1 && fg.mic.ca === 110, JSON.stringify(fg.mic));
 ok('a nonsense value is dropped, not stored as zero', !('o3' in fg.mic));
-const fe = await p.evaluate(() => S.days[today()].eaten[0]);
-ok('the diary entry is flagged as estimated', fe.me === 1 && Math.abs(fe.mic.ca - 187) < 0.01, JSON.stringify(fe));
-fl = await txt(p, '#foodList');
-ok('and the fold says partly estimated', /Vitamins and minerals — partly estimated/.test(fl) && /Claude’s estimates/.test(fl));
-ok('Fage counts as dairy', /✓ Dairy or kefir/.test(fl));
+const fe = (await gl(p))[0];
+ok('the scanned packet lands in Glow’s diary', fe && /Fage/.test(fe.name), JSON.stringify(fe));
 await ctx.close();
 
 // ===== foods survive a sync merge ========================================
@@ -347,7 +322,7 @@ ok('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
   await sp.click('#seasonCard button[data-season="summer"]'); await sp.waitForTimeout(80);
   sc = (await sp.innerText('#seasonCard')).replace(/\s+/g, ' ');
   ok('tapping summer shows summer', /Strawberries/.test(sc) && /Run early, before the heat/.test(sc) && !/Oysters/.test(sc), sc.slice(0, 300));
-  ok('summer has breakfast, lunch and dinner ideas, and the evening bowl stays', /Breakfast/.test(sc) && /Overnight GF oats/.test(sc) && /Lunch/.test(sc) && /Grilled mackerel/.test(sc) && /Dinner · 16:30/.test(sc) && /Your yoghurt bowl — always the same/.test(sc), sc.slice(0, 900));
+  ok('summer has breakfast, lunch and dinner ideas, and the evening bowl stays', /Breakfast/.test(sc) && /Overnight GF oats/.test(sc) && /2pm/.test(sc) && /Grilled mackerel/.test(sc) && /Post-gym/.test(sc) && /Pre-gym · 17:30–18:00/.test(sc), sc.slice(0, 900));
   ok('every season has three ideas for each meal', await sp.evaluate(() => SEASONS.every(x => ['b', 'l', 'd'].every(k => x.meals[k].length === 3))));
   ok('any oats are gluten-free', await sp.evaluate(() => SEASONS.every(x => JSON.stringify(x.meals).match(/oats|porridge/gi).length === (JSON.stringify(x.meals).match(/GF (oats|porridge)/g) || []).length)));
   ok('no onion, leek or garlic in the seasons (8 Oct)', await sp.evaluate(() => !/onion|leek|garlic/i.test(JSON.stringify(SEASONS))));

@@ -1,3 +1,4 @@
+import { hosted } from '@/host';
 import { useState } from 'react';
 import { CalendarCheck, Check, Dna, Shuffle, Sparkles, TrendingUp } from 'lucide-react';
 import { ideasFor } from '@/data/ideas';
@@ -180,8 +181,9 @@ export function PhaseCompareCard() {
           </table>
         </div>
       )}
+      {hosted() ? <p className="mt-2 text-[11px] text-muted">Calories and the reverse are set by the tracker’s Camp and Reverse tabs. Energy availability below 30 kcal/kg fat-free mass is where hormones and bone health start to suffer; 45 is fully fuelled.</p> : <>
       <p className="mt-2 text-[11px] text-muted">{rev ? `Reverse started ${prettyDate(rev)}: +100 kcal a week until maintenance. ` : 'When your 7-day average reaches goal, the coach will offer to start the reverse (+100 kcal a week). '}Energy availability below 30 kcal/kg fat-free mass is where hormones and bone health start to suffer; 45 is fully fuelled.</p>
-      {rev && <button className="mt-1 text-xs text-sea" onClick={() => actions.setProfile({ reverseFrom: undefined })}>Undo: go back to cut calories</button>}
+      {rev && <button className="mt-1 text-xs text-sea" onClick={() => actions.setProfile({ reverseFrom: undefined })}>Undo: go back to cut calories</button>}</>}
     </Card>
   );
 }

@@ -42,14 +42,14 @@ let t = await p.textContent('#fuelCard');
 ok('fuel card renders', t.length > 200, String(t.length));
 ok('names what was logged', /Fuel for what you logged today/.test(t), t.slice(0, 120));
 ok('picks the hard-run block', /Hard run/.test(t));
-ok('and the gym block', /Gym at 18:30/.test(t));
+ok('and the gym block', /Gym at about 18:00/.test(t));
 ok('does not show the rest-day block', !/Rest day/.test(t));
 ok('two sessions fires the lunch warning', /lunch is not optional/i.test(t), t.slice(0, 400));
 // Today is a summary now, by his request — the weights, the reasoning and the
 // timings all live on Food. Today keeps the one-liner and the pointer.
 ok('gives the oats in the summary', /Oats 60–90 min before/.test(t));
 ok('and the post-run protein and carbs', /30 g protein \+ 60 g carbs/.test(t));
-ok('names the bowl timing', /bowl 20:30/.test(t));
+ok('names the post-gym last feed', /post-gym last/.test(t));
 ok('never adds to the total', /Spending the day’s number differently — 1,799, or 1,899 on a hard-run, 5-mile or Saturday — never adding to it/.test(t));
 ok('and points at Food for the detail', /Full detail on the Food tab/.test(t));
 
@@ -91,7 +91,7 @@ ok('and keeps the carb floor derived', /147 g|\d+ g is what/.test(book.join('|')
 // ---- the Food tab carries the whole set ----------------------------------
 await p.click('[data-t="food"]');
 t = await p.textContent('#foodFuel');
-['Hard run', '100m uphill sprints', 'Easy run', 'Gym at 18:30', 'Rest day'].forEach(k =>
+['Hard run', '100m uphill sprints', 'Easy run', 'Gym at about 18:00', 'Rest day'].forEach(k =>
   ok('food tab lists ' + k, t.indexOf(k) >= 0));
 ok('and says the total never moves', /1,799, or 1,899 on a hard-run, 5-mile or Saturday/.test(t), t.slice(-300));
 

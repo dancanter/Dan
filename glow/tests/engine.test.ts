@@ -744,8 +744,8 @@ describe('today’s plan', () => {
     expect(p.items.some((i) => i.title.startsWith('Morning daylight'))).toBe(true);
     const order = p.items.map((i) => i.title);
     expect(order.indexOf('Meal 1: breakfast')).toBeLessThan(order.indexOf('Meal 2: after your walk or run'));
-    expect(order.indexOf('Meal 3: pre-gym')).toBeLessThan(order.indexOf('Gym'));
-    expect(p.items.find((i) => i.title === 'Gym')!.time).toBe('18:00');
+    expect(order.indexOf('Meal 3: before the gym (if you go)')).toBeLessThan(order.indexOf('Gym (if you go)'));
+    expect(p.items.find((i) => i.title === 'Gym (if you go)')!.time).toBe('18:00');
     expect(p.items.find((i) => i.title === 'Meal 4: post-gym dinner')!.time).toBe('19:40');
   });
   it('turns training into rest when the coach calls it, and walking in France', () => {

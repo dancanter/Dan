@@ -101,7 +101,7 @@ ok('the skin tab no longer says never retinol', !/Never retinol or tretinoin/.te
 
 // logging a night
 await p.click('[data-t="today"]');
-await p.click('#tgRet');
+await p.$eval('#tgRet', e => e.click()); // hidden since retinol stopped; old days still count
 await p.waitForTimeout(150);
 ok('a retinol night can be ticked',
   (await p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')).days[today()].retinol)) === true);
@@ -131,7 +131,7 @@ ok('a rice grain, a gap above the brows, never before a run', /A rice grain/.tes
 ok('the rest of the face stays off it', /rest of your face stays retinol-free/.test(f));
 const ramp2 = await p2.$$eval('#skRetinol table:has(thead) tbody tr', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
 ok('a fresh ramp from 11 Oct: 2x from 25 Oct, 3x from 8 Nov', /11 Oct/.test(ramp2[0]) && /25 Oct/.test(ramp2[1]) && /2× a week/.test(ramp2[1]) && /8 Nov/.test(ramp2[2]), JSON.stringify(ramp2));
-await p2.click('[data-t="today"]'); await p2.click('#tgRet'); await p2.waitForTimeout(150);
+await p2.click('[data-t="today"]'); await p2.$eval('#tgRet', e => e.click()); await p2.waitForTimeout(150);
 ok('ticking it shows done on Today', /✓ done tonight/.test(await p2.textContent('#glanceCard')));
 await p2.close();
 const p3 = await b.newPage(); await p3.clock.setFixedTime(new Date('2026-10-13T19:00:00'));
@@ -146,6 +146,7 @@ await p4.goto(FILE); await p4.evaluate(([k, v]) => { localStorage.clear(); local
 await p4.reload(); await p4.waitForTimeout(220);
 const SX = await p4.evaluate(() => ({ m: retinolModel(), g: E('glanceCard').textContent }));
 ok('from 28 Oct retinol is stopped: never tonight, no forehead row on Today', SX.m.paused && SX.m.paused.stopped && SX.m.tonight === false && !SX.m.area && !/Retinol · forehead only/.test(SX.g), JSON.stringify({ p: SX.m.paused, a: SX.m.area }));
+ok('and the retinol tick is gone from the Log panel', await p4.$eval('#tgRet', e => e.hidden || getComputedStyle(e).display === 'none' || e.closest('[hidden]') !== null));
 await p4.click('[data-t="skin"]');
 ok('the Skin tab says stopped, with the barrier repair', /Stopped on/.test(await p4.textContent('#skRetinol')) && /barrier repair/.test(await p4.textContent('#skRetinol')));
 await p4.close();

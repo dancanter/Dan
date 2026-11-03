@@ -51,7 +51,7 @@ ok('at most one row per session type', rowsToday <= 4, String(rowsToday));
 await p.click('[data-t="food"]');
 t = await p.textContent('#foodFuel');
 ok('Food keeps the full detail', /60–90 min before/.test(t) && /not something about eggs/.test(t));
-['Hard run', '100m uphill sprints', 'Easy run', 'Gym at 18:30', 'Rest day'].forEach(k =>
+['Hard run', '100m uphill sprints', 'Easy run', 'Gym at about 18:00', 'Rest day'].forEach(k =>
   ok('Food still lists ' + k, t.indexOf(k) >= 0));
 
 // ===== 2. the PB card expires on the next hard run =======================

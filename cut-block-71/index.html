@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><script>/* dark by default (3 Nov); light only if picked */try{document.documentElement.dataset.theme=localStorage.getItem('cb71.theme')||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
 <title>The Good Life</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
 <style>
@@ -491,15 +491,14 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
       <hr class="d">
       <p class="note">The carb number is a <b>floor, not a ceiling</b>. Going under it raises cortisol, holds water, and makes you puffier and hungrier at the same rate of loss. Fat does not go under 40 g — testosterone and skin barrier.</p>
     </div>
-    <div class="p"><h2>Eating times — your real day (2 Nov)</h2>
+    <div class="p"><h2>Eating times — a rough guide, not a timetable</h2>
       <table class="tbl"><tbody>
-        <tr><td class="mono">On waking</td><td>Breakfast. A quality run 60–90 min after it</td></tr>
-        <tr><td class="mono">≈ 14:00</td><td>2pm meal, after the walk or run</td></tr>
-        <tr><td class="mono">17:30–18:00</td><td>Pre-gym meal</td></tr>
-        <tr><td class="mono">≈ 18:00</td><td>Gym</td></tr>
-        <tr><td class="mono">After the gym</td><td>Post-gym meal, the last feed — protein overnight</td></tr>
+        <tr><td class="mono">Morning</td><td>Breakfast when you wake. Running? Leave 60–90 min after it</td></tr>
+        <tr><td class="mono">Midday</td><td>A proper meal, around 2pm, or whenever suits</td></tr>
+        <tr><td class="mono">Gym day</td><td>A small snack 30–60 min before, a real meal after</td></tr>
+        <tr><td class="mono">No gym</td><td>No pre-gym snack needed. Just a good evening meal</td></tr>
       </tbody></table>
-      <p class="tiny" style="margin-top:8px">Four protein feeds, 3–5 hours apart: the pattern that builds the most muscle. Log them on the Food tab — it is the one diary.</p>
+      <p class="tiny" style="margin-top:8px">Times move with your day. What counts: about 4 protein feeds, roughly 3–5 hours apart. Skipped the gym or ate late? That's fine, nothing is missed. Log meals on the Food tab, the one diary.Log them on the Food tab — it is the one diary.</p>
     </div>
   </div>
   <div class="p"><h2>Breakfast follows the session, not the clock</h2>
@@ -712,6 +711,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
   </div>
   <div id="revBody"></div>
+  <div id="glowReview"></div>
 </section>
 
 <!-- ================= CAMP ================= -->
@@ -2293,7 +2293,8 @@ function renderReview(){
      '</div>';
 
   if(wk.len&&wk.len!==7)h+='<p class="tiny" style="margin:-4px 0 10px">A '+wk.len+'-day week, lol — the Saturday and Sunday before the first Monday are in here too.</p>';
-  if(wk.start>=mondayOf(CFG.camp.start)&&wk.start<=CFG.camp.end)h+=campReviewHTML(wk.start);
+  if(wk.start>=mondayOf(CFG.camp.start)&&wk.start<=CFG.camp.end)h+=campReviewHTML(wk.start,true);
+  h+=weekMindHTML(wk.start,false);
   h+=reviewDidHTML(R,wk);
   h+=tSupportHTML(wk.start,wk.end,'Testosterone support · this week');
   /* how it went, and what to do next */
@@ -2384,6 +2385,7 @@ function renderReview(){
   /* the whole cut so far, under every week (29 Sep) */
   h+=blockProgressHTML();
   E('revBody').innerHTML=h;
+  GLOW_REV_END=wk.end>today()?today():wk.end;if(window.GLOW&&E('glowReview'))GLOW.mount(E('glowReview'),'review',GLOW_REV_END);
 }
 
 /* ===================== the call, today ===================== */
@@ -4715,6 +4717,24 @@ function fitnessAt(date,dist){
   var p=a[i],q=a[i+1],k=Math.log(q[1]/p[1])/Math.log(q[0]/p[0]);
   return p[1]*Math.pow(dist/p[0],k);
 }
+/* Glow's week in the tracker's words: food and cells from the Glow diary
+   (days[d].glowSum), binges, sick days, and the journal's mood and energy.
+   Shown in the Sunday camp review and on the Review tab; the full cellular
+   review (pillars, nutrients, helpers vs stressors) sits under it on Review. */
+function weekMind(ws){var we=addD(ws,6),t=today(),o={fd:0,nut:[],gl:[],pl:[],pro:[],bi:0,ill:0,j:journalStats(ws,we<t?we:t)};
+  for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var r=S.days[d]||{},g=r.glowSum;
+    if(g){o.fd++;o.nut.push(g.nutrition);o.gl.push(g.glow);o.pl.push(g.plants);o.pro.push(g.protein);}
+    o.bi+=(r.binges||[]).length;if(r.ill)o.ill++;}
+  var av=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
+  o.nutA=av(o.nut);o.glA=av(o.gl);o.plA=av(o.pl);o.proA=av(o.pro);return o;}
+function weekMindHTML(ws,inCamp){var o=weekMind(ws),L=[];
+  if(o.fd)L.push('🍽️ Food logged on '+o.fd+' day'+(o.fd===1?'':'s')+' · nutrition <b>'+Math.round(o.nutA)+'</b> · Glow <b>'+Math.round(o.glA)+'</b> · '+Math.round(o.plA)+' plants a day · '+Math.round(o.proA)+' g protein');
+  if(o.j.n)L.push('📓 Journal on '+o.j.n+' day'+(o.j.n===1?'':'s')+(o.j.mood!==null?' · mood <b>'+o.j.mood.toFixed(1)+'</b>/5':'')+(o.j.energy!==null?' · energy <b>'+o.j.energy.toFixed(1)+'</b>/5':''));
+  L.push(o.bi?'😵 '+o.bi+' binge'+(o.bi===1?'':'s')+' — reset, don’t restrict. The two weigh-ins after each are noise.':'😵 No binges.');
+  L.push(o.ill?'🤒 '+o.ill+' sick day'+(o.ill===1?'':'s')+' — rest was the training.':'🤒 No sick days.');
+  if(o.j.n&&o.j.energy!==null&&o.j.energy<2.5)L.push('Energy ran low this week — sleep and carbs around the hard runs first, before anything else changes.');
+  return '<div class="p"><h2>🧬 Food, cells &amp; mind</h2>'+L.map(function(x){return '<p style="margin:3px 0">'+x+'</p>';}).join('')+
+    (inCamp?'<p class="tiny dim" style="margin-top:6px">The full cellular review — pillars, nutrients, what helped and what stressed — is on the Review tab.</p>':'')+'</div>';}
 function campWeekReview(ws){
   var C=CFG.camp,we=addD(ws,6),t=today(),end=we<t?we:t,prev=addD(ws,-1),i,d,r;
   var o={ws:ws,we:we,hard:[],hm:[],spr:0,five:0,easy5k:0,walk:0,gym:0,pr:0,med:0,sl:[],rhr:[],sat:false,thr:0};
@@ -4837,7 +4857,7 @@ function muscleMaxHTML(){
 }
 /* Dan, 16 Oct: the week's review lands on Sunday at 8 pm */
 function reviewReady(){var t=today();return t>=CFG.camp.start&&t<=CFG.camp.end&&dow(t)===0&&new Date().getHours()>=20;}
-function campReviewHTML(ws){
+function campReviewHTML(ws,onReview){
   var o=campWeekReview(ws),C=CFG.camp;
   var good=[],next=[];
   if(o.bests.length)good.push(o.bests.map(function(b){return b.e+' '+b.n.replace(/^.* — /,'')+' '+b.sub.split(' · ')[0];}).join(' · '));
@@ -4887,7 +4907,7 @@ function campReviewHTML(ws){
     tlHTML+
     (wLine?'<p style="margin:8px 0 0">'+wLine+'</p>':'')+
     '<h3 style="margin:10px 0 2px">Focus next week</h3>'+focus.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+
-    '<p class="tiny dim" style="margin-top:6px">Fitness is read from your bests as they stood each day, so “closer” is real. The goals bars run from where the camp started to the goal.</p></div>';
+    '<p class="tiny dim" style="margin-top:6px">Fitness is read from your bests as they stood each day, so “closer” is real. The goals bars run from where the camp started to the goal.</p></div>'+(onReview?'':weekMindHTML(ws,true));
 }
 function campGameHTML(){
   var C=CFG.camp,t=today();
@@ -6607,9 +6627,17 @@ function groupsOf(name){
   GROUPS.forEach(function(g){if(g.re.test(n))out.push(g.k);});
   return out;
 }
+/* the day's foods, by name, from Glow's diary: its own summary when Glow has
+   run, otherwise the tracker's own entries (custom foods) */
+function dayFoodNames(rec){if(!rec)return [];
+  if(rec.glowSum&&rec.glowSum.names)return rec.glowSum.names;
+  var cf=(S.glow&&S.glow.customFoods)||[],out=[];
+  ((rec.glow&&rec.glow.items)||[]).forEach(function(i){for(var k=0;k<cf.length;k++)if(cf[k].id===i.foodId){out.push(cf[k].name);return;}});
+  (rec.eaten||[]).forEach(function(e){out.push(e.n);});
+  return out;}
 function dayGroups(rec){
   var set={};
-  (rec&&rec.eaten||[]).forEach(function(e){groupsOf(e.n).forEach(function(k){set[k]=true;});});
+  dayFoodNames(rec).forEach(function(n){groupsOf(n).forEach(function(k){set[k]=true;});});
   return set;
 }
 function weekGroups(){
@@ -6617,7 +6645,7 @@ function weekGroups(){
   GROUPS.forEach(function(g){out[g.k]=0;});
   for(var i=0;i<=diffD(tr.wkStart,tr.wkEnd);i++){
     var d=addD(tr.wkStart,i);if(d>t)break;days++;
-    var r=S.days[d];if(!r||!r.eaten||!r.eaten.length)continue;logged++;
+    var r=S.days[d];if(!dayFoodNames(r).length)continue;logged++;
     var g=dayGroups(r);for(var k in g)out[k]++;
   }
   return {c:out,days:days,logged:logged};
@@ -6678,7 +6706,14 @@ function entryFor(f,amt,meal){
   return e;
 }
 function eatenTotals(rec){
-  var t={kcal:0,pro:0,carb:0,fat:0,n:0,fib:0,fibN:0,sug:0,mic:{},micN:0,micEstN:0};
+  var t={kcal:0,pro:0,carb:0,fat:0,n:0,fib:0,fibN:0,sug:0,mic:{},micN:0,micEstN:0},g=rec&&rec.glowSum;
+  /* one diary: Glow's totals for the day when the old list is empty */
+  if(g&&!(rec.eaten||[]).length){t.kcal=g.kcal||0;t.pro=g.protein||0;t.carb=g.carbs||0;t.fat=g.fat||0;t.n=(g.names||[]).length||1;if(typeof g.fibre==='number'){t.fib=g.fibre;t.fibN=t.n;}return t;}
+  /* before Glow has run: the tracker's own entries in Glow's diary (custom foods) */
+  if(!g&&rec&&rec.glow&&(rec.glow.items||[]).length&&!(rec.eaten||[]).length){var cf=(S.glow&&S.glow.customFoods)||[];
+    rec.glow.items.forEach(function(i){var f=null;for(var q=0;q<cf.length;q++)if(cf[q].id===i.foodId)f=cf[q];if(!f)return;var k=(i.grams||100)/100,n=f.n||{};
+      t.kcal+=(n.kcal||0)*k;t.pro+=(n.protein||0)*k;t.carb+=(n.carbs||0)*k;t.fat+=(n.fat||0)*k;t.n++;if(f.unknown&&f.unknown.indexOf('fibre')<0){t.fib+=(n.fibre||0)*k;t.fibN++;}});
+    return t;}
   (rec&&rec.eaten||[]).forEach(function(e){
     t.kcal+=e.kcal;t.pro+=e.pro;t.carb+=e.carb;t.fat+=e.fat;t.n++;
     if(typeof e.fib==='number'){t.fib+=e.fib;t.fibN++;}
@@ -7005,9 +7040,8 @@ function saveReview(andAdd){
   var d=E('logDate').value||today();
   E('scanBox').innerHTML='';REVIEW=null;
   if(andAdd){
-    var rec=S.days[d]||{},list=(rec.eaten||[]).slice();
-    list.push(entryFor(f,v.amt,v.meal));
-    setEaten(d,list);
+    /* one diary: a scanned or typed packet is saved as your food and logged in Glow */
+    glowAddEntry(d,entryFor(f,v.amt,v.meal));touch();glowRecompute();
   }else touch();
   E('inFood').value=id;
 }
@@ -9345,7 +9379,7 @@ function ccGoals(){
    end of March, the run times back in March, and leaning down after. */
 var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-23','Shred + PB trials'],['2026-12-24','2026-12-31','Christmas'],
   ['2027-01-01','2027-02-28','Muscle · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
-function seasonHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
+function seasonStripHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
 function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
   var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
@@ -9369,7 +9403,7 @@ function missionHTML(){
   return '<div class="cc">'+
     '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
       (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
-    seasonHTML(t)+
+    seasonStripHTML(t)+
     '<div class="cc-hero">'+
       '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
       '<div class="cc-shred"><div class="cc-gh"><b>Shred meter</b><span>'+(now!==null?f1(now)+' lb':'weigh in')+' → <b class="acc">122–124</b></span></div>'+
@@ -9474,6 +9508,8 @@ function glowAddEntry(d,e){
   var G=S.glow=S.glow||{};G.customFoods=(G.customFoods||[]).concat([glowCustom(id,e.n+(e.a?' · '+e.a+(e.u==='each'?'':(e.u==='ml'?' ml':' g')):''),per,known)]);
   var r=S.days[d]=S.days[d]||{},g=r.glow=r.glow||{};g.items=(g.items||[]).concat([{uid:glowItemUid(),foodId:id,grams:100,meal:GLOW_MEAL[e.m]||'snacks'}]);
   r.kcalFrom='glow';
+  /* until Glow has loaded and recomputed, the day's kcal is these entries' own sum */
+  if(!window.GLOW&&!r.glowSum)r.kcal=Math.round(eatenTotals(r).kcal);
 }
 function migrateEaten(){var moved=0;
   Object.keys(S.days).forEach(function(d){var r=S.days[d];if(!r||!r.eaten||!r.eaten.length)return;
@@ -9494,10 +9530,10 @@ function loadGlow(){
   window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
-var GLOW_OPEN={binge:false,ill:false};
+var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
 function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
   [['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
-    var el=E(x[0]);if(el)G.mount(el,x[1],t,!!GLOW_OPEN[x[1]]);});}
+    var el=E(x[0]);if(el)G.mount(el,x[1],x[1]==='review'&&GLOW_REV_END?GLOW_REV_END:t,!!GLOW_OPEN[x[1]]);});}
 function startGlow(){
   var G=window.GLOW;
   if(!G){if(!E('glowCode')&&E('glowWait'))E('glowWait').textContent='Glow is part of the published app — open it from the link.';else loadGlow();return;}

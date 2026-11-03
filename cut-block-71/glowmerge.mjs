@@ -1,0 +1,136 @@
+// One app (3 Nov): Glow lives inside the tracker, on one store.
+// Checks the Log panel (binge, sick day, journal), reload persistence, binge
+// noise, illness turning the green light to stop, sleep / RHR / steps reaching
+// Glow, one food diary with kcal counted once, the review sections, and no
+// horizontal scroll at 390 px.
+//   node build-app.mjs && python3 mkapptest.py $SP/srv/app.html
+//   (cd $SP/srv && python3 -m http.server 8765) & node glowmerge.mjs
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const URL = process.env.APP_URL || 'http://localhost:8765/app.html';
+const SHOTS = process.env.SHOTS || '';
+const b = await chromium.launch();
+const errs = [], fails = [];
+const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + String(x).slice(0, 300) : '')); else console.log('ok  ' + n); };
+const D = '2026-11-03';
+const seed = {
+  weights: { '2026-11-02': 129.6, '2026-11-03': 129.2 },
+  days: {
+    '2026-11-03': { bed: '22:40', wake: '07:30', rhr: 50, steps: 9000, study: 2, deep: 1.5, gym: true, split: 'back', sets: { Back: 12, Biceps: 6 } },
+    '2026-11-02': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 330 }], eaten: [{ id: 'x', n: 'Old oats', a: 60, u: 'g', m: 'breakfast', kcal: 230, pro: 8, carb: 40, fat: 4 }] },
+  },
+  settings: {},
+};
+const open = async (when = '2026-11-03T12:00:00', s = seed) => {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  p.on('pageerror', (e) => errs.push('PAGEERROR ' + e.message));
+  p.on('console', (m) => { if (m.type() === 'error' && !/CERT|Failed to load resource|fonts\.g/.test(m.text())) errs.push(m.text().slice(0, 200)); });
+  await p.clock.setFixedTime(new Date(when));
+  await p.goto(URL);
+  await p.evaluate((v) => { localStorage.clear(); localStorage.setItem('cutblock71.v1', JSON.stringify(v)); }, s);
+  await p.reload();
+  await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 });
+  await p.waitForTimeout(600);
+  return { ctx, p };
+};
+const shadow = (p, id) => p.evaluate((i) => { const h = document.getElementById(i); return h && h.shadowRoot ? h.shadowRoot.textContent : ''; }, id);
+const tapIn = (p, id, re) => p.evaluate(([i, r]) => { const h = document.getElementById(i).shadowRoot; const btn = [...h.querySelectorAll('button')].find((x) => new RegExp(r).test(x.textContent)); if (btn) btn.click(); return !!btn; }, [id, re]);
+
+let { ctx, p } = await open();
+
+// ---- one store: what the tracker holds reaches Glow -------------------------
+const H = await p.evaluate(() => window.__GLOW_HOST__.load());
+ok('sleep reaches Glow from bed and wake', H.sleeps.some((x) => x.date === '2026-11-03' && x.bed === '22:40' && x.wake === '07:30'), JSON.stringify(H.sleeps));
+ok('morning heart rate and steps reach Glow', H.vitals['2026-11-03'] && H.vitals['2026-11-03'].rhr === 50 && H.vitals['2026-11-03'].steps === 9000, JSON.stringify(H.vitals));
+ok('study and deep hours reach Glow', H.vitals['2026-11-03'].studyHours === 2 && H.vitals['2026-11-03'].deepHours === 1.5);
+ok('weight reaches Glow in kg', H.weights.some((w) => w.date === '2026-11-03' && Math.abs(w.kg - 129.2 / 2.20462) < 0.05), JSON.stringify(H.weights));
+ok('training reaches Glow as sessions: the hard run and the back session', JSON.stringify(H).includes('"hard"') && JSON.stringify(H).includes('"lift"'));
+
+// ---- one diary: the old list moved into Glow, kcal counted once --------------
+let r2 = await p.evaluate(() => S.days['2026-11-02']);
+ok('the old diary is folded into Glow', !r2.eaten && r2.glow && r2.glow.items.length === 1, JSON.stringify(r2));
+ok('and its kcal is Glow’s total, counted once', r2.glowSum && r2.kcal === r2.glowSum.kcal && r2.kcal === 230 && r2.kcalFrom === 'glow', JSON.stringify({ k: r2.kcal, s: r2.glowSum }));
+await p.evaluate(() => { const s = document.getElementById('inFood'); const o = [...s.options].find((o) => /Chicken breast, cooked/.test(o.textContent)); s.value = o.value; s.dispatchEvent(new Event('change'));
+  document.getElementById('logDate').value = '2026-11-03'; document.getElementById('inAmt').value = '125'; document.getElementById('btnAddFood').click(); });
+await p.waitForTimeout(800);
+let r3 = await p.evaluate(() => S.days['2026-11-03']);
+ok('adding a food from the tracker logs it in Glow', r3.glow && r3.glow.items.length === 1 && !r3.eaten, JSON.stringify(r3.glow));
+ok('the day’s kcal is Glow’s total, not added twice', r3.kcal === r3.glowSum.kcal && r3.kcal === 206, JSON.stringify({ k: r3.kcal, s: r3.glowSum && r3.glowSum.kcal }));
+ok('the tracker reads Glow’s protein back', await p.evaluate(() => Math.round(eatenTotals(S.days['2026-11-03']).pro)) === 39);
+
+// ---- 😵 binge from the Log panel ----------------------------------------------
+await p.click('#btBinge'); await p.waitForTimeout(400);
+ok('the binge log opens on Today', /binge/i.test(await shadow(p, 'glowBinge')));
+ok('it can be logged', await tapIn(p, 'glowBinge', 'Log it'));
+await p.waitForTimeout(500);
+ok('the binge is saved on the day', (await p.evaluate(() => (S.days['2026-11-03'].binges || []).length)) === 1);
+ok('and the reset card shows', /Reset, don.t restrict/i.test(await shadow(p, 'glowBinge')), (await shadow(p, 'glowBinge')).slice(0, 200));
+ok('the next two weigh-ins are noise', await p.evaluate(() => !!postRefeed('2026-11-04') && !!postRefeed('2026-11-05') && !postRefeed('2026-11-06')));
+
+// ---- 🤒 sick day: below the neck stops training ------------------------------
+await p.click('#btIll'); await p.waitForTimeout(400);
+await tapIn(p, 'glowIll', 'Chest'); await p.waitForTimeout(100);
+ok('a sick day can be logged', await tapIn(p, 'glowIll', 'Log sick day'));
+await p.waitForTimeout(500);
+let L = await p.evaluate(() => ({ ill: S.days['2026-11-03'].ill, g: greenLight() }));
+ok('the sick day is saved', L.ill && L.ill.kind === 'chest', JSON.stringify(L.ill));
+ok('below the neck turns the green light to stop', L.g.c === 'red' && /no run, no gym/.test(L.g.t), JSON.stringify(L.g));
+L = await p.evaluate(() => { const r = S.days['2026-11-03'], keep = r.ill; r.ill = { kind: 'cold', severity: 1 }; const g = greenLight(); r.ill = keep; return g; });
+ok('a mild head cold means easy only', L.c === 'amber' && /Easy only/.test(L.t), JSON.stringify(L));
+
+// ---- 📓 journal ------------------------------------------------------------------
+await p.click('#btJournal'); await p.waitForTimeout(200);
+await p.click('button[data-jr="mood"][data-n="4"]'); await p.click('button[data-jr="energy"][data-n="3"]');
+await p.fill('#jrWell', 'Good back session'); await p.fill('#jrTomorrow', 'TMA reading');
+await p.click('button[data-jr="save"]'); await p.waitForTimeout(400);
+let J = await p.evaluate(() => ({ j: S.days['2026-11-03'].journal, ex: (S.days['2026-11-03'].glow || {}).extras }));
+ok('the journal saves mood, energy and the words', J.j && J.j.mood === 4 && J.j.energy === 3 && J.j.well === 'Good back session' && J.j.tomorrow === 'TMA reading', JSON.stringify(J.j));
+ok('and ticks the journal idea in Glow', (J.ex || []).includes('journal'), JSON.stringify(J.ex));
+ok('Today shows the compact card', /Good back session/.test(await p.innerText('#jrnlCard')));
+if (SHOTS) await p.screenshot({ path: SHOTS + '/today.png', fullPage: true });
+ok('no horizontal scroll at 390 px on Today', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+
+// ---- reload: everything is still there -----------------------------------------
+await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
+const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal }; });
+ok('binge, sick day, journal and food survive a reload', R.b === 1 && R.ill && R.j === 4 && R.items === 1 && R.k === 206, JSON.stringify(R));
+
+// ---- the journal history on Mind, searchable -------------------------------------
+await p.evaluate(() => { S.days['2026-11-01'] = Object.assign(S.days['2026-11-01'] || {}, { journal: { mood: 2, energy: 2, well: 'Long walk', learned: '', tomorrow: '', free: '' } }); touch(); });
+await p.click('#tabs button[data-t="mind"]'); await p.waitForTimeout(200);
+let hist = await p.innerText('#jrnlHist');
+ok('Mind lists the journal, newest first', hist.indexOf('Good back session') >= 0 && hist.indexOf('Good back session') < hist.indexOf('Long walk'), hist.slice(0, 300));
+await p.fill('#jrSearch', 'walk'); await p.waitForTimeout(200);
+hist = await p.innerText('#jrnlHist');
+ok('and the search finds an entry', /Long walk/.test(hist) && !/Good back session/.test(hist), hist.slice(0, 300));
+
+// ---- 🍽️ the Glow tab: no second set of boxes --------------------------------------
+await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(1200);
+const gt = await shadow(p, 'glow-host');
+ok('Glow’s Food screen opens in the app', gt.length > 200, gt.slice(0, 120));
+ok('it has no steps or heart-rate boxes of its own', await p.evaluate(() => !document.getElementById('glow-host').shadowRoot.querySelector('input[aria-label*="Steps" i], input[aria-label*="heart" i]')));
+if (SHOTS) await p.screenshot({ path: SHOTS + '/glow.png', fullPage: true });
+ok('no horizontal scroll at 390 px on Glow', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+await ctx.close();
+
+// ---- Sunday 8 pm review: Glow’s week is a section of it ---------------------------
+({ ctx, p } = await open('2026-11-08T20:30:00', { ...seed, days: { ...seed.days,
+  '2026-11-04': { journal: { mood: 4, energy: 4, well: 'x' } }, '2026-11-05': { journal: { mood: 2, energy: 3, well: 'y' }, binges: [{ at: '21:00', kind: 'sweet' }] }, '2026-11-06': { ill: { kind: 'cold', severity: 1 } } } }));
+await p.click('#tabs button[data-t="review"]'); await p.waitForTimeout(1500);
+const rv = await p.innerText('#revBody');
+ok('the Review tab has the food, cells and mind section', /Food, cells & mind/.test(rv), rv.slice(0, 200));
+ok('with the journal’s mood and energy', /mood 3\.0\/5/.test(rv) && /energy 3\.5\/5/.test(rv), (rv.match(/Journal[^\n]*/) || [''])[0]);
+ok('binges and sick days', /1 binge/.test(rv) && /1 sick day/.test(rv));
+const gr = await shadow(p, 'glowReview');
+ok('Glow’s cellular review sits under it, for the same week', /Weekly review/.test(gr) && /Cut vs maintenance/i.test(gr), gr.slice(0, 160));
+ok('there is no second, standalone review in Glow’s Me screen', await p.evaluate(() => { const h = document.getElementById('glow-host'); return !h.shadowRoot || !/Weekly review ·/.test(h.shadowRoot.textContent); }));
+if (SHOTS) await p.screenshot({ path: SHOTS + '/review.png', fullPage: true });
+ok('no horizontal scroll at 390 px on Review', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+const camp = await p.evaluate(() => campReviewHTML('2026-11-02'));
+ok('the Sunday camp review carries the same section', /Food, cells &amp; mind/.test(camp) && /mood <b>3\.0<\/b>/.test(camp), camp.slice(-600));
+await ctx.close();
+
+await b.close();
+ok('no page errors', errs.length === 0, errs.slice(0, 4).join(' | '));
+if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n - ' + fails.join('\n - ')); process.exit(1); }
+console.log('all passed');

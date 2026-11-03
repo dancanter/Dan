@@ -3,11 +3,11 @@ import { createRoot, type Root } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
 import { startCloud } from './cloud';
-import { hosted } from './host';
-import { getState, refreshFromHost, setState, setSummariser } from './store';
+import { hosted, type DaySum } from './host';
+import { getState, refreshFromHost, resolveItems, setState, setSummariser } from './store';
 import { dayResult } from './engine/game';
 import { DayPlanCard } from './components/DayPlan';
-import { IdeasCard, WeeklyReviewCard } from './components/Review';
+import { IdeasCard, PhaseCompareCard, WeeklyReviewCard } from './components/Review';
 import { BingeToday } from './components/Binge';
 import { IllToday } from './components/Illness';
 
@@ -19,6 +19,9 @@ import { IllToday } from './components/Illness';
 // On its own, Glow mounts into #root as usual.
 function shadowDiv(host: HTMLElement): HTMLElement {
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
+  // follow the tracker's theme (dark unless Dan picks light)
+  const th = document.documentElement.dataset.theme;
+  if (th) host.setAttribute('data-theme', th);
   shadow.innerHTML = '';
   const css = (window as unknown as { __GLOW_CSS__?: string }).__GLOW_CSS__;
   if (css) {
@@ -43,18 +46,18 @@ type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill';
 function view(v: View, date: string, open?: boolean): ReactNode {
   if (v === 'dayplan') return <DayPlanCard date={date} />;
   if (v === 'ideas') return <IdeasCard date={date} />;
-  if (v === 'review') return <WeeklyReviewCard end={date} browse />;
+  if (v === 'review') return <div className="space-y-4"><WeeklyReviewCard end={date} /><PhaseCompareCard /></div>;
   if (v === 'binge') return <BingeToday key={String(open)} date={date} startOpen={open} />;
   return <IllToday key={String(open)} date={date} startOpen={open} />;
 }
 
 if (hosted()) {
   setSummariser((s) => {
-    const out: Record<string, { kcal: number; protein: number; nutrition: number; glow: number; plants: number }> = {};
+    const out: Record<string, DaySum> = {};
     for (const d of Object.keys(s.days)) {
       if (!s.days[d]?.items?.length) continue;
       const r = dayResult(s, d);
-      out[d] = { kcal: Math.round(r.analysis.totals.kcal), protein: Math.round(r.analysis.totals.protein), nutrition: Math.round(r.analysis.nutritionScore), glow: r.glow, plants: r.analysis.plants };
+      out[d] = { kcal: Math.round(r.analysis.totals.kcal), protein: Math.round(r.analysis.totals.protein), carbs: Math.round(r.analysis.totals.carbs), fat: Math.round(r.analysis.totals.fat), fibre: Math.round(r.analysis.totals.fibre), nutrition: Math.round(r.analysis.nutritionScore), glow: r.glow, plants: r.analysis.plants, names: [...new Set(resolveItems(s.days[d], s).map((x) => x.food.name))] };
     }
     return out;
   });
