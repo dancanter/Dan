@@ -132,6 +132,15 @@ await p.evaluate(() => window.postMessage({ type: 'glow-screen', id: 'me' }, '*'
 ok('and Glow cannot reset or overwrite the shared data', await p.evaluate(() => !/Reset everything|Import backup/.test(document.getElementById('glow-host').shadowRoot.textContent)));
 await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
 
+// ---- calm, season, pillars, breathing, the month (3 Nov) -------------------------------
+const cc = await p.innerText('#calmCard');
+ok('Home has the calm card: stress load, destressers, the season, the film', /Stress load/.test(cc) && /Slow breathing/.test(cc) && /This season/.test(cc) && /film night/i.test(cc), cc.slice(0, 300));
+const gc = await shadow(p, 'glowCalm');
+ok('and the 8 pillars with the breathing timer', /Your 8 pillars today/i.test(gc) && /Breathe/.test(gc), gc.slice(0, 200));
+await p.evaluate(() => { const st = window.__GLOW_HOST__.load(); st.breathMinutes = Object.assign({}, st.breathMinutes, { '2026-11-03': 10 }); window.__GLOW_HOST__.save(st, {}); });
+ok('breathing in Glow counts as meditation in the tracker', (await p.evaluate(() => S.days['2026-11-03'].medMin)) === 10);
+ok('the month review is on the Review tab', await p.evaluate(() => /November 2026/.test(monthReviewHTML('2026-11')) && /For next month/.test(monthReviewHTML('2026-11')) && /France in/.test(monthReviewHTML('2026-11'))));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });

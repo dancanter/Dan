@@ -8,6 +8,7 @@ import { getState, refreshFromHost, resolveItems, setState, setSummariser } from
 import { dayResult } from './engine/game';
 import { DayPlanCard } from './components/DayPlan';
 import { HomeHealth } from './components/HomeHealth';
+import { CalmHome } from './components/CalmHome';
 import { healthSnapshot } from './components/HealthPanel';
 import { todayISO } from './engine/body';
 import { IdeasCard, PhaseCompareCard, WeeklyReviewCard } from './components/Review';
@@ -45,9 +46,10 @@ function render(host: HTMLElement, node: ReactNode) {
   root.render(<StrictMode>{node}</StrictMode>);
 }
 
-type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill' | 'home';
+type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill' | 'home' | 'calm';
 function view(v: View, date: string, open?: boolean): ReactNode {
   if (v === 'home') return <HomeHealth date={date} />;
+  if (v === 'calm') return <CalmHome date={date} />;
   if (v === 'dayplan') return <DayPlanCard date={date} />;
   if (v === 'ideas') return <IdeasCard date={date} />;
   if (v === 'review') return <div className="space-y-4"><WeeklyReviewCard end={date} /><PhaseCompareCard /></div>;

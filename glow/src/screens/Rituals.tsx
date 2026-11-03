@@ -84,7 +84,7 @@ export function Rituals({ date }: { date: string }) {
   );
 }
 
-function Breathing({ date, minutesToday }: { date: string; minutesToday: number }) {
+export function Breathing({ date, minutesToday }: { date: string; minutesToday: number }) {
   const [pattern, setPattern] = useState<PatternKey>('resonance');
   const [mins, setMins] = useState(10);
   const [running, setRunning] = useState(false);

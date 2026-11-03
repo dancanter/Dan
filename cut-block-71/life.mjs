@@ -136,7 +136,7 @@ await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30
 await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
 await p.click('[data-t="today"]'); await p.waitForTimeout(200);
 ok('Today opens with the log, then calories in and burned', await p.evaluate(() => {
-  const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn' && c.id !== 'ccCard' && !['homeCard', 'glowHome', 'liftCard'].includes(c.id));
+  const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn' && c.id !== 'ccCard' && !['homeCard', 'glowHome', 'liftCard', 'calmCard', 'glowCalm'].includes(c.id));
   return /Log ·/.test(kids[0].querySelector('h2').textContent) && kids[1].id === 'tdeeCard' && /Burn and deficit/.test(kids[1].textContent);
 }));
 let g = sq(await p.innerText('#glanceCard'));

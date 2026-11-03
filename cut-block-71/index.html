@@ -334,6 +334,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="homeCard"></div>
   <div id="glowHome"></div>
   <div id="liftCard"></div>
+  <div id="calmCard"></div>
+  <div id="glowCalm"></div>
   <!-- 29 Sep: log first, then calories in and burned, then everything else -->
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
@@ -716,6 +718,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   </div>
   <div id="revBody"></div>
   <div id="glowReview"></div>
+  <div id="monthCard"></div>
 </section>
 
 <!-- ================= CAMP ================= -->
@@ -1330,6 +1333,8 @@ function glowLoad(){
 }
 function glowSave(gs,sums){
   S.glow={profile:gs.profile,customFoods:gs.customFoods||[],favourites:gs.favourites||[],breathMinutes:gs.breathMinutes||{},bp:gs.bp||[],labs:gs.labs||[],films:gs.films};
+  /* breathing done in Glow counts as meditation in the tracker (the quest, the reset day) */
+  Object.keys(gs.breathMinutes||{}).forEach(function(d){var m=+gs.breathMinutes[d]||0;if(m>0){var rr=S.days[d]=S.days[d]||{};if(!(rr.medMin>=m))rr.medMin=Math.min(240,m);}});
   var dates={};Object.keys(gs.days||{}).forEach(function(d){dates[d]=1;});Object.keys(gs.vitals||{}).forEach(function(d){if((gs.vitals[d]||{}).outdoorMin!==undefined)dates[d]=1;});
   Object.keys(dates).forEach(function(d){var g=(gs.days||{})[d]||{},r=S.days[d]=S.days[d]||{},ng={};
     if(g.items&&g.items.length)ng.items=g.items;if(g.rituals&&g.rituals.length)ng.rituals=g.rituals;if(g.note)ng.note=g.note;
@@ -2390,6 +2395,7 @@ function renderReview(){
   /* the whole cut so far, under every week (29 Sep) */
   h+=blockProgressHTML();
   E('revBody').innerHTML=h;
+  if(E('monthCard'))E('monthCard').innerHTML=monthReviewHTML((wk.end>today()?today():wk.end).slice(0,7));
   GLOW_REV_END=wk.end>today()?today():wk.end;if(window.GLOW&&E('glowReview'))GLOW.mount(E('glowReview'),'review',GLOW_REV_END);
 }
 
@@ -9250,6 +9256,7 @@ function renderGoodLife(){
   glStore();
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('homeCard'))E('homeCard').innerHTML=homeHTML();
+  if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
   if(E('liftCard')&&!(document.activeElement&&E('liftCard').contains(document.activeElement)))E('liftCard').innerHTML=liftHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
   if(E('jrnlCard')&&!(JR.open&&E('jrForm')))E('jrnlCard').innerHTML=journalHTML();
@@ -9656,6 +9663,71 @@ function paceGuideHTML(compact){
     '<p style="margin:3px 0"><b>Jan → Mar · build the base.</b> Maintenance calories and the gym 4–6 times a week. Still two hard runs: one hill session (8–10 × 60–90 s hard; hills build power without pounding your legs) and one VO₂ session (5 × 3 min or 5 × 1 km). Add one Norwegian run and an easy run growing to 8–10 km. Full food makes these the best hard runs of the year for building fitness.</p>'+
     '<p style="margin:3px 0"><b>Apr → May · sharpen.</b> The hard reps come back: 1 km and 800 m reps at goal pace, then time trials.</p>'+
     '<p style="margin:3px 0"><b>Jun → Aug · peak.</b> Lighter, fitter, a full base under you. Run early in the heat. This is where sub-17 and sub-2:00 are most likely to fall.</p><p style="margin:3px 0"><b>Sep → Oct · reset.</b> One easy week, then rebuild for the next winter.</p><p style="margin:3px 0"><b>Every week:</b> no legs the day before a hard run. Do legs the same day after the run, or the day after it.</p></div>');}
+
+/* ===================== calm, stress and the season (Dan, 3 Nov) =====================
+   "Destressers are a massive part of anti-ageing… if I'm causing too much stress I
+   want guiding… what to eat and do with the seasons… the movies." One card: how
+   much stress the body is carrying (coachModel's strain), the two or three
+   destressers that fit today, this season's eat and do, and tonight's film. The
+   breathing timer and the 8 pillars sit under it (Glow's calm view). */
+function calmHTML(){
+  var t=today(),r=S.days[t]||{},C=null;try{C=coachModel();}catch(e){}
+  var pts=C?C.pts:0,lv=pts>=4?['high','🔴','High','Your body is carrying a lot. Today: no hard training, and two destressers.']:(pts>=2?['some','🟡','Building','A little more than recovery is clearing. One destresser today keeps it from stacking.']:['low','🟢','Low','Recovery is keeping up. One calm habit a day keeps it there.']);
+  var pick=[RESET_MENU[0]];
+  if(typeof r.steps!=='number'||r.steps<8000)pick.push(RESET_MENU[1]);
+  if(typeof r.sleep==='number'&&r.sleep<7.5)pick.push(RESET_MENU[6]);else pick.push(RESET_MENU[4]);
+  var jm=(r.journal&&r.journal.mood)||null;if(jm&&jm<=2)pick.splice(1,0,RESET_MENU[5]);
+  pick=pick.slice(0,lv[0]==='low'?2:3);
+  var SZ=SEASONS.filter(function(x){return x.k===seasonNow(t);})[0];
+  var film=null,next='';try{film=filmNight(t)?filmPick():null;if(!film){for(var j=1;j<=7;j++){var nd=addD(t,j);if(filmNight(nd)){next=DOWS[dow(nd)];break;}}}}catch(e){}
+  return '<div class="p"><h2>🌿 Calm, season &amp; tonight</h2>'+
+    '<p style="margin:2px 0"><b>'+lv[1]+' Stress load: '+lv[2]+'.</b> <span class="tiny">'+lv[3]+'</span></p>'+
+    (C&&C.strain.length?'<p class="tiny dim" style="margin:2px 0 6px">From: '+esc(C.strain.slice(0,2).join(' · '))+'</p>':'')+
+    pick.map(function(x){return '<div style="margin:5px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+
+    (SZ?'<h3 style="margin:10px 0 2px">'+(SZ.e||'')+' This season</h3><p style="margin:2px 0">🍽️ '+esc(SZ.eat.slice(0,3).join(' · '))+'</p><p style="margin:2px 0">✨ '+esc(SZ.doo.slice(0,2).join(' · '))+'</p>'+
+      '<button type="button" class="btn sm ghost" data-t="food">Seasonal meals →</button>':'')+
+    '<p style="margin:10px 0 0">🎬 '+(film?'<b>Film night: '+esc(film[0])+'</b>':(next?'Next film night: '+next:'No film night set'))+' <span class="tiny dim">· a proper switch-off counts as recovery</span></p></div>';}
+
+/* ===================== the month (Dan, 3 Nov) =====================
+   "A weekly review about my health and what to do, as well as training — and
+   month." The month in one card: the road to 3 Dec and 24 Dec, training,
+   health and mind, and three things for next month that fit the season. */
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function monthReviewHTML(ym){
+  var t=today(),y=+ym.slice(0,4),mo=+ym.slice(5,7),first=ym+'-01',last=addD(mo===12?(y+1)+'-01-01':y+'-'+String(mo+1).padStart(2,'0')+'-01',-1),end=last<t?last:t;
+  if(first>t)return '';
+  var o={days:0,runs:0,hard:0,tt:[],gym:0,sets:{},steps:[],sleep:[],rhr:[],study:0,breath:0,nut:[],glow:[],plants:[],mood:[],en:[],bin:0,ill:0,chal:[]};
+  for(var d=first;d<=end;d=addD(d,1)){var r=S.days[d]||{};if(Object.keys(r).length)o.days++;
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;o.runs++;if(m.hard)o.hard++;if(x.tt)o.tt.push(m.label+' '+(x.secs?secFmt(x.secs):''));});
+    if(r.gym)o.gym++;for(var k in (r.sets||{}))o.sets[k]=(o.sets[k]||0)+(+r.sets[k]||0);
+    if(typeof r.steps==='number')o.steps.push(r.steps);if(typeof r.sleep==='number')o.sleep.push(r.sleep);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
+    if(typeof r.study==='number')o.study+=r.study;if(r.medMin)o.breath+=r.medMin;
+    if(r.glowSum){o.nut.push(r.glowSum.nutrition);o.glow.push(r.glowSum.glow);o.plants.push(r.glowSum.plants);}
+    if(r.journal){if(r.journal.mood)o.mood.push(r.journal.mood);if(r.journal.energy)o.en.push(r.journal.energy);}
+    o.bin+=(r.binges||[]).length;if(r.ill)o.ill++;
+    if(r.challenge){var c=CHAL.filter(function(x){return x.k===r.challenge.ex;})[0];if(c)o.chal.push(c.n+' '+(c.bw?r.challenge.reps+' reps':r.challenge.kg+' kg × '+r.challenge.reps)+' · '+CHAL_RANK[chalRank(c,chalScore(c,r.challenge))]);}}
+  var av=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;},f=function(v,fn){return v===null?'—':fn(v);};
+  var ws=Object.keys(S.weights).filter(function(k){return k>=first&&k<=end;}).sort(),w0=ws.length?S.weights[ws[0]]:null,A=avgWindow(end,7),w1=A.n?A.avg:(ws.length?S.weights[ws[ws.length-1]]:null);
+  var line=function(e,n,v){return '<div class="row" style="gap:6px;margin:3px 0"><span style="min-width:150px">'+e+' '+n+'</span><b class="mono">'+v+'</b></div>';};
+  /* the road to the two dates */
+  var road=(end<t?[]:[[STRICT.tripFrom,'France'],[STRICT.to,'Christmas']]).filter(function(x){return x[0]>=t;}).map(function(x){var dl=diffD(t,x[0]),need=w1!==null&&w1>123.5?(w1-123.5)/Math.max(1,dl/7):0;
+    return '<p style="margin:3px 0">'+(x[1]==='France'?'🇫🇷':'🎄')+' <b>'+x[1]+' in '+dl+' days.</b> '+(w1===null?'Weigh in to see the road.':(w1<=124?'In the 122–124 zone: hold it, sleep and train, and you will look your best.':'About '+f1(w1-123.5)+' lb to 123.5, roughly '+f1(need)+' lb a week. '+(need<=1?'Steady and doable.':'Ambitious. The strict plan is built for it, and the Christmas finish takes whatever is left.')))+'</p>';}).join('');
+  var nextM=mo===12?1:mo+1,nextSeason=seasonNow((mo===12?y+1:y)+'-'+String(nextM).padStart(2,'0')+'-15'),SZ=SEASONS.filter(function(x){return x.k===nextSeason;})[0];
+  var focus=[];
+  if(av(o.sleep)!==null&&av(o.sleep)<8)focus.push('😴 Sleep averaged '+f1(av(o.sleep))+' h: an earlier, fixed bedtime is the biggest win for your looks and recovery.');
+  if(o.hard<6&&o.runs)focus.push('🏃 Two hard runs a week on green days, and the Norwegian runs kept easy.');
+  var legsSets=o.sets.Legs||0;if(legsSets/Math.max(1,(diffD(first,end)+1)/7)>16)focus.push('🦵 Legs had a lot of volume. Keep them to 8–12 sets a week so the runs stay sharp.');
+  if(o.nut.length&&av(o.plants)<8)focus.push('🌱 About '+Math.round(av(o.plants))+' plants a day: aim for 10+ for your skin and gut.');
+  if(o.breath<60)focus.push('🌬️ Breathing or meditation: 5–10 min most days. It lowers stress hormones, one of the big drivers of ageing.');
+  if(SZ)focus.push((SZ.e||'🍂')+' '+MONTHS[nextM-1]+': '+SZ.eat.slice(0,2).join(', ')+'; '+SZ.doo[0]+'.');
+  return '<div class="p lift"><h2>📅 '+MONTHS[mo-1]+' '+y+'</h2><p class="tiny" style="margin:0 0 6px">'+o.days+' day'+(o.days===1?'':'s')+' logged'+(end<last?' · month still running':'')+'</p>'+
+    road+
+    '<h3 style="margin:10px 0 2px">Body</h3>'+line('⚖️','Weight',w0===null?'—':f1(w0)+' → '+f1(w1)+' lb')+line('😴','Sleep',f(av(o.sleep),function(v){return f1(v)+' h';}))+line('❤️','Morning HR',f(av(o.rhr),function(v){return Math.round(v)+' bpm';}))+line('👣','Steps',f(av(o.steps),function(v){return ci(Math.round(v));}))+
+    '<h3 style="margin:10px 0 2px">Training</h3>'+line('🏃','Runs',o.runs+' ('+o.hard+' hard)')+(o.tt.length?line('⏱️','Time trials',esc(o.tt.join(' · '))):'')+line('🏋️','Gym',o.gym+' session'+(o.gym===1?'':'s'))+
+      line('💪','Sets',Object.keys(o.sets).length?Object.keys(o.sets).map(function(k){return k+' '+o.sets[k];}).join(' · '):'—')+(o.chal.length?line('🏆','Strength',esc(o.chal.join(' · '))):'')+
+    '<h3 style="margin:10px 0 2px">Health &amp; mind</h3>'+line('🧬','Nutrition / Glow',o.nut.length?Math.round(av(o.nut))+' / '+Math.round(av(o.glow)):'—')+line('🌱','Plants a day',f(av(o.plants),function(v){return String(Math.round(v));}))+
+      line('🌬️','Breathing & meditation',o.breath+' min')+line('📚','Study',f1(o.study)+' h')+line('😊','Mood / energy',o.mood.length?av(o.mood).toFixed(1)+' / '+(o.en.length?av(o.en).toFixed(1):'—'):'—')+line('😵','Binges · sick days',o.bin+' · '+o.ill)+
+    '<h3 style="margin:10px 0 2px">For next month</h3>'+focus.slice(0,4).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+'</div>';}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -9768,7 +9840,7 @@ function loadGlow(){
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
 function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
-  [['glowHome','home'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
+  [['glowHome','home'],['glowCalm','calm'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
     var el=E(x[0]);if(el)G.mount(el,x[1],x[1]==='review'&&GLOW_REV_END?GLOW_REV_END:t,!!GLOW_OPEN[x[1]]);});}
 function startGlow(){
   var G=window.GLOW;
