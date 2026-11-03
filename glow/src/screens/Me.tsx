@@ -84,7 +84,11 @@ export function Me() {
         <p className="mt-3 text-xs text-muted">Training energy: four lifts (about 250–350 kcal each) plus 3–4 runs (a 5 km is about 300 kcal at your weight) averages roughly 550–750 kcal a day. Your 13k steps are counted separately in the maintenance estimate. Protein of 2.0 g/kg is the evidence-backed level for keeping muscle on a cut (gains plateau around 1.6 g/kg at maintenance; deficits justify more).</p>
       </Card>
 
-      <Card title="Your data" eyebrow={inClaude() ? 'Saved privately to your Claude account' : 'Stored only in this browser'}>
+      {hosted() ? (
+        <Card title="Your data" eyebrow="One store with the tracker">
+          <p className="text-sm text-ink-2">Food, sleep, training and everything else save to the one store you share with the tracker, so they follow you to any device. Export or restore it from the tracker’s Data tab.</p>
+        </Card>
+      ) : <Card title="Your data" eyebrow={inClaude() ? 'Saved privately to your Claude account' : 'Stored only in this browser'}>
         <p className="mb-3 text-sm text-ink-2">{inClaude()
           ? 'Inside Claude, your logs save to a private space only you can read, so they follow you to any device where you open this page. Nothing else leaves it.'
           : 'Nothing leaves this device except the food words you search online. Export a backup now and then, and import it to move to another phone or laptop.'}</p>
@@ -108,7 +112,7 @@ export function Me() {
               </span>}
         </div>
         {msg && <p className="mt-2 text-sm text-sea">{msg}</p>}
-      </Card>
+      </Card>}
 
       <p className="px-1 text-xs leading-relaxed text-muted">Glow is a personal tool, not medical advice. Values are typical estimates (±10–20%). If you have symptoms of low energy availability, ongoing fatigue, or a diagnosed condition such as coeliac disease, speak to your GP or a registered dietitian.</p>
     </div>

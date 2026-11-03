@@ -121,6 +121,17 @@ await p.evaluate(() => { S.days['2026-10-19'] = Object.assign(S.days['2026-10-19
 ok('next time it says how much stronger', /% stronger than/.test(await p.innerText('#liftCard')));
 ok('paces follow recent runs, Norwegian included', await p.evaluate(() => { const g = paceGuide(); return 'N' in g.form && 'L' in g.form; }));
 
+// ---- bug sweep (3 Nov) ------------------------------------------------------------
+await p.click('#homeCard summary:has-text("run paces")'); await p.click('#homeCard button[data-t="camp"]'); await p.waitForTimeout(200);
+ok('the Full guide button on Home opens the Camp tab', await p.evaluate(() => !document.getElementById('s-camp').hidden));
+await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
+ok('a mixed session (1 km + 2 × 500 m) is one hard run, not two', await p.evaluate(() => { const m = runMeta({ k: 'reps', laps: [1000, 500, 500], secs: 402 }); return m.hard && m.km === 2 && /ladder/.test(m.label); }));
+await p.click('#tabs button[data-t="glow"][data-g="body"]'); await p.waitForTimeout(700);
+ok('Glow’s training list is read-only inside the app', await p.evaluate(() => !document.getElementById('glow-host').shadowRoot.querySelector('select[aria-label="Intensity"], button[aria-label="Remove session"]')));
+await p.evaluate(() => window.postMessage({ type: 'glow-screen', id: 'me' }, '*')); await p.waitForTimeout(500);
+ok('and Glow cannot reset or overwrite the shared data', await p.evaluate(() => !/Reset everything|Import backup/.test(document.getElementById('glow-host').shadowRoot.textContent)));
+await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });

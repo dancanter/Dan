@@ -73,11 +73,13 @@ export function TrainingPanel() {
                       <div className="truncate">{x.name}</div>
                       <div className="num text-xs text-muted">{x.minutes} min{x.km ? ` · ${x.km} km` : ''} · ~{sessionKcal(x, kg)} kcal{x.source === 'strava' ? ' · Strava' : ''}</div>
                     </div>
+                    {hosted() ? <span className="text-xs text-muted">{x.intensity}</span> : <>
                     <select aria-label="Intensity" className="rounded-lg bg-surface px-1.5 py-1 text-xs" value={x.intensity} onChange={(e) => actions.setSessionIntensity(d, x.id, e.target.value as Intensity)}>
                       <option value="easy">easy</option><option value="moderate">moderate</option><option value="hard">hard</option>
                     </select>
                     <button aria-label="Remove session" className="p-1 text-muted hover:text-bad" onClick={() => actions.removeSession(d, x.id)}><Trash2 size={14} /></button>
                     {x.kind === 'lift' && <div className="w-full pl-6"><SetsEditor date={d} session={x} /></div>}
+                    </>}
                   </li>
                 ))}
               </ul>

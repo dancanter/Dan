@@ -3661,8 +3661,11 @@ function fitnessEst(d){
 /* paced reps: from today's race pace for that event down to goal pace */
 function pacedGuide(ev,repDm,goal){
   var cur=fitnessEst(ev);if(!cur)return '';
-  var gR=goal*repDm/ev,cR=cur*repDm/ev,lo=Math.min(gR,cR),hi=Math.max(gR,cR);
-  if(hi-lo<lo*0.02)hi=lo*1.03;
+  /* 3 Nov: one source of truth. This week's rep is today's race pace for the event,
+     moved by the same weekly step, cut allowance and recent-runs factor as the
+     pace guide, never past goal pace, with a 3% window above it. */
+  var k=1;try{var PG=paceGuide();k=(repDm<500?PG.adj.S:PG.adj.L)*(1-0.004*(PG.wk-1));}catch(e){}
+  var gR=goal*repDm/ev,lo=Math.max(gR,cur*repDm/ev*k),hi=lo*1.03;
   var big=hi>=100,f=function(x){return big?mmss(Math.round(x)):(x<40?x.toFixed(1):String(Math.round(x)));};
   return f(lo)+'–'+f(hi)+(big?'':' s')+' a rep · goal pace '+f(gR)+(big?'':' s');
 }
@@ -9268,7 +9271,7 @@ function wireGoodLife(){
   E('btIll').addEventListener('click',function(){GLOW_OPEN.ill=true;placeGlow();GLOW_OPEN.ill=false;if(!window.GLOW)loadGlow();var el=E('glowIll');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
   E('btJournal').addEventListener('click',function(){JR.open=true;E('jrnlCard').innerHTML=journalHTML();E('jrnlCard').scrollIntoView({behavior:'smooth',block:'center'});});
   /* any "open this tab" button outside the navigation, e.g. "Open Food" */
-  document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-t]');if(!b||b.closest('#tabs')||b.closest('#bnav'))return;if(b.dataset.g||b.dataset.t==='glow')tab(b.dataset.t,b.dataset.g);});
+  document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-t]');if(!b||b.closest('#tabs')||b.closest('#bnav'))return;tab(b.dataset.t,b.dataset.g);try{window.scrollTo({top:0});}catch(e){}});
   document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-jr]');if(!b)return;var a=b.dataset.jr,d=jrDate();
     if(a==='save'){journalSave();return;}if(a==='cancel'){JR.open=false;render();return;}if(a==='edit'){JR.open=true;E('jrnlCard').innerHTML=journalHTML();return;}
     if(a==='mood'||a==='energy'){var r=S.days[d]=S.days[d]||{},j=r.journal=r.journal||{};
@@ -9604,7 +9607,10 @@ document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.targe
 function paceGuide(){
   var t=today(),wk=Math.max(0,Math.floor(diffD(PHYS.from,t)/7));
   var fit=function(d,fb){var v=fitnessEst(d);return v||fb;};
-  var p5=fit(5000,1085)/5,pM=fit(1609,327)/1.609,p8=fit(800,152)/0.8,p4=fit(400,59)/0.4,p2=fit(200,28.1)/0.2;
+  var p5=fit(5000,1085)/5,pM=fit(1609,327)/1.609,p8=fit(800,152)/0.8,p4=fit(400,59)/0.4;
+  /* below 400 m the curve is extrapolated, so his measured 200 m best is the honest number (as raceReady) */
+  var b200=null;try{var bb=bestAt(200,records()[200]).best;b200=bb&&bb.t>0?bb.t:null;}catch(e){}
+  var p2=(b200||CFG.camp.base[200]||28.1)/0.2;
   var goal=function(dm){var g=CFG.camp.pb.filter(function(x){return x.dm===dm;})[0];return g?g.goal/(dm/1000):null;};
   /* about 0.4% faster a week, never past goal pace */
   /* Dan, 3 Nov: on 1,799 kcal the legs have less fuel, so the strict cut to France runs about 2.5% slower.
@@ -9619,8 +9625,9 @@ function paceGuide(){
   var F={L:[],S:[],N:[]};
   Object.keys(S.days).filter(function(d){return d<=t&&d>addD(t,-28);}).sort().forEach(function(d){
     ((S.days[d]||{}).runs||[]).forEach(function(x){
-      if(x.k==='reps'&&x.secs>0&&x.dm&&x.n&&!x.tt&&!x.up){var pk=x.secs/(x.dm*x.n/1000);
-        if(x.dm>=500&&x.dm<=1609)F.L.push(pk/bL);else if(x.dm>=200&&x.dm<500)F.S.push(pk/(x.dm<=250?b2:b4));}
+      var lp=x.laps&&x.laps.length?x.laps:null,tot=lp?lp.reduce(function(a,b){return a+b;},0):(x.dm||0)*(x.n||0),dmx=lp?Math.max.apply(null,lp):x.dm;
+      if(x.k==='reps'&&x.secs>0&&tot>0&&!x.tt&&!x.up){var pk=x.secs/(tot/1000);
+        if(dmx>=500&&dmx<=1609)F.L.push(pk/bL);else if(dmx>=200&&dmx<500)F.S.push(pk/(dmx<=250?b2:b4));}
       else if(x.type==='subt'&&x.km>0&&x.secs>0)F.N.push((x.secs/x.km)/bN);});});
   var med=function(a){a=a.slice(-3).sort(function(x,y){return x-y;});var n=a.length;return n?(n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2):null;};
   var fm={L:med(F.L),S:med(F.S),N:med(F.N)},clamp=function(v,lo,hi){return Math.max(lo,Math.min(hi,v));};
@@ -9632,7 +9639,7 @@ function paceGuide(){
   var note=function(k,n){var f=fm[k];if(f===null)return 'No '+n+' in the last 4 weeks yet'+(strict&&k!=='N'?', so the cut allowance is on':'')+'.';
     var pc=Math.round((1-f)*1000)/10;return 'Your last '+Math.min(3,F[k].length)+': '+(Math.abs(pc)<1?'right on plan':(pc>0?pc+'% quicker than planned':(-pc)+'% slower than planned'))+
       (k==='N'&&f<0.94?'. That is too fast for a Norwegian run: hold it back so the hard runs stay hard.':(Math.abs(pc)<1?'.':(pc>0?', so the range has moved quicker.':', so the range has eased.')));};
-  return {wk:wk+1,strict:strict,form:fm,rows:[
+  return {wk:wk+1,strict:strict,form:fm,adj:{L:aL,S:aS,N:aN},rows:[
     ['🔥','Hard: long reps','1 km, 800 m, 600 m',rep(kmL,1000)+'–'+rep(kmL*1.02,1000)+' per km rep · 800 m '+rep(kmL*0.98,800)+'–'+rep(kmL,800)+' · 600 m '+rep(kmL*0.97,600)+'–'+rep(kmL*0.99,600),'Walk or jog until your breathing settles. Even reps beat a fast first one. '+note('L','long reps')],
     ['⚡','Hard: speed','200–400 m',' 400 m '+rep(k4,400)+'–'+rep(k4*1.03,400)+' · 300 m '+rep(k4*0.98,300)+'–'+rep(k4*1.01,300)+' · 200 m '+rep(k2,200)+'–'+rep(k2*1.03,200),'Full recovery between: walk until you feel ready. Stop when the form goes. '+note('S','speed reps')],
     ['🌊','Norwegian sub-threshold','reps, 7 out of 10',kmPace(pN*1.09)+'–'+kmPace(pN*1.15)+' a km · 400 m '+rep(pN*1.09,400)+'–'+rep(pN*1.15,400)+' · 800 m '+rep(pN*1.09,800)+'–'+rep(pN*1.14,800),'Short easy jogs between. Finish feeling you could do two more. '+note('N','Norwegian runs')],
@@ -9642,7 +9649,7 @@ function paceGuideHTML(compact){
   var G=paceGuide();
   var rows=G.rows.map(function(x){return '<div style="margin:7px 0"><b>'+x[0]+' '+x[1]+'</b> <span class="tiny dim">'+x[2]+'</span><div class="mono" style="margin:2px 0 0 22px">'+x[3]+'</div>'+(compact?'':'<div class="tiny" style="margin-left:22px">'+x[4]+'</div>')+'</div>';}).join('');
   return (compact?'':'<div class="p lift"><h2>🎯 Your paces · week '+G.wk+' of the camp</h2>')+
-    '<p class="tiny" style="margin:0 0 4px">'+(G.strict?'<b>Strict cut to France: about 2.5% slower until your own runs show otherwise.</b> ':'')+'The ranges follow your last three runs of each kind, so they move as you improve. A guide, not a test: run by feel, and if the legs are heavy, slower is the right call. Nothing is failed by missing a range.</p>'+rows+
+    '<p class="tiny" style="margin:0 0 4px">'+'Each session on the Camp list gives its own exact pace (say, 800 m pace for 300s); these are the general ranges. '+(G.strict?'<b>Strict cut to France: about 2.5% slower until your own runs show otherwise.</b> ':'')+'The ranges follow your last three runs of each kind, so they move as you improve. A guide, not a test: run by feel, and if the legs are heavy, slower is the right call. Nothing is failed by missing a range.</p>'+rows+
     (compact?'':'<h3 style="margin:10px 0 2px">The order that matters</h3><p style="margin:3px 0">Health, shred and muscle first; the times follow. No hard run the day after a big legs session. Two hard runs and one Norwegian a week, a 4th easy run only on a green week.</p>'+
     '<h3 style="margin:10px 0 2px">The road to your times</h3>'+
     '<p style="margin:3px 0"><b>Why hard runs stay all year.</b> Hard intervals raise VO₂ max, one of the strongest predictors of a long, healthy life. They also build new mitochondria and keep blood sugar control sharp. Hard runs are good for your health, as long as they get food and sleep behind them.</p><p style="margin:3px 0"><b>Now → 23 Dec · the cut, cold and dark.</b> Two hard runs a week, with each one about 20–25 min of hard work. Do them in daylight, warm up for 10–15 min, and count hills as a hard run. Keep your speed while you lean out. The 400 m and 200 m are realistic this winter. The 5 km, mile and 800 m goals are a stretch.</p>'+
