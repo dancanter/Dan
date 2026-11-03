@@ -7,7 +7,7 @@ import type { State } from '@/store';
 // browser's storage as before.
 
 /** names: the foods logged that day, so the tracker can read its food groups. */
-export interface DaySum { kcal: number; protein: number; nutrition: number; glow: number; plants: number; carbs?: number; fat?: number; fibre?: number; n?: number; names?: string[] }
+export interface DaySum { kcal: number; protein: number; nutrition: number; glow: number; plants: number; carbs?: number; fat?: number; fibre?: number; n?: number; omega3?: number; coverage?: number; names?: string[] }
 export interface Verdict { c: string; t: string; sub?: string }
 
 export interface GlowHost {

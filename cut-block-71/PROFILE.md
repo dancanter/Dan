@@ -2,7 +2,7 @@
 
 The single source of truth for anyone (human or Claude) working on Dan's
 tracker. Read this before changing the app or giving Dan advice. Last
-updated 30 Oct 2026.
+updated 3 Nov 2026.
 
 ---
 
@@ -164,6 +164,7 @@ Sub-17 and sub-4:50 are honestly more likely in the **spring 2026–27 camp** (A
 - **New keys:** `days[d].glow` = Glow's day `{items, rituals, note, feelings, extras, outdoorMin, sleepQ}`. `days[d].glowSum` = Glow's day totals `{kcal, protein, carbs, fat, fibre, nutrition, glow, plants, names}`; `days[d].kcal` comes from it once (`kcalFrom:'glow'`). `days[d].binges` (the next 2 weigh-ins are noise), `days[d].ill` `{kind, severity}` (below the neck or severity ≥ 3 means a red light; mild means easy only), `days[d].journal` `{mood, energy, well, learned, tomorrow, free}`, `days[d].challenge` `{ex, kg, reps}`: the weekly strength challenge (`CHAL`, rotating pull-ups, bench, leg press, shoulder press; reps to failure, rated against bodyweight). Dan logs sets only, not every weight (3 Nov). The old `days[d].lifts` is still read. `S.glow` = `{profile, customFoods, favourites, breathMinutes, bp, labs, films}`. The old `days[d].eaten` is migrated into Glow's diary on load.
 - **Navigation (3 Nov, Human Performance OS stage 1):** eight sections in `#secs` (Overview, Running, Physique, Nutrition, Longevity, Recovery, University, Goals & PBs); each page button in `#tabs` carries `data-sec`, and only the current section's pages show. Running opens on `runCoachHTML` (last run vs its pace range, the week, next, goals), `runWinsHTML` (level, achievements, best runs vs all-time and goals) and `muscleFunHTML` (each muscle snoozing / waking up / growing / overcooked); the run menus, paces and race detail sit in folds on the Training log. Longevity opens on `s-longev`: `healthLongHTML` (VO₂, RHR, BP, sleep, steps, strength, food quality, stress, each with its source) and Glow's health-age panel. Overview order: Mission Control, the log, goals, health & food, alerts, calm, strength challenge; the rest sits in `#moreToday`. Palette: charcoal, ivory, muted olive, bronze (dark by default). Sync merges days field by field (`mergeDayInto`). Legs can be split by muscle (`days[d].legs`).
 - **Home (top of Today):** Mission Control, then `homeHTML` (goal tiles: Shred, Muscle, Running, Health age, Looks, Study, Happy; 3 "do next"; this week vs last), Glow's `home` view (health age, BP, blood tests, food search), then the strength challenge (`liftHTML`), then `calmHTML` (stress load from `coachModel`, destressers from `RESET_MENU`, this season, tonight's film) and Glow's `calm` view (8 pillars, breathing timer; breathing minutes also set `medMin`). The Review tab ends with `monthReviewHTML` (the road to 3 and 24 Dec, body, training, health and mind, next month's focus). Dark by default (`localStorage['cb71.theme']='light'` switches).
+- **Health bank** (`bankHTML`, Overview): the week's protein, omega-3, nutrient coverage, sleep, steps, gym and runs against the same days last week; a load check on the last 3 days (`dayStress`); six longevity habits. **Stress tile** on the goals grid: today's level and 14 days of daily load. **What your food did** (`glow/src/components/FoodPower.tsx`): absorbed nutrients per food and what they do in the cell, animal foods first.
 - **What to eat next** (`glow/src/engine/eatnext.ts`, on Home): recovery after training, protein to 140 g, the lowest micronutrient by absorbed amount, one anti-ageing food not had this week. Only allowed foods; no pulses (bloat-prone); vitamin D from oily fish. The daily check-in routine names 1–2 foods for tomorrow and, on Sundays, one new piece of evidence.
 - **Glow rules:** `npm test` in `glow/` (includes `tests/rules.test.ts`); `build-app.mjs` refuses to build if banned advice reaches the page. `glowmerge.mjs` tests the merge in the built app (serve `mkapptest.py` output on :8765).
 - **Run records:** reps `{k:'reps', dm, n, secs, tt?, up?, nodip?}`; continuous `{km, secs, type: easy|threshold|fun|subt}`. Reps are hard (except 100 m sprints); `fun` and `subt` are never hard.
@@ -172,3 +173,34 @@ Sub-17 and sub-4:50 are honestly more likely in the **spring 2026–27 camp** (A
 - **Key pieces:** `CFG` (goals, camp, sets, steps), `PUSH`/`pushState`, `PHYS`/`physOn`, `weekRunsModel`, `campGame` (quests, runs left, XP), `greenLight`, `calCall` (when to eat more or less), `revWatch`, `campWeekReview` (Sunday 8 pm review), `muscleMaxHTML` + `PHYS_PLAN`, `CAMP_SESS`, `norwMenu`.
 - **Achievements are computed from his data** — never reset them. Bosses: a camp PB is +100 XP, all-time +250, goal +500.
 - **Commits** end with the session's attribution lines. Never put a model identifier in pushed files. No PR unless asked.
+
+---
+
+## 11. The Human Performance OS brief (Dan, 3 Nov) — audit and stages
+
+Dan's full brief: one premium, calm, evidence-led system across running,
+physique, nutrition, longevity, recovery, University and goals. No invented
+data, scores or integrations; estimates labelled; nothing decorative that
+does nothing; simple daily logging; export and backup. Built in stages on
+this tracker (not a rewrite), keeping his programme and rules above.
+
+**Merged (3 Nov):** branch `claude/coding-capabilities-21nmif` (The Good Life
+React app in `good-life/`, and the newer pregnancy guide) is merged into this
+branch. Its University content (backwards TMA stages, Harvard builder) is now
+in the tracker; its food, exercise, health and source data sit in
+`good-life/src/data/` to draw on. Data Dan typed into The Good Life lives in
+that browser only and cannot be read from here: export it there and use
+Data & backup → Load to bring it across.
+
+**Audit**
+
+| | |
+|---|---|
+| Keep | Eight sections and the pages under them; Mission Control; the log card; the running coach, menus and pace ranges; the set-based gym log (sets only, by Dan's choice); Glow's food diary and nutrient view; the readiness light; reviews; field-by-field sync; achievements from his data. |
+| Improved in stage 2 | Overview: name, age from DOB, height, weight (7-day avg or last, labelled), phase. University: TMA plan backwards from the due date, marks and feedback with OU bands, weekly study hours (8 weeks), critical-evaluation questions, Cite Them Right Harvard references (`S.uni.refs`; tasks carry `st`, `mark`, `fb`). Longevity: **How you compare** (`benchHTML`), each row with population, source, year, limits; "no valid percentile" where none exists; no overall score. Data: a real backup file download. |
+| Fixed | The food deep dive still recommended olive oil, spinach, rocket and watercress (all excluded). Removed. |
+| Still to do | Stage 3: weekly review page as the single Sunday summary; nutrient gaps against UK reference values with "estimate, not a blood test" on each; lab entry (lipids, HbA1c, FBC, ferritin, B12, folate, vitamin D) in Glow's `labs`, shown only once entered. Stage 4: body measurements beyond the waist, progress photos (local only), optional weights per set for e1RM. Stage 5: the coach answering the brief's eleven questions from his own data, each answer tagged fact / estimate / suggestion. Check the FRIEND cut-offs against the original paper's table. |
+| Remove or question | The Glow "health age" headline is a composite and conflicts with "no pseudoscientific scores": it is labelled as motivational; ask Dan whether to keep it. |
+| Needs Dan | Module titles for SK297 / SK298; TMA dates; any marks so far; whether olive oil is now allowed (the brief lists extra-virgin olive oil, his excluded list says no — the exclusion stands until he says otherwise); home BP week; grip strength if he can measure it. |
+
+**Tests:** `hpos2.mjs` (served `app.html` on :8765) covers stage 2.

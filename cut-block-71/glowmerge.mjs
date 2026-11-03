@@ -158,6 +158,9 @@ await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 
 ok('the Overview shows stress: level, the reason, 14 days of bars', await p.evaluate(() => /Stress/.test(E('homeCard').innerText) && /last 14 days/.test(E('homeCard').innerText) && E('homeCard').querySelectorAll('.hm-t i[title]').length === 14));
 
+ok('the health bank: the week added up, a load check, six longevity habits', await p.evaluate(() => { const t = E('bankCard').innerText; return /health bank/.test(t) && /Load check/.test(t) && /Longevity habits: \d of 6/.test(t); }));
+ok('and what the food did, nutrient by nutrient, animal foods first', /What your food did for you today/.test(await shadow(p, 'glowHome')));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });
