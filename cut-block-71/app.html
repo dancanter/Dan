@@ -9947,7 +9947,11 @@ function runCoachHTML(){
     if(RR)gl='Next trial: <b>'+repLabel(RR.dm)+'</b> on '+fmtS(RR.on)+', goal '+(RR.goal>=60?mmss(RR.goal):RR.goal+' s')+' · fitness now about '+(RR.fit>=60?mmss(Math.round(RR.fit)):f1(RR.fit)+' s')+' · '+RR.st[1]+'.';}catch(e){}
   return '<div class="p lift"><h2>🏃 Your running coach</h2>'+
     (F?'<h3 style="margin:4px 0 2px">'+F.when+': '+esc(F.label)+'</h3><p style="margin:2px 0"><span class="pill'+(F.tone?' '+F.tone:'')+'">'+(F.tone==='g'?'✓':(F.tone==='w'?'!':'·'))+'</span> '+F.line+'</p>':'<p class="note">No runs in the last two weeks yet.</p>')+
-    '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G?' · still to come: '+(hardLeft.length?hardLeft.length+' hard':'')+(hardLeft.length&&norLeft.length?', ':'')+(norLeft.length?norLeft.length+' Norwegian':'')+(hardLeft.length||norLeft.length?'':'nothing, the week is done'):'')+'</p>'+
+    '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G&&!(hardLeft.length||norLeft.length)?' · the week’s runs are done':'')+'</p>'+
+    (G&&(hardLeft.length||norLeft.length)?'<p style="margin:6px 0 2px"><b>Still to come, on green days:</b></p>'+hardLeft.concat(norLeft).map(function(x){
+      var nm=x.n.replace(/^Norwegian sub-threshold — /,'');
+      var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
+      return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+'</p>';}).join(''):'')+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
     (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+'</div>';}
 
