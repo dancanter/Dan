@@ -105,14 +105,19 @@ ok('Glow’s health block is on Home: health age and the food search', /Health a
 await tapIn(p, 'glowHome', 'search 4,000'); await p.waitForTimeout(400);
 ok('the food search opens from Home', /Add food|Search/i.test(await shadow(p, 'glowHome')));
 await p.keyboard.press('Escape');
-await p.fill('#lfKg', '60'); await p.fill('#lfReps', '6'); await p.click('button[data-lift="add"]'); await p.waitForTimeout(200);
-ok('a lift is logged with kg and reps', JSON.stringify(await p.evaluate(() => S.days['2026-11-03'].lifts)) === '[{"ex":"Bench press","kg":60,"reps":6}]');
-ok('and shows in your bests', /Bench press/.test(await p.innerText('#liftCard')));
+ok('this week’s strength challenge is the bench press, with no weights-and-reps log', /Strength challenge · Bench press/.test(await p.innerText('#liftCard')) && !(await p.$('#lfKg')));
+await p.fill('#chKg', '60'); await p.fill('#chReps', '8'); await p.click('button[data-chal="save"]'); await p.waitForTimeout(200);
+ok('the result is saved', JSON.stringify(await p.evaluate(() => S.days['2026-11-03'].challenge)) === '{"ex":"bench","kg":60,"reps":8}');
+let lc = await p.innerText('#liftCard');
+ok('and rated, with health feedback and how to improve', /Very strong for a man your weight/.test(lc) && /healthy ageing/.test(lc) && /To improve/.test(lc), lc.slice(0, 400));
+await p.evaluate(() => { S.days['2026-10-19'] = Object.assign(S.days['2026-10-19'] || {}, { challenge: { ex: 'bench', kg: 57.5, reps: 6 } }); E('liftCard').innerHTML = liftHTML(); });
+ok('next time it says how much stronger', /% stronger than/.test(await p.innerText('#liftCard')));
+ok('paces follow recent runs, Norwegian included', await p.evaluate(() => { const g = paceGuide(); return 'N' in g.form && 'L' in g.form; }));
 
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
-const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: (r.lifts || []).length }; });
-ok('binge, sick day, journal, food and lifts survive a reload', R.b === 1 && R.ill && R.j === 4 && R.items === 1 && R.k === 206 && R.l === 1, JSON.stringify(R));
+const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });
+ok('binge, sick day, journal, food and the challenge survive a reload', R.b === 1 && R.ill && R.j === 4 && R.items === 1 && R.k === 206 && R.l === 1, JSON.stringify(R));
 
 // ---- the journal history on Mind, searchable -------------------------------------
 await p.evaluate(() => { S.days['2026-11-01'] = Object.assign(S.days['2026-11-01'] || {}, { journal: { mood: 2, energy: 2, well: 'Long walk', learned: '', tomorrow: '', free: '' } }); touch(); });

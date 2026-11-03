@@ -9441,11 +9441,12 @@ function missionHTML(){
    biomarkers on the front page… input data, show my results, suggest what to
    do." Mission Control stays the hero; under it: the goals scoreboard, this
    week against last, three things to do next, Glow's health block (health
-   age, blood pressure, blood tests, the food search), and the lift log. */
+   age, blood pressure, blood tests, the food search), and the weekly strength challenge. */
 var LIFTS=['Bench press','Incline DB press','Overhead press','Pull-up','Lat pulldown','Seated row','Squat','Romanian deadlift','Hip thrust','Leg press','Bicep curl','Tricep pushdown','Lateral raise'];
 function e1rm(kg,reps){return kg*(1+Math.min(reps,12)/30);}
 function liftBests(upTo,from){var out={};Object.keys(S.days).forEach(function(d){if(d>upTo||(from&&d<from))return;
-  ((S.days[d]||{}).lifts||[]).forEach(function(x){var v=e1rm(x.kg,x.reps);if(!out[x.ex]||v>out[x.ex].v)out[x.ex]={v:v,kg:x.kg,reps:x.reps,d:d};});});return out;}
+  var r=S.days[d]||{},L=(r.lifts||[]).slice();if(r.challenge)L.push({ex:r.challenge.ex,kg:r.challenge.kg||0,reps:r.challenge.reps,bw:r.challenge.ex==='pull'});
+  L.forEach(function(x){var v=x.bw?x.reps:e1rm(x.kg,x.reps);if(!out[x.ex]||v>out[x.ex].v)out[x.ex]={v:v,kg:x.kg,reps:x.reps,d:d};});});return out;}
 function weekNums(ws){var t=today(),we=addD(ws,6),o={w:[],runs:0,gym:0,sets:0,steps:[],sleep:[],study:0,lifts:0},i,d,r;
   for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;r=S.days[d]||{};
     if(typeof S.weights[d]==='number')o.w.push(S.weights[d]);
@@ -9507,24 +9508,57 @@ function homeHTML(){
     '<h3 style="margin:12px 0 4px">👉 Do next</h3>'+next.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x)+'</p>';}).join('')+
     '<details style="margin-top:10px"><summary><b>🎯 Your run paces this week</b></summary>'+paceGuideHTML(true)+'<button type="button" class="btn sm ghost" data-t="camp">Full guide and the road to your times →</button></details>'+
     '<details style="margin-top:6px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}
+/* Dan, 3 Nov: "don't have the weights and reps I did, just the sets — but give me a
+   challenge: this week try this many reps at this weight till failure, mark how strong
+   I am, give feedback on health and how to improve." One lift a week, rotating, saved
+   as days[d].challenge = {ex, kg, reps}. Failure means the last clean rep. */
+var CHAL=[
+  {k:'pull',n:'Pull-ups',bw:true,std:[5,10,15,20],how:'Dead hang, chin over the bar, full stretch at the bottom. As many clean reps as you can.',
+    up:'Keep 2 sets a few reps short of failure on back days. Once you hit 20+ clean, add 2.5–5 kg on a belt or in a backpack.'},
+  {k:'bench',n:'Bench press',std:[0.75,1,1.25,1.5],how:'Use safety arms or a spotter, or dumbbells. Touch the chest, pause, press. Stop at the last clean rep.',
+    up:'Bench 3 sets of 6–10. When every set reaches 10, add 2.5 kg. Chest sets in range each week.'},
+  {k:'legpress',n:'Leg press',std:[1.5,2.25,3,3.75],how:'Knees to about 90°, feet flat, no bounce. Not the day before a hard run.',
+    up:'3 sets of 8–12, add 5 kg when all sets reach 12. Keep legs to 8–12 sets a week in the cut so your runs stay sharp.'},
+  {k:'ohp',n:'Shoulder press',std:[0.45,0.6,0.75,0.9],how:'Barbell, dumbbells (add both together) or machine. Ribs down, no leg drive.',
+    up:'3 sets of 6–10, plus lateral raises on shoulder days. Broad shoulders make the waist look smaller.'}];
+var CHAL_RANK=['Building','Solid','Strong','Very strong','Elite'];
+function bodyKg(){var ks=Object.keys(S.weights).sort();return ks.length?S.weights[ks[ks.length-1]]/2.20462:58;}
+function chalWeek(d){var i=Math.floor(diffD(PHYS.from,mondayOf(d||today()))/7);return CHAL[((i%CHAL.length)+CHAL.length)%CHAL.length];}
+function chalHist(k){return Object.keys(S.days).sort().filter(function(d){var c=(S.days[d]||{}).challenge;return c&&c.ex===k;}).map(function(d){var c=S.days[d].challenge;return {d:d,kg:c.kg||0,reps:c.reps};});}
+function chalScore(c,x){return c.bw?x.reps:e1rm(x.kg,x.reps)/bodyKg();}
+function chalRank(c,v){var i=0;while(i<c.std.length&&v>=c.std[i])i++;return i;}
+function chalTarget(c){var h=chalHist(c.k),l=h[h.length-1];if(!l)return c.bw?'As many as you can':'A weight you think you could lift about 8 times';
+  if(c.bw)return 'Beat '+l.reps+' reps';var kg=Math.round(e1rm(l.kg,l.reps)*(l.reps>=10?1.025:1)/(1+8/30)/2.5)*2.5;return kg+' kg, as many reps as you can (about 8 would match last time)';}
+function chalFeedback(c,x,prev){var out=[],v=chalScore(c,x),rk=chalRank(c,v);
+  out.push('<b>'+CHAL_RANK[rk]+'</b> for a man your weight'+(c.bw?'':' · estimated 1-rep max '+Math.round(e1rm(x.kg,x.reps))+' kg, '+v.toFixed(2)+'× bodyweight')+'.');
+  if(prev){var pv=chalScore(c,prev),ch=(v-pv)/pv*100;
+    out.push(Math.abs(ch)<3?'💪 Same as last time ('+fmtS(prev.d)+'). In a cut, holding strength means you are keeping your muscle.':
+      ch>0?'🚀 '+Math.round(ch)+'% stronger than '+fmtS(prev.d)+', while cutting. That is muscle being built, not just kept.':
+      '📉 '+Math.round(-ch)+'% down on '+fmtS(prev.d)+'. Usually sleep, low carbs or tired legs, not lost muscle. Check 140 g protein and 8 h sleep, and test on a fresh day.');}
+  else out.push('First result for this lift. It is the benchmark: next time you will see the change.');
+  out.push('🧬 Strength is one of the best markers of healthy ageing: stronger legs, back and grip go with a longer, healthier life.');
+  out.push('📈 To improve: '+c.up);return out;}
 function liftHTML(){
-  var t=E('logDate')&&E('logDate').value||today(),r=S.days[t]||{},list=r.lifts||[],lb=liftBests(today()),lp=liftBests(addD(today(),-28));
-  var best=Object.keys(lb).sort(function(a,b){return LIFTS.indexOf(a)-LIFTS.indexOf(b);}).map(function(k){var x=lb[k],o=lp[k],up=o&&x.v>o.v+0.01;
-    return '<tr><td>'+esc(k)+'</td><td class="n">'+x.kg+' kg × '+x.reps+'</td><td class="n">'+Math.round(x.v)+(up?' <span class="acc">▲ '+Math.round(x.v-o.v)+'</span>':'')+'</td></tr>';}).join('');
-  return '<div class="p"><h2>🏋️ Gym weights</h2>'+
-    '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:flex-end">'+
-      '<div class="f" style="flex:2 1 150px"><label for="lfEx">Lift</label><select id="lfEx">'+LIFTS.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
-      '<div class="f" style="flex:1 1 60px"><label for="lfKg">kg</label><input id="lfKg" type="number" inputmode="decimal" step="0.5" min="0"></div>'+
-      '<div class="f" style="flex:1 1 50px"><label for="lfReps">reps</label><input id="lfReps" type="number" inputmode="numeric" min="1" max="50"></div>'+
-      '<button type="button" class="btn" data-lift="add">Add</button></div>'+
-    (list.length?'<p class="tiny" style="margin:8px 0 2px">'+(t===today()?'Today':fmtS(t))+':</p>'+list.map(function(x,i){return '<div class="row" style="gap:6px;align-items:center;margin:2px 0"><span>'+esc(x.ex)+' · <b>'+x.kg+' kg × '+x.reps+'</b></span><button type="button" class="btn sm ghost" data-lift="del" data-i="'+i+'" style="margin-left:auto">remove</button></div>';}).join(''):'')+
-    (best?'<details style="margin-top:8px"'+(list.length?'':' open')+'><summary><b>Your bests</b> <span class="tiny dim">estimated 1-rep max · ▲ vs 4 weeks ago</span></summary><div class="scroll"><table class="tbl"><tbody>'+best+'</tbody></table></div></details>':
-      '<p class="tiny dim" style="margin-top:6px">Log your top set for each lift. In a cut, holding these numbers means you are keeping muscle. Going up means you are building it.</p>')+'</div>';}
-document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-lift]');if(!b)return;
-  var d=E('logDate')&&E('logDate').value||today(),r=S.days[d]=S.days[d]||{};
-  if(b.dataset.lift==='add'){var kg=parseFloat(E('lfKg').value),reps=parseInt(E('lfReps').value,10);if(!(kg>=0)||!(reps>0))return;
-    r.lifts=(r.lifts||[]).concat([{ex:E('lfEx').value,kg:kg,reps:reps}]);var keep=E('lfEx').value;touch();E('liftCard').innerHTML=liftHTML();E('lfEx').value=keep;}
-  else{r.lifts=(r.lifts||[]).filter(function(_,i){return i!==+b.dataset.i;});if(!r.lifts.length)delete r.lifts;touch();E('liftCard').innerHTML=liftHTML();}});
+  var t=today(),c=chalWeek(t),ws=mondayOf(t),done=null,dd=null;
+  for(var i=0;i<7;i++){var d=addD(ws,i);var ch=(S.days[d]||{}).challenge;if(ch&&ch.ex===c.k){done=ch;dd=d;}}
+  var h=chalHist(c.k),prev=null;h.forEach(function(x){if(x.d<(dd||'9999'))prev=x;});
+  var nextC=chalWeek(addD(ws,7));
+  var past=CHAL.map(function(x){var hh=chalHist(x.k),l=hh[hh.length-1];if(!l)return '';var v=chalScore(x,l);
+    return '<tr><td>'+x.n+'</td><td class="n">'+(x.bw?l.reps+' reps':l.kg+' kg × '+l.reps)+'</td><td>'+CHAL_RANK[chalRank(x,v)]+'</td></tr>';}).join('');
+  return '<div class="p"><h2>🏆 Strength challenge · '+c.n+'</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">One lift a week, to failure. '+c.how+'</p>'+
+    (done?chalFeedback(c,{kg:done.kg||0,reps:done.reps,d:dd},prev).map(function(x){return '<p style="margin:4px 0">'+x+'</p>';}).join('')+
+      '<p class="tiny dim">Next week: '+nextC.n+'.</p>':
+      '<p style="margin:4px 0">🎯 <b>This week: '+chalTarget(c)+'.</b></p>')+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:flex-end;margin-top:6px">'+
+      (c.bw?'':'<div class="f" style="flex:1 1 70px"><label for="chKg">kg</label><input id="chKg" type="number" inputmode="decimal" step="0.5" min="0" value="'+(done?done.kg:'')+'"></div>')+
+      '<div class="f" style="flex:1 1 70px"><label for="chReps">reps to failure</label><input id="chReps" type="number" inputmode="numeric" min="1" max="60" value="'+(done?done.reps:'')+'"></div>'+
+      '<button type="button" class="btn" data-chal="save">'+(done?'Update':'Save result')+'</button></div>'+
+    (past?'<details style="margin-top:8px"><summary><b>Your strength, lift by lift</b></summary><div class="scroll"><table class="tbl"><tbody>'+past+'</tbody></table></div></details>':'')+'</div>';}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-chal]');if(!b)return;
+  var c=chalWeek(),reps=parseInt(E('chReps').value,10),kg=c.bw?0:parseFloat(E('chKg').value);if(!(reps>0)||!(kg>=0)||(!c.bw&&!(kg>0)))return;
+  var ws=mondayOf(today());for(var i=0;i<7;i++){var d=addD(ws,i),r0=S.days[d];if(r0&&r0.challenge&&r0.challenge.ex===c.k)delete r0.challenge;}
+  var r=S.days[today()]=S.days[today()]||{};r.challenge={ex:c.k,kg:kg,reps:reps};touch();E('liftCard').innerHTML=liftHTML();});
 
 /* ===================== pace guide (Dan, 3 Nov) =====================
    "I need to know what times I should be running… with gradual improvements
@@ -9542,20 +9576,39 @@ function paceGuide(){
   /* Dan, 3 Nov: on 1,799 kcal the legs have less fuel, so the strict cut to France runs about 2.5% slower.
      These are ceilings to stay under, not numbers to hit. */
   var strict=t>=STRICT.from&&t<STRICT.tripFrom,cutF=strict?1.025:1;
-  var step=function(pk,g){var v=pk*(1-0.004*wk)*cutF;return g?Math.max(v,g):v;};
+  /* Dan, 3 Nov: "adjust the times based on how I'm improving, even on the Norwegian runs".
+     Each kind of run follows his last three of that kind (28 days): run them quicker than
+     planned and the range moves halfway towards him; slower, and it eases. The cut
+     allowance only applies until there is a session of that kind to go on. */
+  var base=function(pk){return pk*(1-0.004*wk);};
+  var bL=base(pM*1.02)*1.01,b4=base(p4*1.06)*1.015,b2=base(p2*1.06)*1.015,bN=p5*1.12;
+  var F={L:[],S:[],N:[]};
+  Object.keys(S.days).filter(function(d){return d<=t&&d>addD(t,-28);}).sort().forEach(function(d){
+    ((S.days[d]||{}).runs||[]).forEach(function(x){
+      if(x.k==='reps'&&x.secs>0&&x.dm&&x.n&&!x.tt&&!x.up){var pk=x.secs/(x.dm*x.n/1000);
+        if(x.dm>=500&&x.dm<=1609)F.L.push(pk/bL);else if(x.dm>=200&&x.dm<500)F.S.push(pk/(x.dm<=250?b2:b4));}
+      else if(x.type==='subt'&&x.km>0&&x.secs>0)F.N.push((x.secs/x.km)/bN);});});
+  var med=function(a){a=a.slice(-3).sort(function(x,y){return x-y;});var n=a.length;return n?(n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2):null;};
+  var fm={L:med(F.L),S:med(F.S),N:med(F.N)},clamp=function(v,lo,hi){return Math.max(lo,Math.min(hi,v));};
+  var adj=function(k,w,lo,hi){return fm[k]===null?cutF:clamp(1+(fm[k]-1)*w,lo,hi);};
+  var aL=adj('L',0.5,0.97,1.03),aS=adj('S',0.5,0.97,1.03),aN=fm.N===null||fm.N<0.94?1:clamp(1+(fm.N-1)*0.3,0.98,1.02);
+  var cap=function(v,g){return g?Math.max(v,g):v;};
   var rep=function(pk,dm){var v=pk*dm/1000;return v<100?(Math.round(v*2)/2)+' s':secFmt(Math.round(v));};
-  var kmL=step(pM*1.02,goal(1609)),k8=step(p8*1.04,goal(800)),k4=step(p4*1.06,goal(400)),k2=step(p2*1.06,goal(200));
-  return {wk:wk+1,strict:strict,rows:[
-    ['🔥','Hard: long reps','1 km, 800 m, 600 m',rep(kmL,1000)+'–'+rep(kmL*1.02,1000)+' per km rep · 800 m '+rep(kmL*0.98,800)+'–'+rep(kmL,800)+' · 600 m '+rep(kmL*0.97,600)+'–'+rep(kmL*0.99,600),'Walk or jog until your breathing settles. Even reps beat a fast first one.'],
-    ['⚡','Hard: speed','200–400 m',' 400 m '+rep(k4,400)+'–'+rep(k4*1.03,400)+' · 300 m '+rep(k4*0.98,300)+'–'+rep(k4*1.01,300)+' · 200 m '+rep(k2,200)+'–'+rep(k2*1.03,200),'Full recovery between: walk until you feel ready. Stop when the form goes.'],
-    ['🌊','Norwegian sub-threshold','reps, 7 out of 10',kmPace(p5*1.09)+'–'+kmPace(p5*1.15)+' a km · 400 m '+rep(p5*1.09,400)+'–'+rep(p5*1.15,400)+' · 800 m '+rep(p5*1.09,800)+'–'+rep(p5*1.14,800),'Short easy jogs between. Finish feeling you could do two more. Too fast here costs the next hard run.'],
+  var kmL=cap(base(pM*1.02)*aL,goal(1609)),k4=cap(base(p4*1.06)*aS,goal(400)),k2=cap(base(p2*1.06)*aS,goal(200)),pN=p5*aN;
+  var note=function(k,n){var f=fm[k];if(f===null)return 'No '+n+' in the last 4 weeks yet'+(strict&&k!=='N'?', so the cut allowance is on':'')+'.';
+    var pc=Math.round((1-f)*1000)/10;return 'Your last '+Math.min(3,F[k].length)+': '+(Math.abs(pc)<1?'right on plan':(pc>0?pc+'% quicker than planned':(-pc)+'% slower than planned'))+
+      (k==='N'&&f<0.94?'. That is too fast for a Norwegian run: hold it back so the hard runs stay hard.':(Math.abs(pc)<1?'.':(pc>0?', so the range has moved quicker.':', so the range has eased.')));};
+  return {wk:wk+1,strict:strict,form:fm,rows:[
+    ['🔥','Hard: long reps','1 km, 800 m, 600 m',rep(kmL,1000)+'–'+rep(kmL*1.02,1000)+' per km rep · 800 m '+rep(kmL*0.98,800)+'–'+rep(kmL,800)+' · 600 m '+rep(kmL*0.97,600)+'–'+rep(kmL*0.99,600),'Walk or jog until your breathing settles. Even reps beat a fast first one. '+note('L','long reps')],
+    ['⚡','Hard: speed','200–400 m',' 400 m '+rep(k4,400)+'–'+rep(k4*1.03,400)+' · 300 m '+rep(k4*0.98,300)+'–'+rep(k4*1.01,300)+' · 200 m '+rep(k2,200)+'–'+rep(k2*1.03,200),'Full recovery between: walk until you feel ready. Stop when the form goes. '+note('S','speed reps')],
+    ['🌊','Norwegian sub-threshold','reps, 7 out of 10',kmPace(pN*1.09)+'–'+kmPace(pN*1.15)+' a km · 400 m '+rep(pN*1.09,400)+'–'+rep(pN*1.15,400)+' · 800 m '+rep(pN*1.09,800)+'–'+rep(pN*1.14,800),'Short easy jogs between. Finish feeling you could do two more. '+note('N','Norwegian runs')],
     ['🐢','Easy run','conversation pace',kmPace(p5*1.32)+'–'+kmPace(p5*1.5)+' a km','Slower is fine. This builds the engine without denting recovery or muscle.'],
     ['⏱️','Time trial','only on a green day','5 km fitness now '+mmss(Math.round(p5*5))+' · mile '+mmss(Math.round(pM*1.609))+' · 400 m '+secFmt(Math.round(p4*0.4)),'Fresh legs: no legs session the day before, carbs the night before.']]};}
 function paceGuideHTML(compact){
   var G=paceGuide();
   var rows=G.rows.map(function(x){return '<div style="margin:7px 0"><b>'+x[0]+' '+x[1]+'</b> <span class="tiny dim">'+x[2]+'</span><div class="mono" style="margin:2px 0 0 22px">'+x[3]+'</div>'+(compact?'':'<div class="tiny" style="margin-left:22px">'+x[4]+'</div>')+'</div>';}).join('');
   return (compact?'':'<div class="p lift"><h2>🎯 Your paces · week '+G.wk+' of the camp</h2>')+
-    '<p class="tiny" style="margin:0 0 4px">'+(G.strict?'<b>Strict cut to France: about 2.5% slower, because you are running on less fuel.</b> ':'')+'A guide, not a test: run by feel, and if the legs are heavy, slower is the right call. Nothing is failed by missing a range.</p>'+rows+
+    '<p class="tiny" style="margin:0 0 4px">'+(G.strict?'<b>Strict cut to France: about 2.5% slower until your own runs show otherwise.</b> ':'')+'The ranges follow your last three runs of each kind, so they move as you improve. A guide, not a test: run by feel, and if the legs are heavy, slower is the right call. Nothing is failed by missing a range.</p>'+rows+
     (compact?'':'<h3 style="margin:10px 0 2px">The order that matters</h3><p style="margin:3px 0">Health, shred and muscle first; the times follow. No hard run the day after a big legs session. Two hard runs and one Norwegian a week, a 4th easy run only on a green week.</p>'+
     '<h3 style="margin:10px 0 2px">The road to your times</h3>'+
     '<p style="margin:3px 0"><b>Why hard runs stay all year.</b> Hard intervals raise VO₂ max, one of the strongest predictors of a long, healthy life. They also build new mitochondria and keep blood sugar control sharp. Hard runs are good for your health, as long as they get food and sleep behind them.</p><p style="margin:3px 0"><b>Now → 23 Dec · the cut, cold and dark.</b> Two hard runs a week, with each one about 20–25 min of hard work. Do them in daylight, warm up for 10–15 min, and count hills as a hard run. Keep your speed while you lean out. The 400 m and 200 m are realistic this winter. The 5 km, mile and 800 m goals are a stretch.</p>'+
