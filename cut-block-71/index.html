@@ -362,7 +362,12 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
   <div id="homeCard"></div>
+  <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
+  <div id="ovStress"></div>
+  <div class="p"><h2>🧬 Health age</h2><div id="glowHealthOv"></div></div>
+  <div id="ovRun"></div>
   <div id="bankCard"></div>
+  <div class="p"><h2>🔬 Micros so far · today and this week</h2><div id="glowMicrosOv"></div></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
     <div class="row" style="margin-bottom:12px">
@@ -9436,6 +9441,8 @@ function renderGoodLife(){
   glStore();
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('homeCard'))E('homeCard').innerHTML=homeHTML();
+  if(E('ovStress'))try{E('ovStress').innerHTML='<div class="p"><h2>🧘 Your stress</h2>'+stressDetailHTML()+'</div>';}catch(e){}
+  if(E('ovRun'))try{E('ovRun').innerHTML=runCoachHTML()+runWinsHTML();}catch(e){}
   if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
   if(E('bankCard'))E('bankCard').innerHTML=bankHTML();
   if(E('longCardTop'))E('longCardTop').innerHTML=healthLongHTML();
@@ -10377,7 +10384,7 @@ function loadGlow(){
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
 function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
-  [['glowHome','home'],['glowCalm','calm'],['glowHealth','health'],['glowRecRun','recovery'],['glowRecLift','recovery'],['glowMuscleGuide','muscleguide'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
+  [['glowHome','home'],['glowCalm','calm'],['glowHealth','health'],['glowRecRun','recovery'],['glowRecLift','recovery'],['glowMuscleGuide','muscleguide'],['glowHealthOv','health'],['glowMicrosOv','micros'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
     var el=E(x[0]);if(el)G.mount(el,x[1],x[1]==='review'&&GLOW_REV_END?GLOW_REV_END:t,!!GLOW_OPEN[x[1]]);});}
 function startGlow(){
   var G=window.GLOW;
