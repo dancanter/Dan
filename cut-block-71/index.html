@@ -230,6 +230,7 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <nav class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="today" aria-selected="true">Today</button>
     <button role="tab" data-t="camp" aria-selected="false">🏁 Camp</button>
+    <button role="tab" data-t="glow" aria-selected="false">🌱 Glow</button>
     <button role="tab" data-t="feedback" aria-selected="false">Feedback</button>
     <button role="tab" data-t="weight" aria-selected="false">Weight</button>
     <button role="tab" data-t="food" aria-selected="false">Food</button>
@@ -649,6 +650,14 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
   <div id="filmCard"></div>
   <div id="spotCard"></div>
   <div id="longCard"></div>
+</section>
+
+<!-- ================= GLOW (cellular nutrition, 3 Nov) ================= -->
+<section id="s-glow" class="stack" hidden>
+  <div class="p" style="padding:0;overflow:hidden">
+    <iframe id="glowFrame" title="Glow — cellular nutrition" style="display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:0;background:var(--bg)"></iframe>
+  </div>
+  <p class="tiny dim" style="margin:6px 2px">Glow: 4,700+ foods scored for your cells, the 8 cellular pillars, sleep and rituals. What you log here fills your calorie and protein rings on Today, and your weigh-ins come across from the tracker.</p>
 </section>
 
 <!-- ================= THE GOOD LIFE ================= -->
@@ -1200,7 +1209,12 @@ function normalise(x){
   return s;
 }
 function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
-function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
+  /* the bridge to Glow (3 Nov): weigh-ins go across so they are never typed twice */
+  trackerBridge();}
+function trackerBridge(){try{if(S)localStorage.setItem('tracker-bridge-v1',JSON.stringify({at:Date.now(),weights:S.weights}));}catch(e){}}
+/* what Glow logged for a day: calories, protein and its scores (null if nothing) */
+function glowDay(d){try{var b=JSON.parse(localStorage.getItem('glow-bridge-v1')||'null');return b&&b.days&&b.days[d]?b.days[d]:null;}catch(e){return null;}}
 function touch(){S.updatedAt=Date.now();saveLocal();queueRemote();render();}
 function queueRemote(){
   if(!dbDoc)return;
@@ -6037,7 +6051,7 @@ function paintHeader(c,tr){
   E('hDay').textContent=c.before?('starts '+fmtS(CFG.cutStart)):(c.after?'done':c.day+' / '+CUT_DAYS);
   E('hLeft').textContent=c.after?'0 d':(c.remaining+' d');
   var rec0=S.days[today()]||{};
-  E('hKcal').textContent=(typeof rec0.kcal==='number'?ci(rec0.kcal):'—')+' / '+ci(kcalToday());
+  var gh=glowDay(today());E('hKcal').textContent=(typeof rec0.kcal==='number'?ci(rec0.kcal):(gh?ci(gh.kcal):'—'))+' / '+ci(kcalToday());
   E('hSteps').textContent=(typeof rec0.steps==='number'?ci(rec0.steps):'—')+' / '+ci(stepTarget(today()));
 }
 /* A hard day needs evidence, not a filing. No distance and no time means
@@ -9025,6 +9039,7 @@ function renderGoodLife(){
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
+  window.addEventListener('message',function(ev){if(ev&&ev.data&&ev.data.type==='glow-bridge'&&E('ccCard'))E('ccCard').innerHTML=missionHTML();});
   document.addEventListener('click',function(ev){
     var pl=ev.target.closest&&ev.target.closest('button[data-plan]');
     if(pl){var td=today(),rr=S.days[td]=S.days[td]||{};rr.plan=!rr.plan;touch();return;}
@@ -9140,7 +9155,7 @@ function ccRing(pct,label,val,sub,tone){
     '<div class="cc-rl">'+label+'</div><div class="cc-rv">'+val+'</div><div class="cc-rs">'+sub+'</div></div>';
 }
 function ccDayScore(d){
-  var r=S.days[d]||{},it=[typeof S.weights[d]==='number',!!r.plan||typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
+  var r=S.days[d]||{},it=[typeof S.weights[d]==='number',!!r.plan||!!glowDay(d)||typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
     typeof r.steps==='number'&&r.steps>=stepTarget(d)*0.9,typeof r.sleep==='number'&&r.sleep>=8,!!(r.skinAM&&r.skinPM)];
   return it.filter(Boolean).length;
 }
@@ -9178,7 +9193,7 @@ function missionHTML(){
   if(now===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length)now=S.weights[ks[ks.length-1]];}
   var tgt=123.5,shredPct=start!==null&&now!==null&&start>tgt?Math.max(0,Math.min(1,(start-now)/(start-tgt))):0;
   /* rings */
-  var kT=dayTarget(t),et=eatenTotals(r),kc=et.n?et.kcal:(typeof r.kcal==='number'?r.kcal:null),pro=et.n?et.pro:null;
+  var kT=dayTarget(t),et=eatenTotals(r),gd=glowDay(t),kc=et.n?et.kcal:(gd?gd.kcal:(typeof r.kcal==='number'?r.kcal:null)),pro=et.n?et.pro:(gd?gd.protein:null);
   var stT=stepTarget(t),st=typeof r.steps==='number'?r.steps:null,sl=typeof r.sleep==='number'?r.sleep:null;
   var rings=ccRing(kc!==null?kc/kT:0,'Calories',kc!==null?ci(kc):'—','of '+ci(kT),kc!==null&&kc>kT+50?'warn':'')+
     ccRing(pro!==null?pro/MACRO.pro:0,'Protein',pro!==null?ci(pro)+' g':'—','of '+MACRO.pro+' g',pro!==null&&pro>=MACRO.pro?'good':'')+
@@ -9201,6 +9216,7 @@ function missionHTML(){
     '<div class="cc-row"><div class="cc-chip"><b>'+sc+'/5</b><small>today’s score</small></div>'+
       '<div class="cc-chip"><b>'+(sk?'🔥 '+sk:'—')+'</b><small>day streak</small></div>'+
       '<div class="cc-chip"><b>'+(G?G.quests.filter(function(q){return q[2]>=q[3];}).length+'/'+G.quests.length:'—')+'</b><small>quests done</small></div></div>'+
+    (gd?'<div class="cc-ready done"><span class="cc-dot"></span><div><b>🌱 Glow '+gd.glow+' · nutrition '+gd.nutrition+'</b><small>'+gd.plants+' plants today · from what you logged in Glow</small></div></div>':'')+
     '<div class="cc-week">'+ccWeek()+'</div>'+
     (G?'<details class="cc-more"><summary>Race goals</summary><div class="cc-goals">'+ccGoals()+'</div></details>':'')+
     '<button type="button" class="btn sm'+(r.plan?'':' ghost')+'" data-plan="1" style="align-self:flex-start">'+(r.plan?'✓ Ate to plan today':'🍽️ Ate to plan today?')+'</button>'+
@@ -9239,7 +9255,8 @@ function raceCardHTML(){
 /* ===================== events ===================== */
 function tab(name){
   CUR=name;
-  ['today','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
+  if(name==='glow'&&E('glowFrame')&&!E('glowFrame').getAttribute('src')){trackerBridge();E('glowFrame').setAttribute('src','glow.html');}
+  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){

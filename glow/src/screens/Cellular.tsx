@@ -1,0 +1,248 @@
+import { useMemo, useState } from 'react';
+import { FOODS, type Food } from '@/data/foods';
+import { SEASON_GUIDE, VITD_NO_SUPPLEMENT } from '@/data/seasons';
+import { seasonOf } from '@/data/films';
+import { BLOATING_GUIDE, STRAIGHT_FACTS, STRESS_TOPICS, SWEETENER_VERDICT, ABSORPTION_BLOCKERS, ABSORPTION_BOOSTERS, BOOSTERS, COELIAC_AVOID, COELIAC_NUTRITION, COELIAC_SAFE, CUT_OUT, EVIDENCE_LABEL, GLOSSARY, PILLARS, SOURCES, type Pillar } from '@/data/science';
+import { NUTRIENTS } from '@/data/nutrients';
+import { dayResult } from '@/engine/game';
+import { addDays } from '@/engine/body';
+import { DEFAULT_PROFILE, scaleNutrients, targetsFor } from '@/engine/score';
+import { useStore } from '@/store';
+import { Bar, Card, EvidencePill, Pill, Segmented, scoreColour } from '@/components/ui';
+
+type Tab = 'pillars' | 'seasons' | 'stress' | 'cut' | 'coeliac' | 'absorb' | 'boost' | 'words' | 'sources';
+
+/** The foods that move a pillar most per normal portion, ignoring anything it penalises. */
+export function bestFoodsFor(p: Pillar, n = 6): Food[] {
+  const t = targetsFor(DEFAULT_PROFILE, 57);
+  const bad = new Set(p.penalties.map((x) => x.tag));
+  return FOODS.filter((f) => !f.tags.some((tg) => bad.has(tg)) && f.n.kcal > 5 && !f.tags.includes('iodHigh'))
+    .map((f) => {
+      const portion = scaleNutrients(f.n, f.portion.g);
+      let sum = 0;
+      let w = 0;
+      for (const c of p.components) {
+        if (c.kind === 'nutrient') sum += c.w * Math.min(1, portion[c.key] / t[c.key]);
+        else if (c.kind === 'tag') sum += c.w * (f.tags.includes(c.tag) || (c.tag === 'poly' && f.tags.includes('poly2')) ? Math.min(1, 1 / c.servings) * (f.tags.includes('poly2') ? 2 : 1) : 0);
+        else if (c.key === 'protein') sum += c.w * Math.min(1, portion.protein / t.protein);
+        w += c.w;
+      }
+      return { f, v: sum / w / Math.max(0.6, Math.sqrt(portion.kcal / 150)) };
+    })
+    .sort((a, b) => b.v - a.v)
+    .slice(0, n)
+    .map((x) => x.f);
+}
+
+export function Cellular({ date }: { date: string }) {
+  const s = useStore((x) => x);
+  const r = useMemo(() => dayResult(s, date), [s, date]);
+  const [tab, setTab] = useState<Tab>('pillars');
+  const best = useMemo(() => new Map(PILLARS.map((p) => [p.id, bestFoodsFor(p)])), []);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h1 className="font-serif text-2xl">Cellular</h1>
+        <p className="text-sm text-ink-2">The science of ageing slowly, in plain words.</p>
+      </div>
+      <div className="-mx-1 overflow-x-auto px-1">
+        <Segmented value={tab} onChange={setTab} options={[
+          { value: 'pillars', label: '8 pillars' },
+          { value: 'seasons', label: 'Seasons' },
+          { value: 'stress', label: 'Stress & AGEs' },
+          { value: 'cut', label: 'Cut out' },
+          { value: 'coeliac', label: 'Coeliac' },
+          { value: 'absorb', label: 'Absorption' },
+          { value: 'boost', label: 'Boosters' },
+          { value: 'words', label: 'Glossary' },
+          { value: 'sources', label: 'Sources' },
+        ]} />
+      </div>
+
+      {tab === 'pillars' && (
+        <>
+          <Card>
+            <p className="text-sm leading-relaxed text-ink-2">Scientists list <b>twelve hallmarks of ageing</b> (López-Otín et al., 2023): the cellular processes that go wrong as we age. You asked about eight, and that’s close: food can meaningfully push on about eight of them, so the app groups them into eight pillars. The eighth, skin, isn’t a hallmark at all. It’s where all the others show on your face.</p>
+            <p className="mt-2 text-xs text-muted">Honest caveat: no food has been shown to reverse a hallmark in humans. Pillar scores tell you whether you’re supplying what each process needs, which is the controllable part.</p>
+          </Card>
+          {PILLARS.map((p) => {
+            const score = r.analysis.pillars.find((x) => x.pillar.id === p.id)?.score ?? 0;
+            return (
+              <Card key={p.id} eyebrow={p.hallmarks.join(' · ')} title={<span>{p.emoji} {p.name}</span>} action={<span className="num font-serif text-2xl" style={{ color: scoreColour(score) }}>{score}</span>}>
+                <Bar value={score} />
+                <p className="mt-3 text-sm leading-relaxed">{p.what}</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-2">{p.why}</p>
+                <div className="mt-3 rounded-xl bg-gold-soft p-3 text-sm"><b>Do this:</b> {p.topTip}</div>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs text-muted">Best foods per portion:</span>
+                  {best.get(p.id)!.map((f) => <Pill key={f.id} tone="sea">{f.name.split(/[(,]/)[0].trim()}</Pill>)}
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <EvidencePill e={p.evidence} />
+                  {p.components.filter((c) => c.kind === 'nutrient').map((c) => c.kind === 'nutrient' && <Pill key={c.key}>{NUTRIENTS[c.key].label}</Pill>)}
+                </div>
+              </Card>
+            );
+          })}
+        </>
+      )}
+
+      {tab === 'seasons' && (() => {
+        const now = seasonOf(date);
+        const order = ['winter', 'spring', 'summer', 'autumn'] as const;
+        const week = Array.from({ length: 7 }, (_, i) => dayResult(s, addDays(date, -i))).filter((d) => d.analysis.totals.kcal > 0);
+        const vitD = week.length ? week.reduce((a, d) => a + d.analysis.totals.vitD, 0) / week.length : undefined;
+        return (
+          <>
+            <Card eyebrow="Your vitamin D" title={VITD_NO_SUPPLEMENT.title} action={vitD !== undefined ? <span className="num font-serif text-2xl" style={{ color: vitD >= 10 ? 'var(--good)' : 'var(--warn)' }}>{vitD.toFixed(1)} µg</span> : undefined}>
+              <p className="text-sm leading-relaxed text-ink-2">{VITD_NO_SUPPLEMENT.intro}</p>
+              {vitD !== undefined && <p className="mt-2 text-sm">Your 7-day average from food: <b className="num">{vitD.toFixed(1)} µg/day</b> {vitD >= 10 ? '✓ on target.' : '(target 10). Add oily fish.'}</p>}
+              <ul className="mt-3 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">{VITD_NO_SUPPLEMENT.foods.map(([f, v]) => <li key={f} className="flex justify-between rounded-lg bg-surface-2 px-2.5 py-1.5"><span>{f}</span><b className="num">{v}</b></li>)}</ul>
+              <p className="mt-3 rounded-xl bg-gold-soft p-3 text-sm"><b>Your plan:</b> {VITD_NO_SUPPLEMENT.plan}</p>
+              <p className="mt-2 text-xs leading-relaxed text-ink-2">{VITD_NO_SUPPLEMENT.sideEffects}</p>
+            </Card>
+            {[now, ...order.filter((x) => x !== now)].map((k) => {
+              const g = SEASON_GUIDE[k];
+              return (
+                <Card key={k} eyebrow={k === now ? 'Right now' : 'Coming up'} title={g.title}>
+                  <p className="text-sm leading-relaxed"><b>In season:</b> {g.produce}</p>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                    <div><div className="text-xs font-semibold text-gold uppercase">Eat</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.eat.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                    <div><div className="text-xs font-semibold text-gold uppercase">Do</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.do.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                    <div><div className="text-xs font-semibold text-gold uppercase">Watch</div><ul className="mt-1 space-y-1 text-sm text-ink-2">{g.watch.map((x) => <li key={x}>• {x}</li>)}</ul></div>
+                  </div>
+                </Card>
+              );
+            })}
+          </>
+        );
+      })()}
+
+      {tab === 'stress' && (
+        <>
+          <Card><p className="text-sm leading-relaxed text-ink-2">Ageing at the cellular level is mostly a story of <b>damage versus repair</b>. Some stress makes you stronger; too much, or too little recovery, wears you down. These are the processes behind it, what they mean for you specifically, and what to do.</p></Card>
+          {STRESS_TOPICS.map((t) => (
+            <Card key={t.id} title={t.title} action={<EvidencePill e={t.evidence} />}>
+              <p className="text-sm leading-relaxed">{t.what}</p>
+              <p className="mt-2 rounded-xl bg-surface-2 p-3 text-sm leading-relaxed"><b>For you:</b> {t.you}</p>
+              <ul className="mt-2 space-y-1 text-sm text-ink-2">{t.do.map((d) => <li key={d}>• {d}</li>)}</ul>
+              <div className="mt-2 flex flex-wrap gap-2">{t.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}</div>
+            </Card>
+          ))}
+          <Card eyebrow="Your gut" title={BLOATING_GUIDE.title}>
+            <p className="text-sm leading-relaxed">{BLOATING_GUIDE.intro}</p>
+            <ul className="mt-2 space-y-1.5 text-sm text-ink-2">{BLOATING_GUIDE.points.map((p) => <li key={p}>• {p}</li>)}</ul>
+          </Card>
+          <Card eyebrow="Myth check" title="Your questions, answered">
+            {STRAIGHT_FACTS.map((x) => (
+              <details key={x.q} className="mb-2 rounded-xl bg-surface-2 p-3 text-sm" open>
+                <summary className="cursor-pointer font-medium">{x.q}</summary>
+                <p className="mt-2 leading-relaxed text-ink-2">{x.a}</p>
+              </details>
+            ))}
+          </Card>
+          <Card eyebrow="Your habits" title={SWEETENER_VERDICT.title}>
+            <p className="rounded-xl bg-gold-soft p-3 text-sm leading-relaxed">{SWEETENER_VERDICT.summary}</p>
+            <div className="mt-3 space-y-3">
+              {SWEETENER_VERDICT.points.map((p) => <div key={p.h}><div className="text-sm font-medium">{p.h}</div><p className="text-sm leading-relaxed text-ink-2">{p.t}</p></div>)}
+            </div>
+            <div className="mt-4 text-sm font-medium">A 2-week plan that doesn’t feel like a sacrifice</div>
+            <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-ink-2">{SWEETENER_VERDICT.plan.map((p) => <li key={p}>{p}</li>)}</ol>
+            <div className="mt-2 flex flex-wrap gap-2">{SWEETENER_VERDICT.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}</div>
+          </Card>
+        </>
+      )}
+
+      {tab === 'cut' && (
+        <>
+          <Card><p className="text-sm text-ink-2">Ranked by how much each one matters <b>for you</b>, with the reason and the swap. “Cut” means it reliably works against your goals; “limit” means the dose is what matters.</p></Card>
+          {CUT_OUT.map((c) => (
+            <Card key={c.title} title={c.title} action={<Pill tone={c.verdict === 'cut' ? 'bad' : c.verdict === 'limit' ? 'warn' : 'sea'}>{c.verdict}</Pill>}>
+              <p className="text-sm leading-relaxed">{c.why}</p>
+              <p className="mt-2 rounded-xl bg-good-soft p-3 text-sm text-ink"><b>Instead:</b> {c.instead}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <EvidencePill e={c.evidence} />
+                {c.pillars.map((id) => { const p = PILLARS.find((x) => x.id === id)!; return <Pill key={id}>{p.emoji} {p.name}</Pill>; })}
+                {c.sources.map((id) => { const src = SOURCES.find((x) => x.id === id); return src && <a key={id} href={src.url} target="_blank" rel="noreferrer" className="text-[11px] text-sea underline">source</a>; })}
+              </div>
+            </Card>
+          ))}
+        </>
+      )}
+
+      {tab === 'coeliac' && (
+        <>
+          <Card eyebrow="Coeliac disease" title="Foods to stay away from">
+            <p className="text-sm leading-relaxed text-ink-2">Coeliac disease isn’t an intolerance. Gluten (a protein in wheat, barley and rye) triggers your immune system to damage your small intestine. The only treatment is strict, lifelong gluten avoidance, and “a little” still counts. Gluten-free mode is {s.profile.glutenFree ? 'on' : <b className="text-bad">off: turn it on in Me</b>}, so any food containing gluten shows in red on Today.</p>
+          </Card>
+          {COELIAC_AVOID.map((g) => (
+            <Card key={g.group} title={g.group} action={<Pill tone={g.level === 'never' ? 'bad' : g.level === 'check' ? 'warn' : 'gold'}>{g.level === 'never' ? 'never' : g.level === 'check' ? 'check label' : 'watch out'}</Pill>}>
+              <p className="text-sm leading-relaxed">{g.items}</p>
+              {g.note && <p className="mt-2 text-xs leading-relaxed text-ink-2">{g.note}</p>}
+            </Card>
+          ))}
+          <Card title="Safe to eat freely" eyebrow="Naturally gluten-free"><p className="rounded-xl bg-good-soft p-3 text-sm leading-relaxed">{COELIAC_SAFE}</p></Card>
+          {COELIAC_NUTRITION.map((n) => (
+            <Card key={n.title} title={n.title}><p className="text-sm leading-relaxed text-ink-2">{n.text}</p></Card>
+          ))}
+          <p className="px-1 text-xs text-muted">Sources: NICE NG20; Coeliac UK. See the Sources tab.</p>
+        </>
+      )}
+
+      {tab === 'absorb' && (
+        <>
+          <Card eyebrow="Bioavailability" title="What blocks absorption">
+            <p className="text-sm leading-relaxed text-ink-2">How much of a nutrient you absorb depends on what you eat it with. Glow checks each meal you log and flags these combinations on Today.</p>
+          </Card>
+          {ABSORPTION_BLOCKERS.map((b) => (
+            <Card key={b.blocker} title={b.blocker} action={<EvidencePill e={b.evidence} />}>
+              <div className="mb-2 flex flex-wrap gap-1.5"><Pill tone="bad">blocks: {b.blocks}</Pill></div>
+              <p className="text-xs text-muted">Found in: {b.where}</p>
+              <p className="mt-2 text-sm leading-relaxed">{b.size}</p>
+              <p className="mt-2 rounded-xl bg-good-soft p-3 text-sm"><b>Fix:</b> {b.fix}</p>
+            </Card>
+          ))}
+          <Card title="What boosts absorption" eyebrow="Pair these">
+            <ul className="space-y-3">
+              {ABSORPTION_BOOSTERS.map((b) => <li key={b.title}><div className="font-medium">{b.title}</div><div className="text-sm leading-relaxed text-ink-2">{b.text}</div></li>)}
+            </ul>
+          </Card>
+        </>
+      )}
+
+      {tab === 'boost' && (
+        <>
+          <Card><p className="text-sm text-ink-2">Beyond food and training, these are the extras worth knowing about, ranked honestly. The daily habits live in <b>Rituals</b>.</p></Card>
+          {BOOSTERS.map((b) => (
+            <Card key={b.title} title={b.title} action={<EvidencePill e={b.evidence} />}>
+              <p className="text-sm leading-relaxed text-ink-2">{b.text}</p>
+            </Card>
+          ))}
+          <Card title="What the evidence grades mean">
+            <ul className="space-y-1 text-sm text-ink-2">{Object.entries(EVIDENCE_LABEL).map(([k, v]) => <li key={k}>{v}</li>)}</ul>
+          </Card>
+        </>
+      )}
+
+      {tab === 'words' && (
+        <Card title="Glossary" eyebrow="The jargon, translated">
+          <dl className="space-y-3">
+            {GLOSSARY.map(([term, def]) => (
+              <div key={term}><dt className="font-medium">{term}</dt><dd className="text-sm leading-relaxed text-ink-2">{def}</dd></div>
+            ))}
+          </dl>
+        </Card>
+      )}
+
+      {tab === 'sources' && (
+        <Card title="Sources">
+          <ul className="space-y-2 text-sm">
+            {SOURCES.map((src) => <li key={src.id}><a href={src.url} target="_blank" rel="noreferrer" className="text-sea underline-offset-2 hover:underline">{src.cite}</a></li>)}
+          </ul>
+          <p className="mt-3 text-xs text-muted">Food values are typical figures from USDA FoodData Central and UK composition tables, ±10–20%. Targets use the higher of UK and EFSA reference intakes; upper limits are EFSA tolerable upper intake levels.</p>
+        </Card>
+      )}
+    </div>
+  );
+}
