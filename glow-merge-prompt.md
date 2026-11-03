@@ -12,6 +12,29 @@ Glow's latest code is on branch claude/nutrition-cellular-antiaging-hp6hno, fold
 
 From now on, the glow/ folder on your branch is the only copy of Glow. Make all Glow changes there.
 
+## 0b. Import Dan's existing Glow data (logged 1–2 Nov in the standalone Glow app)
+His data from the standalone Glow artifact (https://claude.ai/artifact/J2gzks9CsGGkcmjCCyBh4R) is exported in Glow's backup format at glow-data/glow-backup-2026-11-03.json on branch claude/nutrition-cellular-antiaging-hp6hno (`git show origin/claude/nutrition-cellular-antiaging-hp6hno:glow-data/glow-backup-2026-11-03.json`). Merge it into the tracker's store. Never overwrite anything the tracker already has:
+
+- **2 Nov food diary:** 21 items. Glow computes it as 1,776 kcal, 156 g protein, 145 g carbs, 58 g fat (nutrition score 61, Glow score 74). It includes:
+  - Clarence eggs, unhomogenised semi milk, 4 Kallo lentil cakes
+  - Fage 0/2/5, raw local honey 2 × 18 g, grapes
+  - wild hake, tomato, venison, potato, dark chocolate 85%
+  - three USDA foods (usda-11298, usda-01289, usda-09054)
+- **Custom food:** his "Potatoes, white, flesh and skin, raw (my pack)" (custom-usda-11354), also a favourite.
+- **2 Nov rituals:** daylight, spf, nocaff, floss, hydrate, nature, joy, nosip.
+- **2 Nov daily ideas done:** winter-stew, film-night.
+- **Feelings:** 2 Nov bloated; 1 Nov bored-eating, hungry, lazy, cravings, stressed.
+- **1 Nov refeed:** refeed = true. The tracker's postRefeed must treat the 2 Nov weigh-in as noise.
+- **Data the tracker owns:** 2 Nov weight 58.786 kg (129.6 lb), sleep (bed 22:37, wake 08:36, quality 3), RHR 49, steps 15,200, outdoors 100 min, study 3.75 h of which deep 3.75 h.
+  - Only fill these in if the tracker has nothing for 2 Nov.
+  - If the tracker has a different value, keep the tracker's and list the differences for Dan.
+- **Strava training history** (Sep–Nov) is already in the tracker via its own sync. Don't import it again.
+- **Profile:**
+  - Keep: bloatProne true, dailySpf true, races (5k 17:17, mile 4:57, 10k 36:55).
+  - Don't import Glow's season plan or kcalTarget 1799. The tracker's plan rules.
+
+Before merging, show Dan the 2 Nov day as Glow will display it inside the tracker, and confirm the totals match the figures above.
+
 ## 1. One store, nothing typed twice
 The tracker's state (S, doc state/main) is the source of truth. Inside the tracker, Glow must read these from the tracker and must not show its own input boxes for them:
 
@@ -103,5 +126,6 @@ Don't keep a second standalone review.
 - Commit with the session's attribution lines, no model identifiers, and push to claude/training-recovery-nutrition-system-stt0sj. No PR.
 - Then tell Dan, in plain words:
   - what moved where
+  - that his 1–2 Nov Glow data came across
   - what he now logs only once
   - which Glow advice changed because of his rules

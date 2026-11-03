@@ -1,0 +1,598 @@
+{
+ "bp": [],
+ "breathMinutes": {},
+ "customFoods": [
+  {
+   "alias": " Potatoes, white, flesh and skin, raw my pack",
+   "category": "grains",
+   "id": "custom-usda-11354",
+   "limitedData": false,
+   "n": {
+    "b12": 0,
+    "b2": 0.034,
+    "calcium": 9,
+    "carbs": 13.3,
+    "choline": 11,
+    "copper": 0.116,
+    "fat": 0.1,
+    "fibre": 2.4,
+    "folate": 18,
+    "iodine": 0,
+    "iron": 0.52,
+    "kcal": 77,
+    "magnesium": 21,
+    "omega3": 0,
+    "potassium": 407,
+    "protein": 1.7,
+    "satFat": 0,
+    "selenium": 0.3,
+    "sodium": 16,
+    "sugar": 1.2,
+    "vitA": 0,
+    "vitC": 9.1,
+    "vitD": 0,
+    "vitE": 0.01,
+    "vitK": 1.6,
+    "zinc": 0.29
+   },
+   "name": "Potatoes, white, flesh and skin, raw (my pack)",
+   "note": "Values set from your own pack label.",
+   "nova": 1,
+   "portion": {
+    "g": 75,
+    "label": "75 g"
+   },
+   "source": "custom",
+   "tags": [],
+   "unknown": [
+    "omega3",
+    "iodine"
+   ]
+  }
+ ],
+ "days": {
+  "2026-11-01": {
+   "feelings": [
+    "bored-eating",
+    "hungry",
+    "lazy",
+    "cravings",
+    "stressed"
+   ],
+   "items": [],
+   "refeed": true,
+   "rituals": []
+  },
+  "2026-11-02": {
+   "extras": [
+    "winter-stew",
+    "film-night"
+   ],
+   "feelings": [
+    "bloated"
+   ],
+   "items": [
+    {
+     "foodId": "uk-clarence-eggs",
+     "grams": 200,
+     "meal": "breakfast",
+     "uid": "u8347s0x"
+    },
+    {
+     "foodId": "uk-milk-unhomog-semi",
+     "grams": 60,
+     "meal": "breakfast",
+     "uid": "ocq2a28f"
+    },
+    {
+     "foodId": "uk-kallo-lentil",
+     "grams": 21,
+     "meal": "breakfast",
+     "qty": {
+      "count": 4,
+      "label": "lentil cake",
+      "plural": "lentil cakes"
+     },
+     "uid": "yui3pzvg"
+    },
+    {
+     "foodId": "uk-fage-5",
+     "grams": 120,
+     "meal": "lunch",
+     "uid": "22plwiyv"
+    },
+    {
+     "foodId": "uk-fage-2",
+     "grams": 90,
+     "meal": "lunch",
+     "uid": "ycm110tk"
+    },
+    {
+     "foodId": "uk-raw-honey",
+     "grams": 18,
+     "meal": "lunch",
+     "uid": "dqmneccr"
+    },
+    {
+     "foodId": "grapes",
+     "grams": 70,
+     "meal": "lunch",
+     "uid": "qpnsqsmp"
+    },
+    {
+     "foodId": "uk-milk-unhomog-semi",
+     "grams": 120,
+     "meal": "lunch",
+     "uid": "gul4q5wh"
+    },
+    {
+     "foodId": "uk-hake",
+     "grams": 125,
+     "meal": "lunch",
+     "uid": "i5v43td6"
+    },
+    {
+     "foodId": "tomato",
+     "grams": 80,
+     "meal": "lunch",
+     "qty": {
+      "count": 1,
+      "label": "tomato",
+      "plural": "tomatoes"
+     },
+     "uid": "ifgh4gtx"
+    },
+    {
+     "foodId": "venison",
+     "grams": 180,
+     "meal": "snacks",
+     "uid": "pi6xk87l"
+    },
+    {
+     "foodId": "potato",
+     "grams": 100,
+     "meal": "snacks",
+     "uid": "9sj0s15s"
+    },
+    {
+     "foodId": "usda-11298",
+     "grams": 100,
+     "meal": "snacks",
+     "uid": "ete42xmo"
+    },
+    {
+     "foodId": "uk-fage-5",
+     "grams": 80,
+     "meal": "dinner",
+     "uid": "49rk46k8"
+    },
+    {
+     "foodId": "uk-fage-0",
+     "grams": 140,
+     "meal": "dinner",
+     "uid": "c7kwguyf"
+    },
+    {
+     "foodId": "usda-01289",
+     "grams": 80,
+     "meal": "dinner",
+     "uid": "6d4gqgkh"
+    },
+    {
+     "foodId": "dark-choc-85",
+     "grams": 25,
+     "meal": "dinner",
+     "uid": "8q5uj9zg"
+    },
+    {
+     "foodId": "uk-raw-honey",
+     "grams": 18,
+     "meal": "dinner",
+     "uid": "8c9evzmk"
+    },
+    {
+     "foodId": "uk-milk-unhomog-semi",
+     "grams": 120,
+     "meal": "dinner",
+     "uid": "efx6y71r"
+    },
+    {
+     "foodId": "grapes",
+     "grams": 70,
+     "meal": "dinner",
+     "uid": "yug8qvur"
+    },
+    {
+     "foodId": "usda-09054",
+     "grams": 110,
+     "meal": "dinner",
+     "uid": "pl3wimap"
+    }
+   ],
+   "rituals": [
+    "daylight",
+    "spf",
+    "nocaff",
+    "floss",
+    "hydrate",
+    "nature",
+    "joy",
+    "nosip"
+   ]
+  }
+ },
+ "favourites": [
+  "custom-usda-11354"
+ ],
+ "films": {
+  "seen": [],
+  "watchlist": []
+ },
+ "labs": [],
+ "profile": {
+  "bloatProne": true,
+  "bodyFatPct": 10,
+  "dailySpf": true,
+  "dob": "2000-11-28",
+  "exerciseKcal": 650,
+  "glutenFree": true,
+  "heightCm": 172.7,
+  "kcalTarget": 1799,
+  "name": "Dan",
+  "proteinPerKg": 2,
+  "races": {
+   "k10": "36:55",
+   "k5": "17:17",
+   "mile": "4:57"
+  },
+  "season": [
+   {
+    "end": "2026-12-02",
+    "id": "cut1",
+    "kind": "cut",
+    "name": "Cut to France",
+    "ratePct": -0.5,
+    "start": "2026-11-02"
+   },
+   {
+    "end": "2026-12-05",
+    "id": "france",
+    "kind": "travel",
+    "name": "France",
+    "ratePct": 0,
+    "start": "2026-12-03"
+   },
+   {
+    "end": "2026-12-24",
+    "id": "cut2",
+    "kind": "cut",
+    "name": "Christmas finish",
+    "ratePct": -0.5,
+    "start": "2026-12-06"
+   },
+   {
+    "end": "2027-03-31",
+    "id": "maintain",
+    "kind": "maintain",
+    "name": "Recover & rebuild",
+    "ratePct": 0,
+    "start": "2026-12-25"
+   }
+  ],
+  "unit": "lb"
+ },
+ "sleeps": [
+  {
+   "bed": "22:37",
+   "date": "2026-11-02",
+   "quality": 3,
+   "wake": "08:36"
+  }
+ ],
+ "stravaSyncedAt": "2026-11-01T18:12:54.106Z",
+ "training": {
+  "2026-09-20": [
+   {
+    "id": "strava-20252271851",
+    "intensity": "hard",
+    "kcal": 214,
+    "kind": "run",
+    "km": 3.01,
+    "minutes": 11,
+    "name": "3km all out",
+    "source": "strava"
+   }
+  ],
+  "2026-09-21": [
+   {
+    "id": "strava-20265892788",
+    "intensity": "easy",
+    "kind": "run",
+    "km": 5.01,
+    "minutes": 25,
+    "name": "Easy run",
+    "source": "strava"
+   }
+  ],
+  "2026-09-23": [
+   {
+    "id": "strava-20293709645",
+    "intensity": "hard",
+    "kind": "run",
+    "km": 1.01,
+    "minutes": 3,
+    "name": "2x200 m half uphill hill 3 x 200 m flat sprints",
+    "source": "strava"
+   }
+  ],
+  "2026-09-27": [
+   {
+    "id": "strava-20348235674",
+    "intensity": "easy",
+    "kind": "run",
+    "km": 8.04,
+    "minutes": 41,
+    "name": "Easy run. Legs too sore from legs to do 800m",
+    "source": "strava"
+   }
+  ],
+  "2026-09-28": [
+   {
+    "id": "strava-20363030973",
+    "intensity": "easy",
+    "kind": "run",
+    "km": 8.28,
+    "minutes": 39,
+    "name": "Easy run 5 mile plus",
+    "source": "strava"
+   }
+  ],
+  "2026-09-30": [
+   {
+    "id": "strava-20390733595",
+    "intensity": "hard",
+    "kind": "run",
+    "km": 3.01,
+    "minutes": 10,
+    "name": "3x 1km hard in deficit",
+    "source": "strava"
+   }
+  ],
+  "2026-10-01": [
+   {
+    "id": "strava-20408434125",
+    "intensity": "easy",
+    "kcal": 356,
+    "kind": "run",
+    "km": 5.01,
+    "minutes": 24,
+    "name": "Easy recovery run",
+    "source": "strava"
+   }
+  ],
+  "2026-10-04": [
+   {
+    "id": "strava-20443801537",
+    "intensity": "hard",
+    "kcal": 86,
+    "kind": "run",
+    "km": 1.21,
+    "minutes": 3,
+    "name": "4 x 300 m sprints best time was 44 seconds",
+    "source": "strava"
+   }
+  ],
+  "2026-10-05": [
+   {
+    "id": "strava-20459412489",
+    "intensity": "easy",
+    "kcal": 356,
+    "kind": "run",
+    "km": 5,
+    "minutes": 24,
+    "name": "Easy run 5 km",
+    "source": "strava"
+   }
+  ],
+  "2026-10-08": [
+   {
+    "id": "strava-20504166306",
+    "intensity": "hard",
+    "kcal": 173,
+    "kind": "run",
+    "km": 2.41,
+    "minutes": 8,
+    "name": "3 x 800 m hard on low carbs",
+    "source": "strava"
+   }
+  ],
+  "2026-10-09": [
+   {
+    "id": "strava-20513833382",
+    "intensity": "easy",
+    "kcal": 571,
+    "kind": "run",
+    "km": 8.01,
+    "minutes": 45,
+    "name": "Very easy run",
+    "source": "strava"
+   }
+  ],
+  "2026-10-11": [
+   {
+    "id": "strava-20543127357",
+    "intensity": "moderate",
+    "kcal": 356,
+    "kind": "run",
+    "km": 5,
+    "minutes": 25,
+    "name": "East 5 km run with : strides",
+    "source": "strava"
+   }
+  ],
+  "2026-10-12": [
+   {
+    "id": "strava-20553498050",
+    "intensity": "hard",
+    "kcal": 88,
+    "kind": "run",
+    "km": 1.24,
+    "minutes": 3,
+    "name": "6 x 200 m sprints first day of camp",
+    "source": "strava"
+   }
+  ],
+  "2026-10-13": [
+   {
+    "id": "strava-20566065604",
+    "intensity": "hard",
+    "kcal": 573,
+    "kind": "run",
+    "km": 8.04,
+    "minutes": 41,
+    "name": "5 mile run",
+    "source": "strava"
+   }
+  ],
+  "2026-10-15": [
+   {
+    "id": "strava-20597803188",
+    "intensity": "easy",
+    "kcal": 571,
+    "kind": "run",
+    "km": 8.01,
+    "minutes": 43,
+    "name": "Easy run",
+    "source": "strava"
+   }
+  ],
+  "2026-10-16": [
+   {
+    "id": "strava-20607215330",
+    "intensity": "hard",
+    "kcal": 285,
+    "kind": "run",
+    "km": 4.01,
+    "minutes": 13,
+    "name": "4 x 1km hard",
+    "source": "strava"
+   }
+  ],
+  "2026-10-19": [
+   {
+    "id": "strava-20648408645",
+    "intensity": "hard",
+    "kcal": 501,
+    "kind": "run",
+    "km": 7.01,
+    "minutes": 27,
+    "name": "Fun fun week 2 camp 6 km followed by 8x strides",
+    "source": "strava"
+   }
+  ],
+  "2026-10-21": [
+   {
+    "id": "strava-20674666936",
+    "intensity": "hard",
+    "kcal": 144,
+    "kind": "run",
+    "km": 2.02,
+    "minutes": 6,
+    "name": "5 x400 m last one slowest by far",
+    "source": "strava"
+   }
+  ],
+  "2026-10-23": [
+   {
+    "id": "strava-20701236338",
+    "intensity": "hard",
+    "kcal": 72,
+    "kind": "run",
+    "km": 1.01,
+    "minutes": 3,
+    "name": "1km timed trial all out 2nd week of camp",
+    "source": "strava"
+   }
+  ],
+  "2026-10-25": [
+   {
+    "id": "strava-20725416528",
+    "intensity": "easy",
+    "kcal": 228,
+    "kind": "run",
+    "km": 3.22,
+    "minutes": 11,
+    "name": "8 x 400 m sub threshold with jog inbetween",
+    "source": "strava"
+   }
+  ],
+  "2026-10-26": [
+   {
+    "id": "strava-20738438498",
+    "intensity": "easy",
+    "kcal": 573,
+    "kind": "run",
+    "km": 8.04,
+    "minutes": 41,
+    "name": "Easy 5 mile run",
+    "source": "strava"
+   }
+  ],
+  "2026-10-28": [
+   {
+    "id": "strava-20766950587",
+    "intensity": "hard",
+    "kcal": 342,
+    "kind": "run",
+    "km": 4.8,
+    "minutes": 17,
+    "name": "800m x 6 subthreshold",
+    "source": "strava"
+   }
+  ],
+  "2026-10-30": [
+   {
+    "id": "strava-20789621123",
+    "intensity": "hard",
+    "kcal": 29,
+    "kind": "run",
+    "km": 0.41,
+    "minutes": 1,
+    "name": "Timed trial 400 m.",
+    "source": "strava"
+   }
+  ],
+  "2026-11-02": [
+   {
+    "id": "m-mvznh5xl",
+    "intensity": "hard",
+    "kind": "lift",
+    "minutes": 60,
+    "name": "Legs",
+    "sets": {
+     "calves": 4,
+     "glutes": 7,
+     "hamstrings": 8,
+     "quads": 9
+    },
+    "source": "manual"
+   }
+  ]
+ },
+ "version": 1,
+ "vitals": {
+  "2026-11-02": {
+   "deepHours": 3.75,
+   "outdoorMin": 100,
+   "rhr": 49,
+   "steps": 15200,
+   "studyHours": 3.75
+  }
+ },
+ "weights": [
+  {
+   "date": "2026-11-02",
+   "kg": 58.78564106285891
+  }
+ ]
+}
