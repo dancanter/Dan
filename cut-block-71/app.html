@@ -4290,7 +4290,7 @@ function coachModel(){
   }
   /* strain: each thing that is costing him, with why */
   var strain=[],pts=0;
-  var add=function(p,txt){pts+=p;strain.push(txt);};
+  var strainP=[];var add=function(p,txt){pts+=p;strain.push(txt);strainP.push(p);};
   if(R.state==='high')add(2,'resting HR is well up on your baseline');else if(R.state==='up')add(1,'resting HR is creeping up');
   if(slAvg!==null&&slAvg<6.5)add(2,'sleep is averaging '+f1(slAvg)+' h');else if(slAvg!==null&&slAvg<7)add(1,'sleep is averaging '+f1(slAvg)+' h');
   if(moodAvg!==null&&moodAvg<=2.5)add(1,'your mood has been low');
@@ -4367,7 +4367,7 @@ function coachModel(){
   if(bw>=1&&bw<=2)sug.unshift('<b>Build mode: crank up the weights.</b> Same sets as the cut, heavier — add a rep or 2.5 kg to every main lift this week.');
   else if(bw>=3&&bw<=4)sug.unshift('<b>Build mode: add leg sets.</b> Upper body is already at build volume; legs go up about 2 hard sets now, and keep the weights climbing.');
   else if(bw===5)sug.unshift('<b>Build mode: full growth range</b> from this week — the Training tab has the sets for each muscle.');
-  return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
+  return {rest:rest,refeed:refeed,good:good.slice(0,6),sug:sug.slice(0,3),pts:pts,strain:strain,strainP:strainP,o:o,sinceEasy:sinceEasy,lastOff:o.lastOff};
 }
 function feedbackHTML(){
   var t=today();if(t<CFG.cutStart)return '<div class="p"><h2>Feedback</h2><p class="note">Starts when the cut does.</p></div>';
@@ -9702,13 +9702,43 @@ function dayStress(d){var r=S.days[d]||{},p=0,why=[];
   if(typeof r.deep==='number'&&r.deep>4){p+=0.5;why.push('long study day');}
   var logged=['sleep','rhr','runs','gym','journal','mood','steps'].some(function(k){return k in r;});
   return {p:p,why:why,logged:logged};}
+
+/* Dan, 3 Nov: "give me a figure rather than Building, say what that amount of stress
+   can do, and show it goes down with a rest day or whatever." 0–100 from his own logs:
+   the slow signs from the last one to two weeks (coachModel: 10 points each) plus
+   the last three days' load (dayStress: 5 points each). Each part names what takes
+   it away and roughly how many points. Not a medical measure. */
+var STRESS_FIX=[[/easy one/,'an easy week (one controlled hard run, a third fewer sets)'],[/resting HR/,'a rest day and an early night'],[/sleep/,'two nights of 8.5 h+ in bed'],
+  [/mood/,'time outside and with people, a film night'],[/9 or 10/,'keeping the next sessions at 7–8 out of 10'],[/faster than the safe band/,'eating to the plan (a refeed if the app offers one)'],
+  [/deep study/,'a lighter study day'],[/hurt/,'resting that area, easy movement only'],[/day off/,'a full day off'],[/big steps/,'a normal-steps day'],
+  [/energy/,'sleep and carbs around training'],[/sick/,'rest until you are clear'],[/binge/,'more carbs on training days'],[/quads and hamstrings|legs/,'legs kept to 8–12 sets a muscle'],
+  [/km this week/,'holding the running volume steady'],[/Norwegian/,'Norwegian runs kept inside their pace range']];
+function stressScore(){
+  var t=today(),C=null;try{C=coachModel();}catch(e){}
+  var parts=[];if(C)C.strain.forEach(function(x,i){var p=(C.strainP[i]||1)*10,f=STRESS_FIX.filter(function(z){return z[0].test(x);})[0];parts.push({txt:x,pts:p,fix:f?f[1]:'time'});});
+  var recent=[0,1,2].map(function(i){var d=addD(t,-i);return {d:d,v:dayStress(d)};}),rp=0,rw=[];
+  recent.forEach(function(x){rp+=x.v.p*5;x.v.why.forEach(function(w){if(rw.indexOf(w)<0)rw.push(w);});});
+  if(rp>0)parts.push({txt:'the last 3 days: '+rw.join(', '),pts:Math.round(rp),fix:'a rest day (takes most of this off) or a calm, easy day'});
+  var score=Math.min(100,Math.round(parts.reduce(function(a,b){return a+b.pts;},0)));
+  var band=score<25?['Low','good','Training and recovery are in step. This is the zone where you adapt: fitter, stronger, leaner.']:
+    (score<50?['Moderate','','Normal for hard training and fine for a week or two. If it stays here, sleep quality, mood and appetite control dip and muscle recovers more slowly.']:
+    (score<75?['High','w','Cortisol and morning heart rate run higher, muscle repair and fat loss slow, colds and binge urges get more likely. Easing off now pays back fast.']:
+    ['Very high','w','Close to overreaching: performance drops, illness risk rises, and a cut can start costing muscle. A few genuinely easy days matter more than anything else right now.']));
+  parts.sort(function(a,b){return b.pts-a.pts;});
+  return {score:score,band:band,parts:parts};}
+function stressDetailHTML(){var X=stressScore();
+  return '<div style="margin:2px 0 8px"><div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.8em;font-family:\'IBM Plex Mono\',monospace">'+X.score+'</b><span class="tiny dim">/ 100</span><b>'+X.band[0]+'</b></div>'+
+    '<div style="height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin:4px 0"><div style="height:100%;width:'+X.score+'%;background:'+(X.score>=50?'var(--warn)':'var(--good)')+'"></div></div>'+
+    '<p style="margin:4px 0">'+X.band[2]+'</p>'+
+    (X.parts.length?'<h3 style="margin:8px 0 2px">What is in it, and what brings it down</h3>'+X.parts.map(function(x){return '<div style="margin:4px 0"><span class="mono">+'+x.pts+'</span> '+esc(x.txt)+'<div class="tiny" style="margin-left:34px">↓ about −'+x.pts+' with '+esc(x.fix)+'</div></div>';}).join(''):'<p class="tiny">Nothing adding to it right now.</p>')+
+    '<p class="tiny dim" style="margin-top:4px">Built from your own logs (sleep, morning HR, mood, training, illness), not a medical measure. The slow signs count 10 each, the last three days 5 per point of load.</p></div>';}
 function stressTile(){
   var t=today(),days=[],i;for(i=13;i>=0;i--){var d=addD(t,-i);days.push([d,dayStress(d)]);}
   var td=days[days.length-1][1],CM=null;try{CM=coachModel();}catch(e){}
-  var lvl=CM?(CM.pts>=4?['High','w']:(CM.pts>=2?['Building','']:['Low','good'])):['—',''];
+  var SX=stressScore(),lvl=[SX.score+'<span class="tiny dim"> /100 · '+SX.band[0]+'</span>',SX.score>=50?'w':(SX.score<25?'good':'')];
   var bars=days.map(function(x){var v=x[1],h=v.logged?Math.max(8,Math.min(100,v.p*22)):4,c=v.p>=4?'var(--bad)':(v.p>=2?'var(--warn)':'var(--good)');
     return '<i title="'+fmtS(x[0])+': '+(v.why.join(', ')||'calm')+'" style="display:inline-block;width:6%;margin-right:1%;height:'+h+'%;background:'+(v.logged?c:'var(--rule)')+';border-radius:2px;vertical-align:bottom"></i>';}).join('');
-  var sub=(CM&&CM.strain.length?CM.strain[0]:(td.why.length?'today: '+td.why.join(', '):'nothing stacking up'));
+  var sub=SX.parts.length?'mostly: '+SX.parts[0].txt+' · ↓ '+SX.parts[0].fix:'nothing stacking up';
   return '<div class="hm-t'+(lvl[1]?' '+lvl[1]:'')+'"><div class="hm-h">🧘 Stress</div><b>'+lvl[0]+'</b><small>'+esc(sub)+'</small>'+
     '<div style="height:28px;line-height:0;margin-top:2px">'+bars+'</div><small style="margin:2px 0 0">last 14 days</small></div>';}
 
@@ -9933,8 +9963,7 @@ function calmHTML(){
   var SZ=SEASONS.filter(function(x){return x.k===seasonNow(t);})[0];
   var film=null,next='';try{film=filmNight(t)?filmPick():null;if(!film){for(var j=1;j<=7;j++){var nd=addD(t,j);if(filmNight(nd)){next=DOWS[dow(nd)];break;}}}}catch(e){}
   return '<div class="p"><h2>🌿 Calm, season &amp; tonight</h2>'+
-    '<p style="margin:2px 0"><b>'+lv[1]+' Stress load: '+lv[2]+'.</b> <span class="tiny">'+lv[3]+'</span></p>'+
-    (C&&C.strain.length?'<p class="tiny dim" style="margin:2px 0 6px">From: '+esc(C.strain.slice(0,2).join(' · '))+'</p>':'')+
+    '<h3 style="margin:4px 0 2px">🧘 Stress</h3>'+stressDetailHTML()+'<h3 style="margin:8px 0 2px">Calm things that fit today</h3>'+
     pick.map(function(x){return '<div style="margin:5px 0"><b>'+x[0]+' '+x[1]+'</b><div class="tiny" style="margin-left:22px">'+x[2]+'</div></div>';}).join('')+
     '<button type="button" class="btn sm" data-breathe="1" style="margin:6px 0">🌬️ Breathe now · your 8 pillars</button>'+
     (SZ?'<h3 style="margin:10px 0 2px">'+(SZ.e||'')+' This season</h3><p style="margin:2px 0">🍽️ '+esc(SZ.eat.slice(0,3).join(' · '))+'</p><p style="margin:2px 0">✨ '+esc(SZ.doo.slice(0,2).join(' · '))+'</p>'+
