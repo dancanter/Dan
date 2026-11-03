@@ -743,10 +743,10 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
-  <div id="paceCard"></div>
-  <div id="raceCard"></div>
-  <div id="decCard"></div>
-  <div id="campCard"></div>
+  <div id="runCoach"></div>
+  <details class="fold" id="runOpts"><summary><b>🏁 This week’s run options</b> <span class="tiny dim">every session, XP and quests</span></summary><div id="campCard"></div></details>
+  <details class="fold"><summary><b>🎯 Paces &amp; the road to your times</b></summary><div id="paceCard"></div></details>
+  <details class="fold"><summary><b>📈 Race readiness &amp; December</b></summary><div id="raceCard"></div><div id="decCard"></div></details>
 </section>
 
 <!-- ================= FEEDBACK ================= -->
@@ -9312,6 +9312,7 @@ function renderGoodLife(){
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
+  if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML();
   if(E('paceCard'))E('paceCard').innerHTML=paceGuideHTML(false);
   if(E('raceCard'))E('raceCard').innerHTML=raceCardHTML();
 }
@@ -9689,7 +9690,7 @@ function paceGuide(){
   var note=function(k,n){var f=fm[k];if(f===null)return 'No '+n+' in the last 4 weeks yet'+(strict&&k!=='N'?', so the cut allowance is on':'')+'.';
     var pc=Math.round((1-f)*1000)/10;return 'Your last '+Math.min(3,F[k].length)+': '+(Math.abs(pc)<1?'right on plan':(pc>0?pc+'% quicker than planned':(-pc)+'% slower than planned'))+
       (k==='N'&&f<0.94?'. That is too fast for a Norwegian run: hold it back so the hard runs stay hard.':(Math.abs(pc)<1?'.':(pc>0?', so the range has moved quicker.':', so the range has eased.')));};
-  return {wk:wk+1,strict:strict,form:fm,adj:{L:aL,S:aS,N:aN},rows:[
+  return {wk:wk+1,strict:strict,form:fm,adj:{L:aL,S:aS,N:aN},num:{L:[kmL,kmL*1.02],S:[k4,k4*1.03],S2:[k2,k2*1.03],N:[pN*1.09,pN*1.15],E:[p5*1.32,p5*1.5]},rows:[
     ['🔥','Hard: long reps','1 km, 800 m, 600 m',rep(kmL,1000)+'–'+rep(kmL*1.02,1000)+' per km rep · 800 m '+rep(kmL*0.98,800)+'–'+rep(kmL,800)+' · 600 m '+rep(kmL*0.97,600)+'–'+rep(kmL*0.99,600),'Walk or jog until your breathing settles. Even reps beat a fast first one. '+note('L','long reps')],
     ['⚡','Hard: speed','200–400 m',' 400 m '+rep(k4,400)+'–'+rep(k4*1.03,400)+' · 300 m '+rep(k4*0.98,300)+'–'+rep(k4*1.01,300)+' · 200 m '+rep(k2,200)+'–'+rep(k2*1.03,200),'Full recovery between: walk until you feel ready. Stop when the form goes. '+note('S','speed reps')],
     ['🌊','Norwegian sub-threshold','reps, 7 out of 10',kmPace(pN*1.09)+'–'+kmPace(pN*1.15)+' a km · 400 m '+rep(pN*1.09,400)+'–'+rep(pN*1.15,400)+' · 800 m '+rep(pN*1.09,800)+'–'+rep(pN*1.14,800),'Short easy jogs between. Finish feeling you could do two more. '+note('N','Norwegian runs')],
@@ -9772,6 +9773,51 @@ function monthReviewHTML(ym){
     '<h3 style="margin:10px 0 2px">Health &amp; mind</h3>'+line('🧬','Nutrition / Glow',o.nut.length?Math.round(av(o.nut))+' / '+Math.round(av(o.glow)):'—')+line('🌱','Plants a day',f(av(o.plants),function(v){return String(Math.round(v));}))+
       line('🌬️','Breathing & meditation',o.breath+' min')+line('📚','Study',f1(o.study)+' h')+line('😊','Mood / energy',o.mood.length?av(o.mood).toFixed(1)+' / '+(o.en.length?av(o.en).toFixed(1):'—'):'—')+line('😵','Binges · sick days',o.bin+' · '+o.ill)+
     '<h3 style="margin:10px 0 2px">Ideas for next month</h3><p class="tiny dim" style="margin:0 0 4px">Ordered by how much difference they would make.</p>'+focus.slice(0,4).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+'</div>';}
+
+/* ===================== the running coach (Dan, 3 Nov) =====================
+   "The running section is bombarded. I know the run options — just give feedback
+   and say what to do." One card: how the last run went against its pace range,
+   where the week stands, what to do next and at what pace, and one line on the
+   goals. The menus, paces and race detail sit in folds underneath. */
+function lastRunFeedback(){
+  var t=today(),PG=paceGuide(),N=PG.num;
+  for(var i=0;i<14;i++){var d=addD(t,-i),r=S.days[d]||{},rs=(r.runs||[]).filter(function(x){return !runMeta(x).empty;});if(!rs.length)continue;
+    var x=rs[rs.length-1],m=runMeta(x),pk=m.pace,y=S.days[addD(d,-1)]||{},legsY=y.gym&&(y.split==='legs'||((y.sets&&y.sets.Legs)||0)>=10);
+    var when=i===0?'Today':(i===1?'Yesterday':DOWS[dow(d)]+' '+fmtS(d)),band=null,kind='',dmx=m.laps?Math.max.apply(null,m.laps):m.dm;
+    if(x.tt){return {when:when,label:m.label,line:'Time trial: <b>'+secFmt(x.secs)+'</b>. These are the real measure of progress, and it is saved in your bests.',tone:'g'};}
+    if(m.kind==='reps'&&dmx>=500){band=N.L;kind='long reps';}else if(m.kind==='reps'&&dmx>=200){band=dmx<=250?N.S2:N.S;kind='speed reps';}
+    else if(x.type==='subt'){band=N.N;kind='Norwegian';}else if(m.kind==='cont'){band=N.E;kind='easy run';}
+    if(!band||!pk)return {when:when,label:m.label,line:'Logged. Add the time to see how it compares.',tone:''};
+    var unit=kind==='speed reps'?' s a '+repLabel(dmx):'/km',val=kind==='speed reps'?function(v){return String(Math.round(v*(dmx/1000)));}:function(v){return kmPace(v);};
+    var shown=function(v){return val(v)+unit;},rng=function(){return val(band[0])+'–'+val(band[1])+unit;};
+    var line,tone;
+    if(pk<band[0]*0.985){if(kind==='Norwegian'||kind==='easy run'){line='<b>'+shown(pk)+'</b>, quicker than the '+rng()+' range. Too fast for a '+kind+': next time hold it back, so the hard runs stay hard.';tone='w';}
+      else{line='<b>'+shown(pk)+'</b>, quicker than this week’s '+rng()+'. Great sign: the range will move with you.';tone='g';}}
+    else if(pk<=band[1]*1.015){line='<b>'+shown(pk)+'</b>, right in this week’s range ('+rng()+'). Exactly what was wanted.';tone='g';}
+    else{line='<b>'+shown(pk)+'</b>, a little slower than '+rng()+'. '+(legsY?'Legs the day before explains it: nothing lost, and the range eases with you.':'Fine on a tired or cold day: one session is noise, the trend is what counts.');tone='';}
+    var nice=m.laps?(function(){var c={};m.laps.forEach(function(v){c[v]=(c[v]||0)+1;});return Object.keys(c).sort(function(a,b){return b-a;}).map(function(k){return (c[k]>1?c[k]+' × ':'')+repLabel(+k);}).join(' + ');})():m.label;
+    return {when:when,label:nice+(kind?' · '+kind:''),line:line,tone:tone};}
+  return null;}
+function runCoachHTML(){
+  var t=today(),L=greenLight()||{},G=null,PG=paceGuide();try{G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null;}catch(e){}
+  var F=null;try{F=lastRunFeedback();}catch(e){}
+  var hardLeft=G?G.left.filter(function(x){return x.e==='⚡'||x.e==='⏱';}):[],norLeft=G?G.left.filter(function(x){return x.e==='🌊';}):[];
+  var ws=mondayOf(t),hardDone=0,runs=0;for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;((S.days[d]||{}).runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;runs++;if(m.hard&&!m.sprint)hardDone++;});}
+  /* what to do next */
+  var nx;
+  if(L.c==='green'&&hardLeft.length)nx='<b>'+esc(hardLeft[0].n)+'</b>'+(hardLeft[0].n.indexOf('—')<0?'':'');
+  else if(L.c==='green'&&norLeft.length)nx='<b>'+esc(norLeft[0].n.replace(/^.*? — /,''))+'</b> at '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km, easy jogs between.';
+  else if(L.c==='done')nx='Done for today. '+(hardLeft.length||norLeft.length?'Next on a green day: '+esc((hardLeft[0]||norLeft[0]).n.replace(/ — .*/,''))+'.':'The week’s runs are done.');
+  else if(L.c==='sat')nx='Saturday: no run. Rest is where the training lands.';
+  else nx=esc(L.t||'')+(L.sub?' — '+esc(L.sub):'')+'. '+(hardLeft.length||norLeft.length?'Still to come on a green day: '+esc([hardLeft[0],norLeft[0]].filter(Boolean).map(function(x){return x.n.replace(/ — .*/,'');}).join(' and '))+'.':'');
+  /* the goals, in one line */
+  var gl='';try{var RR=raceReady().filter(function(x){return x.on>=t;}).sort(function(a,b){return a.on<b.on?-1:1;})[0];
+    if(RR)gl='Next trial: <b>'+repLabel(RR.dm)+'</b> on '+fmtS(RR.on)+', goal '+(RR.goal>=60?mmss(RR.goal):RR.goal+' s')+' · fitness now about '+(RR.fit>=60?mmss(Math.round(RR.fit)):f1(RR.fit)+' s')+' · '+RR.st[1]+'.';}catch(e){}
+  return '<div class="p lift"><h2>🏃 Your running coach</h2>'+
+    (F?'<h3 style="margin:4px 0 2px">'+F.when+': '+esc(F.label)+'</h3><p style="margin:2px 0"><span class="pill'+(F.tone?' '+F.tone:'')+'">'+(F.tone==='g'?'✓':(F.tone==='w'?'!':'·'))+'</span> '+F.line+'</p>':'<p class="note">No runs in the last two weeks yet.</p>')+
+    '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G?' · still to come: '+(hardLeft.length?hardLeft.length+' hard':'')+(hardLeft.length&&norLeft.length?', ':'')+(norLeft.length?norLeft.length+' Norwegian':'')+(hardLeft.length||norLeft.length?'':'nothing, the week is done'):'')+'</p>'+
+    '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
+    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+'</div>';}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -9914,7 +9960,7 @@ function tab(name,sub){
 function wire(){
   wireGoodLife();
   document.getElementById('bnav').addEventListener('click',function(e){var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t,b.dataset.g);});
-  if(window.__FULL||window.__ALLTABS){document.documentElement.classList.add('all-tabs');if(E('moreToday'))E('moreToday').open=true;}
+  if(window.__FULL||window.__ALLTABS){document.documentElement.classList.add('all-tabs');Array.prototype.forEach.call(document.querySelectorAll('details.fold'),function(d){d.open=true;});}
   E('secs').addEventListener('click',function(e){var b=e.target.closest('button[data-sec]');if(!b)return;
     var first=document.querySelector('#tabs button[data-sec="'+b.dataset.sec+'"]');if(first)tab(first.dataset.t,first.dataset.g);});
   document.getElementById('tabs').addEventListener('click',function(e){

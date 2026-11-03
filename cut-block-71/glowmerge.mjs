@@ -148,6 +148,10 @@ ok('a section opens its first page and shows only its own pages', await p.evalua
 await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 ok('the Overview keeps the extras in one fold', await p.evaluate(() => CUR === 'today' && !!E('moreToday') && !!E('moreToday').querySelector('#glanceCard')));
 
+// ---- the running coach (3 Nov) ----------------------------------------------------
+ok('Running opens on one coach card: last run, the week, next, goals', await p.evaluate(() => { const t = E('runCoach').innerText; return /Your running coach/.test(t) && /This week/.test(t) && /Next/.test(t); }));
+ok('and the run menus, paces and race detail are folded underneath', await p.evaluate(() => !!E('runOpts').querySelector('#campCard') && !!document.querySelector('#s-camp details.fold #paceCard') && !!document.querySelector('#s-camp details.fold #raceCard')));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });
