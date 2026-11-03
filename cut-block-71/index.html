@@ -448,6 +448,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   </div>
   <div id="homeCard"></div>
   <div id="glowHome"></div>
+  <div id="bankCard"></div>
   <div id="alertCard"></div>
   <div id="glowBinge"></div>
   <div id="glowIll"></div>
@@ -9325,6 +9326,7 @@ function renderGoodLife(){
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('homeCard'))E('homeCard').innerHTML=homeHTML();
   if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
+  if(E('bankCard'))E('bankCard').innerHTML=bankHTML();
   if(E('longCardTop'))E('longCardTop').innerHTML=healthLongHTML();
   if(E('liftCard')&&!(document.activeElement&&E('liftCard').contains(document.activeElement)))E('liftCard').innerHTML=liftHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
@@ -9605,6 +9607,47 @@ function stressTile(){
   var sub=(CM&&CM.strain.length?CM.strain[0]:(td.why.length?'today: '+td.why.join(', '):'nothing stacking up'));
   return '<div class="hm-t'+(lvl[1]?' '+lvl[1]:'')+'"><div class="hm-h">🧘 Stress</div><b>'+lvl[0]+'</b><small>'+esc(sub)+'</small>'+
     '<div style="height:28px;line-height:0;margin-top:2px">'+bars+'</div><small style="margin:2px 0 0">last 14 days</small></div>';}
+
+/* ===================== the health bank (Dan, 3 Nov) =====================
+   "Add it all up each week because I'm building to be so healthy… is it too much…
+   advice on longevity… make it fun and easy." Each week's deposits, against last
+   week; six longevity habits ticked off; and a load check on the last three days. */
+function bankWeek(ws,nd){var t=today(),o={pro:0,om3:0,cov:[],sleep:0,slN:0,steps:0,stN:0,gym:0,hard:0,runs:0,sets:0,breath:0,days:0,fd:0,stress:[]},i,d,r;
+  for(i=0;i<(nd||7);i++){d=addD(ws,i);if(d>t)break;o.days++;r=S.days[d]||{};
+    if(r.glowSum){o.fd++;o.pro+=r.glowSum.protein||0;o.om3+=r.glowSum.omega3||0;if(typeof r.glowSum.coverage==='number')o.cov.push(r.glowSum.coverage);}
+    if(typeof r.sleep==='number'){o.sleep+=r.sleep;o.slN++;}if(typeof r.steps==='number'){o.steps+=r.steps;o.stN++;}
+    if(r.gym)o.gym++;for(var k in (r.sets||{}))o.sets+=+r.sets[k]||0;if(r.medMin)o.breath+=r.medMin;
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;o.runs++;if(m.hard&&!m.sprint)o.hard++;});
+    o.stress.push(dayStress(d).p);}
+  o.covA=o.cov.length?Math.round(o.cov.reduce(function(a,b){return a+b;},0)/o.cov.length):null;
+  o.slA=o.slN?o.sleep/o.slN:null;o.stA=o.stN?o.steps/o.stN:null;
+  var calm=o.stress.filter(function(v){return v<2;}).length;
+  /* six habits with the strongest evidence for a long, healthy life */
+  o.habits=[['😴','Sleep 7.5 h+ on average',o.slA!==null&&o.slA>=7.5],['👣','8k+ steps a day',o.stA!==null&&o.stA>=8000],['🏋️','Strength 2+ times',o.gym>=2],
+    ['🫀','A hard aerobic session (VO₂)',o.hard>=1],['🥩','Protein 1.6 g/kg+ (about 95 g) on logged days',o.fd&&o.pro/o.fd>=95],['🧘','Mostly calm days',o.stress.length&&calm>=Math.ceil(o.stress.length*0.6)]];
+  o.score=o.habits.filter(function(h){return h[2];}).length;return o;}
+function bankHTML(){
+  var t=today(),ws=mondayOf(t),W=bankWeek(ws),P=bankWeek(addD(ws,-7),W.days),PW=bankWeek(addD(ws,-7));
+  var cmp=function(a,b,fmt){var d=a-b;return fmt(a)+(b>0&&Math.abs(d)>0.0001?' <span class="tiny '+(d>=0?'acc':'dim')+'">'+(d>=0?'▲':'▼')+'</span>':'');};
+  var cell=function(e,n,v){return '<div class="hm-t"><div class="hm-h">'+e+' '+n+'</div><b style="font-size:17px">'+v+'</b></div>';};
+  var grid='<div class="hm-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">'+
+    cell('🥩','Protein',cmp(W.pro,P.pro,function(v){return ci(v)+' g';}))+
+    cell('🐟','Omega-3',cmp(W.om3,P.om3,function(v){return f1(v)+' g';}))+
+    cell('🧬','Nutrients',W.covA!==null?W.covA+'%':'—')+
+    cell('😴','Sleep',cmp(W.sleep,P.sleep,function(v){return Math.round(v)+' h';}))+
+    cell('👣','Steps',cmp(W.steps,P.steps,function(v){return v>=1000?Math.round(v/1000)+'k':String(v);}))+
+    cell('🏋️','Gym · runs',W.gym+' · '+W.runs)+'</div>';
+  /* the load check: the last three days */
+  var l3=[0,1,2].map(function(i){return dayStress(addD(t,-i));}),sum=l3.reduce(function(a,b){return a+b.p;},0);
+  var why=[];l3.forEach(function(x){x.why.forEach(function(w){if(why.indexOf(w)<0)why.push(w);});});
+  var load=sum>=7?['🔴','The last three days stacked up','A lighter day or two would help more than any session right now. That is how the training turns into fitness and muscle, not into stress. <b>Big difference.</b>']:
+    (sum>=4?['🟡','A busy few days','Normal for hard training. Keep tonight calm and sleep long, and the next hard session lands better. <b>Helps.</b>']:['🟢','Balanced','Training and recovery are in step. Nothing to change.']);
+  var habits=W.habits.map(function(h){return '<span style="display:inline-block;margin:3px 6px 3px 0;padding:4px 8px;border-radius:12px;border:1px solid var(--rule);'+(h[2]?'background:var(--good-soft)':'opacity:.7')+'">'+(h[2]?'✓ ':'')+h[0]+' '+h[1]+'</span>';}).join('');
+  var tip=W.habits.filter(function(h){return !h[2];})[0];
+  return '<div class="p"><h2>🏦 Your health bank · this week</h2><p class="tiny" style="margin:0 0 6px">Everything you put in so far this week, ▲▼ against the same days last week.</p>'+grid+
+    '<h3 style="margin:12px 0 2px">'+load[0]+' Load check · last 3 days: '+load[1]+'</h3><p style="margin:2px 0">'+load[2]+'</p>'+(why.length&&sum>=4?'<p class="tiny dim" style="margin:2px 0">From: '+esc(why.join(', '))+'</p>':'')+
+    '<h3 style="margin:12px 0 2px">🧬 Longevity habits: '+W.score+' of 6 this week'+(PW.days?' <span class="tiny dim">(last week '+PW.score+')</span>':'')+'</h3><div>'+habits+'</div>'+
+    (tip?'<p class="tiny" style="margin:6px 0 0">The one that would add most: <b>'+tip[0]+' '+tip[1]+'</b>.</p>':'<p class="tiny" style="margin:6px 0 0"><b>All six. This is what a long, healthy life is built from.</b></p>')+'</div>';}
 function homeHTML(){
   var t=today(),r=S.days[t]||{},ws=mondayOf(t),W=weekNums(ws),P=weekNums(addD(ws,-7)),tiles=[],next=[];
   /* 🔥 shred */

@@ -6,6 +6,7 @@ import { dayResult } from '@/engine/game';
 import { useStore } from '@/store';
 import { healthSnapshot } from './HealthPanel';
 import { eatNext, IMPACT_LABEL } from '@/engine/eatnext';
+import { FoodPower } from './FoodPower';
 import { AddFood } from './AddFood';
 import { Pill, Ring } from './ui';
 
@@ -50,6 +51,7 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
           </ul>
         </div>
       )}
+      <FoodPower date={date} />
       {logged > 0 && (
         <div className="text-sm text-ink-2">
           Today: <b className="text-ink">{Math.round(day.analysis.totals.kcal)}</b> kcal · <b className="text-ink">{Math.round(day.analysis.totals.protein)} g</b> protein · nutrition <b className="text-ink">{Math.round(day.analysis.nutritionScore)}</b>
