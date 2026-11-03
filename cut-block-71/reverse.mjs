@@ -160,16 +160,16 @@ const HB = await p.evaluate(() => CFG.hold);
 ok('the hold band is 122–124', HB.lo === 122 && HB.hi === 124, JSON.stringify(HB));
 ok('the landing target is untouched', await p.evaluate(() => CFG.w.target === 122.5 && CFG.goals.weightLo === 122 && CFG.goals.weightHi === 123));
 ok('the Christmas card exists', /Christmas — smaller than the scale will tell you/.test(tX), tX.slice(0, 80));
-ok('it knows which week of the reverse Christmas lands in', XM.weekOf >= 1 && new RegExp('week ' + XM.weekOf + ' of the reverse').test(tX));
-ok('and what he will be eating then', new RegExp('about ' + XM.eat.toLocaleString('en-GB') + ' a day').test(tX));
+ok('it says when the build starts', /build from 10 Jan/.test(tX), tX.slice(0, 300));
+ok('and the plan: maintenance, the reset cut, the build (3 Nov)', /Christmas at maintenance/.test(tX) && /two-week reset cut/.test(tX) && /1,899/.test(tX) && /build/.test(tX));
 ok('the huge-day maths is derived from maintenance', XM.over === Math.max(0, 5000 - XM.maint), JSON.stringify(XM));
 ok('and a whole huge day is under a pound of fat', XM.fatLb < 1 && /~0\.\d lb/.test(tX), String(XM.fatLb));
 ok('it warns the scale will jump on the 26th', /\+3 to \+5 lb/.test(tX) && /on the 26th/.test(tX));
 ok('it names the drift as the real danger', /The day is not the danger\. The drift is\./.test(tX));
 ok('two free days', /2 free days/.test(tX));
-ok('the ladder number on the other days', new RegExp('About ' + XM.eat.toLocaleString('en-GB')).test(tX));
+ok('then the reset cut at 1,899, Saturday 1,999', /Then the reset cut/.test(tX) && /1,999/.test(tX));
 ok('the three anchors', /steps, your two hard runs, and bed on time/.test(tX));
-ok('judged a week later, not on the 26th', /Judge it on 2 Jan/.test(tX) && /Not on the 26th/.test(tX));
+ok('judged in the second week of the reset, not on the 26th', /second week of the reset/.test(tX) && /Not on the 26th/.test(tX));
 ok('and the gluten risk is named, since he is coeliac', /Your real Christmas risk is gluten, not calories/.test(tX) && /Stuffing/.test(tX) && /rusk/.test(tX));
 // Standing constraint: salt is never to be cut. The card may explain salty
 // food holds water, but must not tell him to cut it.
@@ -180,7 +180,7 @@ ok('outside the window there is no Christmas card on Today', (await p.innerHTML(
 await p.evaluate(() => { CFG.xmas.from = addD(today(), -1); CFG.xmas.to = addD(today(), 1); render(); });
 const tXT = (await p.textContent('#xmasCard')).replace(/\s+/g, ' ');
 ok('inside the window it appears', /Christmas plan/.test(tXT), tXT);
-ok('short: free days, ladder number, anchors, judge date, gluten', /2 free days, then the ladder number/.test(tXT) && /ignore it until 2 Jan/.test(tXT) && /gluten/.test(tXT));
+ok('short: maintenance, reset cut, build, judge later, gluten', /Christmas at maintenance, then the reset cut/.test(tXT) && /second week of the reset/.test(tXT) && /gluten/.test(tXT));
 await p.evaluate(() => { CFG.xmas.from = '2026-12-18'; CFG.xmas.to = '2027-01-02'; render(); });
 
 // ---- the phase guide: he asked to be told when to change gear ------------

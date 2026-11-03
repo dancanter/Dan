@@ -142,11 +142,12 @@ Sub-17 and sub-4:50 are honestly more likely in the **spring 2026–27 camp** (A
 
 ---
 
-## 9. After December (plan)
+## 9. After December (plan, Dan 3 Nov)
 
-1. **Recovery fortnight** (24 Dec – ~4 Jan): maintenance, 2–3 easy or Norwegian runs, lighter gym.
-2. **Model build** (~5 Jan – end of Mar): maintenance + 150–250, protein ~125 g, gym first (shoulders, upper chest, lats, arms; weighted pull-ups), 3–4 runs, gain ≤ 0.5 lb a month.
-3. **Spring:** 4–6 week mini-cut, then a spring race camp for sub-17 / sub-4:50.
+1. **Christmas** (24–26 Dec): maintenance (2,199), enjoy it, no tracking pressure.
+2. **Reset cut** (27 Dec – 9 Jan, two weeks): 1,899 (Saturday 1,999). Clears the Christmas eating; the first mornings are water, judge it on the second week. Runs and gym as normal.
+3. **Build** (from 10 Jan to end of Mar): maintenance + ~200 (2,399), protein 140 g, gym 4–6× (shoulders, upper chest, lats, arms; weighted pull-ups), 3–4 runs, gain ≤ 0.5 lb a month. March: run times back.
+4. **Spring:** lean down (4–6 week mini-cut), then a spring race camp for sub-17 / sub-4:50.
 
 ---
 

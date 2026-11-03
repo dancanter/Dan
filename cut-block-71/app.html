@@ -1204,15 +1204,17 @@ function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
    at 123 or under 1,999 (hold, lose no more), under 122 2,199 (stop). Trial
    days and the day before are 1,999 — the trials are fuelled. From 25 Dec,
    maintenance at about 2,199. */
-var STRICT={from:'2026-11-02',to:'2026-12-24',raiseAt:124.9,holdAt:123,floor:122,tripFrom:'2026-12-03',tripTo:'2026-12-05',maint:2199,xmas:'2026-12-25'};
-function strictKcal(is){if(is>=STRICT.xmas)return STRICT.maint;if(is<STRICT.from||is>STRICT.to)return null;if(is>=STRICT.tripFrom&&is<=STRICT.tripTo)return null;
+var STRICT={from:'2026-11-02',to:'2026-12-24',raiseAt:124.9,holdAt:123,floor:122,tripFrom:'2026-12-03',tripTo:'2026-12-05',maint:2199,xmas:'2026-12-25',
+  /* Dan, 3 Nov: Christmas, then a short two-week reset cut, then higher calories to build */
+  xmasEnd:'2026-12-26',resetTo:'2027-01-09',reset:1899,build:2399};
+function strictKcal(is){if(is>=STRICT.xmas){if(is<=STRICT.xmasEnd)return STRICT.maint;if(is<=STRICT.resetTo)return dow(is)===6?STRICT.reset+100:STRICT.reset;return STRICT.build;}if(is<STRICT.from||is>STRICT.to)return null;if(is>=STRICT.tripFrom&&is<=STRICT.tripTo)return null;
   var a=avgWindow(addD(is,-1),7),av=a.n>=3?a.avg:null;
   if(av!==null&&av<STRICT.floor)return 2199;
   var trial=(CFG.camp.pb||[]).some(function(x){return x.on===is||addD(x.on,-1)===is;});
   if(trial||dow(is)===6)return 1999;
   if(av!==null&&av<=STRICT.holdAt)return 1999;
   return (av!==null&&av<=STRICT.raiseAt)?1899:1799;}
-function shredGoal(t){t=t||today();return t<STRICT.tripFrom?{d:STRICT.tripFrom,n:'France'}:{d:STRICT.xmas,n:'Christmas'};}
+function shredGoal(t){t=t||today();return t<STRICT.tripFrom?{d:STRICT.tripFrom,n:'France'}:(t<STRICT.xmas?{d:STRICT.xmas,n:'Christmas'}:{d:addD(STRICT.resetTo,1),n:'the build'});}
 function dayTarget(is){var sk=strictKcal(is);if(sk!==null)return sk;if(pushOn(is))return dow(is)===6?1999:1799;if(finishOn(is)){var rr=(S.days[is]||{}).runs||[];return rr.some(function(x){return !runMeta(x).empty;})?1899:1799;}return upDay(is)?KCAL_UP:KCAL_DAY;}
 /* the words for a day's target: today can still become an up day */
 function targetTxt(is){
@@ -8490,8 +8492,8 @@ function xmasModel(){
 function renderXmas(){
   var M=xmasModel(),H=CFG.hold,X=CFG.xmas;
   var html='<div class="p flag"><h2>Christmas — smaller than the scale will tell you</h2>'+
-    '<p class="lede">You will be '+(M.weekOf?'<b>week '+M.weekOf+'</b> of the reverse':'on the reverse')+', eating about <b class="num">'+ci(M.eat)+'</b> a day. '+
-    'That is the best position there is to walk into Christmas from.</p>'+
+    '<p class="lede">The plan (3 Nov): <b>Christmas at maintenance</b> (about '+ci(STRICT.maint)+'), then a <b>two-week reset cut</b> from '+fmtS(addD(STRICT.xmasEnd,1))+' to '+fmtS(STRICT.resetTo)+' at '+ci(STRICT.reset)+', then the <b>build</b> from '+fmtS(addD(STRICT.resetTo,1))+' at about '+ci(STRICT.build)+'. '+
+    'You walk into Christmas lean, so it costs very little.</p>'+
     '<div class="tiles t4">'+
     tile('the band',H.lo+'–'+H.hi+' lb','where you stay through Christmas')+
     tile('a huge day',ci(M.big)+' kcal','about '+ci(M.over)+' over maintenance')+
@@ -8503,9 +8505,9 @@ function renderXmas(){
     '<p class="note"><b>The day is not the danger. The drift is.</b> What actually puts weight on people is 24 December to 1 January turning into ten days of “it’s Christmas”. That is where a real 4–6 lb comes from.</p>'+
     '<table class="tbl" style="margin-top:8px"><tbody>'+
     '<tr><td style="width:30%"><b>1. '+X.free+' free days</b></td><td class="note">Pick them — Christmas Day and one other. Eat what you want and do not log it with guilt.</td></tr>'+
-    '<tr><td><b>2. Every other day, the ladder number</b></td><td class="note">About '+ci(M.eat)+'. Same breakfast, same evening bowl, same routine. The routine is what stops one day becoming ten.</td></tr>'+
+    '<tr><td><b>2. Then the reset cut</b></td><td class="note">'+fmtS(addD(STRICT.xmasEnd,1))+' to '+fmtS(STRICT.resetTo)+': '+ci(STRICT.reset)+' a day (Saturday '+ci(STRICT.reset+100)+'), protein 140 g, your normal runs and gym. Gentle on purpose, so the muscle stays.</td></tr>'+
     '<tr><td><b>3. Keep the three anchors</b></td><td class="note">Your steps, your two hard runs, and bed on time. Those are what send Christmas food into your muscles as fuel rather than onto you.</td></tr>'+
-    '<tr><td><b>4. Judge it on '+fmtS(X.judge)+'</b></td><td class="note">Not on the 26th. Read the 7-day average a week later. Anywhere back inside '+H.lo+'–'+H.hi+' and Christmas cost you nothing.</td></tr>'+
+    '<tr><td><b>4. Judge it in the second week of the reset</b></td><td class="note">Not on the 26th: the first mornings are food and water. By '+fmtS(STRICT.resetTo)+' the 7-day average back near '+H.lo+'–'+H.hi+' means Christmas cost you nothing, and the build starts from a lean base.</td></tr>'+
     '</tbody></table>'+
     '<p class="note" style="margin-top:10px"><b>Your real Christmas risk is gluten, not calories.</b> Stuffing, gravy, Yorkshire puddings, pigs in blankets (most sausages have rusk in them), Christmas pudding, mince pies, most crackers and biscuits. '+
     'Ask, check the label, or bring your own. A gluten hit will do more to your gut, your skin and your face than a week of mince pies ever could.</p></div>';
@@ -8513,8 +8515,8 @@ function renderXmas(){
   /* on Today, only in the Christmas window, and short */
   if(M.window){
     E('xmasCard').innerHTML='<div class="p flag"><h2>Christmas plan</h2>'+
-      '<p class="note"><b>'+X.free+' free days, then the ladder number (~'+ci(M.eat)+').</b> Steps, two hard runs, bed on time. '+
-      'The scale will jump on the 26th — ignore it until '+fmtS(X.judge)+'. And check everything for gluten.</p></div>';
+      '<p class="note"><b>Christmas at maintenance, then the reset cut ('+ci(STRICT.reset)+', '+fmtS(addD(STRICT.xmasEnd,1))+'–'+fmtS(STRICT.resetTo)+'), then the build.</b> Steps, your runs, bed on time. '+
+      'The scale will jump on the 26th: ignore it until the second week of the reset. And check everything for gluten.</p></div>';
   }else E('xmasCard').innerHTML='';
 }
 function renderReverse(){
@@ -9492,8 +9494,8 @@ function ccGoals(){
 /* Dan, 3 Nov: the season — shred to France and on to the Christmas trials,
    then a muscle phase at maintenance with the gym 4–6 times a week to the
    end of March, the run times back in March, and leaning down after. */
-var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-23','Shred + PB trials'],['2026-12-24','2026-12-31','Christmas'],
-  ['2027-01-01','2027-02-28','Muscle · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
+var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-24','Shred + PB trials'],['2026-12-25','2026-12-26','Christmas'],['2026-12-27','2027-01-09','Reset cut'],
+  ['2027-01-10','2027-02-28','Build · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
 function seasonStripHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
 function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
