@@ -61,7 +61,7 @@ if (hosted()) {
     for (const d of Object.keys(s.days)) {
       if (!s.days[d]?.items?.length) continue;
       const r = dayResult(s, d);
-      out[d] = { kcal: Math.round(r.analysis.totals.kcal), protein: Math.round(r.analysis.totals.protein), carbs: Math.round(r.analysis.totals.carbs), fat: Math.round(r.analysis.totals.fat), fibre: Math.round(r.analysis.totals.fibre), nutrition: Math.round(r.analysis.nutritionScore), glow: r.glow, plants: r.analysis.plants, names: [...new Set(resolveItems(s.days[d], s).map((x) => x.food.name))] };
+      out[d] = { kcal: Math.round(r.analysis.totals.kcal), protein: Math.round(r.analysis.totals.protein), carbs: Math.round(r.analysis.totals.carbs), fat: Math.round(r.analysis.totals.fat), fibre: Math.round(r.analysis.totals.fibre), nutrition: Math.round(r.analysis.nutritionScore), glow: r.glow, plants: r.analysis.plants, n: (s.days[d]?.items ?? []).length, names: [...new Set(resolveItems(s.days[d], s).map((x) => x.food.name))] };
     }
     return out;
   });

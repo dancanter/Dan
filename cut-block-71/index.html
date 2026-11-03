@@ -9251,7 +9251,10 @@ function renderGoodLife(){
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
   if(E('jrnlCard')&&!(JR.open&&E('jrForm')))E('jrnlCard').innerHTML=journalHTML();
   if(E('jrnlHist')&&document.activeElement!==E('jrSearch'))E('jrnlHist').innerHTML=journalHistoryHTML();
-  if(!GLOW_SAVING&&window.GLOW){try{window.GLOW.refresh();placeGlow();}catch(e){}}
+  if(!GLOW_SAVING&&window.GLOW){try{window.GLOW.refresh();placeGlow();}catch(e){}
+    /* the diary changed without Glow adding it up (data arriving from the store or
+       another device): total it now, so the calories ring is never left at zero */
+    if(!GLOW_RECOUNT&&glowStale()){GLOW_RECOUNT=true;setTimeout(function(){glowRecompute();GLOW_RECOUNT=false;},0);}}
   if(E('physAssess'))E('physAssess').innerHTML=physAssessHTML();
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
@@ -9738,6 +9741,9 @@ function migrateEaten(){var moved=0;
   Object.keys(S.days).forEach(function(d){var r=S.days[d];if(!r||!r.eaten||!r.eaten.length)return;
     r.eaten.forEach(function(e){glowAddEntry(d,e);moved++;});delete r.eaten;});
   return moved;}
+var GLOW_RECOUNT=false;
+function glowStale(){return Object.keys(S.days).some(function(d){var r=S.days[d],n=r&&r.glow&&r.glow.items?r.glow.items.length:0,g=r&&r.glowSum;
+  return n?!g||(typeof g.n==='number'&&g.n!==n)||typeof g.n!=='number':!!(g&&r.kcalFrom==='glow');});}
 function glowRecompute(){if(window.GLOW&&window.GLOW.recompute)try{window.GLOW.recompute();}catch(e){}}
 /* ===================== events ===================== */
 /* one app (3 Nov): Glow's screens are tabs of the tracker; the frame stays
