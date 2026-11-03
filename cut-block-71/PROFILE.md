@@ -26,6 +26,8 @@ throughout.
 
 ---
 
+**The five aims (Dan, 3 Nov):** maximise looks, health, longevity and performance, and keep stress low. Every suggestion should serve these together, ranked by how much difference it makes, and be offered as advice, never as an order.
+
 ## 2. Hard rules — never break these
 
 **Medical / food**
