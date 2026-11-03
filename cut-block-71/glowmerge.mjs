@@ -78,6 +78,12 @@ ok('below the neck turns the green light to stop', L.g.c === 'red' && /no run, n
 L = await p.evaluate(() => { const r = S.days['2026-11-03'], keep = r.ill; r.ill = { kind: 'cold', severity: 1 }; const g = greenLight(); r.ill = keep; return g; });
 ok('a mild head cold means easy only', L.c === 'amber' && /Easy only/.test(L.t), JSON.stringify(L));
 
+// ---- a big legs day means no hard run the next day (3 Nov) --------------------
+L = await p.evaluate(() => { const r = S.days['2026-11-03'], y = S.days['2026-11-02'] = S.days['2026-11-02'] || {}, keep = r.ill, ky = JSON.stringify(y);
+  delete r.ill; Object.assign(y, { gym: true, split: 'legs', sets: { Legs: 21 }, runs: [] }); const g = greenLight(); r.ill = keep; Object.assign(S.days['2026-11-02'], JSON.parse(ky)); return g; });
+ok('after 21 sets of legs the hard run waits a day', L.c === 'amber' && /big legs day yesterday \(21 sets\)/.test(L.w), JSON.stringify(L));
+ok('and the paces are on the Camp tab', await p.evaluate(() => /Hard: long reps/.test(paceGuideHTML(false)) && /Jan → Mar/.test(paceGuideHTML(false))));
+
 // ---- 📓 journal ------------------------------------------------------------------
 await p.click('#btJournal'); await p.waitForTimeout(200);
 await p.click('button[data-jr="mood"][data-n="4"]'); await p.click('button[data-jr="energy"][data-n="3"]');

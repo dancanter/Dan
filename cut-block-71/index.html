@@ -720,6 +720,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
+  <div id="paceCard"></div>
   <div id="raceCard"></div>
   <div id="decCard"></div>
   <div id="campCard"></div>
@@ -4090,6 +4091,10 @@ function greenLight(){
   else if(sl!==null&&sl<6.5)why.push('a short night ('+hm(sl*60)+')');
   if(ST&&(ST.k==='legs'||ST.k==='rest'||ST.k==='warn')&&why.indexOf(ST.t)<0)why.push(ST.t.toLowerCase());
   if(yHard)why.push('you ran hard yesterday — one day between the hard ones');
+  /* Dan, 3 Nov: 20 sets of legs, then a hard run the next day felt "very jelly legged".
+     A big legs day (10+ sets or a hard session) means no hard run the day after. */
+  var ySetsL=(y.sets&&+y.sets.Legs)||0;
+  if(y.gym&&(ySetsL>=10||(y.split==='legs'&&(y.gymRpe||0)>=7)))why.push('a big legs day yesterday'+(ySetsL?' ('+ySetsL+' sets)':'')+' — the hard run waits a day so it actually builds speed');
   if(why.length)return {c:'amber',e:'🟡',t:walk?'Walk or easy only today':'Easy only today',
     w:why.join(' · ').replace(/^./,function(c){return c.toUpperCase();})+'. '+(walk?'A brisk walk, or a gentle easy run if you feel good. No hard running.':(easyLeft?'An easy 5-miler is fine — save the hard run for a green day.':'A walk or a rest — no hard running.'))};
   var legsY=y.gym&&y.split==='legs';
@@ -9222,6 +9227,7 @@ function renderGoodLife(){
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
+  if(E('paceCard'))E('paceCard').innerHTML=paceGuideHTML(false);
   if(E('raceCard'))E('raceCard').innerHTML=raceCardHTML();
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
@@ -9460,7 +9466,9 @@ function homeHTML(){
   /* 💪 muscle: sets this week against the low end of each range */
   var ss=weekSets(t),need=0,have=0,under=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ss[x.m]||0;need+=rg[0];have+=Math.min(v,rg[0]);if(v<rg[0])under.push([x.m,rg[0]-v]);});
   var lb=liftBests(t),lp=liftBests(addD(t,-14)),ups=Object.keys(lb).filter(function(k){return !lp[k]||lb[k].v>lp[k].v+0.01;}).length;
-  tiles.push(homeTile('💪','Muscle',W.sets+' sets','this week'+(ups&&Object.keys(lp).length?' · '+ups+' lift'+(ups===1?'':'s')+' up':''),need?have/need:null,need&&have>=need?'good':''));
+  var Wset={};for(var wi=0;wi<7;wi++){var wd=addD(ws,wi);if(wd>t)break;var wsr=(S.days[wd]||{}).sets||{};for(var mk in wsr)Wset[mk]=(Wset[mk]||0)+(+wsr[mk]||0);}
+  var perM=Object.keys(Wset).filter(function(k){return Wset[k]>0;}).map(function(k){return k+' '+Wset[k];}).join(' · ');
+  tiles.push(homeTile('💪','Muscle',W.sets+' sets',(perM||'this week')+(ups&&Object.keys(lp).length?' · '+ups+' lift'+(ups===1?'':'s')+' up':''),need?have/need:null,need&&have>=need?'good':''));
   /* 🏃 running: the nearest goal */
   var RR=[];try{RR=raceReady();}catch(e){}
   var rr=RR.filter(function(x){return x.on>=t;}).sort(function(a,b){return a.on<b.on?-1:1;})[0]||RR[0];
@@ -9477,7 +9485,7 @@ function homeHTML(){
   tiles.push(homeTile('📚','Study',f1(W.study)+' h','this week · aim '+CFG.study.lo+'–'+CFG.study.hi,W.study/CFG.study.lo,W.study>=CFG.study.lo?'good':''));
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
-  var L=greenLight()||{};if(L.t)next.push((L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:''));
+  var L=greenLight()||{};if(L.t)next.push((L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')));
   if(typeof r.sleep!=='number')next.push('😴 Log last night’s sleep: it drives your green light.');
   else if(r.sleep<7.5)next.push('😴 '+f1(r.sleep)+' h last night: bed 30 min earlier tonight, phone out.');
   if(under.length&&dow(t)!==6){under.sort(function(a,b){return b[1]-a[1];});next.push('💪 '+under[0][0]+': '+under[0][1]+' set'+(under[0][1]===1?'':'s')+' to reach the muscle-building range this week.');}
@@ -9497,7 +9505,8 @@ function homeHTML(){
     (lifts?' · '+lifts+' lift'+(lifts===1?'':'s')+' tracked, '+ups+' stronger than 2 weeks ago':'');
   return '<div class="p hm"><h2>🎯 Your goals</h2><div class="hm-grid">'+tiles.join('')+'</div>'+
     '<h3 style="margin:12px 0 4px">👉 Do next</h3>'+next.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x)+'</p>';}).join('')+
-    '<details style="margin-top:10px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}
+    '<details style="margin-top:10px"><summary><b>🎯 Your run paces this week</b></summary>'+paceGuideHTML(true)+'<button type="button" class="btn sm ghost" data-t="camp">Full guide and the road to your times →</button></details>'+
+    '<details style="margin-top:6px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}
 function liftHTML(){
   var t=E('logDate')&&E('logDate').value||today(),r=S.days[t]||{},list=r.lifts||[],lb=liftBests(today()),lp=liftBests(addD(today(),-28));
   var best=Object.keys(lb).sort(function(a,b){return LIFTS.indexOf(a)-LIFTS.indexOf(b);}).map(function(k){var x=lb[k],o=lp[k],up=o&&x.v>o.v+0.01;
@@ -9516,6 +9525,40 @@ document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.targe
   if(b.dataset.lift==='add'){var kg=parseFloat(E('lfKg').value),reps=parseInt(E('lfReps').value,10);if(!(kg>=0)||!(reps>0))return;
     r.lifts=(r.lifts||[]).concat([{ex:E('lfEx').value,kg:kg,reps:reps}]);var keep=E('lfEx').value;touch();E('liftCard').innerHTML=liftHTML();E('lfEx').value=keep;}
   else{r.lifts=(r.lifts||[]).filter(function(_,i){return i!==+b.dataset.i;});if(!r.lifts.length)delete r.lifts;touch();E('liftCard').innerHTML=liftHTML();}});
+
+/* ===================== pace guide (Dan, 3 Nov) =====================
+   "I need to know what times I should be running… with gradual improvements
+   so I do beat my times." Every target comes from his own fitness now
+   (fitnessEst, from his bests) and moves a little each week of the camp,
+   never past the goal pace. Ranges, not a test: the top of the range on a
+   good day, the bottom on a heavy-legged one. Health, shred and muscle come
+   first, so a green light is needed for the hard ones. */
+function paceGuide(){
+  var t=today(),wk=Math.max(0,Math.floor(diffD(PHYS.from,t)/7));
+  var fit=function(d,fb){var v=fitnessEst(d);return v||fb;};
+  var p5=fit(5000,1085)/5,pM=fit(1609,327)/1.609,p8=fit(800,152)/0.8,p4=fit(400,59)/0.4,p2=fit(200,28.1)/0.2;
+  var goal=function(dm){var g=CFG.camp.pb.filter(function(x){return x.dm===dm;})[0];return g?g.goal/(dm/1000):null;};
+  /* about 0.4% faster a week, never past goal pace */
+  var step=function(pk,g){var v=pk*(1-0.004*wk);return g?Math.max(v,g):v;};
+  var rep=function(pk,dm){return secFmt(Math.round(pk*dm/1000));};
+  var kmL=step(pM*1.02,goal(1609)),k8=step(p8*1.04,goal(800)),k4=step(p4*1.06,goal(400)),k2=step(p2*1.06,goal(200));
+  return {wk:wk+1,rows:[
+    ['🔥','Hard: long reps','1 km, 800 m, 600 m',rep(kmL,1000)+'–'+rep(kmL*1.02,1000)+' per km rep · 800 m '+rep(kmL*0.98,800)+'–'+rep(kmL,800)+' · 600 m '+rep(kmL*0.97,600)+'–'+rep(kmL*0.99,600),'Walk or jog until your breathing settles. Even reps beat a fast first one.'],
+    ['⚡','Hard: speed','200–400 m',' 400 m '+rep(k4,400)+'–'+rep(k4*1.03,400)+' · 300 m '+rep(k4*0.98,300)+'–'+rep(k4*1.01,300)+' · 200 m '+rep(k2,200)+'–'+rep(k2*1.03,200),'Full recovery between: walk until you feel ready. Stop when the form goes.'],
+    ['🌊','Norwegian sub-threshold','reps, 7 out of 10',kmPace(p5*1.09)+'–'+kmPace(p5*1.15)+' a km · 400 m '+rep(p5*1.09,400)+'–'+rep(p5*1.15,400)+' · 800 m '+rep(p5*1.09,800)+'–'+rep(p5*1.14,800),'Short easy jogs between. Finish feeling you could do two more. Too fast here costs the next hard run.'],
+    ['🐢','Easy run','conversation pace',kmPace(p5*1.32)+'–'+kmPace(p5*1.5)+' a km','Slower is fine. This builds the engine without denting recovery or muscle.'],
+    ['⏱️','Time trial','only on a green day','5 km fitness now '+mmss(Math.round(p5*5))+' · mile '+mmss(Math.round(pM*1.609))+' · 400 m '+secFmt(Math.round(p4*0.4)),'Fresh legs: no legs session the day before, carbs the night before.']]};}
+function paceGuideHTML(compact){
+  var G=paceGuide();
+  var rows=G.rows.map(function(x){return '<div style="margin:7px 0"><b>'+x[0]+' '+x[1]+'</b> <span class="tiny dim">'+x[2]+'</span><div class="mono" style="margin:2px 0 0 22px">'+x[3]+'</div>'+(compact?'':'<div class="tiny" style="margin-left:22px">'+x[4]+'</div>')+'</div>';}).join('');
+  return (compact?'':'<div class="p lift"><h2>🎯 Your paces · week '+G.wk+' of the camp</h2>')+
+    '<p class="tiny" style="margin:0 0 4px">From your own bests, a little quicker each week, never past your goal pace. Bottom of the range on heavy legs, top on a great day.</p>'+rows+
+    (compact?'':'<h3 style="margin:10px 0 2px">The order that matters</h3><p style="margin:3px 0">Health, shred and muscle first; the times follow. No hard run the day after a big legs session. Two hard runs and one Norwegian a week, a 4th easy run only on a green week.</p>'+
+    '<h3 style="margin:10px 0 2px">The road to your times</h3>'+
+    '<p style="margin:3px 0"><b>Now → 23 Dec · the cut.</b> Keep your speed while you lean out. The 400 m and 200 m are realistic this winter. The 5 km, mile and 800 m goals are a stretch.</p>'+
+    '<p style="margin:3px 0"><b>Jan → Mar · build the base.</b> Maintenance calories and the gym 4–6 times a week. One Norwegian session, one hill session (8–10 × 60–90 s), one easy run growing to 8–10 km, strides twice a week. Nothing all-out.</p>'+
+    '<p style="margin:3px 0"><b>Apr → May · sharpen.</b> The hard reps come back: 1 km and 800 m reps at goal pace, then time trials.</p>'+
+    '<p style="margin:3px 0"><b>Jun → Aug · peak.</b> Lighter, fitter, a full base under you. This is where sub-17 and sub-2:00 are most likely to fall.</p></div>');}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times

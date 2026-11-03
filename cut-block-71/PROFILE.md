@@ -46,7 +46,8 @@ throughout.
 - **4 runs a week maximum.** Never 4 runs in a row. Never two hard days back to back.
 - **Saturday is stress-free:** no runs, no weights, no study.
 - **Never name days for runs.** Reveal a week's runs only when the week starts — Dan picks the days.
-- No prescribed rest intervals; effort over the watch.
+- No prescribed rest intervals; effort over the watch. Paces are given as ranges from his own fitness (Camp tab, `paceGuide`), a little quicker each week, never past goal pace (Dan asked for them, 3 Nov).
+- No hard run the day after a big legs session (10+ sets). Health, shred and muscle come before the times (Dan, 3 Nov).
 - Never flag a rest day as missed.
 
 **Tone**
