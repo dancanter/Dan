@@ -337,7 +337,6 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <button role="tab" data-t="reverse" data-sec="food" aria-selected="false">Calories & reverse</button>
     <button role="tab" data-t="longev" data-sec="long" aria-selected="false">Health &amp; longevity</button>
     <button role="tab" data-t="glow" data-g="cellular" data-sec="long" aria-selected="false">Cells</button>
-    <button role="tab" data-t="glow" data-g="body" data-sec="long" aria-selected="false">Body & health</button>
     <button role="tab" data-t="calm" data-sec="rec" aria-selected="false">Stress &amp; calm</button>
     <button role="tab" data-t="sleep" data-sec="rec" aria-selected="false">Sleep</button>
     <button role="tab" data-t="mind" data-sec="rec" aria-selected="false">Mind & journal</button>
@@ -757,8 +756,10 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 </section>
 <section id="s-phys" class="stack" hidden>
   <div id="liftCoach"></div>
-  <div id="liftCard"></div>
+  <div id="glowRecLift"></div>
   <div id="muscleFun"></div>
+  <div id="liftCard"></div>
+  <div id="glowMuscleGuide"></div>
 </section>
 <section id="s-longev" class="stack" hidden>
   <div id="longCoach"></div>
@@ -778,6 +779,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
   <div id="runCoach"></div>
+  <div id="glowRecRun"></div>
   <div id="runWins"></div>
 </section>
 
@@ -1367,11 +1369,14 @@ function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
    days[d].glowSum and become days[d].kcal: one diary, counted once. */
 var LB_KG=2.20462,GLOW_SAVING=false;
 var GLOW_MUSCLE={Chest:'chest',Back:'back',Shoulders:'shoulders',Legs:'quads',Biceps:'biceps',Triceps:'triceps'};
+/* friendly names: "1 km + 2 × 500m", "Gym · shoulders" */
+function runNice(m){if(!m.laps)return m.label;var c={};m.laps.forEach(function(v){c[v]=(c[v]||0)+1;});return Object.keys(c).sort(function(a,b){return b-a;}).map(function(k){return (c[k]>1?c[k]+' × ':'')+repLabel(+k);}).join(' + ');}
+var SPLIT_NICE={chest:'chest & triceps',back:'back & biceps',delts:'shoulders',legs:'legs',arms:'arms',calis:'calisthenics',other:'full body'};
 function glowSessions(r,d){var out=[];
   (r.runs||[]).forEach(function(x,i){var m=runMeta(x);if(m.empty)return;var reps=m.kind==='reps';
-    out.push({id:'t-'+d+'-'+i,source:'manual',kind:'run',name:m.label||(reps?'Reps':'Run'),minutes:Math.max(10,Math.round((x.secs||0)/60*(reps?2:1)+(reps?20:0))),km:m.km||undefined,intensity:m.hard?'hard':(m.subt||m.fun?'moderate':'easy'),intensitySet:true});});
+    out.push({id:'t-'+d+'-'+i,source:'manual',kind:'run',name:runNice(m)||(reps?'Reps':'Run'),minutes:Math.max(10,Math.round((x.secs||0)/60*(reps?2:1)+(reps?20:0))),km:m.km||undefined,intensity:m.hard?'hard':(m.subt||m.fun?'moderate':'easy'),intensitySet:true});});
   if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(k==='Legs'&&r.legs){for(var lk in r.legs)sets[lk]=r.legs[lk];return;}if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
-    out.push({id:'g-'+d,source:'manual',kind:'lift',name:r.split?('Gym · '+r.split):'Gym',minutes:60,intensity:(r.gymRpe||0)>=8?'hard':'moderate',intensitySet:true,sets:sets});}
+    out.push({id:'g-'+d,source:'manual',kind:'lift',name:r.split?('Gym · '+(SPLIT_NICE[r.split]||r.split)):'Gym',minutes:60,intensity:(r.gymRpe||0)>=8?'hard':'moderate',intensitySet:true,sets:sets});}
   return out;}
 function glowLoad(){
   var G=S.glow||{},days={},vitals={},training={},sleeps=[];
@@ -10349,7 +10354,7 @@ function loadGlow(){
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
 function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
-  [['glowHome','home'],['glowCalm','calm'],['glowHealth','health'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
+  [['glowHome','home'],['glowCalm','calm'],['glowHealth','health'],['glowRecRun','recovery'],['glowRecLift','recovery'],['glowMuscleGuide','muscleguide'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
     var el=E(x[0]);if(el)G.mount(el,x[1],x[1]==='review'&&GLOW_REV_END?GLOW_REV_END:t,!!GLOW_OPEN[x[1]]);});}
 function startGlow(){
   var G=window.GLOW;

@@ -56,7 +56,7 @@ export function WeeklySetsCard({ date }: { date: string }) {
           );
         })}
       </ul>
-      <p className="mt-3 text-[11px] text-muted">Ranges are for a cut: the low end keeps muscle, the high end can still build some. The marker shows the minimum. Last 7 days.</p>
+      <p className="mt-3 text-[11px] text-muted">Ranges are for a cut: the low end keeps muscle, the high end can still build some. The marker shows the minimum. This week, Monday to today.</p>
     </Card>
   );
 }

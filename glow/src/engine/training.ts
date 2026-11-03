@@ -172,9 +172,11 @@ export const SET_TARGETS: Record<Muscle, { min: number; max: number; note?: stri
   neck: { min: 0, max: 8, note: 'Optional: a little neck work adds the thicker neck that sharpens a jawline in photos.' },
 };
 
+/** Hard sets per muscle this week, Monday to the given date (the same week the tracker uses). */
 export function weeklySets(training: Record<string, Session[]>, date: string): Record<Muscle, number> {
   const out = Object.fromEntries(MUSCLES.map((m) => [m, 0])) as Record<Muscle, number>;
-  for (let i = 0; i < 7; i++) for (const s of training[addDays(date, -i)] ?? []) for (const [m, n] of Object.entries(s.sets ?? {})) out[m as Muscle] += n ?? 0;
+  const dow = (new Date(date + 'T12:00:00').getDay() + 6) % 7; // Monday = 0
+  for (let i = 0; i <= dow; i++) for (const s of training[addDays(date, -i)] ?? []) for (const [m, n] of Object.entries(s.sets ?? {})) out[m as Muscle] += n ?? 0;
   return out;
 }
 

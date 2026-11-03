@@ -128,7 +128,7 @@ await p.click('#homeCard summary:has-text("run paces")'); await p.click('#homeCa
 ok('the Full guide button on Home opens the Camp tab', await p.evaluate(() => !document.getElementById('s-camp').hidden));
 await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
 ok('a mixed session (1 km + 2 × 500 m) is one hard run, not two', await p.evaluate(() => { const m = runMeta({ k: 'reps', laps: [1000, 500, 500], secs: 402 }); return m.hard && m.km === 2 && /ladder/.test(m.label); }));
-await p.click('#tabs button[data-t="glow"][data-g="body"]'); await p.waitForTimeout(700);
+await p.click('#tabs button[data-t="glow"][data-g="cellular"]'); await p.waitForTimeout(500); await p.evaluate(() => window.postMessage({ type: 'glow-screen', id: 'body' }, '*')); await p.waitForTimeout(700);
 ok('Glow’s training list is read-only inside the app', await p.evaluate(() => !document.getElementById('glow-host').shadowRoot.querySelector('select[aria-label="Intensity"], button[aria-label="Remove session"]')));
 await p.evaluate(() => window.postMessage({ type: 'glow-screen', id: 'me' }, '*')); await p.waitForTimeout(500);
 ok('and Glow cannot reset or overwrite the shared data', await p.evaluate(() => !/Reset everything|Import backup/.test(document.getElementById('glow-host').shadowRoot.textContent)));
@@ -165,6 +165,8 @@ ok('the health bank: the week added up, a load check, six longevity habits', awa
 ok('and what the food did, nutrient by nutrient, animal foods first', /What your food did for you today/.test(await shadow(p, 'glowHome')));
 
 ok('three more coaches: lifting, longevity, study, each with last, this week, next and goal', await p.evaluate(() => ['liftCoach', 'longCoach', 'studyCoach'].every((id) => { const t = E(id).innerText; return /This week/.test(t) && /Next/.test(t) && /Goal|long game/i.test(t); }) && !!document.querySelector('#s-phys #liftCoach') && !!document.querySelector('#s-longev #longCoach') && !!document.querySelector('#s-study #studyCoach')));
+
+ok('Glow is folded in: no separate Body page; the recovery clock sits in Running and Physique', await p.evaluate(() => !document.querySelector('#tabs button[data-g="body"]') && !!document.querySelector('#s-camp #glowRecRun') && !!document.querySelector('#s-phys #glowRecLift')) && /Recovery clock/i.test(await shadow(p, 'glowRecLift')));
 
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);

@@ -97,7 +97,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </div>
       </div>
 
-      {coach.length > 0 && (
+      {!hosted() && coach.length > 0 && (
         <Card eyebrow="Glow coach" title="Here’s your day">
           <ul className="space-y-2.5">
             {coach.map((c) => (
@@ -117,14 +117,15 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
       {!hosted() && <DayPlanCard date={date} />}
       {!hosted() && <IdeasCard date={date} />}
       {!hosted() && <NextMoves date={date} />}
-      <RecoveryClock date={date} />
+      {!hosted() && <RecoveryClock date={date} />}
       {!hosted() && <BingeToday date={date} />}
       {!hosted() && <IllToday date={date} />}
       <FeelCard date={date} />
       <LookSharp date={date} />
 
       {!hosted() && <CheckIn date={date} />}
-      <VitalsCard date={date} kg={r.weightKg} />
+      {/* steps, heart rate and recovery are the tracker's (Overview, Running, Physique) */}
+      {!hosted() && <VitalsCard date={date} kg={r.weightKg} />}
       {!hosted() && <StudyCard date={date} />}
 
       {r.analysis.warnings.length > 0 && (
