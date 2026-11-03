@@ -491,15 +491,15 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
       <hr class="d">
       <p class="note">The carb number is a <b>floor, not a ceiling</b>. Going under it raises cortisol, holds water, and makes you puffier and hungrier at the same rate of loss. Fat does not go under 40 g — testosterone and skin barrier.</p>
     </div>
-    <div class="p"><h2>Eating times — built around gym 18:30 and the bowl 20:30</h2>
+    <div class="p"><h2>Eating times — your real day (2 Nov)</h2>
       <table class="tbl"><tbody>
-        <tr><td class="mono">07:00–08:00</td><td>Breakfast. Hard runs 60–90 min after this</td></tr>
-        <tr><td class="mono">12:30–13:30</td><td>Lunch</td></tr>
-        <tr><td class="mono">16:30–17:00</td><td>Dinner — deliberately before the gym</td></tr>
-        <tr><td class="mono">18:30</td><td>Gym</td></tr>
-        <tr><td class="mono">20:30</td><td>Yoghurt bowl, post-gym · 535 kcal</td></tr>
+        <tr><td class="mono">On waking</td><td>Breakfast. A quality run 60–90 min after it</td></tr>
+        <tr><td class="mono">≈ 14:00</td><td>2pm meal, after the walk or run</td></tr>
+        <tr><td class="mono">17:30–18:00</td><td>Pre-gym meal</td></tr>
+        <tr><td class="mono">≈ 18:00</td><td>Gym</td></tr>
+        <tr><td class="mono">After the gym</td><td>Post-gym meal, the last feed — protein overnight</td></tr>
       </tbody></table>
-      <p class="tiny" style="margin-top:8px">Dinner after the gym would land at 20:00 with the bowl at 20:30 — two meals stacked, and the bowl loses its job as the post-lifting refuel.</p>
+      <p class="tiny" style="margin-top:8px">Four protein feeds, 3–5 hours apart: the pattern that builds the most muscle. Log them on the Food tab — it is the one diary.</p>
     </div>
   </div>
   <div class="p"><h2>Breakfast follows the session, not the clock</h2>
@@ -2818,13 +2818,13 @@ function restModel(w,tr){
 function fuelBook(){
   return {
   hard:{n:'Hard run — reps, or anything at or under the effort line',
-    s:'Oats 60–90 min before · 30 g protein + 60 g carbs within the hour after · dinner 16:30 · bowl 20:30',
+    s:'Oats 60–90 min before · 30 g protein + 60 g carbs within the hour after · pre-gym 17:30–18:00 · post-gym last',
     w:'The session that actually runs on glycogen, and the only one where being underfed shows up in the numbers on the day rather than a week later.',
     r:[['60–90 min before','70 g certified GF oats, 150 ml milk, 13 g raw honey.','~400 kcal and 66 g of carbohydrate. The proven one. Four eggs before a run felt terrible and the oats felt great — that is 20 g of carbohydrate against 66, not something about eggs.'],
        ['During','Water. Nothing to eat under an hour.','Nothing fizzy inside two hours of running — gastric distension, stitch.'],
        ['Within the hour after','About 30 g of protein alongside 60 g of carbohydrate, together. Skyr and a banana with honey; cod and potatoes if it lands at lunch.','The post-session window is oversold in general. It is not oversold on a day you also lift at 18:30, because the glycogen has to be back by then.'],
-       ['16:30–17:00','Dinner, before the gym as always.',''],
-       ['20:30','The bowl — '+CFG.kcal.bowl+' kcal.','Protein overnight, which is when the repair actually runs.']]},
+       ['17:30–18:00','The pre-gym meal, as always.',''],
+       ['After the gym','The post-gym meal, the last feed.','Protein overnight, which is when the repair actually runs.']]},
   sprint:{n:'100m uphill sprints',
     s:'Something small and carby an hour before · normal meals after · expect the scale up tomorrow, it is water not fat',
     w:'Ten to fifteen seconds at a time. This is a nervous-system session, limited by how fresh you are rather than by how much carbohydrate is in the muscle — but it is only worth doing at full power, and power is the first thing to go when you are empty.',
@@ -2838,12 +2838,11 @@ function fuelBook(){
        ['Or fed','Keep it small and leave it 90 minutes.','A full breakfast half an hour before an easy run buys nothing and costs a stitch.'],
        ['After','No rush. Normal meal.',''],
        ['If it came in under the effort line','Then it was not an easy run, and the app has already counted it as a hard one.','Fuel the next one like a hard session. The five-mile slot stays open when that happens, and the empty slot is information.']]},
-  gym:{n:'Gym at 18:30',
-    s:'Dinner 16:30–17:00 is the pre-lift meal · bowl at 20:30 is the refuel · never dinner after',
-    w:'The 16:30–17:00 dinner is the pre-lift meal. That is why it sits there and not after.',
-    r:[['16:30–17:00','Dinner: a real protein and a real carbohydrate. Cod and potatoes is the cheapest version of both.','Ninety minutes clear of lifting, which is about right.'],
-       ['20:30','The bowl.','Post-lifting refuel and the overnight protein in one. That is why moving it is a bad trade even at '+CFG.kcal.bowl+' kcal.'],
-       ['Not after the gym','Dinner after lifting lands at 20:00 with the bowl at 20:30.','Two meals stacked, and the bowl stops doing the job it is there for.']]},
+  gym:{n:'Gym at about 18:00',
+    s:'Pre-gym meal 17:30–18:00 · post-gym meal is the last feed',
+    w:'Your day (2 Nov): breakfast on waking, the 2pm meal after the walk or run, a pre-gym meal, then the post-gym meal.',
+    r:[['17:30–18:00','Pre-gym: some protein and easy carbohydrate. Kallo cakes with honey and a little Fage, or a banana.','Light enough to lift on, enough to fuel it.'],
+       ['After the gym','Post-gym: a real protein and a real carbohydrate. Chicken or hake and potatoes, or the Fage bowl.','The last feed, and protein overnight — when the repair actually runs.']]},
   rest:{n:'Rest day',
     s:'Food does not come down — same '+ci(KCAL_DAY)+' · protein '+PRO_TXT+' · carbs at or above the floor · steps can stay',
     w:'Rest is in the plan. It is never a missed target, and it is not a day to eat less.',
@@ -5060,9 +5059,9 @@ function seasonHTML(){
     '<h3 style="margin:8px 0 2px">🍽️ Eat</h3><div>'+S2.eat.map(chip).join('')+'</div>'+
     '<h3 style="margin:10px 0 2px">✨ Do</h3>'+S2.doo.map(function(x){return '<p style="margin:4px 0">'+x+'</p>';}).join('')+
     '<h3 style="margin:12px 0 2px">🍳 Meal ideas</h3>'+
-    [['🌅 Breakfast','b'],['☀️ Lunch','l'],['🌆 Dinner · 16:30','d']].map(function(q){
+    [['🌅 Breakfast','b'],['☀️ 2pm, after the walk or run','l'],['🌆 Post-gym','d']].map(function(q){
       return '<div style="margin:6px 0"><b>'+q[0]+'</b>'+S2.meals[q[1]].map(function(x){return '<div style="margin:2px 0 0 10px">'+x+'</div>';}).join('')+'</div>';}).join('')+
-    '<div style="margin:6px 0"><b>🌙 Evening · 20:30</b><div style="margin:2px 0 0 10px">🥣 Your yoghurt bowl — always the same</div></div>'+
+    '<div style="margin:6px 0"><b>🏋️ Pre-gym · 17:30–18:00</b><div style="margin:2px 0 0 10px">🥣 Fage with fruit and honey, or Kallo cakes and a banana</div></div>'+
     '<p class="tiny keep" style="margin:4px 0 0">Hard-run morning: the oats, 60–90 min before. Any meal works with any season’s fruit. No onion, leek or garlic (8 Oct, they slow your gut) — chives, or onion or garlic fried in butter and lifted out, give the flavour without it.</p>'+
     '<p class="tiny keep" style="margin-top:10px"><b>All year:</b> farm shops like Doddington Hall for local meat and eggs · fresh fish from Grimsby · Whisby and Hartsholme for green time.</p></div>';
 }
@@ -6695,8 +6694,9 @@ function setEaten(d,list){
   patch.kcal=list.length?Math.round(eatenTotals({eaten:list}).kcal):null;
   setDay(d,patch);
 }
-function mealNow(){var h=new Date().getHours(),m=new Date().getMinutes();
-  return h<11?'breakfast':(h<15?'lunch':(h<18||(h===18&&m<30)?'tea':'evening'));}
+/* Dan's day (2 Nov): breakfast on waking, the 2pm meal, pre-gym 17:30–18:00, post-gym last */
+function mealNow(){var h=new Date().getHours();
+  return h<11?'breakfast':(h<17?'lunch':(h<18?'tea':'evening'));}
 /* ===================== healthy foods =====================
    Dan: log the healthiest foods by weight and get told what the week did for
    him. Grams, raw weight for meat and fish (eggs are counted), mainly animal
@@ -6895,7 +6895,11 @@ function renderFoodLog(){
       '<p class="tiny">The kcal box above now comes from this diary.</p>'+
       groupsHTML(rec)+microHTML(t);
   }
-  E('foodList').innerHTML=h;
+  /* the one diary is Glow's: show what it holds for this day first */
+  var gdd=E('logDate').value||today(),gs=glowDay(gdd),gi=((S.days[gdd]||{}).glow||{}).items||[];
+  var gline='<div class="p flag" style="box-shadow:none;margin:0 0 8px"><b>🍽️ Food diary</b> <span class="tiny">— '+(gs?ci(gs.kcal)+' kcal · '+ci(gs.protein)+' g protein · '+gi.length+' item'+(gi.length===1?'':'s')+' · Glow '+gs.glow:'nothing logged yet')+'</span> <button type="button" class="btn sm ghost" data-t="glow" data-g="today">Open Food</button>'+
+    '<div class="tiny dim" style="margin-top:3px">Everything below adds to it — one diary, counted once.</div></div>';
+  E('foodList').innerHTML=gline+(((S.days[gdd]||{}).eaten||[]).length?h:'');
   var cur=E('inFood').value;
   var mine=Object.keys(S.foods||{}).map(function(k){return S.foods[k];}).sort(function(a,b){return a.name<b.name?-1:1;});
   var opt=function(f){return '<option value="'+esc(f.id)+'"'+(f.id===cur?' selected':'')+'>'+esc(f.name)+' — '+ci(f.kcal)+' kcal '+perWord(f)+'</option>';};
@@ -7161,10 +7165,11 @@ function wireFood(){
     msg.textContent='';
     if(!f){msg.textContent='Pick a food first.';return;}
     if(!(a>0)){msg.textContent=f.unit==='each'?'How many?':'How much did you have?';return;}
-    var d=E('logDate').value||today(),rec=S.days[d]||{},list=(rec.eaten||[]).slice();
-    list.push(entryFor(f,a,E('inMeal').value||mealNow()));
+    var d=E('logDate').value||today();
+    glowAddEntry(d,entryFor(f,a,E('inMeal').value||mealNow()));
     E('inAmt').value='';
-    setEaten(d,list);
+    touch();glowRecompute();
+    msg.innerHTML='Added to your Food diary (Glow). <button type="button" class="btn sm ghost" data-t="glow" data-g="today">Open Food</button>';
   });
   E('foodList').addEventListener('click',function(ev){
     var b=ev.target.closest('button[data-eat]');if(!b)return;
@@ -9184,6 +9189,8 @@ function wireGoodLife(){
   E('btBinge').addEventListener('click',function(){GLOW_OPEN.binge=true;placeGlow();GLOW_OPEN.binge=false;if(!window.GLOW)loadGlow();var el=E('glowBinge');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
   E('btIll').addEventListener('click',function(){GLOW_OPEN.ill=true;placeGlow();GLOW_OPEN.ill=false;if(!window.GLOW)loadGlow();var el=E('glowIll');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
   E('btJournal').addEventListener('click',function(){JR.open=true;E('jrnlCard').innerHTML=journalHTML();E('jrnlCard').scrollIntoView({behavior:'smooth',block:'center'});});
+  /* any "open this tab" button outside the navigation, e.g. "Open Food" */
+  document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-t]');if(!b||b.closest('#tabs')||b.closest('#bnav'))return;if(b.dataset.g||b.dataset.t==='glow')tab(b.dataset.t,b.dataset.g);});
   document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-jr]');if(!b)return;var a=b.dataset.jr,d=jrDate();
     if(a==='save'){journalSave();return;}if(a==='cancel'){JR.open=false;render();return;}if(a==='edit'){JR.open=true;E('jrnlCard').innerHTML=journalHTML();return;}
     if(a==='mood'||a==='energy'){var r=S.days[d]=S.days[d]||{},j=r.journal=r.journal||{};
@@ -9448,6 +9455,31 @@ function journalHistoryHTML(){
     (rows.length?rows.slice(0,120).map(function(d){var j=S.days[d].journal;return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>'+DOWS[dow(d)]+' '+fmtS(d)+'</b> <span class="tiny">mood '+(j.mood||'—')+' · energy '+(j.energy||'—')+'</span>'+
       ['well','learned','tomorrow','free'].map(function(k){return j[k]?'<div class="tiny" style="margin-top:2px"><span class="dim">'+({well:'Went well',learned:'Learned',tomorrow:'Tomorrow first',free:'Notes'})[k]+':</span> '+esc(j[k])+'</div>':'';}).join('')+'</div>';}).join(''):'<p class="tiny">'+(q?'Nothing matches.':'No entries yet — tap 📓 Journal in the Log panel.')+'</p>')+'</div>';
 }
+
+/* ===================== one diary (3 Nov) =====================
+   Glow's diary is the diary. The Diary tab's own pickers, the packet scan and
+   the "type it" lookup still work, but what they add goes into Glow: the food
+   becomes a Glow custom food and the amount a Glow log entry, so calories are
+   counted once (days[d].kcal comes from Glow's totals). Old days[d].eaten
+   entries are moved across the same way. */
+var GLOW_MEAL={breakfast:'breakfast',lunch:'lunch',tea:'snacks',evening:'dinner'};
+var GLOW_NKEYS=['kcal','protein','carbs','fibre','sugar','fat','satFat','omega3','vitA','vitC','vitD','vitE','vitK','b2','folate','b12','choline','iron','zinc','copper','selenium','magnesium','potassium','calcium','iodine','sodium'];
+function glowCustom(id,name,per100,known){var n={},unk=[];GLOW_NKEYS.forEach(function(k){n[k]=typeof per100[k]==='number'?per100[k]:0;if(known.indexOf(k)<0)unk.push(k);});
+  return {id:id,name:name,category:'other',nova:2,portion:{g:100,label:'100 g'},n:n,tags:[],source:'custom',unknown:unk,limitedData:true};}
+function glowItemUid(){return Math.random().toString(36).slice(2,10);}
+function glowAddEntry(d,e){
+  /* one exact entry: a custom food whose "100 g" is this portion, logged at 100 g */
+  var id='tr-'+(e.id||'f')+'-'+glowItemUid(),per={kcal:e.kcal,protein:e.pro,carbs:e.carb,fat:e.fat},known=['kcal','protein','carbs','fat'];
+  if(typeof e.fib==='number'){per.fibre=e.fib;known.push('fibre');}if(typeof e.sug==='number'){per.sugar=e.sug;known.push('sugar');}
+  var G=S.glow=S.glow||{};G.customFoods=(G.customFoods||[]).concat([glowCustom(id,e.n+(e.a?' · '+e.a+(e.u==='each'?'':(e.u==='ml'?' ml':' g')):''),per,known)]);
+  var r=S.days[d]=S.days[d]||{},g=r.glow=r.glow||{};g.items=(g.items||[]).concat([{uid:glowItemUid(),foodId:id,grams:100,meal:GLOW_MEAL[e.m]||'snacks'}]);
+  r.kcalFrom='glow';
+}
+function migrateEaten(){var moved=0;
+  Object.keys(S.days).forEach(function(d){var r=S.days[d];if(!r||!r.eaten||!r.eaten.length)return;
+    r.eaten.forEach(function(e){glowAddEntry(d,e);moved++;});delete r.eaten;});
+  return moved;}
+function glowRecompute(){if(window.GLOW&&window.GLOW.recompute)try{window.GLOW.recompute();}catch(e){}}
 /* ===================== events ===================== */
 /* one app (3 Nov): Glow's screens are tabs of the tracker; the frame stays
    loaded and is told which screen to show */
@@ -9459,7 +9491,7 @@ var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 function loadGlow(){
   if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
   window.__GLOW_START__=GLOW_SUB;
-  window.addEventListener('glow-ready',function(){placeGlow();if(CUR==='glow')startGlow();},{once:true});
+  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
 var GLOW_OPEN={binge:false,ill:false};
@@ -9730,6 +9762,7 @@ function boot(){
   var local=loadLocal();
   S=local?local:normalise(clone(SEED));
   PRUNED+=pruneEmptyRuns();
+  if(migrateEaten())PRUNED++;
   if(!local||PRUNED)saveLocal();
   E('logDate').value=today();
   wire();
@@ -9748,6 +9781,7 @@ function boot(){
           var newer=(remote.updatedAt>=S.updatedAt)?remote:S;
           var m=mergeByDate(newer===remote?S:remote,newer);
           MERGED=m.added;S=m.s;
+          if(migrateEaten())m.added=(m.added||0)+1;
           PRUNED+=pruneEmptyRuns();saveLocal();dbState='synced';dbSettled=true;
           if(m.added)queueRemote();          /* push whatever the store was missing */
           render();

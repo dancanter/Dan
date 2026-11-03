@@ -4,7 +4,7 @@ import './index.css';
 import { App } from './App';
 import { startCloud } from './cloud';
 import { hosted } from './host';
-import { getState, refreshFromHost, setSummariser } from './store';
+import { getState, refreshFromHost, setState, setSummariser } from './store';
 import { dayResult } from './engine/game';
 import { DayPlanCard } from './components/DayPlan';
 import { IdeasCard, WeeklyReviewCard } from './components/Review';
@@ -65,6 +65,8 @@ if (hosted()) {
     mountApp: (host: HTMLElement) => render(host, <App />),
     /** One of Glow's pieces, placed by the tracker. */
     mount: (host: HTMLElement, v: View, date: string, open?: boolean) => render(host, view(v, date, open)),
+    /** Recount every day's totals and write them back (after the tracker adds food). */
+    recompute: () => { refreshFromHost(); setState((s) => ({ ...s })); },
     /** For tests: Glow's own view of a day. */
     day: (date: string) => getState().days[date],
   };
