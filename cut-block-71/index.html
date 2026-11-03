@@ -216,6 +216,59 @@ details[open] summary{color:var(--ink);margin-bottom:2px}
 .six .sub{font-size:11.5px;color:var(--ink-3)}
 .six .rank{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== The Good Life × Glow design (3 Nov): Riviera at golden hour — warm
+   linen, deep navy, sea teal, one gold accent; serif headings, soft cards.
+   Light by default, a designed dark mode, and the old tokens mapped onto it. */
+:root{color-scheme:light;
+  --bg:#f6f1e7;--panel:#fffcf6;--panel-2:#efe8da;--panel-3:#e4dccb;
+  --ink:#161b26;--ink-2:#48505f;--ink-3:#7c7f86;
+  --rule:#e4dccb;--rule-2:#ece5d6;
+  --accent:#1f7a8c;--accent-2:#2c93a7;--accent-soft:#dcedf0;
+  --good:#2e7d4f;--good-soft:#dff0e4;--warn:#9a6a00;--warn-soft:#f7ecd0;--bad:#b23b33;--bad-soft:#f8e0dd;
+  --on-accent:#ffffff;--gold:#b8893b;--gold-soft:#f3e6cc;--navy:#13294b;
+  --shadow:0 1px 2px rgb(22 27 38 / .05),0 10px 28px -14px rgb(22 27 38 / .18)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#0e1624;--panel:#152033;--panel-2:#1c2a40;--panel-3:#26354d;
+  --ink:#f1ece2;--ink-2:#c4c2bd;--ink-3:#8f96a3;--rule:#26354d;--rule-2:#1f2d44;
+  --accent:#4fb3c4;--accent-2:#6cc6d5;--accent-soft:#16323c;
+  --good:#5fc68a;--good-soft:#193526;--warn:#e2b54e;--warn-soft:#3a3018;--bad:#ef7d73;--bad-soft:#3d1f1f;
+  --on-accent:#0e1624;--gold:#e0b468;--gold-soft:#3a3020;--navy:#1d3a66;
+  --shadow:0 1px 2px rgb(0 0 0 / .3),0 10px 28px -14px rgb(0 0 0 / .6)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#0e1624;--panel:#152033;--panel-2:#1c2a40;--panel-3:#26354d;
+  --ink:#f1ece2;--ink-2:#c4c2bd;--ink-3:#8f96a3;--rule:#26354d;--rule-2:#1f2d44;
+  --accent:#4fb3c4;--accent-2:#6cc6d5;--accent-soft:#16323c;
+  --good:#5fc68a;--good-soft:#193526;--warn:#e2b54e;--warn-soft:#3a3018;--bad:#ef7d73;--bad-soft:#3d1f1f;
+  --on-accent:#0e1624;--gold:#e0b468;--gold-soft:#3a3020;--navy:#1d3a66}
+body{background:var(--bg);font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14.5px}
+.brand{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;font-size:22px;letter-spacing:0}
+.brand span{color:var(--gold)}
+header.top{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--rule)}
+nav.tabs button{font-family:inherit;font-weight:600;letter-spacing:0;text-transform:none;border-radius:999px;border-bottom:0;padding:7px 13px;margin:6px 2px}
+nav.tabs button[aria-selected="true"]{background:var(--navy);color:#f6f1e7;border-bottom:0}
+.p{background:var(--panel);border:1px solid var(--rule);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.p>h2,.p h2{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:19px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600;margin-bottom:10px}
+.p.flag{border-left:3px solid var(--gold)}
+.btn{border-radius:999px;font-family:inherit;letter-spacing:0;padding:8px 15px}
+.btn.ghost{background:var(--panel-2);color:var(--ink);border-color:var(--rule)}
+.btn.sm{padding:5px 11px}
+.pill{border-radius:999px;font-family:inherit;letter-spacing:.02em}
+input[type="text"],input[type="number"],input[type="date"],select,textarea{border-radius:12px;font-family:inherit;background:var(--panel)}
+.f label,table.tbl th,.tile .k,.topstat i{font-family:inherit;letter-spacing:.06em}
+.tile{border-radius:14px}
+.cc{background:var(--panel);border:1px solid var(--rule);border-radius:24px;box-shadow:var(--shadow);border-top:3px solid var(--gold)}
+.cc-k{color:var(--gold);font-family:inherit}
+.cc-date{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:24px}
+.cc-count b{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600}
+.cc-rl,.cc-chip small{font-family:inherit}
+.cc-dot{box-shadow:none}
+.cc-bar i{background:linear-gradient(90deg,var(--accent),var(--gold))}
+.cc-day{border-radius:12px}
+.cc-phase{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.cc-phase div{flex:0 0 auto;border:1px solid var(--rule);border-radius:999px;padding:5px 10px;font-size:11.5px;color:var(--ink-2);background:var(--panel-2)}
+.cc-phase div.on{background:var(--navy);color:#f6f1e7;border-color:var(--navy)}
+
 </style>
 <header class="top">
   <div class="topin">
@@ -4344,7 +4397,7 @@ function campGame(){
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
   if(Mq&&Mq.T)T=Mq.T;
   var quests0=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.mix?['🔥','Fun fast run',Math.min(q.fun,1),Mq.mix.indexOf('fun')>=0?1:0]:['🏃','Easy 5-milers',q.five,eT]),
-    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,Mq.mix.filter(function(k){return k==='norw';}).length),Mq.mix.filter(function(k){return k==='norw';}).length]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,Mq.mix.filter(function(k){return k==='norw';}).length),Mq.mix.filter(function(k){return k==='norw';}).length]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym, 4–6 a week',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   if(Mq&&Mq.phys&&Mq.P.long&&Mq.P.short){quests0[0]=['⚡','Hard run, 600 m and up',Mq.longDone?1:0,1];quests0.splice(1,0,['💨','Speed run, 200–400 m',Mq.shortDone?1:0,1]);}
   var quests=quests0.filter(function(x){return x[3]>0;});
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
@@ -9183,6 +9236,12 @@ function ccGoals(){
       '<div class="cc-bar"><i style="width:'+Math.round(pct*100)+'%"></i></div>'+
       '<div class="cc-gs">'+(at?'all-time '+fmt(at.t)+' · ':'')+'trial '+fmtS(x.on)+'</div></div>';}).join('');
 }
+/* Dan, 3 Nov: the season — shred to France and on to the Christmas trials,
+   then a muscle phase at maintenance with the gym 4–6 times a week to the
+   end of March, the run times back in March, and leaning down after. */
+var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-23','Shred + PB trials'],['2026-12-24','2026-12-31','Christmas'],
+  ['2027-01-01','2027-02-28','Muscle · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
+function seasonHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
 function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
   var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
@@ -9206,6 +9265,7 @@ function missionHTML(){
   return '<div class="cc">'+
     '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
       (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
+    seasonHTML(t)+
     '<div class="cc-hero">'+
       '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
       '<div class="cc-shred"><div class="cc-gh"><b>Shred meter</b><span>'+(now!==null?f1(now)+' lb':'weigh in')+' → <b class="acc">122–124</b></span></div>'+

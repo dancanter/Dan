@@ -322,7 +322,7 @@ await boot(st({ days: {
 const G = await p.evaluate(() => campGame());
 ok('XP adds up from the sessions, sleep and phone-free nights', G.xp === (20 + 20 + 10 + 5) + (30 + 20 + 10) + (20 + 20), JSON.stringify({ xp: G.xp }));
 ok('level 1 is Rookie, with day 4 of the camp', G.lv[1] === 'Rookie' && G.day === 4, JSON.stringify({ lv: G.lv, d: G.day }));
-ok('quests count the week: hard 1/2, Norwegian 0/2 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.filter(q => /^(Hard runs|Norwegian sub-threshold|Gym)$/.test(q[1])).map(q => q[2] + '/' + q[3])) === '["1/2","0/2","3/4"]', JSON.stringify(G.quests));
+ok('quests count the week: hard 1/2, Norwegian 0/2 (easy 5-milers are not it), gym 3/4', JSON.stringify(G.quests.filter(q => /^(Hard runs|Norwegian sub-threshold|Gym, 4–6 a week)$/.test(q[1])).map(q => q[2] + '/' + q[3])) === '["1/2","0/2","3/4"]', JSON.stringify(G.quests));
 ok('the runs left are listed, never a day: one hard (6 × 200 m) with how to run it; two easy runs already fill the easy slots', G.left.filter(x => x.e === '⚡').length === 1 && /6 × 200 m/.test(G.left[0].n) && /Fast but relaxed/.test(G.left[0].how) && G.left.filter(x => x.e === '🏃').length === 0, JSON.stringify(G.left));
 ok('seven bosses (200 added), none beaten yet', G.bosses.length === 7 && G.bosses.every(b => !b.won));
 ok('the goals: sub-17 5 km, sub-4:50 mile, sub-2:45 1 km, sub-2:00 800, sub-55 400', await p.evaluate(() => { const g = {}; CFG.camp.pb.forEach(x => g[x.dm] = x.goal); return g[5000] === 1020 && g[1609] === 290 && g[1000] === 165 && g[800] === 120 && g[400] === 55 && g[600] && g[200]; }));
