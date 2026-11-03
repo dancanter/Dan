@@ -269,6 +269,17 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
 .cc-phase div{flex:0 0 auto;border:1px solid var(--rule);border-radius:999px;padding:5px 10px;font-size:11.5px;color:var(--ink-2);background:var(--panel-2)}
 .cc-phase div.on{background:var(--navy);color:#f6f1e7;border-color:var(--navy)}
 
+
+#bnav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom)}
+#bnav button{background:none;border:0;padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 11px ui-sans-serif,-apple-system,sans-serif;color:var(--ink-3);cursor:pointer}
+#bnav button span{font-size:19px;line-height:1;filter:grayscale(.6);opacity:.75}
+#bnav button.on{color:var(--gold)}#bnav button.on span{filter:none;opacity:1}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+#glowFrame{height:calc(100dvh - 210px)!important}
+
+.topin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.topstat{display:flex;gap:14px;flex-wrap:wrap}.topstat>div{white-space:nowrap}
+@media (max-width:520px){.topstat>div:nth-child(n+3){display:none}.topstat{gap:10px}.brand{font-size:20px}}
 </style>
 <header class="top">
   <div class="topin">
@@ -283,10 +294,14 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
   <nav class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="today" aria-selected="true">Today</button>
     <button role="tab" data-t="camp" aria-selected="false">🏁 Camp</button>
-    <button role="tab" data-t="glow" aria-selected="false">🌱 Glow</button>
+    <button role="tab" data-t="glow" data-g="today" aria-selected="false">🍽️ Food</button>
+    <button role="tab" data-t="glow" data-g="foods" aria-selected="false">🥗 Foods</button>
+    <button role="tab" data-t="glow" data-g="cellular" aria-selected="false">🧬 Cells</button>
+    <button role="tab" data-t="glow" data-g="body" aria-selected="false">🌙 Body</button>
+    <button role="tab" data-t="glow" data-g="rituals" aria-selected="false">✨ Rituals</button>
     <button role="tab" data-t="feedback" aria-selected="false">Feedback</button>
     <button role="tab" data-t="weight" aria-selected="false">Weight</button>
-    <button role="tab" data-t="food" aria-selected="false">Food</button>
+    <button role="tab" data-t="food" aria-selected="false">📒 Diary</button>
     <button role="tab" data-t="training" aria-selected="false">Training</button>
     <button role="tab" data-t="times" aria-selected="false">Times</button>
     <button role="tab" data-t="sleep" aria-selected="false">Sleep</button>
@@ -301,6 +316,13 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
     <button role="tab" data-t="data" aria-selected="false">Data</button>
   </nav>
 </header>
+<nav id="bnav" aria-label="Main sections">
+  <button type="button" data-t="today" class="on"><span>☀️</span>Today</button>
+  <button type="button" data-t="camp"><span>🏁</span>Train</button>
+  <button type="button" data-t="glow" data-g="today"><span>🍽️</span>Food</button>
+  <button type="button" data-t="glow" data-g="cellular"><span>🧬</span>Cells</button>
+  <button type="button" data-t="life"><span>✨</span>Life</button>
+</nav>
 
 <main>
 
@@ -710,7 +732,7 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
   <div class="p" style="padding:0;overflow:hidden">
     <iframe id="glowFrame" title="Glow — cellular nutrition" style="display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:0;background:var(--bg)"></iframe>
   </div>
-  <p class="tiny dim" style="margin:6px 2px">Glow: 4,700+ foods scored for your cells, the 8 cellular pillars, sleep and rituals. What you log here fills your calorie and protein rings on Today, and your weigh-ins come across from the tracker.</p>
+  
 </section>
 
 <!-- ================= THE GOOD LIFE ================= -->
@@ -9313,22 +9335,29 @@ function raceCardHTML(){
     '<p class="tiny" style="margin-top:8px"><b>What moves these:</b> the 600 m+ session builds the 800 m to 5 km; the speed session builds the 200 to 800; the Norwegian builds the engine under all of it. Every pound lost before the trials is roughly 0.4–0.6% off the 800 m to 5 km.</p></div>';
 }
 /* ===================== events ===================== */
-function tab(name){
+/* one app (3 Nov): Glow's screens are tabs of the tracker; the frame stays
+   loaded and is told which screen to show */
+var GLOW_SUB='today';
+function tab(name,sub){
   CUR=name;
-  if(name==='glow'&&E('glowFrame')&&!E('glowFrame').getAttribute('src')){trackerBridge();E('glowFrame').setAttribute('src','glow.html');}
+  if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;var gf=E('glowFrame');
+    if(gf&&!gf.getAttribute('src')){trackerBridge();gf.setAttribute('src','glow.html#'+GLOW_SUB);}
+    else if(gf&&gf.contentWindow){try{gf.contentWindow.postMessage({type:'glow-screen',id:GLOW_SUB},'*');}catch(e){}}}
   ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
-  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){
-    b.setAttribute('aria-selected',b.dataset.t===name?'true':'false');
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button,#bnav button'),function(b){
+    var on=b.dataset.t===name&&(name!=='glow'||!b.dataset.g||b.dataset.g===GLOW_SUB);
+    if(b.closest('#bnav'))b.classList.toggle('on',on);else b.setAttribute('aria-selected',on?'true':'false');
   });
   try{localStorage.setItem(LS+'.tab',name);}catch(e){}
   window.scrollTo(0,0);
 }
 function wire(){
   wireGoodLife();
+  document.getElementById('bnav').addEventListener('click',function(e){var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t,b.dataset.g);});
   document.getElementById('tabs').addEventListener('click',function(e){
-    var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t);
+    var b=e.target.closest('button[data-t]');if(b)tab(b.dataset.t,b.dataset.g);
   });
   E('logDate').addEventListener('change',function(){paintForm();});
   E('slChart').addEventListener('click',function(ev){

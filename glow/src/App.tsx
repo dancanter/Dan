@@ -18,6 +18,10 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
+// Inside The Good Life, Glow is one part of a single app: the tracker draws
+// the header and the navigation, and tells Glow which screen to show.
+const embedded = (() => { try { return window.parent !== window; } catch { return true; } })();
+
 function readHash(): TabId {
   const h = location.hash.replace('#', '') as TabId;
   return TABS.some((t) => t.id === h) ? h : 'today';
@@ -31,6 +35,15 @@ export function App() {
     const onHash = () => setTab(readHash());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  useEffect(() => {
+    if (!embedded) return;
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { type?: string; id?: string } | null;
+      if (d?.type === 'glow-screen' && TABS.some((t) => t.id === d.id)) setTab(d.id as TabId);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
   }, []);
   useEffect(() => {
     if (location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
@@ -50,12 +63,12 @@ export function App() {
   }, []);
 
   return (
-    <div className="mx-auto min-h-dvh max-w-2xl px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-28">
-      <header className="mb-4 flex items-center gap-2">
+    <div className={embedded ? 'mx-auto min-h-dvh max-w-2xl px-4 pt-3 pb-8' : 'mx-auto min-h-dvh max-w-2xl px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-28'}>
+      {!embedded && <header className="mb-4 flex items-center gap-2">
         <span className="grid h-8 w-8 place-items-center rounded-xl bg-navy text-gold"><Sun size={18} /></span>
         <span className="font-serif text-lg tracking-wide">Glow</span>
         <span className="text-xs text-muted">· cellular nutrition</span>
-      </header>
+      </header>}
       <main>
         {tab === 'today' && <Today date={date} setDate={setDate} />}
         {tab === 'foods' && <Foods date={date} />}
@@ -64,7 +77,7 @@ export function App() {
         {tab === 'rituals' && <Rituals date={date} />}
         {tab === 'me' && <Me />}
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Sections">
+      {!embedded && <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Sections">
         <ul className="mx-auto grid max-w-2xl grid-cols-6">
           {TABS.map(({ id, label, icon: Icon }) => (
             <li key={id}>
@@ -75,7 +88,7 @@ export function App() {
             </li>
           ))}
         </ul>
-      </nav>
+      </nav>}
     </div>
   );
 }

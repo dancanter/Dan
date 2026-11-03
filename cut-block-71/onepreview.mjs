@@ -1,0 +1,18 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const SP='/tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad';
+const d = JSON.parse(fs.readFileSync(SP+'/db/state/main.json')); const S = d.data || d;
+const b = await chromium.launch(); const p = await b.newPage({viewport:{width:390,height:844}}); const errs=[]; p.on('pageerror',e=>errs.push(String(e)));
+await p.clock.setFixedTime(new Date('2026-11-03T12:00:00'));
+await p.goto('http://localhost:8765/index.html'); await p.evaluate(s=>{localStorage.clear();localStorage.setItem('cutblock71.v1',JSON.stringify(s));},S); await p.reload(); await p.waitForTimeout(1000);
+await p.evaluate(()=>{const w=document.getElementById('storeWarn');if(w)w.innerHTML='';});
+await p.screenshot({path:SP+'/one-today.png'});
+await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(3000); await p.screenshot({path:SP+'/one-food.png'});
+const fr=p.frames().find(f=>/glow\.html/.test(f.url()));
+const hasNav = fr ? await fr.evaluate(()=>!!document.querySelector('nav[aria-label="Sections"]')) : 'noframe';
+await p.click('#bnav button[data-g="cellular"]'); await p.waitForTimeout(1200);
+const cellTxt = fr ? (await fr.innerText('main')).slice(0,80).replace(/\n/g,' | ') : '';
+await p.screenshot({path:SP+'/one-cells.png'});
+const sel = await p.evaluate(()=>[...document.querySelectorAll('#bnav button.on')].map(b=>b.textContent));
+console.log('glow own nav hidden:', hasNav===false, '| cells:', cellTxt, '| bnav on:', sel, errs.length?errs:'no errors');
+await b.close();
