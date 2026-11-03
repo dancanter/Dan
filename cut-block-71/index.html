@@ -1314,7 +1314,7 @@ var GLOW_MUSCLE={Chest:'chest',Back:'back',Shoulders:'shoulders',Legs:'quads',Bi
 function glowSessions(r,d){var out=[];
   (r.runs||[]).forEach(function(x,i){var m=runMeta(x);if(m.empty)return;var reps=m.kind==='reps';
     out.push({id:'t-'+d+'-'+i,source:'manual',kind:'run',name:m.label||(reps?'Reps':'Run'),minutes:Math.max(10,Math.round((x.secs||0)/60*(reps?2:1)+(reps?20:0))),km:m.km||undefined,intensity:m.hard?'hard':(m.subt||m.fun?'moderate':'easy'),intensitySet:true});});
-  if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
+  if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(k==='Legs'&&r.legs){for(var lk in r.legs)sets[lk]=r.legs[lk];return;}if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
     out.push({id:'g-'+d,source:'manual',kind:'lift',name:r.split?('Gym · '+r.split):'Gym',minutes:60,intensity:(r.gymRpe||0)>=8?'hard':'moderate',intensitySet:true,sets:sets});}
   return out;}
 function glowLoad(){
@@ -1401,10 +1401,24 @@ function pruneEmptyRuns(){
    wholesale — both sides are current there, so newest is simply right, and
    merging would make deleting a day across devices impossible. */
 var MERGED=0;
+/* Dan, 3 Nov: a run logged from Strava vanished when an older copy of the same day
+   synced from his phone. Days now merge field by field: anything the newer copy
+   lacks is kept from the older one, runs are joined (the same run once), and the
+   food diary keeps every item by its id. Where both have a value, the newer wins. */
+function mergeDayInto(n,o){var ch=false,k;if(!o)return false;
+  for(k in o){if(k==='runs'){var seen={},rs=(n.runs||[]).slice();rs.forEach(function(x){seen[runSig(x)]=1;});
+      (o.runs||[]).forEach(function(x){if(!seen[runSig(x)]&&!rs.some(function(y){return sameRun(x,y);})){rs.push(clone(x));ch=true;}});if(rs.length)n.runs=rs;}
+    else if(k==='glow'&&n.glow){var have={};(n.glow.items||[]).forEach(function(i){have[i.uid]=1;});
+      (o.glow.items||[]).forEach(function(i){if(i&&i.uid&&!have[i.uid]){n.glow.items=(n.glow.items||[]).concat([clone(i)]);ch=true;}});}
+    else if(!(k in n)){n[k]=clone(o[k]);ch=true;}}
+  return ch;}
+function runSig(x){return JSON.stringify([x.k||'',x.dm||0,x.n||0,x.laps||0,x.km||0,Math.round(x.secs||0)]);}
+/* the same session saved two ways (two rep records, or one ladder) counts once */
+function sameRun(a,b){var ka=runMeta(a).km||a.km||0,kb=runMeta(b).km||b.km||0;return Math.abs(ka-kb)<0.05&&Math.abs((a.secs||0)-(b.secs||0))<3;}
 function mergeByDate(older,newer){
   var out=normalise(clone(newer)),k,added=0;
   for(k in older.weights){if(!(k in out.weights)){out.weights[k]=older.weights[k];added++;}}
-  for(k in older.days){if(!(k in out.days)){out.days[k]=clone(older.days[k]);added++;}}
+  for(k in older.days){if(!(k in out.days)){out.days[k]=clone(older.days[k]);added++;}else if(mergeDayInto(out.days[k],older.days[k]))added++;}
   for(k in older.bests){
     var mine=older.bests[k];
     if(mine&&mine.t>0&&(!out.bests[k]||mine.t<out.bests[k].t))out.bests[k]=clone(mine);
@@ -4152,7 +4166,7 @@ function glanceHTML(){
       if(C.refeed.k==='yes')calls.push('🍚 Refeed this week');
       var RW=revWatch();if(RW)calls.push(RW.e+' '+RW.t);
       var PSg=pushState();if(PSg.k==='on')calls.push(PSg.t);
-      return row('💬',calls.length?'I’m calling it':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
+      return row('💬',calls.length?'My suggestion':'Rest and refeed',calls.length?esc(calls.join(' · ')):'✅ All good — nothing to do','feedback');})():'')+
     (function(){var sd=shootDays();if(sd===null||sd>7)return '';var pl=shootPlan(sd);return row('📸',pl.t,esc(pl.items[0]),'model');})()+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
@@ -4220,7 +4234,7 @@ function coachModel(){
     if(i<7)X.km7+=km;else X.km28+=km;
     if(i<14&&rec.ill)X.ill++;
     if(i<7){if(rec.journal&&rec.journal.energy)X.en.push(rec.journal.energy);X.bin+=(rec.binges||[]).length;}}
-  var wsL=mondayOf(t);for(i=0;i<7;i++){rec=S.days[addD(wsL,i)]||{};X.legs+=(rec.sets&&+rec.sets.Legs)||0;}
+  var wsL=mondayOf(t);for(i=0;i<7;i++){rec=S.days[addD(wsL,i)]||{};X.legs+=rec.legs?((rec.legs.quads||0)+(rec.legs.hamstrings||0)):((rec.sets&&+rec.sets.Legs)||0);}
   var kmAvg=X.km28/3,enAvg=X.en.length>=3?mean(X.en):null;
   var slAvg=o.sl.length>=3?mean(o.sl):null,stAvg=o.steps.length>=3?mean(o.steps):null,moodAvg=o.mood.length>=3?mean(o.mood):null;
   /* weeks since the last easy week: a finished week with at most one hard
@@ -4249,7 +4263,7 @@ function coachModel(){
   if(enAvg!==null&&enAvg<=2.5)add(1,'your journal energy is averaging '+enAvg.toFixed(1)+' out of 5');
   if(X.ill>=2)add(2,X.ill+' sick days in the last fortnight');else if(X.ill)add(1,'a sick day in the last fortnight');
   if(X.bin>=2)add(1,X.bin+' binges this week, usually a sign of too little fuel for the training');
-  if(X.legs>16)add(1,X.legs+' sets of legs this week on top of the running');
+  if(X.legs>16)add(1,X.legs+' sets of quads and hamstrings this week on top of the running');
   if(kmAvg>=3&&X.km7>kmAvg*1.4)add(1,'running '+f1(X.km7)+' km this week against your usual '+f1(kmAvg));
   try{var FN=paceGuide().form.N;if(FN!==null&&FN<0.94)add(1,'Norwegian runs going much faster than planned, so even the easy sessions are hard');}catch(e){}
   /* the rest call */
@@ -4261,17 +4275,17 @@ function coachModel(){
     var left=EASY_WK_DAYS-diffD(S.settings.easyFrom,t);
     rest={k:'on',t:'Easy week — '+left+' day'+(left===1?'':'s')+' to go',w:'One hard run, kept controlled. The easy miles and steps stay. Same gym sessions with about a third fewer sets, nothing to failure. No time trials. Food stays exactly the same.'};
   }else if(pts>=6||NG.persistent||X.ill>=2){
-    rest={k:'walkweek',t:'Take a run-free week',w:'Your body is asking for more than an easy week: '+strain.slice(0,3).join(', ')+'. Seven days of steps, walking and the gym, no running. Walking keeps the fat loss and your health going while the legs, joints and hormones catch up. You come back to running faster and leaner.'};
+    rest={k:'walkweek',t:'I’d suggest a run-free week',w:'Your body is asking for more than an easy week: '+strain.slice(0,3).join(', ')+'. Seven days of steps, walking and the gym, no running. Walking keeps the fat loss and your health going while the legs, joints and hormones catch up. You come back to running faster and leaner.'};
   }else if(pts>=4||(R.state==='high'&&slAvg!==null&&slAvg<7)){
-    rest={k:'week',t:'Take an easy week',w:'Not a scheduled one — your body is asking: '+strain.slice(0,3).join(', ')+'. Seven days: one hard run kept controlled, the easy miles and steps stay, the gym stays with about a third fewer sets. Food stays the same. You come out of it faster, not slower.'};
+    rest={k:'week',t:'I’d take an easy week',w:'Not a scheduled one — your body is asking: '+strain.slice(0,3).join(', ')+'. Seven days: one hard run kept controlled, the easy miles and steps stay, the gym stays with about a third fewer sets. Food stays the same. You come out of it faster, not slower.'};
   }else if(ST&&(ST.k==='rest'||ST.k==='legs')){
     rest={k:'day',t:ST.t,w:ST.w};
   }else if(pts>=2||(ST&&ST.k==='warn')){
-    rest={k:'days',t:'Take a day or two off',w:(strain.length?'Because '+strain.slice(0,2).join(' and ')+'. ':(ST?ST.w+' ':''))+'A day or two with no sessions in the next few days — steps can stay. That is usually all it takes to stop this becoming an easy week.'};
+    rest={k:'days',t:'I’d take a day or two off',w:(strain.length?'Because '+strain.slice(0,2).join(' and ')+'. ':(ST?ST.w+' ':''))+'A day or two with no sessions in the next few days — steps can stay. That is usually all it takes to stop this becoming an easy week.'};
   /* in camp the week is built as six training days and Saturday fully off,
      so six in a row is the plan; the call is for a seventh */
   }else if(o.lastOff>=((t>=CFG.camp.start&&t<=CFG.camp.end)?7:6)){
-    rest={k:'day',t:'Next day fully off',w:'No day off in '+o.lastOff+' days. Take the next one with no run and no gym — walking is fine. Rest is when the fitness actually lands.'};
+    rest={k:'day',t:'A full day off next would help',w:'No day off in '+o.lastOff+' days. Take the next one with no run and no gym — walking is fine. Rest is when the fitness actually lands.'};
   }else{
     rest={k:'go',t:'No rest needed — keep going',w:(strain.length?'One small thing to watch: '+strain[0]+'. Not enough to change the week.':'Recovery is keeping up with the training. Your normal days off are doing the job.')};
   }
@@ -4667,8 +4681,8 @@ function campCallHTML(){
   var CC=calCall();if(CC&&CC.k!=='push'&&CC.k!=='rev')out+='<div class="p'+(CC.k==='hold'?'':' flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+CC.e+' '+CC.t+'.</b><div class="tiny" style="margin-top:4px">'+CC.w+'</div></div>';
   if(RW)out+='<div class="p '+(RW.k==='below'?'warn':'flag')+'" style="box-shadow:none;margin:0 0 10px"><b>'+RW.e+' '+RW.t+'.</b><div class="tiny" style="margin-top:4px">'+RW.w+'</div></div>';
   if(CM.rest.k==='walkweek'||CM.rest.k==='walkon')out+='<div class="p '+(CM.rest.k==='walkon'?'flag':'warn')+'" style="box-shadow:none;margin:0 0 10px"><b>🚶 '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+walkBtns(CM.rest.k)+'</div>';
-  if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 I’m calling it: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
-  if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’m calling a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
+  if(['day','days','week'].indexOf(CM.rest.k)>=0)out+='<div class="p warn" style="box-shadow:none;margin:0 0 10px"><b>🛌 My suggestion: '+CM.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CM.rest.w+'</div>'+(CM.rest.k==='week'?'<div class="tiny" style="margin-top:4px">Start it from the Feedback tab.</div>':'')+'</div>';
+  if(CM.refeed.k==='yes')out+='<div class="p flag" style="box-shadow:none;margin:0 0 10px"><b>🍚 I’d suggest a refeed.</b><div class="tiny" style="margin-top:4px">'+CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')+'</div></div>';
   return out;
 }
 /* ===================== achievements (Dan, 9 Oct: "really cool") =====================
@@ -6150,7 +6164,7 @@ function alertsNow(w,tr,c){
   if(['day','days','week'].indexOf(CM.rest.k)>=0)out.push({k:'REST',t:CM.rest.t,w:CM.rest.w+' <span class="tiny">More on the Feedback tab.</span>'});
   if(CM.refeed.k==='yes')out.push({k:'REFEED',t:CM.refeed.t,w:CM.refeed.w+(CM.refeed.size?' <b>'+CM.refeed.size+'</b>':'')});
   if(rest.fire){
-    out.push({k:'REST',t:'Take a day or two off',
+    out.push({k:'REST',t:'I’d take a day or two off',
       w:rest.tooFast?'You are coming down faster than the safe band. Days off, and eat <b>more</b> on them \u2014 carbs first.'
                     :'You are ahead of the curve. No running, no gym, and the food stays exactly where it is.'});
     if(rest.tooFast)out.push({k:'REFEED',t:'A refeed is due',w:'The rate is over the band, so this one is not optional. The size is on the card below.'});
@@ -7975,9 +7989,17 @@ function setsBoxHTML(d){
     ms.map(function(m){var v=setsVerdict(m,wk[m]||0,cur[m]||0);if(!v)return '';
       return '<p class="note" style="margin:6px 0 0"><span class="pill'+(v.k?' '+v.k:'')+'">'+m+' · '+v.t+'</span> '+v.w+
         ((cur[m]||0)>SESSION_CAP?' <span class="tiny">Tip: past about '+SESSION_CAP+' in one go the extra sets pay less and the quality drops — keep them hard, or move a few to your free day.</span>':'')+'</p>';}).join('')+
+    (ms.indexOf('Legs')>=0?legsBoxHTML(r):'')+
     '<p class="tiny" style="margin:6px 0 0">Judged on the <b>week</b> — Monday to Sunday, every session added up.</p>'+
     '</div>';
 }
+/* Dan, 3 Nov: "it has me doing 20 sets for quads": legs are four muscle groups.
+   Optional split; the total still fills Legs. */
+var LEG_PARTS=[['quads','Quads'],['hamstrings','Hamstrings'],['glutes','Glutes & hips'],['calves','Calves']];
+function legsBoxHTML(r){var L=r.legs||{};
+  return '<div class="tiny" style="margin:8px 0 4px"><b>Legs by muscle</b> (optional): squats and extensions are quads, curls are hamstrings, abductors and adductors are hips.</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+LEG_PARTS.map(function(x){return '<div class="f" style="max-width:96px"><label>'+x[1]+'</label><input type="number" inputmode="numeric" min="0" max="30" step="1" data-legs="'+x[0]+'" value="'+(L[x[0]]||'')+'" placeholder="0"></div>';}).join('')+'</div>'+
+    (r.legs?'<p class="note" style="margin:6px 0 0">'+LEG_PARTS.filter(function(x){return L[x[0]];}).map(function(x){var v=L[x[0]];return x[1]+' '+v+(v>12?' (a lot for one week)':'');}).join(' · ')+'. Each muscle in about 6–12 hard sets a week is the sweet spot.</p>':'');}
 /* the sets log: every week's totals, kept for the block */
 function setsBetween(a,b){
   var out={},n=0;
@@ -9528,13 +9550,13 @@ function homeHTML(){
   tiles.push(homeTile('📚','Study',f1(W.study)+' h','this week · aim '+CFG.study.lo+'–'+CFG.study.hi,W.study/CFG.study.lo,W.study>=CFG.study.lo?'good':''));
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
-  var L=greenLight()||{};if(L.t)next.push((L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')));
-  if(typeof r.sleep!=='number')next.push('😴 Log last night’s sleep: it drives your green light.');
-  else if(r.sleep<7.5)next.push('😴 '+f1(r.sleep)+' h last night: bed 30 min earlier tonight, phone out.');
-  if(under.length&&dow(t)!==6){under.sort(function(a,b){return b[1]-a[1];});next.push('💪 '+under[0][0]+': '+under[0][1]+' set'+(under[0][1]===1?'':'s')+' to reach the muscle-building range this week.');}
-  if(pro!==null&&pro<MACRO.pro)next.push('🥩 '+Math.round(MACRO.pro-pro)+' g protein to go today: Fage, chicken, hake or eggs.');
-  if(dow(t)!==6&&W.study<CFG.study.lo&&dow(t)>=3)next.push('📚 '+f1(CFG.study.lo-W.study)+' h of study left for the week. One deep block today moves it.');
-  if(!W.j.n)next.push('📓 Write two lines in the journal tonight: mood and one thing that went well.');
+  var L=greenLight()||{};if(L.t)next.push([(L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')),'big']);
+  if(typeof r.sleep!=='number')next.push(['😴 Logging last night’s sleep makes the green light more accurate.','small']);
+  else if(r.sleep<7.5)next.push(['😴 '+f1(r.sleep)+' h last night. An earlier night would do more for recovery and your looks than anything else today.','big']);
+  if(under.length&&dow(t)!==6){under.sort(function(a,b){return b[1]-a[1];});next.push(['💪 '+under[0][0]+' is '+under[0][1]+' set'+(under[0][1]===1?'':'s')+' short of the muscle-building range this week, if the gym fits.','medium']);}
+  if(pro!==null&&pro<MACRO.pro)next.push(['🥩 '+Math.round(MACRO.pro-pro)+' g protein still to find today: Fage, chicken, hake or eggs.',MACRO.pro-pro>=40?'big':'medium']);
+  if(dow(t)!==6&&W.study<CFG.study.lo&&dow(t)>=3)next.push(['📚 '+f1(CFG.study.lo-W.study)+' h of study left for the week. One deep block today would move it.','medium']);
+  if(!W.j.n)next.push(['📓 Two lines in the journal tonight, if you feel like it: mood and one thing that went well.','small']);
   /* this week against last */
   var f=function(v,fn){return v===null||v===undefined?'—':fn(v);},row=function(n,a,b,fn,up){var d=(a!==null&&b!==null)?a-b:null;
     return '<tr><td>'+n+'</td><td class="n">'+f(b,fn)+'</td><td class="n"><b>'+f(a,fn)+'</b>'+(d!==null&&Math.abs(d)>0.05?' <span class="'+((up?d>0:d<0)?'acc':'dim')+'">'+(d>0?'▲':'▼')+'</span>':'')+'</td></tr>';};
@@ -9549,7 +9571,7 @@ function homeHTML(){
   var CMh=null;try{CMh=coachModel();}catch(e){}
   var restBox=CMh&&['walkweek','walkon','week','days','day'].indexOf(CMh.rest.k)>=0?'<div class="p '+(CMh.rest.k==='walkon'?'flag':'warn')+'" style="box-shadow:none;margin:0 0 10px"><b>'+(CMh.rest.k.indexOf('walk')===0?'🚶 ':'🛌 ')+CMh.rest.t+'.</b><div class="tiny" style="margin-top:4px">'+CMh.rest.w+'</div>'+walkBtns(CMh.rest.k)+'</div>':'';
   return '<div class="p hm"><h2>🎯 Your goals</h2>'+restBox+'<div class="hm-grid">'+tiles.join('')+'</div>'+
-    '<h3 style="margin:12px 0 4px">👉 Do next</h3>'+next.slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x)+'</p>';}).join('')+
+    '<h3 style="margin:12px 0 4px">👉 Worth doing next</h3><p class="tiny dim" style="margin:0 0 4px">Suggestions, not rules. Each says how much difference it makes.</p>'+next.sort(function(a,b){var o={big:0,medium:1,small:2};return o[a[1]]-o[b[1]];}).slice(0,3).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+esc(x[0])+' <span class="pill'+(x[1]==='big'?' g':'')+'" style="font-size:10px">'+({big:'big difference',medium:'helps',small:'small extra'}[x[1]])+'</span></p>';}).join('')+
     '<details style="margin-top:10px"><summary><b>🎯 Your run paces this week</b></summary>'+paceGuideHTML(true)+'<button type="button" class="btn sm ghost" data-t="camp">Full guide and the road to your times →</button></details>'+
     '<details style="margin-top:6px"><summary><b>📈 This week vs last · the long view</b></summary>'+wk+'<p class="tiny" style="margin-top:6px">'+long+'</p></details></div>';}
 /* Dan, 3 Nov: "don't have the weights and reps I did, just the sets — but give me a
@@ -9672,7 +9694,7 @@ function paceGuideHTML(compact){
    breathing timer and the 8 pillars sit under it (Glow's calm view). */
 function calmHTML(){
   var t=today(),r=S.days[t]||{},C=null;try{C=coachModel();}catch(e){}
-  var pts=C?C.pts:0,lv=pts>=4?['high','🔴','High','Your body is carrying a lot. Today: no hard training, and two destressers.']:(pts>=2?['some','🟡','Building','A little more than recovery is clearing. One destresser today keeps it from stacking.']:['low','🟢','Low','Recovery is keeping up. One calm habit a day keeps it there.']);
+  var pts=C?C.pts:0,lv=pts>=4?['high','🔴','High','Your body is carrying a lot. Easing off training today would help more than anything else, and a calm thing or two from below would speed it up.']:(pts>=2?['some','🟡','Building','A little more than recovery is clearing. Any one of these today would stop it stacking up.']:['low','🟢','Low','Recovery is keeping up. These are nice extras, nothing you need to do.']);
   var pick=[RESET_MENU[0]];
   if(typeof r.steps!=='number'||r.steps<8000)pick.push(RESET_MENU[1]);
   if(typeof r.sleep==='number'&&r.sleep<7.5)pick.push(RESET_MENU[6]);else pick.push(RESET_MENU[4]);
@@ -9727,7 +9749,7 @@ function monthReviewHTML(ym){
       line('💪','Sets',Object.keys(o.sets).length?Object.keys(o.sets).map(function(k){return k+' '+o.sets[k];}).join(' · '):'—')+(o.chal.length?line('🏆','Strength',esc(o.chal.join(' · '))):'')+
     '<h3 style="margin:10px 0 2px">Health &amp; mind</h3>'+line('🧬','Nutrition / Glow',o.nut.length?Math.round(av(o.nut))+' / '+Math.round(av(o.glow)):'—')+line('🌱','Plants a day',f(av(o.plants),function(v){return String(Math.round(v));}))+
       line('🌬️','Breathing & meditation',o.breath+' min')+line('📚','Study',f1(o.study)+' h')+line('😊','Mood / energy',o.mood.length?av(o.mood).toFixed(1)+' / '+(o.en.length?av(o.en).toFixed(1):'—'):'—')+line('😵','Binges · sick days',o.bin+' · '+o.ill)+
-    '<h3 style="margin:10px 0 2px">For next month</h3>'+focus.slice(0,4).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+'</div>';}
+    '<h3 style="margin:10px 0 2px">Ideas for next month</h3><p class="tiny dim" style="margin:0 0 4px">Ordered by how much difference they would make.</p>'+focus.slice(0,4).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+'</div>';}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -9894,6 +9916,13 @@ function wire(){
     var d=E('logDate').value||today(),cur=clone((S.days[d]||{}).sets||{}),v=Math.round(Number(i.value));
     if(isFinite(v)&&v>0)cur[i.dataset.sets]=Math.min(40,v);else delete cur[i.dataset.sets];
     setDay(d,{sets:Object.keys(cur).length?cur:null});
+  });
+  E('setsBox').addEventListener('change',function(ev){
+    var i=ev.target.closest('input[data-legs]');if(!i)return;
+    var d=E('logDate').value||today(),r=S.days[d]||{},L=clone(r.legs||{}),cur=clone(r.sets||{}),v=Math.round(Number(i.value));
+    if(isFinite(v)&&v>0)L[i.dataset.legs]=Math.min(30,v);else delete L[i.dataset.legs];
+    var sum=0;for(var k in L)sum+=L[k];if(sum)cur.Legs=sum;
+    setDay(d,{legs:Object.keys(L).length?L:null,sets:Object.keys(cur).length?cur:null});E('setsBox').innerHTML=setsBoxHTML(d);
   });
   ['inBed','inWake'].forEach(function(id){E(id).addEventListener('change',function(){
     var d=E('logDate').value||today(),bed=E('inBed').value||null,wake=E('inWake').value||null,sh=clockShift(d),c=sleepFromTimes(bed,wake,sh);
@@ -10154,7 +10183,8 @@ function boot(){
         dbDoc.onSnapshot(function(sn){
           if(!sn.exists)return;
           var r=normalise(sn.data());
-          if(r.updatedAt>S.updatedAt){S=r;PRUNED+=pruneEmptyRuns();saveLocal();render();}
+          if(r.updatedAt>S.updatedAt){var mm=mergeByDate(S,r);S=mm.s;PRUNED+=pruneEmptyRuns();saveLocal();render();if(mm.added)queueRemote();}
+          else{var m2=mergeByDate(r,S);if(m2.added){S=m2.s;saveLocal();render();queueRemote();}}
         },function(){});
       },function(err){settle('error:'+(err&&err.code||'unknown'));});
     },function(){settle('local');});

@@ -53,9 +53,9 @@ ok('losing too fast: yes to a refeed', c.refeed.k === 'yes' && /Yes — have a r
 ok('with the size, carbs, and Saturday', /\+[\d,]+ kcal, about \d+ g of carbs/.test(c.refeed.size || '') && /Saturday works/.test(c.refeed.size || ''), c.refeed.size);
 ok('and a suggestion to eat a little more', c.sug.some(x => /Eat a little more/.test(x)), JSON.stringify(c.sug));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
-ok('when it matters, the glance line makes the call', /I’m calling it 🍚 Refeed this week/.test((await p.innerText('#glanceCard')).replace(/\s+/g, ' ')));
+ok('when it matters, the glance line makes the call', /My suggestion 🍚 Refeed this week/.test((await p.innerText('#glanceCard')).replace(/\s+/g, ' ')));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(80);
-ok('and the camp tab leads with it', /I’m calling a refeed/.test(await p.innerText('#campCard')));
+ok('and the camp tab leads with it', /I’d suggest a refeed/.test(await p.innerText('#campCard')));
 ok('the Today banner carries the refeed call too', /A refeed would help|have a refeed this week/.test(sq(await p.innerText('#alertCard'))));
 
 // ===== stalled: no refeed =====
@@ -72,7 +72,7 @@ ok('a recent refeed reads as done', (await C()).refeed.k === 'done');
 d = clean(); for (let i = 0; i < 7; i++) { d[iso(i)].sleep = 6.8; d[iso(i)].study = 3.5; d[iso(i)].deep = 2.5; }
 await boot(st({ weights: good, days: d }));
 c = await C();
-ok('short sleep and too much deep study: a day or two off', c.rest.k === 'days' && /Take a day or two off/.test(c.rest.t) && /sleep is averaging 6\.8 h/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
+ok('short sleep and too much deep study: a day or two off', c.rest.k === 'days' && /day or two off/.test(c.rest.t) && /sleep is averaging 6\.8 h/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
 ok('and says sleep first', /Sleep:/.test(c.sug[0] || ''), JSON.stringify(c.sug));
 
 // ===== no day off in a week: the next day off =====
@@ -90,7 +90,7 @@ c = await C();
   await boot(st({ weights: good, days: d2 })); const c2 = await C();
   ok('something that keeps hurting calls a run-free week (3 Nov)', c2.rest.k === 'walkweek' && /run-free week/.test(c2.rest.t), JSON.stringify(c2.rest));
   await boot(st({ weights: fast, days: d })); c = await C(); }
-ok('many strains at once: take an easy week', c.rest.k === 'week' && /Take an easy week/.test(c.rest.t) && /Not a scheduled one/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
+ok('many strains at once: take an easy week', c.rest.k === 'week' && /take an easy week/.test(c.rest.t) && /Not a scheduled one/.test(c.rest.w), JSON.stringify(c.rest) + ' ' + c.pts);
 await p.click('[data-t="feedback"]'); await p.waitForTimeout(100);
 await p.click('#btnEasyWk'); await p.waitForTimeout(150);
 ok('tapping “I’m taking it” starts it today', await p.evaluate(() => S.settings.easyFrom === today()));

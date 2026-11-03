@@ -71,8 +71,20 @@ describe('what to eat next', () => {
     const s = { ...initial(), training: { '2026-11-03': [{ id: 'r', source: 'manual' as const, kind: 'run' as const, name: 'Hard run', minutes: 20, intensity: 'hard' as const }] } };
     const out = eatNext(s, '2026-11-03');
     expect(out.length).toBeGreaterThan(1);
-    expect(out[0].title).toMatch(/Recover/);
-    expect(out.some((x) => /protein to go/.test(x.title))).toBe(true);
+    expect(out[0].title).toMatch(/After the hard run/);
+    expect(out[0].impact).toBe('big');
+    expect(out.some((x) => /protein still to find/.test(x.title))).toBe(true);
+    expect(out.some((x) => /Powerhouse picks/.test(x.title))).toBe(true);
     for (const x of out) for (const f of x.foods) expect(f).not.toMatch(AVOID_WORDS);
+  });
+});
+
+describe('food options when ill', () => {
+  it('leads with what helps a cold, from food, no high-dose tablets', async () => {
+    const { eatNext } = await import('@/engine/eatnext');
+    const s = { ...initial() }; (s.days as Record<string, unknown>)['2026-11-03'] = { items: [], rituals: [], ill: { kind: 'cold' } };
+    const out = eatNext(s as never, '2026-11-03');
+    expect(out[0].title).toMatch(/Feeling rough/);
+    expect(out[0].why).toMatch(/no need for high-dose tablets/);
   });
 });

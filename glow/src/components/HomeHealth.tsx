@@ -5,7 +5,7 @@ import { bpCategory, LAB_MARKERS } from '@/engine/health';
 import { dayResult } from '@/engine/game';
 import { useStore } from '@/store';
 import { healthSnapshot } from './HealthPanel';
-import { eatNext } from '@/engine/eatnext';
+import { eatNext, IMPACT_LABEL } from '@/engine/eatnext';
 import { AddFood } from './AddFood';
 import { Pill, Ring } from './ui';
 
@@ -42,10 +42,10 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
       </button>
       {next.length > 0 && (
         <div className="rounded-xl bg-gold/10 p-3">
-          <div className="mb-1 text-[11px] font-semibold tracking-wide text-gold uppercase">What to eat next</div>
+          <div className="mb-1 text-[11px] font-semibold tracking-wide text-gold uppercase">Food options for you</div><p className="mb-2 text-xs text-ink-2">Ideas, not rules. Each says how much difference it really makes.</p>
           <ul className="space-y-2 text-sm">
             {next.map((x) => (
-              <li key={x.title}><b>{x.emoji} {x.title}</b><div className="text-ink">{x.foods.join(' · ')}</div><div className="text-xs text-ink-2">{x.why}</div></li>
+              <li key={x.title}><b>{x.emoji} {x.title}</b> <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] ${x.impact === 'big' ? 'bg-good/20 text-good' : x.impact === 'medium' ? 'bg-sea/20 text-sea' : 'bg-line text-muted'}`}>{IMPACT_LABEL[x.impact]}</span><div className="text-ink">{x.foods.join(' · ')}</div><div className="text-xs text-ink-2">{x.why}</div></li>
             ))}
           </ul>
         </div>
@@ -62,7 +62,7 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
         {h.rhr !== undefined && <Pill tone={h.rhr <= 55 ? 'good' : 'neutral'}>RHR {h.rhr}</Pill>}
         {h.vo2 !== undefined && <Pill tone="sea">VO₂ {Math.round(h.vo2)}</Pill>}
         {labs.map((l) => <Pill key={l.m.key} tone={l.j.tone} title={`${prettyDate(l.last.date)}: ${l.last.value} ${l.m.unit}`}>{l.m.label}: {l.j.label}</Pill>)}
-        {!labs.length && <span className="text-muted">Blood tests: add them in Body → Health age</span>}
+        {!labs.length && <span className="text-ink-2">🩸 <b>Worth considering:</b> a baseline blood test now (ferritin, vitamin D, B12, folate, cholesterol, HbA1c, testosterone, hs-CRP), then again in spring after the extra food. It would show exactly what eating more does for you. Add results in Body → Health age.</span>}
       </div>
       <AddFood open={adding} onClose={() => setAdding(false)} date={date} />
     </div>

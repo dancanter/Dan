@@ -106,7 +106,7 @@ ok('no horizontal scroll at 390 px on Today', (await p.evaluate(() => document.d
 // ---- 🏠 Home: goals, health, food search, gym weights ------------------------
 const hm = await p.innerText('#homeCard');
 ok('Home shows the goals', ['Shred', 'Muscle', 'Running', 'Health age', 'Looks', 'Study', 'Happy'].every((k) => hm.includes(k)), hm.slice(0, 300));
-ok('and up to three things to do next', /Do next/.test(hm));
+ok('and up to three suggestions, each with how much it matters', /Worth doing next/.test(hm) && /(big difference|helps|small extra)/i.test(hm));
 const gh = await shadow(p, 'glowHome');
 ok('Glow’s health block is on Home: health age and the food search', /Health age/.test(gh) && /search 4,000\+ foods/.test(gh), gh.slice(0, 200));
 await tapIn(p, 'glowHome', 'search 4,000'); await p.waitForTimeout(400);
@@ -139,7 +139,7 @@ const gc = await shadow(p, 'glowCalm');
 ok('and the 8 pillars with the breathing timer', /Your 8 pillars today/i.test(gc) && /Breathe/.test(gc), gc.slice(0, 200));
 await p.evaluate(() => { const st = window.__GLOW_HOST__.load(); st.breathMinutes = Object.assign({}, st.breathMinutes, { '2026-11-03': 10 }); window.__GLOW_HOST__.save(st, {}); });
 ok('breathing in Glow counts as meditation in the tracker', (await p.evaluate(() => S.days['2026-11-03'].medMin)) === 10);
-ok('the month review is on the Review tab', await p.evaluate(() => /November 2026/.test(monthReviewHTML('2026-11')) && /For next month/.test(monthReviewHTML('2026-11')) && /France in/.test(monthReviewHTML('2026-11'))));
+ok('the month review is on the Review tab', await p.evaluate(() => /November 2026/.test(monthReviewHTML('2026-11')) && /Ideas for next month/.test(monthReviewHTML('2026-11')) && /France in/.test(monthReviewHTML('2026-11'))));
 
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
