@@ -90,10 +90,23 @@ ok('Today shows the compact card', /Good back session/.test(await p.innerText('#
 if (SHOTS) await p.screenshot({ path: SHOTS + '/today.png', fullPage: true });
 ok('no horizontal scroll at 390 px on Today', (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390);
 
+// ---- 🏠 Home: goals, health, food search, gym weights ------------------------
+const hm = await p.innerText('#homeCard');
+ok('Home shows the goals', ['Shred', 'Muscle', 'Running', 'Health age', 'Looks', 'Study', 'Happy'].every((k) => hm.includes(k)), hm.slice(0, 300));
+ok('and up to three things to do next', /Do next/.test(hm));
+const gh = await shadow(p, 'glowHome');
+ok('Glow’s health block is on Home: health age and the food search', /Health age/.test(gh) && /search 4,000\+ foods/.test(gh), gh.slice(0, 200));
+await tapIn(p, 'glowHome', 'search 4,000'); await p.waitForTimeout(400);
+ok('the food search opens from Home', /Add food|Search/i.test(await shadow(p, 'glowHome')));
+await p.keyboard.press('Escape');
+await p.fill('#lfKg', '60'); await p.fill('#lfReps', '6'); await p.click('button[data-lift="add"]'); await p.waitForTimeout(200);
+ok('a lift is logged with kg and reps', JSON.stringify(await p.evaluate(() => S.days['2026-11-03'].lifts)) === '[{"ex":"Bench press","kg":60,"reps":6}]');
+ok('and shows in your bests', /Bench press/.test(await p.innerText('#liftCard')));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
-const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal }; });
-ok('binge, sick day, journal and food survive a reload', R.b === 1 && R.ill && R.j === 4 && R.items === 1 && R.k === 206, JSON.stringify(R));
+const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: (r.lifts || []).length }; });
+ok('binge, sick day, journal, food and lifts survive a reload', R.b === 1 && R.ill && R.j === 4 && R.items === 1 && R.k === 206 && R.l === 1, JSON.stringify(R));
 
 // ---- the journal history on Mind, searchable -------------------------------------
 await p.evaluate(() => { S.days['2026-11-01'] = Object.assign(S.days['2026-11-01'] || {}, { journal: { mood: 2, energy: 2, well: 'Long walk', learned: '', tomorrow: '', free: '' } }); touch(); });

@@ -3,12 +3,12 @@ import { Activity, HeartPulse, TestTube } from 'lucide-react';
 import { addDays, ageOn, bmi, prettyDate, sleepHours, sortByDate, todayISO } from '@/engine/body';
 import { LAB_MARKERS, POPULATION, RACE_DISTANCES, bpCategory, fitnessAge, glowAge, healthRank, vo2Band, vo2FromRaces } from '@/engine/health';
 import { allDates, dayResult } from '@/engine/game';
-import { actions, resolveItems, useStore, EMPTY_ARR } from '@/store';
+import { actions, resolveItems, useStore, EMPTY_ARR, type State } from '@/store';
 import { Button, Card, LineChart, Pill } from './ui';
 
-export function HealthPanel() {
-  const s = useStore((x) => x);
-  const today = todayISO();
+/** The health numbers behind Glow age and the rank, for this screen and the
+    tracker's Home page. A motivational scorecard, not a lab test. */
+export function healthSnapshot(s: State, today: string = todayISO()) {
   const age = ageOn(s.profile.dob, today);
   const races = s.profile.races ?? {};
   const fromRaces = vo2FromRaces(races);
@@ -19,10 +19,10 @@ export function HealthPanel() {
   const rhr = recentRhr.length ? Math.round(recentRhr.reduce((a, b) => a + b, 0) / recentRhr.length) : undefined;
   const sleeps = sortByDate(s.sleeps).slice(-14).map(sleepHours);
   const sleepAvg = sleeps.length ? sleeps.reduce((a, b) => a + b, 0) / sleeps.length : undefined;
-  const nutritionAvg = useMemo(() => {
+  const nutritionAvg = (() => {
     const ds = allDates(s).filter((d) => d > addDays(today, -14) && resolveItems(s.days[d], s).length >= 3);
     return ds.length ? ds.reduce((a, d) => a + dayResult(s, d).analysis.nutritionScore, 0) / ds.length : undefined;
-  }, [s, today]);
+  })();
   const alcoholDays = Array.from({ length: 14 }, (_, i) => resolveItems(s.days[addDays(today, -i)], s).some((it) => it.food.tags.includes('alc'))).filter(Boolean).length;
   const kg = sortByDate(s.weights).at(-1)?.kg;
   const ga = glowAge(age, { vo2, rhr, bp: lastBp, sleepAvg, nutritionAvg, bmi: kg ? bmi(kg, s.profile.heightCm) : undefined, alcoholDays: Object.keys(s.days).length >= 7 ? alcoholDays : undefined, dailySpf: s.profile.dailySpf });
@@ -30,6 +30,14 @@ export function HealthPanel() {
   const bmiNow = kg ? bmi(kg, s.profile.heightCm) : undefined;
   const rank = healthRank({ vo2, rhr, habits: { nonSmoker: true, activeEnough: trainMin >= 150 || !Object.keys(s.training ?? {}).length, dietGood: (nutritionAvg ?? 0) >= 60, leanHealthy: bmiNow === undefined || (bmiNow >= 18.5 && bmiNow < 25), sleepGood: (sleepAvg ?? 0) >= 7.5, lowAlcohol: alcoholDays <= 1, dailySpf: !!s.profile.dailySpf } });
 
+  return { age, vo2, lastBp, rhr, sleepAvg, nutritionAvg, kg, ga, rank, races, alcoholDays, fromRaces };
+}
+
+export function HealthPanel() {
+  const s = useStore((x) => x);
+  const today = todayISO();
+  const { age, vo2, lastBp, rhr, sleepAvg, nutritionAvg, kg, ga, rank, races, alcoholDays, fromRaces } = useMemo(() => healthSnapshot(s, today), [s, today]);
+  void lastBp; void rhr; void sleepAvg; void nutritionAvg; void kg; void races; void vo2;
   return (
     <div className="space-y-4">
       <Card eyebrow="Glow age" title={<span>Your body is running like a <span className="num font-serif text-3xl text-gold">{ga.age}</span>-year-old’s</span>}>

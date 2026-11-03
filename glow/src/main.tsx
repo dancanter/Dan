@@ -7,6 +7,9 @@ import { hosted, type DaySum } from './host';
 import { getState, refreshFromHost, resolveItems, setState, setSummariser } from './store';
 import { dayResult } from './engine/game';
 import { DayPlanCard } from './components/DayPlan';
+import { HomeHealth } from './components/HomeHealth';
+import { healthSnapshot } from './components/HealthPanel';
+import { todayISO } from './engine/body';
 import { IdeasCard, PhaseCompareCard, WeeklyReviewCard } from './components/Review';
 import { BingeToday } from './components/Binge';
 import { IllToday } from './components/Illness';
@@ -42,8 +45,9 @@ function render(host: HTMLElement, node: ReactNode) {
   root.render(<StrictMode>{node}</StrictMode>);
 }
 
-type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill';
+type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill' | 'home';
 function view(v: View, date: string, open?: boolean): ReactNode {
+  if (v === 'home') return <HomeHealth date={date} />;
   if (v === 'dayplan') return <DayPlanCard date={date} />;
   if (v === 'ideas') return <IdeasCard date={date} />;
   if (v === 'review') return <div className="space-y-4"><WeeklyReviewCard end={date} /><PhaseCompareCard /></div>;
@@ -64,6 +68,8 @@ if (hosted()) {
   const api = {
     /** The tracker's store changed: show it. */
     refresh: () => refreshFromHost(),
+    /** Health age, rank and blood pressure, for the tracker's goal tiles. */
+    health: () => { const h = healthSnapshot(getState(), todayISO()); return { age: h.age, glowAge: Math.round(h.ga.age), top: h.rank.rarest, bp: h.lastBp, rhr: h.rhr }; },
     /** The full app (Food, Foods, Cells, Body, Rituals). */
     mountApp: (host: HTMLElement) => render(host, <App />),
     /** One of Glow's pieces, placed by the tracker. */
