@@ -35,6 +35,14 @@ jobs:
       # Vite build. Serving it from a real origin is what lets it save: it
       # keeps its data in localStorage, which needs a stable origin to survive.
       - run: mkdir -p dist/training-system && cp training-system/index.html dist/training-system/
+      # The Good Life (good-life/) is a separate app with its own
+      # dependencies; it is published alongside this one at /good-life/.
+      - name: Build The Good Life
+        working-directory: good-life
+        run: |
+          npm ci
+          npm run build
+      - run: cp -r good-life/dist dist/good-life
       - uses: actions/configure-pages@v5
         with:
           enablement: true

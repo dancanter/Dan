@@ -19,3 +19,14 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+      # Reports which medical claims this change touched and whether any of
+      # them may have shifted in meaning. Deliberately not a gate: a real
+      # correction *should* change meaning, and blocking that would teach
+      # people to route around the check. It is here so the change is visible
+      # in the log of the pull request that made it, next to the diff.
+      - name: Content change audit
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=50 origin "$GITHUB_BASE_REF"
+          npm run content-diff -- "origin/$GITHUB_BASE_REF"

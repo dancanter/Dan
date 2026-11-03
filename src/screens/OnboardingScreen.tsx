@@ -1,12 +1,21 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { MAX_WEEK, MIN_WEEK, toISODate } from '../lib/dates';
+import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
+import { MAX_WEEK, MIN_WEEK } from '../content/schema';
+import { toISODate } from '../lib/dates';
+import { seedDemo } from '../lib/demoData';
+import { Button } from '../components/ui/Button';
 
 type Mode = 'due-date' | 'current-week';
 
 export function OnboardingScreen() {
   const { setDueDate, setCurrentWeek } = usePregnancyProfile();
+  // Onboarding keeps its own centred layout rather than the Screen shell —
+  // it is the one screen that isn't a page of content. It still has to put
+  // focus somewhere, though, and it wasn't: a screen-reader user arriving at
+  // the very first screen was left on <body> with nothing announced.
+  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('due-date');
   const [dueDateInput, setDueDateInput] = useState('');
@@ -31,37 +40,67 @@ export function OnboardingScreen() {
       }
       setCurrentWeek(week);
     }
-
     navigate('/today', { replace: true });
   }
 
+  function handleLookAround() {
+    // seedDemo refuses if anything is already stored, so this cannot land on
+    // top of a real pregnancy. Reaching that branch from here would mean the
+    // profile exists, in which case App has already redirected away.
+    if (seedDemo()) navigate('/today', { replace: true });
+  }
+
+  const toggleClass = (active: boolean) =>
+    `min-h-11 flex-1 rounded-lg border px-3 text-small font-medium ${
+      active ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+    }`;
+
   return (
-    <main id="main-content" className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-6 py-10">
-      <div className="mb-8 text-center">
-        <span className="text-4xl" aria-hidden="true">
-          🌱
-        </span>
-        <h1 className="mt-3 text-2xl font-bold text-bump-text dark:text-bump-text-dark">Welcome to Bump</h1>
-        <p className="mt-2 text-bump-muted dark:text-bump-muted-dark">
-          A day-by-day, week-by-week guide to pregnancy — evidence-based, no guilt, no pressure.
+    <main
+      id="main"
+      className="relative mx-auto flex min-h-svh max-w-md flex-col justify-center px-5 pt-16 pb-10"
+    >
+      {/* A small link in the top corner — the same place and style as the
+          pinned Get Help tab on every other page. This is the one screen
+          with no header, and it is where someone worried may land before
+          setting anything up, so it has to be here. Kept deliberately
+          quiet: two words, no box, no "worried?" question. It needs to be
+          findable, not alarming. */}
+      <Link
+        to="/help"
+        className="absolute right-3 top-2 inline-flex min-h-11 items-center px-2 font-mono text-meta text-alert underline"
+      >
+        Get help
+      </Link>
+
+      <div className="mb-7 text-center">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="font-display text-hero font-bold outline-none"
+        >
+          Field Notes
+        </h1>
+        <p className="label-mono text-mossd">A pregnancy guide by Dan Canter</p>
+        <p className="mt-4 text-body text-soft">
+          Week by week, evidence-based, and honest about what the evidence does and doesn’t say. No
+          account, no tracking: everything stays on your device.
+        </p>
+        <p className="mt-2 text-small text-soft">
+          Your due date is the only thing needed to start. Anything else is asked later, and only
+          where it changes something.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <fieldset>
-          <legend className="mb-2 text-sm font-semibold text-bump-text dark:text-bump-text-dark">
-            How would you like to get started?
-          </legend>
+        <fieldset className="border-0 p-0">
+          <legend className="mb-2 text-small font-semibold">How would you like to start?</legend>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setMode('due-date')}
               aria-pressed={mode === 'due-date'}
-              className={`min-h-11 flex-1 rounded-xl border px-3 py-2 text-sm font-medium ${
-                mode === 'due-date'
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
+              className={toggleClass(mode === 'due-date')}
             >
               I know my due date
             </button>
@@ -69,20 +108,16 @@ export function OnboardingScreen() {
               type="button"
               onClick={() => setMode('current-week')}
               aria-pressed={mode === 'current-week'}
-              className={`min-h-11 flex-1 rounded-xl border px-3 py-2 text-sm font-medium ${
-                mode === 'current-week'
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
+              className={toggleClass(mode === 'current-week')}
             >
-              I know my current week
+              I know my week
             </button>
           </div>
         </fieldset>
 
         {mode === 'due-date' ? (
           <div>
-            <label htmlFor="due-date" className="mb-1 block text-sm font-semibold text-bump-text dark:text-bump-text-dark">
+            <label htmlFor="due-date" className="mb-1 block text-small font-semibold">
               Your due date
             </label>
             <input
@@ -90,13 +125,13 @@ export function OnboardingScreen() {
               type="date"
               value={dueDateInput}
               min={toISODate(new Date())}
-              onChange={(event) => setDueDateInput(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-bump-border bg-bump-surface px-3 py-2 text-base text-bump-text dark:border-bump-border-dark dark:bg-bump-surface-dark dark:text-bump-text-dark"
+              onChange={(e) => setDueDateInput(e.target.value)}
+              className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
             />
           </div>
         ) : (
           <div>
-            <label htmlFor="current-week" className="mb-1 block text-sm font-semibold text-bump-text dark:text-bump-text-dark">
+            <label htmlFor="current-week" className="mb-1 block text-small font-semibold">
               Current week of pregnancy
             </label>
             <input
@@ -106,27 +141,41 @@ export function OnboardingScreen() {
               min={MIN_WEEK}
               max={MAX_WEEK}
               value={weekInput}
-              onChange={(event) => setWeekInput(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-bump-border bg-bump-surface px-3 py-2 text-base text-bump-text dark:border-bump-border-dark dark:bg-bump-surface-dark dark:text-bump-text-dark"
+              onChange={(e) => setWeekInput(e.target.value)}
+              className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
             />
           </div>
         )}
 
         {error && (
-          <p role="alert" className="text-sm font-medium text-red-700 dark:text-red-300">
+          <p role="alert" className="text-small font-semibold text-alert">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          className="min-h-11 w-full rounded-full bg-bump-primary px-4 py-3 text-base font-semibold text-white dark:bg-bump-primary-dark"
-        >
-          Let's go
-        </button>
+        <Button intent="primary" full type="submit">
+          Start
+        </Button>
 
-        <p className="text-center text-xs text-bump-muted dark:text-bump-muted-dark">
-          No account needed. Your information stays on this device.
+        {/* Below the fold of the real task, and quieter than it. Someone who
+            is pregnant came here to start; this is for everyone else, and it
+            should not compete with the thing they came to do. */}
+        <div className="border-t border-line pt-4">
+          <button
+            type="button"
+            onClick={handleLookAround}
+            className="min-h-11 w-full rounded-lg border border-line px-3 text-small font-medium text-soft"
+          >
+            Not pregnant? Look around with example data
+          </button>
+          <p className="mt-1 text-center text-fine text-soft">
+            Opens a made-up week 28. Clearly labelled, and one tap to clear.
+          </p>
+        </div>
+
+        <p className="text-center font-mono text-meta leading-relaxed text-soft">
+          Not a substitute for medical advice, and not clinically reviewed. It cannot check whether
+          you or your baby are well. Always speak to your midwife or GP about your own care.
         </p>
       </form>
     </main>

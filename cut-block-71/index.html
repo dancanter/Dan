@@ -585,10 +585,9 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     </div>
   </div>
   <div class="cols">
-    <div class="p"><h2>Fats — best is extra virgin olive oil</h2>
-      <p class="tiny" style="margin-bottom:8px">Anti-inflammatory polyphenols, and it makes tomato lycopene absorbable. Measure it.</p>
+    <div class="p"><h2>Fats — mostly from the animal foods already on the plate</h2>
+      <p class="tiny" style="margin-bottom:8px">Egg yolks, salmon, mackerel, sardines and red meat bring most of the fat (and the EPA and DHA). Nuts and avocado top it up. Nuts certified gluten-free. Olive oil is on your excluded list.</p>
       <table class="tbl"><tbody>
-      <tr><td>Extra virgin olive oil</td><td class="n">10 ml</td><td class="n">90</td></tr>
       <tr><td>Avocado</td><td class="n">70 g</td><td class="n">112</td></tr>
       <tr><td>Almonds</td><td class="n">20 g</td><td class="n">116</td></tr>
       <tr><td>Walnuts</td><td class="n">20 g</td><td class="n">131</td></tr>
@@ -597,7 +596,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     </div>
     <div class="p"><h2>Vegetables — best for the goal is asparagus</h2>
       <p class="tiny" style="margin-bottom:8px">Mild natural diuretic, high potassium. <b>No brassicas</b> — no broccoli, sprouts, cabbage or kale.</p>
-      <p class="note mono" style="font-size:12.5px">asparagus 150 g / 30 · spinach 100 g / 23 · rocket, watercress 80 g / 20 · cucumber 150 g / 23 · courgette 150 g / 25 · celery 100 g / 16 · tomatoes 150 g / 27 · peppers 100 g / 31 · mushrooms 100 g / 22 · green beans 100 g / 31 · peas 80 g / 65 · carrots 100 g / 41 · onion, garlic to taste</p>
+      <p class="note mono" style="font-size:12.5px">asparagus 150 g / 30 · cucumber 150 g / 23 · courgette 150 g / 25 · celery 100 g / 16 · tomatoes 150 g / 27 · peppers 100 g / 31 · mushrooms 100 g / 22 · green beans 100 g / 31 · peas 80 g / 65 · carrots 100 g / 41 · onion, garlic to taste</p>
     </div>
   </div>
   <div class="p flag"><h2>Cooking method matters more than any ingredient</h2>
@@ -749,6 +748,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <section id="s-longev" class="stack" hidden>
   <div id="longCardTop"></div>
   <div id="glowHealth"></div>
+  <div id="benchCard"></div>
 </section>
 <section id="s-review" class="stack" hidden>
   <div class="p"><h2>Week review</h2>
@@ -864,7 +864,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     </tbody></table></div>
   </div>
   <div class="p"><h2>Export, import, reset</h2>
-    <div class="row"><button class="btn ghost" id="btnExport" type="button">Show export JSON</button><button class="btn ghost" id="btnReset" type="button">Reset the whole block</button></div>
+    <div class="row"><button class="btn" id="btnDownload" type="button">Download backup file</button><button class="btn ghost" id="btnExport" type="button">Show export JSON</button><button class="btn ghost" id="btnReset" type="button">Reset the whole block</button></div>
     <div class="f" style="margin-top:10px"><label for="ioBox">JSON in / out</label><textarea id="ioBox" rows="4" placeholder="Paste a previous export here and press Load"></textarea></div>
     <div class="row" style="margin-top:8px"><button class="btn" id="btnLoad" type="button">Load pasted JSON</button><span class="tiny" id="ioMsg"></span></div>
     <p class="tiny" style="margin-top:10px">Reset clears <b>every</b> date key and every legacy week key, not just this block's — the last block ran to 13 weeks and clearing 1–10 left three weeks sitting in storage waiting to be counted.</p>
@@ -9009,6 +9009,7 @@ function glStore(){
   if(!Array.isArray(S.uni.mods))S.uni.mods=[{code:'SK297',title:''},{code:'SK298',title:''}];
   if(!Array.isArray(S.uni.tasks))S.uni.tasks=[];
   if(!Array.isArray(S.uni.topics))S.uni.topics=[];
+  if(!Array.isArray(S.uni.refs))S.uni.refs=[];
   if(!S.style||typeof S.style!=='object')S.style={};
   if(!Array.isArray(S.style.items))S.style.items=[];
   if(!S.vinted||typeof S.vinted!=='object')S.vinted={};
@@ -9126,7 +9127,9 @@ function uniHTML(){
         '<b>'+esc(x.mod)+' — '+esc(x.title)+'</b>'+(x.words?' <span class="tiny">'+ci(x.words)+' words</span>':'')+
         '<span class="tiny" style="margin-left:auto">'+(x.done?'':(dl===null?'no date':(dl<0?'past':(dl===0?'due today':dl+' day'+(dl===1?'':'s')+' · '+fmtS(x.due)))))+'</span>'+
         '<button type="button" class="btn sm ghost" data-gl="tdel" data-id="'+x.id+'" aria-label="Delete">✕</button></div>'+
-        (!x.done&&dl!==null&&dl>=0&&dl<=21?'<div class="tiny dim" style="margin-top:3px">'+(dl<=3?'Final checks: argument, references, word count, the question answered in every paragraph.':(dl<=10?'Drafting: one PEEL-CEL paragraph per study block.':'Reading and planning: sources, outline, the argument in one sentence.'))+'</div>':'')+
+        (!x.done&&x.due?tmaStagesHTML(x):'')+
+        (x.done?'<div class="row" style="gap:8px;margin-top:4px;align-items:center"><label class="tiny" for="glMk'+x.id+'">Mark %</label><input type="number" min="0" max="100" step="1" id="glMk'+x.id+'" data-gltaskmark="'+x.id+'" value="'+(typeof x.mark==='number'?x.mark:'')+'" style="max-width:90px">'+(typeof x.mark==='number'?'<span class="pill '+(x.mark>=85?'g':(x.mark>=70?'a':''))+'">'+ouBand(x.mark)+'</span>':'')+'</div>'+
+          '<textarea data-gltaskfb="'+x.id+'" rows="2" placeholder="Tutor feedback: what to keep, what to fix next time" style="margin-top:4px">'+esc(x.fb||'')+'</textarea>':'')+
         '<textarea data-gltask="'+x.id+'" rows="2" placeholder="Plan, argument, sources to find…" style="margin-top:4px">'+esc(x.notes||'')+'</textarea></div>';}).join(''):'<p class="tiny">No assignments yet — add the TMAs with their dates and the app plans backwards from them.</p>')+
     '<div class="fgrid" style="margin-top:10px"><div class="f"><label for="glTMod">Module</label><select id="glTMod">'+opt(mods[0])+'</select></div>'+
     '<div class="f"><label for="glTTitle">Assignment</label><input type="text" id="glTTitle" placeholder="TMA 02" maxlength="80"></div>'+
@@ -9149,7 +9152,85 @@ function uniHTML(){
   '<div class="p"><h2>Writing for a distinction — PEEL-CEL</h2>'+
     PEELC.map(function(x,i){return '<div style="margin:5px 0"><b>'+(i+1)+'. '+x[0]+'</b> <span class="tiny">— '+x[1]+'</span></div>';}).join('')+
     '<p class="tiny" style="margin-top:8px">British English, Harvard referencing, the module’s own terms. Say what a source <i>shows</i> separately from what you <i>infer</i> from it. Never use a citation, statistic or quote you have not read in the source itself.</p>'+
-    '<p class="note">Academic integrity: use AI to plan, test your recall and check your understanding — the assessed writing has to be yours. Follow the Open University’s current guidance on generative AI and declare any use it asks you to.</p></div>';
+    '<p class="note">Academic integrity: use AI to plan, test your recall and check your understanding — the assessed writing has to be yours. Follow the Open University’s current guidance on generative AI and declare any use it asks you to.</p></div>'+
+  uniHoursHTML()+uniMarksHTML()+critHTML()+harvardHTML();
+}
+/* ---- University, stage 2 (3 Nov): merged from The Good Life (good-life/src/engine/study.ts) ---- */
+var TMA_STAGES=[['Decode the question',21,'Underline the command words (evaluate, discuss, compare), the scope, and what the marking guidance rewards. Write the question in your own words.'],
+  ['Gather evidence',17,'Module materials first, then the OU Library: WHO, NICE, UKHSA/OHID, peer-reviewed papers. Note full references as you go.'],
+  ['Plan the argument',13,'A one-line thesis. One paragraph per point, each mapped to evidence. Decide where you evaluate and compare.'],
+  ['Write the draft',9,'Draft fast in your own words; polish later. One PEEL-CEL paragraph per study block.'],
+  ['Critical revision',5,'For every paragraph: a limitation, a comparison and a judgement? Description without evaluation caps the mark.'],
+  ['Check references',3,'Every in-text citation is in the list and every list entry is cited. Cite Them Right Harvard, consistently.'],
+  ['Proofread and word count',2,'Read it aloud. Word limit, British spelling, your own words, any AI use as the module allows.'],
+  ['Submit early',1,'At least a day early: the eTMA system on deadline night is a needless risk.']];
+function tmaStagesHTML(x){
+  var t=today(),st=x.st||{},nx=null;
+  var rows=TMA_STAGES.map(function(g,i){var d=addD(x.due,-g[1]),done=!!st[i];if(!done&&!nx)nx={i:i,d:d,g:g};
+    return '<button type="button" class="btn sm'+(done?'':' ghost')+'" data-gl="tstage" data-id="'+x.id+'" data-n="'+i+'" title="'+esc(g[2])+'" style="margin:2px">'+(done?'✓ ':'')+esc(g[0])+' <span class="tiny">'+fmtS(d)+'</span></button>';}).join('');
+  return '<details style="margin-top:4px"><summary class="tiny">Plan backwards from '+fmtS(x.due)+(nx?' · next: <b>'+esc(nx.g[0])+'</b> by '+fmtS(nx.d)+(nx.d<t?' (date passed: pick it up now)':''):' · every stage done')+'</summary>'+
+    '<div style="margin-top:4px">'+rows+'</div>'+(nx?'<p class="tiny dim" style="margin-top:4px">'+esc(nx.g[2])+'</p>':'')+'</details>';
+}
+/* OU classification bands for an assignment score (OU: 85+ pass 1 / distinction, 70–84 pass 2, 55–69 pass 3, 40–54 pass 4) */
+function ouBand(m){return m>=85?'distinction band':(m>=70?'pass 2':(m>=55?'pass 3':(m>=40?'pass 4':'below pass')));}
+function uniHoursHTML(){
+  var ms=mondayOf(today()),W=[];
+  for(var w=7;w>=0;w--){var a=addD(ms,-7*w),tot=0,deep=0,n=0;for(var i=0;i<7;i++){var r=S.days[addD(a,i)];if(r&&typeof r.study==='number'){tot+=r.study;n++;}if(r&&typeof r.deep==='number')deep+=r.deep;}W.push({a:a,tot:tot,deep:deep,n:n});}
+  var mx=Math.max(14,Math.max.apply(null,W.map(function(x){return x.tot;})));
+  var cur=W[W.length-1],prev=W.slice(0,-1).filter(function(x){return x.n;}),avg=prev.length?mean(prev.map(function(x){return x.tot;})):null;
+  return '<div class="p"><h2>Study hours, week by week</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">From the Study and Deep boxes in the daily log. The band to aim for is <b>8–12 h of deep study a week</b> across both modules; more than 15 usually costs recovery without adding marks.</p>'+
+    '<div class="bars" role="img" aria-label="Study hours for the last 8 weeks">'+W.map(function(x){var hgt=Math.round(x.tot/mx*100);var c=x.n?(x.deep>=8&&x.deep<=15?'':(x.deep<8?' lo':' vlo')):' u';return '<div class="b'+c+'" style="height:'+Math.max(x.n?3:100,hgt)+'%" title="'+fmtS(x.a)+': '+f1(x.tot)+' h, '+f1(x.deep)+' h deep"></div>';}).join('')+'</div>'+
+    '<div class="barlab">'+W.map(function(x){return '<span>'+fmtS(x.a).replace(/^\w+ /,'')+'</span>';}).join('')+'</div>'+
+    '<p class="tiny keep" style="margin-top:6px">This week so far: <b>'+f1(cur.tot)+' h</b> ('+f1(cur.deep)+' h deep)'+(avg!==null?' · previous weeks average '+f1(avg)+' h':'')+'. Olive: 8–15 h deep; amber: under 8; hatched: nothing logged.</p></div>';
+}
+function uniMarksHTML(){
+  glStore();var m=S.uni.tasks.filter(function(x){return x.done&&typeof x.mark==='number';});
+  if(!m.length)return '<div class="p"><h2>Marks and feedback</h2><p class="tiny">When an assignment is marked, tick it done above and enter the score and the tutor’s feedback. Every mark here is one you entered; none are assumed. Distinction band on an OU assignment is 85%+.</p></div>';
+  var av=mean(m.map(function(x){return x.mark;}));
+  return '<div class="p"><h2>Marks and feedback</h2><div class="tiles t3" style="margin-bottom:8px"><div class="tile"><div class="k">Average</div><div class="v">'+Math.round(av)+'%</div><div class="s">'+ouBand(av)+'</div></div>'+
+    '<div class="tile"><div class="k">Marked</div><div class="v">'+m.length+'</div><div class="s">assignments</div></div><div class="tile"><div class="k">Best</div><div class="v">'+Math.max.apply(null,m.map(function(x){return x.mark;}))+'%</div><div class="s">&nbsp;</div></div></div>'+
+    m.map(function(x){return '<div style="margin:6px 0"><b>'+esc(x.mod+' — '+x.title)+'</b> <span class="mono">'+x.mark+'%</span>'+(x.fb?'<div class="tiny dim">'+esc(x.fb)+'</div>':'')+'</div>';}).join('')+
+    '<p class="tiny">Read the feedback for the pattern, not the score: the same comment twice is the thing to fix in the next TMA.</p></div>';
+}
+var CRIT_Q=[['Study design','Can this design show cause and effect (RCT), or only association (cohort, cross-sectional)?'],
+  ['Population','Who was studied, where and when? Would the result hold for the group in the question?'],
+  ['Confounding','What else could explain the link (deprivation, age, smoking)? Was it adjusted for?'],
+  ['Size of the effect','Is it absolute or relative risk? A doubled risk of something rare is still rare.'],
+  ['Bias','Self-report, loss to follow-up, who funded it, publication bias.'],
+  ['Consistency','Do other studies, and systematic reviews, find the same?'],
+  ['So what?','What does it mean for policy or practice, and for which communities?']];
+function critHTML(){
+  return '<details class="p"><summary><b>Critical evaluation practice</b> <span class="tiny">· seven questions to ask of any source</span></summary>'+
+    '<p class="tiny" style="margin:6px 0">Take one source from the reading each week and answer these in two lines each. This is the habit that separates distinction marks from description.</p>'+
+    CRIT_Q.map(function(q,i){return '<div style="margin:5px 0"><b>'+(i+1)+'. '+q[0]+'</b> <span class="tiny">— '+q[1]+'</span></div>';}).join('')+'</details>';
+}
+/* Cite Them Right Harvard, the style the OU uses. Built from the fields you type; check against the OU Library guide. */
+function harvardFmt(f){
+  /* authors typed as "Marmot, M.; Allen, J." (semicolons between people) or an organisation */
+  var P=String(f.authors||'').split(';').map(function(z){return z.trim();}).filter(Boolean),y=esc((f.year||'').trim()||'no date');
+  var list=P.length?(P.length===1?P[0]:P.slice(0,-1).join(', ')+' and '+P[P.length-1]):'Anon.';
+  var sur=P.map(function(z){return z.split(',')[0].trim();});
+  var it='('+(!P.length?'Anon.':(sur.length>=4?sur[0]+' et al.':(sur.length===1?sur[0]:sur.slice(0,-1).join(', ')+' and '+sur[sur.length-1])))+', '+y+')';
+  var A=esc(list),T=esc(f.title||''),l;
+  if(f.type==='journal'){l=A+' ('+y+') ‘'+T+'’, <i>'+esc(f.journal||'')+'</i>, '+esc(f.vol||'')+(f.iss?'('+esc(f.iss)+')':'')+(f.pages?', pp. '+esc(f.pages):'')+'.';if(f.doi)l+=' Available at: https://doi.org/'+esc(String(f.doi).replace(/^https?:\/\/doi\.org\//,''))+'.';}
+  else if(f.type==='web')l=A+' ('+y+') <i>'+T+'</i>. Available at: '+esc(f.url||'')+' (Accessed: '+esc(f.acc||'')+').';
+  else l=A+' ('+y+') <i>'+T+'</i>. '+(f.place?esc(f.place)+': ':'')+esc(f.pub||'')+'.'+(f.url?' Available at: '+esc(f.url)+(f.acc?' (Accessed: '+esc(f.acc)+')':'')+'.':'');
+  return {list:l,inText:esc(it)};
+}
+function harvardHTML(){
+  glStore();var R=S.uni.refs||[];
+  var inp=function(id,lab,ph){return '<div class="f"><label for="'+id+'">'+lab+'</label><input type="text" id="'+id+'" placeholder="'+ph+'" maxlength="300"></div>';};
+  return '<details class="p"'+(R.length?' open':'')+'><summary><b>Harvard references</b> <span class="tiny">· Cite Them Right, '+R.length+' saved</span></summary>'+
+    '<div class="fgrid" style="margin-top:8px"><div class="f"><label for="hvType">Type</label><select id="hvType"><option value="journal">Journal article</option><option value="web">Web page</option><option value="report">Report or book</option></select></div>'+
+    '<div class="f"><label for="hvMod">Module</label><select id="hvMod">'+S.uni.mods.map(function(m){return '<option>'+esc(m.code)+'</option>';}).join('')+'</select></div>'+
+    inp('hvAuth','Authors (; between people) or organisation','Marmot, M.; Allen, J.')+inp('hvYear','Year','2020')+inp('hvTitle','Title','')+
+    inp('hvJour','Journal','The Lancet')+inp('hvVol','Volume','395')+inp('hvIss','Issue','10223')+inp('hvPages','Pages','1–12')+inp('hvDoi','DOI','10.…')+
+    inp('hvUrl','URL','https://…')+inp('hvAcc','Accessed','3 November 2026')+inp('hvPub','Publisher','Institute of Health Equity')+inp('hvPlace','Place','London')+'</div>'+
+    '<button class="btn sm" type="button" data-gl="hvadd" style="margin-top:6px">Save reference</button>'+
+    (R.length?'<div style="margin-top:10px">'+R.slice().sort(function(a,b){return (a.authors||'').localeCompare(b.authors||'');}).map(function(r){var H=harvardFmt(r);
+      return '<div style="padding:6px 0;border-bottom:1px solid var(--rule-2)"><div style="font-size:13px">'+H.list+'</div><div class="row" style="gap:8px;margin-top:2px"><span class="tiny">In text: <b>'+H.inText+'</b> · '+esc(r.mod||'')+'</span><button type="button" class="btn sm ghost" data-gl="hvdel" data-id="'+r.id+'" aria-label="Delete reference" style="margin-left:auto">✕</button></div></div>';}).join('')+'</div>':'')+
+    '<p class="tiny dim" style="margin-top:8px">Formatted from what you type. Check every reference against the OU Library’s Cite Them Right guide, and only cite what you have read yourself.</p></details>';
 }
 
 /* ---------- 4. style — Riviera, old money, quiet luxury ---------- */
@@ -9328,6 +9409,7 @@ function renderGoodLife(){
   if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
   if(E('bankCard'))E('bankCard').innerHTML=bankHTML();
   if(E('longCardTop'))E('longCardTop').innerHTML=healthLongHTML();
+  if(E('benchCard'))E('benchCard').innerHTML=benchHTML();
   if(E('liftCard')&&!(document.activeElement&&E('liftCard').contains(document.activeElement)))E('liftCard').innerHTML=liftHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
   if(E('jrnlCard')&&!(JR.open&&E('jrForm')))E('jrnlCard').innerHTML=journalHTML();
@@ -9378,6 +9460,10 @@ function wireGoodLife(){
     if(A==='radd'){var nm=val('glRName');if(!nm)return;U.topics.push({id:glId(),mod:val('glRMod'),name:nm,step:0,next:today()});touch();return;}
     if(A==='rgot'||A==='rshaky'){U.topics.forEach(function(x){if(x.id!==id)return;x.step=A==='rgot'?Math.min((x.step||0)+1,REV_STEPS.length-1):0;x.next=addD(today(),A==='rgot'?REV_STEPS[x.step]:1);x.last=today();});touch();return;}
     if(A==='rdel'){U.topics=U.topics.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='tstage'){U.tasks.forEach(function(x){if(x.id!==id)return;x.st=x.st||{};var n=b.dataset.n;if(x.st[n])delete x.st[n];else x.st[n]=today();});touch();return;}
+    if(A==='hvadd'){var hf={id:glId(),type:val('hvType'),mod:val('hvMod'),authors:val('hvAuth'),year:val('hvYear'),title:val('hvTitle'),journal:val('hvJour'),vol:val('hvVol'),iss:val('hvIss'),pages:val('hvPages'),doi:val('hvDoi'),url:val('hvUrl'),acc:val('hvAcc'),pub:val('hvPub'),place:val('hvPlace')};
+      if(!hf.title)return;Object.keys(hf).forEach(function(k){if(hf[k]==='')delete hf[k];});U.refs=U.refs||[];U.refs.push(hf);touch();return;}
+    if(A==='hvdel'){U.refs=(U.refs||[]).filter(function(x){return x.id!==id;});touch();return;}
     if(A==='sadd'){var sn=val('glSName');if(!sn)return;S.style.items.push({id:glId(),cat:val('glSCat'),name:sn,colour:val('glSColour'),fabric:val('glSFabric'),brand:val('glSBrand')});touch();return;}
     if(A==='sown'){S.style.items.push({id:glId(),cat:b.dataset.cat,name:b.dataset.name,colour:'',fabric:'',brand:''});touch();return;}
     if(A==='sdel'){S.style.items=S.style.items.filter(function(x){return x.id!==id;});touch();return;}
@@ -9396,7 +9482,11 @@ function wireGoodLife(){
     var m=ev.target.closest&&ev.target.closest('input[data-glmod]');
     if(m){glStore();var i=parseInt(m.dataset.glmod,10);if(S.uni.mods[i]){S.uni.mods[i].title=String(m.value||'').trim().slice(0,80);touch();}return;}
     var ta=ev.target.closest&&ev.target.closest('textarea[data-gltask]');
-    if(ta){glStore();S.uni.tasks.forEach(function(x){if(x.id===ta.dataset.gltask)x.notes=String(ta.value||'').slice(0,2000);});touch();}
+    if(ta){glStore();S.uni.tasks.forEach(function(x){if(x.id===ta.dataset.gltask)x.notes=String(ta.value||'').slice(0,2000);});touch();return;}
+    var mk=ev.target.closest&&ev.target.closest('input[data-gltaskmark]');
+    if(mk){glStore();var mv=parseFloat(mk.value);S.uni.tasks.forEach(function(x){if(x.id!==mk.dataset.gltaskmark)return;if(mv>=0&&mv<=100)x.mark=Math.round(mv);else delete x.mark;});touch();return;}
+    var fb=ev.target.closest&&ev.target.closest('textarea[data-gltaskfb]');
+    if(fb){glStore();S.uni.tasks.forEach(function(x){if(x.id===fb.dataset.gltaskfb)x.fb=String(fb.value||'').slice(0,2000);});touch();}
   });
 }
 
@@ -9507,6 +9597,19 @@ function ccGoals(){
    end of March, the run times back in March, and leaning down after. */
 var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-24','Shred + PB trials'],['2026-12-25','2026-12-26','Christmas'],['2026-12-27','2027-01-09','Reset cut'],
   ['2027-01-10','2027-02-28','Build · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
+/* Human Performance OS, stage 2 (Dan, 3 Nov): who and where, at the top of the
+   Overview. Age is worked out from the date of birth; weight is the 7-day
+   average (or the last weigh-in, labelled as such); nothing is invented. */
+function idStripHTML(t){
+  var A=avgWindow(t,7),w=A.n?A.avg:null,lbl='7-day avg';
+  if(w===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length){w=S.weights[ks[ks.length-1]];lbl='last, '+fmtS(ks[ks.length-1]);}}
+  var P=campPhase(t),h=CFG.w.heightM,cm=Math.round(h*1000)/10;
+  var ph=t<=CFG.cutEnd?'Cut · '+P.n:(P.k==='done'?'After the camp':P.n);
+  var cell=function(k,v,s2){return '<div class="cc-chip" style="text-align:left;padding:8px 10px"><small>'+k+'</small><b style="font-size:15px">'+v+'</b>'+(s2?'<small>'+s2+'</small>':'')+'</div>';};
+  return '<div class="cc-id" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px">'+
+    cell('Dan',ageOn(t)+' yrs','born 28 Nov 2000')+cell('Height','5′8″',cm+' cm')+
+    cell('Weight',w!==null?f1(w)+' lb':'—',w!==null?lbl:'weigh in')+cell('Phase',esc(ph),'')+'</div>';
+}
 function seasonStripHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
 function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
@@ -9531,6 +9634,7 @@ function missionHTML(){
   return '<div class="cc">'+
     '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
       (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
+    idStripHTML(t)+
     seasonStripHTML(t)+
     '<div class="cc-hero">'+
       '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
@@ -10010,6 +10114,46 @@ function healthLongHTML(){
   return '<div class="p lift"><h2>🧬 Health &amp; longevity</h2><p class="tiny" style="margin:0 0 6px">The markers with the strongest evidence for a long, healthy life, and where yours sit. Each says where the number comes from.</p>'+
     (H?'<div class="row" style="gap:10px;align-items:baseline;margin:4px 0 8px"><b style="font-size:1.6em">'+H.glowAge+'</b><span>health age · you’re '+H.age+'</span></div><p class="tiny dim" style="margin:-4px 0 8px">A motivational estimate built from the markers below (how it is built is in the panel underneath), not a lab test of biological age.</p>':'')+
     h+'</div>';}
+/* ===================== population benchmarks (Dan, 3 Nov, HPOS brief §8) =====================
+   How a measurement compares with an age- and sex-matched reference group,
+   only where a published reference exists. Each row names the population,
+   source, year, method and limits. Where there is no valid reference the row
+   says so. No overall ranking: one number never measures health. */
+var FRIEND_M20=[[10,32.1],[25,40.1],[50,48.0],[75,55.2],[90,61.8]];
+function friendPct(v){var T=FRIEND_M20;if(v<T[0][1])return '<10th';if(v>=T[T.length-1][1])return '≥90th';
+  for(var i=0;i<T.length-1;i++)if(v>=T[i][1]&&v<T[i+1][1])return T[i][0]+'th–'+T[i+1][0]+'th';return '—';}
+function benchHTML(){
+  var t=today(),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+  var vo2=H&&H.vo2?H.vo2:null,bp=H&&H.bp?H.bp:null;
+  var rh=[];for(var i=0;i<7;i++){var r=S.days[addD(t,-i)];if(r&&typeof r.rhr==='number')rh.push(r.rhr);}
+  var st=[];for(var j=0;j<7;j++){var r2=S.days[addD(t,-j)];if(r2&&typeof r2.steps==='number')st.push(r2.steps);}
+  var gym=0,runs=0;for(var k=0;k<7;k++){var r3=S.days[addD(t,-k)];if(r3&&r3.gym)gym++;if(r3&&(r3.runs||[]).length)runs++;}
+  var row=function(n,you,cmp,src,lim){return '<div style="padding:8px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="gap:8px;align-items:baseline"><b style="min-width:140px">'+n+'</b><span class="mono">'+you+'</span><span style="margin-left:auto">'+cmp+'</span></div>'+
+    '<div class="tiny dim" style="margin-top:2px"><b>Reference:</b> '+src+'</div><div class="tiny dim"><b>Limits:</b> '+lim+'</div></div>';};
+  var h='';
+  h+=row('Aerobic fitness (VO₂max)',vo2?'~'+Math.round(vo2)+' ml/kg/min (estimate)':'—',vo2?'<span class="pill a">'+friendPct(vo2)+' percentile</span>':'<span class="tiny">add race times</span>',
+    'FRIEND registry, US men aged 20–29 tested on a treadmill with measured gas exchange (Kaminsky, Arena and Myers, 2015, <i>Mayo Clinic Proceedings</i>, 90(11)). Percentiles 10/25/50/75/90: 32.1 / 40.1 / 48.0 / 55.2 / 61.8.',
+    'Yours is estimated from race times, not a lab test: race estimates can sit several ml/kg/min off. FRIEND volunteers are US adults referred for or volunteering for testing, not a random sample of UK men. Cut-offs entered from a secondary table of the paper; checking them against the original is on the to-do list.');
+  h+=row('Blood pressure',bp?bp.sys+'/'+bp.dia+' (last reading)':'—',bp?(bp.sys>=140||bp.dia>=90?'<span class="pill w">at or above the clinic threshold</span>':'<span class="pill g">below the clinic threshold</span>'):'<span class="tiny">add readings</span>',
+    'NICE NG136 (2019, updated 2023): hypertension is suspected at a clinic reading of 140/90 or more and confirmed by an average home reading of 135/85 or more.',
+    'A diagnostic threshold, not a population percentile. One reading is not enough: the 134/82 in October needs 7 days of home readings (morning and evening) before it means anything. A GP interprets it, not this app.');
+  h+=row('Resting heart rate',rh.length?Math.round(mean(rh))+' bpm (7-day avg)':'—','<span class="tiny">no valid percentile</span>',
+    'No well-matched UK reference for young male endurance athletes is loaded. Compare with your own baseline (mid-50s; spikes to 70–71 followed stacked days).',
+    'Wrist and chest readings differ; a single morning varies a lot. Your trend against yourself is more useful than any population figure.');
+  h+=row('Physical activity',gym+' gym, '+runs+' run days in 7',(gym>=2&&runs>=1?'<span class="pill g">likely meets the UK guideline</span>':'<span class="tiny">check the guideline</span>'),
+    'UK Chief Medical Officers’ physical activity guidelines (2019): 150 min moderate or 75 min vigorous activity a week, plus muscle-strengthening on 2 or more days.',
+    'A minimum for health, not a percentile. Counted from logged days, not minutes.');
+  h+=row('Daily steps',st.length?ci(Math.round(mean(st)))+' (7-day avg)':'—','<span class="tiny">no valid percentile</span>',
+    'Large cohort meta-analyses (e.g. Paluch et al., 2022, <i>Lancet Public Health</i>) show lower mortality up to roughly 8,000–10,000 steps a day in adults under 60.',
+    'These are associations in older adults, not a ranking. Phone and watch step counts vary by device.');
+  h+=row('Grip strength','not measured','<span class="tiny">measure it to compare</span>',
+    'Dodds et al. (2014), <i>PLoS ONE</i> 9(12): e113637. Twelve British studies, about 50,000 people. Men’s median grip peaks at about 51 kg between ages 29 and 39.',
+    'Needs a hand dynamometer (a GP practice or gym may have one). The paper gives centile curves by age; only the peak median is entered here.');
+  h+=row('Running times','see Times & PBs','<span class="tiny">no population percentile</span>',
+    'There is no valid percentile for the general population: people who race are a self-selected group, and most adults never run a timed 400 m or 5 km.',
+    'Compare with your own all-time bests and goals instead (Goals & PBs).');
+  return '<div class="p"><h2>📊 How you compare</h2><p class="tiny keep" style="margin:0 0 6px">Only where a published, age- and sex-matched reference exists. No single number, and no combination of them, ranks how healthy you are, so there is no overall score here.</p>'+h+'</div>';
+}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -10377,6 +10521,9 @@ function wire(){
     E('btnStravaImport').hidden=true;parsed=null;touch();
   });
   /* export / import / reset */
+  E('btnDownload').addEventListener('click',function(){
+    try{var blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='human-performance-os-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+      E('ioMsg').textContent='Backup downloaded. If nothing appeared, use Show export JSON and copy it.';}catch(e){E('ioBox').value=JSON.stringify(S);E('ioMsg').textContent='Download blocked here: copy the JSON below instead.';}});
   E('btnExport').addEventListener('click',function(){E('ioBox').value=JSON.stringify(S);E('ioMsg').textContent='Copy this somewhere safe.';});
   E('btnLoad').addEventListener('click',function(){
     try{

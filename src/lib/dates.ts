@@ -1,59 +1,56 @@
-import type { Trimester } from '../content/schema';
+import { DUE_WEEK, MAX_WEEK, MIN_WEEK } from '../content/schema';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MS_PER_WEEK = 7 * MS_PER_DAY;
-const FULL_TERM_WEEKS = 40;
-export const MIN_WEEK = 4;
-export const MAX_WEEK = 42;
 
 function clampWeek(week: number): number {
   return Math.min(MAX_WEEK, Math.max(MIN_WEEK, week));
 }
 
 export function toISODate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-/** Given a due date, how many weeks pregnant someone is today. */
-export function computeCurrentWeekFromDueDate(
-  dueDateISO: string,
-  today: Date = new Date(),
-): number {
-  const dueDate = new Date(`${dueDateISO}T00:00:00`);
-  const weeksUntilDue = (dueDate.getTime() - today.getTime()) / MS_PER_WEEK;
-  return clampWeek(Math.round(FULL_TERM_WEEKS - weeksUntilDue));
+function parseISO(iso: string): Date {
+  return new Date(`${iso}T00:00:00`);
 }
 
-/** Given "I'm currently in week N," back-calculate an implied due date. */
-export function computeDueDateFromCurrentWeek(
-  currentWeek: number,
-  today: Date = new Date(),
-): string {
-  const weeksRemaining = FULL_TERM_WEEKS - currentWeek;
-  const dueDate = new Date(today.getTime() + weeksRemaining * MS_PER_WEEK);
-  return toISODate(dueDate);
+export function computeCurrentWeekFromDueDate(dueDateISO: string, today = new Date()): number {
+  const weeksUntilDue = (parseISO(dueDateISO).getTime() - today.getTime()) / MS_PER_WEEK;
+  return clampWeek(Math.round(DUE_WEEK - weeksUntilDue));
 }
 
-export function getTrimesterForWeek(week: number): Trimester {
-  if (week <= 12) return 1;
-  if (week <= 27) return 2;
-  return 3;
+export function computeDueDateFromCurrentWeek(currentWeek: number, today = new Date()): string {
+  const due = new Date(today.getTime() + (DUE_WEEK - currentWeek) * MS_PER_WEEK);
+  return toISODate(due);
 }
 
-export function formatDueDate(dueDateISO: string): string {
-  const date = new Date(`${dueDateISO}T00:00:00`);
-  return date.toLocaleDateString('en-GB', {
+export function daysUntil(dueDateISO: string, today = new Date()): number {
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((parseISO(dueDateISO).getTime() - start.getTime()) / MS_PER_DAY);
+}
+
+export function formatDate(iso: string): string {
+  return parseISO(iso).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
 }
 
-/** Day-of-week index (0-6), used to pick which daily tip to reveal today. */
-export function dayIndexWithinWeek(today: Date = new Date()): number {
-  return today.getDay();
+export function formatShortDate(date: Date): string {
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-export function todayKey(today: Date = new Date()): string {
+export function todayKey(today = new Date()): string {
   return toISODate(today);
+}
+
+/** Stable day-of-year index, used to pick the same daily card all day. */
+export function dayOfYear(today = new Date()): number {
+  const start = new Date(today.getFullYear(), 0, 0);
+  return Math.floor((today.getTime() - start.getTime()) / MS_PER_DAY);
 }

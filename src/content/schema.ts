@@ -1,56 +1,152 @@
 export type Trimester = 1 | 2 | 3;
 
-export type ContentCategory =
-  | 'iron'
-  | 'dairy'
-  | 'omega3'
-  | 'fruit-veg-fibre'
-  | 'weight-body-image'
-  | 'hormones-symptoms'
-  | 'stress-mental-health'
-  | 'supplements'
-  | 'general-reassurance';
+// Pregnancy is dated from the first day of the last period, so weeks 1 and 2
+// come before conception and there is no week 0. Starting at 1 rather than 4
+// means someone who has just found out can still read back over the weeks
+// they were pregnant without knowing it.
+export const MIN_WEEK = 1;
+export const MAX_WEEK = 42;
+export const DUE_WEEK = 40;
 
 export interface Source {
   id: string;
   label: string;
   organisation: string;
+  tier: 'gov' | 'nhs' | 'college' | 'charity' | 'research';
   url?: string;
-  note?: string;
+  /**
+   * When the source itself was last reviewed or published, shown to the
+   * reader. Optional and deliberately left empty rather than guessed —
+   * a fabricated review date is worse than a missing one.
+   */
+  reviewed?: string;
+  /** Conflicts of interest, funding caveats, "background only" notes. */
+  caveat?: string;
 }
 
-export interface ContentItem {
+/** A long-form, citable entry in the Healthy Pregnancy reference section. */
+export interface Guide {
   id: string;
-  category: ContentCategory;
-  trimester: Trimester[];
+  section: GuideSection;
   title: string;
-  /** Short, scannable version shown in the daily "reveal" card. */
-  tip: string;
-  /** Fuller explanation shown in the article detail view. */
-  body: string;
+  /** One-line summary used in cards and search results. */
+  summary: string;
+  /** Paragraphs of plain-language body copy. */
+  body: string[];
   sourceIds: string[];
-  tags?: string[];
-  /** Marks content that should be visually flagged as urgent/red-flag guidance. */
-  isRedFlag?: boolean;
+  /** Renders with red-flag styling and an urgent tone. */
+  emphasis?: 'calm' | 'warn';
+  table?: {
+    head: string[];
+    rows: string[][];
+  };
+  /**
+   * Real lists, for content that is a list. A packing checklist written as
+   * one dot-separated paragraph reads as a single 58-word sentence — bad for
+   * a scanning reader and bad for every readability measure.
+   */
+  lists?: { title?: string; items: string[] }[];
 }
 
-export interface WeekMilestone {
-  title: string;
-  badgeId: string;
-}
+export type GuideSection =
+  // During pregnancy
+  | 'nutrition'
+  | 'supplements'
+  | 'food-safety'
+  | 'exercise'
+  | 'sleep'
+  | 'wellbeing'
+  | 'weight'
+  | 'medications'
+  | 'alcohol-smoking'
+  | 'travel'
+  | 'infections'
+  | 'vaccinations'
+  | 'everyday-safety'
+  | 'skincare'
+  | 'health-conditions'
+  | 'work-rights'
+  | 'multiples'
+  | 'preconception'
+  // Birth
+  | 'birth-place'
+  | 'labour'
+  | 'pain-relief'
+  | 'birth-prep'
+  // After birth
+  | 'first-days'
+  | 'recovery'
+  | 'postnatal-mind'
+  | 'postnatal-support'
+  // Feeding
+  | 'feeding-basics'
+  | 'breastfeeding'
+  | 'bottle-feeding';
 
-export interface WeekPlan {
+/**
+ * Guidance now spans well past pregnancy itself, so sections are grouped by
+ * life phase — this drives both the browse hierarchy and what gets surfaced
+ * on the home screen as someone approaches their due date.
+ */
+export type GuidePhase = 'pregnancy' | 'birth' | 'after' | 'feeding';
+
+export interface BabyWeek {
   week: number;
-  trimester: Trimester;
-  headline: string;
-  babySize?: string;
-  dailyTipIds: string[];
-  featuredArticleIds: string[];
-  milestone?: WeekMilestone;
+  /** Fruit/veg size comparison, phrased to follow "roughly the size of…". */
+  size: string;
+  /**
+   * Replaces the "roughly the size of…" heading entirely. Used for the weeks
+   * before conception, where there is no embryo to compare to anything.
+   */
+  sizeLabel?: string;
+  development: string;
 }
 
-export interface Badge {
+export interface Milestone {
+  week: number;
+  title: string;
+  /** Shown as a celebration when the user reaches this week. */
+  celebration?: string;
+}
+
+export interface Myth {
+  id: string;
+  claim: string;
+  verdict: 'myth' | 'true';
+  explanation: string;
+  sourceIds: string[];
+}
+
+export interface Appointment {
+  week: number;
+  title: string;
+  detail: string;
+  /** Only offered in first pregnancies. */
+  firstPregnancyOnly?: boolean;
+}
+
+export interface Symptom {
+  id: string;
+  icon: string;
+  name: string;
+  /** Plain-language explanation of the physiological driver. */
+  why: string;
+  help: string;
+  /** When this symptom stops being routine and needs checking. */
+  flag: string;
+  sourceIds: string[];
+}
+
+export interface RedFlag {
   id: string;
   title: string;
-  description: string;
+  detail: string;
+  level: 'maternity-unit' | 'emergency';
+}
+
+export interface FocusItem {
+  /** Stable per-week key so ticked items persist correctly. */
+  id: string;
+  text: string;
+  sourceIds: string[];
 }

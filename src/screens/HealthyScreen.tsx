@@ -1,0 +1,379 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useProgress } from '../hooks/useProgress';
+import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
+import { usePregnancyStatus } from '../hooks/usePregnancyStatus';
+import {
+  GUIDE_SECTIONS,
+  GUIDE_PHASES,
+  guides,
+  guidesInSection,
+  searchGuides,
+  searchSymptoms,
+  urgentMatchFor,
+  type Guide,
+  type GuidePhase,
+} from '../content';
+import { Screen } from '../components/ui/Screen';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
+import { RichText } from '../components/ui/RichText';
+import { SaveForMidwife } from '../components/ui/SaveForMidwife';
+
+function GuideCard({
+  guide,
+  onOpen,
+  defaultOpen,
+}: {
+  guide: Guide;
+  onOpen: (id: string) => void;
+  defaultOpen?: boolean;
+}) {
+  const border =
+    guide.emphasis === 'warn'
+      ? 'border-alert/40 bg-alertp'
+      : guide.emphasis === 'calm'
+        ? 'border-moss/40 bg-mossp'
+        : 'border-line bg-card';
+
+  return (
+    <details
+      id={`guide-${guide.id}`}
+      open={defaultOpen}
+      className={`mb-3 rounded-xl border ${border}`}
+      onToggle={(e) => {
+        if ((e.currentTarget as HTMLDetailsElement).open) onOpen(guide.id);
+      }}
+    >
+      {/* The padding lives on the summary rather than the card, so the whole
+          row is tappable. It was on the card, which made the actual target a
+          25px strip in the middle of a 52px box — the rest looked pressable
+          and did nothing. This is the library's main browsing surface. */}
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2.5 px-4 py-3.5 font-display text-read font-semibold [&::-webkit-details-marker]:hidden">
+        {guide.title}
+        <span className="font-mono text-moss" aria-hidden="true">
+          ›
+        </span>
+      </summary>
+      <div className="px-4 pb-3.5">
+        <RichText paragraphs={guide.body} />
+        {guide.lists?.map((list) => (
+          <div key={list.title ?? 'list'} className="mt-3">
+            {list.title && <p className="label-mono mb-1.5 text-mossd">{list.title}</p>}
+            <ul className="m-0 list-none p-0">
+              {list.items.map((item) => (
+                <li key={item} className="mb-1 flex gap-2 text-body">
+                  <span aria-hidden="true" className="text-moss">
+                    ·
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        {guide.table && (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full border-collapse text-small">
+              <thead>
+                <tr>
+                  {guide.table.head.map((h) => (
+                    <th
+                      key={h}
+                      scope="col"
+                      className="label-mono border-b border-line p-2 text-left text-mossd"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {guide.table.rows.map((row) => (
+                  <tr key={row[0]}>
+                    {row.map((cell, i) => (
+                      <td key={i} className="border-b border-line p-2">
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <EvidenceNote sourceIds={guide.sourceIds} />
+        <SaveForMidwife topic={guide.title} />
+      </div>
+    </details>
+  );
+}
+
+/**
+ * Which phase is open when you arrive.
+ *
+ * Measured before this existed: the four phases rendered open, one after
+ * another, and the pregnancy group alone was 5,941px — seven phone screens
+ * of collapsed card headers before the next heading. 111 entries is the
+ * right amount of guidance and the wrong amount of scrolling.
+ *
+ * Nothing is removed. One phase is open, the other three are a tap, and the
+ * app already knows enough to pick the right one rather than asking.
+ */
+function phaseForStage(week: number | null, hasBaby: boolean): GuidePhase {
+  if (hasBaby) return 'after';
+  // 36 weeks is when the birth plan conversation actually happens at an
+  // antenatal appointment, so it is when birth guidance stops being reading
+  // ahead and starts being the thing in front of you.
+  if (week !== null && week >= 36) return 'birth';
+  return 'pregnancy';
+}
+
+export function HealthyScreen() {
+  const { markGuideRead, readGuideIds } = useProgress();
+  const { currentWeek, hasBaby } = usePregnancyProfile();
+  const { isAfterLoss } = usePregnancyStatus();
+  const openPhase = phaseForStage(currentWeek, hasBaby);
+  const [params] = useSearchParams();
+  // `?q=` lets another screen hand its query over — the food lookup sends
+  // anything not in its short list here rather than to a dead end.
+  const [query, setQuery] = useState(params.get('q') ?? '');
+  // `?open=<id>` lets the home screen link straight to an entry rather than
+  // dropping someone at the top of a 108-item library to go hunting.
+  const openId = params.get('open');
+  const scrolledTo = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!openId || scrolledTo.current === openId) return;
+    const el = document.getElementById(`guide-${openId}`);
+    if (!el) return;
+    scrolledTo.current = openId;
+    markGuideRead(openId);
+    el.scrollIntoView({ block: 'center' });
+    el.querySelector('summary')?.focus();
+  }, [openId, markGuideRead]);
+
+  const q = query.trim();
+
+  // Searching and browsing want different shapes. A question deserves ranked
+  // answers, best first; browsing wants the hierarchy. Forcing search results
+  // back into phase-and-section order buries the best match under whichever
+  // phase happens to sort first.
+  const results = q ? searchGuides(q) : [];
+  const symptomHits = q ? searchSymptoms(q) : [];
+  const urgent = q ? urgentMatchFor(q) : undefined;
+
+  const sections = GUIDE_SECTIONS.map((section) => ({
+    ...section,
+    items: guidesInSection(section.id),
+  })).filter((s) => s.items.length > 0);
+
+  // Guidance now runs past pregnancy into birth, recovery and feeding, so
+  // it's grouped by phase — otherwise the list is one undifferentiated wall.
+  const phases = GUIDE_PHASES.map((phase) => ({
+    ...phase,
+    sections: sections.filter((s) => s.phase === phase.id),
+  })).filter((p) => p.sections.length > 0);
+
+  return (
+    <Screen
+      title="Health & wellbeing"
+      lede="Everything that helps, and nothing that doesn’t: pregnancy through to feeding."
+    >
+      {/* The wellbeing tools that live in other tabs, linked rather than
+          moved. People come here looking for "health and wellness" and would
+          reasonably expect these to be part of it; moving them would break
+          the tabs they already live in, and linking costs one line. The
+          pregnancy-only two drop out after the birth or a loss, for the same
+          reason the tabs themselves do. */}
+      <nav aria-label="Other wellbeing tools" className="mb-5 flex flex-wrap gap-2">
+        {[
+          { to: '/minute', label: 'Need a minute', pregnancyOnly: false },
+          { to: '/body', label: 'Check a symptom', pregnancyOnly: true },
+          { to: '/movements', label: 'Movement journal', pregnancyOnly: true },
+        ]
+          .filter((t) => !(t.pregnancyOnly && (hasBaby || isAfterLoss)))
+          .map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              className="flex min-h-11 items-center rounded-full border border-line bg-card px-3.5 text-small font-medium text-ink no-underline"
+            >
+              {t.label}
+            </Link>
+          ))}
+      </nav>
+
+      <div className="mb-5">
+        <label htmlFor="guide-search" className="mb-1.5 block text-small font-semibold">
+          Search health & wellbeing
+        </label>
+        <input
+          id="guide-search"
+          type="search"
+          value={query}
+          placeholder="Ask it however you'd say it: “can I eat brie?”"
+          onChange={(e) => setQuery(e.target.value)}
+          className="min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base"
+        />
+        {/* The urgent offer is announced here as well as shown below it.
+            Without this, someone using a screen reader typed "bleeding" and
+            heard "2 entries match" — the one part of the screen that matters
+            was silent, because it sits outside the live region. */}
+        <p aria-live="polite" className="mt-1.5 font-mono text-meta text-soft">
+          {q
+            ? `${urgent ? 'If this is happening now, there’s help below. ' : ''}${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${query}”`
+            : `${guides.length} entries · ${readGuideIds.length} read so far`}
+        </p>
+      </div>
+
+      {/* A reading list is a bad answer to "bleeding". If the search looks like
+          someone describing what is happening to them, the urgent route goes
+          above the results — offered, not forced, since they may equally be
+          reading ahead.
+
+          The entry's title is quoted rather than folded into a sentence:
+          lowercasing a first-person title mid-clause produced "don't read up
+          on it — i'm bleeding is something to get checked", which is both
+          ungrammatical and slightly absurd at the moment it is read. */}
+      {urgent && (
+        <div className="mb-5 rounded-xl border-2 border-alert bg-alertp px-4 py-3.5">
+          <p className="m-0 text-body font-semibold">Is this happening now?</p>
+          <p className="mb-1 mt-1.5 text-body font-semibold italic leading-snug">
+            “{urgent.title}”
+          </p>
+          <p className="mb-2.5 mt-1.5 text-body leading-relaxed">
+            If that’s you right now, this is one to get checked rather than read about.
+          </p>
+          <Link
+            to={`/help/${urgent.id}`}
+            className="inline-flex min-h-11 items-center rounded-lg border-2 border-alert px-4 text-body font-semibold text-alert no-underline"
+          >
+            What to do now →
+          </Link>
+        </div>
+      )}
+
+      {/* The symptom explorer is a separate screen, so searching "heartburn"
+          used to return nothing — the app had the answer and never offered it. */}
+      {symptomHits.length > 0 && (
+        <div className="mb-5">
+          <p className="label-mono mb-2 text-mossd">In My Body</p>
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+            {symptomHits.map((s) => (
+              <li key={s.id}>
+                <Link
+                  to={`/body?symptom=${s.id}`}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-moss bg-mossp px-3.5 text-body font-semibold text-mossd no-underline"
+                >
+                  <span aria-hidden="true">{s.icon}</span>
+                  {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {q && results.length === 0 && symptomHits.length === 0 && (
+        <p className="text-body italic text-soft">
+          Nothing matches that yet. Try fewer words, or check{' '}
+          <Link to="/body" className="underline">
+            My Body
+          </Link>{' '}
+          for symptoms, or{' '}
+          <Link to="/help" className="font-semibold underline">
+            Get help
+          </Link>{' '}
+          if something feels wrong now.
+        </p>
+      )}
+
+      {/* Ranked, flat, best first — the shape a question deserves. */}
+      {q &&
+        results.map(({ guide }) => (
+          <GuideCard key={guide.id} guide={guide} onOpen={markGuideRead} />
+        ))}
+
+      {!q && (
+        <p className="mb-6 rounded-xl border border-line bg-sand px-4 py-3 text-body">
+          Not everyone gets the same standard of maternity care in the UK.{' '}
+          <Link to="/inequalities" className="font-semibold underline">
+            Inequalities in maternity care →
+          </Link>
+        </p>
+      )}
+
+      {!q &&
+        phases.map((phase) => {
+          const count = phase.sections.reduce((n, s) => n + s.items.length, 0);
+          return (
+            <details
+              key={phase.id}
+              open={
+                phase.id === openPhase ||
+                phase.sections.some((s) => s.items.some((g) => g.id === openId))
+              }
+              className="mb-9"
+            >
+              <summary className="mb-4 flex min-h-11 cursor-pointer list-none items-baseline justify-between gap-3 border-b-2 border-ink pb-1.5 [&::-webkit-details-marker]:hidden">
+                {/* A real <h2>, not a styled span. The section headings below
+                    are <h3>, so dropping the level here left them following
+                    the screen's <h1> with nothing in between — axe caught it
+                    as an invalid heading order, which is exactly what a
+                    screen reader user navigating by heading would hit.
+                    <summary> takes heading content by spec. */}
+                <span>
+                  <h2 className="mb-0.5 text-h2">{phase.label}</h2>
+                  <span className="block text-small italic text-mossd">{phase.blurb}</span>
+                </span>
+                {/* What is inside, so the fold is a decision rather than a
+                    guess. Not a progress count — nothing here is a task. */}
+                <span className="shrink-0 font-mono text-meta text-soft">
+                  {count} {count === 1 ? 'entry' : 'entries'}
+                </span>
+              </summary>
+              {phase.sections.map((section) => (
+                /* Sections fold too, and this is the second half of the fix.
+                   Opening one phase still left 83 entries stacked under it —
+                   about seven phone screens of card headers before the next
+                   phase heading. Closed, the same phase is 18 lines you can
+                   read at a glance.
+
+                   The trade is real and was made deliberately: you can no
+                   longer scroll and skim every entry title, which is
+                   sometimes how you find the thing you did not know to search
+                   for. What you get instead is a contents page you can
+                   actually hold in your head, and the search box above it
+                   still reaches every entry. */
+                <details
+                  key={section.id}
+                  open={section.items.some((g) => g.id === openId)}
+                  className="mb-3 border-b border-line pb-3"
+                >
+                  <summary className="flex min-h-11 cursor-pointer list-none items-baseline justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <span>
+                      <h3 className="mb-0.5 text-title text-mossd">{section.label}</h3>
+                      <span className="block text-small text-soft">{section.blurb}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-meta text-soft">
+                      {section.items.length}
+                    </span>
+                  </summary>
+                  <div className="mt-3">
+                    {section.items.map((g) => (
+                      <GuideCard
+                        key={g.id}
+                        guide={g}
+                        onOpen={markGuideRead}
+                        defaultOpen={g.id === openId}
+                      />
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </details>
+          );
+        })}
+    </Screen>
+  );
+}
