@@ -9725,7 +9725,7 @@ function dayStress(d){var r=S.days[d]||{},p=0,why=[];
   if(je&&je<=2){p+=1;why.push('low energy');}
   if(r.ill){p+=2;why.push('ill');}
   if((r.binges||[]).length){p+=1;why.push('a binge');}
-  var hard=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});if(hard){p+=1;why.push('hard run');}
+  var hard=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});if(hard){p+=1;why.push('hard run');if(legsDay(addD(d,-1))){p+=0.5;why.push('hard run the day after legs');}}
   if(r.gym&&(r.legs||((r.sets||{}).Legs||0)>=10)){p+=1;why.push('legs day');}
   if(typeof r.deep==='number'&&r.deep>4){p+=0.5;why.push('long study day');}
   var logged=['sleep','rhr','runs','gym','journal','mood','steps'].some(function(k){return k in r;});
@@ -10065,6 +10065,28 @@ function lastRunFeedback(){
     var nice=m.laps?(function(){var c={};m.laps.forEach(function(v){c[v]=(c[v]||0)+1;});return Object.keys(c).sort(function(a,b){return b-a;}).map(function(k){return (c[k]>1?c[k]+' × ':'')+repLabel(+k);}).join(' + ');})():m.label;
     return {when:when,label:nice+(kind?' · '+kind:''),line:line,tone:tone};}
   return null;}
+/* Dan, 3 Nov: "take into account cortisol: are my runs too hard for longevity?"
+   Short, hard intervals are not the problem: VO2max is one of the strongest
+   predictors of a long life, and 1-2 hard sessions a week is what raises it. What
+   keeps cortisol up is stacking: 3 hard runs in 7 days on a deficit, a hard run the
+   day after legs, or hard on low carbs. Reads the last 14 days and names what to change. */
+function legsDay(d){var r=S.days[d]||{};return !!(r.gym&&(r.legs||((r.sets||{}).Legs||0)>=10));}
+function cortisolCheck(){
+  var t=today(),hd=[],afterLegs=[],i;
+  for(i=13;i>=0;i--){var d=addD(t,-i);var h=((S.days[d]||{}).runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});
+    if(h){hd.push(d);if(legsDay(addD(d,-1)))afterLegs.push(d);}}
+  var peak=0;for(i=0;i<hd.length;i++){var c=hd.filter(function(x){return x>=hd[i]&&x<=addD(hd[i],6);}).length;if(c>peak)peak=c;}
+  var last7=hd.filter(function(x){return x>addD(t,-7);}).length,flags=[];
+  if(peak>=3)flags.push(['3 hard runs inside 7 days','Two a week is the dose that keeps VO2max climbing; the third, on a deficit, mostly adds cortisol. Make it an easy run.']);
+  if(afterLegs.length)flags.push(['Hard the day after legs ('+afterLegs.map(fmtS).join(', ')+')','Jelly legs make the run feel harder than it is, so the stress cost goes up for the same session. Put an easy day or a rest day between legs and a hard run.']);
+  var tone=flags.length?'w':'g';
+  var verdict=flags.length?'Not too hard for longevity overall: the hard sessions are short and your weekly volume is low. It is the stacking that keeps cortisol up.':'Your mix is good for longevity: hard work kept to two sessions, easy days in between.';
+  return {tone:tone,verdict:verdict,flags:flags,last7:last7,peak:peak};}
+function cortisolHTML(){var X=cortisolCheck();
+  return '<details class="fold"'+(X.flags.length?' open':'')+'><summary><b>🧬 Cortisol and longevity check</b> <span class="pill'+(X.tone==='w'?' w':' g')+'">'+(X.flags.length?X.flags.length+' to change':'on track')+'</span></summary>'+
+    '<p style="margin:4px 0">'+X.verdict+'</p>'+
+    X.flags.map(function(f){return '<p style="margin:4px 0"><span class="pill w">!</span> <b>'+esc(f[0])+'</b><br><span class="tiny">'+esc(f[1])+'</span></p>';}).join('')+
+    '<p class="tiny" style="margin:6px 0 2px"><b>The anti-ageing shape:</b> two hard runs a week (they raise VO2max, among the strongest predictors of a long life), the rest truly easy (full sentences, nose breathing), carbs before and after a hard run (a hard run on low carbs raises cortisol more), never two hard days in a row, and the day off. A cortisol spike in a session is normal and good; it is only bad when it never gets the chance to come down.</p></details>';}
 function runCoachHTML(){
   var t=today(),L=greenLight()||{},G=null,PG=paceGuide();try{G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null;}catch(e){}
   var F=null;try{F=lastRunFeedback();}catch(e){}
@@ -10088,7 +10110,7 @@ function runCoachHTML(){
       var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
       return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+(x.e==='🌊'&&norwTooFast()?'<br><span class="tiny">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</span>':'')+'</p>';}).join(''):'')+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
-    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+'</div>';}
+    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+cortisolHTML()+'</div>';}
 
 /* Dan, 3 Nov: "I don't need the others: say my achievements and my best runs,
    and a fun section on how my muscles are growing." */
