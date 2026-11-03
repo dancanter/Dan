@@ -134,7 +134,7 @@ await p.click('#tabs button[data-t="today"]'); await p.waitForTimeout(150);
 
 // ---- calm, season, pillars, breathing, the month (3 Nov) -------------------------------
 const cc = await p.innerText('#calmCard');
-ok('Home has the calm card: stress load, destressers, the season, the film', /Stress load/.test(cc) && /Slow breathing/.test(cc) && /This season/.test(cc) && /film night/i.test(cc), cc.slice(0, 300));
+ok('Home has the calm card: stress load, destressers, the season, the film', /\d+\s*\/ 100/.test(cc) && /what brings it down/i.test(cc) && /Slow breathing/.test(cc) && /This season/.test(cc) && /film night/i.test(cc), cc.slice(0, 300));
 const gc = await shadow(p, 'glowCalm');
 ok('and the 8 pillars with the breathing timer', /Your 8 pillars today/i.test(gc) && /Breathe/.test(gc), gc.slice(0, 200));
 await p.evaluate(() => { const st = window.__GLOW_HOST__.load(); st.breathMinutes = Object.assign({}, st.breathMinutes, { '2026-11-03': 10 }); window.__GLOW_HOST__.save(st, {}); });
