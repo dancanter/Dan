@@ -67,7 +67,7 @@ export function App() {
   }, []);
 
   return (
-    <div className={embedded ? 'mx-auto min-h-dvh max-w-2xl px-4 pt-3 pb-8' : 'mx-auto min-h-dvh max-w-2xl px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-28'}>
+    <div className={embedded ? 'min-h-dvh w-full pt-1 pb-8' : 'mx-auto min-h-dvh max-w-2xl px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-28'}>
       {!embedded && <header className="mb-4 flex items-center gap-2">
         <span className="grid h-8 w-8 place-items-center rounded-xl bg-navy text-gold"><Sun size={18} /></span>
         <span className="font-serif text-lg tracking-wide">Glow</span>

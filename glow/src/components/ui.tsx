@@ -4,12 +4,12 @@ import type { Evidence } from '@/data/science';
 
 export function Card({ title, eyebrow, children, className = '', action }: { title?: ReactNode; eyebrow?: string; children: ReactNode; className?: string; action?: ReactNode }) {
   return (
-    <section className={`card rise p-4 sm:p-5 ${className}`}>
+    <section className={`card rise p-4 ${className}`}>
       {(title || eyebrow) && (
         <header className="mb-3 flex items-start justify-between gap-3">
           <div>
             {eyebrow && <div className="text-[11px] font-semibold tracking-[0.14em] text-gold uppercase">{eyebrow}</div>}
-            {title && <h2 className="font-serif text-lg leading-tight">{title}</h2>}
+            {title && <h2 className="font-serif text-[19px] leading-tight font-semibold">{title}</h2>}
           </div>
           {action}
         </header>
@@ -107,13 +107,13 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
 
 export function Button({ children, onClick, tone = 'primary', className = '', type = 'button', disabled }: { children: ReactNode; onClick?: () => void; tone?: 'primary' | 'ghost' | 'gold' | 'danger'; className?: string; type?: 'button' | 'submit'; disabled?: boolean }) {
   const tones: Record<string, string> = {
-    primary: 'bg-navy text-navy-ink hover:opacity-90',
+    primary: 'bg-sea text-paper hover:opacity-90',
     gold: 'bg-gold text-white hover:opacity-90',
     ghost: 'bg-surface-2 text-ink hover:bg-line',
     danger: 'bg-bad-soft text-bad hover:opacity-90',
   };
   return (
-    <button type={type} disabled={disabled} onClick={onClick} className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition disabled:opacity-40 ${tones[tone]} ${className}`}>
+    <button type={type} disabled={disabled} onClick={onClick} className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition disabled:opacity-40 ${tones[tone]} ${className}`}>
       {children}
     </button>
   );
@@ -121,9 +121,9 @@ export function Button({ children, onClick, tone = 'primary', className = '', ty
 
 export function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
   return (
-    <div className="inline-flex rounded-xl bg-surface-2 p-1" role="tablist">
+    <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1" role="tablist">
       {options.map((o) => (
-        <button key={o.value} role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)} className={`rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition ${value === o.value ? 'bg-surface font-medium shadow-sm' : 'text-ink-2'}`}>
+        <button key={o.value} role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)} className={`rounded-full px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition ${value === o.value ? 'bg-navy text-navy-ink' : 'text-ink-2'}`}>
           {o.label}
         </button>
       ))}

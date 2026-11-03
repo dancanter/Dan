@@ -78,8 +78,9 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Pill tone="gold"><Trophy size={12} />{rank.name} · {xp.toLocaleString('en-GB')} XP</Pill>
-          <Pill tone={st ? 'bad' : 'neutral'}><Flame size={12} />{st}-day streak</Pill>
+          {/* inside the app, levels and XP are the tracker's (one system, not two) */}
+          {!hosted() && <Pill tone="gold"><Trophy size={12} />{rank.name} · {xp.toLocaleString('en-GB')} XP</Pill>}
+          {!hosted() && <Pill tone={st ? 'bad' : 'neutral'}><Flame size={12} />{st}-day streak</Pill>}
           {r.analysis.wins.slice(0, 3).map((w) => <Pill key={w} tone="good">✓ {w}</Pill>)}
         </div>
       </Card>
@@ -251,7 +252,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         <div><div className="text-[11px] font-semibold tracking-[0.14em] text-gold uppercase">Did you know?</div><p className="text-sm leading-relaxed">{factFor(date)}</p></div>
       </div>
 
-      <Confetti fireKey={celebrate} />
+      {!hosted() && <Confetti fireKey={celebrate} />}
       <AddFood open={adding} onClose={() => setAdding(false)} date={date} />
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail?.name}>
         {detail && <FoodDetail food={detail} date={date} />}
