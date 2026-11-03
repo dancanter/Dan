@@ -4079,13 +4079,13 @@ function greenLight(){
   if(r.ill){var below=['flu','chest','stomach'].indexOf(r.ill.kind)>=0;
     if(below||r.ill.severity>=3)return {c:'red',e:'🔴',t:'Sick day — no run, no gym',sub:'Rest is the training today',w:'Below the neck (fever, chest or stomach) or properly unwell: training now makes it last longer. Fluids, food, sleep. Back when you have been symptom-free for a day.',todo:RECOVERY_DAY};
     return {c:'amber',e:'🟡',t:'Easy only — you are under the weather',sub:'A walk or a gentle easy run if you feel up to it',w:'Above the neck and mild: easy movement is fine, nothing hard. If it moves to your chest or you get a temperature, stop.'};}
+  if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'+(['day','days','week','walkweek'].indexOf(C.rest.k)>=0?' Then '+C.rest.t.toLowerCase()+': '+String(C.rest.w).split('. ')[0]+'.':'')+''};
+  if(mt.length)return {c:'done',e:'✅',t:'Today’s run is done',w:'Good. The rest of the day is recovery.'};
   if(C.rest.k==='walkon')return {c:'amber',e:'🚶',t:'Run-free week — walk, steps and gym',sub:C.rest.t.replace('Run-free week — ',''),w:C.rest.w};
   if(C.rest.k==='walkweek')return {c:'amber',e:'🚶',t:'No run today — I suggest a run-free week',sub:'Start it from Home or the Feedback tab',w:C.rest.w};
   if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:C.rest.k==='week'?'Easy week — recovery first':'Recovery day today',sub:C.rest.t,w:(C.rest.w||''),todo:RECOVERY_DAY};
   if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
     w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night. ☕ One coffee, with breakfast, before 11.'};
-  if(hardT)return {c:'done',e:'✅',t:'Hard run done — now recover',w:'Carbs in, an early night. Nothing else needed today.'};
-  if(mt.length)return {c:'done',e:'✅',t:'Today’s run is done',w:'Good. The rest of the day is recovery.'};
   var why=[],walk=false;
   if(NG.today||(NG.n&&NG.persistent)){why.push('something has hurt'+(NG.top?' ('+NG.top+')':''));walk=true;}
   if(RH.state==='high'||RH.state==='up'){why.push('resting HR is up on your baseline');walk=RH.state==='high'||walk;}
