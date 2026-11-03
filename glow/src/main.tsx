@@ -9,7 +9,7 @@ import { dayResult } from './engine/game';
 import { DayPlanCard } from './components/DayPlan';
 import { HomeHealth } from './components/HomeHealth';
 import { CalmHome } from './components/CalmHome';
-import { healthSnapshot } from './components/HealthPanel';
+import { HealthPanel, healthSnapshot } from './components/HealthPanel';
 import { todayISO } from './engine/body';
 import { IdeasCard, PhaseCompareCard, WeeklyReviewCard } from './components/Review';
 import { BingeToday } from './components/Binge';
@@ -46,10 +46,11 @@ function render(host: HTMLElement, node: ReactNode) {
   root.render(<StrictMode>{node}</StrictMode>);
 }
 
-type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill' | 'home' | 'calm';
+type View = 'dayplan' | 'ideas' | 'review' | 'binge' | 'ill' | 'home' | 'calm' | 'health';
 function view(v: View, date: string, open?: boolean): ReactNode {
   if (v === 'home') return <HomeHealth date={date} />;
   if (v === 'calm') return <CalmHome date={date} />;
+  if (v === 'health') return <HealthPanel />;
   if (v === 'dayplan') return <DayPlanCard date={date} />;
   if (v === 'ideas') return <IdeasCard date={date} />;
   if (v === 'review') return <div className="space-y-4"><WeeklyReviewCard end={date} /><PhaseCompareCard /></div>;
@@ -71,7 +72,7 @@ if (hosted()) {
     /** The tracker's store changed: show it. */
     refresh: () => refreshFromHost(),
     /** Health age, rank and blood pressure, for the tracker's goal tiles. */
-    health: () => { const h = healthSnapshot(getState(), todayISO()); return { age: h.age, glowAge: Math.round(h.ga.age), top: h.rank.rarest, bp: h.lastBp, rhr: h.rhr }; },
+    health: () => { const h = healthSnapshot(getState(), todayISO()); return { age: h.age, glowAge: Math.round(h.ga.age), top: h.rank.rarest, bp: h.lastBp, rhr: h.rhr, vo2: h.vo2 }; },
     /** The full app (Food, Foods, Cells, Body, Rituals). */
     mountApp: (host: HTMLElement) => render(host, <App />),
     /** One of Glow's pieces, placed by the tracker. */

@@ -11,7 +11,7 @@ await p.reload(); await p.waitForTimeout(800);
 await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(2500);
 const t1 = await p.evaluate(()=>{const h=document.getElementById('glow-host');return h&&h.shadowRoot?h.shadowRoot.textContent.slice(0,120):'NO SHADOW';});
 await p.screenshot({path:SP+'/in-food-'+scheme+'.png'});
-await p.click('#bnav button[data-g="cellular"]'); await p.waitForTimeout(800);
+await p.click('#tabs button[data-g="cellular"]'); await p.waitForTimeout(800);
 const t2 = await p.evaluate(()=>document.getElementById('glow-host').shadowRoot.textContent.slice(0,80));
 await p.screenshot({path:SP+'/in-cells-'+scheme+'.png'});
 await p.click('#bnav button[data-t="today"]'); await p.waitForTimeout(500);

@@ -40,7 +40,7 @@ export function HealthPanel() {
   void lastBp; void rhr; void sleepAvg; void nutritionAvg; void kg; void races; void vo2;
   return (
     <div className="space-y-4">
-      <Card eyebrow="Glow age" title={<span>Your body is running like a <span className="num font-serif text-3xl text-gold">{ga.age}</span>-year-old’s</span>}>
+      <Card eyebrow="Glow age" title={<span>Your body is running like a <span className="num font-serif text-3xl text-gold">{Math.round(ga.age)}</span>-year-old’s</span>}>
         <p className="mb-3 text-sm text-ink-2">You’re {age}. Each marker below adds or takes off years in the direction the evidence points. It’s a motivational scorecard built from your own numbers, <b>not</b> a validated biological-age test (those use blood panels or DNA methylation).</p>
         <ul className="space-y-1.5 text-sm">
           {ga.lines.map((l) => (

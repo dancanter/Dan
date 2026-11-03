@@ -324,6 +324,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <button role="tab" data-t="glow" data-g="foods" data-sec="food" aria-selected="false">Foods</button>
     <button role="tab" data-t="food" data-sec="food" aria-selected="false">Diary & seasons</button>
     <button role="tab" data-t="reverse" data-sec="food" aria-selected="false">Calories & reverse</button>
+    <button role="tab" data-t="longev" data-sec="long" aria-selected="false">Health &amp; longevity</button>
     <button role="tab" data-t="glow" data-g="cellular" data-sec="long" aria-selected="false">Cells</button>
     <button role="tab" data-t="glow" data-g="body" data-sec="long" aria-selected="false">Body & health</button>
     <button role="tab" data-t="sleep" data-sec="rec" aria-selected="false">Sleep</button>
@@ -339,7 +340,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <button type="button" data-t="camp"><span>🏃</span>Running</button>
   <button type="button" data-t="weight"><span>💪</span>Physique</button>
   <button type="button" data-t="glow" data-g="today"><span>🍽️</span>Food</button>
-  <button type="button" data-t="glow" data-g="cellular"><span>🧬</span>Health</button>
+  <button type="button" data-t="longev"><span>🧬</span>Health</button>
 </nav>
 
 <main>
@@ -650,6 +651,9 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="tSteps"></div>
     </div>
   </details>
+  <details class="fold" id="runOpts"><summary><b>🏁 Every run option this week</b> <span class="tiny dim">sessions, XP, quests, muscle max</span></summary><div id="campCard"></div></details>
+  <details class="fold"><summary><b>🎯 Paces &amp; the road to your times</b></summary><div id="paceCard"></div></details>
+  <details class="fold"><summary><b>📈 Race readiness &amp; December</b></summary><div id="raceCard"></div><div id="decCard"></div></details>
 </section>
 
 <!-- ================= TIMES ================= -->
@@ -732,6 +736,10 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 </section>
 
 <!-- ================= REVIEW ================= -->
+<section id="s-longev" class="stack" hidden>
+  <div id="longCardTop"></div>
+  <div id="glowHealth"></div>
+</section>
 <section id="s-review" class="stack" hidden>
   <div class="p"><h2>Week review</h2>
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
@@ -744,9 +752,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <!-- ================= CAMP ================= -->
 <section id="s-camp" class="stack" hidden>
   <div id="runCoach"></div>
-  <details class="fold" id="runOpts"><summary><b>🏁 This week’s run options</b> <span class="tiny dim">every session, XP and quests</span></summary><div id="campCard"></div></details>
-  <details class="fold"><summary><b>🎯 Paces &amp; the road to your times</b></summary><div id="paceCard"></div></details>
-  <details class="fold"><summary><b>📈 Race readiness &amp; December</b></summary><div id="raceCard"></div><div id="decCard"></div></details>
+  <div id="runWins"></div>
+  <div id="muscleFun"></div>
 </section>
 
 <!-- ================= FEEDBACK ================= -->
@@ -1317,6 +1324,8 @@ function normalise(x){
   if(!s.bests||typeof s.bests!=='object')s.bests={};
   if(!s.foods||typeof s.foods!=='object')s.foods={};
   if(typeof s.updatedAt!=='number')s.updatedAt=0;
+  /* legs split by muscle: the Legs total always comes from the split (3 Nov) */
+  for(var dk in s.days){var rd=s.days[dk];if(rd&&rd.legs&&typeof rd.legs==='object'){var sm=0;for(var lk in rd.legs)sm+=+rd.legs[lk]||0;if(sm){rd.sets=rd.sets||{};rd.sets.Legs=sm;}}}
   return s;
 }
 function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
@@ -4923,7 +4932,12 @@ function muscleMaxHTML(){
   var t=today();if(t<CFG.camp.start||t>CFG.camp.end)return '';
   var ws=weekSets(t),pr=0,gy=0;
   for(var i=0;i<7;i++){var d=addD(mondayOf(t),i);if(d>t)break;var r=S.days[d]||{};if(r.gym)gy++;if(r.gym&&r.pr)pr++;}
-  var rows=CFG.sets.map(function(x){var rg=setsRange(x.m),v=ws[x.m]||0,st=v<rg[0]?'under':(v>rg[1]?'over':'in');
+  var WL={},hasL=false;for(var li=0;li<7;li++){var lr=S.days[addD(mondayOf(t),li)]||{};if(lr.legs){hasL=true;for(var lk2 in lr.legs)WL[lk2]=(WL[lk2]||0)+(+lr.legs[lk2]||0);}}
+  var rows=CFG.sets.map(function(x){
+    if(x.m==='Legs'&&hasL){var parts=LEG_PARTS.filter(function(p){return WL[p[0]];}),mx=0;parts.forEach(function(p){mx=Math.max(mx,WL[p[0]]);});
+      return '<div style="margin:4px 0"><div class="row" style="gap:6px;align-items:baseline"><b style="min-width:84px">'+(MUSCLE_E.Legs||'')+' Legs</b><span class="mono">'+(ws.Legs||0)+'</span><span class="tiny dim">by muscle</span><span class="tiny" style="margin-left:auto">'+(mx>12?'⚠ one muscle over 12':'✅ each muscle in range')+'</span></div>'+
+        '<div class="tiny" style="margin-left:2px">'+parts.map(function(p){return p[1]+' '+WL[p[0]];}).join(' · ')+' <span class="dim">(6–12 each is the sweet spot)</span></div></div>';}
+    var rg=setsRange(x.m),v=ws[x.m]||0,st=v<rg[0]?'under':(v>rg[1]?'over':'in');
     var pct=Math.min(100,Math.round(v/rg[1]*100));
     return '<div style="margin:4px 0"><div class="row" style="gap:6px;align-items:baseline"><b style="min-width:84px">'+(MUSCLE_E[x.m]||'')+' '+x.m+'</b><span class="mono">'+v+'</span><span class="tiny dim">of '+rg[0]+'–'+rg[1]+'</span>'+
       '<span class="tiny" style="margin-left:auto">'+(st==='in'?'✅ in range':(st==='under'?'↑ '+(rg[0]-v)+' to go':'⚠ over — no more this week'))+'</span></div>'+
@@ -9300,6 +9314,7 @@ function renderGoodLife(){
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('homeCard'))E('homeCard').innerHTML=homeHTML();
   if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
+  if(E('longCardTop'))E('longCardTop').innerHTML=healthLongHTML();
   if(E('liftCard')&&!(document.activeElement&&E('liftCard').contains(document.activeElement)))E('liftCard').innerHTML=liftHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
   if(E('jrnlCard')&&!(JR.open&&E('jrForm')))E('jrnlCard').innerHTML=journalHTML();
@@ -9313,6 +9328,8 @@ function renderGoodLife(){
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
   if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML();
+  if(E('runWins'))E('runWins').innerHTML=runWinsHTML();
+  if(E('muscleFun'))E('muscleFun').innerHTML=muscleFunHTML();
   if(E('paceCard'))E('paceCard').innerHTML=paceGuideHTML(false);
   if(E('raceCard'))E('raceCard').innerHTML=raceCardHTML();
 }
@@ -9818,6 +9835,62 @@ function runCoachHTML(){
     '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G?' · still to come: '+(hardLeft.length?hardLeft.length+' hard':'')+(hardLeft.length&&norLeft.length?', ':'')+(norLeft.length?norLeft.length+' Norwegian':'')+(hardLeft.length||norLeft.length?'':'nothing, the week is done'):'')+'</p>'+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
     (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+'</div>';}
+
+/* Dan, 3 Nov: "I don't need the others: say my achievements and my best runs,
+   and a fun section on how my muscles are growing." */
+function runWinsHTML(){
+  var t=today(),C=CFG.camp,R=records(),G=null;try{G=(t>=C.start&&t<=C.end)?campGame():null;}catch(e){}
+  var rows=C.pb.slice().sort(function(a,b){return a.dm-b.dm;}).map(function(x){var b=bestAt(x.dm,R[x.dm]).best,at=C.allTime[x.dm];
+    var f=function(v){return v===null||v===undefined?'—':(v>=60?mmss(Math.round(v)):f1(v)+' s');};
+    var st=b&&b.t<=x.goal?'💎':(b&&at&&b.t<at.t?'👑':(b&&b.date>=C.start?'🏆':''));
+    return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+f(b?b.t:null)+(st?' '+st:'')+'<div class="tiny dim">'+(b&&b.date?fmtS(b.date):'')+'</div></td><td class="n">'+f(at?at.t:null)+'</td><td class="n">'+f(x.goal)+'</td></tr>';}).join('');
+  var won=G?G.bosses.filter(function(x){return x.won;}):[];
+  var lv=G?'<div class="row" style="gap:10px;align-items:baseline;margin:0 0 8px"><b style="font-size:1.15em">'+G.lv[2]+' '+G.lv[1]+'</b><span class="mono tiny">'+ci(G.xp)+' XP'+(G.nx?' · '+ci(G.nx[0]-G.xp)+' to '+G.nx[2]+' '+G.nx[1]:'')+'</span></div>':'';
+  var ach=[];won.forEach(function(x){ach.push((x.goal?'💎 Goal':(x.legend?'👑 All-time best':'🏆 2026 best'))+' at '+repLabel(x.dm)+': '+(x.t>=60?mmss(Math.round(x.t)):f1(x.t)+' s'));});
+  if(G){var qd=G.quests.filter(function(q){return q[2]>=q[3];}).length;if(qd)ach.push('✅ '+qd+' of '+G.quests.length+' quests done this week');}
+  return '<div class="p"><h2>🏆 Achievements &amp; best runs</h2>'+lv+
+    (ach.length?ach.map(function(x){return '<p style="margin:3px 0">'+x+'</p>';}).join(''):'')+
+    '<div class="scroll" style="margin-top:8px"><table class="tbl"><thead><tr><th></th><th class="n">2026 best</th><th class="n">All-time</th><th class="n">Goal</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny dim" style="margin-top:4px">🏆 beat your 2026 best · 👑 beat your all-time best · 💎 hit the goal</p></div>';}
+function muscleFunHTML(){
+  var t=today(),ws=weekSets(t),WL={},hasL=false;for(var i=0;i<7;i++){var r=S.days[addD(mondayOf(t),i)]||{};if(r.legs){hasL=true;for(var k in r.legs)WL[k]=(WL[k]||0)+(+r.legs[k]||0);}}
+  var mood=function(v,lo,hi){return v===0?['😴','snoozing','wake it up when it fits']:(v<lo?['🌱','waking up',(lo-v)+' more set'+(lo-v===1?'':'s')+' and it starts growing']:(v<=hi?['💪','growing','in the sweet spot this week']:['🥵','overcooked','plenty for this week, let it recover']));};
+  var list=[];
+  CFG.sets.forEach(function(x){if(x.m==='Legs'&&hasL){LEG_PARTS.forEach(function(p){var v=WL[p[0]]||0,m=mood(v,6,12);list.push([{quads:'🦵',hamstrings:'🐆',glutes:'🍑',calves:'🦶'}[p[0]]||'🦵',p[1],v,m]);});return;}
+    var rg=setsRange(x.m),v=ws[x.m]||0;list.push([MUSCLE_E[x.m]||'💪',x.m,v,mood(v,rg[0],rg[1])]);});
+  var growing=list.filter(function(x){return x[3][1]==='growing';}).length;
+  var C=null;try{var c=chalWeek(t),h=chalHist(c.k),l=h[h.length-1];if(l)C=c.n+': '+(c.bw?l.reps+' reps':l.kg+' kg × '+l.reps)+' · '+CHAL_RANK[chalRank(c,chalScore(c,l))];}catch(e){}
+  return '<div class="p"><h2>💪 How your muscles are doing</h2><p style="margin:0 0 6px"><b>'+growing+' of '+list.length+'</b> muscle groups are in growing mode this week.</p>'+
+    list.map(function(x){return '<div class="row" style="gap:8px;align-items:center;margin:4px 0"><span style="width:22px">'+x[0]+'</span><b style="min-width:96px">'+x[1]+'</b><span>'+x[3][0]+' '+x[3][1]+'</span><span class="tiny dim" style="margin-left:auto;text-align:right">'+x[2]+' sets · '+x[3][2]+'</span></div>';}).join('')+
+    (C?'<p class="tiny" style="margin-top:8px">🏆 Latest strength challenge: '+esc(C)+'</p>':'')+
+    '<p class="tiny dim" style="margin-top:4px">Growing = enough hard sets this week to build, not so many that recovery suffers. In a cut, “growing” mostly means keeping and slowly adding.</p></div>';}
+
+/* ===================== health & longevity (Dan, 3 Nov) =====================
+   "Where's the longevity score? I want the longevity data there." The markers
+   with the strongest evidence for a long, healthy life, each with where his
+   number sits and where it comes from (measured, his own log, or an estimate).
+   No invented overall score: the health age underneath is Glow's, and it says
+   how it is built. */
+function healthLongHTML(){
+  var t=today(),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+  var av=function(f,n){var a=[];for(var i=0;i<n;i++){var v=f(S.days[addD(t,-i)]||{});if(typeof v==='number')a.push(v);}return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
+  var rhr=av(function(r){return r.rhr;},7),sl=av(function(r){return r.sleep;},14),st=av(function(r){return r.steps;},7);
+  var vo2=H&&H.vo2?H.vo2:null,bp=H&&H.bp?H.bp:null,nut=av(function(r){return r.glowSum?r.glowSum.nutrition:undefined;},14);
+  var ch=null;try{var c=CHAL.filter(function(x){return x.k!=='pull';}),best=null;CHAL.forEach(function(x){var h=chalHist(x.k),l=h[h.length-1];if(l)best={c:x,l:l};});if(best)ch=CHAL_RANK[chalRank(best.c,chalScore(best.c,best.l))]+' ('+best.c.n+')';}catch(e){}
+  var CM=null;try{CM=coachModel();}catch(e){}
+  var row=function(e,n,val,verdict,tone,src){return '<div style="margin:7px 0"><div class="row" style="gap:6px;align-items:baseline"><b style="min-width:132px">'+e+' '+n+'</b><span class="mono">'+val+'</span><span class="pill'+(tone?' '+tone:'')+'" style="margin-left:auto;font-size:11px">'+verdict+'</span></div><div class="tiny dim" style="margin-left:24px">'+src+'</div></div>';};
+  var h='';
+  h+=row('🫀','Aerobic fitness',vo2?'VO₂ ~'+Math.round(vo2):'—',vo2?(vo2>=55?'excellent':(vo2>=48?'good':'average')):'add race times',vo2&&vo2>=55?'g':'','Estimate from your race times. VO₂ max is one of the strongest predictors of a long life.');
+  h+=row('❤️','Resting heart rate',rhr?Math.round(rhr)+' bpm':'—',rhr?(rhr<55?'athletic':(rhr<65?'good':'average')):'log it',rhr&&rhr<55?'g':'','Your 7-day average, from your mornings.');
+  h+=row('🩺','Blood pressure',bp?bp.sys+'/'+bp.dia:'—',bp?(bp.sys<120&&bp.dia<80?'optimal':(bp.sys<130&&bp.dia<85?'normal':'slightly raised')):'add a reading',bp&&bp.sys<120&&bp.dia<80?'g':(bp&&bp.sys>=130?'w':''),'Your last reading. One reading is a snapshot: repeat at rest, seated, a few days running.');
+  h+=row('😴','Sleep',sl?f1(sl)+' h':'—',sl?(sl>=7.5&&sl<=9.5?'right where it should be':(sl<7?'short':'okay')):'log it',sl&&sl>=7.5?'g':(sl&&sl<7?'w':''),'Your 14-day average. 7–9 h is linked with the lowest risk across studies.');
+  h+=row('👣','Daily steps',st?ci(Math.round(st)):'—',st?(st>=10000?'top tier':(st>=7000?'good':'below the sweet spot')):'log them',st&&st>=10000?'g':'','7-day average. Benefits keep rising to about 8–12k a day in large studies.');
+  h+=row('🏋️','Strength',ch||'—',ch?'measured':'do a challenge',ch?'g':'','Your weekly strength challenge. Muscle strength tracks with healthy ageing.');
+  h+=row('🥗','Food quality',nut?Math.round(nut)+'/100':'—',nut?(nut>=70?'excellent':(nut>=55?'good':'room to grow')):'log food',nut&&nut>=70?'g':'','Glow’s nutrition score, 14 days. An estimate from typical food values, not a blood test.');
+  h+=row('🧘','Stress load',CM?(CM.pts>=4?'high':(CM.pts>=2?'building':'low')):'—',CM?(CM.pts>=4?'ease off':(CM.pts>=2?'watch it':'calm')):'',CM&&CM.pts<2?'g':(CM&&CM.pts>=4?'w':''),'From your sleep, heart rate, mood, training load and illness.');
+  return '<div class="p lift"><h2>🧬 Health &amp; longevity</h2><p class="tiny" style="margin:0 0 6px">The markers with the strongest evidence for a long, healthy life, and where yours sit. Each says where the number comes from.</p>'+
+    (H?'<div class="row" style="gap:10px;align-items:baseline;margin:4px 0 8px"><b style="font-size:1.6em">'+H.glowAge+'</b><span>health age · you’re '+H.age+'</span></div><p class="tiny dim" style="margin:-4px 0 8px">A motivational estimate built from the markers below (how it is built is in the panel underneath), not a lab test of biological age.</p>':'')+
+    h+'</div>';}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -9930,7 +10003,7 @@ function loadGlow(){
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
 function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
-  [['glowHome','home'],['glowCalm','calm'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
+  [['glowHome','home'],['glowCalm','calm'],['glowHealth','health'],['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
     var el=E(x[0]);if(el)G.mount(el,x[1],x[1]==='review'&&GLOW_REV_END?GLOW_REV_END:t,!!GLOW_OPEN[x[1]]);});}
 function startGlow(){
   var G=window.GLOW;
@@ -9941,7 +10014,7 @@ function startGlow(){
 function tab(name,sub){
   CUR=name;
   if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;startGlow();}
-  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data'].forEach(function(k){
+  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data','longev'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button,#bnav button'),function(b){

@@ -150,7 +150,11 @@ ok('the Overview keeps the extras in one fold', await p.evaluate(() => CUR === '
 
 // ---- the running coach (3 Nov) ----------------------------------------------------
 ok('Running opens on one coach card: last run, the week, next, goals', await p.evaluate(() => { const t = E('runCoach').innerText; return /Your running coach/.test(t) && /This week/.test(t) && /Next/.test(t); }));
-ok('and the run menus, paces and race detail are folded underneath', await p.evaluate(() => !!E('runOpts').querySelector('#campCard') && !!document.querySelector('#s-camp details.fold #paceCard') && !!document.querySelector('#s-camp details.fold #raceCard')));
+ok('then achievements & best runs and the muscles card; the menus moved to the Training log', await p.evaluate(() => /Achievements & best runs/.test(E('runWins').innerText) && /How your muscles are doing/.test(E('muscleFun').innerText) && !!document.querySelector('#s-training #campCard') && !document.querySelector('#s-camp #campCard')));
+ok('legs show by muscle, and the Legs total follows the split', await p.evaluate(() => { S.days['2026-11-02'] = Object.assign(S.days['2026-11-02'] || {}, { gym: true, split: 'legs', legs: { quads: 8, hamstrings: 5, glutes: 6, calves: 4 }, sets: { Legs: 20 } }); S = normalise(S); E('muscleFun').innerHTML = muscleFunHTML(); return S.days['2026-11-02'].sets.Legs === 23 && /Quads/.test(E('muscleFun').innerText) && /Hamstrings/.test(E('muscleFun').innerText); }));
+await p.click('#secs button[data-sec="long"]'); await p.waitForTimeout(700);
+ok('Longevity opens on the health & longevity card, with Glow’s health-age panel under it', await p.evaluate(() => CUR === 'longev' && /Resting heart rate/.test(E('longCardTop').innerText) && /Sleep/.test(E('longCardTop').innerText)) && /GLOW AGE|Glow age/i.test(await shadow(p, 'glowHealth')));
+await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);

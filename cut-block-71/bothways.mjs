@@ -8,5 +8,5 @@ await p.reload(); await p.waitForTimeout(600);
 await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(3500);
 const r = await p.evaluate(()=>({w:S.weights, s3:S.days['2026-11-03'], g:JSON.parse(localStorage.getItem('glow-state-v1'))}));
 console.log(JSON.stringify({trackerW:r.w, trackerSleep3:r.s3, glowW:r.g.weights, glowSleeps:r.g.sleeps}));
-await p.click('#bnav button[data-g="cellular"]'); await p.waitForTimeout(800);
+await p.click('#tabs button[data-g="cellular"]'); await p.waitForTimeout(800);
 console.log(errs.length?errs:'no errors'); await b.close();

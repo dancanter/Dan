@@ -10,7 +10,7 @@ await p.screenshot({path:SP+'/one-today.png'});
 await p.click('#bnav button[data-g="today"]'); await p.waitForTimeout(3000); await p.screenshot({path:SP+'/one-food.png'});
 const fr=p.frames().find(f=>/glow\.html/.test(f.url()));
 const hasNav = fr ? await fr.evaluate(()=>!!document.querySelector('nav[aria-label="Sections"]')) : 'noframe';
-await p.click('#bnav button[data-g="cellular"]'); await p.waitForTimeout(1200);
+await p.click('#tabs button[data-g="cellular"]'); await p.waitForTimeout(1200);
 const cellTxt = fr ? (await fr.innerText('main')).slice(0,80).replace(/\n/g,' | ') : '';
 await p.screenshot({path:SP+'/one-cells.png'});
 const sel = await p.evaluate(()=>[...document.querySelectorAll('#bnav button.on')].map(b=>b.textContent));
