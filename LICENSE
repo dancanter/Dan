@@ -1,0 +1,45 @@
+Field Notes — a pregnancy guide
+
+Copyright (c) 2026 Dan Canter. All rights reserved.
+
+This repository and the Field Notes app, including its source code, written
+content, design and the way that content is selected and organised, are the
+work of Dan Canter and are protected by copyright.
+
+No licence is granted to copy, modify, publish, distribute, sublicense or sell
+any part of this work, or to use it to build another product or service,
+without the written permission of the copyright holder.
+
+You may:
+
+  - use the published app at https://dancanter.github.io/Dan/ for your own
+    personal, non-commercial use; and
+  - view the source code on GitHub, as GitHub's own terms of service allow.
+
+Neither of those gives any right to reuse the work elsewhere.
+
+To ask for permission, contact Dan Canter through GitHub:
+https://github.com/dancanter
+
+Third-party material
+--------------------
+
+Some material in this work belongs to other people and is not covered by the
+copyright above:
+
+  - Health information is summarised from, and credited to, the organisations
+    named in the app's Sources screen, including the NHS, NICE, RCOG, SACN and
+    named research papers. Those organisations own their own publications.
+    Facts themselves are not owned by anyone; the wording, selection and
+    arrangement in this app are.
+  - The app is built with open-source software, such as React and Vite, and
+    uses open-licensed fonts. Each of those is used under, and remains subject
+    to, its own licence, which can be found in its package.
+
+Not medical advice
+------------------
+
+Field Notes is an independent guide. It is not a substitute for medical
+advice, it has not been clinically reviewed, and it cannot check whether you
+or your baby are well. Always contact your maternity unit if something feels
+wrong.

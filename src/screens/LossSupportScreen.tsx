@@ -1,0 +1,49 @@
+import { lossSections, lossIntro } from '../content';
+import { Screen } from '../components/ui/Screen';
+import { EvidenceNote } from '../components/ui/EvidenceNote';
+import { RichText } from '../components/ui/RichText';
+import { CrisisNote } from '../components/loss/CrisisNote';
+import { ReadAloud } from '../components/help/ReadAloud';
+
+/**
+ * Deliberately quiet and self-contained: no streaks, no checklists, no
+ * week context, and never surfaced on the home screen. Reached only when
+ * someone goes looking, via Get Help or the footer.
+ */
+export function LossSupportScreen() {
+  return (
+    <Screen title="Pregnancy and baby loss" lede={lossIntro} ledeTone="quiet" width="reading">
+      <CrisisNote />
+      {lossSections.map((section) => (
+        <section key={section.id} className="mb-8">
+          <h2
+            className={`mb-2 text-title ${section.tone === 'urgent' ? 'text-alert' : 'text-mossd'}`}
+          >
+            {section.title}
+          </h2>
+          <div
+            className={
+              section.tone === 'urgent'
+                ? 'rounded-r-lg border-l-[3px] border-l-alert bg-alertp px-4 py-3'
+                : undefined
+            }
+          >
+            <RichText paragraphs={section.body} />
+          </div>
+          {/* Per section rather than per page. The whole screen read aloud is
+              several minutes, and someone who wants to hear one part of it
+              should not have to sit through the rest. */}
+          <ReadAloud
+            text={`${section.title}. ${section.body.join(' ')}`}
+            label={`Read “${section.title}” to me`}
+          />
+          <EvidenceNote sourceIds={section.sourceIds} />
+        </section>
+      ))}
+
+      <p className="mt-10 border-t border-line pt-5 text-center text-body italic text-soft">
+        However early, however long ago. What you’re feeling is real, and there is support for it.
+      </p>
+    </Screen>
+  );
+}

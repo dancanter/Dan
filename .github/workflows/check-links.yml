@@ -1,0 +1,38 @@
+name: Check source links
+
+# The Sources screen tells a reader that a citation they can click is a
+# citation they can check. NHS and GOV.UK reorganise their content, so that
+# promise decays unless something keeps opening the links.
+#
+# This is that something. It cannot run in a development container with no
+# outbound network, which is precisely why it belongs here.
+on:
+  push:
+    branches: [main, claude/coding-capabilities-21nmif]
+    paths:
+      - 'src/content/sources.ts'
+      - 'src/content/sourcesExtended.ts'
+      - 'src/content/sourceLinks.ts'
+      - 'scripts/check-links.ts'
+      - '.github/workflows/check-links.yml'
+  # Link rot happens while nobody is pushing, so it is also checked on a
+  # schedule. Monday morning, so a broken link is found before the week's work.
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    # A hard ceiling, because the failure mode here is not a crash — it is a
+    # throttled IP making every request sit until it times out. Left
+    # unbounded, that is half an hour of a runner doing nothing.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check-links

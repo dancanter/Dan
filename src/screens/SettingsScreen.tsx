@@ -1,127 +1,137 @@
-import { useNavigate } from 'react-router-dom';
-import { useAutoFocusHeading } from '../hooks/useAutoFocusHeading';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAccessibilitySettings, type TextSize } from '../hooks/useAccessibilitySettings';
 import { usePregnancyProfile } from '../hooks/usePregnancyProfile';
-import { useStreak } from '../hooks/useStreak';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { formatDueDate } from '../lib/dates';
+import { formatDate } from '../lib/dates';
+import { wipeAllLocalData } from '../lib/wipe';
+import { Screen } from '../components/ui/Screen';
+import { SectionHeading } from '../components/ui/SectionHeading';
 
-const TEXT_SIZE_OPTIONS: { value: TextSize; label: string }[] = [
+const TEXT_SIZES: { value: TextSize; label: string }[] = [
   { value: 'default', label: 'Default' },
   { value: 'large', label: 'Large' },
   { value: 'x-large', label: 'Extra large' },
 ];
 
 export function SettingsScreen() {
-  const headingRef = useAutoFocusHeading<HTMLHeadingElement>();
   const { textSize, reduceMotion, highContrast, setTextSize, setReduceMotion, setHighContrast } =
     useAccessibilitySettings();
-  const { dueDate, resetProfile } = usePregnancyProfile();
-  const { resetStreak } = useStreak();
+  const { dueDate, birthDate, setBirthDate } = usePregnancyProfile();
   const { canPromptInstall, installed, isIOSManualInstall, promptInstall } = useInstallPrompt();
   const navigate = useNavigate();
 
-  function handleReset() {
-    if (window.confirm('This clears your due date, streak, and saved progress on this device. Continue?')) {
-      resetProfile();
-      resetStreak();
+  // The second half of the deletion bug, found by auditing every screen that
+  // offers to remove data rather than only the one that says "everything".
+  // This reset called three hooks by hand — the same hard-coded list that left
+  // bump photos, the movement journal and the maternity unit's phone number in
+  // place. It now goes through the one function that enumerates, and the
+  // wording says what actually goes.
+  async function handleReset() {
+    if (
+      window.confirm(
+        'This clears everything Field Notes has saved on this device. Your due date, journal, notes, movements, saved maternity number and any bump photos. Continue?',
+      )
+    ) {
+      await wipeAllLocalData();
       navigate('/', { replace: true });
     }
   }
 
   return (
-    <main id="main-content" className="mx-auto max-w-md px-4 pb-28 pt-8">
-      <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-bump-text outline-none dark:text-bump-text-dark">
-        Settings
-      </h1>
+    <Screen title="Settings" lede="Make this comfortable to read and use." width="reading">
+      <SectionHeading>Text size</SectionHeading>
+      <div role="group" aria-label="Text size" className="flex flex-wrap gap-2">
+        {TEXT_SIZES.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => setTextSize(o.value)}
+            aria-pressed={textSize === o.value}
+            className={`min-h-11 flex-1 rounded-lg border px-2 text-small font-medium ${
+              textSize === o.value ? 'border-moss bg-mossp text-mossd' : 'border-line text-soft'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
 
-      <section className="mt-6" aria-labelledby="text-size-heading">
-        <h2 id="text-size-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Text size
-        </h2>
-        <div className="mt-2 flex gap-2" role="group" aria-labelledby="text-size-heading">
-          {TEXT_SIZE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setTextSize(option.value)}
-              aria-pressed={textSize === option.value}
-              className={`min-h-11 flex-1 rounded-xl border px-2 py-2 text-sm font-medium ${
-                textSize === option.value
-                  ? 'border-bump-primary bg-bump-primary/10 text-bump-primary dark:text-bump-primary-dark'
-                  : 'border-bump-border text-bump-muted dark:border-bump-border-dark dark:text-bump-muted-dark'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6 space-y-3" aria-labelledby="display-heading">
-        <h2 id="display-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Display
-        </h2>
-        <label className="flex min-h-11 items-center justify-between rounded-xl border border-bump-border px-3 py-2 dark:border-bump-border-dark">
-          <span className="text-sm font-medium text-bump-text dark:text-bump-text-dark">Reduce motion</span>
+      <SectionHeading>Display</SectionHeading>
+      <div className="space-y-2.5">
+        <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
+          <span className="text-small font-medium">Reduce motion</span>
           <input
             type="checkbox"
             checked={reduceMotion}
-            onChange={(event) => setReduceMotion(event.target.checked)}
-            className="h-5 w-5"
+            onChange={(e) => setReduceMotion(e.target.checked)}
+            className="h-6 w-6"
           />
         </label>
-        <label className="flex min-h-11 items-center justify-between rounded-xl border border-bump-border px-3 py-2 dark:border-bump-border-dark">
-          <span className="text-sm font-medium text-bump-text dark:text-bump-text-dark">High contrast</span>
+        <label className="flex min-h-11 items-center justify-between rounded-lg border border-line px-3 py-2">
+          <span className="text-small font-medium">High contrast</span>
           <input
             type="checkbox"
             checked={highContrast}
-            onChange={(event) => setHighContrast(event.target.checked)}
-            className="h-5 w-5"
+            onChange={(e) => setHighContrast(e.target.checked)}
+            className="h-6 w-6"
           />
         </label>
-      </section>
+      </div>
 
-      <section className="mt-6" aria-labelledby="install-heading">
-        <h2 id="install-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Install Bump
-        </h2>
-        {installed ? (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">Bump is already installed on this device. ✅</p>
-        ) : canPromptInstall ? (
-          <button
-            type="button"
-            onClick={promptInstall}
-            className="mt-2 min-h-11 w-full rounded-xl border border-bump-primary px-3 py-2 text-sm font-semibold text-bump-primary dark:text-bump-primary-dark"
-          >
-            Add Bump to your home screen
-          </button>
-        ) : isIOSManualInstall ? (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">
-            On iPhone or iPad: tap the Share icon, then "Add to Home Screen."
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-bump-muted dark:text-bump-muted-dark">
-            Look for an install icon in your browser's address bar to add Bump to your device.
-          </p>
-        )}
-      </section>
-
-      <section className="mt-6" aria-labelledby="profile-heading">
-        <h2 id="profile-heading" className="text-sm font-semibold uppercase tracking-wide text-bump-muted dark:text-bump-muted-dark">
-          Your details
-        </h2>
-        {dueDate && (
-          <p className="mt-2 text-sm text-bump-text dark:text-bump-text-dark">Due date: {formatDueDate(dueDate)}</p>
-        )}
+      <SectionHeading>Install Field Notes</SectionHeading>
+      {installed ? (
+        <p className="text-small text-soft">Already installed on this device. ✅</p>
+      ) : canPromptInstall ? (
         <button
           type="button"
-          onClick={handleReset}
-          className="mt-3 min-h-11 w-full rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-800 dark:text-red-300"
+          onClick={promptInstall}
+          className="min-h-11 w-full rounded-lg border border-moss px-3 text-small font-semibold text-mossd"
         >
-          Reset my data
+          Add to your home screen
         </button>
-      </section>
-    </main>
+      ) : isIOSManualInstall ? (
+        <p className="text-small text-soft">
+          On iPhone or iPad: tap the Share icon, then “Add to Home Screen”.
+        </p>
+      ) : (
+        <p className="text-small text-soft">
+          Look for an install icon in your browser’s address bar to add Field Notes to your device.
+        </p>
+      )}
+
+      <SectionHeading>If things have changed</SectionHeading>
+      <p className="mb-3 text-small text-soft">
+        Pause tracking, switch to support after loss, or delete your data. You won’t be asked what
+        happened.
+      </p>
+      <Link
+        to="/changed"
+        className="flex min-h-11 w-full items-center justify-center rounded-lg border border-line px-3 text-small font-semibold no-underline"
+      >
+        My pregnancy has changed
+      </Link>
+
+      <SectionHeading>Your details</SectionHeading>
+      {dueDate && <p className="text-small">Due date: {formatDate(dueDate)}</p>}
+      {birthDate && (
+        <>
+          <p className="mt-1 text-small">Baby’s birthday: {formatDate(birthDate)}</p>
+          <button
+            type="button"
+            onClick={() => setBirthDate(null)}
+            className="mt-2 min-h-11 w-full rounded-lg border border-line px-3 text-small text-soft"
+          >
+            Switch back to pregnancy mode
+          </button>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={handleReset}
+        className="mt-3 min-h-11 w-full rounded-lg border border-alert/50 px-3 text-small font-semibold text-alert"
+      >
+        Reset my data
+      </button>
+    </Screen>
   );
 }

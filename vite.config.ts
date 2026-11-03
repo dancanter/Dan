@@ -19,12 +19,12 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'Bump — Your Pregnancy Guide',
-        short_name: 'Bump',
+        name: 'Field Notes — A Pregnancy Guide',
+        short_name: 'Field Notes',
         description:
-          'A day-by-day, week-by-week pregnancy guide with evidence-based nutrition, symptom, and wellbeing tips from NHS, NICE, SACN and other trusted UK sources.',
-        theme_color: '#f4a89b',
-        background_color: '#fff8f5',
+          'An independent, evidence-based pregnancy guide. Week by week, sourced from NHS, NICE, RCOG and SACN guidance plus named peer-reviewed research.',
+        theme_color: '#5c7a5e',
+        background_color: '#f4f0e6',
         display: 'standalone',
         start_url: base,
         scope: base,
@@ -42,12 +42,36 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: `${base}index.html`,
+        // The Good Life is a separate app published under /good-life/ on the
+        // same site. This worker's scope covers it, so without this its
+        // navigations would be answered with this app's index.html.
+        navigateFallbackDenylist: [/\/good-life\//, /\/training-system\//],
         // Make a new deploy take over immediately instead of waiting for
         // every open tab to close — otherwise a redeployed app can keep
         // serving a stale cached version for a while after a fresh install.
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        // The display/mono typefaces come from Google Fonts, which sits
+        // outside the precache. Cache them at runtime so an installed,
+        // offline app still renders in its own type rather than falling
+        // back to system fonts.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-stylesheets' },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false,
@@ -59,5 +83,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     css: true,
+    // good-life/ is a separate app with its own dependencies and test setup.
+    exclude: ['**/node_modules/**', '**/dist/**', 'good-life/**', 'glow/**', 'cut-block-71/**', 'training-system/**'],
   },
 });

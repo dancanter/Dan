@@ -41,6 +41,24 @@ function writeValue<T>(key: string, value: T) {
   notify(key);
 }
 
+// An installed PWA can genuinely be open in two places at once — the home
+// screen icon and a browser tab. A write in one shouldn't leave the other
+// showing a stale due date, so cross-window writes drop the cached entry and
+// let the next read come from storage.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.storageArea && event.storageArea !== window.localStorage) return;
+    if (event.key === null) {
+      const keys = [...cache.keys()];
+      cache.clear();
+      keys.forEach(notify);
+      return;
+    }
+    cache.delete(event.key);
+    notify(event.key);
+  });
+}
+
 export function usePersistedState<T>(key: string, initialValue: T) {
   const subscribe = useCallback(
     (onStoreChange: Listener) => {

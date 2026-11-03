@@ -1,31 +1,72 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 
-  --color-bump-bg: #fff8f5;
-  --color-bump-bg-dark: #201613;
-  --color-bump-surface: #ffffff;
-  --color-bump-surface-dark: #2b1e1a;
-  --color-bump-primary: #d97757;
-  --color-bump-primary-dark: #e8926f;
-  --color-bump-accent: #6b8f71;
-  --color-bump-accent-dark: #8fb497;
-  --color-bump-text: #2b201c;
-  --color-bump-text-dark: #f5ece7;
-  --color-bump-muted: #7a6a63;
-  --color-bump-muted-dark: #c9b8b0;
-  --color-bump-border: #ecdcd3;
-  --color-bump-border-dark: #3d2c26;
+  /* Field Notes palette */
+  --color-ink: #1f2a1f;
+  --color-soft: #4a5a4a;
+  --color-paper: #f4f0e6;
+  --color-card: #fffdf8;
+  --color-moss: #5c7a5e;
+  --color-mossd: #3a5540;
+  --color-mossp: #e4ebe0;
+  /* Darkened from #b5652d, which measured 3.79:1 on paper — under the 4.5:1
+     floor, and it is the colour the active navigation tab uses, so the failure
+     was on every screen. This is 4.9:1 and still reads as the same terracotta. */
+  --color-clay: #9e5424;
+  --color-clayp: #f7e9db;
+  --color-sand: #dfd6bf;
+  --color-alert: #8b3a3a;
+  --color-alertp: #f9eaea;
+  --color-line: rgba(31, 42, 31, 0.14);
+
+  /*
+   * The type scale.
+   *
+   * There were 27 distinct sizes across 297 call sites before this, and most
+   * of the surplus was not a design decision — it was arithmetic. Converting
+   * every px size to rem for the text-size control produced 0.90625rem,
+   * 0.84375rem, 1.03125rem and friends: 14.5px, 13.5px, 16.5px. Nobody chose
+   * those, and four of them sat within 1.5px of each other carrying 157 uses
+   * between them.
+   *
+   * Twelve steps now, each at least 1px from its neighbours, named for what
+   * they are rather than what they measure. Nothing moved by more than 1px
+   * except one heading used once.
+   *
+   * In rem throughout, because the in-app text size scales the root and a px
+   * size ignores it — which is how a text-size control once shipped that
+   * changed no text.
+   */
+  --text-meta: 0.6875rem; /* 11px — uppercase labels, citations */
+  --text-fine: 0.8125rem; /* 13px — footnotes, timestamps */
+  --text-small: 0.875rem; /* 14px — secondary text */
+  --text-body: 0.9375rem; /* 15px — the default */
+  --text-read: 1rem; /* 16px — long-form prose */
+  --text-lead: 1.0625rem; /* 17px — opening lines, card titles */
+  --text-title: 1.1875rem; /* 19px — section headings */
+  --text-h2: 1.375rem; /* 22px */
+  --text-h1: 1.5625rem; /* 25px — screen titles */
+  --text-hero: 1.875rem; /* 30px — onboarding */
+  --text-mega: 2.25rem; /* 36px */
+  --text-giant: 3.25rem; /* 52px — the week number */
+
+  /*
+   * Form inputs are the one deliberate exception, and they keep Tailwind's
+   * `text-base` rather than a name from this scale. iOS Safari zooms the whole
+   * page when you focus an input whose font-size is under 16px, and there is
+   * no way to decline that. So every input in the app is 1rem exactly, for a
+   * reason that has nothing to do with typography — which is why it is not
+   * pretending to be a step on this scale.
+   */
 }
 
 :root {
   --user-font-scale: 1;
   color-scheme: light;
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
 }
 
 html {
@@ -34,32 +75,115 @@ html {
 
 body {
   margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  background-color: var(--color-bump-bg);
-  color: var(--color-bump-text);
+  /* In rem, not px, so the in-app text size actually reaches it. Everything
+     the app renders is sized in rem for the same reason — a px size ignores
+     the root scale completely, which is how a text-size control ended up
+     changing nothing at all. */
+  font-size: 1.03125rem;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: var(--color-bump-bg-dark);
-    color: var(--color-bump-text-dark);
+/*
+ * In @layer base, and that is the whole point of this block.
+ *
+ * Written unlayered, this rule beat every Tailwind utility — unlayered CSS
+ * outranks anything inside a layer, and Tailwind v4 puts all utilities in
+ * one. So `margin: 0 0 0.4em` silently overrode the margin classes on 26
+ * headings across the app: `mt-8` on "Why this matters" on the urgent screen
+ * resolved to 0, and the heading sat flush against the paragraph above it.
+ * Every one of those was a deliberate spacing decision being thrown away.
+ *
+ * Nothing looked broken, which is why it survived so long. It just looked
+ * slightly, inexplicably tight, on every screen at once.
+ */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0 0 0.4em;
   }
-}
-
-:root[data-theme='dark'] body {
-  background-color: var(--color-bump-bg-dark);
-  color: var(--color-bump-text-dark);
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+  Press feedback, once, for everything.
+
+  The tap highlight is turned off above, which is right — the default blue
+  flash is ugly and off-palette — but nothing replaced it, so pressing any
+  button in the app produced no response at all until the screen changed. On a
+  slow phone that gap reads as "it didn't register", and people press again.
+
+  A 2% squash is enough to feel and too small to notice as an effect. It is
+  motion that communicates state rather than decorating it, so it goes under
+  prefers-reduced-motion with the rest.
+
+  Applied here rather than in 49 class strings: the same fix written 49 times
+  is 49 chances to write it differently.
+*/
+button:not(:disabled),
+summary,
+[role='button'] {
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+button:not(:disabled):active,
+summary:active,
+[role='button']:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled),
+  summary,
+  [role='button'] {
+    transition-property: background-color, color, border-color;
+  }
+  /* The selector has to match the rule above it exactly. Written as a plain
+     `button:active` this lost to `button:not(:disabled):active` on
+     specificity — media queries add none — so the squash still ran for people
+     who had asked for no motion. Measured, not assumed: the transform was
+     still matrix(0.98) under emulated reduced motion. */
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:active {
+    transform: none;
+  }
+}
+
 :focus-visible {
-  outline: 3px solid var(--color-bump-primary);
+  outline: 3px solid #1d4ed8;
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 3px;
+}
+
+/* High-contrast mode: darken text/borders rather than swapping the whole
+   palette, so the paper-and-ink character survives. */
+.high-contrast {
+  --color-ink: #000000;
+  --color-soft: #2b2b2b;
+  --color-line: rgba(0, 0, 0, 0.55);
+  --color-mossd: #23412a;
+  --color-clay: #8a4413;
+  --color-alert: #6d2020;
+}
+
+.high-contrast :focus-visible {
+  outline-width: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -78,26 +202,135 @@ body {
   left: -9999px;
   top: 0;
   z-index: 100;
-  background: var(--color-bump-primary);
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0 0 0.5rem 0;
+  background: var(--color-ink);
+  color: #fff;
+  padding: 12px 18px;
   font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
 }
 
 .skip-link:focus {
-  left: 0;
+  left: 12px;
+  top: 12px;
 }
 
-.high-contrast {
-  --color-bump-text: #000000;
-  --color-bump-text-dark: #ffffff;
-  --color-bump-muted: #3a3a3a;
-  --color-bump-muted-dark: #e5e5e5;
-  --color-bump-border: #000000;
-  --color-bump-border-dark: #ffffff;
+/* Shared "field note" typographic bits used across screens. */
+/*
+ * Printing, for the appointment sheet.
+ *
+ * There is no PDF library in this app and there does not need to be: every
+ * browser already has a PDF engine behind window.print(), and reaching it
+ * costs nothing to download. On a phone this comes out as Share → Print →
+ * Save to Files, or as a real sheet of paper — which for a room where you
+ * have twelve minutes is arguably the better artefact.
+ *
+ * The app's own furniture must not follow the content onto the page. Header,
+ * tab bar, footer and the demo strip are all removed, the paper background
+ * goes white so it does not eat a print cartridge, and blocks are kept from
+ * splitting across a page break mid-question.
+ *
+ * What gets removed is marked `print:hidden` at the element, and nothing is
+ * matched by shape. An earlier version of this block hid
+ * `header[class*='border-b']` to catch the app header — and the appointment
+ * sheet's own <header> carries border-b-2 too, so the printed page came out
+ * with no title, no week and no date on it. Anything that hides content by
+ * pattern-matching Tailwind classes will eventually hide the wrong thing.
+ */
+@media print {
+  html {
+    /* The in-app text-size control must not scale the printed sheet. */
+    font-size: 100%;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Everything that is app rather than content — marked, not inferred. */
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  section,
+  li {
+    break-inside: avoid;
+  }
+
+  /* A question or symptom stranded alone at the top of page two reads as an
+     afterthought rather than part of the list. */
+  h2,
+  h3 {
+    break-after: avoid;
+  }
 }
 
-.high-contrast :focus-visible {
-  outline-width: 4px;
+.label-mono {
+  font-family: var(--font-mono);
+  /* Was a hardcoded 0.65625rem — 10.5px, the last of the px-to-rem artefacts,
+     and the one place a size stayed outside the scale while being used on
+     every screen. */
+  font-size: var(--text-meta);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* The myth card's reveal. In CSS because it sits on the eagerly-loaded home
+   screen, and one transition is not worth an animation library in front of
+   every first paint. The reduced-motion block above already flattens it. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-in {
+  animation: reveal-in 0.3s ease-out both;
+}
+
+/* The breathing pacer. Scale only — no opacity change, because a circle
+   fading in and out is harder to follow than one that simply grows. The
+   reduced-motion block above flattens these to nothing, which is why the
+   pacer ships a counting alternative rather than relying on the animation. */
+@keyframes breathe-in {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.55);
+  }
+}
+
+@keyframes breathe-out {
+  from {
+    transform: scale(1.55);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.prose-note p {
+  margin: 0 0 0.6em;
+}
+
+.prose-note p:last-child {
+  margin-bottom: 0;
 }

@@ -1,37 +1,119 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { axe } from 'vitest-axe';
-import { TodayScreen } from '../../src/screens/TodayScreen';
-import { ArticleScreen } from '../../src/screens/ArticleScreen';
-import { SettingsScreen } from '../../src/screens/SettingsScreen';
+import { UrgentDetailScreen } from '../../src/screens/GetHelpScreen';
 import { OnboardingScreen } from '../../src/screens/OnboardingScreen';
+import { TodayScreen } from '../../src/screens/TodayScreen';
+import { BabyScreen } from '../../src/screens/BabyScreen';
+import { BodyScreen } from '../../src/screens/BodyScreen';
+import { HealthyScreen } from '../../src/screens/HealthyScreen';
+import { AppointmentsScreen } from '../../src/screens/AppointmentsScreen';
+import { GetHelpScreen } from '../../src/screens/GetHelpScreen';
+import { JournalScreen } from '../../src/screens/JournalScreen';
+import { SourcesScreen } from '../../src/screens/SourcesScreen';
+import { LossSupportScreen } from '../../src/screens/LossSupportScreen';
+import { MethodologyScreen } from '../../src/screens/MethodologyScreen';
+import { SettingsScreen } from '../../src/screens/SettingsScreen';
+import { AfterBirthScreen } from '../../src/screens/AfterBirthScreen';
+import { EquityScreen } from '../../src/screens/EquityScreen';
+import { MovementsScreen } from '../../src/screens/MovementsScreen';
+import { PregnancyChangedScreen } from '../../src/screens/PregnancyChangedScreen';
+import { AfterLossHomeScreen } from '../../src/screens/AfterLossHomeScreen';
+import { MaternityNumberScreen } from '../../src/screens/GetHelpScreen';
+import { PrivacyScreen } from '../../src/screens/PrivacyScreen';
+import { GalleryScreen } from '../../src/screens/GalleryScreen';
+import { ExploreScreen } from '../../src/screens/ExploreScreen';
+import { CalmScreen } from '../../src/screens/CalmScreen';
+import { MythsScreen } from '../../src/screens/MythsScreen';
+import { FoodSortScreen } from '../../src/screens/FoodSortScreen';
+import { TermsScreen } from '../../src/screens/TermsScreen';
+import { EntitlementsScreen } from '../../src/screens/EntitlementsScreen';
+import { AccessibilityScreen } from '../../src/screens/AccessibilityScreen';
+import { AppointmentSummaryScreen } from '../../src/screens/AppointmentSummaryScreen';
 
 function setOnboarded() {
-  window.localStorage.setItem('bump:profile', JSON.stringify({ dueDate: '2026-12-01' }));
+  window.localStorage.setItem(
+    'fieldnotes:profile',
+    JSON.stringify({
+      dueDate: '2027-01-01',
+      babyName: null,
+      firstPregnancy: true,
+    }),
+  );
+  // usePersistedState keeps a module-level cache, and jsdom fires no
+  // StorageEvent for same-window writes — so without this the cache from the
+  // first test survives every clear() and later tests silently read stale
+  // state. It passes today only because every test writes the same profile.
+  window.dispatchEvent(new StorageEvent('storage', { key: null }));
 }
+
+const SCREENS: [string, () => React.ReactElement][] = [
+  ['Onboarding', () => <OnboardingScreen />],
+  ['Today', () => <TodayScreen />],
+  ['Explore', () => <ExploreScreen />],
+  ['Need a minute', () => <CalmScreen />],
+  ['Myth or fact', () => <MythsScreen />],
+  ['Can I eat it', () => <FoodSortScreen />],
+  ['What’s the word', () => <TermsScreen />],
+  ['After birth', () => <AfterBirthScreen />],
+  ['Baby', () => <BabyScreen />],
+  ['My Body', () => <BodyScreen />],
+  ['Healthy Pregnancy', () => <HealthyScreen />],
+  ['Appointments', () => <AppointmentsScreen />],
+  ['Appointment sheet', () => <AppointmentSummaryScreen />],
+  ['Money, forms and deadlines', () => <EntitlementsScreen />],
+  ['Get Help', () => <GetHelpScreen />],
+  ['Maternity number', () => <MaternityNumberScreen />],
+  ['Movement journal', () => <MovementsScreen />],
+  ['Bump gallery', () => <GalleryScreen />],
+  ['Privacy', () => <PrivacyScreen />],
+  ['Pregnancy changed', () => <PregnancyChangedScreen />],
+  ['Support after loss', () => <AfterLossHomeScreen />],
+  ['Loss support', () => <LossSupportScreen />],
+  ['Inequalities', () => <EquityScreen />],
+  ['Journal', () => <JournalScreen />],
+  ['Sources', () => <SourcesScreen />],
+  ['Methodology', () => <MethodologyScreen />],
+  ['Settings', () => <SettingsScreen />],
+  ['Accessibility statement', () => <AccessibilityScreen />],
+];
 
 describe('accessibility', () => {
   beforeEach(() => {
     window.localStorage.clear();
-  });
-
-  it('OnboardingScreen has no axe violations', async () => {
-    const { container } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <OnboardingScreen />
-      </MemoryRouter>,
-    );
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
-  });
-
-  it('TodayScreen has no axe violations', async () => {
     setOnboarded();
+  });
+
+  // Guidance renders every entry at once, so an axe scan of it in jsdom takes
+  // several seconds. That is a scan-speed cost in the test environment, not a
+  // rendering cost in a browser — the real page is checked separately.
+  //
+  // This budget was 20s and the Guidance scan came in at 20.8s once the
+  // library passed 117 entries. Raising it is not loosening the check: the
+  // assertion is still zero violations and still passes, and the number being
+  // raised is how long jsdom is allowed to take, which has nothing to do with
+  // the page. Folding the phases did not help here either — a closed
+  // <details> still renders its contents into the DOM, so axe scans all of it
+  // regardless of what a person would see.
+  it.each(SCREENS)(
+    '%s has no axe violations',
+    async (_name, Screen) => {
+      const { container } = render(<MemoryRouter>{Screen()}</MemoryRouter>);
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    },
+    45_000,
+  );
+
+  // The screen someone reaches while frightened was the one screen missing
+  // from the list above — and it is the only one carrying the glossary
+  // buttons and the read-aloud control.
+  it('the urgent detail screen has no axe violations', async () => {
     const { container } = render(
-      <MemoryRouter initialEntries={['/today']}>
+      <MemoryRouter initialEntries={['/help/bleeding']}>
         <Routes>
-          <Route path="/today" element={<TodayScreen />} />
+          <Route path="/help/:symptomId" element={<UrgentDetailScreen />} />
         </Routes>
       </MemoryRouter>,
     );
@@ -39,27 +121,71 @@ describe('accessibility', () => {
     expect(results.violations).toEqual([]);
   });
 
-  it('ArticleScreen has no axe violations', async () => {
-    setOnboarded();
+  // The sheet renders as an empty page in the list above, and the empty page
+  // is not the one anyone prints. The tick boxes, the dated lines and the
+  // print button only exist once something has been saved.
+  it('the appointment sheet has no axe violations with content on it', async () => {
+    window.localStorage.setItem(
+      'fieldnotes:journal',
+      JSON.stringify([
+        {
+          id: 'q1',
+          kind: 'question',
+          text: 'Is the breathlessness normal?',
+          date: '2026-09-01',
+          week: 24,
+        },
+        {
+          id: 's1',
+          kind: 'symptom',
+          text: 'Headache most afternoons',
+          date: '2026-09-02',
+          week: 24,
+        },
+        { id: 'm1', kind: 'mood', text: 'Anxious', date: '2026-09-03', week: 24 },
+        { id: 'n1', kind: 'note', text: 'Ask about the letter', date: '2026-09-03', week: 24 },
+      ]),
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
     const { container } = render(
-      <MemoryRouter initialEntries={['/article/iron-anaemia-risk']}>
-        <Routes>
-          <Route path="/article/:articleId" element={<ArticleScreen />} />
-        </Routes>
+      <MemoryRouter>
+        <AppointmentSummaryScreen />
       </MemoryRouter>,
     );
     const results = await axe(container);
     expect(results.violations).toEqual([]);
   });
+});
 
-  it('SettingsScreen has no axe violations', async () => {
+describe('focus on arrival', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
     setOnboarded();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/settings']}>
-        <SettingsScreen />
-      </MemoryRouter>,
-    );
-    const results = await axe(container);
-    expect(results.violations).toEqual([]);
+  });
+
+  // Eight screens used to call useAutoFocusHeading and drop the returned ref,
+  // so the effect ran and focused nothing — a keyboard user landed on the new
+  // screen still focused wherever they had been on the old one. The Screen
+  // shell owns this now, so "forgot to attach the ref" is no longer a mistake
+  // a screen can make. Every screen is checked, not just the ones that broke:
+  // the point of the shell is that this holds by construction.
+  const EXCLUDED = [
+    // Renders a <Navigate> in the test environment rather than a heading.
+    'Bump gallery',
+  ];
+  const FOCUSABLE = SCREENS.filter(([name]) => !EXCLUDED.includes(name));
+
+  it.each(FOCUSABLE)('%s moves focus to its heading', (_name, Screen) => {
+    render(<MemoryRouter>{Screen()}</MemoryRouter>);
+    const heading = screen.getByRole('heading', { level: 1 });
+
+    // A milestone celebration is a modal, and a modal is *supposed* to hold
+    // focus — sending it to the heading behind the overlay would be the bug.
+    const dialog = screen.queryByRole('dialog');
+    if (dialog) {
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      return;
+    }
+    expect(document.activeElement).toBe(heading);
   });
 });

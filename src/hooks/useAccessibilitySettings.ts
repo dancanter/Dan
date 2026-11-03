@@ -29,19 +29,14 @@ export function useAccessibilitySettings() {
   );
 
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--user-font-scale',
-      TEXT_SCALE[settings.textSize],
-    );
+    document.documentElement.style.setProperty('--user-font-scale', TEXT_SCALE[settings.textSize]);
     document.documentElement.classList.toggle('high-contrast', settings.highContrast);
   }, [settings.textSize, settings.highContrast]);
 
   return {
     ...settings,
     setTextSize: (textSize: TextSize) => setSettings((prev) => ({ ...prev, textSize })),
-    setReduceMotion: (reduceMotion: boolean) =>
-      setSettings((prev) => ({ ...prev, reduceMotion })),
-    setHighContrast: (highContrast: boolean) =>
-      setSettings((prev) => ({ ...prev, highContrast })),
+    setReduceMotion: (reduceMotion: boolean) => setSettings((prev) => ({ ...prev, reduceMotion })),
+    setHighContrast: (highContrast: boolean) => setSettings((prev) => ({ ...prev, highContrast })),
   };
 }
