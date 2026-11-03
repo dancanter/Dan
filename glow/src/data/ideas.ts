@@ -56,7 +56,7 @@ export const IDEAS: Idea[] = [
   { id: 'autumn-forage', area: 'fun', text: 'Walk somewhere with autumn colour and pick blackberries if there are any left.', seasons: ['autumn'] },
   { id: 'clocks', area: 'health', text: 'Lock in your wake time: darker mornings make it slip.', seasons: ['autumn', 'winter'] },
   { id: 'spring-run', area: 'fun', text: 'Long easy run somewhere green: spring air, first light evenings.', seasons: ['spring'] },
-  { id: 'asparagus', area: 'health', text: 'British asparagus is in season: roast it with olive oil and lemon (go easy if it bloats you).', seasons: ['spring'] },
+  { id: 'asparagus', area: 'health', text: 'British asparagus is in season: roast it with a little butter and lemon (go easy if it bloats you).', seasons: ['spring'] },
   { id: 'summer-swim', area: 'fun', text: 'Open-water swim or lido session.', seasons: ['summer'] },
   { id: 'berries', area: 'health', text: 'Pick-your-own strawberries or raspberries: peak polyphenols.', seasons: ['summer'] },
   { id: 'sun-d', area: 'health', text: '15 minutes of midday sun on your arms (SPF on your face) for vitamin D.', seasons: ['summer', 'spring'] },

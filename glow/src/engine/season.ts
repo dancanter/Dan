@@ -93,7 +93,7 @@ export interface Progress {
   planned: number;
   actual: number;
   diffKg: number;
-  verdict: 'too-fast' | 'ahead' | 'on-track' | 'behind';
+  verdict: 'too-fast' | 'ahead' | 'on-track' | 'slower';
   advice: string;
 }
 
@@ -106,7 +106,7 @@ export function seasonProgress(season: Phase[], startKg: number, date: string, a
   const fast = weeklyRateKg !== undefined && weeklyRateKg < -(avgKg * 0.0075);
   if (fast) return { planned, actual: avgKg, diffKg, verdict: 'too-fast', advice: 'You’re losing faster than 0.75% a week. Faster isn’t better here: it costs muscle, hormones and facial fullness. Add 150–200 kcal, mostly carbs around training.' };
   if (diffKg < -0.5) return { planned, actual: avgKg, diffKg, verdict: 'ahead', advice: 'Ahead of plan. Don’t cut harder: hold your calories, or add 100 kcal, and bank the lead.' };
-  if (diffKg > 0.5 && phase?.kind === 'cut') return { planned, actual: avgKg, diffKg, verdict: 'behind', advice: 'A little behind. First check the boring things: weigh portions raw, log oils and sauces, keep steps steady. If it’s still behind after another full week, take 100–150 kcal off rest days only.' };
+  if (diffKg > 0.5 && phase?.kind === 'cut') return { planned, actual: avgKg, diffKg, verdict: 'slower', advice: 'Coming down a little slower than planned — that’s fine. First check the simple things: weigh portions raw, log sauces and fats, keep steps steady. Give it two full weeks before changing anything — the tracker’s Camp tab makes that call.' };
   return { planned, actual: avgKg, diffKg, verdict: 'on-track', advice: 'Right on the plan line. Change nothing.' };
 }
 

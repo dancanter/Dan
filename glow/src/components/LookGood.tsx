@@ -42,7 +42,7 @@ const PLAN: Step[] = [
   { when: '7 to 4 days out', items: [
     ['Sleep 8–9 hours every night, same wake time', 'strong'],
     ['Keep eating and training normally. No crash diet: under-fuelling flattens muscles and hollows the face', 'moderate'],
-    ['Daily SPF and your usual skincare. Don’t try any new actives now (retinol flare-ups take days to settle)', 'moderate'],
+    ['Daily SPF and your usual gentle skincare. Don’t try any new products now (flare-ups take days to settle)', 'moderate'],
   ] },
   { when: '3 days out', items: [
     ['Last alcohol, now. It takes 2–3 days for sleep, skin redness and water balance to recover', 'moderate'],
@@ -51,7 +51,7 @@ const PLAN: Step[] = [
   ] },
   { when: '2 days out', items: [
     ['Last hard leg or interval session. Hard work causes temporary fluid shifts and inflammation', 'emerging'],
-    ['No new foods. Go easy on onions, garlic, beans and fizzy drinks if they bloat you', 'moderate'],
+    ['No new foods. Go easy on beans and fizzy drinks if they bloat you, and keep salt and water exactly as usual', 'moderate'],
   ] },
   { when: 'The day before', items: [
     ['Normal carbs (rice, potatoes): muscles hold glycogen and look fuller. No extreme "carb loading"', 'emerging'],
@@ -61,7 +61,7 @@ const PLAN: Step[] = [
   { when: 'On the day', items: [
     ['Water on waking, then coffee: caffeine briefly tightens blood vessels', 'emerging'],
     ['Cold splash or chilled gua sha for 2–3 minutes: a temporary de-puff that lasts a few hours', 'emerging'],
-    ['A light, lower-salt breakfast: eggs, fruit, yoghurt. SPF on', 'moderate'],
+    ['A light breakfast: eggs, fruit, yoghurt, salt as usual. SPF on', 'moderate'],
   ] },
 ];
 

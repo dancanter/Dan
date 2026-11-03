@@ -57,7 +57,7 @@ describe('optimisation score', () => {
 describe('day analysis', () => {
   it('warns about vitamin A when liver is doubled up with cod liver oil', () => {
     const a = analyseDay([item('beef-liver', 100), item('cod-liver-oil', 5)], t, { glutenFree: false });
-    expect(a.warnings.some((w) => w.text.includes('Retinol'))).toBe(true);
+    expect(a.warnings.some((w) => w.text.includes('vitamin A'))).toBe(true);
   });
 
   it('warns about selenium from a handful of Brazil nuts but not one', () => {
@@ -455,7 +455,8 @@ describe('swaps, sweeteners and stress', () => {
       for (const t of s.to) expect(FOOD_BY_ID.get(t), `${s.from} -> ${t}`).toBeTruthy();
     }
     expect(swapFor(f('beef-mince-20'))?.gain).toBe('big');
-    expect(swapFor(f('spinach'))?.gain).toBe('small');
+    // spinach is on Dan's avoid list: Glow no longer suggests a greens swap for it
+    expect(swapFor(f('spinach'))).toBeUndefined();
   });
 
   it('flags all-day squash sipping, not one glass', () => {

@@ -85,7 +85,7 @@ export function dayPuff(items: LoggedItem[], history: LoggedItem[][], sleepHours
   if (alcohol) { score -= 35; tips.push('Alcohol logged: drink 500 ml of water before bed and eat something potassium-rich (potato, banana, yoghurt, avocado).'); }
   if (jump !== undefined && jump > 1000) { score -= 25; tips.push(`Sodium is about ${(jump / 1000).toFixed(1)} g above your recent average. It’s the change that puffs you, not the absolute amount. Add potassium-rich food and an extra glass or two of water.`); }
   else if (jump !== undefined && jump > 500) { score -= 10; tips.push('Sodium a bit above your usual: a potassium-rich side tonight evens it out.'); }
-  if (ratio > 1.2 && items.length >= 3) { score -= 15; tips.push(`Sodium:potassium is ${ratio.toFixed(1)}:1. Aim for potassium higher than sodium (under 1:1): potatoes, leafy greens, avocado, yoghurt, salmon, beans, kiwi.`); }
+  if (ratio > 1.2 && items.length >= 3) { score -= 15; tips.push(`Sodium:potassium is ${ratio.toFixed(1)}:1. Aim for potassium higher than sodium (under 1:1): potatoes, avocado, yoghurt, salmon, bananas, kiwi.`); }
   if (sleepHours !== undefined && sleepHours < 7) { score -= 15; tips.push('Short sleep raises cortisol and leaves fluid around the eyes. Tonight matters more than any food.'); }
   if (fizzy.length) { score -= 5; tips.push('Fizzy drinks put gas in your gut. Still water or tea before an event.'); }
   if (!tips.length && items.length >= 3) tips.push(ratio <= 1 ? 'Potassium beats sodium and nothing’s spiking. This is a de-puffed day.' : 'Steady sodium, no alcohol. You’re in good shape for tomorrow.');

@@ -25,6 +25,12 @@ css = css
   .replace(/(^|[}{,;\s])html\s*,\s*body\s*\{/g, '$1.glow-app{')
   .replace(/(^|[}{,;\s])body\s*\{/g, '$1.glow-app{');
 
+// Dan's hard rules (PROFILE.md): the built page must not carry any of the old
+// recommendations Glow used to make. Fail the build if one creeps back in.
+const BANNED = /2–3 drops|drops per bowl|drops of sweetener|stevia drops? a day|retinol \d|retinol nights|keep liver|olive oil as|garlic-infused|tinned lentils/i;
+const hit = js.match(BANNED);
+if (hit) throw new Error(`Banned advice in Glow's build: "${hit[0]}" near …${js.slice(Math.max(0, hit.index - 60), hit.index + 60)}…`);
+
 const safe = (s) => s.replace(/<\/(script|style)/gi, '<\\/$1');
 const block =
   `<style id="glowProps">${props}</style>\n` +

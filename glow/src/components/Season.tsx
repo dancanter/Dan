@@ -84,7 +84,7 @@ export function SeasonCard() {
   const actual = roll.filter((r) => r.date >= season[0].start).map((r) => ({ x: prettyDate(r.date), y: toDisplay(r.avg, unit) }));
   const current = phaseOn(season, today);
   return (
-    <Card eyebrow="Season plan" title="Your winter" action={<Pill tone={prog?.verdict === 'behind' || prog?.verdict === 'too-fast' ? 'warn' : prog ? 'good' : 'neutral'}>{prog ? prog.verdict.replace('-', ' ') : 'needs weigh-ins'}</Pill>}>
+    <Card eyebrow="Season plan" title="Your winter" action={<Pill tone={prog?.verdict === 'slower' || prog?.verdict === 'too-fast' ? 'warn' : prog ? 'good' : 'neutral'}>{prog ? prog.verdict.replace('-', ' ') : 'needs weigh-ins'}</Pill>}>
       <Timeline season={season} today={today} />
       {actual.length >= 2 && (
         <div className="mt-4">

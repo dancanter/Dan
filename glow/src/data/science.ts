@@ -84,7 +84,7 @@ export const PILLARS: Pillar[] = [
     id: 'energy', name: 'Mitochondrial power', emoji: '⚡',
     hallmarks: ['Mitochondrial dysfunction'],
     what: 'Mitochondria are the power stations inside your cells. They burn food with oxygen to make ATP, the energy currency every cell spends. With age they become fewer, leakier and less efficient.',
-    why: 'Iron, riboflavin, magnesium, copper and B12 are parts of the energy production chain itself. Dietary nitrate (rocket, beetroot) makes mitochondria use oxygen more efficiently. Creatine (meat, fish) is an instant ATP buffer. Too little total energy is the fastest way to throttle all of it.',
+    why: 'Iron, riboflavin, magnesium, copper and B12 are parts of the energy production chain itself. Dietary nitrate (beetroot, celery, radishes) makes mitochondria use oxygen more efficiently. Creatine (meat, fish) is an instant ATP buffer. Too little total energy is the fastest way to throttle all of it.',
     evidence: 'moderate',
     components: [
       { kind: 'nutrient', key: 'iron', w: 2 },
@@ -98,7 +98,7 @@ export const PILLARS: Pillar[] = [
       { kind: 'special', key: 'energy', w: 2.5 },
     ],
     penalties: [{ tag: 'alc', points: 12 }],
-    topTip: 'A rocket or beetroot side most days, red meat or oily fish daily, and don’t let calories drop so low that your body starts rationing energy.',
+    topTip: 'A beetroot side most days, red meat or oily fish daily, and don’t let calories drop so low that your body starts rationing energy.',
   },
   {
     id: 'inflammation', name: 'Inflammation control', emoji: '🧊',
@@ -118,13 +118,13 @@ export const PILLARS: Pillar[] = [
       { tag: 'upf', points: 6 }, { tag: 'fried', points: 8 }, { tag: 'procmeat', points: 6 },
       { tag: 'addsug', points: 4 }, { tag: 'alc', points: 8 }, { tag: 'trans', points: 15 },
     ],
-    topTip: 'Oily fish 2–3 times a week, a handful of berries daily, olive oil as your main fat.',
+    topTip: 'Oily fish 2–3 times a week, a handful of berries daily, avocado and nuts as your main added fats.',
   },
   {
     id: 'dna', name: 'DNA & antioxidant shield', emoji: '🧬',
     hallmarks: ['Genomic instability', 'Telomere attrition', 'Epigenetic alterations'],
     what: 'Your DNA takes thousands of hits a day from normal metabolism. Telomeres, the protective caps on chromosomes, shorten each time a cell divides. Epigenetic marks (chemical tags that switch genes on and off) drift with age. That drift is what "biological age" clocks measure.',
-    why: 'Folate, B12 and choline supply the methyl groups for epigenetic tagging and DNA building. Selenium and zinc build repair and antioxidant enzymes. Sulforaphane (broccoli) switches on Nrf2, your cells’ own antioxidant system, which is stronger than any antioxidant pill.',
+    why: 'Folate, B12 and choline supply the methyl groups for epigenetic tagging and DNA building. Selenium and zinc build repair and antioxidant enzymes. Exercise and plant polyphenols (berries, cocoa, herbs) switch on Nrf2, your cells’ own antioxidant system, which is stronger than any antioxidant pill.',
     evidence: 'moderate',
     components: [
       { kind: 'nutrient', key: 'folate', w: 1.5 },
@@ -138,7 +138,7 @@ export const PILLARS: Pillar[] = [
       { kind: 'tag', tag: 'carot', servings: 2, w: 1 },
     ],
     penalties: [{ tag: 'procmeat', points: 10 }, { tag: 'alc', points: 10 }, { tag: 'fried', points: 4 }],
-    topTip: 'Eggs, leafy greens and one brassica (broccoli, kale, cabbage, rocket) every day, plus one Brazil nut.',
+    topTip: 'Eggs every day, oily fish or red meat, a few pumpkin seeds, and colourful plants (beetroot, peppers, carrots, berries).',
   },
   {
     id: 'glycation', name: 'Metabolic & glycation control', emoji: '🍯',
@@ -298,10 +298,10 @@ export const CUT_OUT: CutItem[] = [
     instead: 'Fresh butcher meat. If you have it occasionally, eat it with vegetables (vitamin C and polyphenols reduce nitrosamine formation).' },
   { title: 'Sugary drinks and juice', verdict: 'cut', evidence: 'strong', pillars: ['glycation', 'skin'], sources: ['sacn-2015'],
     why: 'Liquid free sugar spikes glucose without filling you up. A can of cola is over a day’s free-sugar limit. Glycation stiffens and yellows collagen over years.',
-    instead: 'Water, sparkling water, black coffee, green tea, kefir. Eat the fruit whole.' },
+    instead: 'Water, sparkling water, black coffee, herbal tea, kefir. Eat the fruit whole.' },
   { title: 'Deep-fried and charred food', verdict: 'limit', evidence: 'moderate', pillars: ['glycation', 'inflammation', 'dna'], sources: ['uribarri-2010'],
     why: 'High dry heat makes AGEs and, in meat, heterocyclic amines and PAHs (DNA-damaging compounds). Grilled and fried meat can carry several times the AGEs of stewed or poached meat.',
-    instead: 'Stew, poach, steam, slow-roast. Marinate meat in lemon, herbs and olive oil before grilling, which cuts heterocyclic amine formation in studies. Don’t eat the blackened bits.' },
+    instead: 'Stew, poach, steam, slow-roast. Marinate meat in lemon, herbs and a little avocado oil before grilling, which cuts heterocyclic amine formation in studies. Don’t eat the blackened bits.' },
   { title: 'Late caffeine', verdict: 'limit', evidence: 'moderate', pillars: ['renewal', 'hormones'], sources: ['drake-2013'],
     why: 'Caffeine taken 6 hours before bed still cut sleep by about an hour in a controlled study, and you may not notice the shallower sleep.',
     instead: 'Last coffee by about 2pm, or at least 8 hours before bed.' },
@@ -322,10 +322,10 @@ export const CUT_OUT: CutItem[] = [
     instead: 'Get antioxidants from colourful food.' },
   { title: 'Swapping olive oil for coconut oil because "saturated fat is fine"', verdict: 'swap', evidence: 'strong', pillars: ['inflammation'], sources: ['neelakantan-2020', 'estruch-2018'],
     why: 'Coconut oil raises LDL compared with plant oils. Extra virgin olive oil is the most consistently protective fat in trials.',
-    instead: 'EVOO for most cooking and dressing. Tallow and butter as flavour, not the default.' },
+    instead: 'Avocado or rapeseed oil for most cooking. Butter as flavour, not the default.' },
   { title: 'A big salt jump the night before an event or photo', verdict: 'limit', evidence: 'moderate', pillars: ['skin'], sources: [],
     why: 'A sudden rise in sodium above your usual intake makes you hold water, which shows on the face next morning (along with alcohol and short sleep).',
-    instead: 'Keep sodium steady day to day, eat potassium-rich food (potatoes, avocado, leafy greens, yoghurt) and sleep 8+ hours.' },
+    instead: 'Keep sodium steady day to day, eat potassium-rich food (potatoes, avocado, bananas, kiwi, yoghurt) and sleep 8+ hours.' },
 ];
 
 // ── Daily rituals (everything except training) ──────────────────────────
@@ -356,7 +356,7 @@ export const RITUALS: Ritual[] = [
   { id: 'joy', title: 'One thing from the joy menu (below)', points: 2, evidence: 'moderate',
     why: 'Real, lasting rewards (mastery, connection, nature, anticipation) instead of the cheap dopamine of scrolling.' },
   { id: 'nosip', title: 'Squash and diet drinks only with meals, water in between', points: 1, evidence: 'moderate',
-    why: 'Gives your enamel time to re-harden between acid hits, and turns down the all-day sweetness. Lemon, lime or cucumber water and cold green tea fill the gap.' },
+    why: 'Gives your enamel time to re-harden between acid hits, and turns down the all-day sweetness. Lemon, lime or cucumber water and herbal teas fill the gap.' },
   { id: 'hydrate', title: '2+ litres of fluid (pale-yellow urine)', points: 1, evidence: 'emerging',
     why: 'Mostly about performance and puffiness. Being dehydrated makes you hold water. The evidence that extra water improves skin is weak.' },
   { id: 'social', title: 'Real connection: a call, a meal, a laugh with someone', points: 2, evidence: 'strong', sources: ['holt-lunstad-2010'],
@@ -373,7 +373,7 @@ export const RITUALS: Ritual[] = [
 
 // ── Boosters (non-training extras worth knowing) ────────────────────────
 export const BOOSTERS: { title: string; text: string; evidence: Evidence }[] = [
-  { title: 'Vitamin D, October to March', evidence: 'strong', text: 'The NHS advises 10 µg (400 IU) a day for everyone in the UK in autumn and winter, because the sun is too low to make it. You don’t tolerate supplements, so get it from food: mackerel or trout twice a week plus wild salmon twice covers it, with eggs and UV mushrooms on top (full plan in Cellular → Seasons). A January blood test will confirm it’s working.' },
+  { title: 'Vitamin D, October to March', evidence: 'strong', text: 'From October to March the UK sun is too low to make vitamin D, so it comes from food — no tablets, by your choice: mackerel or trout twice a week plus wild salmon twice covers it, with eggs and UV mushrooms on top (full plan in Cellular → Seasons). A January blood test will confirm it’s working.' },
   { title: 'A blood panel once a year', evidence: 'strong', text: 'With coeliac disease, NICE recommends an annual review anyway. Ask for ferritin (iron stores, often low in runners and coeliacs), folate, vitamin D, B12, full blood count, the coeliac antibody test (tTG-IgA), lipids, HbA1c, thyroid (TSH) and, if your energy or libido dips during the cut, testosterone. Ask your GP, or use a reputable private lab. Measure, don’t guess.' },
   { title: 'Creatine monohydrate, 3–5 g a day', evidence: 'strong', text: 'The best-evidenced sports supplement for strength, sprint performance and lean mass, with emerging evidence for brain function when sleep-deprived. Optional: you already get 1–2 g a day from meat and fish.' },
   { title: 'Sleep regularity over sleep hacks', evidence: 'strong', text: 'Waking at the same time every day (within 30 minutes, weekends included) is linked with lower mortality and better metabolic health, independent of duration. It beats every gadget.' },
@@ -445,7 +445,7 @@ export const COELIAC_NUTRITION: { title: string; text: string }[] = [
   { title: 'The nutrients to watch', text: 'Iron (the most common deficiency at diagnosis), folate, vitamin D, calcium (bone density is often lower in coeliac disease), zinc and B12. Your diet of red meat, organ meats, oysters, eggs, salmon, dairy and leafy greens covers these unusually well. The question is whether you’re absorbing them, which only a blood test can tell you.' },
   { title: 'Gluten-free products aren’t fortified the same way', text: 'UK wheat flour must have calcium, iron, thiamin and niacin added by law. Most gluten-free bread, pasta and flour doesn’t, and much of it is ultra-processed with less fibre and protein. Build carbohydrate around potatoes, rice, buckwheat, quinoa and certified GF oats instead.' },
   { title: 'Annual review', text: 'NICE recommends an annual review for people with coeliac disease: weight, symptoms, diet and blood tests. Ask for full blood count, ferritin, folate, B12, vitamin D and the coeliac antibody test (tTG-IgA, which shows whether gluten is still getting in). In some areas you can also get GF staples on prescription.' },
-  { title: 'Fibre on a gluten-free diet', text: 'The easy fibre sources (wholemeal bread, bran cereals) are off the table, so be deliberate: raspberries, potatoes in their skins, lentils and beans, chia and ground flax, buckwheat, quinoa, certified GF oats, nuts and lots of veg.' },
+  { title: 'Fibre on a gluten-free diet', text: 'The easy fibre sources (wholemeal bread, bran cereals) are off the table, so be deliberate: raspberries, potatoes in their skins, GF oats and chia, chia and ground flax, buckwheat, quinoa, certified GF oats, nuts and lots of veg.' },
 ];
 
 // ── What blocks (and boosts) absorption ─────────────────────────────────
@@ -464,13 +464,13 @@ export const ABSORPTION_BLOCKERS: AbsorptionRule[] = [
     fix: 'Drink them at least an hour away from iron-rich meals. Your morning coffee is fine if breakfast isn’t your main iron meal.', evidence: 'strong' },
   { blocker: 'Calcium in the same meal as iron', blocks: 'Both haem and non-haem iron', where: 'Milk, yoghurt, kefir, cheese, calcium supplements',
     size: 'Around 300 mg or more of calcium with a meal reduces iron absorption in single-meal studies. Over weeks the effect looks smaller, but it matters if your ferritin is low.',
-    fix: 'Keep dairy (yoghurt, kefir) for snacks or breakfast, and eat red meat, liver or lentils at a separate meal.', evidence: 'moderate' },
+    fix: 'Keep dairy (yoghurt, kefir) for snacks or breakfast, and eat red meat at a separate meal.', evidence: 'moderate' },
   { blocker: 'Phytate', blocks: 'Iron, zinc and calcium', where: 'Whole grains, oats, beans, lentils, nuts and seeds (including pumpkin seeds)',
     size: 'It’s why plant zinc and iron count for less in Glow’s scores. Large effect on iron, moderate on zinc.',
     fix: 'Soak, sprout or ferment (sourdough-style buckwheat, soaked oats, tempeh). Add vitamin C or meat to the meal. Don’t rely on seeds as your main zinc source; oysters and red meat are far better.', evidence: 'strong' },
   { blocker: 'Oxalate', blocks: 'Calcium (and some iron)', where: 'Spinach, chard, beet greens, rhubarb, almonds, cocoa',
     size: 'You absorb only about 5% of the calcium in spinach, against about 30% from milk and kale.',
-    fix: 'Keep eating spinach for its folate, vitamin K and nitrate, but don’t count it as a calcium source. Kale, pak choi, sardines with bones and dairy are the ones that count.', evidence: 'strong' },
+    fix: 'Don’t count leafy greens as a calcium source. Sardines with bones, yoghurt, kefir and cheese are the ones that count.', evidence: 'strong' },
   { blocker: 'High-dose zinc supplements', blocks: 'Copper', where: 'Zinc tablets above about 25 mg a day for weeks',
     size: 'Long-term high zinc causes copper deficiency (anaemia, nerve problems). Food zinc, even from oysters, rarely does.',
     fix: 'Get zinc from food. If you supplement, stay at or under 25 mg and not long-term without a blood test.', evidence: 'strong' },
@@ -479,7 +479,7 @@ export const ABSORPTION_BLOCKERS: AbsorptionRule[] = [
     fix: 'Another reason to keep alcohol rare.', evidence: 'strong' },
   { blocker: 'Fat-free meals', blocks: 'Vitamins A, D, E, K and carotenoids (lycopene, beta-carotene, lutein)', where: 'Salads and vegetables eaten without any fat',
     size: 'Carotenoid absorption from a salad can be several times higher with added fat than without.',
-    fix: 'Add olive oil, avocado, eggs or salmon to your vegetables. Cook tomatoes and carrots with a little olive oil.', evidence: 'strong' },
+    fix: 'Add avocado, eggs, butter or salmon to your vegetables. Cook tomatoes and carrots with a little butter or avocado oil.', evidence: 'strong' },
   { blocker: 'Antacids and acid-reducing medicines', blocks: 'B12, iron, magnesium, calcium', where: 'Omeprazole, lansoprazole and other PPIs, long-term antacids',
     size: 'Stomach acid frees B12 and iron from food. Long-term PPIs are linked with low B12 and magnesium.',
     fix: 'If you take them regularly, mention it at your annual coeliac review and ask for B12 and magnesium checks.', evidence: 'moderate' },
@@ -492,13 +492,12 @@ export const ABSORPTION_BLOCKERS: AbsorptionRule[] = [
 ];
 
 export const ABSORPTION_BOOSTERS: { title: string; text: string }[] = [
-  { title: 'Vitamin C + plant iron', text: 'Vitamin C in the same meal (red pepper, kiwi, lemon, tomato, broccoli) can roughly double to triple non-haem iron absorption and partly cancels out phytate.' },
-  { title: 'The "meat factor"', text: 'Meat, fish and poultry raise iron absorption from the plants eaten alongside them. Steak with spinach beats spinach alone.' },
-  { title: 'Fat + carotenoids and vitamins A, D, E, K', text: 'Olive oil on salad, eggs with greens, salmon with sweet potato.' },
+  { title: 'Vitamin C + plant iron', text: 'Vitamin C in the same meal (red pepper, kiwi, lemon, tomato) can roughly double to triple non-haem iron absorption and partly cancels out phytate.' },
+  { title: 'The "meat factor"', text: 'Meat, fish and poultry raise iron absorption from the plants eaten alongside them. Steak with peppers beats peppers alone.' },
+  { title: 'Fat + carotenoids and vitamins A, D, E, K', text: 'Avocado on salad, eggs with peppers, salmon with sweet potato.' },
   { title: 'Cooking', text: 'Lycopene (tomato) and beta-carotene (carrot, sweet potato) absorb several times better cooked. Cooking also makes egg protein about twice as digestible.' },
-  { title: 'Chop-and-wait for brassicas', text: 'Chopping broccoli and leaving it 30–40 minutes before cooking lets sulforaphane form. Alternatively, add a pinch of mustard powder after cooking.' },
   { title: 'Black pepper + turmeric', text: 'Piperine greatly increases curcumin absorption. Add fat too.' },
-  { title: 'Vitamin D + calcium', text: 'Vitamin D is what lets you absorb calcium at all, which is one reason the October–March vitamin D advice matters more in coeliac disease.' },
+  { title: 'Vitamin D + calcium', text: 'Vitamin D is what lets you absorb calcium at all, which is one reason oily fish through October–March matters more in coeliac disease.' },
   { title: 'A healed gut lining', text: 'For you, strict gluten-free eating is the absorption booster that beats everything else on this list.' },
 ];
 
@@ -521,7 +520,7 @@ export const STRESS_TOPICS: StressTopic[] = [
   { id: 'oxidative', title: 'Oxidative stress', evidence: 'moderate', sources: ['ristow-2009'],
     what: 'Every time you burn food for energy, mitochondria leak a little oxygen as reactive oxygen species (free radicals). In small amounts these are signals that tell cells to adapt. Oxidative stress is when they outpace your defences and start damaging fats in cell membranes, proteins and DNA.',
     you: 'High training volume raises free-radical production. Your own defences (glutathione, superoxide dismutase, catalase) are far more powerful than any pill, and they’re built from selenium, zinc, copper, manganese, protein and the polyphenols and sulforaphane that switch on Nrf2.',
-    do: ['Feed your own defences: Brazil nut (selenium), oysters or red meat (zinc, copper), brassicas (sulforaphane), berries and cocoa (polyphenols).', 'Skip high-dose vitamin C and E pills around training. In trials they blunted the adaptations exercise is meant to cause.', 'Biggest outside sources to cut: smoking or vaping, alcohol, unprotected UV, fried and burnt food.'] },
+    do: ['Feed your own defences: eggs and sardines (selenium), oysters or red meat (zinc, copper), berries and cocoa (polyphenols).', 'Skip high-dose vitamin C and E pills around training. In trials they blunted the adaptations exercise is meant to cause.', 'Biggest outside sources to cut: smoking or vaping, alcohol, unprotected UV, fried and burnt food.'] },
   { id: 'ages', title: 'AGEs (advanced glycation end-products)', evidence: 'moderate', sources: ['uribarri-2010', 'gkogkolou-2012'],
     what: 'AGEs form when sugars bond to proteins and fats. Your body makes them from blood glucose, and food adds more, especially protein and fat cooked with dry high heat (grilling, roasting, frying, charring). In skin, AGEs cross-link collagen and elastin: fibres that should glide become stiff and yellowish, which shows as lost bounce, sagging and dullness. Collagen lasts for years, so AGEs accumulate.',
     you: 'Your diet is low in sugar, which already keeps the body-made AGEs down. The lever left for you is cooking method: grilled steak, roasted meats, crispy skin and seared salmon carry several times the AGEs of the same food stewed, poached or steamed.',
@@ -533,25 +532,25 @@ export const STRESS_TOPICS: StressTopic[] = [
   { id: 'inflammation', title: 'When stress becomes inflammation', evidence: 'moderate', sources: [],
     what: 'Short inflammation after training is how muscle rebuilds. The problem is the constant low-grade kind (inflammaging) that comes from stacking stressors without recovery: poor sleep, alcohol, ultra-processed food, chronic stress and under-fuelling.',
     you: 'Your signs to watch: a morning heart rate above baseline, poor sleep, lingering soreness, getting colds, and puffy skin. Glow tracks most of these.',
-    do: ['Omega-3 (oily fish 2–3 times a week), colourful plants daily, olive oil.', 'If the training load says "pushing it", drop intensity, not food.'] },
+    do: ['Omega-3 (oily fish 2–3 times a week), colourful plants daily, avocado and nuts.', 'If the training load says "pushing it", drop intensity, not food.'] },
 ];
 
 export const SWEETENER_VERDICT = {
   title: 'Your squash and sweetener habit: the honest verdict',
-  summary: 'Not dangerous, not optimal, and worth changing gradually. It’s far better than drinking sugar. The two real issues are teeth and all-day sweetness. The cancer headlines are weaker than they sound.',
+  summary: 'Not dangerous, but your rule is no sweeteners, so the plan below phases them out. It’s still far better than drinking sugar. The two real issues are teeth and all-day sweetness. The cancer headlines are weaker than they sound.',
   points: [
     { h: 'The biggest concrete issue is your teeth', t: 'No-added-sugar squash is still acidic (citric acid). Sipping it all day keeps enamel soft, because saliva needs 30–60 minutes between acid hits to re-harden it. Enamel erosion is permanent and makes teeth look duller and more yellow, which matters for the look you’re going for.' },
     { h: 'Sweeteners and your gut', t: 'In a 2022 trial (Suez et al., Cell), sucralose and saccharin changed gut bacteria and glucose response in some people within two weeks. Stevia and aspartame had smaller effects. The effect was personal: some people showed it, others didn’t.' },
     { h: 'Cravings and taste', t: 'Constant sweetness keeps your palate set to "very sweet", which can make whole foods taste flat. The evidence on weight is mixed. The WHO (2023) advises against relying on sweeteners for weight control, partly because long-term studies link heavy use with worse outcomes (observational, so not proof).' },
     { h: 'Cancer worries, in proportion', t: 'In 2023 the WHO’s cancer agency classed aspartame as “possibly carcinogenic” (the weakest category, alongside aloe vera extract), while the WHO’s food safety committee kept the safe daily limit at 40 mg per kg: about 2,300 mg for you, many litres of squash. Not a reason to panic, just not a reason to drink it all day.' },
-    { h: 'Sweetener drops in meals', t: 'A few drops of stevia is the lowest-concern option. Sucralose drops are fine occasionally. Cinnamon, vanilla, berries or a little cocoa can replace most of them.' },
+    { h: 'Sweetener drops in meals', t: 'None: cinnamon, vanilla, berries, a little cocoa or 1 tsp raw honey do the job, and your palate resets within a couple of weeks.' },
   ],
   plan: [
-    'Week 1: dilute squash to half strength and drink it only with meals.',
-    'Week 2: swap the between-meal glasses for water with fresh lemon, lime, cucumber or mint, or cold-brewed green tea (polyphenols, no acid load).',
-    'Keep one or two glasses a day if you enjoy them. That’s fine.',
+    'Week 1: swap squash for water with fresh lemon, lime, cucumber or mint at most glasses.',
+    'Week 2: swap the between-meal glasses for water with fresh lemon, lime, cucumber or mint, or a herbal tea (no acid load).',
+    'By week 3, no squash or sweetener: water, herbal tea or sparkling water with fruit.',
     'Use a straw, and rinse with water after. Don’t brush for 30–60 minutes after acidic drinks, because softened enamel brushes away.',
-    'Swap sweetener drops in oats or yoghurt for cinnamon and berries most days.',
+    'Swap sweetener drops in oats or yoghurt for cinnamon, vanilla, berries or 1 tsp raw honey, every time.',
   ],
   sources: ['suez-2022', 'who-nss-2023', 'who-aspartame-2023'],
 };
@@ -587,7 +586,7 @@ export const FACE_GUIDE: { title: string; text: string; evidence: Evidence }[] =
   { title: 'Posture shapes the jawline in photos', evidence: 'emerging', text: 'A forward head (from phone and desk time) softens the jaw-to-neck angle. Chin tucks, upper-back strength (rows, face pulls) and a screen at eye level help how you hold yourself, and so how your jaw reads. Neck training adds a little thickness, a classic "model" proportion.' },
   { title: 'Skip the gimmicks', evidence: 'speculative', text: '“Mewing” (tongue posture) has no good evidence of reshaping an adult face. Jawline exercisers and constant hard gum chewing can strain the jaw joint (TMJ). Facial "fat loss" exercises don’t spot-reduce fat. Spend that effort on sleep and posture.' },
   { title: 'Grooming does a lot of the work', evidence: 'emerging', text: 'A haircut with structure at the sides, tidy brows and a short, crisp stubble line along the jaw can define a jawline visually. Shave with the grain to avoid the breakouts you get. A cold rinse or chilled gua sha in the morning de-puffs for a few hours.' },
-  { title: 'Skin is the finish', evidence: 'strong', text: 'Daily SPF50 (you’re doing it), retinol 2–3 nights a week, carotenoid-rich food for a warm tone, and sleep. Clear, even skin is the “glow”.' },
+  { title: 'Skin is the finish', evidence: 'strong', text: 'Daily SPF50 (you’re doing it), a gentle cleanser and moisturiser, carotenoid-rich food for a warm tone, and sleep. Clear, even skin is the “glow”.' },
 ];
 
 export const BLOATING_GUIDE = {
@@ -595,8 +594,7 @@ export const BLOATING_GUIDE = {
   intro: 'Bloating after lentils, beans, onion, garlic, wheat or some fruit is usually FODMAPs: short-chain carbohydrates your small intestine absorbs poorly, so gut bacteria ferment them into gas. They’re good for your microbiome, which is why the aim is to find your personal threshold, not to cut them forever.',
   points: [
     'Biggest culprits: lentils, beans and chickpeas (GOS); onion, garlic and wheat (fructans); apples, pears, mango and watermelon (fructose); mushrooms, cauliflower and sugar-free products (polyols); milk (lactose, for some).',
-    'Gentle swaps: quinoa, potatoes, rice, firm tofu; courgette, carrot, green beans, peppers, pak choi, spinach; kiwi, strawberries, oranges, a small handful of blueberries; garlic-infused olive oil; spring-onion green tops and chives.',
-    'Tinned lentils and chickpeas, rinsed well, in small portions (around 40–45 g drained) are much better tolerated than dried-and-boiled.',
+    'Gentle swaps: quinoa, potatoes, rice, firm tofu; courgette, carrot, green beans, peppers, pak choi; kiwi, strawberries, oranges, a small handful of blueberries; spring-onion green tops and chives.',
     'Fizzy drinks, chewing gum, sugar alcohols (protein bars, sugar-free sweets) and eating fast all add gas. Slow down and chew well.',
     'Your Fage and kefir are low in lactose, so they’re fine for most people even if milk isn’t.',
     'With coeliac disease, bloating that persists despite strict gluten-free eating can mean hidden gluten (cross-contamination), lactose intolerance or IBS. Worth raising with your GP, and a coeliac antibody test shows whether gluten is still getting in.',
@@ -606,5 +604,5 @@ export const BLOATING_GUIDE = {
 
 export const STRAIGHT_FACTS: { q: string; a: string }[] = [
   { q: 'Is spinach a good iron source?', a: 'Not really, and you’re right. Spinach iron is non-haem iron bound up by oxalate and polyphenols, so you absorb only a few percent of it. Glow counts it at a heavily reduced rate. Red meat, venison, liver, oysters and mussels give haem iron that absorbs several times better. Keep spinach for what it’s brilliant at: folate, vitamin K, magnesium, nitrate and lutein. Vitamin C in the same meal helps whatever iron is there.' },
-  { q: 'Do grass-fed animal fats boost testosterone?', a: 'Partly true, mostly oversold. What the evidence shows: very low-fat diets (under about 20% of calories) lower testosterone by roughly 10–15% compared with moderate-fat diets. So enough fat matters, and Glow targets about 25–30%. What it doesn’t show: that saturated or animal fat raises testosterone above an adequate-fat diet, or that grass-fed fat does anything special. Grass-fed fat has a bit more omega-3 and CLA, but still small amounts. On your cut, the things that actually move testosterone are energy availability, 8+ hours of sleep, not dropping too lean, zinc and vitamin D, and low alcohol. Eat grass-fed beef, lamb and eggs for the zinc, B12, iron and creatine. Use olive oil as your main added fat, and tallow or butter for flavour, not as a testosterone strategy, since they raise LDL.' },
+  { q: 'Do grass-fed animal fats boost testosterone?', a: 'Partly true, mostly oversold. What the evidence shows: very low-fat diets (under about 20% of calories) lower testosterone by roughly 10–15% compared with moderate-fat diets. So enough fat matters, and Glow targets about 25–30%. What it doesn’t show: that saturated or animal fat raises testosterone above an adequate-fat diet, or that grass-fed fat does anything special. Grass-fed fat has a bit more omega-3 and CLA, but still small amounts. On your cut, the things that actually move testosterone are energy availability, 8+ hours of sleep, not dropping too lean, zinc and vitamin D, and low alcohol. Eat grass-fed beef, lamb and eggs for the zinc, B12, iron and creatine. Get your fats from avocado, GF-certified nuts and oily fish; keep tallow or butter for flavour, not as a testosterone strategy, since they raise LDL.' },
 ];

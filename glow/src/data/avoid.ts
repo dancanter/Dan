@@ -6,6 +6,6 @@ import type { Food } from '@/data/foods';
 export const AVOID_RE = /\b(broccoli|brussels?|sprouts?|cabbage|kale|cavolo|rocket|arugula|watercress|spinach|olive oil|evoo|green tea|matcha|brazil|lentils?|onions?|shallots?|leeks?|garlic|liver|liver pât[eé])\b/i;
 const AVOID_IDS = /^(evoo|olive-oil|brazil-nuts|spinach|kale|broccoli|garlic|beef-liver|chicken-liver|lamb-liver|cod-liver-oil|green-tea|lentils.*|onion.*|leek.*)$/;
 
-export function isAvoided(f: Pick<Food, 'id' | 'name'>): boolean {
-  return AVOID_IDS.test(f.id) || AVOID_RE.test(f.name);
+export function isAvoided(f: Pick<Food, 'id' | 'name'> & { excluded?: boolean }): boolean {
+  return !!f.excluded || AVOID_IDS.test(f.id) || AVOID_RE.test(f.name);
 }

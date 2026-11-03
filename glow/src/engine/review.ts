@@ -43,7 +43,7 @@ export interface Cellular {
 export interface SinceStart { from: string; rows: { label: string; first: string; now: string; better: boolean | undefined }[] }
 
 // Anti-ageing helpers and cellular stressors, counted in servings across the week.
-const HELPERS: [Tag, string][] = [['poly', 'Polyphenol foods'], ['carot', 'Carotenoids (skin tone)'], ['sulf', 'Sulforaphane (brassicas)'], ['ferm', 'Fermented foods'], ['coll', 'Collagen foods'], ['evoo', 'Extra virgin olive oil'], ['astax', 'Astaxanthin (wild salmon)']];
+const HELPERS: [Tag, string][] = [['poly', 'Polyphenol foods'], ['carot', 'Carotenoids (skin tone)'], ['ferm', 'Fermented foods'], ['coll', 'Collagen foods'], ['astax', 'Astaxanthin (wild salmon)']];
 const STRESSORS: [Tag, string][] = [['fried', 'Fried / high-AGE'], ['upf', 'Ultra-processed'], ['addsug', 'Added sugar'], ['procmeat', 'Processed meat'], ['alc', 'Alcohol'], ['sweetener', 'Sweeteners'], ['acidic', 'Acidic drinks (teeth)']];
 
 /** The best gluten-free library foods for a nutrient, per normal portion (never one he avoids). */

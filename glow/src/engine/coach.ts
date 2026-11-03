@@ -41,7 +41,7 @@ export function coachLines(r: DayResult, vitals: Record<string, Vitals>, opts: {
   if (a.totals.kcal > 0) {
     if (a.totals.omega3 >= 0.5) out.push({ emoji: '🐟', tone: 'good', text: `${a.totals.omega3.toFixed(1)} g omega-3 in. Your cell membranes are getting the good stuff.` });
     if (a.plants >= 8) out.push({ emoji: '🌈', tone: 'good', text: `${a.plants} different plants today. Your gut bacteria are throwing a party.` });
-    else if (opts.isToday && opts.hour >= 15 && a.plants < 5) out.push({ emoji: '🥦', tone: 'nudge', text: `${a.plants} plants so far. Herbs, garlic, a handful of berries or seeds each count as one. Easy wins before bed.` });
+    else if (opts.isToday && opts.hour >= 15 && a.plants < 5) out.push({ emoji: '🥦', tone: 'nudge', text: `${a.plants} plants so far. Herbs, a handful of berries or seeds each count as one. Easy wins before bed.` });
     const weakest = [...a.pillars].sort((x, y) => x.score - y.score)[0];
     if (weakest && weakest.score < 55) out.push({ emoji: weakest.pillar.emoji, tone: 'nudge', text: `Weakest pillar: ${weakest.pillar.name} (${weakest.score}). ${weakest.pillar.topTip}` });
   }

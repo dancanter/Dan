@@ -1,3 +1,4 @@
+import { isAvoided } from '@/data/avoid';
 // The food library. Every value is per 100 g of the food as it is weighed
 // before cooking (raw meat and fish, dry grains and lentils), or per 100 ml
 // for drinks. Values are typical figures compiled from USDA FoodData Central
@@ -85,6 +86,8 @@ export interface Food {
   units?: import('./units').Unit[];
   /** Imported foods often only carry macros; micronutrients are then unknown, not zero. */
   limitedData?: boolean;
+  /** On Dan's avoid list (data/avoid.ts): loggable, never recommended. */
+  excluded?: boolean;
 }
 
 const RAW = `
@@ -379,4 +382,6 @@ export const USDA_FOODS: Food[] = (usda as unknown as { foods: UsdaRow[] }).food
 
 /** Everything searchable: Glow's curated library first, then UK staples, then the USDA database. */
 export const ALL_FOODS: Food[] = [...FOODS, ...UK_FOODS, ...USDA_FOODS];
+// Flag Dan's avoid list once, so every recommender can skip it.
+for (const f of ALL_FOODS) if (isAvoided(f)) f.excluded = true;
 export const FOOD_BY_ID = new Map(ALL_FOODS.map((f) => [f.id, f]));

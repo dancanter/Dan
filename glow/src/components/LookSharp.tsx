@@ -39,7 +39,7 @@ export function LookSharp({ date }: { date: string }) {
     }
     const w = cleanWeights(s);
     const prog = s.profile.season && w.length >= 4 ? seasonProgress(s.profile.season, w[0].kg, date, w.at(-1)?.kg, weeklyRate(w)) : undefined;
-    if (prog) out.push({ label: 'Leanness on plan', score: prog.verdict === 'on-track' || prog.verdict === 'ahead' ? 100 : prog.verdict === 'behind' ? 70 : 55, tip: prog.advice });
+    if (prog) out.push({ label: 'Leanness on plan', score: prog.verdict === 'on-track' || prog.verdict === 'ahead' ? 100 : prog.verdict === 'slower' ? 70 : 55, tip: prog.advice });
     if (Object.keys(s.training ?? {}).length) {
       const load = assessLoad(date, s.training, { kg: w.at(-1)?.kg ?? 57, vitals: s.vitals ?? {}, sleepHours: sleeps, inDeficit: true });
       out.push({ label: 'Recovery', score: load.level === 'too-much' ? 35 : load.level === 'pushing' ? 70 : 100, tip: load.actions[0] ?? 'Keep hard days hard and easy days easy.' });

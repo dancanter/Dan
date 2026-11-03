@@ -62,7 +62,7 @@ function TypeIt({ date, onDone }: { date: string; onDone: () => void }) {
   return (
     <div className="space-y-3">
       <label className="block text-sm text-ink-2" htmlFor="type-it">Write it how you’d say it. Weights are taken as raw; add “cooked” (e.g. “200g cooked rice”) and Glow converts it.</label>
-      <textarea id="type-it" className="field min-h-24" placeholder="3 eggs, 150g wild salmon, handful blueberries, 1 brazil nut, 200ml kefir" value={text} onChange={(e) => parse(e.target.value)} />
+      <textarea id="type-it" className="field min-h-24" placeholder="3 eggs, 150g wild salmon, handful blueberries, 2 kiwis, 200ml kefir" value={text} onChange={(e) => parse(e.target.value)} />
       {items.length > 0 && (
         <ul className="divide-y divide-line rounded-xl border border-line">
           {items.map((it, i) => (

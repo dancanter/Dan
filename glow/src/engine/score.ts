@@ -277,7 +277,7 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
 
   const warnings: Warning[] = [];
   const wins: string[] = [];
-  if (retinol > 3000) warnings.push({ level: 'danger', text: `Retinol about ${Math.round(retinol)} µg, over the 3,000 µg upper limit. Fine as a one-off; keep liver to about once a week.` });
+  if (retinol > 3000) warnings.push({ level: 'danger', text: `Preformed vitamin A about ${Math.round(retinol)} µg, over the 3,000 µg upper limit. Fine as a one-off from food; not a daily habit.` });
   for (const k of ['selenium', 'zinc', 'copper', 'iodine'] as NKey[]) {
     const up = NUTRIENTS[k].upper!;
     if (totals[k] > up) warnings.push({ level: 'danger', text: `${NUTRIENTS[k].label} ${Math.round(totals[k])} ${NUTRIENTS[k].unit}, above the ${up} ${NUTRIENTS[k].unit} upper limit. ${NUTRIENTS[k].upperNote ?? ''}`.trim() });
@@ -289,7 +289,7 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
   const sweet = tagServings.sweetener ?? 0;
   const acid = tagServings.acidic ?? 0;
   if (acid >= 3) warnings.push({ level: 'info', text: `About ${Math.round(acid)} acidic drinks today. Sipped through the day, squash, juice or diet fizzy keeps tooth enamel soft (saliva needs 30–60 minutes to re-harden it). Have them with meals, use a straw, and make the rest water.` });
-  else if (sweet >= 4) warnings.push({ level: 'info', text: `Sweeteners ${Math.round(sweet)} times today. Not dangerous at these amounts, but all-day sweetness keeps cravings high and may nudge some people’s gut bacteria. Try swapping half for water with lemon or cold green tea.` });
+  else if (sweet >= 4) warnings.push({ level: 'info', text: `Sweeteners ${Math.round(sweet)} times today. Not dangerous at these amounts, but all-day sweetness keeps cravings high and may nudge some people’s gut bacteria. Swap them for water with lemon, or a herbal tea.` });
   if ((tagServings.merc2 ?? 0) > 0) warnings.push({ level: 'caution', text: 'High-mercury fish today. Keep it to one portion a week.' });
   if ((tagServings.procmeat ?? 0) > 0) warnings.push({ level: 'info', text: 'Processed meat logged. Swap for fresh butcher meat where you can.' });
   const glutenFoods = [...new Set(items.filter((i) => i.food.tags.includes('gluten')).map((i) => i.food.name))];

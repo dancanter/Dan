@@ -101,7 +101,7 @@ export function bingeStats(s: State, today: string): BingeStats {
     plan.push('Eat your full target every day, carbs included, and take the planned refeeds. Most binges in a cut come from biology (too big a deficit), not weak willpower. A tighter diet makes them more likely.');
   plan.push('Make your binge foods planned foods: a set bowl on purpose, e.g. 50 g oats + 1 tsp raw honey + berries, or a Fage pot + 100 g fruit + cinnamon. Weigh it, put the bag away, eat it sitting down.');
   if (kinds.some((k) => k.label.startsWith('Yoghurt') || k.label.startsWith('Porridge')) || has('sweet'))
-    plan.push('Cap the sweetener: drops in a large bowl make it taste endlessly moreish, so the bowl never feels “done”. Try 2–3 drops per bowl, plus cinnamon, vanilla or berries for sweetness instead.');
+    plan.push('No sweetener: drops in a large bowl make it taste endlessly moreish, so the bowl never feels “done”. Sweeten with berries, cinnamon, vanilla or 1 tsp raw honey instead.');
   if (has('evening') || when[0]?.label === 'Evening' || when[0]?.label === 'Late night')
     plan.push('Plan the evening: a protein-rich dinner with carbs, then the planned casein bowl. Brush your teeth after it: a “kitchen closed” signal.');
   if (has('tired') || has('slept')) plan.push('Protect sleep: under 7 hours raises ghrelin (the hunger hormone) and makes sweet food more rewarding the next day.');

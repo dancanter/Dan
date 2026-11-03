@@ -57,7 +57,7 @@ export function adviceFor(id: string, s: State, date: string): { headline: strin
       steps.push('Surf the urge: urges rise, peak and fade within about 10–20 minutes if you don’t feed them. Set a 15-minute timer and leave the kitchen.');
       steps.push('While it runs: a walk outside, a shower, call someone, or 10 slow breaths (out longer than in). Anything that takes your hands and attention.');
       steps.push('Still want it after 15 minutes? Have a planned portion on purpose: 50 g oats with 1 tsp raw honey and berries, or a Fage pot with fruit and cinnamon. Weigh it, put the packet away, eat it sitting down, slowly.');
-      steps.push('Go easy on sweetener drops in that bowl: very sweet, unlimited-volume food is what keeps a binge going.');
+      steps.push('No sweetener in the bowl: sweeten with berries, cinnamon, vanilla or 1 tsp raw honey. Endlessly sweet, unlimited-volume food is what keeps a binge going.');
       if (lastSleep !== undefined && lastSleep < 7) steps.push(`You slept ${lastSleep.toFixed(1)} h: short sleep makes sweet food more rewarding. An early night tonight makes tomorrow easier.`);
       return { headline: 'The urge will pass: ride it out, then eat on purpose', steps, note: 'If it happens anyway, log it in “Had a binge?” on Today. No judgement, it’s just data for spotting your pattern.' };
     }
