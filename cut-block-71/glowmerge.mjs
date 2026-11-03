@@ -156,6 +156,8 @@ await p.click('#secs button[data-sec="long"]'); await p.waitForTimeout(700);
 ok('Longevity opens on the health & longevity card, with Glow’s health-age panel under it', await p.evaluate(() => CUR === 'longev' && /Resting heart rate/.test(E('longCardTop').innerText) && /Sleep/.test(E('longCardTop').innerText)) && /GLOW AGE|Glow age/i.test(await shadow(p, 'glowHealth')));
 await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 
+ok('the Overview shows stress: level, the reason, 14 days of bars', await p.evaluate(() => /Stress/.test(E('homeCard').innerText) && /last 14 days/.test(E('homeCard').innerText) && E('homeCard').querySelectorAll('.hm-t i[title]').length === 14));
+
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);
 const R = await p.evaluate(() => { const r = S.days['2026-11-03']; return { b: (r.binges || []).length, ill: !!r.ill, j: r.journal && r.journal.mood, items: r.glow.items.length, k: r.kcal, l: r.challenge ? 1 : 0 }; });

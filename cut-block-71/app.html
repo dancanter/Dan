@@ -9569,10 +9569,42 @@ function weekNums(ws){var t=today(),we=addD(ws,6),o={w:[],runs:0,gym:0,sets:0,st
     if(typeof r.steps==='number')o.steps.push(r.steps);if(typeof r.sleep==='number')o.sleep.push(r.sleep);
     if(typeof r.study==='number')o.study+=r.study;o.lifts+=(r.lifts||[]).length;}
   var av=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
-  o.wA=av(o.w);o.stA=av(o.steps);o.slA=av(o.sleep);o.j=journalStats(ws,we<t?we:t);return o;}
+  o.wA=av(o.w);o.stA=av(o.steps);o.slA=av(o.sleep);o.j=journalStats(ws,we<t?we:t);
+  /* the mood he logs on the Log panel counts too, when there is no journal entry */
+  if(o.j.mood===null){var mm=[];for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;r=S.days[d]||{};if(typeof r.mood==='number')mm.push(r.mood);}if(mm.length){o.j.mood=av(mm);o.j.n=o.j.n||mm.length;}}
+  return o;}
 function homeTile(e,name,val,sub,pct,tone){
   return '<div class="hm-t'+(tone?' '+tone:'')+'"><div class="hm-h">'+e+' '+name+'</div><b>'+val+'</b><small>'+sub+'</small>'+
     (pct!==null?'<div class="cc-bar sm"><i style="width:'+Math.round(Math.max(0,Math.min(1,pct))*100)+'%"></i></div>':'')+'</div>';}
+
+/* Dan, 3 Nov: "put my stress data on the dashboard". A simple daily load from his own
+   logs, never a diagnosis: short sleep, morning HR above his own baseline, low mood or
+   energy, illness, binges, a hard run or a legs day, a long deep-study day. 0–1 low,
+   2–3 building, 4+ high. Saturday stress-free shows as it is. */
+function dayStress(d){var r=S.days[d]||{},p=0,why=[];
+  var base=[];for(var i=1;i<=28;i++){var v=(S.days[addD(d,-i)]||{}).rhr;if(typeof v==='number')base.push(v);}
+  var b=base.length>=5?base.reduce(function(x,y){return x+y;},0)/base.length:null;
+  if(typeof r.sleep==='number'&&r.sleep<7){p+=r.sleep<6?2:1;why.push('short sleep');}
+  if(b!==null&&typeof r.rhr==='number'&&r.rhr>=b+4){p+=r.rhr>=b+7?2:1;why.push('morning HR up');}
+  var jm=r.journal&&r.journal.mood,je=r.journal&&r.journal.energy;
+  if((jm&&jm<=2)||(typeof r.mood==='number'&&r.mood<=2)){p+=1;why.push('low mood');}
+  if(je&&je<=2){p+=1;why.push('low energy');}
+  if(r.ill){p+=2;why.push('ill');}
+  if((r.binges||[]).length){p+=1;why.push('a binge');}
+  var hard=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});if(hard){p+=1;why.push('hard run');}
+  if(r.gym&&(r.legs||((r.sets||{}).Legs||0)>=10)){p+=1;why.push('legs day');}
+  if(typeof r.deep==='number'&&r.deep>4){p+=0.5;why.push('long study day');}
+  var logged=['sleep','rhr','runs','gym','journal','mood','steps'].some(function(k){return k in r;});
+  return {p:p,why:why,logged:logged};}
+function stressTile(){
+  var t=today(),days=[],i;for(i=13;i>=0;i--){var d=addD(t,-i);days.push([d,dayStress(d)]);}
+  var td=days[days.length-1][1],CM=null;try{CM=coachModel();}catch(e){}
+  var lvl=CM?(CM.pts>=4?['High','w']:(CM.pts>=2?['Building','']:['Low','good'])):['—',''];
+  var bars=days.map(function(x){var v=x[1],h=v.logged?Math.max(8,Math.min(100,v.p*22)):4,c=v.p>=4?'var(--bad)':(v.p>=2?'var(--warn)':'var(--good)');
+    return '<i title="'+fmtS(x[0])+': '+(v.why.join(', ')||'calm')+'" style="display:inline-block;width:6%;margin-right:1%;height:'+h+'%;background:'+(v.logged?c:'var(--rule)')+';border-radius:2px;vertical-align:bottom"></i>';}).join('');
+  var sub=(CM&&CM.strain.length?CM.strain[0]:(td.why.length?'today: '+td.why.join(', '):'nothing stacking up'));
+  return '<div class="hm-t'+(lvl[1]?' '+lvl[1]:'')+'"><div class="hm-h">🧘 Stress</div><b>'+lvl[0]+'</b><small>'+esc(sub)+'</small>'+
+    '<div style="height:28px;line-height:0;margin-top:2px">'+bars+'</div><small style="margin:2px 0 0">last 14 days</small></div>';}
 function homeHTML(){
   var t=today(),r=S.days[t]||{},ws=mondayOf(t),W=weekNums(ws),P=weekNums(addD(ws,-7)),tiles=[],next=[];
   /* 🔥 shred */
@@ -9598,6 +9630,7 @@ function homeHTML(){
   tiles.push(homeTile('✨','Looks',lkN+'/6','today: '+(lk.filter(function(x){return !x[0];}).map(function(x){return x[1];}).slice(0,2).join(', ')||'all done'),lkN/6,lkN>=5?'good':''));
   /* 📚 study and 😊 happy */
   tiles.push(homeTile('📚','Study',f1(W.study)+' h','this week · aim '+CFG.study.lo+'–'+CFG.study.hi,W.study/CFG.study.lo,W.study>=CFG.study.lo?'good':''));
+  tiles.push(stressTile());
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
   var L=greenLight()||{};if(L.t)next.push([(L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')),'big']);
