@@ -166,7 +166,7 @@ ok('and what the food did, nutrient by nutrient, animal foods first', /What your
 
 ok('three more coaches: lifting, longevity, study, each with last, this week, next and goal', await p.evaluate(() => ['liftCoach', 'longCoach', 'studyCoach'].every((id) => { const t = E(id).innerText; return /This week/.test(t) && /Next/.test(t) && /Goal|long game/i.test(t); }) && !!document.querySelector('#s-phys #liftCoach') && !!document.querySelector('#s-longev #longCoach') && !!document.querySelector('#s-study #studyCoach')));
 
-ok('Glow is folded in: no separate Body page; the recovery clock sits in Running and Physique', await p.evaluate(() => !document.querySelector('#tabs button[data-g="body"]') && !!document.querySelector('#s-camp #glowRecRun') && !!document.querySelector('#s-phys #glowRecLift')) && /Recovery clock/i.test(await shadow(p, 'glowRecLift')));
+ok('Glow is folded in: Body & health kept in Longevity; the recovery clock also sits in Running and Physique', await p.evaluate(() => !!document.querySelector('#tabs button[data-g="body"][data-sec="long"]') && !!document.querySelector('#s-camp #glowRecRun') && !!document.querySelector('#s-phys #glowRecLift')) && /Recovery clock/i.test(await shadow(p, 'glowRecLift')));
 
 // ---- reload: everything is still there -----------------------------------------
 await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(600);

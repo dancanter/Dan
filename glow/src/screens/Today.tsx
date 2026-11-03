@@ -79,8 +79,8 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {/* inside the app, levels and XP are the tracker's (one system, not two) */}
-          {!hosted() && <Pill tone="gold"><Trophy size={12} />{rank.name} · {xp.toLocaleString('en-GB')} XP</Pill>}
-          {!hosted() && <Pill tone={st ? 'bad' : 'neutral'}><Flame size={12} />{st}-day streak</Pill>}
+          {<Pill tone="gold"><Trophy size={12} />{rank.name} · {xp.toLocaleString('en-GB')} XP</Pill>}
+          {<Pill tone={st ? 'bad' : 'neutral'}><Flame size={12} />{st}-day streak</Pill>}
           {r.analysis.wins.slice(0, 3).map((w) => <Pill key={w} tone="good">✓ {w}</Pill>)}
         </div>
       </Card>
@@ -98,7 +98,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </div>
       </div>
 
-      {!hosted() && coach.length > 0 && (
+      {coach.length > 0 && (
         <Card eyebrow="Glow coach" title="Here’s your day">
           <ul className="space-y-2.5">
             {coach.map((c) => (
@@ -118,7 +118,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
       {!hosted() && <DayPlanCard date={date} />}
       {!hosted() && <IdeasCard date={date} />}
       {!hosted() && <NextMoves date={date} />}
-      {!hosted() && <RecoveryClock date={date} />}
+      <RecoveryClock date={date} />
       {!hosted() && <BingeToday date={date} />}
       {!hosted() && <IllToday date={date} />}
       <FeelCard date={date} />
@@ -126,7 +126,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
 
       {!hosted() && <CheckIn date={date} />}
       {/* steps, heart rate and recovery are the tracker's (Overview, Running, Physique) */}
-      {!hosted() && <VitalsCard date={date} kg={r.weightKg} />}
+      <VitalsCard date={date} kg={r.weightKg} />
       {!hosted() && <StudyCard date={date} />}
 
       {r.analysis.warnings.length > 0 && (
@@ -252,7 +252,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         <div><div className="text-[11px] font-semibold tracking-[0.14em] text-gold uppercase">Did you know?</div><p className="text-sm leading-relaxed">{factFor(date)}</p></div>
       </div>
 
-      {!hosted() && <Confetti fireKey={celebrate} />}
+      <Confetti fireKey={celebrate} />
       <AddFood open={adding} onClose={() => setAdding(false)} date={date} />
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail?.name}>
         {detail && <FoodDetail food={detail} date={date} />}
