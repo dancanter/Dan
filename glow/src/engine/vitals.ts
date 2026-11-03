@@ -1,3 +1,4 @@
+import { host } from '@/host';
 import { addDays } from './body';
 
 // Steps, time outdoors and morning resting heart rate: the daily signals
@@ -29,14 +30,19 @@ export function walkingKcal(steps: number, kg: number): number {
  * don't harm a healthy person, but stacked on 7+ sessions a week and an
  * energy deficit they add fatigue, energy cost and lower-leg load.
  */
-export function stepsVerdict(steps: number, kg = 57): Verdict {
+export function stepsVerdict(steps: number, kg = 57, date?: string): Verdict {
   const kcal = walkingKcal(steps, kg);
+  // Dan's targets: 13k on weekdays, 12k on Sunday, Saturday whatever comes naturally (a ceiling of about 10,500).
+  const d = date ? new Date(`${date}T12:00:00`).getDay() : -1;
+  const target = date ? (host()?.steps(date) ?? (d === 0 ? 12000 : 13000)) : 13000;
+  if (d === 6) return steps <= 10500 ? { score: 100, tone: 'good', headline: 'Saturday: as it comes', detail: 'Your stress-free day. Steps only if they come naturally; there is no target today.' } : { score: 85, tone: 'ok', headline: 'A busy Saturday', detail: `About ${kcal} kcal of walking. Saturday is for rest, so let tomorrow carry the steps.` };
+  if (steps >= target * 0.9 && steps <= 15000) return { score: 100, tone: 'good', headline: 'On target', detail: `About ${kcal} kcal of walking, right on your ${target.toLocaleString('en-GB')} for today.` };
   if (steps < 4000) return { score: 25, tone: 'bad', headline: 'Very low movement day', detail: 'Under 4,000 steps is linked with clearly worse long-term health. On a rest day, a 20-minute stroll is recovery, not training.' };
   if (steps < 7000) return { score: 60, tone: 'warn', headline: 'Room to move', detail: 'Benefits climb steeply up to about 8,000 steps. A 10-minute walk after each meal gets you there and blunts the blood-sugar rise.' };
   if (steps < 8000) return { score: 85, tone: 'ok', headline: 'Nearly in the sweet spot', detail: 'One more short walk and you’re in the zone where the health benefit is at its peak.' };
   if (steps <= 14000) return { score: 100, tone: 'good', headline: 'Sweet spot', detail: `Right where the evidence says the benefit peaks. That’s about ${kcal} kcal of walking on top of your training.` };
   if (steps <= 18000) return { score: 85, tone: 'ok', headline: 'Big day on your feet', detail: `About ${kcal} kcal of walking. There’s no extra health payoff past about 10–12k, and on a cut with 7+ sessions a week it eats into recovery and energy availability. Eat for it, or keep tomorrow lighter.` };
-  return { score: 65, tone: 'warn', headline: 'Probably too much for you right now', detail: `About ${kcal} kcal of walking: that’s a whole extra meal’s worth burned. With your training load and a deficit, this raises your risk of under-fuelling (REDs), shin and foot bone stress, and puffy-faced fatigue. Not dangerous in itself, but not helping you look or perform better. Aim for 10–13k.` };
+  return { score: 65, tone: 'warn', headline: 'Probably too much for you right now', detail: `About ${kcal} kcal of walking: that’s a whole extra meal’s worth burned. With your training load and a deficit, this raises your risk of under-fuelling (REDs), shin and foot bone stress, and puffy-faced fatigue. Not dangerous in itself, but not helping you look or perform better. Your target is 13k on weekdays and 12k on Sunday.` };
 }
 
 /**
@@ -94,7 +100,7 @@ export function vitalityScore(date: string, all: Record<string, Vitals>, kg?: nu
   const v = all[date];
   if (!v) return undefined;
   const parts: number[] = [];
-  if (v.steps !== undefined) parts.push(stepsVerdict(v.steps, kg).score);
+  if (v.steps !== undefined) parts.push(stepsVerdict(v.steps, kg, date).score);
   if (v.outdoorMin !== undefined) parts.push(outdoorVerdict(v.outdoorMin, Number(date.slice(5, 7))).score);
   if (v.rhr !== undefined) parts.push(rhrAnalysis(date, all).verdict.score);
   return parts.length ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : undefined;

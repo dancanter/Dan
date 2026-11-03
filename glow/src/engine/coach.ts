@@ -20,8 +20,8 @@ export function coachLines(r: DayResult, vitals: Record<string, Vitals>, opts: {
   }
 
   if (v.steps !== undefined) {
-    const sv = stepsVerdict(v.steps, kg);
-    if (v.steps > 18000) out.push({ emoji: '🦶', tone: 'alert', text: `${v.steps.toLocaleString('en-GB')} steps is roughly ${walkingKcal(v.steps, kg)} kcal of walking. Legendary legs, but on a cut that’s a meal you didn’t eat. Refuel tonight and keep tomorrow under 12k.` });
+    const sv = stepsVerdict(v.steps, kg, r.date);
+    if (v.steps > 18000) out.push({ emoji: '🦶', tone: 'alert', text: `${v.steps.toLocaleString('en-GB')} steps is roughly ${walkingKcal(v.steps, kg)} kcal of walking. Legendary legs, but on a cut that’s a meal you didn’t eat. Refuel tonight; tomorrow your usual step target is plenty.` });
     else if (v.steps >= 8000 && v.steps <= 14000) out.push({ emoji: '👟', tone: 'good', text: `${v.steps.toLocaleString('en-GB')} steps: ${sv.headline.toLowerCase()}. Peak health benefit, minimal recovery cost.` });
     else if (v.steps < 7000 && opts.isToday && opts.hour >= 12) out.push({ emoji: '🚶', tone: 'nudge', text: `${v.steps.toLocaleString('en-GB')} steps so far. A 10-minute walk after your next meal blunts its blood-sugar spike and gets you closer to 8k.` });
   }

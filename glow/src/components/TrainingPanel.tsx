@@ -1,3 +1,4 @@
+import { hosted } from '@/host';
 import { useEffect, useMemo, useState } from 'react';
 import { Dumbbell, Footprints, RefreshCw, Trash2 } from 'lucide-react';
 import { addDays, prettyDate, sleepHours, sortByDate, todayISO } from '@/engine/body';
@@ -50,15 +51,16 @@ export function TrainingPanel() {
         </details>
       </Card>
 
-      <Card eyebrow="Your sessions" title="Runs, lifts and walks" action={canSync ? (
+      <Card eyebrow="Your sessions" title="Runs, lifts and walks" action={canSync && !hosted() ? (
         <Button tone="ghost" disabled={syncing} onClick={async () => { setSyncing(true); const r = await syncStrava(); setSyncing(false); setMsg(r.ok ? `Synced ${r.count} activities from the last 6 weeks.` : r.message); }}>
           <RefreshCw size={15} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing…' : 'Sync Strava'}
         </Button>
       ) : undefined}>
         {msg && <p className="mb-3 text-sm text-sea">{msg}</p>}
-        {!canSync && <p className="mb-3 text-xs text-muted">Strava sync works when Glow is opened inside Claude. Here, add sessions by hand.</p>}
+        {hosted() && <p className="mb-3 text-xs text-muted">Runs, gym and Strava are logged in your tracker (Training and Today). They show here for recovery and load.</p>}
+        {!canSync && !hosted() && <p className="mb-3 text-xs text-muted">Strava sync works when Glow is opened inside Claude. Here, add sessions by hand.</p>}
         {s.stravaSyncedAt && <p className="mb-3 text-xs text-muted">Last synced {new Date(s.stravaSyncedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}. Weight sessions sync too if you record them in Strava.</p>}
-        <AddSession />
+        {!hosted() && <AddSession />}
         <div className="mt-4 space-y-3">
           {days.map((d) => (
             <div key={d}>

@@ -8,9 +8,9 @@ import { Button, Card } from './ui';
 const chip = (on: boolean) => `rounded-full border px-3 py-1.5 text-sm ${on ? 'border-gold bg-gold/15' : 'border-line'}`;
 
 /** Today: "Had a binge?" — log it in 10 seconds, then get the no-compensating plan. */
-export function BingeToday({ date }: { date: string }) {
+export function BingeToday({ date, startOpen = false }: { date: string; startOpen?: boolean }) {
   const binges = useStore((x) => x.days[date]?.binges);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [kind, setKind] = useState<BingeKind>('yoghurt');
   const [size, setSize] = useState<1 | 2 | 3>(2);
   const [when, setWhen] = useState<NonNullable<BingeLog['when']>>('evening');

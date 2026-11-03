@@ -1,3 +1,4 @@
+import { host } from '@/host';
 import { addDays, ageOn, daysBetween, estimatedMaintenance } from './body';
 import type { Profile } from './score';
 
@@ -48,6 +49,11 @@ export function nextPhase(season: Phase[] | undefined, date: string, kinds: Phas
 export const REVERSE_STEP = 100;
 
 export function kcalForDate(p: Profile, date: string, kg: number | undefined): { kcal: number; why: string } {
+  // Inside The Good Life the tracker sets the calories (strict block, Saturday
+  // higher day, trip, maintenance, reverse); Glow never runs a second plan.
+  const h = host();
+  const hk = h?.kcal(date);
+  if (h && hk) return { kcal: hk, why: 'Your target from the tracker.' };
   const phase = phaseOn(p.season, date);
   const base = p.kcalTarget;
   if (p.reverseFrom && date >= p.reverseFrom && phase?.kind !== 'travel' && kg) {

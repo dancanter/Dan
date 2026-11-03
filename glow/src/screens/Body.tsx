@@ -1,3 +1,4 @@
+import { hosted } from '@/host';
 import { useMemo, useState } from 'react';
 import { IllnessCard } from '@/components/Illness';
 import { BingeCard } from '@/components/Binge';
@@ -59,11 +60,11 @@ export function Body() {
       <TravelGuide date={todayISO()} />
 
       <Card title="Weight" eyebrow={latest ? `7-day average ${d(latest.avg)} ${unit}` : 'No weigh-ins yet'}>
-        <form className="mb-4 flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); const v = Number(w); if (v > 0) { actions.logWeight(wDate, fromDisplay(v, unit)); setW(''); } }}>
+        {!hosted() && <form className="mb-4 flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); const v = Number(w); if (v > 0) { actions.logWeight(wDate, fromDisplay(v, unit)); setW(''); } }}>
           <label className="text-xs text-muted">Date<input type="date" className="field mt-1" value={wDate} max={todayISO()} onChange={(e) => setWDate(e.target.value)} /></label>
           <label className="flex-1 text-xs text-muted">Weight ({unit})<input className="field num mt-1" inputMode="decimal" value={w} onChange={(e) => setW(e.target.value)} placeholder={latest ? d(latest.kg) : ''} /></label>
           <Button type="submit" disabled={!Number(w)}>Log</Button>
-        </form>
+        </form>}
         <LineChart points={roll.slice(-60).map((r) => ({ x: prettyDate(r.date), y: toDisplay(r.kg, unit) }))} secondary={roll.slice(-60).map((r) => ({ x: prettyDate(r.date), y: toDisplay(r.avg, unit) }))} unit={` ${unit}`} target={goal ? toDisplay(goal, unit) : undefined} />
         <div className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Latest" value={latest ? `${d(latest.kg)}` : '–'} sub={unit} />
@@ -119,7 +120,7 @@ export function Body() {
       })()}
 
       <Card title="Sleep" eyebrow={avgHours ? `7-night average ${avgHours.toFixed(1)} h · score ${avgScore}` : 'No nights logged yet'}>
-        <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); actions.logSleep(sl); }}>
+        {!hosted() && <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); actions.logSleep(sl); }}>
           <div className="grid grid-cols-3 gap-2">
             <label className="text-xs text-muted">Woke on<input type="date" className="field mt-1" value={sl.date} max={todayISO()} onChange={(e) => setSl({ ...sl, date: e.target.value })} /></label>
             <label className="text-xs text-muted">Lights out<input type="time" className="field mt-1" value={sl.bed} onChange={(e) => setSl({ ...sl, bed: e.target.value })} /></label>
@@ -130,7 +131,7 @@ export function Body() {
             <label className="text-xs text-muted">Felt rested<select className="field mt-1" value={sl.rested} onChange={(e) => setSl({ ...sl, rested: Number(e.target.value) })}>{[5, 4, 3, 2, 1].map((q) => <option key={q} value={q}>{'★'.repeat(q)}</option>)}</select></label>
             <div className="flex items-end"><Button type="submit" className="w-full">Log {sleepHours(sl).toFixed(1)} h</Button></div>
           </div>
-        </form>
+        </form>}
         <LineChart points={sleepRows.slice(-30).map((r) => ({ x: prettyDate(r.e.date), y: r.hours }))} unit=" h" target={8} colour="var(--navy)" />
         {last7.length > 0 && (
           <div className="mt-3 grid grid-cols-4 gap-2">

@@ -365,10 +365,13 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
       <button class="tog" id="tgAM" aria-pressed="false" type="button"><span class="chk"></span>Skin AM</button>
       <button class="tog" id="tgPM" aria-pressed="false" type="button"><span class="chk"></span>Skin PM</button>
       <button class="tog" id="tgTeeth" aria-pressed="false" type="button"><span class="chk"></span>Teeth ×3 + floss</button>
-      <button class="tog" id="tgRet" aria-pressed="false" type="button"><span class="chk"></span>Retinol</button>
+      <button class="tog" id="tgRet" aria-pressed="false" type="button" hidden><span class="chk"></span>Retinol</button>
       <button class="tog" id="tgReset" aria-pressed="false" type="button" title="One light day a week, focused on calming the nervous system"><span class="chk"></span>🌿 Reset day</button>
       <button class="tog" id="tgNiggle" aria-pressed="false" type="button"><span class="chk"></span>Something hurts</button>
       <div class="f niggle" style="max-width:220px"><label for="inNiggle">Where / what</label><input type="text" id="inNiggle" placeholder="left achilles, tight"></div>
+      <button class="tog" id="btBinge" type="button" title="Log it in seconds, no judgement">😵 Binge</button>
+      <button class="tog" id="btIll" type="button" title="A sick day, and what it means for training">🤒 Ill</button>
+      <button class="tog" id="btJournal" type="button" title="Mood, energy, what went well, what you learned, tomorrow's first task">📓 Journal</button>
     </div>
     <hr class="d">
     <h2>Runs on this day</h2>
@@ -417,6 +420,11 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <p class="tiny" id="paceHint" style="margin-top:8px"></p>
   </div>
   <div id="tdeeCard"></div>
+  <div id="glowBinge"></div>
+  <div id="glowIll"></div>
+  <div id="jrnlCard"></div>
+  <div id="glowIdeas"></div>
+  <details class="p" id="planWrap"><summary><b>🕰️ Today, hour by hour</b> <span class="tiny dim">your day plan</span></summary><div id="glowPlan" style="margin-top:8px"></div></details>
   <div id="glCheckCard"></div>
   <div id="alertCard"></div>
   <div id="glanceCard"></div>
@@ -721,6 +729,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 <!-- ================= MIND ================= -->
 <section id="s-mind" class="stack" hidden>
   <div id="mindCard"></div>
+  <div id="jrnlHist"></div>
   <div id="notesCard"></div>
   <div id="filmCard"></div>
   <div id="spotCard"></div>
@@ -1283,18 +1292,62 @@ function normalise(x){
   return s;
 }
 function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
-function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
-  /* the bridge to Glow (3 Nov): weigh-ins go across so they are never typed twice */
-  trackerBridge();}
-function trackerBridge(){try{if(!S)return;var sl={};Object.keys(S.days).forEach(function(d){var r=S.days[d];if(r&&r.bed&&r.wake)sl[d]={bed:r.bed,wake:r.wake};});
-  localStorage.setItem('tracker-bridge-v1',JSON.stringify({at:Date.now(),weights:S.weights,sleeps:sl}));}catch(e){}}
-/* weigh-ins and sleep logged in Glow come back: only dates the tracker has not got */
-function fromGlow(d){if(!d||!S)return;var ch=false;
-  Object.keys(d.weights||{}).forEach(function(k){var v=d.weights[k];if(typeof S.weights[k]!=='number'&&typeof v==='number'&&v>60&&v<300){S.weights[k]=v;ch=true;}});
-  Object.keys(d.sleeps||{}).forEach(function(k){var x=d.sleeps[k],r=S.days[k]=S.days[k]||{};if(!r.bed&&!r.wake&&x&&x.bed&&x.wake){r.bed=x.bed;r.wake=x.wake;var sf=sleepFromTimes(x.bed,x.wake,clockShift(k));if(sf)r.sleep=sf.h;ch=true;}});
-  if(ch)touch();}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+/* ===================== Glow, hosted (3 Nov) =====================
+   One store. The tracker's S is the only copy of everything: Glow reads its
+   view of the data from here and writes its own parts back here — food,
+   rituals, feelings, ideas and outdoor minutes under days[d].glow, its
+   profile and custom foods under S.glow, binges, sick days and refeeds on the
+   day itself. Weight, sleep, morning HR, steps, study and training are the
+   tracker's and Glow only reads them. Each day's food totals come back as
+   days[d].glowSum and become days[d].kcal: one diary, counted once. */
+var LB_KG=2.20462,GLOW_SAVING=false;
+var GLOW_MUSCLE={Chest:'chest',Back:'back',Shoulders:'shoulders',Legs:'quads',Biceps:'biceps',Triceps:'triceps'};
+function glowSessions(r,d){var out=[];
+  (r.runs||[]).forEach(function(x,i){var m=runMeta(x);if(m.empty)return;var reps=m.kind==='reps';
+    out.push({id:'t-'+d+'-'+i,source:'manual',kind:'run',name:m.label||(reps?'Reps':'Run'),minutes:Math.max(10,Math.round((x.secs||0)/60*(reps?2:1)+(reps?20:0))),km:m.km||undefined,intensity:m.hard?'hard':(m.subt||m.fun?'moderate':'easy'),intensitySet:true});});
+  if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
+    out.push({id:'g-'+d,source:'manual',kind:'lift',name:r.split?('Gym · '+r.split):'Gym',minutes:60,intensity:(r.gymRpe||0)>=8?'hard':'moderate',intensitySet:true,sets:sets});}
+  return out;}
+function glowLoad(){
+  var G=S.glow||{},days={},vitals={},training={},sleeps=[];
+  Object.keys(S.days).sort().forEach(function(d){var r=S.days[d]||{},g=r.glow||{};
+    if(g.items||g.rituals||g.feelings||g.extras||g.note||r.refeed||(r.binges&&r.binges.length)||r.ill)
+      days[d]={items:g.items||[],rituals:g.rituals||[],note:g.note,feelings:g.feelings,extras:g.extras,refeed:r.refeed?true:undefined,binges:r.binges,ill:r.ill};
+    var v={};if(typeof r.steps==='number')v.steps=r.steps;if(typeof r.rhr==='number')v.rhr=r.rhr;
+    if(typeof r.study==='number')v.studyHours=r.study;if(typeof r.deep==='number')v.deepHours=r.deep;if(typeof g.outdoorMin==='number')v.outdoorMin=g.outdoorMin;
+    if(Object.keys(v).length)vitals[d]=v;
+    if(r.bed&&r.wake)sleeps.push({date:d,bed:r.bed,wake:r.wake,quality:g.sleepQ||3});
+    var ss=glowSessions(r,d);if(ss.length)training[d]=ss;});
+  var weights=Object.keys(S.weights).sort().filter(function(d){return typeof S.weights[d]==='number';}).map(function(d){return {date:d,kg:Math.round(S.weights[d]/LB_KG*100)/100};});
+  return {version:1,profile:Object.assign({},G.profile||{},{unit:'lb',glutenFree:true}),days:days,weights:weights,sleeps:sleeps,vitals:vitals,training:training,
+    customFoods:G.customFoods||[],favourites:G.favourites||[],breathMinutes:G.breathMinutes||{},bp:G.bp||[],labs:G.labs||[],films:G.films};
+}
+function glowSave(gs,sums){
+  S.glow={profile:gs.profile,customFoods:gs.customFoods||[],favourites:gs.favourites||[],breathMinutes:gs.breathMinutes||{},bp:gs.bp||[],labs:gs.labs||[],films:gs.films};
+  var dates={};Object.keys(gs.days||{}).forEach(function(d){dates[d]=1;});Object.keys(gs.vitals||{}).forEach(function(d){if((gs.vitals[d]||{}).outdoorMin!==undefined)dates[d]=1;});
+  Object.keys(dates).forEach(function(d){var g=(gs.days||{})[d]||{},r=S.days[d]=S.days[d]||{},ng={};
+    if(g.items&&g.items.length)ng.items=g.items;if(g.rituals&&g.rituals.length)ng.rituals=g.rituals;if(g.note)ng.note=g.note;
+    if(g.feelings&&g.feelings.length)ng.feelings=g.feelings;if(g.extras&&g.extras.length)ng.extras=g.extras;
+    var od=((gs.vitals||{})[d]||{}).outdoorMin;if(typeof od==='number')ng.outdoorMin=od;if(r.glow&&r.glow.sleepQ)ng.sleepQ=r.glow.sleepQ;
+    if(Object.keys(ng).length)r.glow=ng;else delete r.glow;
+    if(d in (gs.days||{})){if(g.refeed)r.refeed=true;else delete r.refeed;
+      if(g.binges&&g.binges.length)r.binges=g.binges;else delete r.binges;
+      if(g.ill)r.ill=g.ill;else delete r.ill;}
+    var sm=(sums||{})[d];
+    if(sm){r.glowSum=sm;r.kcal=sm.kcal;r.kcalFrom='glow';}
+    else if(r.kcalFrom==='glow'){delete r.glowSum;delete r.kcal;delete r.kcalFrom;}});
+  GLOW_SAVING=true;try{touch();}finally{GLOW_SAVING=false;}
+}
 /* what Glow logged for a day: calories, protein and its scores (null if nothing) */
-function glowDay(d){try{var b=JSON.parse(localStorage.getItem('glow-bridge-v1')||'null');return b&&b.days&&b.days[d]?b.days[d]:null;}catch(e){return null;}}
+function glowDay(d){var r=S&&S.days[d];return r&&r.glowSum?r.glowSum:null;}
+window.__GLOW_HOST__={
+  load:function(){return glowLoad();},
+  save:function(gs,sums){glowSave(gs,sums);},
+  kcal:function(d){try{return dayTarget(d);}catch(e){return undefined;}},
+  steps:function(d){try{return stepTarget(d);}catch(e){return undefined;}},
+  verdict:function(){try{var L=greenLight();return L?{c:L.c,t:L.t,sub:L.sub}:null;}catch(e){return null;}}
+};
 function touch(){S.updatedAt=Date.now();saveLocal();queueRemote();render();}
 function queueRemote(){
   if(!dbDoc)return;
@@ -1370,7 +1423,8 @@ function readings(){
 /* The morning after a refeed is glycogen and water, not fat — Dan's own
    Sundays run about 2 lb heavy. It stays in the log and is left out of every
    average, verdict and low, exactly like the pre-cut weekend. */
-function postRefeed(is){var y=S.days[addD(is,-1)];return !!(y&&y.refeed);}
+/* a refeed, or a binge (3 Nov: it holds water for two mornings), makes the next weigh-in(s) noise */
+function postRefeed(is){var y=S.days[addD(is,-1)],y2=S.days[addD(is,-2)];return !!(y&&(y.refeed||(y.binges&&y.binges.length)))||!!(y2&&y2.binges&&y2.binges.length);}
 function cutReadings(){var t=today();return readings().filter(function(r){return r.d>=WEIGH_START&&r.d<=t&&!postRefeed(r.d);});}
 function mean(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i];return a.length?s/a.length:null;}
 function avgWindow(endIso,days){
@@ -4014,6 +4068,11 @@ function greenLight(){
   if(dow(t)===CFG.camp.offDay)return {c:'sat',e:'🧘',t:'Stress-free day',w:'No run, no weights, no study. This is where the week’s training lands.'};
   /* Dan, 18 Oct: when the signs or the load say recover, say so — and say
      exactly what to do with the day */
+  /* a sick day (logged from the Log panel): below the neck — fever, chest, stomach — or a bad
+     one means no training at all; a mild above-the-neck one is easy movement only */
+  if(r.ill){var below=['flu','chest','stomach'].indexOf(r.ill.kind)>=0;
+    if(below||r.ill.severity>=3)return {c:'red',e:'🔴',t:'Sick day — no run, no gym',sub:'Rest is the training today',w:'Below the neck (fever, chest or stomach) or properly unwell: training now makes it last longer. Fluids, food, sleep. Back when you have been symptom-free for a day.',todo:RECOVERY_DAY};
+    return {c:'amber',e:'🟡',t:'Easy only — you are under the weather',sub:'A walk or a gentle easy run if you feel up to it',w:'Above the neck and mild: easy movement is fine, nothing hard. If it moves to your chest or you get a temperature, stop.'};}
   if(['day','days','week'].indexOf(C.rest.k)>=0)return {c:'red',e:'🔴',t:C.rest.k==='week'?'Easy week — recovery first':'Recovery day today',sub:C.rest.t,w:(C.rest.w||''),todo:RECOVERY_DAY};
   if(r.reset&&!hardT)return {c:'reset',e:'🌿',t:'Reset day — calm system',sub:'Easy movement only. No hard running, no legs, no deep study.',
     w:RESET_MENU.slice(0,4).map(function(x){return x[0]+' '+x[1];}).join(' · ')+' · and an early night. ☕ One coffee, with breakfast, before 11.'};
@@ -9111,6 +9170,9 @@ function renderGoodLife(){
   glStore();
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('glCheckCard'))E('glCheckCard').innerHTML=checkinHTML();
+  if(E('jrnlCard')&&!(JR.open&&E('jrForm')))E('jrnlCard').innerHTML=journalHTML();
+  if(E('jrnlHist')&&document.activeElement!==E('jrSearch'))E('jrnlHist').innerHTML=journalHistoryHTML();
+  if(!GLOW_SAVING&&window.GLOW){try{window.GLOW.refresh();placeGlow();}catch(e){}}
   if(E('physAssess'))E('physAssess').innerHTML=physAssessHTML();
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
@@ -9119,7 +9181,15 @@ function renderGoodLife(){
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
-  window.addEventListener('message',function(ev){if(ev&&ev.data&&ev.data.type==='glow-bridge'){fromGlow(ev.data);if(E('ccCard'))E('ccCard').innerHTML=missionHTML();}});
+  E('btBinge').addEventListener('click',function(){GLOW_OPEN.binge=true;placeGlow();GLOW_OPEN.binge=false;if(!window.GLOW)loadGlow();var el=E('glowBinge');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
+  E('btIll').addEventListener('click',function(){GLOW_OPEN.ill=true;placeGlow();GLOW_OPEN.ill=false;if(!window.GLOW)loadGlow();var el=E('glowIll');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
+  E('btJournal').addEventListener('click',function(){JR.open=true;E('jrnlCard').innerHTML=journalHTML();E('jrnlCard').scrollIntoView({behavior:'smooth',block:'center'});});
+  document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-jr]');if(!b)return;var a=b.dataset.jr,d=jrDate();
+    if(a==='save'){journalSave();return;}if(a==='cancel'){JR.open=false;render();return;}if(a==='edit'){JR.open=true;E('jrnlCard').innerHTML=journalHTML();return;}
+    if(a==='mood'||a==='energy'){var r=S.days[d]=S.days[d]||{},j=r.journal=r.journal||{};
+      ['jrWell','jrLearned','jrTomorrow','jrFree'].forEach(function(id){var e=E(id);if(e){var k={jrWell:'well',jrLearned:'learned',jrTomorrow:'tomorrow',jrFree:'free'}[id];if(e.value.trim())j[k]=e.value.trim();}});
+      j[a]=parseInt(b.dataset.n,10);E('jrnlCard').innerHTML=journalHTML();}});
+  document.addEventListener('input',function(ev){if(ev.target&&ev.target.id==='jrSearch'){JR.q=ev.target.value;var h=E('jrnlHist');var pos=ev.target.selectionStart;h.innerHTML=journalHistoryHTML();var ns=E('jrSearch');ns.focus();try{ns.setSelectionRange(pos,pos);}catch(e){}}});
   document.addEventListener('click',function(ev){
     var pl=ev.target.closest&&ev.target.closest('button[data-plan]');
     if(pl){var td=today(),rr=S.days[td]=S.days[td]||{};rr.plan=!rr.plan;touch();return;}
@@ -9339,19 +9409,68 @@ function raceCardHTML(){
     '</tbody></table></div>'+
     '<p class="tiny" style="margin-top:8px"><b>What moves these:</b> the 600 m+ session builds the 800 m to 5 km; the speed session builds the 200 to 800; the Norwegian builds the engine under all of it. Every pound lost before the trials is roughly 0.4–0.6% off the 800 m to 5 km.</p></div>';
 }
+
+/* ===================== the journal (Dan, 3 Nov) =====================
+   days[d].journal = {mood 1–5, energy 1–5, well, learned, tomorrow (the
+   first task), free}. Logged from the Log panel, a compact card on Today, the
+   history (newest first, searchable) on Mind, and mood and energy averages in
+   the weekly reviews. Writing it also ticks the "journal" daily idea. */
+var JR={open:false,q:''};
+function jrDate(){var el=E('logDate');return el&&el.value?el.value:today();}
+function journalHTML(){
+  var d=jrDate(),r=S.days[d]||{},j=r.journal;
+  var dots=function(name,val){return '<div class="row" style="gap:4px;align-items:center"><span class="tiny" style="min-width:52px">'+name+'</span>'+[1,2,3,4,5].map(function(n){return '<button type="button" class="btn sm'+(val===n?'':' ghost')+'" data-jr="'+name.toLowerCase()+'" data-n="'+n+'">'+n+'</button>';}).join('')+'</div>';};
+  if(JR.open){var x=j||{};
+    return '<div class="p" id="jrForm"><h2>📓 Journal · '+fmtS(d)+'</h2>'+dots('Mood',x.mood)+'<div style="height:6px"></div>'+dots('Energy',x.energy)+
+      '<div class="f" style="margin-top:8px"><label for="jrWell">What went well</label><textarea id="jrWell" rows="2">'+esc(x.well||'')+'</textarea></div>'+
+      '<div class="f"><label for="jrLearned">What I learned</label><textarea id="jrLearned" rows="2">'+esc(x.learned||'')+'</textarea></div>'+
+      '<div class="f"><label for="jrTomorrow">Tomorrow’s first task</label><input type="text" id="jrTomorrow" maxlength="140" value="'+esc(x.tomorrow||'')+'"></div>'+
+      '<div class="f"><label for="jrFree">Anything else</label><textarea id="jrFree" rows="2">'+esc(x.free||'')+'</textarea></div>'+
+      '<div class="row" style="gap:8px;margin-top:6px"><button type="button" class="btn sm" data-jr="save">Save</button><button type="button" class="btn sm ghost" data-jr="cancel">Cancel</button></div></div>';}
+  if(!j)return '';
+  return '<div class="p"><div class="row" style="gap:8px;align-items:baseline"><b>📓 Journal</b><span class="tiny">mood '+(j.mood||'—')+'/5 · energy '+(j.energy||'—')+'/5</span><button type="button" class="btn sm ghost" data-jr="edit" style="margin-left:auto">Edit</button></div>'+
+    (j.tomorrow?'<div class="tiny" style="margin-top:4px">Tomorrow first: <b>'+esc(j.tomorrow)+'</b></div>':'')+
+    (j.well?'<div class="tiny dim" style="margin-top:2px">Went well: '+esc(j.well)+'</div>':'')+'</div>';
+}
+function journalSave(){var d=jrDate(),r=S.days[d]=S.days[d]||{},x=r.journal||{};
+  var v=function(id){var e=E(id);return e?String(e.value||'').trim().slice(0,1000):'';};
+  var j={mood:x.mood,energy:x.energy,well:v('jrWell'),learned:v('jrLearned'),tomorrow:v('jrTomorrow'),free:v('jrFree')};
+  Object.keys(j).forEach(function(k){if(j[k]===''||j[k]===undefined)delete j[k];});
+  if(Object.keys(j).length){r.journal=j;var g=r.glow=r.glow||{},ex=g.extras||[];if(ex.indexOf('journal')<0)g.extras=ex.concat('journal');}
+  else delete r.journal;
+  JR.open=false;touch();}
+function journalStats(from,to){var m=[],e=[],n=0;for(var d=from;d<=to;d=addD(d,1)){var j=(S.days[d]||{}).journal;if(!j)continue;n++;if(j.mood)m.push(j.mood);if(j.energy)e.push(j.energy);}
+  return {n:n,mood:m.length?mean(m):null,energy:e.length?mean(e):null};}
+function journalHistoryHTML(){
+  var q=JR.q.toLowerCase(),rows=Object.keys(S.days).filter(function(d){return (S.days[d]||{}).journal;}).sort().reverse()
+    .filter(function(d){if(!q)return true;var j=S.days[d].journal;return [j.well,j.learned,j.tomorrow,j.free].join(' ').toLowerCase().indexOf(q)>=0;});
+  return '<div class="p"><h2>📓 Journal</h2><div class="f" style="margin-bottom:8px"><label for="jrSearch">Search</label><input type="text" id="jrSearch" value="'+esc(JR.q)+'" placeholder="a word you wrote"></div>'+
+    (rows.length?rows.slice(0,120).map(function(d){var j=S.days[d].journal;return '<div style="padding:7px 0;border-bottom:1px solid var(--rule-2)"><b>'+DOWS[dow(d)]+' '+fmtS(d)+'</b> <span class="tiny">mood '+(j.mood||'—')+' · energy '+(j.energy||'—')+'</span>'+
+      ['well','learned','tomorrow','free'].map(function(k){return j[k]?'<div class="tiny" style="margin-top:2px"><span class="dim">'+({well:'Went well',learned:'Learned',tomorrow:'Tomorrow first',free:'Notes'})[k]+':</span> '+esc(j[k])+'</div>':'';}).join('')+'</div>';}).join(''):'<p class="tiny">'+(q?'Nothing matches.':'No entries yet — tap 📓 Journal in the Log panel.')+'</p>')+'</div>';
+}
 /* ===================== events ===================== */
 /* one app (3 Nov): Glow's screens are tabs of the tracker; the frame stays
    loaded and is told which screen to show */
-var GLOW_SUB='today',GLOW_ON=false;
+var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 /* Glow's code travels inside this page (frames are not allowed when it is
-   published) and mounts the first time one of its tabs is opened */
-function startGlow(){
-  if(GLOW_ON){try{window.postMessage({type:'glow-screen',id:GLOW_SUB},'*');}catch(e){}return;}
-  var code=E('glowCode');
-  if(!code){if(E('glowWait'))E('glowWait').textContent='Glow is part of the published app — open it from the link.';return;}
-  GLOW_ON=true;trackerBridge();window.__GLOW_START__=GLOW_SUB;
+   published). It loads once the tracker has drawn Today, then places its
+   pieces: the day plan, ideas, binge and sick-day logs on Today, the weekly
+   review on Review, and the full app in the Food/Foods/Cells/Body/Rituals tabs. */
+function loadGlow(){
+  if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
+  window.__GLOW_START__=GLOW_SUB;
+  window.addEventListener('glow-ready',function(){placeGlow();if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
-  if(E('glowWait'))E('glowWait').hidden=true;
+}
+var GLOW_OPEN={binge:false,ill:false};
+function placeGlow(){var G=window.GLOW;if(!G)return;var t=today();
+  [['glowPlan','dayplan'],['glowIdeas','ideas'],['glowBinge','binge'],['glowIll','ill'],['glowReview','review']].forEach(function(x){
+    var el=E(x[0]);if(el)G.mount(el,x[1],t,!!GLOW_OPEN[x[1]]);});}
+function startGlow(){
+  var G=window.GLOW;
+  if(!G){if(!E('glowCode')&&E('glowWait'))E('glowWait').textContent='Glow is part of the published app — open it from the link.';else loadGlow();return;}
+  if(!GLOW_APP){GLOW_APP=true;window.__GLOW_START__=GLOW_SUB;G.mountApp(E('glow-host'));if(E('glowWait'))E('glowWait').hidden=true;}
+  try{window.postMessage({type:'glow-screen',id:GLOW_SUB},'*');}catch(e){}
 }
 function tab(name,sub){
   CUR=name;
@@ -9617,6 +9736,7 @@ function boot(){
   wireFood();
   try{var tb=localStorage.getItem(LS+'.tab');if(tb)tab(tb);}catch(e){}
   render();
+  setTimeout(loadGlow,60);
   if(window.claude&&window.claude.use){
     dbState='connecting';paintStatus();
     window.claude.use('db').then(function(db){

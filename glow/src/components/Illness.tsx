@@ -6,9 +6,9 @@ import { actions, useStore } from '@/store';
 import { Button, Card, Pill } from './ui';
 
 /** Today: quick "I'm ill" log, and what to do about training if you are. */
-export function IllToday({ date }: { date: string }) {
+export function IllToday({ date, startOpen = false }: { date: string; startOpen?: boolean }) {
   const ill = useStore((x) => x.days[date]?.ill);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [kind, setKind] = useState<IllKind>('cold');
   const [sev, setSev] = useState<1 | 2 | 3>(1);
   if (!ill && !open) {

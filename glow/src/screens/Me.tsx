@@ -1,3 +1,4 @@
+import { hosted } from '@/host';
 import { useMemo, useRef, useState } from 'react';
 import { Download, Upload } from 'lucide-react';
 import { ageOn, daysBetween, fromDisplay, todayISO, toDisplay } from '@/engine/body';
@@ -36,8 +37,8 @@ export function Me() {
         <p className="text-sm text-ink-2">{age} years old{nextBirthday <= 60 ? `, ${age + 1} in ${nextBirthday} days` : ''} · born {d}/{m}/{y}</p>
       </div>
 
-      <WeeklyReviewCard browse />
-      <PhaseCompareCard />
+      {!hosted() && <WeeklyReviewCard browse />}
+      {!hosted() && <PhaseCompareCard />}
       <Card eyebrow="Your rank" title={rank.name}>
         <p className="mb-3 text-sm text-ink-2">{rank.line}</p>
         <Bar value={progress * 100} colour="var(--gold)" />

@@ -22,6 +22,7 @@ import { DayPlanCard } from '@/components/DayPlan';
 import { IllToday } from '@/components/Illness';
 import { BingeToday } from '@/components/Binge';
 import { IdeasCard, WeeklyReviewCard } from '@/components/Review';
+import { hosted } from '@/host';
 import { describeQty } from '@/data/units';
 import { GAIN_LABEL, swapFor } from '@/data/swaps';
 import { BigDayCountdown, PuffCard } from '@/components/LookGood';
@@ -108,20 +109,23 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
         </Card>
       )}
 
-      <CoachCalls date={date} />
-      {[0, 1].includes(new Date(`${date}T12:00:00`).getDay()) && <WeeklyReviewCard end={new Date(`${date}T12:00:00`).getDay() === 1 ? addDays(date, -1) : date} />}
-      <DayPlanCard date={date} />
-      <IdeasCard date={date} />
-      <NextMoves date={date} />
+      {/* Inside The Good Life, the training calls, day plan, ideas, binge and sick-day
+          logs, check-in, study and the weekly review live in the tracker (Today and
+          Review), so Glow shows only what is its own here. */}
+      {!hosted() && <CoachCalls date={date} />}
+      {!hosted() && [0, 1].includes(new Date(`${date}T12:00:00`).getDay()) && <WeeklyReviewCard end={new Date(`${date}T12:00:00`).getDay() === 1 ? addDays(date, -1) : date} />}
+      {!hosted() && <DayPlanCard date={date} />}
+      {!hosted() && <IdeasCard date={date} />}
+      {!hosted() && <NextMoves date={date} />}
       <RecoveryClock date={date} />
-      <BingeToday date={date} />
-      <IllToday date={date} />
+      {!hosted() && <BingeToday date={date} />}
+      {!hosted() && <IllToday date={date} />}
       <FeelCard date={date} />
       <LookSharp date={date} />
 
-      <CheckIn date={date} />
+      {!hosted() && <CheckIn date={date} />}
       <VitalsCard date={date} kg={r.weightKg} />
-      <StudyCard date={date} />
+      {!hosted() && <StudyCard date={date} />}
 
       {r.analysis.warnings.length > 0 && (
         <div className="space-y-2">

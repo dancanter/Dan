@@ -6,9 +6,11 @@ import type { SleepEntry, WeightEntry } from '@/engine/body';
 import type { Vitals } from '@/engine/vitals';
 import type { Session } from '@/engine/training';
 import type { BP } from '@/engine/health';
+import { host, type DaySum } from '@/host';
 
-// Everything lives in this browser's localStorage. Nothing is sent anywhere,
-// except food searches you choose to run against Open Food Facts.
+// On its own, everything lives in this browser's localStorage. Inside The
+// Good Life, the tracker's store is the only store (see host.ts). Nothing is
+// sent anywhere except food searches you choose to run against Open Food Facts.
 
 export interface StoredItem {
   uid: string;
@@ -67,6 +69,15 @@ export function initial(): State {
 }
 
 function load(): State {
+  const h = host();
+  if (h) {
+    try {
+      const s = h.load() as State;
+      return { ...initial(), ...s, profile: { ...DEFAULT_PROFILE, ...(s.profile ?? {}) } };
+    } catch {
+      return initial();
+    }
+  }
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return initial();
@@ -80,7 +91,16 @@ function load(): State {
 let state: State = load();
 const listeners = new Set<() => void>();
 
+/** Day totals for the host (set by main.tsx, which can see the scoring engine). */
+let summarise: ((s: State) => Record<string, DaySum>) | undefined;
+export function setSummariser(fn: (s: State) => Record<string, DaySum>) { summarise = fn; }
+
 function save() {
+  const h = host();
+  if (h) {
+    try { h.save(state, summarise ? summarise(state) : {}); } catch { /* the tracker keeps its own copy */ }
+    return;
+  }
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
   } catch {
@@ -98,6 +118,13 @@ export function setState(fn: (s: State) => State) {
 export function subscribe(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+/** The host's store changed (e.g. a weigh-in on the tracker's Today): reload without writing back. */
+export function refreshFromHost() {
+  if (!host()) return;
+  state = load();
+  listeners.forEach((l) => l());
 }
 
 /** Replace everything, e.g. with data loaded from the cloud store. */
