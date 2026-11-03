@@ -1,3 +1,4 @@
+import { isAvoided } from '@/data/avoid';
 import { addDays, sleepHours, sortByDate } from './body';
 import { cleanWeights, nextMoves, studyLoad } from './calls';
 import { dayResult } from './game';
@@ -45,9 +46,9 @@ export interface SinceStart { from: string; rows: { label: string; first: string
 const HELPERS: [Tag, string][] = [['poly', 'Polyphenol foods'], ['carot', 'Carotenoids (skin tone)'], ['sulf', 'Sulforaphane (brassicas)'], ['ferm', 'Fermented foods'], ['coll', 'Collagen foods'], ['evoo', 'Extra virgin olive oil'], ['astax', 'Astaxanthin (wild salmon)']];
 const STRESSORS: [Tag, string][] = [['fried', 'Fried / high-AGE'], ['upf', 'Ultra-processed'], ['addsug', 'Added sugar'], ['procmeat', 'Processed meat'], ['alc', 'Alcohol'], ['sweetener', 'Sweeteners'], ['acidic', 'Acidic drinks (teeth)']];
 
-/** The best gluten-free library foods for a nutrient, per normal portion. */
+/** The best gluten-free library foods for a nutrient, per normal portion (never one he avoids). */
 export function bestFoodsFor(key: NKey, n = 3): string[] {
-  return FOODS.filter((f: Food) => f.category !== 'treats' && !f.tags.some((t) => (['gluten', 'merc', 'iodHigh', 'upf', 'alc', 'addsug'] as Tag[]).includes(t)))
+  return FOODS.filter((f: Food) => f.category !== 'treats' && !isAvoided(f) && !f.tags.some((t) => (['gluten', 'merc', 'iodHigh', 'upf', 'alc', 'addsug'] as Tag[]).includes(t)))
     .map((f) => ({ f, v: (f.n[key] ?? 0) * f.portion.g / 100 }))
     .sort((a, b) => b.v - a.v).slice(0, n).map((x) => x.f.name);
 }

@@ -1287,7 +1287,13 @@ function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
   /* the bridge to Glow (3 Nov): weigh-ins go across so they are never typed twice */
   trackerBridge();}
-function trackerBridge(){try{if(S)localStorage.setItem('tracker-bridge-v1',JSON.stringify({at:Date.now(),weights:S.weights}));}catch(e){}}
+function trackerBridge(){try{if(!S)return;var sl={};Object.keys(S.days).forEach(function(d){var r=S.days[d];if(r&&r.bed&&r.wake)sl[d]={bed:r.bed,wake:r.wake};});
+  localStorage.setItem('tracker-bridge-v1',JSON.stringify({at:Date.now(),weights:S.weights,sleeps:sl}));}catch(e){}}
+/* weigh-ins and sleep logged in Glow come back: only dates the tracker has not got */
+function fromGlow(d){if(!d||!S)return;var ch=false;
+  Object.keys(d.weights||{}).forEach(function(k){var v=d.weights[k];if(typeof S.weights[k]!=='number'&&typeof v==='number'&&v>60&&v<300){S.weights[k]=v;ch=true;}});
+  Object.keys(d.sleeps||{}).forEach(function(k){var x=d.sleeps[k],r=S.days[k]=S.days[k]||{};if(!r.bed&&!r.wake&&x&&x.bed&&x.wake){r.bed=x.bed;r.wake=x.wake;var sf=sleepFromTimes(x.bed,x.wake,clockShift(k));if(sf)r.sleep=sf.h;ch=true;}});
+  if(ch)touch();}
 /* what Glow logged for a day: calories, protein and its scores (null if nothing) */
 function glowDay(d){try{var b=JSON.parse(localStorage.getItem('glow-bridge-v1')||'null');return b&&b.days&&b.days[d]?b.days[d]:null;}catch(e){return null;}}
 function touch(){S.updatedAt=Date.now();saveLocal();queueRemote();render();}
@@ -9114,7 +9120,7 @@ function renderGoodLife(){
 }
 function val(id){var e=E(id);return e?String(e.value||'').trim():'';}
 function wireGoodLife(){
-  window.addEventListener('message',function(ev){if(ev&&ev.data&&ev.data.type==='glow-bridge'&&E('ccCard'))E('ccCard').innerHTML=missionHTML();});
+  window.addEventListener('message',function(ev){if(ev&&ev.data&&ev.data.type==='glow-bridge'){fromGlow(ev.data);if(E('ccCard'))E('ccCard').innerHTML=missionHTML();}});
   document.addEventListener('click',function(ev){
     var pl=ev.target.closest&&ev.target.closest('button[data-plan]');
     if(pl){var td=today(),rr=S.days[td]=S.days[td]||{};rr.plan=!rr.plan;touch();return;}

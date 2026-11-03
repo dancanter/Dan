@@ -1,3 +1,4 @@
+import { isAvoided } from '@/data/avoid';
 import { useMemo, useState } from 'react';
 import { FOODS, type Food } from '@/data/foods';
 import { SEASON_GUIDE, VITD_NO_SUPPLEMENT } from '@/data/seasons';
@@ -16,7 +17,7 @@ type Tab = 'pillars' | 'seasons' | 'stress' | 'cut' | 'coeliac' | 'absorb' | 'bo
 export function bestFoodsFor(p: Pillar, n = 6): Food[] {
   const t = targetsFor(DEFAULT_PROFILE, 57);
   const bad = new Set(p.penalties.map((x) => x.tag));
-  return FOODS.filter((f) => !f.tags.some((tg) => bad.has(tg)) && f.n.kcal > 5 && !f.tags.includes('iodHigh'))
+  return FOODS.filter((f) => !isAvoided(f) && !f.tags.some((tg) => bad.has(tg)) && f.n.kcal > 5 && !f.tags.includes('iodHigh'))
     .map((f) => {
       const portion = scaleNutrients(f.n, f.portion.g);
       let sum = 0;

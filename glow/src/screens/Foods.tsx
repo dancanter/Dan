@@ -1,3 +1,4 @@
+import { isAvoided } from '@/data/avoid';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { ALL_FOODS, CATEGORY_LABEL, FOODS, type Category, type Food } from '@/data/foods';
@@ -48,6 +49,8 @@ export function Foods({ date }: { date: string }) {
   const metric = (f: Food) =>
     sort === 'score' ? scored.get(f.id)!.score : sort === 'protein' ? (f.n.protein / Math.max(f.n.kcal, 1)) * 100 : (f.n[sort] / Math.max(f.n.kcal, 20)) * 100;
   if (!q || sort !== 'score') list = [...list].sort((a, b) => metric(b) - metric(a));
+  // Foods on Dan's avoid list sink to the bottom of every ranking (searching still finds them).
+  if (!q) list = [...list.filter((f) => !isAvoided(f)), ...list.filter((f) => isAvoided(f))];
   const total = list.length;
   list = list.slice(0, 200);
 
@@ -90,7 +93,7 @@ export function Foods({ date }: { date: string }) {
               <button onClick={() => setPicked(f)} className="flex w-full items-center gap-3 p-3 text-left hover:bg-surface-2">
                 <Grade grade={sc.grade} score={sc.score} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{f.name}</span>
+                  <span className="block truncate text-sm font-medium">{f.name}{isAvoided(f) && <span className="ml-1 text-xs text-bad">· avoid</span>}</span>
                   <span className="block truncate text-xs text-muted">
                     {sc.stars.slice(0, 3).map((x) => `${NUTRIENTS[x.key].label} ${x.pct}%`).join(' · ') || `${Math.round(f.n.kcal)} kcal per 100 g`}
                   </span>

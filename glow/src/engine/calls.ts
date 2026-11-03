@@ -281,7 +281,7 @@ export function goalCall(s: State, date: string): Call {
     why: [`Your 7-day average is ${lb} lb, inside your 122–124 lb target (refeed days excluded).`, 'Staying in a deficit now only costs muscle, hormones, sleep and facial fullness. The cut has done its job.'],
     how: [
       `Add ${100} kcal a week (1,899 next week, then about 2,000…) until you reach maintenance. Glow raises your target automatically.`,
-      'Put the extra mostly into carbs around training, plus a little more fat (olive oil, salmon, egg yolks).',
+      'Put the extra mostly into carbs around training, plus a little more fat (avocado, salmon, egg yolks).',
       'Watch the 7-day average: a gain of up to 1–1.5 lb in the first fortnight is glycogen and water, not fat. You will look fuller, not softer.',
       'If the average climbs more than 0.5 lb a week after week 2, hold calories there for a week.',
     ],

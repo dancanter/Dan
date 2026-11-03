@@ -45,7 +45,7 @@ export function adviceFor(id: string, s: State, date: string): { headline: strin
       if (refeed.kind === 'refeed') steps.push('A refeed day is due. Today is a good day for it (Today → Coach’s call).');
       if (items.length && kcal < target - 400) steps.push(`You’re at ${kcal} of ${target} kcal, so there’s room. Have your next protein feeding now rather than waiting.`);
       steps.push('Protein first: a Fage pot, 2–3 eggs or a tin of fish. Protein is the most filling macronutrient.');
-      steps.push('Then volume: potatoes, a big salad with olive oil, berries, soup or broth. Lots of food for few calories.');
+      steps.push('Then volume: potatoes, a big salad with avocado, berries, soup or broth. Lots of food for few calories.');
       steps.push('Drink a large glass of water. Thirst often reads as hunger, especially after training.');
       if (lastSleep !== undefined && lastSleep < 7) steps.push(`You slept ${lastSleep.toFixed(1)} h. Short sleep raises the hunger hormone ghrelin and lowers leptin. Expect more hunger today and plan an early night.`);
       return { headline: 'Hungry on a cut: fuel it smartly', steps };
@@ -75,7 +75,7 @@ export function adviceFor(id: string, s: State, date: string): { headline: strin
         'Have something sweet with protein: Fage or skyr with berries and cinnamon, or a protein shake blended with frozen berries.',
         'Or 2 squares of 85% dark chocolate, eaten slowly. Satisfying, and polyphenol-rich.',
         lastSleep !== undefined && lastSleep < 7 ? 'Short sleep drives sugar cravings. This one might be about last night.' : 'Cravings often peak in the afternoon when lunch was light. Check your protein rhythm card.',
-        'If squash and sweeteners are on all day, they keep your palate tuned to “very sweet”. Water or green tea between meals helps reset it within a couple of weeks.',
+        'If squash and sweeteners are on all day, they keep your palate tuned to “very sweet”. Water or herbal tea between meals helps reset it within a couple of weeks.',
       ] };
     case 'lazy':
       return { headline: 'Unmotivated: make starting tiny', steps: [

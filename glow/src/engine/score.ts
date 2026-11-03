@@ -317,7 +317,7 @@ export function analyseDay(items: LoggedItem[], t: Targets, ctx: DayContext): Da
     if (calcium >= 300 && allIron >= 3)
       warnings.push({ level: 'info', text: `Absorption: about ${Math.round(calcium)} mg calcium alongside ${allIron.toFixed(1)} mg iron at ${m}. Calcium reduces iron uptake in the same meal, so keep dairy for a different meal if your ferritin runs low.` });
     if (carot && fat < 3)
-      warnings.push({ level: 'info', text: `Absorption: carotenoid-rich veg at ${m} with almost no fat. Add olive oil, avocado or eggs to absorb several times more.` });
+      warnings.push({ level: 'info', text: `Absorption: carotenoid-rich veg at ${m} with almost no fat. Add avocado, butter or eggs to absorb several times more.` });
     if (plantIron >= 2 && vitC >= 25) wins.push(`Vitamin C boosting plant iron at ${m}`);
   }
 
