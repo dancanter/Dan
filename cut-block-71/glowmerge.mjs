@@ -161,6 +161,17 @@ const camp = await p.evaluate(() => campReviewHTML('2026-11-02'));
 ok('the Sunday camp review carries the same section', /Food, cells &amp; mind/.test(camp) && /mood <b>3\.0<\/b>/.test(camp), camp.slice(-600));
 await ctx.close();
 
+// ---- food logged in the old, separate Glow is folded into the one diary (3 Nov) --------
+({ ctx, p } = await open());
+await p.evaluate(() => { localStorage.setItem('glow-state-v1', JSON.stringify({ days: { '2026-11-03': { items: [{ uid: 'old1', foodId: 'oats', grams: 70, meal: 'breakfast' }, { uid: 'old2', foodId: 'uk-hake', grams: 125, meal: 'lunch' }] } } })); });
+await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }); await p.waitForTimeout(800);
+const OG = await p.evaluate(() => ({ items: (S.days['2026-11-03'].glow || {}).items.map((i) => i.uid), k: S.days['2026-11-03'].kcal }));
+ok('old Glow food shows up in the one diary', OG.items.includes('old1') && OG.items.includes('old2'), JSON.stringify(OG));
+ok('and counts toward the day', OG.k > 300, JSON.stringify(OG));
+await p.reload(); await p.waitForTimeout(800);
+ok('without being added twice', (await p.evaluate(() => S.days['2026-11-03'].glow.items.filter((i) => i.uid === 'old1').length)) === 1);
+await ctx.close();
+
 await b.close();
 ok('no page errors', errs.length === 0, errs.slice(0, 4).join(' | '));
 if (fails.length) { console.log('\nFAIL (' + fails.length + ')\n - ' + fails.join('\n - ')); process.exit(1); }

@@ -10017,6 +10017,23 @@ function wire(){
 }
 
 /* ===================== boot ===================== */
+/* Dan, 3 Nov: "where's the food I added?" Before the merge, Glow kept its own food
+   log: in the shared store under glow/meta/months/<yyyy-mm>, and in this browser
+   under glow-state-v1. Anything there that the one diary does not have yet is
+   folded in (matched by each item's uid), so nothing logged the old way is lost. */
+function absorbGlowDays(days){var n=0;if(!days)return 0;
+  Object.keys(days).forEach(function(d){var v=days[d]||{},items=v.items||[];if(!items.length&&!(v.rituals||[]).length)return;
+    var r=S.days[d]=S.days[d]||{},g=r.glow=r.glow||{},have={};(g.items||[]).forEach(function(i){have[i.uid]=1;});
+    items.forEach(function(i){if(i&&i.uid&&!have[i.uid]){g.items=(g.items||[]).concat([i]);n++;}});
+    if((v.rituals||[]).length){var rs=g.rituals||[];v.rituals.forEach(function(x){if(rs.indexOf(x)<0){rs.push(x);n++;}});g.rituals=rs;}});
+  return n;}
+function absorbOldGlow(db){
+  var n=0;try{var raw=localStorage.getItem('glow-state-v1');if(raw){var o=JSON.parse(raw);n+=absorbGlowDays(o&&o.days);
+    if(o&&o.customFoods&&o.customFoods.length){var G=S.glow=S.glow||{},cf=G.customFoods||[],ids={};cf.forEach(function(f){ids[f.id]=1;});
+      o.customFoods.forEach(function(f){if(f&&f.id&&!ids[f.id]){cf.push(f);n++;}});G.customFoods=cf;}}}catch(e){}
+  var done=function(){if(n){S.updatedAt=Date.now();saveLocal();queueRemote();render();glowRecompute();}};
+  if(!db){done();return;}
+  try{db.doc('glow/meta').collection('months').get().then(function(q){(q&&q.docs||[]).forEach(function(doc){var x=doc.data()||{};n+=absorbGlowDays(x.days);});done();},function(){done();});}catch(e){done();}}
 function boot(){
   var local=loadLocal();
   S=local?local:normalise(clone(SEED));
@@ -10028,6 +10045,7 @@ function boot(){
   wireFood();
   try{var tb=localStorage.getItem(LS+'.tab');if(tb)tab(tb);}catch(e){}
   render();
+  absorbOldGlow(null);
   setTimeout(loadGlow,60);
   if(window.claude&&window.claude.use){
     dbState='connecting';paintStatus();
@@ -10047,6 +10065,7 @@ function boot(){
         }else{
           settle('synced');queueRemote();
         }
+        absorbOldGlow(db);
         dbDoc.onSnapshot(function(sn){
           if(!sn.exists)return;
           var r=normalise(sn.data());
