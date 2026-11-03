@@ -29,7 +29,7 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
   return (
     <div className="space-y-3 rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-center gap-4">
-        <Ring value={logged ? day.glow : 0} size={92} stroke={9} label={logged ? String(day.glow) : '–'} sub="Glow today" />
+        <Ring value={logged ? day.glow : 0} size={92} stroke={9} label="Glow today" />
         <div className="min-w-0 flex-1">
           <div className="text-[11px] tracking-wide text-muted uppercase">Health age</div>
           <div className="font-serif text-3xl text-gold">{ga}</div>
@@ -52,7 +52,7 @@ export function HomeHealth({ date = todayISO() }: { date?: string }) {
       )}
       {logged > 0 && (
         <div className="text-sm text-ink-2">
-          Today: <b className="text-ink">{Math.round(day.analysis.totals.kcal)}</b> kcal · <b className="text-ink">{Math.round(day.analysis.totals.protein)} g</b> protein · nutrition <b className="text-ink">{Math.round(day.analysis.nutritionScore)}</b> · {day.analysis.plants} plants
+          Today: <b className="text-ink">{Math.round(day.analysis.totals.kcal)}</b> kcal · <b className="text-ink">{Math.round(day.analysis.totals.protein)} g</b> protein · nutrition <b className="text-ink">{Math.round(day.analysis.nutritionScore)}</b>
           {pillars[0] && <div className="mt-1 text-xs">Lowest pillar today: <b>{pillars[0].pillar.emoji} {pillars[0].pillar.name}</b> ({Math.round(pillars[0].score)}).</div>}
         </div>
       )}

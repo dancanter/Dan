@@ -284,6 +284,15 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
 #bnav button.on{color:var(--gold)}#bnav button.on span{filter:none;opacity:1}
 body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 #glow-host{display:block;margin:0 -12px}
+/* Mac and iPhone (3 Nov): on a phone, one column and the bottom bar; on a laptop the
+   eight sections on top are the navigation, and Overview and Running use two columns. */
+@media (min-width:1100px){
+  #bnav{display:none}body{padding-bottom:0}
+  main{max-width:1240px}
+  #s-today:not([hidden]),#s-camp:not([hidden]),#s-longev:not([hidden]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  #s-today>#storeWarn,#s-today>#ccCard,#s-today>div.p,#s-today>#moreToday,#s-today>#alertCard,#s-camp>#runCoach{grid-column:1/-1}
+  #s-longev>#glowHealth{grid-column:2}#s-longev>#longCardTop{grid-column:1;grid-row:1}
+}
 
 .topin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .topstat{display:flex;gap:14px;flex-wrap:wrap}.topstat>div{white-space:nowrap}
@@ -4821,7 +4830,7 @@ function weekMind(ws){var we=addD(ws,6),t=today(),o={fd:0,nut:[],gl:[],pl:[],pro
   var av=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
   o.nutA=av(o.nut);o.glA=av(o.gl);o.plA=av(o.pl);o.proA=av(o.pro);return o;}
 function weekMindHTML(ws,inCamp){var o=weekMind(ws),L=[];
-  if(o.fd)L.push('🍽️ Food logged on '+o.fd+' day'+(o.fd===1?'':'s')+' · nutrition <b>'+Math.round(o.nutA)+'</b> · Glow <b>'+Math.round(o.glA)+'</b> · '+Math.round(o.plA)+' plants a day · '+Math.round(o.proA)+' g protein');
+  if(o.fd)L.push('🍽️ Food logged on '+o.fd+' day'+(o.fd===1?'':'s')+' · nutrition <b>'+Math.round(o.nutA)+'</b> · Glow <b>'+Math.round(o.glA)+'</b> · '+Math.round(o.proA)+' g protein');
   if(o.j.n)L.push('📓 Journal on '+o.j.n+' day'+(o.j.n===1?'':'s')+(o.j.mood!==null?' · mood <b>'+o.j.mood.toFixed(1)+'</b>/5':'')+(o.j.energy!==null?' · energy <b>'+o.j.energy.toFixed(1)+'</b>/5':''));
   L.push(o.bi?'😵 '+o.bi+' binge'+(o.bi===1?'':'s')+' — reset, don’t restrict. The two weigh-ins after each are noise.':'😵 No binges.');
   L.push(o.ill?'🤒 '+o.ill+' sick day'+(o.ill===1?'':'s')+' — rest was the training.':'🤒 No sick days.');
@@ -9531,7 +9540,7 @@ function missionHTML(){
     '<div class="cc-row"><div class="cc-chip"><b>'+sc+'/5</b><small>today’s score</small></div>'+
       '<div class="cc-chip"><b>'+(sk?'🔥 '+sk:'—')+'</b><small>day streak</small></div>'+
       '<div class="cc-chip"><b>'+(G?G.quests.filter(function(q){return q[2]>=q[3];}).length+'/'+G.quests.length:'—')+'</b><small>quests done</small></div></div>'+
-    (gd?'<div class="cc-ready done"><span class="cc-dot"></span><div><b>🌱 Glow '+gd.glow+' · nutrition '+gd.nutrition+'</b><small>'+gd.plants+' plants today · from what you logged in Glow</small></div></div>':'')+
+    (gd?'<div class="cc-ready done"><span class="cc-dot"></span><div><b>🌱 Glow '+gd.glow+' · nutrition '+gd.nutrition+'</b><small>from what you logged in Glow</small></div></div>':'')+
     '<div class="cc-week">'+ccWeek()+'</div>'+
     (G?'<details class="cc-more"><summary>Race goals</summary><div class="cc-goals">'+ccGoals()+'</div></details>':'')+
     '<button type="button" class="btn sm'+(r.plan?'':' ghost')+'" data-plan="1" style="align-self:flex-start">'+(r.plan?'✓ Ate to plan today':'🍽️ Ate to plan today?')+'</button>'+
@@ -9781,7 +9790,6 @@ function monthReviewHTML(ym){
   if(av(o.sleep)!==null&&av(o.sleep)<8)focus.push('😴 Sleep averaged '+f1(av(o.sleep))+' h: an earlier, fixed bedtime is the biggest win for your looks and recovery.');
   if(o.hard<6&&o.runs)focus.push('🏃 Two hard runs a week on green days, and the Norwegian runs kept easy.');
   var legsSets=o.sets.Legs||0;if(legsSets/Math.max(1,(diffD(first,end)+1)/7)>16)focus.push('🦵 Legs had a lot of volume. Keep them to 8–12 sets a week so the runs stay sharp.');
-  if(o.nut.length&&av(o.plants)<8)focus.push('🌱 About '+Math.round(av(o.plants))+' plants a day: aim for 10+ for your skin and gut.');
   if(o.breath<60)focus.push('🌬️ Breathing or meditation: 5–10 min most days. It lowers stress hormones, one of the big drivers of ageing.');
   if(SZ)focus.push((SZ.e||'🍂')+' '+MONTHS[nextM-1]+': '+SZ.eat.slice(0,2).join(', ')+'; '+SZ.doo[0]+'.');
   return '<div class="p lift"><h2>📅 '+MONTHS[mo-1]+' '+y+'</h2><p class="tiny" style="margin:0 0 6px">'+o.days+' day'+(o.days===1?'':'s')+' logged'+(end<last?' · month still running':'')+'</p>'+
@@ -9789,7 +9797,7 @@ function monthReviewHTML(ym){
     '<h3 style="margin:10px 0 2px">Body</h3>'+line('⚖️','Weight',w0===null?'—':f1(w0)+' → '+f1(w1)+' lb')+line('😴','Sleep',f(av(o.sleep),function(v){return f1(v)+' h';}))+line('❤️','Morning HR',f(av(o.rhr),function(v){return Math.round(v)+' bpm';}))+line('👣','Steps',f(av(o.steps),function(v){return ci(Math.round(v));}))+
     '<h3 style="margin:10px 0 2px">Training</h3>'+line('🏃','Runs',o.runs+' ('+o.hard+' hard)')+(o.tt.length?line('⏱️','Time trials',esc(o.tt.join(' · '))):'')+line('🏋️','Gym',o.gym+' session'+(o.gym===1?'':'s'))+
       line('💪','Sets',Object.keys(o.sets).length?Object.keys(o.sets).map(function(k){return k+' '+o.sets[k];}).join(' · '):'—')+(o.chal.length?line('🏆','Strength',esc(o.chal.join(' · '))):'')+
-    '<h3 style="margin:10px 0 2px">Health &amp; mind</h3>'+line('🧬','Nutrition / Glow',o.nut.length?Math.round(av(o.nut))+' / '+Math.round(av(o.glow)):'—')+line('🌱','Plants a day',f(av(o.plants),function(v){return String(Math.round(v));}))+
+    '<h3 style="margin:10px 0 2px">Health &amp; mind</h3>'+line('🧬','Nutrition / Glow',o.nut.length?Math.round(av(o.nut))+' / '+Math.round(av(o.glow)):'—')+
       line('🌬️','Breathing & meditation',o.breath+' min')+line('📚','Study',f1(o.study)+' h')+line('😊','Mood / energy',o.mood.length?av(o.mood).toFixed(1)+' / '+(o.en.length?av(o.en).toFixed(1):'—'):'—')+line('😵','Binges · sick days',o.bin+' · '+o.ill)+
     '<h3 style="margin:10px 0 2px">Ideas for next month</h3><p class="tiny dim" style="margin:0 0 4px">Ordered by how much difference they would make.</p>'+focus.slice(0,4).map(function(x,i){return '<p style="margin:3px 0"><span class="pill">'+(i+1)+'</span> '+x+'</p>';}).join('')+'</div>';}
 

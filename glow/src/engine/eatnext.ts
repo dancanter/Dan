@@ -71,7 +71,9 @@ export function eatNext(s: State, date: string): EatNext[] {
   const season = seasonOf(date), produce = SEASON_GUIDE[season].produce.toLowerCase();
   const inSeason = (f: Food) => produce.includes(nameOf(f).toLowerCase().split(/[ ,(]/)[0]);
   const foods = pool(s);
-  const like = (f: Food) => (usual.has(f.id) ? 1.5 : 1) * (inSeason(f) ? 1.2 : 1);
+  /* Dan, 3 Nov: animal foods first: their iron, zinc, B12, vitamin A and protein are the best absorbed */
+  const ANIMAL = ['meat', 'offal', 'fish', 'shellfish', 'eggs', 'dairy'];
+  const like = (f: Food) => (usual.has(f.id) ? 1.5 : 1) * (inSeason(f) ? 1.2 : 1) * (ANIMAL.includes(f.category) ? 1.5 : 1);
   const today = dayResult(s, date);
   const loggedToday = (s.days[date]?.items ?? []).length > 0;
 
@@ -120,6 +122,9 @@ export function eatNext(s: State, date: string): EatNext[] {
       const target = t[b.k] ?? NUTRIENTS[b.k].target;
       const picks = foods.map((f) => ({ f, v: perPortion(f, b.k, target) * like(f) / Math.sqrt(Math.max(f.n.kcal * f.portion.g / 100, 30) / 100) }))
         .filter((x) => perPortion(x.f, b.k, target) >= 0.15).sort((a, b2) => b2.v - a.v).slice(0, 3).map((x) => nameOf(x.f));
+      /* animal first: the best-absorbed animal source leads when it gives a decent amount */
+      const an = foods.filter((f) => ANIMAL.includes(f.category) && perPortion(f, b.k, target) >= 0.1).sort((a, b2) => perPortion(b2, b.k, target) * like(b2) - perPortion(a, b.k, target) * like(a))[0];
+      if (an && !picks.includes(nameOf(an))) { picks.unshift(nameOf(an)); picks.length = Math.min(picks.length, 3); }
       if (!picks.length) continue;
       const info = NUTRIENTS[b.k];
       const why = b.k === 'vitD' ? 'Oily fish is your vitamin D in the UK winter (no sun from October to March), with omega-3s for skin and recovery.'
@@ -137,10 +142,10 @@ export function eatNext(s: State, date: string): EatNext[] {
   const oneEach = (cats: string[], n: number) => { const seen = new Set<string>(), res: string[] = [];
     for (const x of ranked) { if (res.length >= n) break; if (!cats.includes(x.f.category) || seen.has(x.f.category)) continue; seen.add(x.f.category); res.push(nameOf(x.f)); }
     return res; };
-  const animal = oneEach(['shellfish', 'offal', 'fish', 'meat', 'eggs', 'dairy'], 4);
-  const plant = oneEach(['veg', 'fruit', 'nuts', 'herbs'], 3);
+  const animal = oneEach(['shellfish', 'offal', 'fish', 'meat', 'eggs', 'dairy'], 5);
+  const plant = oneEach(['fruit'], 1);
   out.push({ emoji: '💎', title: `Powerhouse picks this ${season}`, foods: [...animal, ...plant], impact: loggedToday ? 'small' : 'medium',
-    why: 'The most nutrients your body actually absorbs per calorie, the ideal on a cut. Animal foods lead on iron, zinc, B12 and protein; fruit and veg bring the vitamin C, fibre and polyphenols. In-season produce gets a boost.' });
+    why: 'Animal foods first: the most nutrients your body actually absorbs per calorie (iron, zinc, B12, vitamin A, omega-3s and complete protein), the ideal on a cut. One fruit for vitamin C.' });
 
   return out.slice(0, 4);
 }

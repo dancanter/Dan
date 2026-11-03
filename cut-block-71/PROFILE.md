@@ -26,6 +26,8 @@ throughout.
 
 ---
 
+**Food philosophy (Dan, 3 Nov):** animal foods and animal products first (eggs, dairy, kefir, wild fish, shellfish, red meat, venison, heart and kidney; never liver): the most bioavailable nutrients. Plants are supporting (fruit, potatoes, root veg), not a target: no plant counting on the main screens.
+
 **The five aims (Dan, 3 Nov):** maximise looks, health, longevity and performance, and keep stress low. Every suggestion should serve these together, ranked by how much difference it makes, and be offered as advice, never as an order.
 
 ## 2. Hard rules — never break these
