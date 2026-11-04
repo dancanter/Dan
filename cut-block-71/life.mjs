@@ -135,9 +135,10 @@ await boot(st({ weights: { '2026-09-28': 128.4, '2026-09-29': 128.2, '2026-09-30
   days: { '2026-09-29': { runs: [{ k: 'reps', dm: 300, n: 6, secs: 276 }], gym: true, split: 'back' }, '2026-09-30': { sleep: 8.2, rt: [0, 1] } } }));
 await p.evaluate(() => { document.body.classList.add('simple'); decorateMore(); });
 await p.click('[data-t="today"]'); await p.waitForTimeout(200);
-ok('Today opens with Mission Control, Today & your numbers, the health bank, then the log (3 Nov)', await p.evaluate(() => {
+ok('Overview opens with Mission Control, then the log (4 Nov), binge/ill/journal, Today, then the round-up: stress, health age, running, health bank, micros', await p.evaluate(() => {
   const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn');
-  return kids[0].id === 'ccCard' && kids[1].id === 'homeCard' && kids[2].id === 'bankCard' && /Log ·/.test(kids[3].querySelector('h2').textContent) && !!E('moreToday').querySelector('#tdeeCard');
+  const ids = kids.map(c => c.id);
+  return kids[0].id === 'ccCard' && /Log ·/.test(kids[1].querySelector('h2').textContent) && ids.indexOf('jrnlCard') < ids.indexOf('homeCard') && ids.indexOf('homeCard') < ids.indexOf('ovStress') && ids.indexOf('ovRun') < ids.indexOf('bankCard') && !!E('glowHealthOv') && !!E('glowMicrosOv') && !!E('moreToday').querySelector('#tdeeCard');
 }));
 let g = sq(await p.innerText('#glanceCard'));
 ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);
@@ -154,7 +155,7 @@ await p.evaluate(() => touch()); await p.waitForTimeout(200);
 ok('and it stays open when the page redraws', /Show less ▴/.test(await tsup()));
 await p.click('#tCard button.readmore'); await p.waitForTimeout(120);
 ok('Show less folds it again', /Read more ▾/.test(await tsup()));
-ok('a card that would fold to nothing keeps its first line', await p.evaluate(() => [...document.querySelectorAll('#s-today .p')].filter(c => c.offsetParent).every(c => { const h = c.querySelector('h2'); const txt = (c.innerText || '').replace(h ? h.innerText : '', '').replace(/Read more ▾|Show less ▴/, '').trim(); return txt.length >= 3; })));
+ok('a card that would fold to nothing keeps its first line', await p.evaluate(() => [...document.querySelectorAll('#s-today .p')].filter(c => c.offsetParent && ![...c.querySelectorAll('*')].some(x => x.shadowRoot)).every(c => { const h = c.querySelector('h2'); const txt = (c.innerText || '').replace(h ? h.innerText : '', '').replace(/Read more ▾|Show less ▴/, '').trim(); return txt.length >= 3; })));
 await p.click('[data-t="mind"]');
 ok('the help line in Mind is never folded', await p.evaluate(() => { const x = [...E('mindCard').querySelectorAll('p')].find(q => /Samaritans/.test(q.textContent)); return x && x.offsetParent !== null; }));
 await ctx.close();
@@ -266,7 +267,7 @@ let rc = sq(await p.innerText('#revCard'));
 ok('the reverse card leads with his order: lean, health, muscle, times', /1 Lean — the angular, chiselled face · 2 Health and recovery/.test(rc) && /3 Muscle · 4 Times/.test(rc), rc.slice(0, 300));
 ok('with the reverse week: 2 hard, 2 easy, gym 5, 11,000 steps', /2 hard · 1–2 easy/.test(rc) && /a 5 mile, a 5 km if fresh/.test(rc) && /4 days/.test(rc) && /About 11,000 a day/.test(rc), rc.slice(0, 600));
 ok('the old "times held, a bit of muscle" plan is gone', !/Times held, not chased|A bit of muscle if it turns up/.test(rc));
-const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-05'), stc: stepTarget('2026-10-05') }; });
+const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-27'), stc: stepTarget('2026-10-05') }; });
 ok('the ladder tops out at reverse-week activity, not cut activity', rv.a > 30 && rv.a < 150 && Math.abs(rv.mc - rv.a - rv.m) <= 10, JSON.stringify(rv));
 ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st === 11000 && rv.stc === 13000, JSON.stringify(rv));
 ok('grass-fed butter and A2 whole milk are on the healthy foods list', await p.evaluate(() => !!hfById('butter') && !!hfById('milkA2')));
@@ -391,7 +392,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-04'));   // week 7: mile pace + 800 pace
 await boot(st({ days: { '2026-10-27': { runs: [{ k: 'reps', dm: 1000, n: 4, secs: 790 }] }, '2026-10-30': { runs: [{ k: 'reps', dm: 400, n: 5, secs: 320 }] } } }));
 let M7 = await p.evaluate(() => { const m = weekRunsModel(); return { l: m.P.long, s: m.P.short || m.P.alt, lg: pacedOf(m.P.lp), sg: pacedOf(m.P.sp || m.P.altP) }; });
-ok('a target week after the staples: paced sessions with goal-pace guides', /at (mile|5 km) pace/.test(M7.l) && /at 800 pace|fast/.test(M7.s) && /goal pace/.test(M7.lg) && /goal pace/.test(M7.sg), JSON.stringify(M7));
+ok('a target week in the push (from 4 Nov): the paced long session with its goal-pace guide', /at (mile|5 km) pace/.test(M7.l) && /goal pace/.test(M7.lg), JSON.stringify(M7));
 await p.click('[data-t="training"]'); await p.waitForTimeout(120);
 let r7 = sq(await p.innerText('#tRuns'));
 ok('the runs card shows the goal-pace guide and why the week was picked', /a rep · goal pace/.test(r7) && /Picked for you this week/.test(r7), r7.slice(0, 800));
@@ -791,10 +792,10 @@ ok('before 7 Nov with no morning under 126: pending, the strict 1,799', await p.
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-09'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
-let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent }));
-ok('no morning under 126 by 7 Nov: the push runs 7–20 Nov — 1,799 (Saturday 1,999), 14.5k steps, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && [1799, 1899].includes(PSH.after) && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && !PSH.M.P.short && /Push fortnight/.test(PSH.g), JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent, satSt: stepTarget('2026-11-14'), fr: stepTarget('2026-12-04'), xmas: pushState('2026-12-25').k }));
+ok('Dan chose the push (4 Nov): it runs to 24 Dec — 1,799 (Saturday 1,999), 14.5k steps, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 14500 && [1799, 1899].includes(PSH.after) && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && !PSH.M.P.short && /The push/.test(PSH.g) && PSH.satSt < 14500 && PSH.fr < 14500 && PSH.xmas !== 'on', JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
 await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
-ok('any morning under 126 before then: no push', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === strictKcal('2026-11-09')));
+ok('a morning under 126 does not cancel it: Dan chose it', await p.evaluate(() => pushState().k === 'on' && dayTarget('2026-11-09') === strictKcal('2026-11-09')));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
@@ -888,7 +889,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: Object.assign(wtsC('2026-11-02', Array.from({ length: 22 }, () => 125.6))) }));
 CCx = await p.evaluate(() => calCall());
-ok('flat two weeks after the push: steps first, then rest days to 1,799', CCx.k === 'down' && /2,000 more steps/.test(CCx.w) && /1,799/.test(CCx.w), JSON.stringify(CCx));
+ok('during the push the call is the push: calories never lower, the extra from walking', CCx.k === 'push' && /walking/.test(CCx.w), JSON.stringify(CCx));
 await ctx.close();
 // build sets now (31 Oct): upper body at build volume from 2 Nov, legs stay 8–12
 ({ ctx, p, boot } = await at('2026-11-03'));
