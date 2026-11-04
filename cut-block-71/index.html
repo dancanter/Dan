@@ -9794,6 +9794,7 @@ function stressScore(){
 function stressDetailHTML(){var X=stressScore();
   return '<div style="margin:2px 0 8px"><div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.8em;font-family:\'IBM Plex Mono\',monospace">'+X.score+'</b><span class="tiny dim">/ 100</span><b>'+X.band[0]+'</b></div>'+
     '<div style="height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin:4px 0"><div style="height:100%;width:'+X.score+'%;background:'+(X.score>=50?'var(--warn)':'var(--good)')+'"></div></div>'+
+    '<p style="margin:2px 0;font-size:.85em"><b>0 is best.</b> 0–24 low (best) · 25–49 moderate · 50–74 high · 75+ very high.</p>'+
     '<p style="margin:4px 0">'+X.band[2]+'</p>'+
     (X.parts.length?'<h3 style="margin:8px 0 2px">What is in it, and what brings it down</h3>'+X.parts.map(function(x){return '<div style="margin:4px 0"><span class="mono">+'+x.pts+'</span> '+esc(x.txt)+'<div class="tiny" style="margin-left:34px">↓ about −'+x.pts+' with '+esc(x.fix)+'</div></div>';}).join(''):'<p class="tiny">Nothing adding to it right now.</p>')+
     '<p class="tiny dim" style="margin-top:4px">Built from your own logs (sleep, morning HR, mood, training, illness), not a medical measure. The slow signs count 10 each, the last three days 5 per point of load.</p></div>';}
@@ -9875,7 +9876,7 @@ function homeHTML(){
   var gdF=glowDay(t);
   tiles.push('<button type="button" class="hm-t" data-t="nutri" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><div class="hm-h">🍽️ Food today</div><b>'+(gdF?ci(gdF.kcal)+' kcal':'—')+'</b><small>'+(gdF?gdF.protein+' g protein of '+MACRO.pro+' · food options →':'log food · food options →')+'</small>'+(gdF?'<div class="cc-bar sm"><i style="width:'+Math.min(100,Math.round(gdF.protein/MACRO.pro*100))+'%"></i></div>':'')+'</button>');
   tiles.push(stressTile());
-  try{var CXt=cortisolScore();tiles.push('<div class="hm-t'+(CXt.score>=40?' w':(CXt.score<20?' good':''))+'"><div class="hm-h">🧪 Cortisol</div><b>'+CXt.score+'<span class="tiny dim"> /100 · '+CXt.band[0]+'</span></b><small>'+esc(CXt.parts[0]?'mostly: '+CXt.parts[0].why.toLowerCase()+' · ↓ '+CXt.parts[0].fix.toLowerCase():'nothing raising it')+'</small></div>');}catch(e){}
+  try{var CXt=cortisolScore();tiles.push('<div class="hm-t'+(CXt.score>=25?' w':(CXt.score<10?' good':''))+'"><div class="hm-h">🧪 Cortisol</div><b>'+CXt.score+'<span class="tiny dim"> /100 · '+CXt.band[0]+'</span></b><small>'+esc(CXt.parts[0]?'mostly: '+CXt.parts[0].why.toLowerCase()+' · ↓ '+CXt.parts[0].fix.toLowerCase():'nothing raising it')+'</small></div>');}catch(e){}
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
   var L=greenLight()||{};if(L.t)next.push([(L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')),'big']);
@@ -10298,12 +10299,47 @@ function cortisolScore(){
   if([0,1,2].some(function(i){return ((S.days[addD(t,-i)]||{}).binges||[]).length;}))add(6,'A binge in the last 3 days','More carbs on training days, no making up for it the next day','Restricting after a binge keeps the cycle going; eating normally breaks it.');
   if((S.days[t]||{}).ill||(S.days[addD(t,-1)]||{}).ill)add(15,'Ill','Rest until clear; eat normally','Illness is a large stress on its own; training through it prolongs it.');
   var score=Math.min(100,parts.reduce(function(a,x){return a+x.pts;},0));
-  var band=score<20?['Low','g','Your cortisol is likely in a healthy rhythm: high in the morning, low at night. This is where skin, sleep, muscle and mood are at their best.']:
-    (score<40?['Moderate','','Normal for hard training on a cut. Worth keeping the top item small so it does not build up.']:
-    (score<60?['Raised','w','Likely running higher than ideal: expect puffier eyes, lighter sleep, more hunger and slower recovery. The top item is the lever.']:
-    ['High','w','Likely high for days at a time: water held in the face, flat sessions, muscle at risk on the cut, colds more likely. A calm, well-fed rest day matters more than anything else.']));
+  var band=score<10?['Best','g','The best zone for anti-ageing: cortisol likely in a healthy rhythm, high in the morning and low at night. This is where skin, sleep, muscle and mood are at their best.']:
+    (score<25?['Decent','','Fine, and normal for hard training on a cut. Clearing the top item gets you back to the best zone.']:
+    (score<45?['Raised','w','Likely running higher than ideal: expect puffier eyes, lighter sleep, more hunger and slower recovery. The top item is the lever.']:
+    ['Bad','w','Likely high for days at a time: water held in the face, flat sessions, muscle at risk on the cut, colds more likely. A calm, well-fed rest day matters more than anything else.']));
   parts.sort(function(a,b){return b.pts-a.pts;});
   return {score:score,band:band,parts:parts};}
+/* Dan, 4 Nov: "say exactly what's bad, what's decent, what's the best… 0 being the best for anti-ageing."
+   Each thing that moves cortisol, graded on its own scale, with his number now. */
+function cortScale(){
+  var t=today(),rows=[],val=function(v,f){return v===null||v===undefined?'—':f(v);};
+  var grade=function(v,best,ok){return v===null||v===undefined?'':(best(v)?'best':(ok(v)?'decent':'bad'));};
+  var sl=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).sleep;}).filter(function(v){return typeof v==='number';}),slA=sl.length?mean(sl):null;
+  rows.push(['😴 Sleep (last 3 nights)',val(slA,function(v){return f1(v)+' h';}),grade(slA,function(v){return v>=8;},function(v){return v>=7;}),'8–9.5 h','7–8 h','under 7 h']);
+  var bm=[0,1,2,3,4,5,6].map(function(i){return bedMin((S.days[addD(t,-i)]||{}).bed);}).filter(function(v){return v!==null;});
+  var bA=bm.length?mean(bm):null,bT=function(v){var m=Math.round(v)%1440;return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2);};
+  rows.push(['🛏️ Bedtime (7-day average)',val(bA,bT),grade(bA,function(v){return v<=23*60+30;},function(v){return v<=24*60+15;}),'by 23:30','by 00:15','after 00:15']);
+  var sd=bm.length>=3?Math.sqrt(mean(bm.map(function(v){return (v-bA)*(v-bA);}))):null;
+  rows.push(['🕰️ Bedtime regularity',val(sd,function(v){return '±'+Math.round(v)+' min';}),grade(sd,function(v){return v<=30;},function(v){return v<=60;}),'within ±30 min','±30–60 min','over ±60 min']);
+  var b=rhrBase(t),r0=(S.days[t]||{}).rhr,dr=(b!==null&&typeof r0==='number')?r0-b:null;
+  rows.push(['❤️ Morning HR vs your usual',val(dr,function(v){return (v>=0?'+':'')+Math.round(v)+' ('+r0+')';}),grade(dr,function(v){return v<=2;},function(v){return v<=4;}),'within +2','+3 to +4','+5 or more']);
+  var C=null;try{C=cortisolCheck();}catch(e){}
+  var hp=C?C.peak:null;rows.push(['⚡ Hard runs in any 7 days',val(hp,String),grade(hp,function(v){return v<=2;},function(v){return v<=2;}),'1–2','—','3 or more']);
+  var al=C?C.flags.some(function(f){return /day after legs/.test(f[0]);}):null;rows.push(['🦵 Hard run the day after legs',al===null?'—':(al?'yes':'no'),al===null?'':(al?'bad':'best'),'never','—','yes']);
+  var rest=0;for(var i=0;i<7;i++){var rr=S.days[addD(t,-i)]||{};if(!rr.gym&&!(rr.runs||[]).length)rest++;}
+  rows.push(['🛋️ Full days off (last 7)',String(rest),rest>=1?'best':'bad','1 or more','—','none']);
+  var gaps=[],cb=[];for(var j=1;j<=3;j++){var d=addD(t,-j),r=S.days[d]||{},g=r.glowSum,k=typeof r.kcal==='number'?r.kcal:(g?g.kcal:null);if(k!==null)gaps.push(dayTarget(d)-k);
+    var tr=r.gym||(r.runs||[]).some(function(x){return runMeta(x).hard;});if(g&&tr)cb.push(g.carbs);}
+  var gA=gaps.length?Math.max.apply(null,gaps):null;
+  rows.push(['🍽️ Biggest gap under target (last 3 days)',val(gA,function(v){return v<=0?'on or over':ci(Math.round(v))+' kcal under';}),grade(gA,function(v){return v<=150;},function(v){return v<=300;}),'within 150 kcal','150–300 under','300+ under']);
+  var cM=cb.length?Math.min.apply(null,cb):null;
+  rows.push(['🍠 Carbs on training days (lowest)',val(cM,function(v){return v+' g';}),grade(cM,function(v){return v>=200;},function(v){return v>=150;}),'200 g+','150–200 g','under 150 g']);
+  var st=[1,2,3].map(function(i){return (S.days[addD(t,-i)]||{}).steps;}).filter(function(v){return typeof v==='number';}),sM=st.length?Math.max.apply(null,st):null;
+  rows.push(['👣 Steps (highest, last 3 days)',val(sM,ci),grade(sM,function(v){return v<=13000;},function(v){return v<=14000;}),'8–13k','13–14k','over 14k']);
+  var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';}),dM=dp.length?Math.max.apply(null,dp):null;
+  rows.push(['🧠 Deep study in a day (highest)',val(dM,sh),grade(dM,function(v){return v<=4;},function(v){return v<=5;}),'up to 4 h','4–5 h','over 5 h']);
+  var jm=null;for(var q=0;q<2;q++){var jj=(S.days[addD(t,-q)]||{}).journal;if(jj&&jj.mood){jm=jj.mood;break;}}
+  rows.push(['😊 Mood (journal, 1–5)',val(jm,String),grade(jm,function(v){return v>=4;},function(v){return v>=3;}),'4–5','3','1–2']);
+  return rows;}
+function cortScaleHTML(){var R=cortScale(),col={best:'var(--good)',decent:'var(--warn)',bad:'var(--bad)'},lab={best:'✓ best',decent:'~ decent',bad:'✗ bad'};
+  return '<div class="scroll" style="margin-top:6px"><table class="tbl"><thead><tr><th></th><th class="n">You</th><th>Best</th><th>Decent</th><th>Bad</th></tr></thead><tbody>'+
+    R.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="n"><b>'+esc(r[1])+'</b>'+(r[2]?'<div class="tiny" style="color:'+col[r[2]]+'">'+lab[r[2]]+'</div>':'')+'</td><td class="tiny">'+esc(r[3])+'</td><td class="tiny">'+esc(r[4])+'</td><td class="tiny">'+esc(r[5])+'</td></tr>';}).join('')+'</tbody></table></div>';}
 var CORT_LOWER=[['😴','8–9 h in bed, phone out, the same bedtime','The biggest single lever: cortisol falls through the first half of the night and rises before waking.','big'],
   ['☀️','Daylight in the first hour, 10–15 min','Anchors the cortisol rhythm so it peaks in the morning and falls at night.','medium'],
   ['🍠','Carbs around hard sessions, never under 1,799','Blunts the exercise cortisol rise and keeps thyroid and testosterone up on the cut.','big'],
@@ -10314,8 +10350,10 @@ var CORT_LOWER=[['😴','8–9 h in bed, phone out, the same bedtime','The bigge
 function cortisolHTML(){var X=cortisolScore();
   return '<div class="p"><h2>🧪 Cortisol score</h2>'+
     '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.8em;font-family:\'IBM Plex Mono\',monospace">'+X.score+'</b><span class="tiny dim">/ 100</span><b>'+X.band[0]+'</b></div>'+
-    '<div style="height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin:4px 0"><div style="height:100%;width:'+X.score+'%;background:'+(X.score>=40?'var(--warn)':'var(--good)')+'"></div></div>'+
+    '<div style="height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin:4px 0"><div style="height:100%;width:'+X.score+'%;background:'+(X.score>=25?'var(--warn)':'var(--good)')+'"></div></div>'+
+    '<p style="margin:2px 0;font-size:.85em"><b>0 is best.</b> 0–9 best for anti-ageing · 10–24 decent · 25–44 raised · 45+ bad. In the cut the lowest you can be is 5 (the cut itself counts).</p>'+
     '<p style="margin:4px 0">'+X.band[2]+'</p>'+
+    '<h3 style="margin:8px 0 2px">Each thing, graded</h3>'+cortScaleHTML()+
     (X.parts.length?'<h3 style="margin:8px 0 2px">What is raising it, and what brings it down</h3>'+X.parts.map(function(x){return '<div style="margin:6px 0"><span class="mono">+'+x.pts+'</span> <b>'+esc(x.why)+'</b><div class="tiny" style="margin-left:34px">↓ '+esc(x.fix)+(x.src?'<br><span class="dim">'+esc(x.src)+'</span>':'')+'</div></div>';}).join(''):'<p class="tiny">Nothing raising it right now.</p>')+
     '<details class="fold"><summary><b>What lowers cortisol most, every day</b></summary>'+CORT_LOWER.map(function(x){return '<p style="margin:5px 0">'+x[0]+' <b>'+esc(x[1])+'</b> '+IMP[x[3]]+'<br><span class="tiny">'+esc(x[2])+'</span></p>';}).join('')+'</details>'+
     '<p class="tiny dim" style="margin-top:6px"><b>Stress score vs cortisol score:</b> the stress score is your whole load (training, life, recovery signs). This one is narrower: the things studies show raise the hormone cortisol most. Both are estimates from your logs, not a blood or saliva test.</p></div>';}
@@ -10358,7 +10396,7 @@ function skinCoachHTML(){
   var sl=typeof r.sleep==='number'?r.sleep:null;
   var look=[];
   look.push(sl===null?'Last night’s sleep not logged.':'Last night <b>'+f1(sl)+' h</b>'+(r.phoneOut?' phone-free':'')+(sl>=8?': the best thing you can do for under-eyes and glow.':(sl>=7?': fine; 8 h+ is where the under-eyes clear.':': short sleep shows under the eyes first.')));
-  look.push('Cortisol score <b>'+X.score+'/100</b> ('+X.band[0].toLowerCase()+')'+(X.score>=40?': expect some puffiness; '+esc(X.parts[0].fix.toLowerCase())+' is the lever.':': good for skin.'));
+  look.push('Cortisol score <b>'+X.score+'/100</b> ('+X.band[0].toLowerCase()+')'+(X.score>=25?': expect some puffiness; '+esc(X.parts[0].fix.toLowerCase())+' is the lever.':': good for skin.'));
   var nx=[];
   if(sl!==null&&sl<8)nx.push(['8–9 h tonight, in bed by about 23:15','big']);
   if(am<dd)nx.push(['SPF 30–50 every morning, even in winter (the main cause of skin ageing and darker under-eye pigment)','big']);
@@ -10438,7 +10476,7 @@ function longCoachHTML(){
   var bpN=0;try{bpN=(S.glow&&S.glow.bp||[]).length;}catch(e){}var labs=(S.glow&&S.glow.labs||[]).length;
   var nx=[];
   if(X.score>=50)nx.push(['Bring stress down: '+X.parts[0].fix,'big']);
-  try{var CX=cortisolScore();if(CX.score>=40&&CX.parts[0])nx.unshift(['Cortisol '+CX.score+'/100: '+CX.parts[0].fix,'big']);}catch(e){}
+  try{var CX=cortisolScore();if(CX.score>=25&&CX.parts[0])nx.unshift(['Cortisol '+CX.score+'/100: '+CX.parts[0].fix,'big']);}catch(e){}
   if(bpN<3)nx.push(['Home blood pressure, a few mornings and evenings (your one reading was 134/82)','big']);
   if(miss.length)nx.push([miss[0][0]+' '+miss[0][1],'medium']);
   if(!labs)nx.push(['A baseline blood test when it suits: ferritin, vitamin D, B12, folate, cholesterol, HbA1c, thyroid','medium']);
