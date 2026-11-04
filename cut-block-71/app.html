@@ -9215,11 +9215,18 @@ var TMA_STAGES=[['Decode the question',21,'Underline the command words (evaluate
   ['Check references',3,'Every in-text citation is in the list and every list entry is cited. Cite Them Right Harvard, consistently.'],
   ['Proofread and word count',2,'Read it aloud. Word limit, British spelling, your own words, any AI use as the module allows.'],
   ['Submit early',1,'At least a day early: the eTMA system on deadline night is a needless risk.']];
+/* Dan, 4 Nov: "SK297 TMA 01 is due 19 Nov; the planner says TMA week is the week before, but I'm doing it
+   next week." A task can carry its own start and finish (x.start, x.aim): the stages are then spread over
+   the days in between, Saturday kept free, instead of counted back from the due date. */
+function tmaStageDate(x,i){
+  if(x.start&&x.aim){var days=[],d=x.start;while(d<=x.aim){if(dow(d)!==6)days.push(d);d=addD(d,1);}
+    if(days.length)return days[Math.min(days.length-1,Math.floor(i*days.length/TMA_STAGES.length))];}
+  return addD(x.due,-TMA_STAGES[i][1]);}
 function tmaStagesHTML(x){
   var t=today(),st=x.st||{},nx=null;
-  var rows=TMA_STAGES.map(function(g,i){var d=addD(x.due,-g[1]),done=!!st[i];if(!done&&!nx)nx={i:i,d:d,g:g};
+  var rows=TMA_STAGES.map(function(g,i){var d=tmaStageDate(x,i),done=!!st[i];if(!done&&!nx)nx={i:i,d:d,g:g};
     return '<button type="button" class="btn sm'+(done?'':' ghost')+'" data-gl="tstage" data-id="'+x.id+'" data-n="'+i+'" title="'+esc(g[2])+'" style="margin:2px">'+(done?'✓ ':'')+esc(g[0])+' <span class="tiny">'+fmtS(d)+'</span></button>';}).join('');
-  return '<details style="margin-top:4px"><summary class="tiny">Plan backwards from '+fmtS(x.due)+(nx?' · next: <b>'+esc(nx.g[0])+'</b> by '+fmtS(nx.d)+(nx.d<t?' (date passed: pick it up now)':''):' · every stage done')+'</summary>'+
+  return '<details style="margin-top:4px"><summary class="tiny">'+(x.start&&x.aim?'Your plan: '+fmtS(x.start)+' to '+fmtS(x.aim)+' (due '+fmtS(x.due)+')':'Plan backwards from '+fmtS(x.due))+(nx?' · next: <b>'+esc(nx.g[0])+'</b> by '+fmtS(nx.d)+(nx.d<t?' (date passed: pick it up now)':''):' · every stage done')+'</summary>'+
     '<div style="margin-top:4px">'+rows+'</div>'+(nx?'<p class="tiny dim" style="margin-top:4px">'+esc(nx.g[2])+'</p>':'')+'</details>';
 }
 /* OU classification bands for an assignment score (OU: 85+ pass 1 / distinction, 70–84 pass 2, 55–69 pass 3, 40–54 pass 4) */
