@@ -38,6 +38,7 @@ throughout.
 - **Coeliac.** Oats, grains, granola, collagen, chocolate and nuts must be certified gluten-free.
 - Never recommend **beta-carotene, biotin or vitamin D tablets**, **liver**, or **high-dose vitamin C**.
 - Excluded foods: broccoli, sprouts, cabbage, kale, rocket, watercress, spinach, olive oil, green tea, Brazil nuts, lentils, onion, leek, garlic.
+- Exception (Dan, 4 Nov): **Kallo lentil-and-rice cakes are fine** — they don't bloat him. Log them freely and don't flag them; whole lentils, beans and other pulses stay off the suggestions.
 - **No processed food. No sweeteners.**
 - **Salt:** once a day, steady. Never recommend cutting it (asked about heartburn and blood pressure — still no).
 - **Retinol stopped for good (28 Oct 2026)** — it ruined his skin barrier. Tretinoin is out too. Do not suggest either.
