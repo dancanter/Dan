@@ -1,5 +1,6 @@
 import { StrictMode, type ReactNode } from 'react';
-import { MicrosRoundup } from './components/MicrosRoundup';
+import { eatNext } from './engine/eatnext';
+import { MicrosRoundup, microWeek } from './components/MicrosRoundup';
 import { createRoot, type Root } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
@@ -85,6 +86,18 @@ if (hosted()) {
     mount: (host: HTMLElement, v: View, date: string, open?: boolean) => render(host, view(v, date, open)),
     /** Recount every day's totals and write them back (after the tracker adds food). */
     recompute: () => { refreshFromHost(); setState((s) => ({ ...s })); },
+    /** For the tracker's nutrition, skin and longevity coaches: meals today, this week's absorbed nutrients (lowest first), and the food options. */
+    nutri: (date: string) => {
+      const s = getState();
+      const meals: Record<string, { kcal: number; protein: number; n: number }> = {};
+      for (const it of resolveItems(s.days[date], s)) {
+        const m = (it as { meal?: string }).meal ?? 'snacks';
+        const x = (meals[m] ??= { kcal: 0, protein: 0, n: 0 });
+        x.kcal += (it.food.n.kcal * it.grams) / 100; x.protein += ((it.food.n.protein ?? 0) * it.grams) / 100; x.n++;
+      }
+      const mw = microWeek(s, date);
+      return { meals, week: mw.rows.map((r) => ({ k: r.k, label: r.label, week: r.week, today: r.today })), days: mw.days, cov: mw.cov, next: eatNext(s, date) };
+    },
     /** For tests: Glow's own view of a day. */
     day: (date: string) => getState().days[date],
   };

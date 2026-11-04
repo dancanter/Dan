@@ -457,6 +457,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="homeCard"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
   <div id="ovStress"></div>
+  <div id="ovCort"></div>
   <div class="p"><h2>🧬 Health age</h2><div id="glowHealthOv"><span class="tiny dim">Loading your health age…</span></div></div>
   <div id="ovRun"></div>
   <div id="bankCard"></div>
@@ -754,9 +755,11 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= REVIEW ================= -->
 <section id="s-nutri" class="stack" hidden>
+  <div id="nutriCoach"></div>
   <div id="glowHome"></div>
 </section>
 <section id="s-calm" class="stack" hidden>
+  <div id="cortCalm"></div>
   <div id="calmCard"></div>
   <div id="glowCalm"></div>
 </section>
@@ -823,6 +826,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 
 <!-- ================= SKIN ================= -->
 <section id="s-skin" class="stack" hidden>
+  <div id="skinCoach"></div>
   <div id="skTop"></div>
   <div id="skRetinol"></div>
   <div class="cols">
@@ -9486,6 +9490,9 @@ function renderGoodLife(){
   if(E('liftCoach'))E('liftCoach').innerHTML=liftCoachHTML();
   if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
+  try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
+  try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();}catch(e){}
+  try{if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();}catch(e){}
   if(E('runWins'))E('runWins').innerHTML=runWinsHTML();
   if(E('muscleFun'))E('muscleFun').innerHTML=muscleFunHTML();
   if(E('paceCard'))E('paceCard').innerHTML=paceGuideHTML(false);
@@ -9868,6 +9875,7 @@ function homeHTML(){
   var gdF=glowDay(t);
   tiles.push('<button type="button" class="hm-t" data-t="nutri" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><div class="hm-h">🍽️ Food today</div><b>'+(gdF?ci(gdF.kcal)+' kcal':'—')+'</b><small>'+(gdF?gdF.protein+' g protein of '+MACRO.pro+' · food options →':'log food · food options →')+'</small>'+(gdF?'<div class="cc-bar sm"><i style="width:'+Math.min(100,Math.round(gdF.protein/MACRO.pro*100))+'%"></i></div>':'')+'</button>');
   tiles.push(stressTile());
+  try{var CXt=cortisolScore();tiles.push('<div class="hm-t'+(CXt.score>=40?' w':(CXt.score<20?' good':''))+'"><div class="hm-h">🧪 Cortisol</div><b>'+CXt.score+'<span class="tiny dim"> /100 · '+CXt.band[0]+'</span></b><small>'+esc(CXt.parts[0]?'mostly: '+CXt.parts[0].why.toLowerCase()+' · ↓ '+CXt.parts[0].fix.toLowerCase():'nothing raising it')+'</small></div>');}catch(e){}
   tiles.push(homeTile('😊','Happy',W.j.mood!==null?W.j.mood.toFixed(1)+'/5':'—',W.j.n?'mood · energy '+(W.j.energy!==null?W.j.energy.toFixed(1):'—'):'write the journal',W.j.mood!==null?W.j.mood/5:null,W.j.mood!==null&&W.j.mood>=4?'good':''));
   /* three things to do next */
   var L=greenLight()||{};if(L.t)next.push([(L.e?L.e+' ':'')+L.t+(L.sub?' — '+L.sub:(L.w?' — '+String(L.w).replace(/<[^>]+>/g,'').split('. ')[0]:'')),'big']);
@@ -10112,7 +10120,7 @@ function cortisolCheck(){
   var tone=flags.length?'w':'g';
   var verdict=flags.length?'Not too hard for longevity overall: the hard sessions are short and your weekly volume is low. It is the stacking that keeps cortisol up.':'Your mix is good for longevity: hard work kept to two sessions, easy days in between.';
   return {tone:tone,verdict:verdict,flags:flags,last7:last7,peak:peak};}
-function cortisolHTML(){var X=cortisolCheck();
+function cortisolHTML_run(){var X=cortisolCheck();
   return '<details class="fold"'+(X.flags.length?' open':'')+'><summary><b>🧬 Cortisol and longevity check</b> <span class="pill'+(X.tone==='w'?' w':' g')+'">'+(X.flags.length?X.flags.length+' to change':'on track')+'</span></summary>'+
     '<p style="margin:4px 0">'+X.verdict+'</p>'+
     X.flags.map(function(f){return '<p style="margin:4px 0"><span class="pill w">!</span> <b>'+esc(f[0])+'</b><br><span class="tiny">'+esc(f[1])+'</span></p>';}).join('')+
@@ -10140,7 +10148,7 @@ function runCoachHTML(){
       var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
       return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+(x.e==='🌊'&&norwTooFast()?'<br><span class="tiny">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</span>':'')+'</p>';}).join(''):'')+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
-    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+cortisolHTML()+'</div>';}
+    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+cortisolHTML_run()+(function(){try{return '<details class="fold"><summary><b>🔎 In depth</b></summary>'+runDeepHTML()+'</details>';}catch(e){return '';}})()+'</div>';}
 
 /* Dan, 3 Nov: "I don't need the others: say my achievements and my best runs,
    and a fun section on how my muscles are growing." */
@@ -10242,7 +10250,168 @@ function benchHTML(){
    "I have a running coach; I want a longevity coach, a weight-lifting coach and a
    study coach." Same shape as the running coach: how it went, this week, next,
    and the goal. Suggestions, never orders, each with how much it matters. */
-function coachCard(e,title,parts){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+'</div>';}
+/* ===================== cortisol, and the in-depth coaches (Dan, 4 Nov) =====================
+   "Is my stress clock the same as cortisol? Have a stress and a cortisol thing out of 100, say why and
+   how to lower it, backed by longevity… anything and everything can cause stress… with skin and looking
+   like a model say what to do and eat… I want all my coaches very adaptable to what I'm doing, my goals
+   and health, and extremely in depth."
+   The stress score is the whole load (training, life, recovery signs). The cortisol score is narrower: an
+   estimate of the hormone side from the things that most reliably raise cortisol in studies (short sleep,
+   eating well under need, low carbs around hard training, hard sessions stacked, heavy mental load, low
+   mood). Both are estimates from his own logs, never a blood test. */
+function tmaOn(t){t=t||today();try{glStore();return (S.uni.tasks||[]).filter(function(x){return !x.done&&x.start&&x.aim&&t>=x.start&&t<=x.aim;})[0]||null;}catch(e){return null;}}
+function bedMin(b){if(!b||!/^\d\d:\d\d$/.test(b))return null;var h=+b.slice(0,2),m=+b.slice(3);return (h<12?h+24:h)*60+m;}
+function runsIn(t,n){var out=[];for(var i=0;i<n;i++){var d=addD(t,-i);((S.days[d]||{}).runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty)out.push({d:d,m:m,r:x});});}return out;}
+function rhrBase(t){var b=[];for(var i=1;i<=28;i++){var v=(S.days[addD(t,-i)]||{}).rhr;if(typeof v==='number')b.push(v);}return b.length>=5?mean(b):null;}
+function cortisolScore(){
+  var t=today(),parts=[],add=function(pts,why,fix,src){if(pts>0)parts.push({pts:Math.round(pts),why:why,fix:fix,src:src});};
+  /* 1. sleep, the last three nights */
+  var sl=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).sleep;}).filter(function(v){return typeof v==='number';});
+  if(sl.length){var a=mean(sl);if(a<7.5)add(Math.min(25,(7.5-a)*12+5),'Sleep has averaged '+f1(a)+' h over the last '+sl.length+' night'+(sl.length===1?'':'s'),'Two nights of 8.5 h or more in bed, phone out of the room','A week of short sleep raises evening cortisol (Leproult 1997, Spiegel 1999).');}
+  var bm=[0,1,2,3,4,5,6].map(function(i){return bedMin((S.days[addD(t,-i)]||{}).bed);}).filter(function(v){return v!==null;});
+  if(bm.length>=3){var late=bm.filter(function(v){return v>24*60+15;}).length,sd=Math.sqrt(mean(bm.map(function(v){var m=mean(bm);return (v-m)*(v-m);})));
+    if(late>=2)add(5+late,late+' late nights (after 00:15) this week','Bed by about 23:15: the same time most nights','Late, irregular sleep shifts the cortisol rhythm later and flattens it (Phillips 2017, sleep regularity).');
+    else if(sd>60)add(5,'Bedtimes have varied by over an hour this week','Keep bedtime within about 30 minutes','Irregular sleep timing is linked to worse metabolic health independent of hours (Windred 2024).');}
+  /* 2. morning heart rate */
+  var b=rhrBase(t),r0=(S.days[t]||{}).rhr;if(b!==null&&typeof r0==='number'&&r0>=b+4)add(r0>=b+7?15:9,'Resting HR '+r0+', '+Math.round(r0-b)+' above your usual '+Math.round(b),'An easy or rest day, and an early night','A raised morning heart rate is the most reliable home sign of incomplete recovery (Buchheit 2014).');
+  /* 3. hard sessions */
+  try{var C=cortisolCheck();if(C.peak>=3)add(12,'3 hard runs inside 7 days','Two hard runs a week, the third easy','Hard exercise above about 60% of VO₂max raises cortisol each time; the recovery between is what lets it fall (Hill 2008).');
+    if(C.flags.some(function(f){return /day after legs/.test(f[0]);}))add(7,'A hard run the day after legs','An easy or rest day between legs and a hard run','Training on unrecovered muscle costs more for the same session.');}catch(e){}
+  var rest=0;for(var i=0;i<7;i++){var rr=S.days[addD(t,-i)]||{};if(!rr.gym&&!(rr.runs||[]).length)rest++;}
+  if(rest===0)add(8,'No full day off in the last 7','A full day off: no run, no gym','Recovery days are when cortisol and inflammation come back to baseline.');
+  /* 4. energy and carbs */
+  var under=0,lowC=0,days=0;for(var j=0;j<3;j++){var d=addD(t,-j),r=S.days[d]||{},g=r.glowSum,k=typeof r.kcal==='number'?r.kcal:(g?g.kcal:null);if(k===null||j===0)continue;days++;var tg=dayTarget(d);if(k<tg-200)under++;
+    var trained=r.gym||(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;});if(g&&trained&&g.carbs<180)lowC++;}
+  if(under)add(8*under,under+' of the last '+days+' days were 200 kcal or more under your target','Eat the full target: 1,799 is the floor, never lower','Calorie restriction raises cortisol (Tomiyama 2010); the bigger and longer the deficit, the more.');
+  if(lowC)add(7*lowC,'Carbs under 180 g on '+lowC+' training day'+(lowC===1?'':'s'),'Potatoes, rice or GF oats before and after hard sessions','Carbs during and around hard exercise blunt the cortisol rise (Bishop 1999, Gleeson 2004).');
+  add(5,'You are in a cut (the push to 24 Dec)','Nothing to fix: it is the plan. Keep the rest of the list clean and it stays small','Any sustained deficit is a mild stress; it ends on time.');
+  /* 5. steps */
+  var big=0;for(var q=1;q<=3;q++){var st=(S.days[addD(t,-q)]||{}).steps;if(typeof st==='number'&&st>14000)big++;}
+  if(big)add(4*big,big+' day'+(big===1?'':'s')+' over 14k steps','Keep to the app’s step target (10–13k by the scale)','Past about 13k, extra walking adds fatigue more than health (Paluch 2022: benefit levels off at 8–10k).');
+  /* 6. mind */
+  var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';});
+  if(dp.length&&Math.max.apply(null,dp)>4.5)add(6,'Over 4.5 h of deep study in a day','Two or three 90-minute blocks, then stop','Long, pressured mental work raises cortisol; breaks and an end point bring it down.');
+  var tm=tmaOn(t);if(tm)add(6,'TMA week ('+(tm.mod||'')+' '+tm.title+')','Follow the stage plan: one stage a day, done by the evening','A clear plan lowers the stress of a deadline more than extra hours do.');
+  var jm=[0,1].map(function(i){var r=S.days[addD(t,-i)]||{};return r.journal||{};});
+  if(jm.some(function(x){return x.mood&&x.mood<=2;}))add(8,'Low mood in the journal','Time outside in daylight, someone you like, a film night','Low mood and loneliness are linked to higher cortisol; social time and nature lower it (Hunter 2019: 20–30 min outside).');
+  if(jm.some(function(x){return x.energy&&x.energy<=2;}))add(5,'Low energy in the journal','Sleep and carbs around training first','');
+  if([0,1,2].some(function(i){return ((S.days[addD(t,-i)]||{}).binges||[]).length;}))add(6,'A binge in the last 3 days','More carbs on training days, no making up for it the next day','Restricting after a binge keeps the cycle going; eating normally breaks it.');
+  if((S.days[t]||{}).ill||(S.days[addD(t,-1)]||{}).ill)add(15,'Ill','Rest until clear; eat normally','Illness is a large stress on its own; training through it prolongs it.');
+  var score=Math.min(100,parts.reduce(function(a,x){return a+x.pts;},0));
+  var band=score<20?['Low','g','Your cortisol is likely in a healthy rhythm: high in the morning, low at night. This is where skin, sleep, muscle and mood are at their best.']:
+    (score<40?['Moderate','','Normal for hard training on a cut. Worth keeping the top item small so it does not build up.']:
+    (score<60?['Raised','w','Likely running higher than ideal: expect puffier eyes, lighter sleep, more hunger and slower recovery. The top item is the lever.']:
+    ['High','w','Likely high for days at a time: water held in the face, flat sessions, muscle at risk on the cut, colds more likely. A calm, well-fed rest day matters more than anything else.']));
+  parts.sort(function(a,b){return b.pts-a.pts;});
+  return {score:score,band:band,parts:parts};}
+var CORT_LOWER=[['😴','8–9 h in bed, phone out, the same bedtime','The biggest single lever: cortisol falls through the first half of the night and rises before waking.','big'],
+  ['☀️','Daylight in the first hour, 10–15 min','Anchors the cortisol rhythm so it peaks in the morning and falls at night.','medium'],
+  ['🍠','Carbs around hard sessions, never under 1,799','Blunts the exercise cortisol rise and keeps thyroid and testosterone up on the cut.','big'],
+  ['🌬️','Slow breathing, 5 min (breathe out longer than in)','Lowered cortisol in a controlled trial (Ma 2017); it is on the Calm page.','small'],
+  ['🌳','20–30 min outside, ideally green space','The dose that lowered cortisol most in a study of daily nature time (Hunter 2019).','medium'],
+  ['🫂','Time with people, a film night, the stress-free Saturday','Social connection is one of the strongest predictors of a long life (Holt-Lunstad 2010).','medium'],
+  ['🏃','Two hard runs a week, the rest truly easy','Easy running barely moves cortisol; stacked hard sessions keep it up.','big']];
+function cortisolHTML(){var X=cortisolScore();
+  return '<div class="p"><h2>🧪 Cortisol score</h2>'+
+    '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.8em;font-family:\'IBM Plex Mono\',monospace">'+X.score+'</b><span class="tiny dim">/ 100</span><b>'+X.band[0]+'</b></div>'+
+    '<div style="height:6px;background:var(--rule-2);border-radius:3px;overflow:hidden;margin:4px 0"><div style="height:100%;width:'+X.score+'%;background:'+(X.score>=40?'var(--warn)':'var(--good)')+'"></div></div>'+
+    '<p style="margin:4px 0">'+X.band[2]+'</p>'+
+    (X.parts.length?'<h3 style="margin:8px 0 2px">What is raising it, and what brings it down</h3>'+X.parts.map(function(x){return '<div style="margin:6px 0"><span class="mono">+'+x.pts+'</span> <b>'+esc(x.why)+'</b><div class="tiny" style="margin-left:34px">↓ '+esc(x.fix)+(x.src?'<br><span class="dim">'+esc(x.src)+'</span>':'')+'</div></div>';}).join(''):'<p class="tiny">Nothing raising it right now.</p>')+
+    '<details class="fold"><summary><b>What lowers cortisol most, every day</b></summary>'+CORT_LOWER.map(function(x){return '<p style="margin:5px 0">'+x[0]+' <b>'+esc(x[1])+'</b> '+IMP[x[3]]+'<br><span class="tiny">'+esc(x[2])+'</span></p>';}).join('')+'</details>'+
+    '<p class="tiny dim" style="margin-top:6px"><b>Stress score vs cortisol score:</b> the stress score is your whole load (training, life, recovery signs). This one is narrower: the things studies show raise the hormone cortisol most. Both are estimates from your logs, not a blood or saliva test.</p></div>';}
+
+/* ---- the nutrition coach ---- */
+function nutriCoachHTML(){
+  var t=today(),r=S.days[t]||{},g=r.glowSum||null,N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  var tg=dayTarget(t),hard=(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;}),gymD=!!r.gym;
+  var wk=[],ws=mondayOf(t);for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var gs=(S.days[d]||{}).glowSum;if(gs&&gs.n>=3)wk.push(gs);}
+  var avg=function(k){return wk.length?mean(wk.map(function(x){return x[k]||0;})):null;};
+  var parts=[],deep=[];
+  /* today */
+  if(g){var left=tg-g.kcal;
+    parts.push(['Today so far','<b>'+ci(g.kcal)+'</b> of '+ci(tg)+' kcal · protein <b>'+g.protein+' g</b> of 140 · carbs '+g.carbs+' g · fat '+g.fat+' g · fibre '+g.fibre+' g'+(left>0?'. About '+ci(left)+' kcal and '+Math.max(0,140-g.protein)+' g protein still to come.':'.')]);}
+  else parts.push(['Today so far','Nothing logged yet. Send a screenshot or add food and this coach reads it.']);
+  /* next */
+  var nx=[];
+  if(g&&g.protein<140-15)nx.push([(140-g.protein)+' g protein still to find: Fage, eggs, hake, chicken or venison','big']);
+  if(g&&(hard||gymD)&&g.carbs<180)nx.push(['A training day: carbs to 200 g or more (potatoes, rice, GF oats) keeps cortisol down','big']);
+  if(g&&g.fat<40&&g.kcal>tg*0.6)nx.push(['Fat at '+g.fat+' g: an egg or some butter or cheese takes it past 40 g (hormones and skin)','medium']);
+  if(N&&N.next)N.next.slice(0,3).forEach(function(x){if(nx.length<4)nx.push([x.emoji+' '+x.title+': '+x.foods.slice(0,3).join(', '),x.impact]);});
+  if(!nx.length)nx.push(['On plan: eat the rest of the day as normal','small']);
+  parts.push(['👉 Next',nx.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')]);
+  /* this week */
+  if(wk.length)parts.push(['This week','Over '+wk.length+' logged day'+(wk.length===1?'':'s')+': protein <b>'+Math.round(avg('protein'))+' g</b> a day · omega-3 <b>'+f1(avg('omega3'))+' g</b> · carbs '+Math.round(avg('carbs'))+' g · nutrient coverage <b>'+Math.round(avg('coverage'))+'%</b>']);
+  /* in depth */
+  if(N&&N.meals){var order=['breakfast','lunch','dinner','snacks'];deep.push('<h3 style="margin:6px 0 2px">Protein meal by meal</h3><p style="margin:2px 0">'+order.filter(function(m){return N.meals[m];}).map(function(m){var x=N.meals[m];return m[0].toUpperCase()+m.slice(1)+': <b>'+Math.round(x.protein)+' g</b> ('+ci(Math.round(x.kcal))+' kcal)';}).join(' · ')+'</p><p class="tiny">30–40 g at each main meal is what keeps muscle building switched on through the day on a cut; one big protein meal does less than the same amount spread out.</p>');}
+  if(N&&N.week&&N.days){var low=N.week.filter(function(x){return x.week!==null;}).slice(0,6);
+    deep.push('<h3 style="margin:8px 0 2px">Lowest nutrients this week</h3><p style="margin:2px 0">'+low.map(function(x){return esc(x.label)+' <b>'+Math.round(x.week)+'%</b>';}).join(' · ')+'</p><p class="tiny">What your body absorbs, as a share of need, over '+N.days+' logged day'+(N.days===1?'':'s')+'. The full list is on the Overview (Micros so far).</p>');}
+  deep.push('<h3 style="margin:8px 0 2px">Your food rules, built in</h3><p class="tiny">Animal foods first (best-absorbed iron, zinc, B12, vitamin A, omega-3 and protein) · gluten-free always · no pulses, no liver, nothing processed · salt and water steady · 1,799 is the floor · carbs 200 g+ on training days · fat 40 g+.</p>');
+  var ph=pushOn(t)?'The push to 24 Dec: calories as the shred, protein 140 g every day, carbs around training. The leaner you get, the more protein and sleep decide whether it is fat or muscle that goes.':(t<=STRICT.resetTo?'Christmas, then the reset cut at 1,899.':'The build at about 2,399: protein 140 g, carbs up for training, fat up for hormones and skin.');
+  parts.push(['🎯 Goal',ph]);
+  return coachCard('🥩','Your nutrition coach',parts,deep.join(''));}
+
+/* ---- the skin and model coach ---- */
+function skinCoachHTML(){
+  var t=today(),r=S.days[t]||{},y=S.days[addD(t,-1)]||{},X=cortisolScore(),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  var ws=mondayOf(t),am=0,pm=0,dd=0,fish=0;for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;dd++;var x=S.days[d]||{};if(x.skinAM)am++;if(x.skinPM)pm++;var gs=x.glowSum;if(gs&&gs.omega3>=1)fish++;}
+  var nut=function(k){if(!N||!N.week)return null;var z=N.week.filter(function(q){return q.k===k;})[0];return z&&z.week!==null?Math.round(z.week):null;};
+  var sl=typeof r.sleep==='number'?r.sleep:null;
+  var look=[];
+  look.push(sl===null?'Last night’s sleep not logged.':'Last night <b>'+f1(sl)+' h</b>'+(r.phoneOut?' phone-free':'')+(sl>=8?': the best thing you can do for under-eyes and glow.':(sl>=7?': fine; 8 h+ is where the under-eyes clear.':': short sleep shows under the eyes first.')));
+  look.push('Cortisol score <b>'+X.score+'/100</b> ('+X.band[0].toLowerCase()+')'+(X.score>=40?': expect some puffiness; '+esc(X.parts[0].fix.toLowerCase())+' is the lever.':': good for skin.'));
+  var nx=[];
+  if(sl!==null&&sl<8)nx.push(['8–9 h tonight, in bed by about 23:15','big']);
+  if(am<dd)nx.push(['SPF 30–50 every morning, even in winter (the main cause of skin ageing and darker under-eye pigment)','big']);
+  if(fish<2)nx.push(['Oily fish 2–3 times a week (salmon, trout, mackerel): omega-3 goes into the skin barrier and calms redness','big']);
+  var vc=nut('vitC');if(vc!==null&&vc<80)nx.push(['Vitamin C at '+vc+'% this week: kiwi, berries or oranges (collagen needs it daily)','medium']);
+  var zn=nut('zinc');if(zn!==null&&zn<80)nx.push(['Zinc at '+zn+'%: beef, venison or oysters (skin repair)','medium']);
+  nx.push(['A cold spoon or cold water on the eyes for a minute in the morning','small']);
+  var deep='<h3 style="margin:6px 0 2px">Under-eyes: what yours most likely are</h3>'+
+    '<p class="tiny"><b>Blue or purple</b>: thin skin showing vessels, worse with short sleep and dehydration → sleep, cold in the morning, caffeine eye cream.<br><b>Brown</b>: pigment, worse with sun and rubbing → daily SPF, vitamin C or niacinamide serum, no rubbing.<br><b>Shadow</b>: volume loss, more visible as you get leaner → sleep, steady water and salt, soft front light for photos.<br><b>Puffy</b>: fluid, worse with cortisol and salt swings → steady salt and water, head slightly raised, sleep.</p>'+
+    '<h3 style="margin:8px 0 2px">The routine</h3><p class="tiny"><b>Morning:</b> gentle cleanse or just water · vitamin C or niacinamide serum · moisturiser · SPF 30–50 · caffeine eye cream if puffy. <b>Evening:</b> gentle cleanser · ceramide moisturiser. No retinol (stopped). No scrubs more than once a week.</p>'+
+    '<h3 style="margin:8px 0 2px">Eat for skin (animal first)</h3><p class="tiny">Salmon, trout, mackerel (omega-3, astaxanthin) · eggs (biotin and lutein in food, fat for the barrier) · beef, venison, oysters (zinc, iron: low iron darkens circles) · Fage and kefir (protein, iodine) · kiwi, berries, oranges (vitamin C for collagen) · carrots, sweet potato, egg yolks (warm colour from food carotenoids) · fat 40 g+ · protein 140 g.</p>'+
+    '<h3 style="margin:8px 0 2px">Shoot day</h3><p class="tiny">A few more carbs the day before (they fill the muscle), salt and water exactly as usual, 9 h in bed, cold on the eyes, a pump before shooting. Never cut water or salt: it looks flat and hollow, not lean.</p>';
+  var ph=pushOn(t)?'The push to 24 Dec: the face leans out last, so the final weeks show most. Sleep and low cortisol stop it looking tired as you get leaner.':'Eating more in the build softens under-eye hollows and brings back glow.';
+  return coachCard('✨','Your skin & model coach',[['How you look today',look.join('<br>')],['This week','SPF / skin AM <b>'+am+' of '+dd+'</b> days · skin PM '+pm+' of '+dd+' · oily-fish days '+fish+(nut('omega3')!==null?' · omega-3 '+nut('omega3')+'% of need':'')],['👉 Next',nx.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 Goal',ph]],deep);}
+
+/* ---- in depth for the running, lifting, longevity and study coaches ---- */
+function runDeepHTML(){
+  var t=today(),R=runsIn(t,14),hardS=0,easyS=0,easyP=[],wkKm=[0,0,0,0];
+  R.forEach(function(x){var s=x.m.secs||0;if(x.m.hard)hardS+=s;else{easyS+=s;if(x.m.pace&&x.m.km>=3)easyP.push(x.m.pace);}});
+  for(var w=0;w<4;w++)for(var i=0;i<7;i++){var d=addD(t,-(w*7+i));((S.days[d]||{}).runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty)wkKm[w]+=m.km||0;});}
+  var share=hardS+easyS?Math.round(hardS/(hardS+easyS)*100):null,C=cortisolCheck(),tm=tmaOn(t);
+  return '<h3 style="margin:6px 0 2px">The last 14 days</h3><p style="margin:2px 0">'+R.length+' runs · hard running <b>'+(share===null?'—':share+'%')+'</b> of running time'+(easyP.length?' · easy runs averaged <b>'+kmPace(mean(easyP))+'/km</b>':'')+'.</p>'+
+    '<p class="tiny">Hard work is timed reps only (not the jogs between), so 15–25% here is a polarised week. Easy runs should feel like full sentences; if they drift faster, they quietly become hard runs.</p>'+
+    '<h3 style="margin:8px 0 2px">Distance, last 4 weeks</h3><p style="margin:2px 0">'+wkKm.map(function(k,i){return (i===0?'This week ':i+' wk ago ')+'<b>'+f1(k)+' km</b>';}).join(' · ')+'</p><p class="tiny">Steady is the aim. Longevity benefit levels off at a modest weekly volume; your times come from quality, not more kilometres.</p>'+
+    '<h3 style="margin:8px 0 2px">Stress check</h3><p style="margin:2px 0">'+C.last7+' hard run'+(C.last7===1?'':'s')+' in the last 7 days'+(C.flags.length?' · '+C.flags.map(function(f){return esc(f[0]);}).join(' · '):' · nothing stacked')+'.</p>'+
+    (tm?'<p style="margin:4px 0"><b>TMA week:</b> keep the two runs, skip any optional one, and run after your study blocks.</p>':'')+
+    (pushOn(t)?'<p class="tiny">The push: one hard run (600 m+) and one Norwegian, no speed run. The gym stays first.</p>':'');}
+function liftDeepHTML(){
+  var t=today(),ws=weekSets(t),rows=CFG.sets.map(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;return '<tr><td>'+esc(x.m)+'</td><td class="n"><b>'+v+'</b></td><td class="n">'+rg[0]+'–'+rg[1]+'</td><td>'+(v<rg[0]?'↑ '+(rg[0]-v)+' to go':(v>rg[1]?'plenty':'✓'))+'</td></tr>';}).join('');
+  var g4=[0,0,0,0],pr=0,rpe=[];for(var w=0;w<4;w++)for(var i=0;i<7;i++){var r=S.days[addD(t,-(w*7+i))]||{};if(r.gym){g4[w]++;if(r.pr)pr++;if(typeof r.gymRpe==='number')rpe.push(r.gymRpe);}}
+  var pw=[];for(var j=0;j<7;j++){var gs=(S.days[addD(t,-j)]||{}).glowSum;if(gs&&gs.n>=3)pw.push(gs.protein);}
+  var sl=[];for(var k=0;k<7;k++){var s=(S.days[addD(t,-k)]||{}).sleep;if(typeof s==='number')sl.push(s);}
+  return '<h3 style="margin:6px 0 2px">Sets this week (Monday to Sunday)</h3><div class="scroll"><table class="tbl"><thead><tr><th></th><th class="n">Done</th><th class="n">Range</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<h3 style="margin:8px 0 2px">Last 4 weeks</h3><p style="margin:2px 0">Gym sessions '+g4.map(function(n,i){return (i===0?'this week ':i+' wk ago ')+'<b>'+n+'</b>';}).join(' · ')+' · beat last time <b>'+pr+'</b>×'+(rpe.length?' · felt '+f1(mean(rpe))+'/10 on average':'')+'.</p>'+
+    '<h3 style="margin:8px 0 2px">What decides muscle on the cut</h3><p style="margin:2px 0">Protein '+(pw.length?'<b>'+Math.round(mean(pw))+' g</b> a day (aim 140)':'not logged')+' · sleep '+(sl.length?'<b>'+f1(mean(sl))+' h</b> (aim 8–9)':'not logged')+'.</p>'+
+    '<p class="tiny">Heavy weights, 6–12 reps, 1–2 short of failure, beating last time on one main lift. On a cut, trim sets, never the weight: holding strength is the sign you are keeping muscle.'+(tmaOn(t)?' TMA week: the same sessions, a set or two fewer if you are tired.':'')+'</p>';}
+function longDeepHTML(){
+  var t=today(),X=cortisolScore(),W=bankWeek(mondayOf(t)),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+  var rh=[],st=[],bm=[];for(var i=0;i<14;i++){var r=S.days[addD(t,-i)]||{};if(typeof r.rhr==='number')rh.push(r.rhr);if(typeof r.steps==='number')st.push(r.steps);var b=bedMin(r.bed);if(b!==null)bm.push(b);}
+  var sd=bm.length>=3?Math.round(Math.sqrt(mean(bm.map(function(v){var m=mean(bm);return (v-m)*(v-m);})))):null;
+  return '<h3 style="margin:6px 0 2px">Cortisol '+X.score+'/100 · '+X.band[0]+'</h3><p style="margin:2px 0">'+(X.parts[0]?'Biggest part: '+esc(X.parts[0].why)+' → '+esc(X.parts[0].fix)+'.':'Nothing raising it.')+' The full breakdown is on the Overview and in Recovery.</p>'+
+    '<h3 style="margin:8px 0 2px">The markers that predict a long life, yours</h3>'+
+    '<p style="margin:2px 0">VO₂max '+(H&&H.vo2?'<b>'+Math.round(H.vo2)+'</b>':'—')+' (one of the strongest single predictors of survival, Mandsager 2018) · resting HR '+(rh.length?'<b>'+Math.round(mean(rh))+'</b> over 14 days':'—')+' · steps '+(st.length?'<b>'+ci(Math.round(mean(st)))+'</b> a day (benefit levels off at 8–10k)':'—')+' · bedtime varies by '+(sd!==null?'<b>±'+sd+' min</b> (regular sleep is its own predictor)':'—')+' · strength '+(W.habits.some(function(h){return /Strength/.test(h[1])&&h[2];})?'✓ twice or more':'—')+'.</p>'+
+    '<p class="tiny">Not measured yet: blood pressure at home (a few readings), and a baseline blood test (ferritin, vitamin D, B12, folate, cholesterol, HbA1c, thyroid). Those are the two gaps that would make your health age real rather than estimated.</p>'+
+    '<h3 style="margin:8px 0 2px">Your longevity rules</h3><p class="tiny">Low stress first: the calmer option wins · two hard runs a week, no marathons · lift 4× · 8–9 h sleep · protein 140 g, animal foods first · oily fish 2–3× a week · daylight in the morning · SPF daily · people and time outside · a full day off.</p>';}
+function studyDeepHTML(){
+  var t=today();glStore();var ws=mondayOf(t),cells=[];for(var i=0;i<7;i++){var d=addD(ws,i);var r=S.days[d]||{};cells.push(DOWS[dow(d)].slice(0,3)+' '+(d>t?'·':(typeof r.deep==='number'?sh(r.deep):'—')));}
+  var open=(S.uni.tasks||[]).filter(function(x){return !x.done&&x.due;}).sort(function(a,b){return a.due<b.due?-1:1;}),x=open[0],plan='';
+  if(x){var st=x.st||{};plan='<h3 style="margin:8px 0 2px">'+esc((x.mod?x.mod+' ':'')+x.title)+': the plan</h3><p style="margin:2px 0">'+TMA_STAGES.map(function(g,i){return (st[i]?'✓ ':'')+esc(g[0])+' <span class="tiny">'+fmtS(tmaStageDate(x,i))+'</span>';}).join(' · ')+'</p><p class="tiny">Due '+fmtS(x.due)+(x.aim?', submitting '+fmtS(x.aim):'')+'. Tap stages on the University page as you finish them.</p>';}
+  return '<h3 style="margin:6px 0 2px">Deep study, day by day</h3><p style="margin:2px 0">'+cells.join(' · ')+'</p>'+plan+
+    '<h3 style="margin:8px 0 2px">What moves marks most</h3><p class="tiny">Active recall (testing yourself) beats re-reading · 90-minute blocks, phone in another room · evaluate, don’t describe: every paragraph needs a limitation, a comparison and a judgement · references as you go, Cite Them Right Harvard · hardest thinking in the morning, training after · stop by the evening: sleep is when it sticks.</p>';}
+
+function coachCard(e,title,parts,deep){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+(deep?'<details class="fold"><summary><b>🔎 In depth</b></summary>'+deep+'</details>':'')+'</div>';}
 var IMP={big:'<span class="pill g" style="font-size:10px">big difference</span>',medium:'<span class="pill" style="font-size:10px">helps</span>',small:'<span class="pill" style="font-size:10px">small extra</span>'};
 function liftCoachHTML(){
   var t=today(),last=null,ld=null;for(var i=0;i<14;i++){var d=addD(t,-i),r=S.days[d]||{};if(r.gym){last=r;ld=d;break;}}
@@ -10260,7 +10429,8 @@ function liftCoachHTML(){
   if(L.c==='red')nx='Recovery day suggested: if you train, keep it light and nothing to failure. '+nx;
   var C=null;try{var c=chalWeek(t),done=false;for(var k=0;k<7;k++){var cr=(S.days[addD(mondayOf(t),k)]||{}).challenge;if(cr&&cr.ex===c.k)done=true;}C=done?'This week’s challenge ('+c.n+') is done.':'This week’s strength challenge: <b>'+c.n+'</b>, '+chalTarget(c).replace(/^./,function(z){return z.toLowerCase();})+'.';}catch(e){}
   var phase=t<STRICT.xmas?'In the shred: keep the weights heavy and trim sets, never intensity. Holding your strength means you are keeping muscle.':(t<=STRICT.resetTo?'Reset cut: same as the shred, heavy and short.':'The build: add a set a week to your weakest muscles, and weight when the reps allow.');
-  return coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],['👉 Next',nx+(C?'<br>'+C:'')],['🎯 Goal',phase]]);}
+  var dpL='';try{dpL=liftDeepHTML();}catch(e){}
+  return coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],['👉 Next',nx+(C?'<br>'+C:'')],['🎯 Goal',phase]],dpL);}
 function hardRunSoon(){try{var G=campGame();return G.left.some(function(x){return x.e==='⚡'||x.e==='⏱';});}catch(e){return false;}}
 function longCoachHTML(){
   var t=today(),W=bankWeek(mondayOf(t)),X=stressScore(),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
@@ -10268,6 +10438,7 @@ function longCoachHTML(){
   var bpN=0;try{bpN=(S.glow&&S.glow.bp||[]).length;}catch(e){}var labs=(S.glow&&S.glow.labs||[]).length;
   var nx=[];
   if(X.score>=50)nx.push(['Bring stress down: '+X.parts[0].fix,'big']);
+  try{var CX=cortisolScore();if(CX.score>=40&&CX.parts[0])nx.unshift(['Cortisol '+CX.score+'/100: '+CX.parts[0].fix,'big']);}catch(e){}
   if(bpN<3)nx.push(['Home blood pressure, a few mornings and evenings (your one reading was 134/82)','big']);
   if(miss.length)nx.push([miss[0][0]+' '+miss[0][1],'medium']);
   if(!labs)nx.push(['A baseline blood test when it suits: ferritin, vitamin D, B12, folate, cholesterol, HbA1c, thyroid','medium']);
@@ -10275,7 +10446,7 @@ function longCoachHTML(){
   var how=H?'Health age <b>'+H.glowAge+'</b> (you’re '+H.age+')'+(H.vo2?' · VO₂ about '+Math.round(H.vo2):'')+(H.rhr?' · resting HR '+H.rhr:'')+'. Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.':'Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.';
   var phase=t<STRICT.xmas?'In the shred the longevity risk is under-fuelling for too long: keep protein at 140 g, carbs around hard sessions, and take the easy weeks. The cut ends on time.':(t<=STRICT.resetTo?'Short reset cut, then the build: the build is where hormones, bone and recovery come back to full.':'The build: eat enough, train hard, sleep long. This is your healthiest phase.');
   return coachCard('🧬','Your longevity coach',[['How you’re doing',how],['This week','<b>'+W.score+' of 6</b> longevity habits'+(miss.length?' · still open: '+miss.map(function(h){return h[1].toLowerCase();}).join(', '):' · all six')],
-    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 The long game',phase]]);}
+    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 The long game',phase]],(function(){try{return longDeepHTML();}catch(e){return '';}})());}
 function studyCoachHTML(){
   var t=today();glStore();var U=S.uni,ws=mondayOf(t),tot=0,deep=0,last=null,ld=null;
   for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var r=S.days[d]||{};if(typeof r.study==='number')tot+=r.study;if(typeof r.deep==='number')deep+=r.deep;}
@@ -10287,14 +10458,14 @@ function studyCoachHTML(){
   var nx=[];
   if(dow(t)===6)nx.push(['Saturday is stress-free: no study today.','big']);
   else{if(nxT){var stg=null;try{var st=nxT.st||{};for(var k=0;k<TMA_STAGES.length;k++){if(!st[k]){stg=TMA_STAGES[k];break;}}}catch(e){}
-      nx.push([(nxT.mod?nxT.mod+' ':'')+nxT.title+' is due '+fmtS(nxT.due)+' ('+diffD(t,nxT.due)+' days)'+(stg?'. Next stage: '+stg[0]+' by '+fmtS(addD(nxT.due,-stg[1])):''),diffD(t,nxT.due)<=10?'big':'medium']);}
+      nx.push([(nxT.mod?nxT.mod+' ':'')+nxT.title+' is due '+fmtS(nxT.due)+' ('+diffD(t,nxT.due)+' days)'+(stg?'. Next stage: '+stg[0]+' by '+fmtS(tmaStageDate(nxT,TMA_STAGES.indexOf(stg))):''),diffD(t,nxT.due)<=10?'big':'medium']);}
     else nx.push(['Add your TMA deadlines (below) and the coach plans backwards from them.','medium']);
     if(due)nx.push([due+' topic'+(due===1?'':'s')+' due for active recall: 10 minutes of testing yourself','medium']);
     if(deep<8)nx.push(['One 90-minute deep block today would move the week ('+sh(deep)+' deep so far, aim 8–12)','medium']);
     else if(deep>15)nx.push(['Deep study is past 15 h: more now costs recovery more than it adds marks','big']);}
   return coachCard('🎓','Your study coach',[['Last session',fb],['This week',sh(tot)+' studied · <b>'+sh(deep)+' deep</b> (aim 8–12 h deep)'],
     ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],
-    ['🎯 Goal','Distinction-level work in SK297 and SK298'+(avg!==null?' · your marks average <b>'+Math.round(avg)+'%</b> ('+ouBand(avg)+')':' · marks appear here once you enter them')+'. Evaluate, don’t describe: every paragraph needs a judgement.']]);}
+    ['🎯 Goal','Distinction-level work in SK297 and SK298'+(avg!==null?' · your marks average <b>'+Math.round(avg)+'%</b> ('+ouBand(avg)+')':' · marks appear here once you enter them')+'. Evaluate, don’t describe: every paragraph needs a judgement.']],(function(){try{return studyDeepHTML();}catch(e){return '';}})());}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
    on for my times." Per event: today's fitness from his own best-times
@@ -10402,7 +10573,7 @@ var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 function loadGlow(){
   if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
   window.__GLOW_START__=GLOW_SUB;
-  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();if(CUR==='glow')startGlow();},{once:true});
+  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
