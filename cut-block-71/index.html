@@ -1311,11 +1311,17 @@ function wUnder(av,m){return WBIG[m]?Math.round(av*10)/10<m:av<=m;}
    So in the push the steps follow the scale: losing 0.5 lb a week or more → 10,000; 0.2–0.5 → 11,500;
    flat → 13,000 (the ceiling). Saturday whatever comes naturally. */
 function pushSteps(is){var a0=avgWindow(addD(is,-1),7),a1=avgWindow(addD(is,-8),7);
+  if(a0.n>=3&&a0.avg<=124)return {n:8000,why:'at your goal weight, so 8,000 (anything from 8k to 13k is the longevity range)'};
   if(a0.n<3||a1.n<3)return {n:11500,why:'not enough mornings yet to read the trend'};
   var r=a1.avg-a0.avg;
   if(r>=0.5)return {n:10000,why:'your weight is coming down ('+f1(r)+' lb this week), so 10k: the longevity sweet spot'};
   if(r>=0.2)return {n:11500,why:'losing slowly ('+f1(r)+' lb this week), so a little more walking'};
   return {n:13000,why:'flat this week, so walking is the lever (13k is the ceiling: past it, it is stress)'};}
+/* Dan, 4 Nov: "for steps do the average: it says I'm short today with 5,000, but my average from
+   Monday to today is more." Steps are judged on the week so far (Monday to today), against the
+   average of each day's target. A low day after a high one is fine. */
+function weekSteps(t){t=t||today();var ws=mondayOf(t),n=0,sum=0,tg=0;for(var d=ws;d<=t;d=addD(d,1)){var v=(S.days[d]||{}).steps;if(typeof v==='number'){n++;sum+=v;tg+=stepTarget(d);}}
+  return n?{avg:sum/n,target:tg/n,n:n,ok:sum/n>=tg/n-50}:{avg:null,target:stepTarget(t),n:0,ok:false};}
 function stepTarget(is){if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:pushSteps(is).n;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
@@ -3335,14 +3341,14 @@ var KCAL_PER_G_FAT=7.7;
 function onePctDay(is){
   var r=S.days[is]||{};
   return typeof r.kcal==='number'&&typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line&&
-         typeof r.steps==='number'&&r.steps>=stepTarget(is);
+         weekSteps(is).ok;
 }
 /* the three basics, spelt out, so "1% day" is never a mystery */
 function onePctParts(is){
   var r=S.days[is]||{};
   return [{n:'Food logged',ok:typeof r.kcal==='number'},
           {n:'Sleep '+f1(CFG.sleep.line)+' h+',ok:typeof r.sleep==='number'&&r.sleep>=CFG.sleep.line},
-          {n:'Steps '+ci(stepTarget(is))+(dow(is)===6?'':'+'),ok:typeof r.steps==='number'&&r.steps>=stepTarget(is)}];
+          {n:'Steps: week average on target',ok:weekSteps(is).ok}];
 }
 function basicsHTML(is){
   var parts=onePctParts(is),got=parts.filter(function(x){return x.ok;}).length;
@@ -9582,13 +9588,13 @@ function decOptHTML(){
   var SG=shredGoal(t),A=avgWindow(t,7),a=A.n?A.avg:null,left=diffD(t,SG.d),wk=Math.max(0.5,left/7);
   var need=a!==null?Math.max(0,(a-124)/wk):null,PS=pushState(t),r=S.days[t]||{},y=S.days[addD(t,-1)]||{};
   var kc=dayTarget(t),stepT=stepTarget(t);
-  var sk=strictKcal(t),phase=sk===null?'Strict counting at 1,899 — the strict block starts '+fmtS(STRICT.from):(dow(t)===6?'Saturday — 1,999, the higher day':(sk===1899?'1,899 — your average is at 124.9 or under, so it goes up':'Strict — 1,799, every gram counted'))+(pushOn(t)?' · push steps 14.5k':'');
+  var sk=strictKcal(t),phase=sk===null?'Strict counting at 1,899 — the strict block starts '+fmtS(STRICT.from):(dow(t)===6?'Saturday — 1,999, the higher day':(sk===1899?'1,899 — your average is at 124.9 or under, so it goes up':'Strict — 1,799, every gram counted'))+(pushOn(t)?' · push steps follow the scale (week average)':'');
   var tick=function(ok,txt){return '<div style="margin:3px 0">'+(ok?'✅':'⬜')+' '+txt+'</div>';};
   var sleepOk=typeof r.sleep==='number'&&r.sleep>=8;
   var list=[
     tick(typeof S.weights[t]==='number','Weigh in — morning, after the toilet, before food'),
     tick(!!r.plan||typeof r.kcal==='number'&&r.kcal>0,'Ate to plan — 4 plates, protein at each, about '+ci(kc)+' kcal (logging is optional)'),
-    tick(typeof r.steps==='number'&&r.steps>=stepT,ci(stepT)+' steps'),
+    tick(weekSteps(t).ok,ci(Math.round(weekSteps(t).target/100)*100)+' steps, week average'+(weekSteps(t).avg!==null?' ('+ci(Math.round(weekSteps(t).avg))+')':'')),
     tick(sleepOk,'8–9 h in bed last night'+(typeof r.sleep==='number'?' ('+f1(r.sleep)+' h)':'')),
     tick(!!(r.skinAM&&r.skinPM),'Skin morning and night — SPF in the morning'),
     tick(!!r.teeth,'Teeth'),
@@ -9645,7 +9651,7 @@ function ccRing(pct,label,val,sub,tone){
 }
 function ccDayScore(d){
   var r=S.days[d]||{},it=[typeof S.weights[d]==='number',!!r.plan||!!glowDay(d)||typeof r.kcal==='number'&&r.kcal>0||(r.eaten||[]).length>0,
-    typeof r.steps==='number'&&r.steps>=stepTarget(d)*0.9,typeof r.sleep==='number'&&r.sleep>=8,!!(r.skinAM&&r.skinPM)];
+    (function(){var W=weekSteps(d);return W.avg!==null&&W.avg>=W.target*0.9;})(),typeof r.sleep==='number'&&r.sleep>=8,!!(r.skinAM&&r.skinPM)];
   return it.filter(Boolean).length;
 }
 function ccStreak(){
@@ -9705,7 +9711,7 @@ function missionHTML(){
   var stT=stepTarget(t),st=typeof r.steps==='number'?r.steps:null,sl=typeof r.sleep==='number'?r.sleep:null;
   var rings=ccRing(kc!==null?kc/kT:0,'Calories',kc!==null?ci(kc):'—','of '+ci(kT),kc!==null&&kc>kT+50?'warn':'')+
     ccRing(pro!==null?pro/MACRO.pro:0,'Protein',pro!==null?ci(pro)+' g':'—','of '+MACRO.pro+' g',pro!==null&&pro>=MACRO.pro?'good':'')+
-    ccRing(st!==null?st/stT:0,'Steps',st!==null?ci(st):'—','of '+ci(stT),st!==null&&st>=stT?'good':'')+
+    (function(){var WS=weekSteps(t);return ccRing(WS.avg!==null?WS.avg/WS.target:0,'Steps · week avg',WS.avg!==null?ci(Math.round(WS.avg)):'—','of '+ci(Math.round(WS.target/100)*100)+(st!==null?' · today '+ci(st):''),WS.ok?'good':'');})()+
     ccRing(sl!==null?sl/9:0,'Sleep',sl!==null?f1(sl)+' h':'—','aim 8–9 h',sl!==null&&sl>=8?'good':'');
   /* score, streak, level */
   var sc=ccDayScore(t),sk=ccStreak();
@@ -9878,7 +9884,7 @@ function homeHTML(){
   tiles.push(homeTile('🧬','Health age',H?String(H.glowAge):'…',H?'you’re '+H.age+(H.top!==undefined&&H.top!==null?' · top '+(H.top<1?H.top.toFixed(1):Math.round(H.top))+'%':''):'loading',H?Math.max(0,Math.min(1,(H.age-H.glowAge+5)/10)):null,H&&H.glowAge<H.age?'good':''));
   /* ✨ looks: the six daily things that show on your face and body */
   var gd=glowDay(t),pro=gd?gd.protein:null,stT=stepTarget(t);
-  var lk=[[typeof r.sleep==='number'&&r.sleep>=8,'8 h sleep'],[!!r.skinAM,'skin AM'],[!!r.skinPM,'skin PM'],[!!r.teeth,'teeth'],[pro!==null&&pro>=MACRO.pro,MACRO.pro+' g protein'],[typeof r.steps==='number'&&r.steps>=stT,'steps']];
+  var lk=[[typeof r.sleep==='number'&&r.sleep>=8,'8 h sleep'],[!!r.skinAM,'skin AM'],[!!r.skinPM,'skin PM'],[!!r.teeth,'teeth'],[pro!==null&&pro>=MACRO.pro,MACRO.pro+' g protein'],[weekSteps(t).ok,'steps (week avg)']];
   var lkN=lk.filter(function(x){return x[0];}).length;
   tiles.push(homeTile('✨','Looks',lkN+'/6','today: '+(lk.filter(function(x){return !x[0];}).map(function(x){return x[1];}).slice(0,2).join(', ')||'all done'),lkN/6,lkN>=5?'good':''));
   /* 📚 study and 😊 happy */
