@@ -456,6 +456,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div id="jrnlCard"></div>
   <div id="homeCard"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
+  <div id="ovLong"></div>
   <div id="ovStress"></div>
   <div id="ovCort"></div>
   <div class="p"><h2>🧬 Health age</h2><div id="glowHealthOv"><span class="tiny dim">Loading your health age…</span></div></div>
@@ -9507,6 +9508,7 @@ function renderGoodLife(){
   if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
+  try{if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}
   try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();}catch(e){}
   try{if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();}catch(e){}
   if(E('runWins'))E('runWins').innerHTML=runWinsHTML();
@@ -10563,6 +10565,63 @@ function weekFullHTML(a,b){
     '<h3 style="margin:10px 0 2px">👉 Coaching for next week</h3><p style="margin:2px 0">'+(fix.length?fix.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>'):'Repeat this week. Nothing needs changing.')+'</p>'+
     '<h3 style="margin:10px 0 2px">🎯 Where this fits</h3><p style="margin:2px 0">'+ph+'</p></div>';}
 
+/* ===================== the longevity score (Dan, 4 Nov) =====================
+   "On the overview do the stress and cortisol, health, sleep score and age data, and give a longevity
+   score: what it means and where I'm at, one for the day and another for the whole lot."
+   Two scores, 0–100, higher is better. TODAY is what he controls today (sleep, calm, food, movement,
+   recovery). OVERALL is the last 4 weeks plus the slow markers that predict a long life (fitness,
+   resting HR, sleep, strength, steps, food, calm). Overall is the one that matters; today is the step
+   towards it. Built from his own logs; an estimate, not a medical test. */
+function sleepScoreOn(d){var r=S.days[d]||{};if(typeof r.sleep!=='number')return null;
+  var h=r.sleep,p=h>=8&&h<=9.5?60:(h>9.5?55:(h>=7?40+(h-7)*20:Math.max(0,40-(7-h)*20)));
+  var b=bedMin(r.bed);if(b!==null)p+=b<=23*60+30?20:(b<=24*60+15?10:0);else p+=10;
+  if(r.phoneOut)p+=10;
+  var bm=[];for(var i=0;i<7;i++){var x=bedMin((S.days[addD(d,-i)]||{}).bed);if(x!==null)bm.push(x);}
+  if(bm.length>=3){var m=mean(bm),sd=Math.sqrt(mean(bm.map(function(v){return (v-m)*(v-m);})));p+=sd<=30?10:(sd<=60?5:0);}else p+=5;
+  return Math.min(100,Math.round(p));}
+function lsBand(v){return v>=85?['Excellent','g','Top-tier habits for a long, healthy life. Keep it boringly consistent.']:(v>=70?['Good','g','Strong. One or two parts below would move it to excellent.']:(v>=55?['Fair','','Decent base; the lowest part below is the lever.']:['Needs work','w','Start with the biggest gap below: it moves the score fastest.']));}
+function longevityScores(){
+  var t=today(),r=S.days[t]||{},y=S.days[addD(t,-1)]||{},D=[],O=[],H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+  /* ---- today ---- */
+  var ss=sleepScoreOn(t);D.push(['😴 Sleep',ss===null?12:Math.round(ss*0.25),25,ss===null?'not logged':'sleep score '+ss+'/100 ('+f1(r.sleep)+' h)','8–9 h in bed by 23:30, phone out']);
+  var CX=null;try{CX=cortisolScore();}catch(e){}D.push(['🧪 Calm (cortisol)',CX?Math.round((100-CX.score)*0.2):10,20,CX?'cortisol '+CX.score+'/100':'—',CX&&CX.parts[0]?CX.parts[0].fix:'']);
+  var fd=r.glowSum&&r.glowSum.n>=3?r.glowSum:null,fdl='today';if(!fd&&y.glowSum&&y.glowSum.n>=3){fd=y.glowSum;fdl='yesterday';}
+  D.push(['🥩 Food',fd?Math.round(((Math.min(100,fd.coverage||0)*0.5)+Math.min(1,fd.protein/140)*50)*0.2):0,20,fd?fdl+': '+fd.protein+' g protein, '+(fd.coverage||0)+'% coverage':'not logged yet','140 g protein, animal foods first, oily fish 2–3× a week']);
+  var WS=weekSteps(t),mv=WS.avg!==null?Math.min(10,Math.round(WS.avg/WS.target*10)):5,hard=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});
+  mv+=hard&&legsDay(addD(t,-1))?5:10;D.push(['👣 Movement',mv,20,(WS.avg!==null?'steps '+ci(Math.round(WS.avg))+' week avg':'steps not logged')+(r.gym?' · gym':'')+((r.runs||[]).length?' · ran':''),'steps on the week average, training that fits recovery']);
+  var b=rhrBase(t),rh=typeof r.rhr==='number'?r.rhr:null,rp=b===null||rh===null?10:(rh<=b+2?15:(rh<=b+4?8:3));
+  D.push(['❤️ Recovery',rp,15,rh===null?'resting HR not logged':'resting HR '+rh+(b!==null?' (usual '+Math.round(b)+')':''),'an easy day when it is up']);
+  /* ---- overall: the last 4 weeks plus the slow markers ---- */
+  var vo2=H&&H.vo2?H.vo2:null;O.push(['🫀 Fitness (VO₂max)',vo2===null?10:(vo2>=55?20:(vo2>=50?16:(vo2>=45?12:8))),20,vo2===null?'—':'about '+Math.round(vo2),'two hard runs a week keep it high; one of the strongest predictors of a long life']);
+  var rhs=[],sls=[],st=[],pro=[],cov=[],fish=0,gyms=0,dst=[];
+  for(var i=0;i<28;i++){var d=addD(t,-i),x=S.days[d]||{};if(typeof x.rhr==='number')rhs.push(x.rhr);var q=sleepScoreOn(d);if(q!==null)sls.push(q);if(typeof x.steps==='number')st.push(x.steps);
+    if(x.glowSum&&x.glowSum.n>=3&&d<t){pro.push(x.glowSum.protein);if(typeof x.glowSum.coverage==='number')cov.push(x.glowSum.coverage);if((x.glowSum.omega3||0)>=1)fish++;}
+    if(x.gym)gyms++;var ds=dayStress(d);if(ds.logged)dst.push(ds.p);}
+  var rA=rhs.length?mean(rhs):null;O.push(['❤️ Resting HR',rA===null?5:(rA<=50?10:(rA<=60?7:4)),10,rA===null?'—':Math.round(rA)+' average','sleep and easy aerobic running bring it down']);
+  var sA=sls.length?mean(sls):null;O.push(['😴 Sleep',sA===null?10:Math.round(sA*0.2),20,sA===null?'—':'sleep score '+Math.round(sA)+' average','regular bedtime matters on its own']);
+  var gW=gyms/4;O.push(['🏋️ Strength',gW>=3?10:(gW>=2?7:(gW>=1?4:1)),10,f1(gW)+' sessions a week','muscle and strength predict healthy ageing; 2+ a week']);
+  var stA=st.length?mean(st):null;O.push(['👣 Steps',stA===null?5:(stA>=8000&&stA<=13000?10:(stA>13000?7:(stA>=6000?6:3))),10,stA===null?'—':ci(Math.round(stA))+' a day','8–13k is the longevity range']);
+  var pA=pro.length?mean(pro):null,cA=cov.length?mean(cov):null,fw=fish/4;
+  var np=pA===null?7:Math.round(((cA||0)*0.5+Math.min(1,pA/140)*50)*0.15)-(fw<1?2:0);O.push(['🥩 Food',Math.max(0,np),15,pA===null?'—':Math.round(pA)+' g protein · '+Math.round(cA||0)+'% coverage · oily fish '+f1(fw)+'×/wk','oily fish 2–3× a week, protein 140 g']);
+  var dA=dst.length?mean(dst):null;O.push(['🧘 Calm',dA===null?8:Math.round((1-Math.min(1,dA/4))*15),15,dA===null?'—':'daily load '+f1(dA)+' (0 is calm)','sleep, food, two hard runs, the day off']);
+  var sum=function(a){return a.reduce(function(z,p){return z+p[1];},0);};
+  return {day:{score:Math.min(100,sum(D)),parts:D},all:{score:Math.min(100,sum(O)),parts:O},H:H,CX:CX};}
+function longevityScoreHTML(){var L=longevityScores(),bd=lsBand(L.day.score),ba=lsBand(L.all.score);
+  var big=function(lbl,v,b,sub){return '<div style="flex:1;min-width:140px"><div class="tiny dim" style="text-transform:uppercase;letter-spacing:.08em">'+lbl+'</div><div class="row" style="gap:8px;align-items:baseline"><b style="font-size:2em;font-family:\'IBM Plex Mono\',monospace">'+v+'</b><span class="tiny dim">/ 100</span><b>'+b[0]+'</b></div><div class="tiny">'+sub+'</div></div>';};
+  var bars=function(P){return P.map(function(p){var w=Math.round(p[1]/p[2]*100);return '<div style="margin:6px 0"><div class="row" style="justify-content:space-between;gap:6px"><span>'+p[0]+'</span><span class="mono">'+p[1]+'/'+p[2]+'</span></div>'+
+    '<div style="height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:'+(w>=75?'var(--good)':(w>=50?'var(--warn)':'var(--bad)'))+'"></div></div>'+
+    '<div style="font-size:.85em;margin-top:1px">'+esc(p[3])+(w<75&&p[4]?' · ↑ '+esc(p[4]):'')+'</div></div>';}).join('');};
+  var lowD=L.day.parts.slice().sort(function(a,b){return a[1]/a[2]-b[1]/b[2];})[0],lowA=L.all.parts.slice().sort(function(a,b){return a[1]/a[2]-b[1]/b[2];})[0];
+  var age=L.H?'Health age <b>'+L.H.glowAge+'</b> (you’re '+L.H.age+')':'';
+  return '<div class="p lift"><h2>🧬 Longevity score</h2>'+
+    '<div class="row" style="gap:16px;flex-wrap:wrap">'+big('Today',L.day.score,bd,'what you control today')+big('Overall',L.all.score,ba,'the last 4 weeks + your markers')+'</div>'+
+    '<p style="margin:8px 0 2px;font-size:.92em"><b>Overall is the one that counts:</b> it is what your body is actually adapting to. Today is the step towards it, and one off day barely moves overall. '+ba[2]+'</p>'+
+    '<p style="margin:2px 0;font-size:.85em">100 is best · 85+ excellent · 70–84 good · 55–69 fair · under 55 needs work.'+(age?' · '+age:'')+(L.CX?' · cortisol '+L.CX.score+'/100':'')+'</p>'+
+    '<p style="margin:6px 0 2px">👉 Biggest lever today: <b>'+esc(lowD[0].replace(/^\S+ /,''))+'</b>'+(lowD[4]?' — '+esc(lowD[4]):'')+'<br>👉 Biggest lever overall: <b>'+esc(lowA[0].replace(/^\S+ /,''))+'</b>'+(lowA[4]?' — '+esc(lowA[4]):'')+'</p>'+
+    '<details class="fold"><summary><b>Today, part by part</b></summary>'+bars(L.day.parts)+'</details>'+
+    '<details class="fold"><summary><b>Overall, part by part</b></summary>'+bars(L.all.parts)+
+    '<p style="font-size:.85em;margin-top:6px">Not measured yet, so not in the score: home blood pressure and a baseline blood test (ferritin, vitamin D, B12, cholesterol, HbA1c, thyroid). Adding them makes this, and your health age, real rather than estimated.</p></details></div>';}
+
 function coachCard(e,title,parts,deep){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+(deep?'<details class="fold"><summary><b>🔎 In depth</b></summary>'+deep+'</details>':'')+'</div>';}
 var IMP={big:'<span class="pill g" style="font-size:10px">big difference</span>',medium:'<span class="pill" style="font-size:10px">helps</span>',small:'<span class="pill" style="font-size:10px">small extra</span>'};
 function liftCoachHTML(){
@@ -10725,7 +10784,7 @@ var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 function loadGlow(){
   if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
   window.__GLOW_START__=GLOW_SUB;
-  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
+  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
