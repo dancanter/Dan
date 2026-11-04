@@ -152,8 +152,10 @@ Sub-17 and sub-4:50 are honestly more likely in the **spring 2026–27 camp** (A
 
 1. **Christmas** (25–26 Dec): maintenance (2,199), enjoy it, no tracking pressure.
 2. **Reset cut** (27 Dec – 9 Jan, two weeks): 1,899 (Saturday 1,999). Clears the Christmas eating; the first mornings are water, judge it on the second week. Runs and gym as normal.
-3. **Build** (from 10 Jan to end of Mar): maintenance + ~200 (2,399), protein 140 g, gym 4–6× (shoulders, upper chest, lats, arms; weighted pull-ups), 3–4 runs, gain ≤ 0.5 lb a month. March: run times back.
-4. **Spring:** lean down (4–6 week mini-cut), then a spring race camp for sub-17 / sub-4:50.
+3. **Build** (from 10 Jan to end of Mar): a *very small* increase, maingaining (Dan, 4 Nov) — about maintenance + 100–200, protein 140 g, gym 4–6× (shoulders, upper chest, lats, arms; weighted pull-ups), 3–4 runs, weight roughly steady (≤ 0.5 lb a month). March: run times back.
+4. **Spring:** lean down only if needed — if the maingain kept him lean, skip it and go straight to the spring race camp for sub-17 / sub-4:50.
+
+**The year's shape (Dan, 4 Nov):** autumn and winter build the muscle and the running base while in a deficit; after Christmas maximise it with a very small surplus; spring sharpens. **Steps by season:** no reason to walk less in winter for health — the longevity benefit levels off at 8–10k all year — but it is fine that winter steps sit nearer 10k (the push target follows the scale) and summer drifts higher naturally, capped about 13k. In winter, get the walk in daylight (midday), which also sets the cortisol rhythm and helps mood.
 
 ---
 

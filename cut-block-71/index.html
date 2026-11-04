@@ -780,6 +780,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   <div class="p"><h2>Week review</h2>
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
   </div>
+  <div id="weekFull"></div>
   <div id="revBody"></div>
   <div id="glowReview"></div>
   <div id="monthCard"></div>
@@ -1512,6 +1513,14 @@ function mergeByDate(older,newer){
   }
   /* foods are keyed by id: a food saved on either side survives the merge */
   for(k in (older.foods||{})){if(!(k in out.foods)){out.foods[k]=clone(older.foods[k]);added++;}}
+  /* Dan, 4 Nov: a TMA added on one device vanished when a stale copy saved. University lists merge by id. */
+  if(older.uni&&typeof older.uni==='object'){if(!out.uni||typeof out.uni!=='object')out.uni={};
+    var gone=(out.uni.gone||[]).concat(older.uni.gone||[]);
+    ['tasks','topics','refs'].forEach(function(f){var a=older.uni[f];if(!Array.isArray(a))return;if(!Array.isArray(out.uni[f]))out.uni[f]=[];
+      var ids={};out.uni[f].forEach(function(x){if(x&&x.id)ids[x.id]=1;});
+      a.forEach(function(x){if(x&&x.id&&!ids[x.id]&&gone.indexOf(x.id)<0){out.uni[f].push(clone(x));added++;}});
+      out.uni[f]=out.uni[f].filter(function(x){return !(x&&x.id&&gone.indexOf(x.id)>=0);});});
+    out.uni.gone=gone.slice(-300);}
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }
@@ -2496,6 +2505,7 @@ function renderReview(){
   /* the whole cut so far, under every week (29 Sep) */
   h+=blockProgressHTML();
   E('revBody').innerHTML=h;
+  try{if(E('weekFull'))E('weekFull').innerHTML=weekFullHTML(wk.start,wk.end);}catch(e){if(E('weekFull'))E('weekFull').innerHTML='';}
   if(E('monthCard'))E('monthCard').innerHTML=monthReviewHTML((wk.end>today()?today():wk.end).slice(0,7));
   GLOW_REV_END=wk.end>today()?today():wk.end;if(window.GLOW&&E('glowReview'))GLOW.mount(E('glowReview'),'review',GLOW_REV_END);
 }
@@ -9526,14 +9536,14 @@ function wireGoodLife(){
     if(A==='waist'){var w=parseFloat(val('glWaist'));if(!(w>=50&&w<=110))return;S.waist[today()]=Math.round(w*10)/10;touch();return;}
     if(A==='tadd'){var ti=val('glTTitle');if(!ti)return;U.tasks.push({id:glId(),mod:val('glTMod'),title:ti,due:val('glTDue')||null,words:parseInt(val('glTWords'),10)||null,done:false,notes:''});touch();return;}
     if(A==='tdone'){U.tasks.forEach(function(x){if(x.id===id)x.done=!x.done;});touch();return;}
-    if(A==='tdel'){U.tasks=U.tasks.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='tdel'){U.gone=(U.gone||[]).concat([id]).slice(-300);U.tasks=U.tasks.filter(function(x){return x.id!==id;});touch();return;}
     if(A==='radd'){var nm=val('glRName');if(!nm)return;U.topics.push({id:glId(),mod:val('glRMod'),name:nm,step:0,next:today()});touch();return;}
     if(A==='rgot'||A==='rshaky'){U.topics.forEach(function(x){if(x.id!==id)return;x.step=A==='rgot'?Math.min((x.step||0)+1,REV_STEPS.length-1):0;x.next=addD(today(),A==='rgot'?REV_STEPS[x.step]:1);x.last=today();});touch();return;}
-    if(A==='rdel'){U.topics=U.topics.filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='rdel'){U.gone=(U.gone||[]).concat([id]).slice(-300);U.topics=U.topics.filter(function(x){return x.id!==id;});touch();return;}
     if(A==='tstage'){U.tasks.forEach(function(x){if(x.id!==id)return;x.st=x.st||{};var n=b.dataset.n;if(x.st[n])delete x.st[n];else x.st[n]=today();});touch();return;}
     if(A==='hvadd'){var hf={id:glId(),type:val('hvType'),mod:val('hvMod'),authors:val('hvAuth'),year:val('hvYear'),title:val('hvTitle'),journal:val('hvJour'),vol:val('hvVol'),iss:val('hvIss'),pages:val('hvPages'),doi:val('hvDoi'),url:val('hvUrl'),acc:val('hvAcc'),pub:val('hvPub'),place:val('hvPlace')};
       if(!hf.title)return;Object.keys(hf).forEach(function(k){if(hf[k]==='')delete hf[k];});U.refs=U.refs||[];U.refs.push(hf);touch();return;}
-    if(A==='hvdel'){U.refs=(U.refs||[]).filter(function(x){return x.id!==id;});touch();return;}
+    if(A==='hvdel'){U.gone=(U.gone||[]).concat([id]).slice(-300);U.refs=(U.refs||[]).filter(function(x){return x.id!==id;});touch();return;}
     if(A==='sadd'){var sn=val('glSName');if(!sn)return;S.style.items.push({id:glId(),cat:val('glSCat'),name:sn,colour:val('glSColour'),fabric:val('glSFabric'),brand:val('glSBrand')});touch();return;}
     if(A==='sown'){S.style.items.push({id:glId(),cat:b.dataset.cat,name:b.dataset.name,colour:'',fabric:'',brand:''});touch();return;}
     if(A==='sdel'){S.style.items=S.style.items.filter(function(x){return x.id!==id;});touch();return;}
@@ -9666,7 +9676,7 @@ function ccGoals(){
    then a muscle phase at maintenance with the gym 4–6 times a week to the
    end of March, the run times back in March, and leaning down after. */
 var SEASON=[['2026-11-02','2026-12-02','Shred'],['2026-12-03','2026-12-05','France'],['2026-12-06','2026-12-24','Shred + PB trials'],['2026-12-25','2026-12-26','Christmas'],['2026-12-27','2027-01-09','Reset cut'],
-  ['2027-01-10','2027-02-28','Build · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down']];
+  ['2027-01-10','2027-02-28','Build · gym 4–6×'],['2027-03-01','2027-03-31','Run times back'],['2027-04-01','2027-06-30','Lean down if needed']];
 /* Human Performance OS, stage 2 (Dan, 3 Nov): who and where, at the top of the
    Overview. Age is worked out from the date of birth; weight is the 7-day
    average (or the last weigh-in, labelled as such); nothing is invented. */
@@ -10368,7 +10378,7 @@ function cortisolHTML(){var X=cortisolScore();
 function nutriCoachHTML(){
   var t=today(),r=S.days[t]||{},g=r.glowSum||null,N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
   var tg=dayTarget(t),hard=(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;}),gymD=!!r.gym;
-  var wk=[],ws=mondayOf(t);for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var gs=(S.days[d]||{}).glowSum;if(gs&&gs.n>=3)wk.push(gs);}
+  var wk=[],ws=mondayOf(t);for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var gs=(S.days[d]||{}).glowSum;if(gs&&gs.n>=3&&d<t)wk.push(gs);}
   var avg=function(k){return wk.length?mean(wk.map(function(x){return x[k]||0;})):null;};
   var parts=[],deep=[];
   /* today */
@@ -10380,15 +10390,20 @@ function nutriCoachHTML(){
   if(g&&g.protein<140-15)nx.push([(140-g.protein)+' g protein still to find: Fage, eggs, hake, chicken or venison','big']);
   if(g&&(hard||gymD)&&g.carbs<180)nx.push(['A training day: carbs to 200 g or more (potatoes, rice, GF oats) keeps cortisol down','big']);
   if(g&&g.fat<40&&g.kcal>tg*0.6)nx.push(['Fat at '+g.fat+' g: an egg or some butter or cheese takes it past 40 g (hormones and skin)','medium']);
-  if(N&&N.next)N.next.slice(0,3).forEach(function(x){if(nx.length<4)nx.push([x.emoji+' '+x.title+': '+x.foods.slice(0,3).join(', '),x.impact]);});
+  if(N&&N.next)N.next.filter(function(x){return !/protein still to find/.test(x.title);}).slice(0,3).forEach(function(x){if(nx.length<4)nx.push([x.emoji+' '+x.title+': '+x.foods.slice(0,3).join(', '),x.impact]);});
   if(!nx.length)nx.push(['On plan: eat the rest of the day as normal','small']);
   parts.push(['👉 Next',nx.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')]);
   /* this week */
-  if(wk.length)parts.push(['This week','Over '+wk.length+' logged day'+(wk.length===1?'':'s')+': protein <b>'+Math.round(avg('protein'))+' g</b> a day · omega-3 <b>'+f1(avg('omega3'))+' g</b> · carbs '+Math.round(avg('carbs'))+' g · nutrient coverage <b>'+Math.round(avg('coverage'))+'%</b>']);
+  if(wk.length)parts.push(['This week','Over '+wk.length+' complete day'+(wk.length===1?'':'s')+' (today not counted yet): protein <b>'+Math.round(avg('protein'))+' g</b> a day · omega-3 <b>'+f1(avg('omega3'))+' g</b> · carbs '+Math.round(avg('carbs'))+' g · nutrient coverage <b>'+Math.round(avg('coverage'))+'%</b>']);
   /* in depth */
   if(N&&N.meals){var order=['breakfast','lunch','dinner','snacks'];deep.push('<h3 style="margin:6px 0 2px">Protein meal by meal</h3><p style="margin:2px 0">'+order.filter(function(m){return N.meals[m];}).map(function(m){var x=N.meals[m];return m[0].toUpperCase()+m.slice(1)+': <b>'+Math.round(x.protein)+' g</b> ('+ci(Math.round(x.kcal))+' kcal)';}).join(' · ')+'</p><p class="tiny">30–40 g at each main meal is what keeps muscle building switched on through the day on a cut; one big protein meal does less than the same amount spread out.</p>');}
   if(N&&N.week&&N.days){var low=N.week.filter(function(x){return x.week!==null;}).slice(0,6);
     deep.push('<h3 style="margin:8px 0 2px">Lowest nutrients this week</h3><p style="margin:2px 0">'+low.map(function(x){return esc(x.label)+' <b>'+Math.round(x.week)+'%</b>';}).join(' · ')+'</p><p class="tiny">What your body absorbs, as a share of need, over '+N.days+' logged day'+(N.days===1?'':'s')+'. The full list is on the Overview (Micros so far).</p>');}
+  deep.push('<h3 style="margin:8px 0 2px">What the food scores mean</h3><p class="tiny"><b>Nutrition score (0–100):</b> the average of the 8 cellular pillars below, minus 5 for each serious warning (an upper limit passed, for example). 80+ is excellent, 60–79 good, under 60 means a pillar or two is short.<br>'+
+    '<b>The 8 pillars (each 0–100):</b> ⚡ mitochondrial power (B vitamins, iron, magnesium, CoQ10) · 🧊 inflammation control (omega-3, polyphenols) · 🧬 DNA &amp; antioxidant shield (selenium, zinc, vitamins C and E) · 🍯 metabolic &amp; glycation control (fibre, protein, low free sugar) · ♻️ autophagy &amp; renewal (spermidine in aged cheese, polyphenols) · 🦠 gut microbiome (fermented foods like kefir, fibre) · 🔥 hormones &amp; signalling (zinc, iodine, selenium, fat, vitamin D) · ✨ skin, collagen &amp; glow (protein, vitamin C, carotenoids, omega-3).<br>'+
+    '<b>Coverage (%):</b> the average share of every micronutrient you actually absorbed (bioavailability-adjusted), each capped at 100%. 90%+ is a full-spectrum day.<br>'+
+    '<b>Glow score (0–100):</b> the whole day: nutrition 45%, sleep 25%, rituals 15%, vitals 15% (only the parts you logged count).<br>'+
+    'All from typical food values, not a blood test. Plants are counted for fibre and vitamin C, but your best-absorbed nutrients come from the animal foods.</p>');
   deep.push('<h3 style="margin:8px 0 2px">Your food rules, built in</h3><p class="tiny">Animal foods first (best-absorbed iron, zinc, B12, vitamin A, omega-3 and protein) · gluten-free always · no pulses, no liver, nothing processed · salt and water steady · 1,799 is the floor · carbs 200 g+ on training days · fat 40 g+.</p>');
   var ph=pushOn(t)?'The push to 24 Dec: calories as the shred, protein 140 g every day, carbs around training. The leaner you get, the more protein and sleep decide whether it is fat or muscle that goes.':(t<=STRICT.resetTo?'Christmas, then the reset cut at 1,899.':'The build at about 2,399: protein 140 g, carbs up for training, fat up for hormones and skin.');
   parts.push(['🎯 Goal',ph]);
@@ -10454,6 +10469,93 @@ function studyDeepHTML(){
   if(x){var st=x.st||{};plan='<h3 style="margin:8px 0 2px">'+esc((x.mod?x.mod+' ':'')+x.title)+': the plan</h3><p style="margin:2px 0">'+TMA_STAGES.map(function(g,i){return (st[i]?'✓ ':'')+esc(g[0])+' <span class="tiny">'+fmtS(tmaStageDate(x,i))+'</span>';}).join(' · ')+'</p><p class="tiny">Due '+fmtS(x.due)+(x.aim?', submitting '+fmtS(x.aim):'')+'. Tap stages on the University page as you finish them.</p>';}
   return '<h3 style="margin:6px 0 2px">Deep study, day by day</h3><p style="margin:2px 0">'+cells.join(' · ')+'</p>'+plan+
     '<h3 style="margin:8px 0 2px">What moves marks most</h3><p class="tiny">Active recall (testing yourself) beats re-reading · 90-minute blocks, phone in another room · evaluate, don’t describe: every paragraph needs a limitation, a comparison and a judgement · references as you go, Cite Them Right Harvard · hardest thinking in the morning, training after · stop by the evening: sleep is when it sticks.</p>';}
+
+/* ===================== the full weekly analysis (Dan, 4 Nov) =====================
+   "In the week review I really want full analysis and coaching." Every area of the week against the
+   week before, graded, with what went well, what to change and how much each change matters. */
+function wkSpan(a,b){var o={days:[],a:a,b:b};for(var d=a;d<=b&&d<=today();d=addD(d,1))o.days.push(d);return o;}
+function wkStats(a,b){var W=wkSpan(a,b),o={n:W.days.length,kcal:[],kOn:0,kD:0,pro:[],carbT:[],fat:[],om3:[],cov:[],fish:0,sleep:[],bed:[],rhr:[],steps:[],stepsT:[],gym:0,pr:0,rpe:[],runs:0,hard:0,km:0,afterLegs:0,off:0,study:0,deep:0,am:0,pm:0,binge:0,ill:0,mood:[],energy:[],why:{}};
+  W.days.forEach(function(d){var r=S.days[d]||{},g=r.glowSum,k=typeof r.kcal==='number'?r.kcal:(g?g.kcal:null);
+    var part=d===today();
+    if(k!==null&&!part){o.kcal.push(k);o.kD++;if(Math.abs(k-dayTarget(d))<=120)o.kOn++;}
+    if(g&&g.n>=3&&!part){o.pro.push(g.protein);o.fat.push(g.fat);o.om3.push(g.omega3||0);if(typeof g.coverage==='number')o.cov.push(g.coverage);if((g.omega3||0)>=1)o.fish++;}
+    var hardD=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});
+    if(g&&!part&&(r.gym||hardD))o.carbT.push(g.carbs);
+    if(typeof r.sleep==='number')o.sleep.push(r.sleep);var bm=bedMin(r.bed);if(bm!==null)o.bed.push(bm);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
+    if(typeof r.steps==='number'){o.steps.push(r.steps);o.stepsT.push(stepTarget(d));}
+    if(r.gym){o.gym++;if(r.pr)o.pr++;if(typeof r.gymRpe==='number')o.rpe.push(r.gymRpe);}
+    (r.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;o.runs++;o.km+=m.km||0;if(m.hard&&!m.sprint)o.hard++;});
+    if(hardD&&legsDay(addD(d,-1)))o.afterLegs++;
+    if(!r.gym&&!(r.runs||[]).length)o.off++;
+    if(typeof r.study==='number')o.study+=r.study;if(typeof r.deep==='number')o.deep+=r.deep;
+    if(r.skinAM)o.am++;if(r.skinPM)o.pm++;if((r.binges||[]).length)o.binge++;if(r.ill)o.ill++;
+    var j=r.journal||{};if(j.mood)o.mood.push(j.mood);if(j.energy)o.energy.push(j.energy);
+    dayStress(d).why.forEach(function(w){o.why[w]=(o.why[w]||0)+1;});});
+  var av=function(x){return x.length?mean(x):null;};
+  o.A={kcal:av(o.kcal),pro:av(o.pro),carbT:av(o.carbT),fat:av(o.fat),om3:av(o.om3),cov:av(o.cov),sleep:av(o.sleep),bed:av(o.bed),rhr:av(o.rhr),steps:av(o.steps),stepsT:av(o.stepsT),rpe:av(o.rpe),mood:av(o.mood),energy:av(o.energy)};
+  o.bedSd=o.bed.length>=3?Math.sqrt(mean(o.bed.map(function(v){return (v-o.A.bed)*(v-o.A.bed);}))):null;
+  o.w=avgWindow(b>today()?today():b,7);return o;}
+function weekFullHTML(a,b){
+  var T=wkStats(a,b),P=wkStats(addD(a,-7),addD(b,-7)),A=T.A,B=P.A,good=[],fix=[];
+  if(!T.n)return '';
+  var arrow=function(x,y,dp,unit,hi){if(x===null)return '—';var s=(dp?f1(x):ci(Math.round(x)))+(unit||'');if(y===null)return '<b>'+s+'</b>';var d=x-y,up=d>0;
+    return '<b>'+s+'</b> <span class="tiny" style="color:'+(Math.abs(d)<(dp?0.1:1)?'var(--ink-3)':((up===hi)?'var(--good)':'var(--warn)'))+'">'+(up?'▲':'▼')+' '+(dp?f1(Math.abs(d)):ci(Math.round(Math.abs(d))))+'</span>';};
+  var G=function(ok,mid){return ok?'<span class="pill g">A</span>':(mid?'<span class="pill">B</span>':'<span class="pill w">C</span>');};
+  var bT=function(v){var m=Math.round(v)%1440;return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2);};
+  var rows=[],sec=function(e,name,grade,line,coach){rows.push('<div style="margin:10px 0 4px"><div class="row" style="gap:8px;align-items:center"><b>'+e+' '+name+'</b>'+grade+'</div><p style="margin:3px 0">'+line+'</p>'+(coach?'<p class="tiny" style="margin:2px 0">'+coach+'</p>':'')+'</div>');};
+  /* weight */
+  var wr=(P.w.avg!==null&&T.w.avg!==null)?P.w.avg-T.w.avg:null;
+  sec('⚖️','Weight',wr===null?'':G(wr>=0.4&&wr<=1.2,wr>=0.1),'7-day average '+(T.w.avg!==null?'<b>'+f1(T.w.avg)+' lb</b>':'—')+(wr!==null?' · '+(wr>=0?'down ':'up ')+f1(Math.abs(wr))+' lb on the week before':'')+' · goal 122–124.',
+    wr===null?'Weigh in on 3+ mornings so the trend can be read.':(wr>1.2?'Faster than ideal: on a cut this fast, muscle and cortisol pay. Eating the full target (or a little more) matters more than any session.':(wr>=0.4?'Right in the zone (0.4–1.2 lb a week): fat coming off, muscle kept.':(wr>=0?'Slow: the step target rises a little on its own; nothing else needs to change for one week.':'Up: usually water (salt, a binge, a hard session, a late meal). Judge it on two weeks, not one.'))));
+  if(wr!==null&&wr>=0.4&&wr<=1.2)good.push('Weight coming down at a healthy rate');
+  /* nutrition */
+  var proOK=A.pro!==null&&A.pro>=135;
+  sec('🥩','Nutrition',A.pro===null?'':G(proOK&&T.kOn>=T.kD-1,A.pro>=115),
+    'Calories '+arrow(A.kcal,B.kcal,false,' kcal',false)+' a day · on plan (within 120) <b>'+T.kOn+' of '+T.kD+'</b> days · protein '+arrow(A.pro,B.pro,false,' g',true)+' · fat '+arrow(A.fat,B.fat,false,' g',true)+' · carbs on training days '+arrow(A.carbT,B.carbT,false,' g',true)+' · omega-3 '+arrow(A.om3,B.om3,true,' g',true)+' · coverage '+arrow(A.cov,B.cov,false,'%',true),
+    (A.pro!==null&&A.pro<135?'Protein averaged '+Math.round(A.pro)+' g: this is the one that decides whether the weight lost is fat or muscle. 30–40 g at each meal. ':'')+(A.carbT!==null&&A.carbT<190?'Training-day carbs under 200 g: more potatoes, rice or GF oats around sessions keeps cortisol down. ':'')+(A.fat!==null&&A.fat<40?'Fat under 40 g: eggs, butter or cheese for hormones and skin. ':'')+(T.fish<2?'Oily fish on '+T.fish+' day'+(T.fish===1?'':'s')+': 2–3 is the aim (omega-3 for skin, recovery, heart). ':''));
+  if(proOK)good.push('Protein at '+Math.round(A.pro)+' g a day');
+  if(A.pro!==null&&A.pro<135)fix.push(['Protein to 140 g every day, 30–40 g a meal','big']);
+  if(A.carbT!==null&&A.carbT<190)fix.push(['Carbs to 200 g+ on training days','big']);
+  if(T.fish<2)fix.push(['Oily fish 2–3 times','medium']);
+  /* running */
+  sec('🏃','Running',G(T.hard>=1&&T.hard<=2&&!T.afterLegs,T.hard<=3),T.runs+' runs ('+T.hard+' hard) · <b>'+f1(T.km)+' km</b>'+(P.runs?' (week before '+P.runs+' runs, '+P.hard+' hard, '+f1(P.km)+' km)':'')+(T.afterLegs?' · '+T.afterLegs+' hard run'+(T.afterLegs===1?'':'s')+' the day after legs':''),
+    T.hard>=3?'Three hard runs: the third mostly added cortisol. Two is the dose that keeps the times climbing.':(T.afterLegs?'Put an easy day between legs and a hard run: same fitness, less stress.':(T.hard===0?'No hard run: fine for an easy week; otherwise one 600 m+ session keeps the engine.':'The right dose: hard work kept to two sessions.')));
+  if(T.hard>=1&&T.hard<=2&&!T.afterLegs)good.push('Hard running kept to '+T.hard+(T.hard===1?' session':' sessions'));
+  if(T.hard>=3)fix.push(['Two hard runs, the third easy','big']);if(T.afterLegs)fix.push(['An easy day between legs and a hard run','medium']);
+  /* lifting */
+  var ws=weekSets(b>today()?today():b),inR=0,under=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(v>=rg[0])inR++;else under.push(x.m);});
+  sec('🏋️','Lifting',G(T.gym>=4,T.gym>=3),'<b>'+T.gym+'</b> gym sessions (aim 4) · '+inR+' of '+CFG.sets.length+' muscle groups in range'+(T.pr?' · beat last time '+T.pr+'×':'')+(A.rpe!==null?' · felt '+f1(A.rpe)+'/10':''),
+    (under.length?'Short this week: '+under.slice(0,3).join(', ')+'. ':'')+(T.pr?'Beating last time on a cut is the clearest sign muscle is being kept and built.':'Aim to beat last time on one main lift per session: a rep or 2.5 kg.'));
+  if(T.gym>=4)good.push(T.gym+' gym sessions');if(T.gym<3)fix.push(['Four gym sessions: the priority in the shred','big']);
+  /* recovery */
+  sec('😴','Sleep & recovery',G(A.sleep!==null&&A.sleep>=8&&(T.bedSd===null||T.bedSd<=45),A.sleep!==null&&A.sleep>=7),
+    'Sleep '+arrow(A.sleep,B.sleep,true,' h',true)+' · bedtime '+(A.bed!==null?'<b>'+bT(A.bed)+'</b>':'—')+(T.bedSd!==null?' ±'+Math.round(T.bedSd)+' min':'')+' · resting HR '+arrow(A.rhr,B.rhr,false,'',false)+' · full days off <b>'+T.off+'</b>',
+    (A.sleep!==null&&A.sleep<8?'Under 8 h on average: the cheapest, biggest lever for muscle, skin, cortisol and appetite. ':'')+(T.bedSd!==null&&T.bedSd>45?'Bedtime varied a lot: a regular time matters on its own. ':'')+(T.off===0?'No full day off: Saturday is the day it all lands.':''));
+  if(A.sleep!==null&&A.sleep>=8)good.push(f1(A.sleep)+' h sleep a night');
+  if(A.sleep!==null&&A.sleep<8)fix.push(['8–9 h a night, the same bedtime','big']);if(T.off===0)fix.push(['A full day off','medium']);
+  /* stress */
+  var whys=Object.keys(T.why).sort(function(x,y){return T.why[y]-T.why[x];}).slice(0,4);
+  var CX=null;try{CX=cortisolScore();}catch(e){}
+  sec('🧪','Stress & cortisol',G(whys.length<=1&&!T.binge&&!T.ill,whys.length<=3),(CX?'Cortisol now <b>'+CX.score+'/100</b> ('+CX.band[0].toLowerCase()+') · ':'')+'Stress '+(whys.length?'from: '+whys.map(function(w){return esc(w)+' ×'+T.why[w];}).join(', '):'nothing stacking')+(T.binge?' · '+T.binge+' binge day'+(T.binge===1?'':'s'):'')+(A.mood!==null?' · mood '+f1(A.mood)+'/5':''),
+    whys.length?'The most frequent one is the lever: '+esc(whys[0])+'.':'A calm week: this is where you adapt and look your best.');
+  /* steps */
+  sec('👣','Steps',A.steps===null?'':G(A.steps>=8000&&A.steps<=13500,A.steps>=6000),'Average '+arrow(A.steps,B.steps,false,'',true)+(A.stepsT!==null?' · target averaged '+ci(Math.round(A.stepsT)):''),
+    'The longevity benefit levels off at 8–10k; past about 13k it is stress, not health. The push target follows the scale.');
+  /* skin */
+  sec('✨','Skin & look',G(T.am>=T.n-1&&T.fish>=2,T.am>=Math.ceil(T.n/2)),'SPF / skin AM <b>'+T.am+' of '+T.n+'</b> · skin PM '+T.pm+' of '+T.n+' · oily-fish days '+T.fish,
+    'SPF every morning and 8 h sleep do more for under-eyes and glow than anything you can buy.');
+  /* study */
+  var tm=null;try{glStore();tm=(S.uni.tasks||[]).filter(function(x){return !x.done&&x.due;}).sort(function(x,y){return x.due<y.due?-1:1;})[0];}catch(e){}
+  sec('🎓','Study',G(T.deep>=8&&T.deep<=15,T.deep>=4),'<b>'+sh(T.study)+'</b> studied · <b>'+sh(T.deep)+'</b> deep (aim 8–12)'+(tm?' · next: '+esc((tm.mod?tm.mod+' ':'')+tm.title)+' due '+fmtS(tm.due):''),
+    tm&&tm.start?'Plan: '+fmtS(tm.start)+' to '+fmtS(tm.aim)+'. One stage a day, done by the evening.':'Active recall and 90-minute blocks move marks most.');
+  /* coaching */
+  fix.sort(function(x,y){var o={big:0,medium:1,small:2};return o[x[1]]-o[y[1]];});
+  var ph=pushOn(today())?'The push to 24 Dec: lose fat while keeping and building muscle and the run base. Calm and well fed beats hard and hungry.':'Keep building: muscle, the run base and health.';
+  return '<div class="p lift"><h2>📊 Full analysis · '+fmtS(a)+' to '+fmtS(b>today()?today():b)+'</h2>'+
+    '<p class="tiny" style="margin:2px 0">Each area against the week before (food counts complete days only, so today joins tomorrow). A = on target · B = close · C = the place to look. ▲▼ against the week before (green = the good direction).</p>'+rows.join('')+
+    '<h3 style="margin:12px 0 2px">🌟 What went well</h3><p style="margin:2px 0">'+(good.length?good.map(esc).join(' · '):'Logging the week is the first win: the more days logged, the sharper this gets.')+'</p>'+
+    '<h3 style="margin:10px 0 2px">👉 Coaching for next week</h3><p style="margin:2px 0">'+(fix.length?fix.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>'):'Repeat this week. Nothing needs changing.')+'</p>'+
+    '<h3 style="margin:10px 0 2px">🎯 Where this fits</h3><p style="margin:2px 0">'+ph+'</p></div>';}
 
 function coachCard(e,title,parts,deep){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+(deep?'<details class="fold"><summary><b>🔎 In depth</b></summary>'+deep+'</details>':'')+'</div>';}
 var IMP={big:'<span class="pill g" style="font-size:10px">big difference</span>',medium:'<span class="pill" style="font-size:10px">helps</span>',small:'<span class="pill" style="font-size:10px">small extra</span>'};
