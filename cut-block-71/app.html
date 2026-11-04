@@ -1201,14 +1201,14 @@ function upDay(is){
 /* Dan, 4 Nov: "I want the push now — to look unreal, face sculpted, healthy and lean, like the 24th of December."
    So the push runs from today to Christmas Eve, whatever the scale says. It is the low-cortisol way to lean out:
    calories do not go lower (they follow the shred: 1,799, Saturday 1,999, 1,899 once the 7-day average is 124.9 or under),
-   the extra comes from walking (14.5k steps), and the hardest-on-the-body run (the speed run) steps aside.
+   the extra comes from walking (steps that follow the scale, 10–13k), and the hardest-on-the-body run (the speed run) steps aside.
    France (3–5 Dec) is a holiday: steps whatever comes naturally. */
 var PUSH={check:'2026-11-04',from:'2026-11-04',to:'2026-12-24',under:126,trip:'Christmas Eve',tripDate:'2026-12-24',forced:true,away:['2026-12-03','2026-12-05']};
 function pushBroke(){if(PUSH.forced)return null;var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-10-27'&&k<=PUSH.check&&typeof S.weights[k]==='number'&&S.weights[k]<PUSH.under&&!hit)hit=k;});return hit;}
 function pushState(is){is=is||today();var b=pushBroke();
   if(b)return {k:'off',t:'No push needed',w:'You weighed under '+PUSH.under+' on '+fmtS(b)+' — carry on exactly as you are.'};
   if(is<PUSH.check)return {k:'pending',t:'Push check on '+fmtS(PUSH.check),w:'Any morning under '+PUSH.under+'.0 before then and there is no push. If not, two weeks of push from '+fmtS(PUSH.from)+' to London on '+fmtS(PUSH.tripDate)+'.'};
-  if(is<=PUSH.to)return {k:'on',t:'🔥 The push — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'Calories as the shred (1,799, Saturday 1,999; 1,899 once your 7-day average is 124.9 or under), protein about 150–160 g, carbs 200 g or more, fat about 45 g, 14.5k steps. Runs: one hard run (600 m+), one Norwegian run with hill sprints, the gym first — the speed run comes back after the push. Sleep and recovery exactly the same.'};
+  if(is<=PUSH.to)return {k:'on',t:'🔥 The push — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'Calories as the shred (1,799, Saturday 1,999; 1,899 once your 7-day average is 124.9 or under), protein about 150–160 g, carbs 200 g or more, fat about 45 g, steps that follow the scale ('+ci(pushSteps(is).n)+' today: '+pushSteps(is).why+'). Runs: one hard run (600 m+), one Norwegian run with hill sprints, the gym first — the speed run comes back after the push. Sleep and recovery exactly the same.'};
   return {k:'done',t:'Push done',w:'Back to 1,899.'};}
 function pushOn(is){return pushState(is).k==='on';}
 /* ===================== the finish (Dan, 31 Oct) =====================
@@ -1300,7 +1300,18 @@ var MILESTONES=[128,127,126,125,124,123.5,123,122.5];
 var WBIG={124:{e:'🗿',n:'SUB-124 CLUB',sub:'the chisel zone',xp:150},123:{e:'💎',n:'GOAL WEIGHT — IN THE 122–123 ZONE',sub:'you made it',xp:300}};
 function wUnder(av,m){return WBIG[m]?Math.round(av*10)/10<m:av<=m;}
 
-function stepTarget(is){if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:14500;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
+/* Dan, 4 Nov: "14,500 shouldn't be a target if my weight is going down — leave it to you. I want the most
+   anti-ageing from steps, no silly stress." The longevity benefit of steps levels off around 8,000–10,000 a
+   day for adults under 60 (Paluch et al., Lancet Public Health 2022), and past ~13k it is stress, not fat loss.
+   So in the push the steps follow the scale: losing 0.5 lb a week or more → 10,000; 0.2–0.5 → 11,500;
+   flat → 13,000 (the ceiling). Saturday whatever comes naturally. */
+function pushSteps(is){var a0=avgWindow(addD(is,-1),7),a1=avgWindow(addD(is,-8),7);
+  if(a0.n<3||a1.n<3)return {n:11500,why:'not enough mornings yet to read the trend'};
+  var r=a1.avg-a0.avg;
+  if(r>=0.5)return {n:10000,why:'your weight is coming down ('+f1(r)+' lb this week), so 10k: the longevity sweet spot'};
+  if(r>=0.2)return {n:11500,why:'losing slowly ('+f1(r)+' lb this week), so a little more walking'};
+  return {n:13000,why:'flat this week, so walking is the lever (13k is the ceiling: past it, it is stress)'};}
+function stepTarget(is){if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:pushSteps(is).n;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
 function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
@@ -4703,7 +4714,7 @@ function campGame(){
       else if(st&&st.ws===ws){var back=[];if(M.P.long&&M.P.short)back.push('the second hard run ('+(M.P.long||'')+')');if(M.mix&&M.mix.length>1)back.push('the second Norwegian run');
         if(back.length)changes.push({e:'✅',t:'Recovery is back — '+back.join(' and ')+' '+(back.length>1?'are':'is')+' on again',why:'your resting HR and sleep have settled'});}})();
     if(M.phys&&mondayOf(t)===PHYS.from)changes.push({e:'💪',t:'Physique camp from this week: two hard runs (one 600 m+, one 200–400 m speed), one Norwegian run with hill sprints, a 4th run only if recovery is good, the gym first',why:'more muscle, a sharper look and less stress — the trials, bosses and XP all stay'});
-    if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:M.phys?'Push: 1,799 a day and 14.5k steps — runs stay the physique week':'Push: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery'});
+    if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:M.phys?'Push: calories as the shred, steps that follow the scale ('+ci(pushSteps(t).n)+') — runs stay the physique week':'Push: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery'});
     if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
@@ -4963,7 +4974,7 @@ var PHYS_PLAN=[
   ['🍚','Carbs and the full look',
    '1,899 a day, carbs 200 g or more, aimed before and after training — that is what fills the muscle and brings the hardness and veins back. Potassium every day: potatoes with the skin, bananas, kiwi, yoghurt, salmon. Salt and water the same every day.'],
   ['🚶','Steps — the stress-free shred',
-   '12–13k a day (13k weekdays, 12k Sunday, Saturday whatever comes naturally) — most of it easy walking, 10 min after the biggest meal. Past 13k it is stress, not fat loss. The push is the exception: 14.5k.'],
+   '12–13k a day (13k weekdays, 12k Sunday, Saturday whatever comes naturally) — most of it easy walking, 10 min after the biggest meal. Past 13k it is stress, not fat loss. In the push the steps follow the scale: 10k while the weight comes down, up to 13k only if it stalls.'],
   ['🧬','Cellular health',
    'The Norwegian run truly 7 out of 10 — that is the zone that builds mitochondria for almost nothing. Never two hard days in a row. No deeper deficit than 1,899 outside the push. Muscle itself is longevity: keep beating last time.'],
   ['🗿','The model face',
@@ -9569,7 +9580,7 @@ function decOptHTML(){
     '<div class="tiny" style="line-height:1.6;margin-top:6px">'+
     '<b>2 Nov – 2 Dec · strict at 1,799, Saturday 1,999.</b> Weigh everything raw on scales and log it before you eat — the oil, honey, squash, sauces and the bits too. Protein 140 g, carbs 200 g+, fat 48 g+.<br>'+
     '<b>The moment the 7-day average is 124.9 or under:</b> up to 1,899 (Saturday stays 1,999) — the tracker does it on its own. At 122–123: 1,999 and hold — do not lose more.<br>'+
-    '<b>7 Nov · push check.</b> Any morning under 126.0 before then = no push. Otherwise 7–20 Nov: 14.5k steps, one 600 m+ hard run and the Norwegian.<br>'+
+    '<b>4 Nov – 24 Dec · the push.</b> Calories as above, steps that follow the scale (10k while the weight comes down, up to 13k if it stalls), one 600 m+ hard run and the Norwegian.<br>'+
     '<b>1–2 Dec · sharpen, safely.</b> Nothing new to eat, carbs normal (they fill the muscle), salt and water exactly as usual, 9 h in bed, haircut, no alcohol. Never cut water or salt — it looks flat, not lean.<br>'+
     '<b>3–5 Dec · away.</b> Eat well and enjoy it — that is the refuel. Gluten-free, protein at each meal, walk lots.<br>'+
     '<b>Back 6 Dec · on to Christmas.</b> Same rules: 1,799 (Saturday 1,999), 1,899 at a 124.9 average, 1,999 at 123 — lose no more — and 2,199 under 122. Trial days and the day before are 1,999 so the trials are fuelled: 5 km 13 Dec, 1 km 16 Dec, 400 18 Dec, mile 20 Dec, 800 22 Dec, 200 and 600 23 Dec.<br>'+
