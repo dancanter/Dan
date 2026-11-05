@@ -1427,7 +1427,7 @@ function glowLoad(){
     if(g.items||g.rituals||g.feelings||g.extras||g.note||r.refeed||(r.binges&&r.binges.length)||r.ill)
       days[d]={items:g.items||[],rituals:g.rituals||[],note:g.note,feelings:g.feelings,extras:g.extras,refeed:r.refeed?true:undefined,binges:r.binges,ill:r.ill};
     var v={};if(typeof r.steps==='number')v.steps=r.steps;if(typeof r.rhr==='number')v.rhr=r.rhr;
-    if(typeof r.study==='number')v.studyHours=r.study;if(typeof r.deep==='number')v.deepHours=r.deep;if(typeof g.outdoorMin==='number')v.outdoorMin=g.outdoorMin;
+    if(typeof r.study==='number')v.studyHours=r.study;if(typeof r.deep==='number')v.deepHours=r.deep;if(typeof r.outMin==='number')v.outdoorMin=r.outMin;else if(typeof g.outdoorMin==='number')v.outdoorMin=g.outdoorMin;
     if(Object.keys(v).length)vitals[d]=v;
     if(r.bed&&r.wake)sleeps.push({date:d,bed:r.bed,wake:r.wake,quality:g.sleepQ||3});
     var ss=glowSessions(r,d);if(ss.length)training[d]=ss;});
@@ -1443,7 +1443,7 @@ function glowSave(gs,sums){
   Object.keys(dates).forEach(function(d){var g=(gs.days||{})[d]||{},r=S.days[d]=S.days[d]||{},ng={};
     if(g.items&&g.items.length)ng.items=g.items;if(g.rituals&&g.rituals.length)ng.rituals=g.rituals;if(g.note)ng.note=g.note;
     if(g.feelings&&g.feelings.length)ng.feelings=g.feelings;if(g.extras&&g.extras.length)ng.extras=g.extras;
-    var od=((gs.vitals||{})[d]||{}).outdoorMin;if(typeof od==='number')ng.outdoorMin=od;if(r.glow&&r.glow.sleepQ)ng.sleepQ=r.glow.sleepQ;
+    var od=((gs.vitals||{})[d]||{}).outdoorMin;if(typeof od==='number'){ng.outdoorMin=od;r.outMin=od;}if(r.glow&&r.glow.sleepQ)ng.sleepQ=r.glow.sleepQ;
     if(Object.keys(ng).length)r.glow=ng;else delete r.glow;
     if(d in (gs.days||{})){if(g.refeed)r.refeed=true;else delete r.refeed;
       if(g.binges&&g.binges.length)r.binges=g.binges;else delete r.binges;
@@ -10363,7 +10363,7 @@ function cortisolScore(){
   var big=0;for(var q=1;q<=3;q++){var st=(S.days[addD(t,-q)]||{}).steps;if(typeof st==='number'&&st>14000)big++;}
   if(big)add(4*big,big+' day'+(big===1?'':'s')+' over 14k steps','Keep to the app’s step target (10–13k by the scale)','Past about 13k, extra walking adds fatigue more than health (Paluch 2022: benefit levels off at 8–10k).');
   /* 5b. daylight (Dan, 5 Nov): outside in daylight sets the cortisol rhythm */
-  var om=[0,1].map(function(i){return (S.days[addD(t,-i)]||{}).outMin;}).filter(function(v){return typeof v==='number';});
+  var om=[0,1].map(function(i){var x=S.days[addD(t,-i)]||{};return typeof x.outMin==='number'?x.outMin:(x.glow||{}).outdoorMin;}).filter(function(v){return typeof v==='number';});
   if(om.length&&Math.max.apply(null,om)<10)add(5,'Under 10 min outside in daylight','20–30 min outside, ideally in the morning or around midday','Daylight early in the day anchors the cortisol rhythm; 20–30 min outside lowered cortisol most in Hunter 2019.');
   /* 6. mind */
   var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';});
@@ -10410,7 +10410,7 @@ function cortScale(){
   rows.push(['👣 Steps (highest, last 3 days)',val(sM,ci),grade(sM,function(v){return v<=13000;},function(v){return v<=14000;}),'8–13k','13–14k','over 14k']);
   var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';}),dM=dp.length?Math.max.apply(null,dp):null;
   rows.push(['🧠 Deep study in a day (highest)',val(dM,sh),grade(dM,function(v){return v<=4;},function(v){return v<=5;}),'up to 4 h','4–5 h','over 5 h']);
-  var oT=(S.days[t]||{}).outMin,oY=(S.days[addD(t,-1)]||{}).outMin,oV=typeof oT==='number'?oT:(typeof oY==='number'?oY:null);
+  var oF=function(x){x=x||{};return typeof x.outMin==='number'?x.outMin:(x.glow||{}).outdoorMin;},oT=oF(S.days[t]),oY=oF(S.days[addD(t,-1)]),oV=typeof oT==='number'?oT:(typeof oY==='number'?oY:null);
   rows.push(['☀️ Outside in daylight',oV===null?'—':oV+' min',grade(oV,function(v){return v>=30;},function(v){return v>=10;}),'30 min+','10–30 min','under 10 min']);
   var jm=null;for(var q=0;q<2;q++){var jj=(S.days[addD(t,-q)]||{}).journal;if(jj&&jj.mood){jm=jj.mood;break;}}
   rows.push(['😊 Mood (journal, 1–5)',val(jm,String),grade(jm,function(v){return v>=4;},function(v){return v>=3;}),'4–5','3','1–2']);

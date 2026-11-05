@@ -27,6 +27,8 @@ export interface Profile {
   dailySpf?: boolean;
   /** Gets bloated easily: high-FODMAP foods are rated more strictly and low-FODMAP swaps offered. */
   bloatProne?: boolean;
+  /** Supplements taken every day (Dan, 5 Nov: astaxanthin 16 mg). Counted on every logged day. */
+  dailySupps?: { foodId: string; grams: number }[];
   /** Start dates of deload weeks you’ve taken. */
   deloads?: string[];
   /** Your usual times: walk/run and gym (HH:MM). */

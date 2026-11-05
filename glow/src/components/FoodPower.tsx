@@ -64,7 +64,8 @@ export function FoodPower({ date }: { date: string }) {
   }, [s, date]);
   if (!rows.length) return null;
   const animal = rows.filter((r) => r.animal && r.top.length).slice(0, 5);
-  const plants = rows.filter((r) => !r.animal);
+  const supps = rows.filter((r) => /supplement/i.test(r.name));
+  const plants = rows.filter((r) => !r.animal && !/supplement/i.test(r.name));
   return (
     <details className="rounded-xl border border-line p-3">
       <summary className="cursor-pointer text-sm font-semibold">🔬 What your food did for you today</summary>
@@ -79,6 +80,7 @@ export function FoodPower({ date }: { date: string }) {
           </li>
         ))}
       </ul>
+      {supps.length > 0 && <p className="mt-3 text-xs text-ink-2"><b className="text-ink">Supplements</b>: {supps.map((p) => p.name).join(', ')}. Astaxanthin protects cell membranes from oxidation and supports skin; counted in your skin and antioxidant pillars.</p>}
       {plants.length > 0 && <p className="mt-3 text-xs text-ink-2"><b className="text-ink">Plants today</b> ({plants.map((p) => p.name).slice(0, 5).join(', ')}): mostly filling and fibre, plus some vitamin C and potassium. Your best-absorbed nutrients came from the animal foods above.</p>}
       <p className="mt-2 text-[11px] text-muted">Enzymes: most food enzymes are broken down in digestion. Kefir’s live bacteria and the enzymes in raw honey are the exceptions that do something; the real value of food is the nutrients.</p>
     </details>

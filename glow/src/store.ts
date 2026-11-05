@@ -152,10 +152,16 @@ export function findFood(id: string, s: State = state): Food | undefined {
 
 export function resolveItems(log: DayLog | undefined, s: State = state): LoggedItem[] {
   if (!log) return [];
-  return log.items.flatMap((it) => {
+  const items: LoggedItem[] = log.items.flatMap((it) => {
     const food = findFood(it.foodId, s);
     return food ? [{ uid: it.uid, food, grams: it.grams, meal: it.meal, qty: it.qty }] : [];
   });
+  /* daily supplements count on every day with food logged (Dan, 5 Nov: "add that to my everyday and micros") */
+  if (items.length) for (const sp of s.profile?.dailySupps ?? []) {
+    const food = findFood(sp.foodId, s);
+    if (food && !items.some((i) => i.food.id === sp.foodId)) items.push({ uid: `supp-${sp.foodId}`, food, grams: sp.grams, meal: 'breakfast', qty: undefined });
+  }
+  return items;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
