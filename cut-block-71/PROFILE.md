@@ -30,6 +30,8 @@ throughout.
 
 **The five aims (Dan, 3 Nov):** maximise looks, health, longevity and performance, and keep stress low. Every suggestion should serve these together, ranked by how much difference it makes, and be offered as advice, never as an order.
 
+**In one line (Dan, 5 Nov):** only health, improving his times, and looking utterly attractive — and **every calorie has to matter**: each one should bring protein, absorbed micronutrients, fuel for a session, or skin and recovery benefit. No empty calories, no filler.
+
 **The main one (Dan, 4 Nov): low stress and low cortisol, to be the healthiest person he can be.** When aims pull against each other, the calmer option wins: no marathons or other crazy-volume goals, never stack hard sessions, rest over grinding, enough food and carbs around training, sleep first. Performance and looks are chased only in ways that keep cortisol down.
 
 ## 2. Hard rules — never break these
