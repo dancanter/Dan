@@ -1326,12 +1326,15 @@ function pushSteps(is){var a0=avgWindow(addD(is,-1),7),a1=avgWindow(addD(is,-8),
 /* Dan, 4 Nov: "for steps do the average: it says I'm short today with 5,000, but my average from
    Monday to today is more." Steps are judged on the week so far (Monday to today), against the
    average of each day's target. A low day after a high one is fine. */
-function weekSteps(t){t=t||today();var ws=mondayOf(t),n=0,sum=0,tg=0;for(var d=ws;d<=t;d=addD(d,1)){var v=(S.days[d]||{}).steps;if(typeof v==='number'){n++;sum+=v;tg+=stepTarget(d);}}
-  return n?{avg:sum/n,target:tg/n,n:n,ok:sum/n>=tg/n-50}:{avg:null,target:stepTarget(t),n:0,ok:false};}
+function weekSteps(t){t=t||today();var ws=mondayOf(t),n=0,sum=0,tg=0,total=0;for(var d=ws;d<=t;d=addD(d,1)){var r=S.days[d]||{},v=r.steps;if(typeof v==='number'){total+=v;
+      /* sick days and recovery days do not count against the average */
+      if(r.ill||r.reset)continue;n++;sum+=v;tg+=stepTarget(d);}}
+  return n?{avg:sum/n,target:tg/n,n:n,ok:sum/n>=tg/n-50,total:total,week:t>=STEPS_LONGEV.from?STEPS_LONGEV.week:null}:{avg:null,target:stepTarget(t),n:0,ok:false,total:total,week:t>=STEPS_LONGEV.from?STEPS_LONGEV.week:null};}
 /* Dan, 5 Nov: "forget the push… step average for longevity is 8,000 to 13,000… more gym sessions rather
    than steps." From this week the target is the longevity floor, 8,000 as a week average; anything up to
    13,000 is the range. If the weight stalls, the lever is food and an extra gym session, not more walking. */
-var STEPS_LONGEV={from:'2026-11-02',floor:8000,ceil:13000};
+var STEPS_LONGEV={from:'2026-11-02',floor:8000,ceil:13000,week:80000};
+/* Dan, 5 Nov: "I hope to get 80,000 steps a week if I can… a good guide minimum 8,000 a day on average unless I'm sick or need recovery." */
 function stepTarget(is){if(is>=STEPS_LONGEV.from)return STEPS_LONGEV.floor;if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:pushSteps(is).n;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
@@ -9727,7 +9730,7 @@ function missionHTML(){
   var stT=stepTarget(t),st=typeof r.steps==='number'?r.steps:null,sl=typeof r.sleep==='number'?r.sleep:null;
   var rings=ccRing(kc!==null?kc/kT:0,'Calories',kc!==null?ci(kc):'—','of '+ci(kT),kc!==null&&kc>kT+50?'warn':'')+
     ccRing(pro!==null?pro/MACRO.pro:0,'Protein',pro!==null?ci(pro)+' g':'—','of '+MACRO.pro+' g',pro!==null&&pro>=MACRO.pro?'good':'')+
-    (function(){var WS=weekSteps(t);return ccRing(WS.avg!==null?WS.avg/WS.target:0,'Steps · week avg',WS.avg!==null?ci(Math.round(WS.avg)):'—','of '+ci(Math.round(WS.target/100)*100)+(st!==null?' · today '+ci(st):''),WS.ok?'good':'');})()+
+    (function(){var WS=weekSteps(t);return ccRing(WS.avg!==null?WS.avg/WS.target:0,'Steps · week avg',WS.avg!==null?ci(Math.round(WS.avg)):'—',(WS.week?'min '+ci(WS.target)+' avg · week '+ci(WS.total)+' of '+ci(WS.week):'of '+ci(Math.round(WS.target/100)*100))+(st!==null?' · today '+ci(st):''),WS.ok?'good':'');})()+
     ccRing(sl!==null?sl/9:0,'Sleep',sl!==null?f1(sl)+' h':'—','aim 8–9 h',sl!==null&&sl>=8?'good':'');
   /* score, streak, level */
   var sc=ccDayScore(t),sk=ccStreak();
@@ -10611,8 +10614,8 @@ function weekFullHTML(a,b){
   sec('🧪','Stress & cortisol',G(whys.length<=1&&!T.binge&&!T.ill,whys.length<=3),(CX?'Cortisol now <b>'+CX.score+'/100</b> ('+CX.band[0].toLowerCase()+') · ':'')+'Stress '+(whys.length?'from: '+whys.map(function(w){return esc(w)+' ×'+T.why[w];}).join(', '):'nothing stacking')+(T.binge?' · '+T.binge+' binge day'+(T.binge===1?'':'s'):'')+(A.mood!==null?' · mood '+f1(A.mood)+'/5':''),
     whys.length?'The most frequent one is the lever: '+esc(whys[0])+'.':'A calm week: this is where you adapt and look your best.');
   /* steps */
-  sec('👣','Steps',A.steps===null?'':G(A.steps>=8000&&A.steps<=13500,A.steps>=6000),'Average '+arrow(A.steps,B.steps,false,'',true)+(A.stepsT!==null?' · target averaged '+ci(Math.round(A.stepsT)):''),
-    'The longevity benefit levels off at 8–10k; past about 13k it is stress, not health. The push target follows the scale.');
+  sec('👣','Steps',A.steps===null?'':G(A.steps>=8000&&A.steps<=13500,A.steps>=6000),'Average '+arrow(A.steps,B.steps,false,'',true)+' · week total <b>'+ci(T.steps.reduce(function(x,y){return x+y;},0))+'</b> (aim 80,000 · minimum 8,000 a day on average)',
+    '80,000 a week is the aim; 8,000 a day on average is the floor (sick and recovery days don’t count against it). The longevity benefit levels off around 8–10k a day; past about 13k it is fatigue more than health.');
   /* skin */
   sec('✨','Skin & look',G(T.am>=T.n-1&&T.fish>=2,T.am>=Math.ceil(T.n/2)),'SPF / skin AM <b>'+T.am+' of '+T.n+'</b> · skin PM '+T.pm+' of '+T.n+' · oily-fish days '+T.fish,
     'SPF every morning and 8 h sleep do more for under-eyes and glow than anything you can buy.');
