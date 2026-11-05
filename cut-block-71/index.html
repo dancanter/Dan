@@ -1327,8 +1327,8 @@ function pushSteps(is){var a0=avgWindow(addD(is,-1),7),a1=avgWindow(addD(is,-8),
    Monday to today is more." Steps are judged on the week so far (Monday to today), against the
    average of each day's target. A low day after a high one is fine. */
 function weekSteps(t){t=t||today();var ws=mondayOf(t),n=0,sum=0,tg=0,total=0;for(var d=ws;d<=t;d=addD(d,1)){var r=S.days[d]||{},v=r.steps;if(typeof v==='number'){total+=v;
-      /* sick days and recovery days do not count against the average */
-      if(r.ill||r.reset)continue;n++;sum+=v;tg+=stepTarget(d);}}
+      /* sick days do not count against the average (Dan, 5 Nov: reset days still count) */
+      if(r.ill)continue;n++;sum+=v;tg+=stepTarget(d);}}
   return n?{avg:sum/n,target:tg/n,n:n,ok:sum/n>=tg/n-50,total:total,week:t>=STEPS_LONGEV.from?STEPS_LONGEV.week:null}:{avg:null,target:stepTarget(t),n:0,ok:false,total:total,week:t>=STEPS_LONGEV.from?STEPS_LONGEV.week:null};}
 /* Dan, 5 Nov: "forget the push… step average for longevity is 8,000 to 13,000… more gym sessions rather
    than steps." From this week the target is the longevity floor, 8,000 as a week average; anything up to
@@ -5317,6 +5317,18 @@ var DEEP={lo:8,hi:12,cap:15,day:4};
 /* Dan, 30 Sep: no "X hours under" for study — just the aim for a distinction
    and where too much starts. Study is judged on deep hours only, and the only
    flag is too much, never too little. */
+/* Dan, 5 Nov: "don't have how much I should study, have how much I've studied and if I'm on track…
+   most of my work is deep work, so how many should I actually do, and how much deep work is too much
+   for a day or a week." Deep work is judged against the week so far (Saturday off), with limits. */
+function studyPace(t){t=t||today();glStore();var ws=mondayOf(t),tot=0,deep=0,el=0,maxDay=0,maxD=null;
+  for(var d=ws;d<=t;d=addD(d,1)){var r=S.days[d]||{};if(dow(d)!==6)el++;if(typeof r.study==='number')tot+=r.study;if(typeof r.deep==='number'){deep+=r.deep;if(r.deep>maxDay){maxDay=r.deep;maxD=d;}}}
+  var lo=DEEP.lo*el/6,hi=DEEP.hi*el/6,st;
+  if(deep>DEEP.cap)st=['Too much','w','Over '+DEEP.cap+' h of deep work this week: past this, marks stop rising and sleep, mood and training pay.'];
+  else if(deep>=hi)st=['More than on track','g','Ahead of a distinction pace for this point in the week.'];
+  else if(deep>=lo)st=['On track','g','Right on a distinction pace for this point in the week.'];
+  else st=['A little behind','','About '+sh(lo-deep)+' of deep work to be on pace — one focused block covers it.'];
+  return {tot:tot,deep:deep,el:el,lo:lo,hi:hi,st:st,maxDay:maxDay,maxD:maxD,dayOver:maxDay>DEEP.day+1};}
+var DEEP_LIMITS='<b>Limits:</b> about '+DEEP.day+' h of deep work in a day is the most that stays sharp (5 h at a push, now and then); '+DEEP.lo+'–'+DEEP.hi+' h a week is a distinction pace for you because almost all of yours is deep work (deep hours count for far more than reading-and-highlighting hours); over '+DEEP.cap+' h a week is too much.';
 var DEEP_AIM='For a distinction: <b>'+DEEP.lo+'–'+DEEP.hi+' h of deep study a week</b> — on your 4 work days that is about 2–3 h each — up to about '+DEEP.day+' h in a day. Over '+DEEP.cap+' h a week is too much. Light days are light; Saturday is no study at all.';
 function deepWeek(d){
   var st=mondayOf(d),days=[],tot=0;
@@ -9907,7 +9919,7 @@ function homeHTML(){
   var lkN=lk.filter(function(x){return x[0];}).length;
   tiles.push(homeTile('✨','Looks',lkN+'/6','today: '+(lk.filter(function(x){return !x[0];}).map(function(x){return x[1];}).slice(0,2).join(', ')||'all done'),lkN/6,lkN>=5?'good':''));
   /* 📚 study and 😊 happy */
-  tiles.push(homeTile('📚','Study',f1(W.study)+' h','this week · aim '+CFG.study.lo+'–'+CFG.study.hi,W.study/CFG.study.lo,W.study>=CFG.study.lo?'good':''));
+  (function(){var SP=studyPace();tiles.push(homeTile('📚','Study',sh(SP.tot),(SP.deep?sh(SP.deep)+' deep · ':'')+SP.st[0],SP.hi?Math.min(1,SP.deep/SP.hi):0,SP.st[1]==='g'?'good':''));})();
   var gdF=glowDay(t);
   tiles.push('<button type="button" class="hm-t" data-t="nutri" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><div class="hm-h">🍽️ Food today</div><b>'+(gdF?ci(gdF.kcal)+' kcal':'—')+'</b><small>'+(gdF?gdF.protein+' g protein of '+MACRO.pro+' · food options →':'log food · food options →')+'</small>'+(gdF?'<div class="cc-bar sm"><i style="width:'+Math.min(100,Math.round(gdF.protein/MACRO.pro*100))+'%"></i></div>':'')+'</button>');
   tiles.push(stressTile());
@@ -10621,7 +10633,7 @@ function weekFullHTML(a,b){
     'SPF every morning and 8 h sleep do more for under-eyes and glow than anything you can buy.');
   /* study */
   var tm=null;try{glStore();tm=(S.uni.tasks||[]).filter(function(x){return !x.done&&x.due;}).sort(function(x,y){return x.due<y.due?-1:1;})[0];}catch(e){}
-  sec('🎓','Study',G(T.deep>=8&&T.deep<=15,T.deep>=4),'<b>'+sh(T.study)+'</b> studied · <b>'+sh(T.deep)+'</b> deep (aim 8–12)'+(tm?' · next: '+esc((tm.mod?tm.mod+' ':'')+tm.title)+' due '+fmtS(tm.due):''),
+  sec('🎓','Study',G(T.deep>=8&&T.deep<=15,T.deep>=4),'<b>'+sh(T.study)+'</b> studied · <b>'+sh(T.deep)+'</b> deep (distinction pace 8–12 h deep, limit 15)'+(tm?' · next: '+esc((tm.mod?tm.mod+' ':'')+tm.title)+' due '+fmtS(tm.due):''),
     tm&&tm.start?'Plan: '+fmtS(tm.start)+' to '+fmtS(tm.aim)+'. One stage a day, done by the evening.':'Active recall and 90-minute blocks move marks most.');
   /* biomarkers */
   try{var H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
@@ -10763,9 +10775,9 @@ function studyCoachHTML(){
       nx.push([(nxT.mod?nxT.mod+' ':'')+nxT.title+' is due '+fmtS(nxT.due)+' ('+diffD(t,nxT.due)+' days)'+(stg?'. Next stage: '+stg[0]+' by '+fmtS(tmaStageDate(nxT,TMA_STAGES.indexOf(stg))):''),diffD(t,nxT.due)<=10?'big':'medium']);}
     else nx.push(['Add your TMA deadlines (below) and the coach plans backwards from them.','medium']);
     if(due)nx.push([due+' topic'+(due===1?'':'s')+' due for active recall: 10 minutes of testing yourself','medium']);
-    if(deep<8)nx.push(['One 90-minute deep block today would move the week ('+sh(deep)+' deep so far, aim 8–12)','medium']);
+    var SPn=studyPace(t);if(SPn.st[0]==='A little behind')nx.push(['One 90-minute deep block today puts you back on pace','medium']);
     else if(deep>15)nx.push(['Deep study is past 15 h: more now costs recovery more than it adds marks','big']);}
-  return coachCard('🎓','Your study coach',[['Last session',fb],['This week',sh(tot)+' studied · <b>'+sh(deep)+' deep</b> (aim 8–12 h deep)'],
+  return coachCard('🎓','Your study coach',[['Last session',fb],['This week',(function(){var SP=studyPace(t);return sh(tot)+' studied · <b>'+sh(deep)+' deep</b> · <b>'+SP.st[0]+'</b>. '+SP.st[2]+(SP.dayOver?' One day went past '+(DEEP.day+1)+' h deep ('+fmtS(SP.maxD)+'): two or three blocks is the sweet spot.':'')+'<br><span class="tiny">'+DEEP_LIMITS+'</span>';})()],
     ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],
     ['🎯 Goal','Distinction-level work in SK297 and SK298'+(avg!==null?' · your marks average <b>'+Math.round(avg)+'%</b> ('+ouBand(avg)+')':' · marks appear here once you enter them')+'. Evaluate, don’t describe: every paragraph needs a judgement.']],(function(){try{return studyDeepHTML();}catch(e){return '';}})());}
 /* ===================== race readiness (Dan, 1 Nov) =====================
