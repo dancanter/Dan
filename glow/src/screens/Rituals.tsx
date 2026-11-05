@@ -7,10 +7,22 @@ import { BigDaySetup } from '@/components/LookGood';
 import { YogaCard } from '@/components/Yoga';
 import { MovieNight } from '@/components/Movies';
 
+/* one Wim Hof round (about 3 min): 30 breaths with spoken counts, a 75 s hold on empty lungs, a 15 s recovery hold */
+const WIM_ROUND: [string, number, string?][] = (() => {
+  const r: [string, number, string?][] = [];
+  for (let i = 0; i < 30; i++) {
+    const cue = i === 0 ? 'Deep breath in… and let it go' : i === 10 ? 'ten' : i === 20 ? 'twenty' : i === 27 ? 'last three' : '';
+    r.push(['Breathe in', 1.6, cue], ['Breathe out', 1.4, '']);
+  }
+  r.push(['Hold, lungs empty', 75, 'Breathe out… and hold'], ['Hold, lungs full', 15, 'Big breath in… and hold']);
+  return r;
+})();
 const PATTERNS = {
   resonance: { label: 'Resonance 5.5', steps: [['Breathe in', 5.5], ['Breathe out', 5.5]] as [string, number][], about: 'About 5.5 breaths a minute, close to the rate that maximises heart-rate variability in most adults. Your everyday calm-down.' },
   box: { label: 'Box 4-4-4-4', steps: [['Breathe in', 4], ['Hold', 4], ['Breathe out', 4], ['Hold', 4]] as [string, number][], about: 'Steadying before an exam, race or anything high-stakes.' },
   sleep: { label: 'Sleep 4-7-8', steps: [['Breathe in', 4], ['Hold', 7], ['Breathe out', 8]] as [string, number][], about: 'Long exhales lean the nervous system towards rest. Good in bed with the lights off.' },
+  /* Dan, 5 Nov: Wim Hof rounds — 30 deep breaths, hold on the out-breath, a recovery breath held 15 s */
+  wimhof: { label: 'Wim Hof', steps: WIM_ROUND, about: 'Rounds of 30 deep, quick breaths, then breathe out and hold, then one big breath in held for 15 s. An energising, deliberate short stress, not a calm-down: best in the morning or before study or training, not before bed. Always sitting or lying down — never in or near water, never driving. Stop if you feel unwell.' },
 };
 type PatternKey = keyof typeof PATTERNS;
 
@@ -145,18 +157,20 @@ export function Breathing({ date, minutesToday }: { date: string; minutesToday: 
     step++;
   }
   const [phase, len] = p.steps[step];
+  const cue = (p.steps[step] as [string, number, string?])[2];
   const frac = into / len;
-  const scale = phase === 'Breathe in' ? 0.55 + 0.45 * frac : phase === 'Breathe out' ? 1 - 0.45 * frac : step === 1 ? 1 : 0.55;
+  const scale = phase === 'Breathe in' ? 0.55 + 0.45 * frac : phase === 'Breathe out' ? 1 - 0.45 * frac : /empty/.test(phase) ? 0.55 : /full/.test(phase) || step === 1 ? 1 : 0.55;
   const left = total - elapsed;
   const key = `${Math.floor(elapsed / cycle)}-${step}`;
   useEffect(() => {
     if (!running || !voice || key === lastSpoken.current) return;
     lastSpoken.current = key;
+    if (cue !== undefined) { if (cue) say(cue); return; }
     say(SPOKEN[phase] ?? phase.toLowerCase());
-  }, [running, voice, key, phase]);
+  }, [running, voice, key, phase, cue]);
   const toggle = () => {
     if (running) { setRunning(false); try { speechSynthesis.cancel(); } catch { /* none */ } return; }
-    if (voice && !elapsed) { say('Close your eyes. Breathe in…'); lastSpoken.current = '0-0'; }
+    if (voice && !elapsed) { say(pattern === 'wimhof' ? 'Sit comfortably and close your eyes. Deep breath in… and let it go' : 'Close your eyes. Breathe in…'); lastSpoken.current = '0-0'; }
     setRunning(true);
   };
   const setV = (on: boolean) => { setVoice(on); try { localStorage.setItem('glow.breathVoice', on ? 'on' : 'off'); } catch { /* fine */ } if (!on) { try { speechSynthesis.cancel(); } catch { /* none */ } } };
