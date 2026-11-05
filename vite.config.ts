@@ -45,7 +45,7 @@ export default defineConfig({
         // The Good Life is a separate app published under /good-life/ on the
         // same site. This worker's scope covers it, so without this its
         // navigations would be answered with this app's index.html.
-        navigateFallbackDenylist: [/\/good-life\//],
+        navigateFallbackDenylist: [/\/good-life\//, /\/training-system\//],
         // Make a new deploy take over immediately instead of waiting for
         // every open tab to close — otherwise a redeployed app can keep
         // serving a stale cached version for a while after a fresh install.
@@ -84,6 +84,6 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     css: true,
     // good-life/ is a separate app with its own dependencies and test setup.
-    exclude: ['**/node_modules/**', '**/dist/**', 'good-life/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'good-life/**', 'glow/**', 'cut-block-71/**', 'training-system/**'],
   },
 });
