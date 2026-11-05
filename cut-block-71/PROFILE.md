@@ -70,7 +70,7 @@ throughout.
 | 19 Sep 2026 | Cut started |
 | 12 Oct | Race camp started |
 | 26 Oct | **Physique camp** shape began (more emphasis on muscle and looks) |
-| **4 Nov – 24 Dec** | **The push** (Dan chose it, 4 Nov: "look unreal — face sculpted, healthy and lean — by the 24th"): calories as the shred (1,799, Saturday 1,999, 1,899 at a 7-day average ≤124.9, never lower), steps judged on the **week average, Monday to today** (Dan, 4 Nov: a 5k day after big days is fine), following the scale (Dan, 4 Nov: "no silly stress"): 10,000 while the 7-day average drops 0.5 lb a week or more (the longevity plateau, Paluch 2022), 11,500 at 0.2–0.5, 13,000 only if flat (the ceiling); at goal weight (7-day average ≤124) 8,000, with 8–13k the longevity range; Saturday and France whatever comes naturally, one 600 m+ hard run + one Norwegian (no speed run), gym first. The low-cortisol way to lean out: the extra comes from walking |
+| **5 Nov** | **No push** (Dan: "I never said to drop anything… forget the push"). The full physique week: **two hard runs** (one 600 m+, one 200–400 m speed run), **a Norwegian** with hill sprints, **a 2nd Norwegian only when recovered and cortisol is under 25**, the gym as the main driver of muscle. **Any session becomes a walk when stress or cortisol is too high** (cortisol 45+ = eased week). **Steps: 8,000–13,000 week average** (target 8,000), all year. If the weight stalls, the lever is an extra gym session and food, not more steps. Calories as the shred (1,799, Saturday 1,999, 1,899 at a 7-day average ≤124.9). Goal 123–124 lb by 24 Dec |
 | 15 Nov | Reverse decision (`REV_DECIDE`) |
 | 21 Nov | London trip (push ends the day before) |
 | 28 Nov | Birthday (26). The shred carries on (plan changed 3 Nov: no reverse in November) |

@@ -269,7 +269,7 @@ ok('with the reverse week: 2 hard, 2 easy, gym 5, 11,000 steps', /2 hard · 1–
 ok('the old "times held, a bit of muscle" plan is gone', !/Times held, not chased|A bit of muscle if it turns up/.test(rc));
 const rv = await p.evaluate(() => { const R = reverseModel(); return { m: R.maint, mc: R.maintCut, a: R.actAdj, st: stepTarget('2026-12-27'), stc: stepTarget('2026-10-05') }; });
 ok('the ladder tops out at reverse-week activity, not cut activity', rv.a > 30 && rv.a < 150 && Math.abs(rv.mc - rv.a - rv.m) <= 10, JSON.stringify(rv));
-ok('steps are 11,000 a day on the reverse, the cut pattern before it', rv.st === 11000 && rv.stc === 13000, JSON.stringify(rv));
+ok('steps: the longevity floor of 8,000 from 2 Nov, the cut pattern before it', rv.st === 8000 && rv.stc === 13000, JSON.stringify(rv));
 ok('grass-fed butter and A2 whole milk are on the healthy foods list', await p.evaluate(() => !!hfById('butter') && !!hfById('milkA2')));
 await ctx.close();
 
@@ -793,9 +793,9 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-09'));
 await boot(st({ weights: { '2026-10-30': 126.4, '2026-11-07': 126.1 } }));
 let PSH = await p.evaluate(() => ({ s: pushState().k, k: dayTarget('2026-11-09'), sat: dayTarget('2026-11-14'), st: stepTarget('2026-11-09'), after: dayTarget('2026-11-22'), M: weekRunsModel(), g: E('glanceCard').textContent, satSt: stepTarget('2026-11-14'), fr: stepTarget('2026-12-04'), xmas: pushState('2026-12-25').k }));
-ok('Dan chose the push (4 Nov): it runs to 24 Dec — 1,799 (Saturday 1,999), steps 10–13k by the scale, a 600 m+ hard run and one Norwegian (physique week)', PSH.s === 'on' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st >= 10000 && PSH.st <= 13000 && [1799, 1899].includes(PSH.after) && !!PSH.M.P.long && PSH.M.mix.length === 1 && PSH.M.T.hard === 1 && !PSH.M.P.short && /The push/.test(PSH.g) && PSH.satSt <= 10500 && PSH.fr <= 10500 && PSH.xmas !== 'on', JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
+ok('no push (Dan, 5 Nov): 1,799 (Saturday 1,999), steps 8,000, both hard runs (600 m+ and speed) and a Norwegian', PSH.s === 'off' && PSH.k === 1799 && PSH.sat === 1999 && PSH.st === 8000 && !!PSH.M.P.long && !!PSH.M.P.short && PSH.M.mix.length === 1, JSON.stringify({ s: PSH.s, k: PSH.k, sat: PSH.sat, st: PSH.st, l: PSH.M.P.long, mix: PSH.M.mix }));
 await boot(st({ weights: { '2026-10-30': 125.9, '2026-11-07': 126.1 } }));
-ok('a morning under 126 does not cancel it: Dan chose it', await p.evaluate(() => pushState().k === 'on' && dayTarget('2026-11-09') === strictKcal('2026-11-09')));
+ok('the push stays off whatever the scale says', await p.evaluate(() => pushState().k === 'off' && dayTarget('2026-11-09') === strictKcal('2026-11-09')));
 await ctx.close();
 
 // ===== the camp's weekly review (11 Oct) =====
@@ -850,7 +850,7 @@ ok('physique week: two hard runs (600 m+ and 200–400), one Norwegian, an optio
 ok('the quests ask for a 600 m+ hard run, a speed run and one Norwegian', PH.q.indexOf('Hard run, 600 m and up:1') >= 0 && PH.q.indexOf('Speed run, 200–400 m:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
 ok('the Norwegian carries the hill sprints', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)), JSON.stringify(PH.left));
 ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
-ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /speed run comes back after the push/.test(PH.push), PH.ph + ' | ' + PH.push);
+ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /full week of runs/.test(PH.push), PH.ph + ' | ' + PH.push);
 ok('the runs card has the 600 m+ run and the speed run', /Hard run · 600 m and up/.test(PH.card) && /Hard run · speed, 200 to 400 m/.test(PH.card), '');
 ok('the 600 m+ menu has a timed 5 km and every long camp session', /Timed 5 km, hard/.test(PH.card) && /Hard 5 miles or 10 km/.test(PH.card) && /3 × 1 mile at 5 km pace/.test(PH.card) && /Ladder 800-600-400-200/.test(PH.card) && /Threshold run/.test(PH.card) && !/10 × 400 m at mile pace/.test(PH.card), '');
 ok('the speed menu has the 200–400 sessions and no 600s', /2 × \(3 × 200 m\) fast/.test(PH.card) && /6 × 200 m uphill/.test(PH.card) && /8 × 200 m/.test(PH.card) && !/4 × 600 m|3 × 600 m/.test(PH.card), '');
@@ -889,7 +889,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: Object.assign(wtsC('2026-11-02', Array.from({ length: 22 }, () => 125.6))) }));
 CCx = await p.evaluate(() => calCall());
-ok('during the push the call is the push: calories never lower, the extra from walking', CCx.k === 'push' && /walking/.test(CCx.w), JSON.stringify(CCx));
+ok('flat two weeks: an extra gym session first, not more steps, then rest days to 1,799', CCx.k === 'down' && /extra gym session/.test(CCx.w) && /1,799/.test(CCx.w), JSON.stringify(CCx));
 await ctx.close();
 // build sets now (31 Oct): upper body at build volume from 2 Nov, legs stay 8–12
 ({ ctx, p, boot } = await at('2026-11-03'));

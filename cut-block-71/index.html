@@ -1209,9 +1209,13 @@ function upDay(is){
    calories do not go lower (they follow the shred: 1,799, Saturday 1,999, 1,899 once the 7-day average is 124.9 or under),
    the extra comes from walking (steps that follow the scale, 10–13k), and the hardest-on-the-body run (the speed run) steps aside.
    France (3–5 Dec) is a holiday: steps whatever comes naturally. */
-var PUSH={check:'2026-11-04',from:'2026-11-04',to:'2026-12-24',under:126,trip:'Christmas Eve',tripDate:'2026-12-24',forced:true,away:['2026-12-03','2026-12-05']};
+var PUSH={check:'2026-11-04',from:'2026-11-04',to:'2026-12-24',under:126,trip:'Christmas Eve',tripDate:'2026-12-24',forced:true,away:['2026-12-03','2026-12-05'],off:true};
+/* Dan, 5 Nov: "I never said to drop anything… forget the push." The push is off: the full physique week
+   of runs stays (two hard: 600 m+ and a 200–400 m speed run; a Norwegian; a 2nd Norwegian only when
+   recovered and cortisol is fine), the gym first, steps 8–13k. Any session becomes a walk when stress or
+   cortisol is too high. */
 function pushBroke(){if(PUSH.forced)return null;var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-10-27'&&k<=PUSH.check&&typeof S.weights[k]==='number'&&S.weights[k]<PUSH.under&&!hit)hit=k;});return hit;}
-function pushState(is){is=is||today();var b=pushBroke();
+function pushState(is){is=is||today();if(PUSH.off&&is>='2026-11-05')return {k:'off',t:'No push',w:'The full week of runs, the gym first, steps 8–13k.'};var b=pushBroke();
   if(b)return {k:'off',t:'No push needed',w:'You weighed under '+PUSH.under+' on '+fmtS(b)+' — carry on exactly as you are.'};
   if(is<PUSH.check)return {k:'pending',t:'Push check on '+fmtS(PUSH.check),w:'Any morning under '+PUSH.under+'.0 before then and there is no push. If not, two weeks of push from '+fmtS(PUSH.from)+' to London on '+fmtS(PUSH.tripDate)+'.'};
   if(is<=PUSH.to)return {k:'on',t:'🔥 The push — '+(diffD(is,PUSH.tripDate))+' days to '+PUSH.trip,w:'Calories as the shred (1,799, Saturday 1,999; 1,899 once your 7-day average is 124.9 or under), protein about 150–160 g, carbs 200 g or more, fat about 45 g, steps that follow the scale ('+ci(pushSteps(is).n)+' today: '+pushSteps(is).why+'). Runs: one hard run (600 m+), one Norwegian run with hill sprints, the gym first — the speed run comes back after the push. Sleep and recovery exactly the same.'};
@@ -1323,7 +1327,11 @@ function pushSteps(is){var a0=avgWindow(addD(is,-1),7),a1=avgWindow(addD(is,-8),
    average of each day's target. A low day after a high one is fine. */
 function weekSteps(t){t=t||today();var ws=mondayOf(t),n=0,sum=0,tg=0;for(var d=ws;d<=t;d=addD(d,1)){var v=(S.days[d]||{}).steps;if(typeof v==='number'){n++;sum+=v;tg+=stepTarget(d);}}
   return n?{avg:sum/n,target:tg/n,n:n,ok:sum/n>=tg/n-50}:{avg:null,target:stepTarget(t),n:0,ok:false};}
-function stepTarget(is){if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:pushSteps(is).n;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
+/* Dan, 5 Nov: "forget the push… step average for longevity is 8,000 to 13,000… more gym sessions rather
+   than steps." From this week the target is the longevity floor, 8,000 as a week average; anything up to
+   13,000 is the range. If the weight stalls, the lever is food and an extra gym session, not more walking. */
+var STEPS_LONGEV={from:'2026-11-02',floor:8000,ceil:13000};
+function stepTarget(is){if(is>=STEPS_LONGEV.from)return STEPS_LONGEV.floor;if(typeof PUSH!=='undefined'&&PUSH.away&&is>=PUSH.away[0]&&is<=PUSH.away[1])return STEPS_SAT;if(typeof pushOn==='function'&&pushOn(is))return dow(is)===6?STEPS_SAT:pushSteps(is).n;if(is>=REV_START)return CFG.rev.steps;var d=dow(is);if(d===6)return STEPS_SAT;if(d===0)return CFG.steps.sunday;return CFG.steps.weekday;}
 function taperAt(k){return CFG.w.taperA+(CFG.w.taperB-CFG.w.taperA)*(W_WEEKS>1?k/(W_WEEKS-1):0);}
 function weekOf(is){var n=diffD(WEIGH_START,is);if(n<0)return 0;return Math.floor(n/7)+1;}
 function isDeload(wk){return CFG.deloadWeeks.indexOf(wk)>=0;}
@@ -3705,6 +3713,10 @@ function weekRunsModel(){
   var ST=weekStatus(),easeOff=!!(ST&&ST.k!=='good');
   /* an easy week he chose to take on the Feedback tab */
   if(easyWeekOn(t)||walkWeekOn(t)){easeOff=true;if(!ST||ST.k==='good')ST={k:'easy',t:'Easy week',w:'You are taking an easy week.'};}
+  /* Dan, 5 Nov: "if my stress or cortisol is too much, don't bother: do a walk." A raised cortisol score
+     (25+) takes away the optional 2nd Norwegian; a bad one (45+) makes it an eased week. */
+  var CXw=null;try{CXw=cortisolScore();}catch(e){}
+  if(CXw&&CXw.score>=45){easeOff=true;if(!ST||ST.k==='good')ST={k:'warn',t:'Cortisol high',w:'Cortisol score '+CXw.score+'/100: one hard run, the rest walks, until it settles.'};}
   /* the push: one hard run (the shorter) and two Norwegian runs */
   var pushNow=pushOn(t);
   /* a physique push keeps the 600 m+ run and drops the speed run */
@@ -3750,7 +3762,7 @@ function weekRunsModel(){
     /* 19 Oct, later: two Norwegian runs, no fun run */
     mix=(phys||dipM.level>=2||easeOff||thrOn)?['norw']:['norw','norw'];easyTarget=mix.length;}
   /* physique: a second Norwegian is a bonus, only on a clear week */
-  var optN=phys&&!easeOff&&!pushNow&&dipM.level<2;
+  var optN=phys&&!easeOff&&!pushNow&&dipM.level<2&&!(CXw&&CXw.score>=25);
   /* one hard slot left (eased or the push): the week owes one */
   if(phys&&!(use.long&&use.short))T=Object.assign({},T,{hard:1,runs:2});
   return {phys:phys,optN:optN,mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
@@ -4703,7 +4715,7 @@ function campGame(){
     if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
     for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
-    if(M.optN&&q.subt<2&&!walkSwap)easyL.push({e:'➕',c:'opt',n:'Optional: a 2nd Norwegian — '+nP[0].n+' (only on a 🟢 day, never a 4th run in a row)',how:runHow('Norwegian sub-threshold — '+nP[0].n)+' A bonus for the engine and the 5 km, never owed — skip it and nothing is lost.'});
+    if(M.optN&&q.subt<2&&!walkSwap)easyL.push({e:'➕',c:'opt',n:'Optional: a 2nd Norwegian — '+nP[0].n+' (only on a 🟢 day, when recovered and cortisol is under 25)',how:runHow('Norwegian sub-threshold — '+nP[0].n)+' A bonus for the engine and the 5 km, never owed — skip it and nothing is lost.'});
     /* four runs is the most — anything extra is a walk */
     easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
   }else
@@ -4785,7 +4797,7 @@ function calCall(t){
   if(r2!==null&&r1<0.25&&r2<0.25){
     if(PS.k==='pending')return {k:'hold',e:'✅',t:'Calories: hold at 1,899',w:'Flat for two weeks ('+rTxt+') — the push check on '+fmtS(PUSH.check)+' covers it. Nothing to change before then.'};
     var C=coachModel();if(['day','days','week','on'].indexOf(C.rest.k)>=0)return {k:'hold',e:'✅',t:'Calories: hold at 1,899',w:'Flat for two weeks, but recovery is flagged — stress holds water, so rest first, not less food.'};
-    return {k:'down',e:'⬇️',t:'Calories: a small step down',w:'Two weeks flat ('+rTxt+'). First 2,000 more steps a day for a week; if the average still has not moved, rest and gym-only days to 1,799 — run days stay 1,899. Say the word and I set it.'};}
+    return {k:'down',e:'⬇️',t:'Calories: a small step down',w:'Two weeks flat ('+rTxt+'). First an extra gym session that week (more muscle, not more steps); if the average still has not moved, rest and gym-only days to 1,799 — run days stay 1,899. Say the word and I set it.'};}
   return {k:'hold',e:'✅',t:'Calories: hold at 1,899',w:'Your average is '+rTxt+' — '+(rate>=0.4?'right where it should be. Keep going.':'steady. Give it time — water moves first, the trend follows.')};
 }
 function campCallHTML(){
