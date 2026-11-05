@@ -10528,6 +10528,10 @@ function weekFullHTML(a,b){
   /* running */
   sec('🏃','Running',G(T.hard>=1&&T.hard<=2&&!T.afterLegs,T.hard<=3),T.runs+' runs ('+T.hard+' hard) · <b>'+f1(T.km)+' km</b>'+(P.runs?' (week before '+P.runs+' runs, '+P.hard+' hard, '+f1(P.km)+' km)':'')+(T.afterLegs?' · '+T.afterLegs+' hard run'+(T.afterLegs===1?'':'s')+' the day after legs':''),
     T.hard>=3?'Three hard runs: the third mostly added cortisol. Two is the dose that keeps the times climbing.':(T.afterLegs?'Put an easy day between legs and a hard run: same fitness, less stress.':(T.hard===0?'No hard run: fine for an easy week; otherwise one 600 m+ session keeps the engine.':'The right dose: hard work kept to two sessions.')));
+  try{var RL=[];wkSpan(a,b).days.forEach(function(d){((S.days[d]||{}).runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
+      var ty={easy:'easy',threshold:'hard continuous',fun:'fun fast',subt:'Norwegian sub-threshold'}[x.type]||'';
+      RL.push(DOWS[dow(d)]+' '+fmtS(d)+': <b>'+(m.kind==='reps'?esc(m.label):f1(m.km)+' km'+(ty?' '+ty:''))+'</b>'+(m.pace?' · '+kmPace(m.pace)+'/km':'')+(m.secs?' · '+(m.secs>=60?mmss(Math.round(m.secs)):m.secs+' s'):'')+(x.tt?' · ⏱ trial':'')+(m.hard&&!m.sprint?' · hard':''));});});
+    if(RL.length)rows.push('<div class="tiny" style="margin:-2px 0 6px 0">'+RL.join('<br>')+'</div>');}catch(e){}
   if(T.hard>=1&&T.hard<=2&&!T.afterLegs)good.push('Hard running kept to '+T.hard+(T.hard===1?' session':' sessions'));
   if(T.hard>=3)fix.push(['Two hard runs, the third easy','big']);if(T.afterLegs)fix.push(['An easy day between legs and a hard run','medium']);
   /* lifting */
@@ -10538,9 +10542,9 @@ function weekFullHTML(a,b){
   /* recovery */
   sec('😴','Sleep & recovery',G(A.sleep!==null&&A.sleep>=8&&(T.bedSd===null||T.bedSd<=45),A.sleep!==null&&A.sleep>=7),
     'Sleep '+arrow(A.sleep,B.sleep,true,' h',true)+' · bedtime '+(A.bed!==null?'<b>'+bT(A.bed)+'</b>':'—')+(T.bedSd!==null?' ±'+Math.round(T.bedSd)+' min':'')+' · resting HR '+arrow(A.rhr,B.rhr,false,'',false)+' · full days off <b>'+T.off+'</b>',
-    (A.sleep!==null&&A.sleep<8?'Under 8 h on average: the cheapest, biggest lever for muscle, skin, cortisol and appetite. ':'')+(T.bedSd!==null&&T.bedSd>45?'Bedtime varied a lot: a regular time matters on its own. ':'')+(T.off===0?'No full day off: Saturday is the day it all lands.':''));
+    (A.sleep!==null&&A.sleep<8?'Under 8 h on average: the cheapest, biggest lever for muscle, skin, cortisol and appetite. ':'')+(T.bedSd!==null&&T.bedSd>45?'Bedtime varied a lot: a regular time matters on its own. ':'')+(T.off===0&&T.n>=6?'No full day off: Saturday is the day it all lands.':(T.off===0?'No day off yet this week: Saturday is the one.':'')));
   if(A.sleep!==null&&A.sleep>=8)good.push(f1(A.sleep)+' h sleep a night');
-  if(A.sleep!==null&&A.sleep<8)fix.push(['8–9 h a night, the same bedtime','big']);if(T.off===0)fix.push(['A full day off','medium']);
+  if(A.sleep!==null&&A.sleep<8)fix.push(['8–9 h a night, the same bedtime','big']);if(T.off===0&&T.n>=6)fix.push(['A full day off','medium']);
   /* stress */
   var whys=Object.keys(T.why).sort(function(x,y){return T.why[y]-T.why[x];}).slice(0,4);
   var CX=null;try{CX=cortisolScore();}catch(e){}
@@ -10556,6 +10560,30 @@ function weekFullHTML(a,b){
   var tm=null;try{glStore();tm=(S.uni.tasks||[]).filter(function(x){return !x.done&&x.due;}).sort(function(x,y){return x.due<y.due?-1:1;})[0];}catch(e){}
   sec('🎓','Study',G(T.deep>=8&&T.deep<=15,T.deep>=4),'<b>'+sh(T.study)+'</b> studied · <b>'+sh(T.deep)+'</b> deep (aim 8–12)'+(tm?' · next: '+esc((tm.mod?tm.mod+' ':'')+tm.title)+' due '+fmtS(tm.due):''),
     tm&&tm.start?'Plan: '+fmtS(tm.start)+' to '+fmtS(tm.aim)+'. One stage a day, done by the evening.':'Active recall and 90-minute blocks move marks most.');
+  /* biomarkers */
+  try{var H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
+    var ssT=[],ssP=[];wkSpan(a,b).days.forEach(function(d){var q=sleepScoreOn(d);if(q!==null)ssT.push(q);});wkSpan(addD(a,-7),addD(b,-7)).days.forEach(function(d){var q=sleepScoreOn(d);if(q!==null)ssP.push(q);});
+    var LS=null;try{LS=longevityScores();}catch(e){}
+    var bio=[['⚖️ Weight (7-day avg)',T.w.avg!==null?f1(T.w.avg)+' lb':'—',P.w.avg!==null?f1(P.w.avg)+' lb':'—','122–124 lb'],
+      ['❤️ Resting HR',A.rhr!==null?Math.round(A.rhr)+'':'—',B.rhr!==null?Math.round(B.rhr)+'':'—','under 55, and steady'],
+      ['😴 Sleep score',ssT.length?Math.round(mean(ssT))+'/100':'—',ssP.length?Math.round(mean(ssP))+'/100':'—','85+'],
+      ['😴 Sleep',A.sleep!==null?f1(A.sleep)+' h':'—',B.sleep!==null?f1(B.sleep)+' h':'—','8–9 h'],
+      ['🫀 VO₂max (est.)',H&&H.vo2?Math.round(H.vo2)+'':'—','','55+ is excellent for your age'],
+      ['🧬 Health age',H?H.glowAge+' (you’re '+H.age+')':'—','','under your real age'],
+      ['🩸 Blood pressure',H&&H.bp?H.bp.sys+'/'+H.bp.dia:'not measured','','under 120/80'],
+      ['🧪 Cortisol score',CX?CX.score+'/100':'—','','under 10 best'],
+      ['🧬 Longevity score',LS?'today '+LS.day.score+' · overall '+LS.all.score:'—','','85+ excellent']];
+    rows.push('<div style="margin:12px 0 4px"><b>🩺 Biomarkers</b><div class="scroll"><table class="tbl"><thead><tr><th></th><th class="n">This week</th><th class="n">Week before</th><th>Aim</th></tr></thead><tbody>'+
+      bio.map(function(x){return '<tr><td>'+x[0]+'</td><td class="n"><b>'+esc(x[1])+'</b></td><td class="n">'+esc(x[2])+'</td><td class="tiny">'+esc(x[3])+'</td></tr>';}).join('')+'</tbody></table></div>'+
+      '<p class="tiny" style="margin:2px 0">Not measured yet: home blood pressure (a few mornings) and a baseline blood test (ferritin, vitamin D, B12, folate, cholesterol, HbA1c, thyroid). Add them in Longevity → Body &amp; health and they appear here.</p></div>');}catch(e){}
+  /* micronutrients */
+  try{var NU=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(b>today()?today():b):null;
+    if(NU&&NU.week&&NU.days){var ok=NU.week.filter(function(x){return x.week!==null;});
+      rows.push('<div style="margin:12px 0 4px"><b>🔬 Micronutrients</b> <span class="tiny">absorbed, % of need, daily average Monday to '+fmtS(b>today()?today():b)+' ('+NU.days+' logged day'+(NU.days===1?'':'s')+')</span><div style="margin-top:4px">'+
+        ok.map(function(x){var v=Math.round(x.week);return '<div style="margin:3px 0"><div class="row" style="justify-content:space-between"><span>'+esc(x.label)+'</span><span class="mono">'+v+'%</span></div><div style="height:5px;background:var(--rule-2);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,v)+'%;background:'+(v>=80?'var(--good)':(v>=50?'var(--warn)':'var(--bad)'))+'"></div></div></div>';}).join('')+'</div></div>');
+      var lowN=ok.filter(function(x){return x.week<70;}).slice(0,3);
+      var FOOD={'Vitamin D':'oily fish 2–3×','Vitamin E':'almonds, sunflower seeds, trout','Vitamin A':'eggs, carrots, sweet potato, 5% Fage','Vitamin C':'kiwi, clementines, red pepper','Folate':'avocado, beetroot, oranges','Omega-3':'salmon, trout, mackerel','Zinc':'beef, venison, oysters','Iron':'venison, beef','Vitamin K':'aged cheese, egg yolks','Magnesium':'pumpkin seeds, dark chocolate','Potassium':'potatoes, kefir, coconut water','Calcium':'yoghurt, cheese, milk','Selenium':'eggs, fish','Iodine':'Fage, milk, fish'};
+      lowN.forEach(function(x){fix.push([x.label+' at '+Math.round(x.week)+'%: '+(FOOD[x.label]||'see food options'),x.week<40?'big':'medium']);});}}catch(e){}
   /* coaching */
   fix.sort(function(x,y){var o={big:0,medium:1,small:2};return o[x[1]]-o[y[1]];});
   var ph=pushOn(today())?'The push to 24 Dec: lose fat while keeping and building muscle and the run base. Calm and well fed beats hard and hungry.':'Keep building: muscle, the run base and health.';
