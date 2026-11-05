@@ -10156,6 +10156,47 @@ function cortisolHTML_run(){var X=cortisolCheck();
     '<p style="margin:4px 0">'+X.verdict+'</p>'+
     X.flags.map(function(f){return '<p style="margin:4px 0"><span class="pill w">!</span> <b>'+esc(f[0])+'</b><br><span class="tiny">'+esc(f[1])+'</span></p>';}).join('')+
     '<p class="tiny" style="margin:6px 0 2px"><b>The anti-ageing shape:</b> two hard runs a week (they raise VO2max, among the strongest predictors of a long life), the rest truly easy (full sentences, nose breathing), carbs before and after a hard run (a hard run on low carbs raises cortisol more), never two hard days in a row, and the day off. A cortisol spike in a session is normal and good; it is only bad when it never gets the chance to come down.</p></details>';}
+/* Dan, 5 Nov: "I do not want to go backwards… improve my run fitness… do whatever it takes so I beat my
+   times, whether that's more or less or rest." Every hard session is turned into an equivalent 1 km time
+   (Riegel, exponent 1.07) so 300s, 800s, ladders and trials compare on one line. The last 3 weeks are set
+   against the 5 weeks before. Then the call: more when he is improving and recovered, hold when it is
+   working, less or rest when the times slip AND recovery shows it, fuel and sleep when they slip without. */
+function eq1k(m){if(!m||!m.secs)return null;var n=m.n||1,dist=m.km*1000;if(!dist)return null;var rep=m.kind==='reps'?dist/n:dist,t=m.kind==='reps'?m.secs/n:m.secs;
+  if(rep<150||t<15)return null;return t*Math.pow(1000/rep,1.07);}
+function runProgress(){
+  var t=today(),A=[],B=[],nA=[],nB=[];
+  for(var i=0;i<56;i++){var d=addD(t,-i);((S.days[d]||{}).runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;
+      if(x.type==='subt'||(m.kind==='reps'&&!m.hard&&m.pace)){if(m.pace)(i<21?nA:nB).push(m.pace);return;}
+      if(!m.hard||m.sprint)return;var e=eq1k(m);if(!e)return;var rp=m.kind==='reps'?m.km*1000/(m.n||1):m.km*1000;
+      (i<21?A:B).push({e:e,k:rp<=450?'speed':'long'});});}
+  var med=function(a){if(!a.length)return null;var b=a.slice().sort(function(x,y){return x-y;});return b[Math.floor((b.length-1)/2)];};
+  /* like with like: speed reps (200–400) against speed reps, 600 m+ against 600 m+ */
+  var chs=[],parts={};['speed','long'].forEach(function(k){var x=med(A.filter(function(z){return z.k===k;}).map(function(z){return z.e;})),y=med(B.filter(function(z){return z.k===k;}).map(function(z){return z.e;}));
+    parts[k]={a:x,b:y};if(x&&y)chs.push((y-x)/y*100);});
+  var a=med(A.map(function(z){return z.e;})),b=med(B.map(function(z){return z.e;})),na=med(nA),nb=med(nB),ch=chs.length?mean(chs):null,nch=(na&&nb)?(nb-na)/nb*100:null;
+  var CX=null;try{CX=cortisolScore();}catch(e){}var base=rhrBase(t),rh=(S.days[t]||{}).rhr;
+  var sl=[];for(var j=0;j<5;j++){var v=(S.days[addD(t,-j)]||{}).sleep;if(typeof v==='number')sl.push(v);}var slA=sl.length?mean(sl):null;
+  var tired=(CX&&CX.score>=35)||(base!==null&&typeof rh==='number'&&rh>=base+5)||(slA!==null&&slA<7);
+  var dip=null;try{dip=timesDip(t);}catch(e){}
+  var st,call,imp;
+  var pc=function(k){var q=parts[k];return q.a&&q.b?(q.b-q.a)/q.b*100:null;},cS=pc('speed'),cL=pc('long');
+  if(cS!==null&&cL!==null&&((cS>=1&&cL<=-1)||(cS<=-1&&cL>=1))){var up=cS>0?'speed':'600 m+',down=cS>0?'600 m+':'speed',cd=cS>0?cL:cS,cu=cS>0?cS:cL;
+    st=['Mixed','',up[0].toUpperCase()+up.slice(1)+' sessions are '+f1(cu)+'% faster; '+down+' sessions '+f1(-cd)+'% slower.'];
+    call=tired?'Recover first: an easier few days, then both move.':(down==='600 m+'?'Your speed is climbing. To bring the 600 m+ runs back: do them fresh (never the day after legs), carbs before and after, and keep the Norwegian for the engine. Keep both hard runs.':'Your endurance is climbing. To sharpen the speed: the 200–400 m session fresh and with full recoveries between reps; hill sprints after the Norwegian.');
+    return {a:null,b:null,parts:parts,ch:ch,na:na,nb:nb,nch:nch,nA:A.length,nB:B.length,st:st,call:call,imp:'big',tired:tired,dip:dip};}
+  if(ch===null){st=['Building the picture','','Two more hard sessions logged and I can tell whether you are moving forward.'];call='Keep the week as planned: two hard runs and the Norwegian.';imp='medium';}
+  else if(ch>=1){st=['Improving','g','Hard sessions are about '+f1(ch)+'% faster than the weeks before.'];
+    call=tired?'Hold this week: you are improving but tired, so recover into the next jump.':'More is earned: take the 2nd Norwegian when green, and aim for one more rep or a second faster on the speed session.';imp='big';}
+  else if(ch>-1){st=['Holding','','Hard sessions are level with the weeks before (within 1%).'];
+    call=tired?'You are holding while tired: an easier few days now usually brings a jump after.':'Time to nudge: a slightly faster target on one hard run, or one more rep; keep the Norwegian at 7/10.';imp='medium';}
+  else{st=['Slipping','w','Hard sessions are about '+f1(-ch)+'% slower than the weeks before.'];
+    call=tired?'Less, then more: an easy week (one hard run, walks for the rest) and you come back faster. Pushing through this is how times go backwards.':'Not fatigue by the signs, so fuel and freshness: carbs 200 g+ around hard runs, never the day after legs, 8–9 h sleep. Keep both hard runs.';imp='big';}
+  return {a:a,b:b,parts:parts,ch:ch,na:na,nb:nb,nch:nch,nA:A.length,nB:B.length,st:st,call:call,imp:imp,tired:tired,dip:dip};}
+function runProgressHTML(){var R=runProgress(),f=function(v){return v>=60?mmss(Math.round(v)):f1(v)+' s';};
+  return '<h3 style="margin:10px 0 2px">📈 Progress <span class="pill'+(R.st[1]?' '+R.st[1]:'')+'">'+R.st[0]+'</span></h3>'+
+    '<p style="margin:2px 0">'+R.st[2]+['long','speed'].map(function(k){var q=R.parts[k];return q.a&&q.b?' '+(k==='long'?'600 m+ sessions':'Speed sessions')+' as a 1 km equivalent: <b>'+f(q.a)+'</b> lately vs '+f(q.b)+' before.':(q.a?' '+(k==='long'?'600 m+':'Speed')+': '+f(q.a)+' lately (nothing comparable before).':'');}).join('')+(R.na&&R.nb?' Norwegian pace '+kmPace(R.na)+'/km vs '+kmPace(R.nb)+(R.nch>1?' (faster at the same effort: the engine is growing)':'')+'.':'')+'</p>'+
+    '<p style="margin:4px 0">👉 <b>'+esc(R.call)+'</b> '+IMP[R.imp]+'</p>'+
+    '<p class="tiny" style="margin:2px 0">I compare every hard session as an equivalent 1 km time, speed sessions against speed sessions and 600 m+ against 600 m+. Last 3 weeks vs the 5 before. The call is more, hold, less or rest — whatever moves your times forward.</p>';}
 function runCoachHTML(){
   var t=today(),L=greenLight()||{},G=null,PG=paceGuide();try{G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null;}catch(e){}
   var F=null;try{F=lastRunFeedback();}catch(e){}
@@ -10179,7 +10220,7 @@ function runCoachHTML(){
       var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
       return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+(x.e==='🌊'&&norwTooFast()?'<br><span class="tiny">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</span>':'')+'</p>';}).join(''):'')+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
-    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+cortisolHTML_run()+(function(){try{return '<details class="fold"><summary><b>🔎 In depth</b></summary>'+runDeepHTML()+'</details>';}catch(e){return '';}})()+'</div>';}
+    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+(function(){try{return runProgressHTML();}catch(e){return '';}})()+cortisolHTML_run()+(function(){try{return '<details class="fold"><summary><b>🔎 In depth</b></summary>'+runDeepHTML()+'</details>';}catch(e){return '';}})()+'</div>';}
 
 /* Dan, 3 Nov: "I don't need the others: say my achievements and my best runs,
    and a fun section on how my muscles are growing." */
