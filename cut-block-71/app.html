@@ -370,6 +370,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
     <div class="fgrid">
       <div class="f"><label for="inWeight">Weight (lb)</label><input type="number" step="0.1" min="90" max="200" id="inWeight" placeholder="—"></div>
       <div class="f"><label for="inSteps">Steps</label><input type="number" step="100" min="0" max="80000" id="inSteps" placeholder="—"></div>
+      <div class="f"><label for="inOut">☀️ Outside in daylight (min)</label><input type="number" step="5" min="0" max="900" id="inOut" placeholder="—"></div>
       <div class="f"><label for="inKcal">kcal eaten</label><input type="number" step="10" min="0" max="6000" id="inKcal" placeholder="—"></div>
       <div class="f"><label for="inRhr">Resting HR, on waking</label><input type="number" step="1" min="25" max="120" id="inRhr" placeholder="—"></div>
       <!-- 29 Sep: sleep is logged as bed and wake times, phone-free or not; the hours are worked out -->
@@ -7481,6 +7482,7 @@ function paintForm(){
   E('inWeight').value=(typeof S.weights[d]==='number')?S.weights[d]:'';
   E('inWeight').type=S.settings.hideDaily?'password':'number';
   E('inSteps').value=typeof rec.steps==='number'?rec.steps:'';
+  if(E('inOut'))E('inOut').value=typeof rec.outMin==='number'?rec.outMin:'';
   E('inKcal').value=typeof rec.kcal==='number'?rec.kcal:'';
   E('inSleep').value=typeof rec.sleep==='number'?rec.sleep:'';
   E('inBed').value=rec.bed||'';E('inWake').value=rec.wake||'';
@@ -10360,6 +10362,9 @@ function cortisolScore(){
   /* 5. steps */
   var big=0;for(var q=1;q<=3;q++){var st=(S.days[addD(t,-q)]||{}).steps;if(typeof st==='number'&&st>14000)big++;}
   if(big)add(4*big,big+' day'+(big===1?'':'s')+' over 14k steps','Keep to the app’s step target (10–13k by the scale)','Past about 13k, extra walking adds fatigue more than health (Paluch 2022: benefit levels off at 8–10k).');
+  /* 5b. daylight (Dan, 5 Nov): outside in daylight sets the cortisol rhythm */
+  var om=[0,1].map(function(i){return (S.days[addD(t,-i)]||{}).outMin;}).filter(function(v){return typeof v==='number';});
+  if(om.length&&Math.max.apply(null,om)<10)add(5,'Under 10 min outside in daylight','20–30 min outside, ideally in the morning or around midday','Daylight early in the day anchors the cortisol rhythm; 20–30 min outside lowered cortisol most in Hunter 2019.');
   /* 6. mind */
   var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';});
   if(dp.length&&Math.max.apply(null,dp)>4.5)add(6,'Over 4.5 h of deep study in a day','Two or three 90-minute blocks, then stop','Long, pressured mental work raises cortisol; breaks and an end point bring it down.');
@@ -10405,6 +10410,8 @@ function cortScale(){
   rows.push(['👣 Steps (highest, last 3 days)',val(sM,ci),grade(sM,function(v){return v<=13000;},function(v){return v<=14000;}),'8–13k','13–14k','over 14k']);
   var dp=[0,1,2].map(function(i){return (S.days[addD(t,-i)]||{}).deep;}).filter(function(v){return typeof v==='number';}),dM=dp.length?Math.max.apply(null,dp):null;
   rows.push(['🧠 Deep study in a day (highest)',val(dM,sh),grade(dM,function(v){return v<=4;},function(v){return v<=5;}),'up to 4 h','4–5 h','over 5 h']);
+  var oT=(S.days[t]||{}).outMin,oY=(S.days[addD(t,-1)]||{}).outMin,oV=typeof oT==='number'?oT:(typeof oY==='number'?oY:null);
+  rows.push(['☀️ Outside in daylight',oV===null?'—':oV+' min',grade(oV,function(v){return v>=30;},function(v){return v>=10;}),'30 min+','10–30 min','under 10 min']);
   var jm=null;for(var q=0;q<2;q++){var jj=(S.days[addD(t,-q)]||{}).journal;if(jj&&jj.mood){jm=jj.mood;break;}}
   rows.push(['😊 Mood (journal, 1–5)',val(jm,String),grade(jm,function(v){return v>=4;},function(v){return v>=3;}),'4–5','3','1–2']);
   return rows;}
@@ -10974,7 +10981,7 @@ function wire(){
       setDay(d,o);
     });});
   });
-  [['inSteps','steps'],['inKcal','kcal'],['inSleep','sleep'],['inPush','push'],['inPull','pull'],['inRhr','rhr'],['inGymRpe','gymRpe']].forEach(function(p){
+  [['inSteps','steps'],['inOut','outMin'],['inKcal','kcal'],['inSleep','sleep'],['inPush','push'],['inPull','pull'],['inRhr','rhr'],['inGymRpe','gymRpe']].forEach(function(p){
     E(p[0]).addEventListener('change',function(){
       var d=E('logDate').value||today(),v=num(this),o={};o[p[1]]=v;setDay(d,o);
     });
