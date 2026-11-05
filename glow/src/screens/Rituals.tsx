@@ -84,12 +84,34 @@ export function Rituals({ date }: { date: string }) {
   );
 }
 
+/* Dan, 5 Nov: "add a very soft voice-over so I can do it with eyes closed." The browser's own voice
+   (no sound files), slow, low and quiet, saying only the phase as it changes. */
+const SOFT_VOICES = ['Serena', 'Kate', 'Stephanie', 'Martha', 'Moira', 'Fiona', 'Samantha', 'Karen', 'Tessa', 'Google UK English Female', 'Microsoft Libby', 'Microsoft Sonia', 'Microsoft Hazel'];
+function softVoice(): SpeechSynthesisVoice | undefined {
+  const vs = typeof speechSynthesis !== 'undefined' ? speechSynthesis.getVoices() : [];
+  for (const n of SOFT_VOICES) { const v = vs.find((x) => x.name.includes(n)); if (v) return v; }
+  return vs.find((x) => x.lang === 'en-GB') ?? vs.find((x) => x.lang.startsWith('en'));
+}
+function say(text: string) {
+  try {
+    if (typeof speechSynthesis === 'undefined') return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = softVoice(); if (v) { u.voice = v; u.lang = v.lang; }
+    u.rate = 0.72; u.pitch = 0.85; u.volume = 0.5;
+    speechSynthesis.speak(u);
+  } catch { /* no voice on this device: the circle still guides */ }
+}
+const SPOKEN: Record<string, string> = { 'Breathe in': 'Breathe in…', 'Breathe out': 'and out…', Hold: 'hold…' };
+
 export function Breathing({ date, minutesToday }: { date: string; minutesToday: number }) {
   const [pattern, setPattern] = useState<PatternKey>('resonance');
   const [mins, setMins] = useState(10);
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const start = useRef(0);
+  const [voice, setVoice] = useState<boolean>(() => { try { return localStorage.getItem('glow.breathVoice') !== 'off'; } catch { return true; } });
+  const lastSpoken = useRef('');
   const total = mins * 60;
   const p = PATTERNS[pattern];
   const cycle = p.steps.reduce((a, s) => a + s[1], 0);
@@ -103,6 +125,8 @@ export function Breathing({ date, minutesToday }: { date: string; minutesToday: 
       if (e >= total) {
         setRunning(false);
         setElapsed(0);
+        if (voice) say('That’s your session. Gently open your eyes.');
+        lastSpoken.current = '';
         actions.addBreath(date, mins);
         if (mins >= 10) actions.setRitual(date, 'breathe', true);
         return;
@@ -124,6 +148,18 @@ export function Breathing({ date, minutesToday }: { date: string; minutesToday: 
   const frac = into / len;
   const scale = phase === 'Breathe in' ? 0.55 + 0.45 * frac : phase === 'Breathe out' ? 1 - 0.45 * frac : step === 1 ? 1 : 0.55;
   const left = total - elapsed;
+  const key = `${Math.floor(elapsed / cycle)}-${step}`;
+  useEffect(() => {
+    if (!running || !voice || key === lastSpoken.current) return;
+    lastSpoken.current = key;
+    say(SPOKEN[phase] ?? phase.toLowerCase());
+  }, [running, voice, key, phase]);
+  const toggle = () => {
+    if (running) { setRunning(false); try { speechSynthesis.cancel(); } catch { /* none */ } return; }
+    if (voice && !elapsed) { say('Close your eyes. Breathe in…'); lastSpoken.current = '0-0'; }
+    setRunning(true);
+  };
+  const setV = (on: boolean) => { setVoice(on); try { localStorage.setItem('glow.breathVoice', on ? 'on' : 'off'); } catch { /* fine */ } if (!on) { try { speechSynthesis.cancel(); } catch { /* none */ } } };
 
   return (
     <Card title="Breathe" eyebrow={`${minutesToday} min today`}>
@@ -146,9 +182,10 @@ export function Breathing({ date, minutesToday }: { date: string; minutesToday: 
             {[3, 5, 10, 15, 20].map((m) => <option key={m} value={m}>{m} min</option>)}
           </select>
         )}
-        <Button tone="gold" onClick={() => setRunning(!running)}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />{elapsed ? 'Resume' : 'Start'}</>}</Button>
+        <Button tone="gold" onClick={toggle}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />{elapsed ? 'Resume' : 'Start'}</>}</Button>
         {!running && elapsed > 0 && <Button tone="ghost" onClick={() => setElapsed(0)}>Reset</Button>}
       </div>
+      <label className="mt-3 flex items-center justify-center gap-2 text-sm text-ink-2"><input type="checkbox" checked={voice} onChange={(e) => setV(e.target.checked)} /> 🔈 Soft voice guide, for eyes closed</label>
       <p className="mt-4 text-xs text-muted">Breathe through your nose, low into your belly, and let the exhale be soft. Finishing a session adds the minutes and ticks today’s breathing ritual.</p>
     </Card>
   );
