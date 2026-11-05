@@ -38,6 +38,7 @@ throughout.
 - **Coeliac.** Oats, grains, granola, collagen, chocolate and nuts must be certified gluten-free.
 - Never recommend **beta-carotene, biotin or vitamin D tablets**, **liver**, or **high-dose vitamin C**.
 - Excluded foods: broccoli, sprouts, cabbage, kale, rocket, watercress, spinach, olive oil, green tea, Brazil nuts, lentils, onion, leek, garlic.
+- **Supplements (Dan, 5 Nov):** astaxanthin, taken daily. He said "16,000 IU or mg"; astaxanthin is dosed in mg, so recorded as **16 mg a day** — to be confirmed on the label (if it is actually 16,000 IU of vitamin D or A, flag it: that is 4× the vitamin D upper limit, and vitamin A as retinol is stopped). Advice given: trials used 4–12 mg, EFSA rates 8 mg/day safe long term; take it with a meal containing fat.
 - Exception (Dan, 4 Nov): **Kallo lentil-and-rice cakes are fine** — they don't bloat him. Log them freely and don't flag them; whole lentils, beans and other pulses stay off the suggestions.
 - **No processed food. No sweeteners.**
 - **Salt:** once a day, steady. Never recommend cutting it (asked about heartburn and blood pressure — still no).
