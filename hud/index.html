@@ -192,6 +192,8 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .sl-t{font:400 34px/1 var(--f-d);min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
 .chip-t{background:transparent;border:1px solid var(--line2);border-radius:999px;padding:5px 10px;font:500 12px var(--f-m);color:var(--mut)}
 .chip-t.on{background:var(--acc);border-color:var(--acc);color:#06222a}
+.sl-in{width:130px;font-size:16px}
+.sl-out{font:400 26px/1 var(--f-d);padding:0 6px 8px;min-width:90px}
 .sl-sum{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
 </style>
 
@@ -2271,38 +2273,29 @@ function computeSleep(x) { // recompute hours from times unless the hours were t
   const b = bedMin(x.bed), w = wakeMin(x.wake) + 360; if (b == null || w == null) return;
   const mins = w - b - (x.awake || 0); if (mins > 60 && mins < 16 * 60) x.sleep = r1(mins / 60);
 }
-function sleepDraft(d = today()) {
-  const x = day(d), u = usualSleep(d), dr = (S.ui.sd && S.ui.sd.d === d) ? S.ui.sd : null;
-  return dr || { d, bed: bedMin(x.bed) ?? u.bed, wake: wakeMin(x.wake) ?? u.wake, awake: x.awake ?? 0, q: x.sq ? Math.min(5, Math.max(1, Math.round(x.sq / 2))) : null, dirty: false };
-}
 function sleepCard(compact) {
-  const d = today(), x = day(d), u = usualSleep(d), s = sleepDraft(d), logged = has(x.sleep) && !s.dirty, inBed = s.wake + 360 - s.bed, asleep = inBed - s.awake;
-  const night = `${fmtDW(dAdd(d, -1)).split(' ')[0]} night → ${fmtDW(d)}`;
-  if (compact && logged && !S.ui.sleepOpen) return `<div class="panel row" style="padding:12px 16px"><span class="eyebrow">Last night</span><span class="num">${x.bed ? x.bed + ' → ' + (x.wake || '?') : ''}</span><b class="num">${x.sleep} h</b>${x.sq ? `<span class="mut small">quality ${Math.round(x.sq / 2)}/5</span>` : ''}<span class="sp"></span><button class="btn sm ghost" data-act="sleepEdit">Edit</button></div>`;
-  const diffB = s.bed - u.bed, step = (k, n) => `<button class="btn sm" data-act="sleepStep" data-k="${k}" data-n="${n}" aria-label="${k} ${n > 0 ? 'later' : 'earlier'} by ${Math.abs(n)} minutes">${n > 0 ? '+' : '−'}${Math.abs(n)}</button>`;
-  const chips = (k, list, cur) => list.map(m => `<button class="chip-t ${cur === m ? 'on' : ''}" data-act="sleepSet" data-k="${k}" data-v="${m}">${hm(k === 'bed' ? bedToClock(m) : m)}</button>`).join('');
-  return `<div class="panel"><div class="row"><span class="eyebrow">Last night</span><span class="mut small">${night}</span><span class="sp"></span>${logged ? `<span class="pill g">saved · ${x.sleep} h</span>` : '<span class="pill a">not logged</span>'}</div>
-    <div class="grid g2" style="margin-top:12px;gap:16px">
-      <div><div class="tiny mut">Went to bed</div><div class="row" style="margin:4px 0 8px">${step('bed', -15)}<span class="sl-t">${hm(bedToClock(s.bed))}</span>${step('bed', 15)}</div><div class="row" style="gap:5px">${chips('bed', [240, 270, 285, 300, 315, 330, 345, 360, 390], s.bed)}</div></div>
-      <div><div class="tiny mut">Woke up</div><div class="row" style="margin:4px 0 8px">${step('wake', -15)}<span class="sl-t">${hm(s.wake)}</span>${step('wake', 15)}</div><div class="row" style="gap:5px">${chips('wake', [390, 420, 435, 450, 465, 480, 510, 540], s.wake)}</div></div>
-    </div>
-    <div class="grid g2" style="margin-top:14px;gap:16px">
-      <div><div class="tiny mut">Time awake (falling asleep plus waking in the night)</div><div class="row" style="gap:5px;margin-top:6px">${[0, 10, 20, 30, 45, 60, 90].map(m => `<button class="chip-t ${s.awake === m ? 'on' : ''}" data-act="sleepSet" data-k="awake" data-v="${m}">${m ? m + ' min' : 'none'}</button>`).join('')}</div></div>
-      <div><div class="tiny mut">How did you sleep?</div><div class="row" style="gap:5px;margin-top:6px">${['Awful', 'Poor', 'OK', 'Good', 'Great'].map((l, i) => `<button class="chip-t ${s.q === i + 1 ? 'on' : ''}" data-act="sleepSet" data-k="q" data-v="${i + 1}">${l}</button>`).join('')}</div></div>
-    </div>
-    <div class="sl-sum"><div><span class="big num" style="font-family:var(--f-d);font-size:40px">${asleep > 0 ? dur(asleep) : '–'}</span> <span class="mut">asleep</span></div><div class="small mut">${dur(inBed)} in bed${s.awake ? ` minus ${s.awake} min awake` : ''} · ${diffB === 0 ? 'your usual bedtime' : `${Math.abs(diffB)} min ${diffB > 0 ? 'later' : 'earlier'} than your usual ${hm(bedToClock(u.bed))}`}${asleep < 390 ? ' · <span class="warn">under 6.5 h: readiness drops a band</span>' : ''}</div></div>
-    <div class="row" style="margin-top:10px"><button class="btn pri" data-act="sleepSave">${logged ? 'Update' : 'Save last night'}</button>${!logged && u.known ? `<button class="btn" data-act="sleepUsual">Usual night (${hm(bedToClock(u.bed))}–${hm(u.wake)})</button>` : ''}<span class="sp"></span><span class="tiny mut">Times are rounded to 15 minutes; that is as accurate as memory gets.</span></div></div>`;
+  const d = today(), x = day(d), u = usualSleep(d), logged = has(x.sleep);
+  if (compact && logged && !S.ui.sleepOpen) return `<div class="panel row" style="padding:12px 16px"><span class="eyebrow">Last night</span><span class="num">${x.bed ? x.bed + ' → ' + (x.wake || '?') : ''}</span><b class="num">${x.sleep} h</b><span class="sp"></span><button class="btn sm ghost" data-act="sleepEdit">Edit</button></div>`;
+  const bed = x.bed || hm(bedToClock(u.bed)), wake = x.wake || hm(u.wake);
+  return `<div class="panel"><div class="row"><span class="eyebrow">Last night</span><span class="sp"></span>${logged ? `<span class="pill g">${x.sleep} h saved</span>` : ''}</div>
+    <div class="row" style="margin-top:10px;gap:12px;align-items:flex-end">
+      ${field('Went to bed', `<input class="in sl-in" type="time" id="sl_bed" value="${bed}">`)}
+      ${field('Woke up', `<input class="in sl-in" type="time" id="sl_wake" value="${wake}">`)}
+      <div class="sl-out"><span class="num" id="sl_out">${sleepText(bed, wake)}</span></div>
+      <button class="btn pri" data-act="sleepSave">Save</button>
+    </div></div>`;
 }
+function sleepMins(bed, wake) { const b = bedMin(bed), w = wakeMin(wake); return b == null || w == null ? null : w + 360 - b; }
+function sleepText(bed, wake) { const m = sleepMins(bed, wake); return m != null && m > 60 && m < 960 ? dur(m) : '–'; }
+document.addEventListener('input', e => { if (e.target.classList?.contains('sl-in')) { const o = $('#sl_out'); if (o) o.textContent = sleepText($('#sl_bed').value, $('#sl_wake').value); } });
 Object.assign(ACT, {
   sleepEdit: () => { S.ui.sleepOpen = true; render(); },
-  sleepStep: el => { const s = sleepDraft(); s[el.dataset.k] += +el.dataset.n; if (el.dataset.k === 'bed') s.bed = clamp(s.bed, 120, 660); else s.wake = clamp(s.wake, 240, 780); s.dirty = true; S.ui.sd = s; render(); },
-  sleepSet: el => { const s = sleepDraft(), k = el.dataset.k; s[k] = +el.dataset.v; s.dirty = true; S.ui.sd = s; render(); },
-  sleepUsual: () => { const u = usualSleep(); S.ui.sd = { d: today(), bed: u.bed, wake: u.wake, awake: 0, q: null, dirty: true }; ACT.sleepSave(); },
   sleepSave: () => {
-    const s = sleepDraft(), x = D(today());
-    x.bed = hm(bedToClock(s.bed)); x.wake = hm(s.wake); x.awake = s.awake; if (s.q) x.sq = s.q * 2; delete x.sleepManual; computeSleep(x);
-    delete S.ui.sd; S.ui.sleepOpen = false; save(); render();
-    const rd = readiness(); toast(`Saved: ${x.sleep} h asleep.${rd.band ? ' Readiness ' + RX[rd.band].name.toLowerCase() + '.' : ''}`);
+    const bed = $('#sl_bed')?.value, wake = $('#sl_wake')?.value, m = sleepMins(bed, wake);
+    if (m == null || m <= 60 || m >= 960) return toast('Check the two times: that is not a night’s sleep.');
+    const x = D(today()); x.bed = bed; x.wake = wake; delete x.awake; delete x.sleepManual; computeSleep(x);
+    S.ui.sleepOpen = false; save(); render();
+    const rd = readiness(); toast(`Saved: ${x.sleep} h.${rd.band ? ' Readiness ' + RX[rd.band].name.toLowerCase() + '.' : ''}`);
   }
 });
 
