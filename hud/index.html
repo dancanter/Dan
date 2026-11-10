@@ -502,7 +502,7 @@ const KG = 0.45359237;
 const KEY = 'apex-hud-v1';
 const DEF = () => ({
   v: 1,
-  profile: { name: '', dob: '', heightCm: 175, bf: null, coeliac: false },
+  profile: { name: '', dob: '', heightCm: 175, bf: null, coeliac: false, habits: { spf: null, alcohol: null, smoker: null } },
   settings: {
     kcal: 2000, satKcal: null, protein: 110, fat: 50, floor: null, goalLo: null, goalHi: null,
     stepsLo: 8000, stepsHi: 12000, stepsWeek: 70000, studyTarget: 12, naCap: 2000, kTarget: 3500,
@@ -525,7 +525,7 @@ function readSeed() { try { const t = $('#seed')?.textContent?.trim(); return t 
 function load() {
   let raw = null;
   try { raw = localStorage.getItem(KEY); } catch (e) { memOnly = true; }
-  if (raw) { try { S = merge(DEF(), JSON.parse(raw)); return; } catch (e) { /* fall through */ } }
+  if (raw) { try { const st = JSON.parse(raw), sd = readSeed(); S = merge(DEF(), st); if (sd) { ['profile', 'settings'].forEach(g => Object.keys(sd[g] || {}).forEach(k => { if (!st[g] || !(k in st[g])) S[g][k] = sd[g][k]; })); } return; } catch (e) { /* fall through */ } }
   const seed = readSeed();
   S = merge(DEF(), seed || {});
   S.fresh = !seed;
@@ -1138,6 +1138,8 @@ function vEngine() {
       </div>
     </div>
 
+    <div class="grid g2">${recoveryCard()}${progressCard()}</div>
+
     <div class="panel"><div class="row"><span class="eyebrow">Weight · water vs true trend</span><span class="sp"></span><span class="legend"><span><i style="background:var(--dim);height:6px;width:6px;border-radius:50%"></i>daily (water)</span><span><i></i>7-day average (true trend)</span></span></div>
       <div style="margin-top:10px">${lineChart({ days: wd, w: 1000, h: 250, label: 'Weight trend', unit: ' lb', series: [{ vals: wRaw, color: C.dim, line: false, dots: true, op: .8 }, { vals: wAvg, color: C.acc, w: 2.4, area: true, end: true }], hlines: c.floor ? [{ y: c.floor, color: C.bad, label: `floor ${c.floor} lb` }] : [] })}</div>
       <div class="grid g4" style="margin-top:12px">
@@ -1189,6 +1191,7 @@ function vLongevity() {
     ${longevityCard()}
     ${cellularCard()}
     ${cortisolCard()}
+    ${puffCard()}
     ${peakCard}
     <div class="grid g2">
       <div class="panel"><div class="row"><span class="eyebrow">Inside: cellular habits</span><span class="sp"></span><span class="num small mut">${checksDone(d, CELL_HABITS)}/${CELL_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, CELL_HABITS)}</div></div>
@@ -1388,6 +1391,7 @@ function settingsSheet() {
   const c = cfg(), p = S.profile, inp = (id, label, v, extra = '') => field(label, `<input class="in" id="${id}" value="${esc(v ?? '')}" ${extra}>`);
   sheet(`<h2>Settings and data</h2>
     <div class="eyebrow">Profile</div><div class="grid g3">${inp('s_dob', 'Date of birth', p.dob, 'type="date"')}${inp('s_h', 'Height (cm)', p.heightCm)}${field('Coeliac', `<select class="in" id="s_coe"><option value="0">No</option><option value="1" ${p.coeliac ? 'selected' : ''}>Yes: flag gluten</option></select>`)}</div>
+    <div class="eyebrow">Habits (longevity score)</div><div class="grid g3">${field('Daily SPF', `<select class="in" id="s_spf"><option value="">–</option><option value="1" ${p.habits?.spf === true ? 'selected' : ''}>Yes, every day</option><option value="0" ${p.habits?.spf === false ? 'selected' : ''}>No</option></select>`)}${field('Alcohol', `<select class="in" id="s_alc"><option value="">–</option>${['none', 'occasional', 'regular'].map(o => `<option ${p.habits?.alcohol === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`)}${field('Smoking or vaping', `<select class="in" id="s_smk"><option value="">–</option><option value="0" ${p.habits?.smoker === false ? 'selected' : ''}>No</option><option value="1" ${p.habits?.smoker === true ? 'selected' : ''}>Yes</option></select>`)}</div>
     <div class="eyebrow">Fuel</div><div class="grid g3">${inp('s_kcal', 'Cut calories', c.kcal)}${inp('s_sat', 'Saturday calories', c.satKcal)}${inp('s_maint', 'Maintenance', c.maintenance)}${inp('s_pro', 'Protein (g)', c.protein)}${inp('s_fat', 'Fat (g)', c.fat)}${inp('s_floor', 'Weight floor (lb)', c.floor)}${inp('s_na', 'Sodium cap (mg)', c.naCap)}${inp('s_k', 'Potassium goal (mg)', c.kTarget)}${inp('s_ref', 'Refeed calories', c.refeedKcal)}</div>
     <div class="eyebrow">Training and study</div><div class="grid g3">${inp('s_slo', 'Steps minimum', c.stepsLo)}${inp('s_swk', 'Steps per week', c.stepsWeek)}${inp('s_study', 'Deep study h/week', c.studyTarget)}${inp('s_bed', 'In bed by', c.bedBy, 'type="time"')}${inp('s_dl', 'Last deload began', c.lastDeload, 'type="date"')}${inp('s_ex', 'Excluded foods (comma list)', (c.excluded || []).join(', '), 'style="font-family:var(--f-b)"')}</div>
     <div><button class="btn pri" data-act="saveSettings">Save settings</button></div>
@@ -1510,7 +1514,7 @@ const ACT = {
   startBlank: () => { delete S.fresh; D(today()); S.days[today()].note = ''; save(); S.ui.open.log = true; settingsSheet(); render(); },
   resetSeed: el => confirmStep(el, () => { const s = readSeed(); S = merge(DEF(), s); save(); closeModal(); render(); toast('Back to the starting data.'); }),
   wipe: el => confirmStep(el, () => { try { localStorage.removeItem(KEY); } catch (e) { /* nothing stored */ } S = DEF(); S.fresh = true; closeModal(); render(); }),
-  saveSettings: () => { const c = cfg(), g = id => num($('#' + id).value); S.profile.dob = $('#s_dob').value; S.profile.heightCm = g('s_h') || S.profile.heightCm; S.profile.coeliac = $('#s_coe').value === '1';
+  saveSettings: () => { const c = cfg(), g = id => num($('#' + id).value); S.profile.dob = $('#s_dob').value; S.profile.heightCm = g('s_h') || S.profile.heightCm; S.profile.coeliac = $('#s_coe').value === '1'; { const v = id => $('#' + id).value; S.profile.habits = { spf: v('s_spf') === '' ? null : v('s_spf') === '1', alcohol: v('s_alc') || null, smoker: v('s_smk') === '' ? null : v('s_smk') === '1' }; }
     [['kcal', 's_kcal'], ['satKcal', 's_sat'], ['maintenance', 's_maint'], ['protein', 's_pro'], ['fat', 's_fat'], ['floor', 's_floor'], ['naCap', 's_na'], ['kTarget', 's_k'], ['refeedKcal', 's_ref'], ['stepsLo', 's_slo'], ['stepsWeek', 's_swk'], ['studyTarget', 's_study']].forEach(([k, id]) => { const v = g(id); if (v != null || ['satKcal', 'maintenance', 'floor'].includes(k)) c[k] = v; });
     if (c.fat < 45) { c.fat = 45; toast('Fat held at the 45 g floor.'); }
     c.bedBy = $('#s_bed').value || c.bedBy; c.lastDeload = $('#s_dl').value || null; c.excluded = $('#s_ex').value.split(',').map(s => s.trim()).filter(Boolean); save(); closeModal(); render(); toast('Settings saved.'); },
@@ -1876,21 +1880,60 @@ function studyCard() {
 
 /* ============ longevity score and habit grid ============ */
 function longevity() {
-  const v = vo2now(), rh = lastN(7).map(d => day(d).rhr).filter(has), ci = circadian(14), m7 = micro7(), P = [];
-  const l14 = lastN(14), hab = l14.map(d => (checksDone(d, CELL_HABITS) + checksDone(d, LOOK_HABITS)) / (CELL_HABITS.length + LOOK_HABITS.length)), habDays = hab.filter(x => x > 0).length;
-  P.push(['Aerobic fitness', v ? clamp((v.v - 35) / 25 * 100, 0, 100) : null, v ? `VO2max about ${r0(v.v)}. The strongest single predictor of lifespan in cohort studies.` : 'Log a current race time.', 'Keep two quality runs and one easy run a week. Fitness is already your best asset; protect it by not overreaching.']);
-  P.push(['Heart at rest', rh.length >= 3 ? clamp((72 - mean(rh)) / 26 * 100, 0, 100) : null, rh.length >= 3 ? `Resting HR ${r0(mean(rh))} bpm over 7 days.` : 'Log resting HR on three mornings.', 'Watch the trend, not the number: 4 above baseline for three days means back off.']);
-  P.push(['Sleep', ci.n >= 4 ? clamp((ci.avgSleep - 5.5) / 2.7 * 70, 0, 70) + (ci.spread != null ? clamp((75 - ci.spread) / 60 * 30, 0, 30) : 15) : null, ci.n >= 4 ? `${r1(ci.avgSleep)} h average${ci.spread != null ? ', timing ±' + r0(ci.spread) + ' min' : ''}.` : 'Log four nights.', 'Log bed and wake times so regularity can be scored; hold bedtime within 30 minutes, weekends included.']);
-  if (m7.days >= 2) { const cov = mean(NUTR.map(n => clamp((m7.z[n[0]] || 0) / n[3], 0, 1))) * 100, low = NUTR.filter(n => (m7.z[n[0]] || 0) / n[3] < 0.6).map(n => n[1]); P.push(['Nutrient coverage', cov, `${r0(cov)}% of ${NUTR.length} targets covered over ${m7.days} logged days.${low.length ? ' Low: ' + low.slice(0, 4).join(', ') + '.' : ''}`, low.length ? `Fix ${low[0]} first: open it in Fuel for the foods that supply it.` : 'Keep the variety.']); }
-  else P.push(['Nutrient coverage', null, 'Log food item by item on two days to score this.', 'Use the one-tap meals or a photo in Fuel.']);
-  P.push(['Daily habits', habDays >= 3 ? mean(hab) * 100 : null, habDays >= 3 ? `${r0(mean(hab) * 100)}% of cellular and skin habits over 14 days.` : 'Tick habits on three days.', 'Pick the one habit with the emptiest row below and do only that for a week.']);
-  const bl = ['apob', 'hba1c', 'crp', 'vitd', 'ferritin'].filter(id => latestBlood(id)).length;
-  P.push(['Blood markers', bl ? bl / 5 * 100 : 0, bl ? `${bl} of 5 core markers on record.` : 'Nothing tested. This pillar is blind.', 'Book one GP panel: ferritin, vitamin D, B12, HbA1c, lipids, TSH, testosterone, coeliac antibodies.']);
-  const bp = S.bp.filter(b => b.date).length;
-  P.push(['Blood pressure', bp >= 4 ? (() => { const s = mean(S.bp.slice(-7).map(b => b.sys)); return clamp((145 - s) / 30 * 100, 0, 100); })() : bp / 4 * 40, bp >= 4 ? 'Home average on record.' : `${bp} of 4 home readings.`, 'Seven days of morning and evening readings, seated, after five minutes’ rest.']);
-  const known = P.filter(p => p[1] != null), score = known.length ? mean(P.map(p => p[1] ?? 0)) : 0;
-  const levers = [...P].sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0)).slice(0, 3);
+  // Each pillar: [name, score 0-100 or null when not measured, what your data says, what moves it, evidence]
+  const v = vo2now(), rh = lastN(7).map(d => day(d).rhr).filter(has), ci = circadian(14), m7 = micro7(), P = [], H = S.profile.habits || {};
+  P.push(['Aerobic fitness', v ? clamp((v.v - 35) / 25 * 100, 0, 100) : null, v ? `VO2max about ${r0(v.v)} from your ${v.from.name}. Fitness age ${fitAge(v.v)}.` : 'Log a current time between 1500 m and 10 km.', 'Two quality runs and one easy run a week. Your best asset; protect it by not overreaching.', 'The strongest single predictor of lifespan in large cohort studies.']);
+  P.push(['Heart at rest', rh.length >= 3 ? clamp((72 - mean(rh)) / 26 * 100, 0, 100) : null, rh.length >= 3 ? `Resting HR ${r0(mean(rh))} bpm over the last 7 days.` : 'Log resting HR on three mornings.', 'Watch the trend: 4 above baseline for three days means back off.', 'Lower resting HR tracks fitness and lower cardiovascular risk.']);
+  P.push(['Sleep', ci.n >= 4 ? clamp((ci.avgSleep - 5.5) / 2.7 * 70, 0, 70) + (ci.spread != null ? clamp((75 - ci.spread) / 60 * 30, 0, 30) : 15) : null, ci.n >= 4 ? `${r1(ci.avgSleep)} h average${ci.spread != null ? ', timing ±' + r0(ci.spread) + ' min' : '; log bed and wake times to score regularity'}.` : 'Log four nights.', 'Same bedtime within 30 minutes, weekends included.', 'Short and irregular sleep are both linked with higher mortality.']);
+  const st = strengthScore(); P.push(['Strength', st ? st.score : null, st ? st.detail : 'Log a lift or pull-up set.', 'Beat last time on one main lift per session. On the cut, keep the weight on the bar.', 'Muscular strength predicts survival independently of cardio fitness (observational).']);
+  const sd = lastN(7).map(d => day(d).steps).filter(has);
+  P.push(['Daily movement', sd.length >= 3 ? clamp((mean(sd) - 2000) / 6000 * 100, 0, 100) : null, sd.length >= 3 ? `${r0(mean(sd)).toLocaleString()} steps a day over ${sd.length} logged days.` : 'Log steps on three days.', 'Benefit levels off around 8,000–10,000 a day under 60; past 13,000 is fatigue on a cut.', 'Meta-analysis of 15 cohorts: lower mortality with more steps up to about 8–10k a day.']);
+  const bc = bodyComp(); P.push(['Body composition', bc ? bc.score : null, bc ? bc.detail : 'Log weight.', bc && bc.note ? bc.note : 'Stay inside BMI 18.5–25 with body fat that keeps hormones working.', 'Both under- and over-weight carry costs; under BMI 18.5 means lower bone density and hormones.']);
+  const sl = lastN(7).filter(dayScored).map(d => stressLoad(d).score);
+  P.push(['Calm', sl.length >= 3 ? calm(mean(sl)) : null, sl.length >= 3 ? `Stress load averaged ${r0(mean(sl))} over ${sl.length} days.` : 'Log three days.', 'One full day off a week, carbs around training, bed on time.', 'Chronic stress is linked with faster biological ageing (observational).']);
+  if (m7.days >= 1) { const cov = mean(NUTR.map(n => clamp((m7.z[n[0]] || 0) / n[3], 0, 1))) * 100, low = NUTR.filter(n => (m7.z[n[0]] || 0) / n[3] < 0.6).map(n => n[1]); P.push(['Diet quality', cov, `${r0(cov)}% of ${NUTR.length} nutrient targets covered, from ${m7.days} fully logged day${m7.days > 1 ? 's' : ''}.${low.length ? ' Low: ' + low.slice(0, 4).join(', ') + '.' : ''}`, low.length ? `Fix ${low[0]} first: tap it in Fuel for the foods that supply it.` : 'Keep the variety.', 'Diet quality is linked with slower ageing in cohort studies.']); }
+  else P.push(['Diet quality', null, 'Log one full day of food item by item.', 'A FOOD: line, a photo or the one-tap meals in Fuel.', '']);
+  const hab = habitsScore(); P.push(['Daily habits', hab ? hab.score : null, hab ? hab.detail : 'Set SPF, alcohol and smoking in Settings, or tick habits.', hab && hab.fix ? hab.fix : 'Keep the streaks going.', 'Daily SPF slowed skin ageing in a 4.5-year randomised trial; alcohol and smoking are the biggest avoidable risks.']);
+  const bp = S.bp.filter(b => b.sys).slice(-7);
+  if (bp.length) { const sy = mean(bp.map(b => b.sys)), di = mean(bp.map(b => b.dia)), sc = sy < 120 && di < 80 ? 100 : sy < 130 && di < 85 ? 75 : sy < 140 && di < 90 ? 50 : 20; P.push(['Blood pressure', sc, `${r0(sy)}/${r0(di)} from ${bp.length} reading${bp.length > 1 ? 's' : ''}${bp.length < 4 ? ': low confidence, one clinic reading often reads high' : ''}.`, bp.length < 7 ? 'Seven days of home readings, morning and evening, seated after 5 minutes’ rest.' : sc < 75 ? 'Steady salt, potassium foods, sleep. Average over 135/85 at home: see your GP.' : 'Recheck every few months.', 'Blood pressure ages arteries, brain and kidneys more than almost anything else.']); }
+  else P.push(['Blood pressure', null, 'No reading.', 'Seven days of home readings.', '']);
+  const bl = MARKERS.map(m => [m, latestBlood(m.id)]).filter(x => x[1]);
+  P.push(['Blood markers', bl.length ? mean(bl.map(([m, b]) => b.value >= m.opt[0] && b.value <= m.opt[1] ? 100 : b.value >= m.lab[0] && b.value <= m.lab[1] ? 60 : 20)) : null, bl.length ? `${bl.length} of ${MARKERS.length} markers on record.` : 'Never tested. Your biggest blind spot: ferritin, vitamin D and the coeliac antibody could each be off with no symptoms.', 'Book one GP panel: ferritin, vitamin D, B12, folate, HbA1c, lipids, TSH, testosterone, tTG-IgA.', '']);
+  const known = P.filter(p => p[1] != null), score = known.length ? mean(known.map(p => p[1])) : 0;
+  const levers = [...P.filter(p => p[1] == null), ...[...known].sort((a, b) => a[1] - b[1])].slice(0, 3);
   return { P, score, levers, known: known.length };
+}
+const fitAge = vo2 => Math.max(18, Math.round(25 + (45 - vo2) / 0.45));
+function strengthScore() {
+  const w = (latestAvg()?.v || latestWt() || 130) * KG, parts = [], det = [];
+  const pu = Math.max(0, ...S.lifts.filter(l => /pull/i.test(l.lift) && !l.kg).map(l => l.reps), ...S.strength.filter(s => /pull/i.test(s.name)).map(s => s.cur));
+  if (pu) { parts.push(clamp(pu / 20 * 100, 0, 100)); det.push(`${pu} strict pull-ups`); }
+  const be = Math.max(0, ...S.lifts.filter(l => /bench/i.test(l.lift) && l.kg).map(l => e1rm(l.kg, l.reps)), ...S.strength.filter(s => /bench/i.test(s.name)).map(s => s.cur));
+  if (be) { parts.push(clamp(40 + (be / w - 0.75) * 80, 0, 100)); det.push(`bench about ${r0(be)} kg (${(be / w).toFixed(1)} × bodyweight)`); }
+  return parts.length ? { score: mean(parts), detail: det.join(', ') + '.' } : null;
+}
+function bodyComp() {
+  const a = latestAvg()?.v || latestWt(), b = bmi(a); if (!b) return null;
+  let sc = b < 18.5 ? 35 : b < 19 ? 70 : b < 20 ? 85 : b <= 25 ? 100 : b <= 30 ? 70 : 40, bf = S.profile.bf;
+  if (bf != null && bf < 8) sc = Math.min(sc, 60);
+  const fl = cfg().floor, fb = fl ? bmi(fl) : null;
+  return { score: sc, detail: `BMI ${b.toFixed(1)} at ${r1(a)} lb${bf != null ? `, about ${bf}% body fat` : ''}.`, note: fb && fb < 19 && b >= 19 ? `Your ${fl} lb floor is BMI ${fb.toFixed(1)}: reaching it drops this pillar from ${sc} to 70. That is the honest cost of the cut, and why the floor is a floor, not a target to sit at.` : null };
+}
+function habitsScore() {
+  const H = S.profile.habits || {}, p = [], det = [], fix = [];
+  if (H.spf != null) { p.push(H.spf ? 100 : 0); det.push(H.spf ? 'SPF every day' : 'no daily SPF'); if (!H.spf) fix.push('Daily SPF 50 is the single best-evidenced step for how skin ages.'); }
+  if (H.alcohol) { p.push({ none: 100, occasional: 70, regular: 20 }[H.alcohol] ?? 50); det.push(H.alcohol === 'none' ? 'no alcohol' : H.alcohol + ' alcohol'); }
+  if (H.smoker != null) { p.push(H.smoker ? 0 : 100); det.push(H.smoker ? 'smoker' : 'non-smoker'); }
+  const l14 = lastN(14), ticked = l14.filter(d => checksDone(d, [...CELL_HABITS, ...LOOK_HABITS]) > 0);
+  if (ticked.length >= 3) { const f = mean(ticked.map(d => checksDone(d, [...CELL_HABITS, ...LOOK_HABITS]) / (CELL_HABITS.length + LOOK_HABITS.length))) * 100; p.push(f); det.push(`${r0(f)}% of daily habits ticked on ${ticked.length} days`); if (f < 60) fix.push('Pick the emptiest row in Habit streaks and do only that for a week.'); }
+  return p.length ? { score: mean(p), detail: det.join(', ') + '.', fix: fix[0] } : null;
+}
+function healthRank() {
+  const ncdf = z => { const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2), q = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - q : q; };
+  const top = (v, m, s, hi) => Math.max(0.1, Math.round((hi ? 1 - ncdf((v - m) / s) : ncdf((v - m) / s)) * 1000) / 10), o = [], v = vo2now(), rh = lastN(7).map(d => day(d).rhr).filter(has);
+  if (v) o.push([`VO2max ${r0(v.v)}`, top(v.v, 45, 7, true), `Fitness age ${fitAge(v.v)}. Against men aged 20–29 (average about 45).`]);
+  if (rh.length >= 3) o.push([`Resting HR ${r0(mean(rh))}`, top(mean(rh), 68, 10, false), 'Against young men in general (average about 65–70).']);
+  return o;
 }
 function habitGrid(list) {
   const ds = lastN(14);
@@ -1898,10 +1941,11 @@ function habitGrid(list) {
 }
 function longevityCard() {
   const L = longevity();
-  return `<div class="panel"><div class="row"><span class="eyebrow">Longevity score</span><span class="sp"></span><span class="pill">${L.known} of ${L.P.length} pillars measured</span></div>
+  return `<div class="panel"><div class="row"><span class="eyebrow">Longevity score</span><span class="sp"></span><span class="pill ${L.known >= L.P.length - 1 ? 'g' : 'a'}">confidence: ${L.known} of ${L.P.length} pillars measured</span></div>
     <div class="grid g2" style="margin-top:8px;align-items:start"><div><div class="row" style="align-items:baseline"><span class="big num" style="font-family:var(--f-d);font-size:56px">${r0(L.score)}</span><span class="mut">/ 100</span></div>
-      <p class="small mut" style="margin:6px 0 10px">Seven pillars, equal weight. An unmeasured pillar scores zero, because what you have not measured you cannot claim. Tap a pillar for what it means.</p>
-      <div class="eyebrow">Your three biggest levers</div>${L.levers.map((p, i) => `<div class="kv" style="display:block"><b style="font-weight:500">${i + 1}. ${esc(p[0])}</b><div class="mut small">${esc(p[3])}</div></div>`).join('')}</div>
+      <p class="small mut" style="margin:6px 0 10px">${L.P.length} pillars, equal weight, scored only where you have data. Not measured means unknown, not bad: those pillars sit out of the score and show as your blind spots. Tap a pillar for what it means.</p>
+      <div class="eyebrow">Your three biggest levers</div>${L.levers.map((p, i) => `<div class="kv" style="display:block"><b style="font-weight:500">${i + 1}. ${esc(p[0])}${p[1] == null ? ' <span class="pill a">not measured</span>' : ''}</b><div class="mut small">${esc(p[3])}</div></div>`).join('')}
+      ${(() => { const R = healthRank(); return R.length ? `<div class="eyebrow" style="margin-top:12px">How rare is your health?</div>${R.map(r => `<div class="kv"><span>${esc(r[0])}<div class="tiny mut">${esc(r[2])}</div></span><span class="num ok" style="white-space:nowrap">top ${r[1]}%</span></div>`).join('')}<p class="tiny mut" style="margin-top:4px">Approximate normal curves fitted to typical published norms; for perspective, not diagnosis.</p>` : ''; })()}</div>
     <div>${L.P.map((p, i) => `<button class="res" data-act="pillar" data-i="${i}" style="display:block"><div class="row small"><span>${esc(p[0])}</span><span class="sp"></span><span class="num ${p[1] == null ? 'dim' : p[1] >= 75 ? 'ok' : p[1] >= 45 ? 'warn' : 'bad'}">${p[1] == null ? 'not measured' : r0(p[1])}</span></div><div class="bar" style="margin-top:5px"><i style="width:${Math.max(2, p[1] ?? 0)}%;background:${p[1] == null ? C.dim : p[1] >= 75 ? C.ok : p[1] >= 45 ? C.warn : C.bad}"></i></div></button>`).join('')}</div></div>
     ${drawer('habit14', 'Habit streaks, last 14 days', 'tap a square for the date', habitGrid([...CELL_HABITS, ...LOOK_HABITS, ...BLOAT_HABITS]))}</div>`;
 }
@@ -1997,7 +2041,7 @@ Object.assign(ACT, {
   copySnap: () => copyText('Coach check-in from my dashboard. Give me today’s plan and the single highest-leverage action for the next 60 minutes.\n\n' + snapshot(), 'Check-in copied. Paste it into your Claude chat.'),
   applySync: el => { $('#syncIn').value = el.dataset.line; closeModal(); $('#syncForm').requestSubmit(); },
   nutr: el => nutrSheet(el.dataset.id),
-  pillar: el => { const p = longevity().P[+el.dataset.i]; sheet(`<div class="eyebrow">Longevity pillar</div><h2>${esc(p[0])}</h2><div class="mid num" style="font-family:var(--f-d)">${p[1] == null ? 'Not measured' : r0(p[1]) + ' / 100'}</div><p class="small mut">${esc(p[2])}</p><div><div class="eyebrow">What moves it</div><p class="small" style="margin-top:4px">${esc(p[3])}</p></div><button class="btn ghost" data-act="close">Close</button>`); },
+  pillar: el => { const p = longevity().P[+el.dataset.i]; sheet(`<div class="eyebrow">Longevity pillar</div><h2>${esc(p[0])}</h2>${p[4] ? `<p class="tiny mut">${esc(p[4])}</p>` : ''}<div class="mid num" style="font-family:var(--f-d)">${p[1] == null ? 'Not measured' : r0(p[1]) + ' / 100'}</div><p class="small mut">${esc(p[2])}</p><div><div class="eyebrow">What moves it</div><p class="small" style="margin-top:4px">${esc(p[3])}</p></div><button class="btn ghost" data-act="close">Close</button>`); },
   addStudy: el => { const x = D(today()); x.study = r1((x.study || 0) + (+el.dataset.h)); save(); render(); toast(`Logged. ${x.study} h of deep work today.`); },
   quickAdd: () => { const g = id => num($('#' + id).value), name = $('#qa_name').value.trim(); if (!name || g('qa_kcal') == null) return toast('Enter a name and the calories.'); const hr = new Date().getHours(); addEntry({ name, g: g('qa_g') || 0, kcal: g('qa_kcal'), p: g('qa_p'), c: g('qa_c'), f: g('qa_f') }, hr < 11 ? 'Breakfast' : hr < 15 ? 'Lunch' : hr < 20 ? 'Dinner' : 'Snacks'); save(); render(); toast(`Added ${name}.`); },
   photoAdd: () => { const ml = $('#ph_meal').value; PHOTO.items.forEach(i => addEntry(i, ml)); save(); closeModal(); render(); toast(`${PHOTO.items.length} items added to ${ml.toLowerCase()}.`); PHOTO = null; },
@@ -2178,7 +2222,7 @@ function dayScores(d) { // computable for any past day
 function scoreboard() {
   const d = today(), s = dayScores(d), L = longevity(), rd = readiness(d), sl = stressLoad(d);
   const parts = [
-    ['Longevity', L.score, `${L.known} of ${L.P.length} pillars measured. Unmeasured pillars count as zero.`, 'longevity', 'Your lowest pillar: ' + L.levers[0][0].toLowerCase() + '. ' + L.levers[0][3]],
+    ['Longevity', L.score, `${L.known} of ${L.P.length} pillars measured. Unmeasured ones are left out, not counted as zero.`, 'longevity', 'Your lowest pillar: ' + L.levers[0][0].toLowerCase() + '. ' + L.levers[0][3]],
     ['Calm', s.calm, s.stress != null ? `Stress load ${r0(s.stress)} averaged over 7 days (today ${sl.score}, ${sl.label.toLowerCase()}).` : 'Log sleep, resting HR or stress to score this.', 'longevity', sl.f.length ? 'Today’s biggest driver: ' + sl.f[0][0] + '.' : 'Nothing is adding load today.'],
     ['Training', s.training, 'Runs, hard sessions and gym days against your weekly targets, last 7 days.', 'engine', runPlan(d).title + ' · ' + gymPlan(d).title],
     ['Recovery', s.recovery, 'Sleep and stress over the last 7 days.', 'mind', rd.band ? `Readiness today: ${RX[rd.band].name.toLowerCase()} (${rd.score}).` : 'Log this morning’s numbers for readiness.'],
@@ -2261,6 +2305,90 @@ Object.assign(ACT, {
     const rd = readiness(); toast(`Saved: ${x.sleep} h asleep.${rd.band ? ' Readiness ' + RX[rd.band].name.toLowerCase() + '.' : ''}`);
   }
 });
+
+/* ============ recovery clock (idea from the Glow app): when each system is ready for hard work ============
+   Base times from typical recovery: quality runs ~48 h, trials ~72 h, heavy legs ~72 h, upper body ~48 h,
+   stretched by what slows repair. Sessions are logged by date, so each is treated as done at midday. */
+const LEGK = ['quads', 'hamstrings', 'glutes', 'calves', 'legs'], UPK = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms'];
+function recoveryClock(d = today()) {
+  const c = cfg(), x = day(d), base = rhrBase(d), why = []; let extra = 0;
+  if (c.phase === 'cut') { extra += 12; why.push('calorie deficit +12 h'); }
+  if (has(x.sleep) && x.sleep < 7) { extra += 12; why.push(`${x.sleep} h sleep +12 h`); }
+  if (base && has(x.rhr) && x.rhr - base >= 5) { extra += 24; why.push(`resting HR +${r0(x.rhr - base)} +24 h`); }
+  if (x.sore >= 7) { extra += 12; why.push('very sore +12 h'); }
+  const ey = eaten(dAdd(d, -1)); if (ey != null && !day(dAdd(d, -1)).partial && ey < target(dAdd(d, -1)).kcal - 300) { extra += 12; why.push('under-ate yesterday +12 h'); }
+  const sys = { quality: { h: 0, tot: 0, from: null }, legs: { h: 0, tot: 0, from: null }, upper: { h: 0, tot: 0, from: null } }, nowH = new Date().getHours() + new Date().getMinutes() / 60;
+  const put = (k, hrs, i, label) => { const tot = hrs + extra, left = tot - (i * 24 + (nowH - 12)); if (left > sys[k].h) sys[k] = { h: left, tot, from: label + (i === 0 ? ' today' : i === 1 ? ' yesterday' : ` ${i} days ago`) }; };
+  for (let i = 0; i <= 5; i++) {
+    const q = dAdd(d, -i);
+    runsOn(q).forEach(r => { const n = r.name || r.type; if (r.type === 'tt') { put('quality', r.km >= 8 ? 96 : 72, i, n); put('legs', 48, i, n); } else if (r.type === 'hard') { put('quality', 48, i, n); put('legs', 36, i, n); } else if (r.type === 'speed') { put('quality', 48, i, n); put('legs', 36, i, n); } else if (r.type === 'sub') put('quality', 24, i, n); else if (r.sec >= 5400) { put('quality', 48, i, n); put('legs', 48, i, n); } });
+    gymOn(q).forEach(g => { const s = g.sets || {}, L = LEGK.reduce((a, k) => a + (+s[k] || 0), 0), U = UPK.reduce((a, k) => a + (+s[k] || 0), 0), n = g.focus || 'gym';
+      if (!L && !U) { if (/leg/i.test(n)) { put('legs', 72, i, n); put('quality', 48, i, n); } else if (!/calisthenic|test/i.test(n)) put('upper', 48, i, n); return; }
+      if (L >= 8) { put('legs', 72, i, n); put('quality', 48, i, n); } else if (L >= 4) { put('legs', 48, i, n); put('quality', 24, i, n); }
+      if (U >= 12) put('upper', 60, i, n); else if (U >= 4) put('upper', 48, i, n); });
+  }
+  return { sys, why, extra };
+}
+const readyText = h => h <= 0 ? 'Ready now' : h <= 10 ? 'Ready tonight' : h <= 34 ? 'Ready tomorrow' : `Ready in ${Math.ceil((h - 10) / 24)} days`;
+function recoveryCard() {
+  const R = recoveryClock(), L = { quality: 'Quality running', legs: 'Legs', upper: 'Upper body' };
+  return `<div class="panel"><div class="row"><span class="eyebrow">Recovery clock</span><span class="sp"></span><span class="mut small">when each system is ready for hard work</span></div>
+    <div style="margin-top:8px">${Object.keys(L).map(k => { const s = R.sys[k], pct = s.tot ? clamp(1 - s.h / s.tot, 0, 1) * 100 : 100, ok = s.h <= 0; return `<div style="padding:9px 0;border-bottom:1px solid var(--line)"><div class="row small"><b style="font-weight:500">${L[k]}</b><span class="sp"></span><span class="${ok ? 'ok' : 'warn'}">${readyText(s.h)}</span></div><div class="bar" style="margin:6px 0 4px"><i style="width:${Math.max(3, pct)}%;background:${ok ? C.ok : C.warn}"></i></div><div class="tiny mut">${s.from ? 'From ' + esc(s.from) + (ok ? ', absorbed.' : `, ${r0(pct)}% absorbed.`) : 'Nothing hard in the last five days.'}</div></div>`; }).join('')}</div>
+    <p class="tiny mut" style="margin-top:8px">${R.why.length ? 'Slowing repair right now: ' + esc(R.why.join(', ')) + '. ' : ''}Typical recovery times (quality runs about 48 h, trials 72 h, heavy legs 72 h, upper body 48 h), stretched by what slows repair. A guide, not a rule: how the warm-up feels still decides.</p></div>`;
+}
+
+/* ============ progress check (idea from the training system): are the sessions getting faster? ============
+   Each rep session becomes a 1 km equivalent (Riegel, exponent 1.06) so 200s, 300s and 1 km reps compare. */
+function kmEquiv(r) {
+  const m = (r.name || '').match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(km|m)?/i);
+  if (m) { const n = +m[1], dist = m[3] && m[3].toLowerCase() === 'km' ? +m[2] * 1000 : +m[2] >= 50 ? +m[2] : +m[2] * 1000; if (n >= 1 && dist >= 100 && Math.abs(n * dist / 1000 - r.km) <= 0.15 * r.km) return { s: r.sec / n * Math.pow(1000 / dist, 1.06), rep: dist }; }
+  return { s: r.sec / r.km, rep: r.km * 1000 >= 1500 ? 1000 : 700 };
+}
+function progressCheck(d = today()) {
+  const win = (a, b) => S.runs.filter(r => r.date > dAdd(d, -a) && r.date <= dAdd(d, -b));
+  const grp = (rs, sp) => rs.filter(r => sp ? r.type === 'speed' : r.type === 'hard').map(r => ({ r, ...kmEquiv(r) })).filter(x => sp ? x.rep <= 400 : x.rep >= 500);
+  return [['Speed (200–400 m reps)', true], ['Long reps (500 m and up)', false]].map(([label, sp]) => {
+    const now = grp(win(35, 0), sp), was = grp(win(70, 35), sp), a = now.length ? mean(now.map(x => x.s)) : null, b = was.length ? mean(was.map(x => x.s)) : null, pct = a && b ? (b - a) / b * 100 : null;
+    let call = null;
+    if (pct != null && Math.min(now.length, was.length) < 2) call = ['', 'Watch', `${Math.abs(pct) < 2 ? 'Level' : pct > 0 ? 'Faster' : 'Slower'} so far, but only ${was.length} earlier and ${now.length} recent session${now.length > 1 ? 's' : ''}. Too few to change anything on; keep logging.`];
+    else if (pct != null) { const hal = now.some(x => gymOn(dAdd(x.r.date, -1)).some(isLegs)), stacked = now.some(x => lastN(7, x.r.date).filter(q => runsOn(q).some(isHard)).length >= 3);
+      call = pct >= 2 ? ['g', 'More of the same', 'Faster at the same spacing. Keep the session and the rest days around it exactly as they are.'] : pct > -2 ? ['b', 'Hold', 'Level. Repeat it; add one rep only when the last rep feels controlled.'] : hal || stacked ? ['a', 'Less', `Slower, and ${hal ? 'at least one was run the day after legs' : 'some weeks had three hard runs'}. Fix the spacing before adding anything: fresh legs, carbs before and after.`] : ['r', 'Rest first', 'Slower without an obvious cause. Take an easy week, then retest.']; }
+    return { label, now, was, a, b, pct, call };
+  });
+}
+function progressCard() {
+  const P = progressCheck();
+  return `<div class="panel"><div class="row"><span class="eyebrow">Progress check</span><span class="sp"></span><span class="mut small">last 5 weeks vs the 5 before</span></div>
+    ${P.map(g => `<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="row small"><b style="font-weight:500">${g.label}</b><span class="sp"></span>${g.call ? `<span class="pill ${g.call[0]}">${g.call[1]}</span>` : '<span class="pill">not enough sessions</span>'}</div>
+      <div class="row small" style="margin-top:6px;gap:14px"><span class="mut">Before <b class="num" style="color:var(--fg)">${g.b ? fmtT(r0(g.b)) : '–'}</b> <span class="tiny">(${g.was.length})</span></span><span class="mut">Now <b class="num" style="color:var(--fg)">${g.a ? fmtT(r0(g.a)) : '–'}</b> <span class="tiny">(${g.now.length})</span></span>${g.pct != null ? `<span class="num ${g.pct >= 0 ? 'ok' : 'warn'}">${g.pct >= 0 ? r1(g.pct) + '% faster' : r1(-g.pct) + '% slower'}</span>` : ''}</div>
+      ${g.call ? `<div class="tiny mut" style="margin-top:4px">${esc(g.call[2])}</div>` : '<div class="tiny mut" style="margin-top:4px">Needs at least one session in each five-week window.</div>'}</div>`).join('')}
+    <p class="tiny mut" style="margin-top:8px">Each session is converted to a 1 km equivalent (Riegel’s formula) so different rep lengths compare; numbers in brackets are sessions. Rep counts are read from the run name (“6 x 200”); without one, the session average pace is used. Small samples swing easily.</p></div>`;
+}
+
+/* ============ tomorrow's face forecast (idea from the Glow app) ============ */
+function puffForecast(d = today()) {
+  const t = foodTotals(d), x = day(d), tips = []; let score = 100;
+  const prev = lastN(14, dAdd(d, -1)).filter(q => foodTotals(q).n >= 3).map(q => foodTotals(q).na), usual = prev.length >= 3 ? mean(prev) : null;
+  if (t.n >= 3) {
+    if (usual != null && t.na - usual > 1000) { score -= 25; tips.push(`Sodium is about ${((t.na - usual) / 1000).toFixed(1)} g above your recent average. The jump puffs you, not the amount: add a potassium food and two glasses of water.`); }
+    else if (usual != null && t.na - usual > 500) { score -= 10; tips.push('Sodium a little above your usual: a potassium-rich side tonight evens it out.'); }
+    if (t.k > 0 && t.na / t.k > 1.2) { score -= 15; tips.push(`Sodium to potassium is ${(t.na / t.k).toFixed(1)} to 1. Aim for potassium higher: potatoes, avocado, yoghurt, kiwi, banana.`); }
+  }
+  if (has(x.sleep) && x.sleep < 7) { score -= 15; tips.push('Short sleep last night raises cortisol and leaves fluid round the eyes. Tonight matters more than any food.'); }
+  if (gymOn(d).some(isLegs) || runsOn(d).some(r => r.type === 'tt' || r.type === 'hard')) { score -= 5; tips.push('Hard session today: muscles hold extra water while they repair. Expect the scale up a little; it is not fat.'); }
+  if (x.refeed) { score -= 10; tips.push('Refeed day: every gram of glycogen stores about 3 g of water. Fuller muscles, slightly softer face for a day or two.'); }
+  if (x.sodium === 'high') { score -= 10; tips.push('You marked sodium high today. Water through the evening, salt as usual tomorrow; do not cut it.'); }
+  if (!tips.length) tips.push(t.n >= 3 ? (t.k >= t.na ? 'Potassium beats sodium and nothing is spiking. A de-puffed day.' : 'Steady sodium, nothing unusual. Good shape for tomorrow.') : 'Log today’s food to forecast from sodium and potassium.');
+  return { score: Math.max(0, score), tips, na: t.na, k: t.k, usual, logged: t.n >= 3 };
+}
+function puffCard() {
+  const F = puffForecast(), b = F.score >= 85 ? ['ok', 'sharp'] : F.score >= 65 ? ['warn', 'a little soft'] : ['bad', 'puffy'];
+  return `<div class="panel"><div class="row"><span class="eyebrow">Tomorrow’s face forecast</span><span class="sp"></span><span class="pill ${b[0] === 'ok' ? 'g' : b[0] === 'warn' ? 'a' : 'r'}">${b[1]}</span></div>
+    <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${F.score}</span><span class="mut">/ 100 · higher is leaner-looking</span></div>
+    ${F.logged ? `<div class="row small mut" style="gap:16px;margin-top:4px"><span>Sodium <b class="num" style="color:var(--fg)">${r0(F.na)} mg</b>${F.usual != null ? ` (usual ${r0(F.usual)})` : ''}</span><span>Potassium <b class="num" style="color:var(--fg)">${r0(F.k)} mg</b></span></div>` : ''}
+    <ul class="small mut" style="margin:10px 0 0;padding-left:18px">${F.tips.map(t => `<li style="margin-bottom:4px">${esc(t)}</li>`).join('')}</ul>
+    <p class="tiny mut" style="margin-top:8px">Face puffiness is fluid, not fat: sodium jumps against your usual, low potassium, short sleep, cortisol, hard sessions and refeeds. All of it passes in a day or two. Sodium counts what is logged, so add your daily salt in Fuel.</p></div>`;
+}
 
 let dirtyR = false;
 function renderSoon() { dirtyR = true; setTimeout(() => { const a = document.activeElement; if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest('#view')) return; if (dirtyR) { dirtyR = false; render(); } }, 0); }
