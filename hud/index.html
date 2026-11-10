@@ -189,6 +189,10 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .sb-tile:hover{border-color:var(--line2)}
 .sb-v{font-size:22px;line-height:1}
 @media(max-width:760px){.sb{grid-template-columns:1fr;justify-items:center}.sb-grid{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
+.sl-t{font:400 34px/1 var(--f-d);min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
+.chip-t{background:transparent;border:1px solid var(--line2);border-radius:999px;padding:5px 10px;font:500 12px var(--f-m);color:var(--mut)}
+.chip-t.on{background:var(--acc);border-color:var(--acc);color:#06222a}
+.sl-sum{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
 </style>
 
 <div class="wrap">
@@ -1020,6 +1024,7 @@ function vCommand() {
   return `<div class="stack fade">
     <div class="mission"><div style="flex:1;min-width:0"><div class="eyebrow">Right now${ms.ev ? ' · ' + esc(ms.ev) : ''}</div><h2>${esc(ms.t)}</h2><p>${esc(ms.b)}</p></div>${ms.act ? `<button class="btn pri" data-act="${ms.act.startsWith('timer:') ? 'timer' : ms.act}" data-type="${ms.act.split(':')[1] || ''}">${esc(ms.actL)}</button>` : ''}</div>
 
+    ${sleepCard(true)}
     ${scoreboardCard()}
 
     <div class="panel"><div class="row"><div class="state ${rd.band || ''}" style="flex:1;min-width:220px"><div class="eyebrow">Readiness</div>
@@ -1084,8 +1089,8 @@ function vLog(d) {
   const x = day(d);
   return `<div class="row"><button class="btn sm ghost" data-act="logDate" data-n="-1">← Day before</button><span class="small">${fmtDW(d)}</span>${d < today() ? `<button class="btn sm ghost" data-act="logDate" data-n="1">Day after →</button><button class="btn sm ghost" data-act="logDate" data-n="0">Today</button>` : ''}</div>
   <div class="grid g4">
-    ${dayIn(d, 'wt', 'Weight (lb)', 'inputmode="decimal"')}${dayIn(d, 'rhr', 'Resting HR', 'inputmode="numeric"')}${dayIn(d, 'hrv', 'HRV (ms)', 'inputmode="numeric" placeholder="optional"')}${dayIn(d, 'sleep', 'Sleep (h)', 'inputmode="decimal"')}
-    ${dayIn(d, 'bed', 'Bedtime', 'type="time"')}${dayIn(d, 'wake', 'Woke', 'type="time"')}${dayIn(d, 'steps', 'Steps', 'inputmode="numeric"')}${dayIn(d, 'cals', 'Calories eaten', 'inputmode="numeric"')}
+    ${dayIn(d, 'wt', 'Weight (lb)', 'inputmode="decimal"')}${dayIn(d, 'rhr', 'Resting HR', 'inputmode="numeric"')}${dayIn(d, 'hrv', 'HRV (ms)', 'inputmode="numeric" placeholder="optional"')}${dayIn(d, 'sleep', 'Asleep (h)', 'inputmode="decimal"')}
+    ${dayIn(d, 'bed', 'Bed (last night)', 'type="time"')}${dayIn(d, 'wake', 'Woke (this morning)', 'type="time"')}${dayIn(d, 'steps', 'Steps', 'inputmode="numeric"')}${dayIn(d, 'cals', 'Calories eaten', 'inputmode="numeric"')}
     ${dayIn(d, 'study', 'Deep study (h)', 'inputmode="decimal"')}${dayIn(d, 'stress', 'Stress 1–10', 'inputmode="numeric"')}${dayIn(d, 'sore', 'Soreness 1–10', 'inputmode="numeric"')}${dayIn(d, 'urge', 'Food urges 1–10', 'inputmode="numeric"')}
     ${dayIn(d, 'light', 'Daylight (min)', 'inputmode="numeric"')}${dayIn(d, 'cellular', 'Cellular habits %', 'inputmode="numeric"')}
     ${field('Sodium', `<select class="in" id="f_sodium" data-f="sodium" data-date="${d}">${['', 'low', 'med', 'high'].map(o => `<option value="${o}" ${x.sodium === o ? 'selected' : ''}>${o || '–'}</option>`).join('')}</select>`)}
@@ -1343,7 +1348,8 @@ function vMind() {
         <div class="kv"><span class="mut">REM target</span><span class="num">1.5–2.5 h <span class="mut">(${has(x.rem) ? x.rem + ' h last night' : 'needs a wearable'})</span></span></div>
         <p class="tiny mut" style="margin-top:8px">Regular timing predicts health outcomes at least as well as duration does. Within ±30 minutes is the mark to hold, weekends included.</p></div>
     </div>
-    ${drawer('sleepLog', 'Sleep logger', fmtDW(d), `<div class="grid g4">${dayIn(d, 'bed', 'Bedtime', 'type="time"')}${dayIn(d, 'wake', 'Woke', 'type="time"')}${dayIn(d, 'sleep', 'Total sleep (h)', 'inputmode="decimal"')}${dayIn(d, 'sq', 'Quality 1–10', 'inputmode="numeric"')}${dayIn(d, 'deep', 'Deep (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'rem', 'REM (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'nap', 'Nap (min)', 'inputmode="numeric"')}</div><p class="tiny mut">Enter bed and wake times and the hours fill in. Without a wearable, leave deep and REM empty; guessing them adds nothing.</p>
+    ${sleepCard(false)}
+    ${drawer('sleepLog', 'Sleep history and extras', 'wearable data, naps, the last 14 nights', `<div class="grid g4">${dayIn(d, 'sq', 'Quality 1–10', 'inputmode="numeric"')}${dayIn(d, 'deep', 'Deep (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'rem', 'REM (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'nap', 'Nap (min)', 'inputmode="numeric"')}</div><p class="tiny mut">Bed and wake go in the Last night card above. Without a wearable, leave deep and REM empty; guessing them adds nothing.</p>
       <div class="scroll tall"><table><tr><th>Night</th><th class="n">Bed</th><th class="n">Woke</th><th class="n">Sleep</th><th class="n">Quality</th></tr>${[...ds].reverse().filter(q => has(day(q).sleep)).map(q => `<tr><td>${fmtDW(q)}</td><td class="n">${esc(day(q).bed || '–')}</td><td class="n">${esc(day(q).wake || '–')}</td><td class="n ${day(q).sleep < 6.5 ? 'bad' : ''}">${day(q).sleep} h</td><td class="n">${day(q).sq ?? '–'}</td></tr>`).join('')}</table></div>`, true)}
 
     <div class="grid g2">
@@ -1538,8 +1544,9 @@ document.addEventListener('change', e => {
     const x = D(el.dataset.date), k = el.dataset.f, txt = ['bed', 'wake', 'note', 'sodium'].includes(k);
     const v = txt ? el.value : num(el.value.replace(/,/g, ''));
     if (v === '' || v == null) delete x[k]; else x[k] = v;
-    if ((k === 'bed' || k === 'wake') && x.bed && x.wake && !has(x.sleep)) { const b = bedMin(x.bed), w = wakeMin(x.wake) + 360; if (w > b) x.sleep = r1((w - b) / 60); }
-    save(); render();
+    if (k === 'sleep') { if (v == null || v === '') delete x.sleepManual; else x.sleepManual = true; }
+    if (k === 'bed' || k === 'wake') { computeSleep(x); const f = document.getElementById('f_sleep'); if (f && has(x.sleep)) f.value = x.sleep; }
+    save(); renderSoon();
   } else if (el.dataset.check) { const x = D(el.dataset.date); (x.checks ||= {})[el.dataset.check] = el.checked; save(); render(); }
   else if (el.dataset.reds) { S.reds[el.dataset.reds] = el.checked; save(); render(); }
   else if (el.id === 'impFile' && el.files[0]) { const r = new FileReader(); r.onload = () => importData(r.result); r.readAsText(el.files[0]); }
@@ -1550,7 +1557,7 @@ document.addEventListener('submit', e => {
   if (e.target.id === 'syncForm') {
     if (/^\s*FOOD\b/i.test($('#syncIn').value)) { const r = parseFood($('#syncIn').value); save(); if (r.ok) $('#syncIn').value = ''; render(); return toast(r.ok ? `${r.ok} food${r.ok > 1 ? 's' : ''} logged.${r.miss.length ? ' Not recognised: ' + r.miss.join(', ') + '.' : ''}` : 'No foods recognised. Format: FOOD: Lunch | Fage 0% 150g | eggs 120g'); }
     const p = parseSync($('#syncIn').value); if (!p.n) return toast('Nothing recognised. Format: SYNC: WT=150.2 | RHR=52 | SLEEP=8 | STEPS=10000 | CALS=2000');
-    const d = p.date || today(); Object.assign(D(d), p.f);
+    const d = p.date || today(); Object.assign(D(d), p.f); if (has(p.f.sleep)) D(d).sleepManual = true; else computeSleep(D(d));
     if (p.run) S.runs.push({ id: uid(), date: d, ...p.run }); if (p.lift) S.gym.push({ id: uid(), date: d, ...p.lift });
     save(); $('#syncIn').value = ''; render(); const rd = readiness(d); toast(`Synced ${p.n} fields for ${fmtD(d)}.${rd.band ? ' Readiness: ' + RX[rd.band].name + '.' : ''}`);
   } else if (e.target.id === 'foodForm') { S.ui.q = $('#foodQ').value.trim(); S.ui.store = $('#foodStore').value; OFF = { q: '', res: null, busy: false, err: '' }; render(); $('#foodQ')?.focus(); }
@@ -2205,6 +2212,59 @@ Object.assign(ACT, { score: el => {
   sheet(`<div class="eyebrow">Score</div><h2>${x[0]}</h2><div class="mid num ${b[0]}" style="font-family:var(--f-d)">${x[1] != null ? r0(x[1]) + ' / 100 · ' + b[1] : 'No data yet'}</div><div><div class="eyebrow">What feeds it</div><p class="small mut" style="margin-top:4px">${esc(x[2])}</p></div><div><div class="eyebrow">Today</div><p class="small" style="margin-top:4px">${esc(x[4])}</p></div><div class="row"><button class="btn pri sm" data-act="goTab" data-tab="${x[3]}">Open the ${x[3]} tab</button><button class="btn ghost sm" data-act="close">Close</button></div>`);
 }, goTab: el => { closeModal(); S.ui.tab = el.dataset.tab; save(); render(); window.scrollTo(0, 0); } });
 
+/* ============ "Last night" sleep card: taps only, no time pickers ============
+   Convention: a day's record holds the night that ENDED that morning (bed the evening before, wake that morning). */
+const hm = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const bedToClock = b => b + 1080;               // minutes after 18:00 -> clock minutes
+const dur = m => `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}`;
+function usualSleep(d = today()) {
+  const ds = lastN(14, dAdd(d, -1)).map(day), b = ds.map(x => bedMin(x.bed)).filter(has), w = ds.map(x => wakeMin(x.wake)).filter(has);
+  const r15 = v => Math.round(v / 15) * 15;
+  return { bed: b.length >= 3 ? r15(median(b)) : bedMin(cfg().bedBy) ?? 315, wake: w.length >= 3 ? r15(median(w)) : 450, known: b.length >= 3 && w.length >= 3 };
+}
+function computeSleep(x) { // recompute hours from times unless the hours were typed by hand
+  if (x.sleepManual || !x.bed || !x.wake) return;
+  const b = bedMin(x.bed), w = wakeMin(x.wake) + 360; if (b == null || w == null) return;
+  const mins = w - b - (x.awake || 0); if (mins > 60 && mins < 16 * 60) x.sleep = r1(mins / 60);
+}
+function sleepDraft(d = today()) {
+  const x = day(d), u = usualSleep(d), dr = (S.ui.sd && S.ui.sd.d === d) ? S.ui.sd : null;
+  return dr || { d, bed: bedMin(x.bed) ?? u.bed, wake: wakeMin(x.wake) ?? u.wake, awake: x.awake ?? 0, q: x.sq ? Math.min(5, Math.max(1, Math.round(x.sq / 2))) : null, dirty: false };
+}
+function sleepCard(compact) {
+  const d = today(), x = day(d), u = usualSleep(d), s = sleepDraft(d), logged = has(x.sleep) && !s.dirty, inBed = s.wake + 360 - s.bed, asleep = inBed - s.awake;
+  const night = `${fmtDW(dAdd(d, -1)).split(' ')[0]} night → ${fmtDW(d)}`;
+  if (compact && logged && !S.ui.sleepOpen) return `<div class="panel row" style="padding:12px 16px"><span class="eyebrow">Last night</span><span class="num">${x.bed ? x.bed + ' → ' + (x.wake || '?') : ''}</span><b class="num">${x.sleep} h</b>${x.sq ? `<span class="mut small">quality ${Math.round(x.sq / 2)}/5</span>` : ''}<span class="sp"></span><button class="btn sm ghost" data-act="sleepEdit">Edit</button></div>`;
+  const diffB = s.bed - u.bed, step = (k, n) => `<button class="btn sm" data-act="sleepStep" data-k="${k}" data-n="${n}" aria-label="${k} ${n > 0 ? 'later' : 'earlier'} by ${Math.abs(n)} minutes">${n > 0 ? '+' : '−'}${Math.abs(n)}</button>`;
+  const chips = (k, list, cur) => list.map(m => `<button class="chip-t ${cur === m ? 'on' : ''}" data-act="sleepSet" data-k="${k}" data-v="${m}">${hm(k === 'bed' ? bedToClock(m) : m)}</button>`).join('');
+  return `<div class="panel"><div class="row"><span class="eyebrow">Last night</span><span class="mut small">${night}</span><span class="sp"></span>${logged ? `<span class="pill g">saved · ${x.sleep} h</span>` : '<span class="pill a">not logged</span>'}</div>
+    <div class="grid g2" style="margin-top:12px;gap:16px">
+      <div><div class="tiny mut">Went to bed</div><div class="row" style="margin:4px 0 8px">${step('bed', -15)}<span class="sl-t">${hm(bedToClock(s.bed))}</span>${step('bed', 15)}</div><div class="row" style="gap:5px">${chips('bed', [240, 270, 285, 300, 315, 330, 345, 360, 390], s.bed)}</div></div>
+      <div><div class="tiny mut">Woke up</div><div class="row" style="margin:4px 0 8px">${step('wake', -15)}<span class="sl-t">${hm(s.wake)}</span>${step('wake', 15)}</div><div class="row" style="gap:5px">${chips('wake', [390, 420, 435, 450, 465, 480, 510, 540], s.wake)}</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px;gap:16px">
+      <div><div class="tiny mut">Time awake (falling asleep plus waking in the night)</div><div class="row" style="gap:5px;margin-top:6px">${[0, 10, 20, 30, 45, 60, 90].map(m => `<button class="chip-t ${s.awake === m ? 'on' : ''}" data-act="sleepSet" data-k="awake" data-v="${m}">${m ? m + ' min' : 'none'}</button>`).join('')}</div></div>
+      <div><div class="tiny mut">How did you sleep?</div><div class="row" style="gap:5px;margin-top:6px">${['Awful', 'Poor', 'OK', 'Good', 'Great'].map((l, i) => `<button class="chip-t ${s.q === i + 1 ? 'on' : ''}" data-act="sleepSet" data-k="q" data-v="${i + 1}">${l}</button>`).join('')}</div></div>
+    </div>
+    <div class="sl-sum"><div><span class="big num" style="font-family:var(--f-d);font-size:40px">${asleep > 0 ? dur(asleep) : '–'}</span> <span class="mut">asleep</span></div><div class="small mut">${dur(inBed)} in bed${s.awake ? ` minus ${s.awake} min awake` : ''} · ${diffB === 0 ? 'your usual bedtime' : `${Math.abs(diffB)} min ${diffB > 0 ? 'later' : 'earlier'} than your usual ${hm(bedToClock(u.bed))}`}${asleep < 390 ? ' · <span class="warn">under 6.5 h: readiness drops a band</span>' : ''}</div></div>
+    <div class="row" style="margin-top:10px"><button class="btn pri" data-act="sleepSave">${logged ? 'Update' : 'Save last night'}</button>${!logged && u.known ? `<button class="btn" data-act="sleepUsual">Usual night (${hm(bedToClock(u.bed))}–${hm(u.wake)})</button>` : ''}<span class="sp"></span><span class="tiny mut">Times are rounded to 15 minutes; that is as accurate as memory gets.</span></div></div>`;
+}
+Object.assign(ACT, {
+  sleepEdit: () => { S.ui.sleepOpen = true; render(); },
+  sleepStep: el => { const s = sleepDraft(); s[el.dataset.k] += +el.dataset.n; if (el.dataset.k === 'bed') s.bed = clamp(s.bed, 120, 660); else s.wake = clamp(s.wake, 240, 780); s.dirty = true; S.ui.sd = s; render(); },
+  sleepSet: el => { const s = sleepDraft(), k = el.dataset.k; s[k] = +el.dataset.v; s.dirty = true; S.ui.sd = s; render(); },
+  sleepUsual: () => { const u = usualSleep(); S.ui.sd = { d: today(), bed: u.bed, wake: u.wake, awake: 0, q: null, dirty: true }; ACT.sleepSave(); },
+  sleepSave: () => {
+    const s = sleepDraft(), x = D(today());
+    x.bed = hm(bedToClock(s.bed)); x.wake = hm(s.wake); x.awake = s.awake; if (s.q) x.sq = s.q * 2; delete x.sleepManual; computeSleep(x);
+    delete S.ui.sd; S.ui.sleepOpen = false; save(); render();
+    const rd = readiness(); toast(`Saved: ${x.sleep} h asleep.${rd.band ? ' Readiness ' + RX[rd.band].name.toLowerCase() + '.' : ''}`);
+  }
+});
+
+let dirtyR = false;
+function renderSoon() { dirtyR = true; setTimeout(() => { const a = document.activeElement; if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest('#view')) return; if (dirtyR) { dirtyR = false; render(); } }, 0); }
+document.addEventListener('focusout', () => { if (dirtyR) renderSoon(); });
 load(); render = (r => () => { r(); questCheck(); })(render); render();
 
 setInterval(() => { const c = $('#clkC'); if (c && S.profile.dob) c.textContent = ageYears().toFixed(7); }, 1000);
