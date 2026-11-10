@@ -39,6 +39,9 @@ jobs:
           npm ci
           npm run build
       - run: cp -r good-life/dist dist/good-life
+      # Apex HUD (hud/) is a single self-contained HTML file with no build
+      # step and no personal data; it is published as-is at /hud/.
+      - run: cp -r hud dist/hud
       - uses: actions/configure-pages@v5
         with:
           enablement: true

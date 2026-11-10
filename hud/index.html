@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d11">
+<meta name="robots" content="noindex">
+<title>Apex HUD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one calm column of hairline panels on matte ink; a single sea-blue accent, gold only for rank, colour reserved for state. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0d11; --panel:#10141a; --panel2:#161b23; --line:#1e2530; --line2:#2b3442;
+  --fg:#ece8df; --mut:#8d96a4; --dim:#5f6876;
+  --acc:#7cc4d6; --gold:#cfab66; --violet:#a99de6;
+  --ok:#62c690; --warn:#e3aa4f; --bad:#e8706f;
+  --f-d:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --f-b:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-m:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--f-b);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto;padding-block:14px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.num{font-family:var(--f-m);font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)} .dim{color:var(--dim)} .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .acc{color:var(--acc)} .gold{color:var(--gold)}
+.small{font-size:12px} .tiny{font-size:11px}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.brand{font:400 26px/1 var(--f-d);letter-spacing:.01em}
+.brand i{color:var(--acc);font-style:italic}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--mut);background:transparent;white-space:nowrap}
+.chip b{color:var(--fg);font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+.dot.g{background:var(--ok)} .dot.a{background:var(--warn)} .dot.r{background:var(--bad)}
+
+.sync{display:flex;gap:8px;margin-bottom:12px}
+.sync input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:12px var(--f-m)}
+.sync input::placeholder{color:var(--dim)}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);margin-bottom:16px}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:11px 2px;color:var(--mut);font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--acc)}
+
+/* panels */
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))} .g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:760px){.g2,.g3{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>.sp{flex:1}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel.flat{background:transparent}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);font-weight:500}
+.big{font:400 40px/1 var(--f-d)}
+.mid{font:400 26px/1.05 var(--f-d)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv:last-child{border-bottom:0}
+.kv span:last-child{text-align:right}
+
+.mission{border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px;background:linear-gradient(180deg,var(--panel2),var(--panel));display:flex;gap:14px;align-items:flex-start}
+.mission h2{font:400 22px/1.2 var(--f-d);text-wrap:balance}
+.mission p{color:var(--mut);margin-top:4px;max-width:65ch}
+.state{border-left:3px solid var(--dim);padding:2px 0 2px 12px}
+.state.g{border-color:var(--ok)} .state.a{border-color:var(--warn)} .state.r{border-color:var(--bad)}
+.alert{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.alert.a{border-color:color-mix(in srgb,var(--warn) 55%,var(--line));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+.alert.r{border-color:color-mix(in srgb,var(--bad) 60%,var(--line));background:color-mix(in srgb,var(--bad) 8%,transparent)}
+.alert.g{border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:color-mix(in srgb,var(--ok) 6%,transparent)}
+.alert .dot{margin-top:6px}
+
+.tile{border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.tile .v{font:500 18px/1.2 var(--f-m);font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .s{font-size:11px;color:var(--mut);margin-top:2px}
+
+.btn{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:8px 13px;font-size:13px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--mut)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#06222a}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn.danger{border-color:color-mix(in srgb,var(--bad) 60%,var(--line));color:var(--bad)}
+.x{background:none;border:0;color:var(--dim);padding:2px 6px;font-size:14px}
+.x:hover{color:var(--bad)}
+
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:11px;color:var(--mut);letter-spacing:.04em}
+.in{background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:8px 10px;width:100%;min-width:0;font-family:var(--f-m);font-size:13px}
+textarea.in{font-family:var(--f-b);resize:vertical;min-height:72px}
+select.in{font-family:var(--f-b)}
+
+details.drawer{border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+details.drawer>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:10px;font-weight:500}
+details.drawer>summary::-webkit-details-marker{display:none}
+details.drawer>summary::after{content:"+";margin-left:auto;color:var(--mut);font:400 18px var(--f-m)}
+details.drawer[open]>summary::after{content:"–"}
+details.drawer>summary .hint{color:var(--mut);font-weight:400;font-size:12px}
+details.drawer>.body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{appearance:none;width:18px;height:18px;border:1.5px solid var(--line2);border-radius:6px;flex:none;margin:1px 0 0;display:grid;place-items:center;background:var(--bg)}
+.check input:checked{background:var(--acc);border-color:var(--acc)}
+.check input:checked::after{content:"";width:9px;height:5px;border:2px solid #06222a;border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
+.check .t{font-size:13px}
+.check .d{font-size:12px;color:var(--mut)}
+
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;position:relative}
+.bar>i{position:absolute;inset:0 auto 0 0;border-radius:99px;background:var(--acc);transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.bar.thick{height:12px}
+.bar .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--gold)}
+.boss{padding:12px 0;border-bottom:1px solid var(--line)}
+.boss:last-child{border-bottom:0}
+.boss .bar>i{background:linear-gradient(90deg,var(--bad),var(--warn) 55%,var(--ok))}
+
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{font-weight:500;color:var(--mut);text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--f-m);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.tall{max-height:380px;overflow:auto}
+
+svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:2px;margin-right:5px;vertical-align:middle;background:var(--acc)}
+
+.pill{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;border:1px solid var(--line2);color:var(--mut);white-space:nowrap}
+.pill.g{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.pill.a{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,var(--line))}
+.pill.r{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 55%,var(--line))}
+.pill.b{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+.pill.au{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 50%,var(--line))}
+
+.clock{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end}
+.clock .big{font-size:clamp(34px,8vw,56px)}
+.clock .vs{color:var(--dim);font:italic 18px var(--f-d);padding-bottom:8px}
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.trophy{border:1px solid var(--line);border-radius:10px;padding:10px;opacity:.45}
+.trophy.on{opacity:1;border-color:color-mix(in srgb,var(--gold) 55%,var(--line))}
+.trophy b{display:block;font-weight:500;font-size:13px}
+.trophy.on b{color:var(--gold)}
+.res{display:flex;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left}
+.res:hover{background:var(--panel2)}
+.res .nm{flex:1;min-width:0}
+.res .nm b{font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:500 12px var(--f-m);border:2px solid var(--line2);flex:none}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(4,6,9,.78);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--panel);border:1px solid var(--line2);border-radius:18px;width:min(560px,100%);max-height:100%;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.sheet h2{font:400 24px/1.15 var(--f-d)}
+.tcount{font:400 clamp(54px,16vw,84px)/1 var(--f-m);font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.02em}
+.orb{width:150px;height:150px;border-radius:50%;margin:6px auto;border:1px solid var(--acc);background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--acc) 28%,transparent),transparent 70%);transform:scale(.6);transition:transform 2s ease-in-out}
+.cue{text-align:center;font:400 22px/1.3 var(--f-d);min-height:58px;text-wrap:balance}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:10px 16px;font-size:13px;max-width:min(92vw,520px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.fade{animation:fade .35s ease both}
+@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.fade{animation:none}.bar>i,.orb{transition:none}}
+.prose{max-width:68ch;color:var(--fg)} .prose p{margin:0 0 8px;color:var(--mut)} .prose b{color:var(--fg);font-weight:500}
+.prose h3{font:400 19px/1.25 var(--f-d);margin:12px 0 6px}
+.prose ul{margin:0 0 8px;padding-left:18px;color:var(--mut)} .prose li{margin-bottom:5px}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Apex <i>HUD</i></div>
+    <span class="chip" id="chipPhase"></span>
+    <span class="sp"></span>
+    <span class="chip" id="chipRank"></span>
+    <button class="btn sm ghost" data-act="openSettings">Settings &amp; data</button>
+  </header>
+  <form class="sync" id="syncForm" autocomplete="off">
+    <input id="syncIn" aria-label="Smart paste sync line" placeholder="SYNC: WT=150.2 | RHR=52 | SLEEP=8 | STEPS=10000 | CALS=2000 | STUDY=3 | STRESS=3 | SODIUM=low">
+    <button class="btn pri" type="submit">Sync</button>
+  </form>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+<div id="modal"></div>
+<div id="toast" class="toast" hidden></div>
+<script type="application/json" id="seed"></script>
+<script>
+'use strict';
+/* ============ Food library: per 100 g RAW / dry weight. Typical values (USDA FoodData Central, UK labels). Treat as estimates, +/-10-20%. Carbohydrate excludes fibre (UK convention). ============
+   name ; category ; kcal ; protein ; carbs ; fat ; fibre ; sodium mg ; potassium mg ; tags ; key micronutrients */
+const LIB_RAW = `
+Greek yoghurt 0% (Fage Total);dairy;54;10.3;3;0;0;36;141;probiotic,ca,lowlac;calcium, iodine, B12, riboflavin
+Greek yoghurt 2% (Fage Total);dairy;70;9.9;3;2;0;35;140;probiotic,ca,lowlac;calcium, iodine, B12
+Greek yoghurt 5% (Fage Total);dairy;93;9;3;5;0;36;140;probiotic,ca,lowlac;calcium, iodine, B12, vitamin A
+Kefir, whole milk;dairy;62;3.4;4.2;3.4;0;40;160;probiotic,ca,lowlac,enz-lactase;calcium, B12, vitamin K2, iodine
+Skyr, plain;dairy;63;11;4;0.2;0;45;150;probiotic,ca,lowlac;calcium, iodine, B12
+Semi-skimmed milk;dairy;47;3.5;4.8;1.7;0;43;156;ca,lactose;calcium, iodine, B12, riboflavin
+Whole milk;dairy;64;3.3;4.7;3.6;0;43;150;ca,lactose;calcium, iodine, B12, vitamin A
+Raw whole milk (unpasteurised);dairy;66;3.3;4.7;3.8;0;43;150;ca,lactose,rawdairy;calcium, iodine, B12, vitamin A
+Cream cheese, protein (Philadelphia Protein);dairy;86;11.5;4.5;2.5;0;300;150;ca,lactose;calcium, B12
+Cottage cheese;dairy;84;11;3.4;2.3;0;360;100;ca,lactose;calcium, B12, selenium
+Cheddar, mature;dairy;416;25.4;0.1;34.9;0;720;75;ca,lowlac;calcium, vitamin K2, B12, zinc
+Comté;dairy;415;27;0;34;0;330;100;ca,lowlac;calcium, vitamin K2, B12, zinc
+Goat's cheese, soft;dairy;268;18;1;21;0;460;130;ca,lowlac;calcium, vitamin A, riboflavin
+Mozzarella, fresh;dairy;254;18;2;19;0;200;75;ca,lowlac;calcium, B12
+Parmesan;dairy;402;36;0;29;0;650;120;ca,lowlac;calcium, vitamin K2, zinc
+Butter, unsalted;fat;744;0.6;0.6;82;0;15;24;satfat;vitamin A, vitamin K2
+Egg, whole;egg;143;12.6;0.7;9.5;0;142;138;chol,se;choline, selenium, B12, vitamin D, lutein
+Egg white;egg;52;10.9;0.7;0.2;0;166;163;;riboflavin, selenium
+Egg yolk;egg;322;15.9;3.6;26.5;0;48;109;chol;choline, vitamin D, vitamin A, lutein, B12
+Salmon, wild;fish;142;19.8;0;6.3;0;44;490;o3,vitd,se,b12;EPA + DHA, vitamin D, B12, selenium, astaxanthin
+Salmon, farmed;fish;208;20.4;0;13.4;0;59;363;o3,vitd,b12;EPA + DHA, vitamin D, B12
+Trout;fish;141;19.9;0;6.2;0;51;481;o3,vitd,b12;EPA + DHA, vitamin D, B12
+Mackerel;fish;205;18.6;0;13.9;0;90;314;o3,vitd,b12,se;EPA + DHA, vitamin D, B12, selenium
+Sardines, tinned in spring water (drained);fish;185;23;0;10;0;300;397;o3,vitd,ca,b12;EPA + DHA, vitamin D, calcium (bones), B12
+Hake;fish;78;17.2;0;0.9;0;100;320;iod,se;iodine, selenium, B12
+Cod;fish;82;17.8;0;0.7;0;54;413;iod,se;iodine, selenium, B12
+Sea bass;fish;97;18.4;0;2;0;68;256;se;selenium, B12
+Tuna, tinned in spring water (drained);fish;109;24.9;0;1;0;250;237;se,b12;selenium, niacin, B12
+Smoked salmon;fish;142;22;0;6;0;1200;175;o3,b12,processed;EPA + DHA, B12
+Prawns;fish;85;20;0;0.5;0;190;260;iod,se;iodine, selenium, B12, astaxanthin
+Oysters;fish;81;9.5;5;2.3;0;106;168;zinc,b12,haem;zinc, copper, B12, iron, selenium
+Mussels;fish;86;11.9;3.7;2.2;0;286;320;b12,haem,se,iod;B12, manganese, iron, selenium, iodine
+Scallops;fish;69;12.1;3.2;0.5;0;392;205;b12,se;B12, selenium
+Chicken breast, skinless;meat;120;22.5;0;2.6;0;45;334;;niacin, B6, selenium
+Chicken thigh, skinless;meat;121;19.7;0;4.1;0;95;242;;niacin, B6, zinc
+Turkey breast;meat;114;23.7;0;1.5;0;60;290;;niacin, B6, selenium
+Beef mince, 5% fat;meat;137;21.4;0;5;0;66;346;haem,zinc,b12;haem iron, zinc, B12, creatine
+Beef mince, 10% fat;meat;176;20;0;10;0;66;321;haem,zinc,b12;haem iron, zinc, B12, creatine
+Sirloin steak, lean;meat;155;22;0;7;0;55;340;haem,zinc,b12;haem iron, zinc, B12, creatine
+Venison steak;meat;103;22;0;1.6;0;55;330;haem,zinc,b12;haem iron, zinc, B12
+Lamb leg, lean;meat;150;20;0;7.5;0;60;290;haem,zinc,b12;haem iron, zinc, B12
+Pork tenderloin;meat;120;21;0;3.5;0;53;399;;thiamin, B6, selenium
+Beef heart;meat;112;17.7;0.1;3.9;0;98;287;haem,b12,coq10;CoQ10, B12, haem iron, riboflavin
+Lamb kidney;meat;97;15.7;0.8;3;0;156;277;haem,b12,se;B12, selenium, riboflavin, haem iron
+Beef liver;meat;135;20.4;3.9;3.6;0;69;313;haem,b12,vitA-high;vitamin A (very high), B12, copper, folate
+Back bacon, smoked;meat;215;16;0;16.5;0;1150;250;processed;B12, thiamin
+Ham, sliced;meat;110;18;1;3.5;0;900;280;processed;thiamin, B12
+Bone broth, unsalted;meat;20;4;0.3;0.3;0;90;100;collagen;glycine, proline
+Collagen peptides, hydrolysed;supp;360;90;0;0;0;250;10;collagen;glycine, proline, hydroxyproline (no tryptophan: not a complete protein)
+Oats, gluten-free (dry);carb;374;11;60;8;9;4;350;starch,betaglucan;beta-glucan, manganese, magnesium, thiamin
+Oats, regular (not certified GF);carb;374;11;60;8;9;4;350;starch,betaglucan,glutenx;beta-glucan, manganese, magnesium
+White basmati rice (dry);carb;349;8.1;77;0.5;1.4;2;110;starch;manganese
+Brown rice (dry);carb;357;7.5;74;2.7;3.5;5;250;starch;manganese, magnesium
+Quinoa (dry);carb;368;14;57;6;7;5;563;starch;magnesium, folate, manganese
+Buckwheat (dry);carb;343;13;61.5;3.4;10;1;460;starch,poly;magnesium, rutin
+Gluten-free pasta, rice/corn (dry);carb;356;6.5;78;1.5;1.5;5;100;starch;
+Gluten-free bread;carb;250;4;43;6;6;400;90;starch,processed;
+Sourdough bread (wheat);carb;240;8;47;1.5;2.5;480;120;starch,gluten;
+Rice cakes, unsalted;carb;387;8;81;3;3;5;290;starch;manganese
+Lentil & rice cakes (Kallo-style, check pack);carb;370;22;62;2;5;300;600;starch;iron, folate
+Potatoes;carb;77;2;15.9;0.1;2.1;6;420;starch,krich;potassium, vitamin C, B6
+Sweet potato;carb;86;1.6;17.1;0.1;3;55;337;starch,carot;beta-carotene, potassium, manganese
+Parsnip;veg;75;1.2;13.1;0.3;4.9;10;375;starch,krich;folate, vitamin C, potassium
+Carrot;veg;41;0.9;6.8;0.2;2.8;69;320;carot;beta-carotene, vitamin K1
+Beetroot;veg;43;1.6;6.8;0.2;2.8;78;325;nitrate,poly;dietary nitrate, folate, betalains
+Butternut squash;veg;45;1;9.7;0.1;2;4;352;carot,krich;beta-carotene, vitamin C, potassium
+Tomato;veg;18;0.9;2.7;0.2;1.2;5;237;lyco,vitc;lycopene, vitamin C, potassium
+Tinned tomatoes (no added salt);veg;20;1.1;3.5;0.2;1;10;215;lyco;lycopene (better absorbed cooked, with fat)
+Cucumber;veg;15;0.7;3.1;0.1;0.5;2;147;;vitamin K1
+Courgette;veg;17;1.2;2.1;0.3;1;8;261;;vitamin C, potassium
+Red pepper;veg;31;1;3.9;0.3;2.1;4;211;vitc,carot;vitamin C (very high), beta-carotene
+Mushrooms;veg;22;3.1;2.3;0.3;1;5;318;fodmap-mod;riboflavin, selenium, vitamin D if UV-exposed
+Romaine lettuce;veg;17;1.2;1.2;0.3;2.1;8;247;;vitamin K1, folate
+Green beans;veg;31;1.8;4.3;0.2;2.7;6;211;;vitamin K1, vitamin C
+Asparagus;veg;20;2.2;1.8;0.1;2.1;2;202;fodmap;folate, vitamin K1
+Ginger root;veg;80;1.8;15.8;0.8;2;13;415;poly;gingerols
+Broccoli;veg;34;2.8;4;0.4;2.6;33;316;crucif,vitc;vitamin C, vitamin K1, sulforaphane precursors
+Cauliflower;veg;25;1.9;3;0.3;2;30;299;crucif,vitc;vitamin C, choline
+Cabbage;veg;25;1.3;3.3;0.1;2.5;18;170;crucif,vitc;vitamin C, vitamin K1
+Kale;veg;35;2.9;0.3;1.5;4.1;53;348;crucif,vitc;vitamin K1, vitamin C, lutein
+Brussels sprouts;veg;43;3.4;5.2;0.3;3.8;25;389;crucif,vitc;vitamin C, vitamin K1
+Rocket;veg;25;2.6;2.1;0.7;1.6;27;369;crucif,nitrate;dietary nitrate, vitamin K1
+Pak choi;veg;13;1.5;1.2;0.2;1;65;252;crucif;vitamin C, vitamin K1
+Spinach;veg;23;2.9;1.4;0.4;2.2;79;558;nitrate,oxalate;folate, vitamin K1, magnesium (oxalate limits calcium and iron absorption)
+Onion;veg;40;1.1;7.6;0.1;1.7;4;146;fodmap,poly;quercetin, fructans
+Leek;veg;61;1.5;12.4;0.3;1.8;20;180;fodmap;fructans, vitamin K1
+Garlic;veg;149;6.4;31;0.5;2.1;17;401;fodmap,poly;allicin, fructans
+Lentils (dry);carb;352;24.6;52.6;1.1;10.7;6;677;fodmap,pulse;folate, iron (non-haem), GOS
+Chickpeas, tinned (drained);carb;139;7;16;2.6;6;220;170;fodmap,pulse;folate, GOS
+Banana;fruit;89;1.1;20.2;0.3;2.6;1;358;starch,krich;potassium, B6
+Blueberries;fruit;57;0.7;12.1;0.3;2.4;1;77;poly;anthocyanins, vitamin K1, manganese
+Strawberries;fruit;32;0.7;5.7;0.3;2;1;153;poly,vitc;vitamin C, anthocyanins, folate
+Raspberries;fruit;52;1.2;5.4;0.7;6.5;1;151;poly,vitc;ellagitannins, vitamin C, fibre
+Grapes;fruit;69;0.7;17.2;0.2;0.9;2;191;poly;resveratrol (trace), vitamin K1
+Kiwi;fruit;61;1.1;11.7;0.5;3;3;312;vitc,krich,enz-actinidin;vitamin C (very high), vitamin K1, potassium
+Clementine;fruit;47;0.9;10.3;0.2;1.7;1;177;vitc;vitamin C
+Orange;fruit;47;0.9;9.4;0.1;2.4;0;181;vitc;vitamin C, folate, hesperidin
+Apple;fruit;52;0.3;11.4;0.2;2.4;1;107;fodmap,poly;quercetin, pectin
+Pineapple;fruit;50;0.5;11.7;0.1;1.4;1;109;vitc,enz-bromelain;vitamin C, manganese
+Mango;fruit;60;0.8;13.4;0.4;1.6;1;168;fodmap,carot,vitc;vitamin C, beta-carotene
+Cherries;fruit;63;1.1;13.9;0.2;2.1;0;222;poly,fodmap;anthocyanins
+Pomegranate seeds;fruit;83;1.7;14.7;1.2;4;3;236;poly;punicalagins, vitamin K1
+Watermelon;fruit;30;0.6;7.2;0.2;0.4;1;112;lyco,fodmap;lycopene, citrulline
+Cantaloupe melon;fruit;34;0.8;7.3;0.2;0.9;16;267;carot,vitc;beta-carotene, vitamin C
+Raisins;fruit;299;3.1;75.5;0.5;3.7;11;749;krich,sugardense;potassium, boron
+Dates, Medjool;fruit;277;1.8;68.3;0.2;6.7;1;696;krich,sugardense;potassium, magnesium
+Dried apricots;fruit;241;3.4;55.3;0.5;7.3;10;1162;krich,fodmap,carot;potassium (very high), beta-carotene
+Açai purée, unsweetened;fruit;70;1;1;5;3;10;105;poly;anthocyanins
+Avocado;fat;160;2;1.8;14.7;6.7;7;485;mufa,krich;potassium, folate, vitamin E, vitamin K1
+Lemon juice;fruit;22;0.4;6.9;0.2;0.3;1;103;vitc;vitamin C
+Walnuts;nut;654;15.2;7;65.2;6.7;2;441;ala,poly;ALA omega-3, copper, manganese, ellagitannins
+Hazelnuts;nut;628;15;7;60.8;9.7;0;680;mufa,vite;vitamin E, manganese, copper
+Almonds;nut;579;21.2;9.1;49.9;12.5;1;733;mufa,vite,mag;vitamin E, magnesium, riboflavin
+Brazil nuts;nut;659;14.3;4.2;67;7.5;3;659;se-high;selenium (one or two nuts cover a day)
+Pumpkin seeds;nut;559;30.2;4.7;49;6;7;809;zinc,mag;magnesium, zinc, iron
+Sunflower seeds;nut;584;20.8;11.4;51.5;8.6;9;645;vite;vitamin E, selenium, magnesium
+Chia seeds;nut;486;16.5;7.7;30.7;34.4;16;407;ala;ALA omega-3, fibre, calcium
+Almond butter;nut;614;21;9;55.5;10;7;748;mufa,vite,mag;vitamin E, magnesium
+Almond milk, unsweetened;drink;13;0.4;0.1;1.1;0.3;56;20;;calcium if fortified
+Coconut water, 100%;drink;19;0.2;4.4;0;0;40;190;krich;potassium
+Honey, raw;sweet;304;0.3;82.4;0;0.2;4;52;sugardense,enz-diastase;trace polyphenols
+Maple syrup;sweet;260;0;67;0;0;12;212;sugardense;manganese
+Dark chocolate 85%;sweet;630;9.4;22.5;53.5;11.5;12;700;poly,mag;cocoa flavanols, magnesium, iron, copper
+Cacao powder (varies by brand);sweet;350;25;15;12;30;20;1500;poly,mag,krich;cocoa flavanols, magnesium, iron
+Extra-virgin olive oil;fat;884;0;0;100;0;2;1;mufa,poly;oleic acid, hydroxytyrosol, vitamin E
+Avocado oil;fat;884;0;0;100;0;0;0;mufa;oleic acid, vitamin E
+Beef tallow;fat;902;0;0;100;0;0;0;satfat;
+Sea salt;other;0;0;0;0;0;38760;8;salt;sodium, chloride (1 g salt = 388 mg sodium)
+Soy sauce;other;53;8;5;0;0;5500;430;gluten,processed;
+Stock cube (typical);other;240;10;20;14;0;18000;300;processed,glutenx;
+`;
+const LIB = LIB_RAW.trim().split('\n').map(l => {
+  const [name, cat, kcal, p, c, f, fib, na, k, tags, mic] = l.split(';');
+  return { name, cat, kcal: +kcal, p: +p, c: +c, f: +f, fib: +fib, na: +na, k: +k, tags: tags ? tags.split(',') : [], mic: mic || '', src: 'lib' };
+});
+
+/* What a tag means for the body. Plain English; strength of evidence stated where it matters. */
+const TAG_DOES = {
+  o3: 'EPA and DHA (long-chain omega-3 fats) are built into cell membranes, including heart and brain cells. Two oily-fish meals a week is the UK guideline amount.',
+  ala: 'ALA is the plant omega-3. The body converts only a few per cent of it to EPA and DHA, so it does not replace oily fish.',
+  vitd: 'One of the few real food sources of vitamin D, which the body needs to absorb calcium. From October to March the UK sun is too weak for skin to make any.',
+  b12: 'Vitamin B12 for red blood cells and nerve insulation (myelin).',
+  haem: 'Haem iron, the form absorbed 2-3 times better than plant iron. Iron carries oxygen in haemoglobin, so low ferritin (stored iron) slows a runner before anaemia shows.',
+  zinc: 'Zinc for skin repair, immune cells and testosterone production.',
+  se: 'Selenium, used by the enzymes that recycle antioxidants and activate thyroid hormone.',
+  'se-high': 'Extremely high in selenium. More than a couple of nuts a day can push intake past the safe upper level.',
+  iod: 'Iodine, the raw material for thyroid hormones that set metabolic rate.',
+  chol: 'Choline, used to build cell membranes and the neurotransmitter acetylcholine (memory and muscle signalling).',
+  ca: 'Calcium for bone. Bone density matters more than usual for a lean runner in a calorie deficit.',
+  probiotic: 'Live cultures. Fermented dairy is usually tolerated better than milk because bacteria have already broken down much of the lactose.',
+  poly: 'Polyphenols: plant compounds that gut bacteria convert into smaller molecules linked with better blood-vessel function. Good observational evidence, modest trial evidence.',
+  vitc: 'Vitamin C, a co-factor for the enzymes that cross-link collagen in skin and tendon. Also raises absorption of plant iron eaten at the same meal.',
+  krich: 'Potassium-dense. Potassium helps the kidneys excrete sodium and so holds less water outside the cells. From food only, never from tablets.',
+  nitrate: 'Dietary nitrate converts to nitric oxide, widening blood vessels. Trials show a small improvement in exercise economy.',
+  collagen: 'Supplies glycine and proline, the main amino acids of collagen. Small trials suggest 15 g with vitamin C an hour before loading raises collagen synthesis markers in tendon.',
+  coq10: 'Rich in CoQ10, a molecule mitochondria (the cell\'s energy units) use to pass electrons along when making ATP.',
+  starch: 'Starch refills muscle glycogen, the fuel for hard running. Carbohydrate before and after hard sessions also blunts the cortisol response to training.',
+  betaglucan: 'Beta-glucan, a soluble fibre that forms a gel in the gut, slowing glucose absorption and lowering LDL cholesterol (an approved health claim at 3 g a day).',
+  lyco: 'Lycopene, a carotenoid that accumulates in skin; small trials show slightly less UV reddening with regular intake. Not a replacement for SPF.',
+  carot: 'Beta-carotene from whole food (the body converts what it needs to vitamin A). Adds warmth to skin tone at high regular intakes.',
+  vite: 'Vitamin E, the main fat-soluble antioxidant in cell membranes.',
+  mag: 'Magnesium, needed by over 300 enzymes including those that make ATP; also involved in muscle relaxation.',
+  mufa: 'Mostly monounsaturated fat, the type associated with better blood-lipid profiles when it replaces saturated fat.',
+  satfat: 'Mostly saturated fat, which raises LDL cholesterol and ApoB in most people. Fine in small amounts; track ApoB if it is a staple.',
+  sugardense: 'Dense in sugars. Useful around hard training when fast carbohydrate is the point; easy to overshoot at other times.',
+  processed: 'Processed and salty. Sodium this high pulls water into the space outside cells for a day or two.',
+  rawdairy: 'Unpasteurised. The Food Standards Agency advises that raw milk can carry harmful bacteria; nutritional differences from pasteurised milk are small.',
+  'vitA-high': 'Extremely high in preformed vitamin A. Regular portions can exceed the safe upper level.',
+  oxalate: 'High in oxalate, which binds calcium and iron in the same meal.',
+  pulse: 'A pulse: rich in galacto-oligosaccharides that humans cannot digest and gut bacteria ferment, producing gas.'
+};
+const TAG_ENZ = {
+  'enz-actinidin': 'Contains actinidin, a natural protease (protein-cutting enzyme). Trials show kiwi with a protein meal speeds stomach protein digestion.',
+  'enz-bromelain': 'Contains bromelain, a natural protease, mostly in the core. Destroyed by cooking and canning.',
+  'enz-diastase': 'Raw honey carries small amounts of diastase (amylase) and invertase from the bees. Heating destroys them; the amounts are too small to matter for digestion.',
+  'enz-lactase': 'Kefir cultures make beta-galactosidase (bacterial lactase), which keeps digesting lactose in the gut.',
+  lactose: 'Needs lactase, the small-intestine enzyme that splits lactose. Low lactase means gas and bloating from milk.',
+  lowlac: 'Low in lactose because of fermentation, straining or ageing, so little lactase is needed.',
+  fodmap: 'High in FODMAPs (fermentable short-chain carbohydrates). Humans have no enzyme for fructans and GOS; gut bacteria ferment them, which can cause bloating.',
+  'fodmap-mod': 'Moderate FODMAP load (mannitol). A normal portion is usually fine; large portions can bloat.',
+  crucif: 'Cruciferous. Contains raffinose (needs alpha-galactosidase, which humans lack) and sulphur compounds, so bacteria ferment it and produce gas. Its own enzyme, myrosinase, makes sulforaphane when the raw vegetable is chopped or chewed.',
+  pulse: 'Needs alpha-galactosidase, which humans lack, to break down its GOS; bacteria do it instead.'
+};
+const CRUCIF_WORDS = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'brussels', 'sprout', 'pak choi', 'bok choy', 'rocket', 'watercress', 'spring greens', 'savoy', 'radish', 'turnip', 'swede', 'kohlrabi', 'sauerkraut', 'kimchi', 'coleslaw'];
+const GLUTEN_WORDS = ['wheat', 'barley', 'rye', 'spelt', 'malt', 'semolina', 'couscous', 'bulgur', 'seitan', 'farro', 'kamut', 'triticale'];
+
+/* Blood markers: standard lab reference vs a tighter "longevity" target. Targets are judgement calls drawn from guidelines and cohort data, not diagnostic cut-offs. */
+const MARKERS = [
+  { id: 'apob', name: 'ApoB', unit: 'g/L', lab: [0.5, 1.3], opt: [0.4, 0.8], why: 'Counts the particles that carry cholesterol into artery walls. The best single lipid marker of lifetime heart risk.' },
+  { id: 'hba1c', name: 'HbA1c', unit: 'mmol/mol', lab: [20, 41], opt: [28, 36], why: 'Average blood glucose over about three months (glucose stuck to haemoglobin). Glycation is the same reaction that stiffens collagen in skin.' },
+  { id: 'insulin', name: 'Fasting insulin', unit: 'mIU/L', lab: [2.6, 24.9], opt: [2, 6], why: 'How hard the pancreas works to hold glucose normal. Rises years before glucose does.' },
+  { id: 'vitd', name: 'Vitamin D (25-OH)', unit: 'nmol/L', lab: [50, 200], opt: [75, 125], why: 'Needed to absorb calcium. Below 50 is insufficient; below 25 is deficient. No UK sun synthesis October to March.' },
+  { id: 'crp', name: 'hs-CRP', unit: 'mg/L', lab: [0, 5], opt: [0, 1], why: 'Background inflammation. Test at least 48 h after hard training and when not ill, or it reads falsely high.' },
+  { id: 'testo', name: 'Total testosterone', unit: 'nmol/L', lab: [8.6, 29], opt: [15, 29], why: 'Falls early when energy intake is too low for the training load. A drop from your own baseline matters more than the number.' },
+  { id: 'freet', name: 'Free testosterone', unit: 'nmol/L', lab: [0.2, 0.62], opt: [0.3, 0.62], why: 'The unbound, active fraction. SHBG rises in under-fuelling, lowering free testosterone even when total looks normal.' },
+  { id: 'cortisol', name: 'Cortisol (9am)', unit: 'nmol/L', lab: [133, 537], opt: [250, 500], why: 'Morning peak of the stress hormone. One sample is a snapshot; it must be taken before 10am to compare.' },
+  { id: 'ferritin', name: 'Ferritin', unit: 'µg/L', lab: [30, 400], opt: [50, 150], why: 'Stored iron. Runners feel flat below about 30-50 even with normal haemoglobin. Coeliac disease can reduce iron absorption.' },
+  { id: 'tsh', name: 'TSH', unit: 'mIU/L', lab: [0.27, 4.2], opt: [0.5, 2.5], why: 'Thyroid signal. Long, hard deficits can lower active thyroid hormone (T3).' },
+  { id: 'b12', name: 'Vitamin B12', unit: 'ng/L', lab: [197, 771], opt: [400, 771], why: 'Red cells and nerves. Worth a baseline with coeliac disease.' },
+  { id: 'ttg', name: 'tTG-IgA (coeliac)', unit: 'U/mL', lab: [0, 7], opt: [0, 4], why: 'The antibody used to monitor coeliac disease. A raised result means gluten is still getting in.' }
+];
+
+const GUIDES = {
+  sigh: { name: 'Physiological sigh', min: 2, cycle: [['Inhale through the nose', 2, 1], ['Top-up sniff', 1, 1.15], ['Long, slow exhale through the mouth', 6, .55]],
+    note: 'Two nose inhales re-open collapsed air sacs; the long exhale slows the heart through the vagus nerve. A 2023 Stanford trial found 5 minutes a day of this improved mood and lowered breathing rate more than mindfulness. It measured calm, not cortisol.' },
+  nsdr: { name: 'NSDR body scan', min: 10, cues: ['Lie down. Let the floor take your weight.', 'Breathe out slowly, twice as long as you breathe in.', 'Soften the forehead, the eyes, the jaw.', 'Let the shoulders drop away from the ears.', 'Feel both hands grow heavy and warm.', 'Rest attention on the belly rising and falling.', 'Let the hips and thighs sink.', 'Feel the calves and feet go heavy.', 'Scan slowly from feet to head. Nothing to fix.', 'Stay here. If thoughts come, let them pass.', 'Deepen the breath. Move fingers and toes.', 'Open your eyes when you are ready.'] },
+  urge: { name: 'Urge surf', min: 10, cues: ['An urge is a wave. It rises, peaks and falls in about 10 to 20 minutes whether or not you act on it.', 'Name it: “this is an urge, not an instruction.”', 'Where is it in the body? Mouth, chest, stomach? Just notice.', 'Breathe in for 4, out for 6. Stay with the sensation.', 'Rate it 1 to 10. Watch the number; do not fight it.', 'Check the basics: have you eaten enough today? Slept? Are you stressed or bored?', 'The wave is probably near its peak now. Keep breathing out slowly.', 'Notice it changing. It always changes.', 'If you are truly hungry, the plan allows food: a high-volume bowl is waiting. Eating is not failing.', 'Rate it again. Lower? That is the wave passing.', 'Decide calmly what you want to do next.', 'Done. You rode it out.'] }
+};
+
+const CELL_HABITS = [
+  ['c_z2', 'Easy aerobic work or 8,000+ steps', 'Low-intensity movement is the main signal for building mitochondria (the units in muscle cells that burn fat and carbohydrate for energy).'],
+  ['c_o3', 'Oily fish today (aim 2 a week)', 'Salmon, trout, mackerel or sardines. EPA and DHA are built into cell membranes.'],
+  ['c_poly', 'Two polyphenol foods', 'Berries, cacao, 85% chocolate, grapes, walnuts, hazelnuts, açai.'],
+  ['c_gly', 'Carbs paired with protein, 10-min walk after the biggest meal', 'Flattens the glucose peak. Glycation (glucose sticking to proteins) is how collagen stiffens over decades.'],
+  ['c_fast', '12 h overnight gap, last big meal 2-3 h before bed', 'A plain overnight fast aligned with your body clock. Longer fasts are not advised on a cut at this body weight.'],
+  ['c_light', 'Daylight outside before noon', 'Morning light sets the body clock, which times cortisol, melatonin and cell repair.']
+];
+const LOOK_HABITS = [
+  ['l_spf', 'SPF 50, broad spectrum, morning', 'UV causes most visible skin ageing. Daily sunscreen is the best-evidenced anti-ageing step there is.'],
+  ['l_am', 'AM skin: cleanse, niacinamide, moisturise', 'Niacinamide supports the skin barrier and evens tone.'],
+  ['l_pm', 'PM skin: cleanse, squalane or barrier cream', 'Barrier first. No retinoid.'],
+  ['l_col', 'Collagen 15 g + a vitamin C fruit, 30-60 min before training', 'Kiwi or strawberries supply the vitamin C; no tablets needed.'],
+  ['l_post', 'Posture: face pulls or band pull-aparts, chin back', 'Two sets is enough on a non-gym day.'],
+  ['l_teeth', 'Teeth and floss', '']
+];
+const BLOAT_HABITS = [
+  ['b_water', 'Water steady through the day, most of it before 6pm', 'Under-drinking makes the body hold water, not shed it.'],
+  ['b_salt', 'Salt steady: same amount, same meal, every day', 'Swings cause puffiness, in both directions. A sudden cut raises aldosterone, the hormone that makes the kidneys hold sodium.'],
+  ['b_k', 'Potassium foods at 3 meals', 'Potatoes, kiwi, banana, coconut water, yoghurt, fish.'],
+  ['b_eve', 'Low-salt evening meal, finished 2-3 h before bed', 'Face puffiness in the morning mostly reflects the previous evening.'],
+  ['b_sleep', 'In bed on time', 'One short night raises next-day cortisol and water retention.']
+];
+const REDS_SIGNS = [
+  ['r_lib', 'Lower sex drive, or fewer morning erections than usual'],
+  ['r_cold', 'Cold all the time, cold hands and feet'],
+  ['r_sleep', 'Tired but sleeping badly, waking at 3-4am'],
+  ['r_ill', 'Ill or run down more than once in a month'],
+  ['r_mood', 'Flat, irritable or anxious most days'],
+  ['r_perf', 'Sessions getting slower for two weeks or more'],
+  ['r_bone', 'Bone pain or a niggle that will not settle'],
+  ['r_dizzy', 'Light-headed on standing'],
+  ['r_food', 'Thinking about food most of the day, or loss-of-control eating']
+];
+const PROTOCOLS = [
+  ['Morning daylight', '10-15 min outside within an hour of waking. Light through a window is 50 times weaker.'],
+  ['Carbs around hard sessions', 'Oats 60-90 min before; fast carbs plus protein within an hour after. Carbohydrate is the most reliable way to blunt the cortisol response to training.'],
+  ['Physiological sigh, 2 min', 'Use it the moment stress spikes: before a study block, after a hard rep session.'],
+  ['NSDR, 10-20 min', 'Early afternoon, lying down. Counts toward recovery on amber days.'],
+  ['Resonance breathing', '5.5 breaths a minute for 5-10 min raises heart-rate variability during the session.'],
+  ['Caffeine before noon', 'Its half-life is 5-6 hours; an afternoon coffee is still a quarter active at midnight.'],
+  ['Evening light cut-off', 'Dim, warm light from 21:30. Phone out of the bedroom.'],
+  ['One full day off a week', 'No runs, no weights, no study. The adaptation happens here.']
+];
+
+/* ============ helpers ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const iso = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 6e4); return x.toISOString().slice(0, 10); };
+const today = () => iso(new Date());
+const dObj = s => new Date(s + 'T12:00:00');
+const dAdd = (s, n) => { const d = dObj(s); d.setDate(d.getDate() + n); return iso(d); };
+const dDiff = (a, b) => Math.round((dObj(a) - dObj(b)) / 864e5);
+const dow = s => dObj(s).getDay(); // 0 Sun
+const fmtD = s => dObj(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const fmtDW = s => dObj(s).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+const num = v => { if (v === '' || v == null) return null; const n = parseFloat(v); return isFinite(n) ? n : null; };
+const has = v => v != null && v !== '' && !(typeof v === 'number' && isNaN(v));
+const r1 = v => Math.round(v * 10) / 10, r0 = v => Math.round(v);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const sd = a => { if (a.length < 2) return null; const m = mean(a); return Math.sqrt(mean(a.map(x => (x - m) ** 2))); };
+const uid = () => Math.random().toString(36).slice(2, 9);
+const fmtT = sec => { if (!has(sec)) return '–'; sec = Math.round(sec * 10) / 10; const m = Math.floor(sec / 60), s = sec - m * 60; return m ? `${m}:${(s < 10 ? '0' : '') + (Number.isInteger(s) ? s : s.toFixed(1))}` : `${Number.isInteger(s) ? s : s.toFixed(1)} s`; };
+const parseT = str => { str = String(str).trim(); if (!str) return null; const p = str.split(':').map(Number); if (p.some(isNaN)) return null; return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : p[0]; };
+const pace = (sec, km) => (has(sec) && km > 0) ? fmtT(Math.round(sec / km)) + '/km' : '–';
+const lastN = (n, end = today()) => Array.from({ length: n }, (_, i) => dAdd(end, i - n + 1));
+const weekStart = (d = today()) => dAdd(d, -((dow(d) + 6) % 7)); // Monday
+const KG = 0.45359237;
+
+/* ============ state ============ */
+const KEY = 'apex-hud-v1';
+const DEF = () => ({
+  v: 1,
+  profile: { name: '', dob: '', heightCm: 175, bf: null, coeliac: false },
+  settings: {
+    kcal: 2000, satKcal: null, protein: 110, fat: 50, floor: null, goalLo: null, goalHi: null,
+    stepsLo: 8000, stepsHi: 12000, stepsWeek: 70000, studyTarget: 12, naCap: 2000, kTarget: 3500,
+    maintenance: null, cutStart: null, phase: 'cut', reverseStart: null, reverseFrom: null, reverseStep: 125,
+    refeedKcal: 2250, lastDeload: null, rhrBase: null, ladder: [], excluded: [], events: [], milestones: [],
+    runsMax: 4, gymTarget: 4, bedBy: '23:30'
+  },
+  days: {}, runs: [], gym: [], lifts: [], form: [], bloods: [], bp: [], food: {}, favs: [], prs: [], strength: [],
+  sessions: [], reds: {}, brief: null, setTargets: null, ui: { tab: 'command', open: {} }
+});
+let S, memOnly = false;
+function merge(base, add) {
+  for (const k in add) {
+    if (add[k] && typeof add[k] === 'object' && !Array.isArray(add[k]) && base[k] && typeof base[k] === 'object' && !Array.isArray(base[k])) merge(base[k], add[k]);
+    else base[k] = add[k];
+  }
+  return base;
+}
+function readSeed() { try { const t = $('#seed')?.textContent?.trim(); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(KEY); } catch (e) { memOnly = true; }
+  if (raw) { try { S = merge(DEF(), JSON.parse(raw)); return; } catch (e) { /* fall through */ } }
+  const seed = readSeed();
+  S = merge(DEF(), seed || {});
+  S.fresh = !seed;
+}
+let saveT;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { memOnly = true; } }, 150);
+}
+const D = d => (S.days[d] ||= {});
+const day = d => S.days[d] || {};
+const cfg = () => S.settings;
+
+/* ============ weight ============ */
+function avg7(d) {
+  const v = lastN(7, d).map(x => day(x).wt).filter(has);
+  return v.length >= 3 ? mean(v) : null;
+}
+function latestWt(d = today()) { for (let i = 0; i < 30; i++) { const w = day(dAdd(d, -i)).wt; if (has(w)) return w; } return null; }
+function latestAvg(d = today()) { for (let i = 0; i < 10; i++) { const a = avg7(dAdd(d, -i)); if (a != null) return { v: a, d: dAdd(d, -i) }; } return null; }
+function trend(days = 21, end = today()) { // lb per day, least squares on the rolling average
+  const pts = []; lastN(days, end).forEach((d, i) => { const a = avg7(d); if (a != null) pts.push([i, a]); });
+  if (pts.length < 6) return null;
+  const mx = mean(pts.map(p => p[0])), my = mean(pts.map(p => p[1]));
+  const den = pts.reduce((s, p) => s + (p[0] - mx) ** 2, 0); if (!den) return null;
+  return pts.reduce((s, p) => s + (p[0] - mx) * (p[1] - my), 0) / den;
+}
+function projectTo(date) {
+  const a = latestAvg(), t = trend(); if (!a || t == null) return null;
+  return a.v + t * dDiff(date, a.d);
+}
+function bmi(lb) { const h = S.profile.heightCm / 100; return lb && h ? (lb * KG) / (h * h) : null; }
+
+/* ============ energy ============ */
+function bmr(lb) { // Mifflin-St Jeor, male
+  const kg = lb * KG, age = ageYears(); return 10 * kg + 6.25 * S.profile.heightCm - 5 * age + 5;
+}
+function runsOn(d) { return S.runs.filter(r => r.date === d); }
+function gymOn(d) { return S.gym.filter(g => g.date === d); }
+const setsOf = g => Object.values(g.sets || {}).reduce((a, b) => a + (+b || 0), 0);
+function burn(d) { // model of the day's energy use
+  const lb = (latestAvg(d)?.v) || latestWt(d); if (!lb) return null;
+  const kg = lb * KG, base = bmr(lb) * 1.15; // resting + digestion + non-step movement
+  const steps = has(day(d).steps) ? day(d).steps : null;
+  const km = runsOn(d).reduce((a, r) => a + (+r.km || 0), 0);
+  const stepK = (steps ?? cfg().stepsLo) * 0.00041 * kg;
+  const runK = km * 0.9 * kg, gymK = gymOn(d).reduce((a, g) => a + setsOf(g) * 7, 0);
+  return { base, stepK, runK, gymK, total: base + stepK + runK + gymK, stepsKnown: steps != null };
+}
+function target(d = today()) {
+  const c = cfg(), x = day(d);
+  if (x.refeed) return { kcal: c.refeedKcal, mode: 'refeed' };
+  if (c.phase === 'reverse' && c.reverseStart) {
+    const wk = Math.max(0, Math.floor(dDiff(d, c.reverseStart) / 7)), cap = c.maintenance || 9999;
+    return { kcal: Math.min(cap, (c.reverseFrom || c.kcal) + c.reverseStep * (wk + 1)), mode: 'reverse', wk };
+  }
+  if (c.phase === 'maintain') return { kcal: c.maintenance || c.kcal, mode: 'maintain' };
+  let k = c.kcal; const a = latestAvg(d);
+  (c.ladder || []).forEach(l => { if (a && a.v <= l.at && l.kcal > k) k = l.kcal; });
+  if (dow(d) === 6 && c.satKcal) k = Math.max(k, c.satKcal);
+  return { kcal: k, mode: 'cut' };
+}
+function macros(d = today()) {
+  const t = target(d), c = cfg(), refeed = t.mode === 'refeed';
+  const p = c.protein, f = refeed ? 40 : c.fat;
+  return { kcal: t.kcal, p, f, c: Math.max(0, Math.round((t.kcal - p * 4 - f * 9) / 4)), mode: t.mode };
+}
+function foodTotals(d) {
+  const z = { kcal: 0, p: 0, c: 0, f: 0, fib: 0, na: 0, k: 0, n: 0, crucif: 0 };
+  (S.food[d] || []).forEach(e => { ['kcal', 'p', 'c', 'f', 'fib', 'na', 'k'].forEach(k => z[k] += +e[k] || 0); z.n++; if (e.crucif) z.crucif += e.g; });
+  return z;
+}
+function eaten(d) { const t = foodTotals(d); return t.n ? t.kcal : (has(day(d).cals) ? day(d).cals : null); }
+function deficitStats(n = 14) {
+  const ds = lastN(n, dAdd(today(), -1)); let logged = 0, sumIn = 0, sumOut = 0;
+  ds.forEach(d => { const e = eaten(d), b = burn(d); if (e != null && b && !day(d).partial) { logged++; sumIn += e; sumOut += b.total; } });
+  const a1 = latestAvg(dAdd(today(), -1)), a0 = latestAvg(dAdd(today(), -n));
+  const out = { logged, n, avgIn: logged ? sumIn / logged : null, avgOut: logged ? sumOut / logged : null };
+  if (logged) out.modelDef = out.avgOut - out.avgIn;
+  if (a1 && a0 && a1.d !== a0.d) { const days = dDiff(a1.d, a0.d); out.scaleDef = -(a1.v - a0.v) * 3500 / days; out.dLb = a1.v - a0.v; out.days = days; }
+  if (logged >= 10 && out.scaleDef != null) { out.maint = out.avgIn + out.scaleDef; out.gap = out.modelDef - out.scaleDef; }
+  return out;
+}
+function cutAudit() { // plan vs scale since the cut began: needs no food log
+  const c = cfg(); if (!c.cutStart || !c.maintenance) return null;
+  const s = avg7(dAdd(c.cutStart, 7)) ?? avg7(dAdd(c.cutStart, 6)), a = latestAvg(); if (s == null || !a) return null;
+  const days = dDiff(a.d, dAdd(c.cutStart, 4)), planK = (c.kcal * 6 + (c.satKcal || c.kcal)) / 7;
+  return { start: s, now: a.v, days, expected: (c.maintenance - planK) * days / 3500, actual: s - a.v };
+}
+function deficitRun(d = today()) { // consecutive days eating at the cut target since the last refeed or maintenance day
+  let n = 0;
+  for (let i = 1; i < 60; i++) {
+    const x = dAdd(d, -i), e = eaten(x), m = cfg().maintenance || 9999;
+    if (day(x).refeed || (e != null && e >= m - 100)) break;
+    if (cfg().cutStart && x < cfg().cutStart) break;
+    n++;
+  }
+  return n;
+}
+
+/* ============ recovery ============ */
+function rhrBase(d = today()) {
+  const v = lastN(14, dAdd(d, -1)).map(x => day(x).rhr).filter(has);
+  return v.length >= 4 ? median(v) : cfg().rhrBase;
+}
+function hrvBase(d = today()) { const v = lastN(14, dAdd(d, -1)).map(x => day(x).hrv).filter(has); return v.length >= 4 ? median(v) : null; }
+const isHard = r => ['hard', 'speed', 'tt'].includes(r.type);
+const isLegs = g => /leg/i.test(g.focus || '') || (g.sets && (g.sets.quads || g.sets.legs || g.sets.hamstrings));
+function readiness(d = today()) {
+  const x = day(d), y = day(dAdd(d, -1)), why = []; let s = 100, n = 0;
+  const base = rhrBase(d);
+  if (has(x.rhr) && base) { n++; const dl = x.rhr - base; if (dl >= 5) { s -= 30; why.push(`Resting HR ${x.rhr}, ${r0(dl)} above your usual ${r0(base)}`); } else if (dl >= 3) { s -= 15; why.push(`Resting HR ${r0(dl)} above usual`); } }
+  const hb = hrvBase(d);
+  if (has(x.hrv) && hb) { n++; const q = x.hrv / hb; if (q < 0.8) { s -= 25; why.push('HRV more than 20% under baseline'); } else if (q < 0.9) { s -= 10; why.push('HRV 10% under baseline'); } }
+  if (has(x.sleep)) { n++; if (x.sleep < 6.5) { s -= 30; why.push(`${x.sleep} h sleep`); } else if (x.sleep < 7) { s -= 18; why.push(`${x.sleep} h sleep`); } else if (x.sleep < 8) { s -= 6; } }
+  if (has(x.stress)) { n++; if (x.stress >= 7) { s -= 15; why.push(`Stress ${x.stress}/10`); } else if (x.stress >= 5) s -= 6; }
+  if (has(x.sore)) { n++; if (x.sore >= 7) { s -= 12; why.push(`Soreness ${x.sore}/10`); } else if (x.sore >= 5) s -= 5; }
+  const ey = eaten(dAdd(d, -1)); if (ey != null && !y.partial && ey < target(dAdd(d, -1)).kcal - 300) { s -= 10; why.push('Under-ate yesterday by 300+ kcal'); }
+  if (x.urge >= 7) { s -= 5; why.push('Strong food urges'); }
+  if (x.sick) { s = Math.min(s, 40); why.push('Marked ill'); }
+  s = clamp(s, 0, 100);
+  let band = s >= 75 ? 'g' : s >= 55 ? 'a' : 'r';
+  if (has(x.sleep) && x.sleep < 6.5 && band === 'g') band = 'a';
+  return { score: n ? s : null, band: n ? band : null, why, n };
+}
+const RX = {
+  g: { name: 'Green', line: 'Full session as planned.', items: ['Hard run or main lift at planned intensity', '90-minute deep blocks as scheduled', 'Carbs before and after the hard session'] },
+  a: { name: 'Amber', line: 'Back off one notch today.', items: ['Run easy only, conversational pace', 'Gym: same weights, 30% fewer sets', '20 minutes NSDR early afternoon', 'Move 50 g of carbs to before and after training'] },
+  r: { name: 'Red', line: 'Recovery day. No hard running, no heavy lifting.', items: ['Walk and mobility only', '10 hours in bed tonight', 'Daylight outside this morning', 'Eat at maintenance today'] }
+};
+function triggers(d = today()) {
+  const out = [], c = cfg(), base = rhrBase(d);
+  const l3 = lastN(3, d).map(day);
+  if (base && l3.every(x => has(x.rhr) && x.rhr >= base + 4)) out.push({ lv: 'r', t: 'Deload now', d: 'Resting HR has been 4+ above baseline for three mornings. Take five easy days: no hard runs, half the gym sets, maintenance calories.' });
+  if (l3.every(x => has(x.sleep) && x.sleep < 6.5)) out.push({ lv: 'r', t: 'Deload now', d: 'Three nights under 6.5 hours. Training on top of this digs the hole deeper. Five easy days and an earlier bedtime.' });
+  const a = latestAvg(d);
+  if (c.floor && a && a.v <= c.floor && c.phase === 'cut') out.push({ lv: 'r', t: 'Floor reached: the cut is over', d: `7-day average ${r1(a.v)} lb is at the ${c.floor} lb floor. Start the reverse diet today.`, act: 'startReverse', actL: 'Start reverse diet' });
+  else if (c.floor && a && a.v <= c.floor + 1 && c.phase === 'cut') out.push({ lv: 'a', t: 'One pound above the floor', d: `7-day average ${r1(a.v)} lb. Plan the first reverse-diet week now.` });
+  const reds = Object.values(S.reds || {}).filter(Boolean).length;
+  if (reds >= 2 && c.phase === 'cut') out.push({ lv: 'r', t: 'Low-energy warning signs', d: `${reds} signs ticked on the self-check. Two or more together is the pattern sports medicine treats as low energy availability. End the cut and book a GP appointment; ask about REDs.`, act: 'startReverse', actL: 'End the cut' });
+  if (!c.lastDeload && c.cutStart && dDiff(d, c.cutStart) >= 28) out.push({ lv: 'a', t: 'Deload week due', d: `No easy week on record since the cut began ${dDiff(d, c.cutStart)} days ago. Take five lighter days now: no hard runs, a third fewer sets.`, act: 'markDeload', actL: 'Start deload today' });
+  if (c.lastDeload && dDiff(d, c.lastDeload) >= 21) out.push({ lv: 'a', t: 'Deload week due', d: `${dDiff(d, c.lastDeload)} days since the last easy week. Take five lighter days this week.`, act: 'markDeload', actL: 'Start deload today' });
+  const ws = weekStart(d), el = dDiff(d, ws) + 1, st = lastN(el, d).reduce((s, x) => s + (day(x).study || 0), 0);
+  if (el >= 4 && c.studyTarget && st < c.studyTarget * (el / 7) * 0.5) out.push({ lv: 'a', t: 'Study is well behind', d: `${r1(st)} h of deep work by day ${el}; half of pace would be ${r1(c.studyTarget * el / 7 * .5)} h. If focus has gone, treat it as fatigue: lighten training for two days before adding hours.` });
+  // refeed detector
+  if (c.phase === 'cut' && !day(d).refeed) {
+    const run = deficitRun(d), x = day(d);
+    if (run >= 14) out.push({ lv: 'a', t: 'Clean refeed overdue', d: `${run} days at the cut target without a break.`, act: 'refeedToday', actL: 'Make today a refeed' });
+    else if (run >= 10) out.push({ lv: 'g', t: 'Clean refeed window open', d: `${run} days at the cut target. Take one in the next ${14 - run} days, ideally the day before a hard session.`, act: 'refeedToday', actL: 'Make today a refeed' });
+    else if (base && has(x.rhr) && x.rhr >= base + 3 && (x.urge >= 6 || x.stress >= 6)) out.push({ lv: 'a', t: 'Refeed today', d: 'Resting HR is up and urges or stress are high. That combination says under-recovered, not undisciplined.', act: 'refeedToday', actL: 'Make today a refeed' });
+    const a10 = latestAvg(dAdd(d, -10));
+    if (a && a10 && a.d !== a10.d && Math.abs(a.v - a10.v) < 0.3 && run >= 10) out.push({ lv: 'a', t: 'Weight flat for 10 days', d: 'Before changing anything, check the plan-versus-scale panel in Fuel. A flat average on a real deficit is rare; a flat average on an incomplete food log is common.' });
+  }
+  // training-order rules
+  const yLegs = gymOn(dAdd(d, -1)).some(isLegs), hardToday = runsOn(d).some(isHard);
+  if (yLegs && hardToday) out.push({ lv: 'a', t: 'Hard run the day after legs', d: 'This is the one ordering your own logs say never works. Legs go the day after a hard run.' });
+  const hard7 = lastN(7, d).filter(x => runsOn(x).some(isHard)).length;
+  if (hard7 >= 3) out.push({ lv: 'a', t: `${hard7} hard runs in 7 days`, d: 'Two is the ceiling on a cut. The next run is easy or a walk.' });
+  const off7 = lastN(7, d).filter(x => !runsOn(x).length && !gymOn(x).length).length;
+  if (off7 === 0 && (S.runs.length || S.gym.length)) out.push({ lv: 'a', t: 'No full day off in 7 days', d: 'Book one in the next 48 hours: no run, no weights, no study.' });
+  return out;
+}
+function bedMin(t) { if (!t) return null; const [h, m] = t.split(':').map(Number); if (isNaN(h)) return null; let v = h * 60 + (m || 0); if (v < 720) v += 1440; return v - 1080; } // minutes after 18:00
+function wakeMin(t) { if (!t) return null; const [h, m] = t.split(':').map(Number); return isNaN(h) ? null : h * 60 + (m || 0); }
+function circadian(n = 14, d = today()) {
+  const ds = lastN(n, d).map(day), b = ds.map(x => bedMin(x.bed)).filter(has), w = ds.map(x => wakeMin(x.wake)).filter(has), sl = ds.map(x => x.sleep).filter(has);
+  let spread = null;
+  if (b.length >= 4 && w.length >= 4) spread = (sd(b) + sd(w)) / 2; else if (b.length >= 4) spread = sd(b); else if (w.length >= 4) spread = sd(w);
+  let score = null;
+  if (spread != null) score = clamp(100 - Math.max(0, spread - 10) * 0.9, 0, 100);
+  else if (sl.length >= 4) score = clamp(100 - sd(sl) * 40, 0, 100);
+  return { score, spread, avgSleep: mean(sl), avgBed: mean(b), n: sl.length, basis: spread != null ? 'bed and wake times' : 'sleep duration only' };
+}
+function stressLoad(d = today()) { // behaviour-based load score. 0 is best. Not a hormone measurement.
+  const x = day(d), y = dAdd(d, -1), f = []; let s = 0, n = 0;
+  const add = (label, lvl) => { n++; if (lvl) { s += lvl === 2 ? 8 : 3; f.push([label, lvl]); } };
+  if (has(x.sleep)) add(`Sleep ${x.sleep} h`, x.sleep < 7 ? 2 : x.sleep < 8 ? 1 : 0);
+  const bm = bedMin(x.bed); if (bm != null) add(`Bed ${x.bed}`, bm > 375 ? 2 : bm > 330 ? 1 : 0);
+  const ci = circadian(7, d); if (ci.spread != null) add(`Bedtime varies ±${r0(ci.spread)} min`, ci.spread > 60 ? 2 : ci.spread > 30 ? 1 : 0);
+  const base = rhrBase(d); if (has(x.rhr) && base) add(`Resting HR ${x.rhr - base >= 0 ? '+' : ''}${r0(x.rhr - base)}`, x.rhr - base >= 5 ? 2 : x.rhr - base >= 3 ? 1 : 0);
+  const hard7 = lastN(7, d).filter(q => runsOn(q).some(isHard)).length; add(`${hard7} hard runs in 7 days`, hard7 >= 3 ? 2 : 0);
+  const hal = lastN(7, d).some(q => runsOn(q).some(isHard) && gymOn(dAdd(q, -1)).some(isLegs)); add('Hard run the day after legs', hal ? 2 : 0);
+  const off = lastN(7, d).filter(q => !runsOn(q).length && !gymOn(q).length).length; add('No full day off in 7', off === 0 ? 2 : 0);
+  const e = eaten(y); if (e != null && !day(y).partial) { const gap = target(y).kcal - e; add(`Ate ${r0(gap)} kcal under target`, gap >= 300 ? 2 : gap >= 150 ? 1 : 0); }
+  if (has(x.steps)) add(`${x.steps.toLocaleString()} steps`, x.steps > 14000 ? 2 : x.steps > 13000 ? 1 : 0);
+  if (has(x.study)) add(`${x.study} h deep study`, x.study > 5 ? 2 : x.study > 4 ? 1 : 0);
+  if (has(x.stress)) add(`Stress ${x.stress}/10`, x.stress >= 7 ? 2 : x.stress >= 5 ? 1 : 0);
+  if (has(x.light)) add(`${x.light} min daylight`, x.light < 10 ? 2 : x.light < 30 ? 1 : 0);
+  if (cfg().phase === 'cut') s += 5;
+  s = clamp(s, 0, 100);
+  return { score: s, n, f, band: s >= 45 ? 'r' : s >= 25 ? 'a' : 'g', label: s >= 45 ? 'High' : s >= 25 ? 'Raised' : s >= 10 ? 'Decent' : 'Low' };
+}
+
+/* ============ running ============ */
+function vdot(m, sec) { const t = sec / 60, v = m / t; const vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v; const pct = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t); return vo2 / pct; }
+function vo2now() { // from the best current mark between 1500 m and 10 km
+  const c = S.prs.filter(p => p.m >= 1500 && p.m <= 10000 && has(p.cur)).map(p => ({ p, v: vdot(p.m, p.cur) }));
+  if (!c.length) return null; c.sort((a, b) => b.v - a.v); return { v: c[0].v, from: c[0].p };
+}
+function weekRuns(ws) { const ds = lastN(7, dAdd(ws, 6)); const rs = S.runs.filter(r => ds.includes(r.date)); return { n: rs.length, km: rs.reduce((a, r) => a + (+r.km || 0), 0), easyMin: rs.filter(r => r.type === 'easy' || r.type === 'steady').reduce((a, r) => a + (+r.sec || 0) / 60, 0), hard: rs.filter(isHard).length, sub: rs.filter(r => r.type === 'sub').length }; }
+function weekGym(ws) { const ds = lastN(7, dAdd(ws, 6)), g = S.gym.filter(x => ds.includes(x.date)), sets = {}; g.forEach(x => Object.entries(x.sets || {}).forEach(([k, v]) => sets[k] = (sets[k] || 0) + (+v || 0))); return { n: new Set(g.map(x => x.date)).size, sets, total: Object.values(sets).reduce((a, b) => a + b, 0) }; }
+const e1rm = (kg, reps) => kg * (1 + reps / 30);
+
+/* ============ age model ============ */
+function ageYears(d = new Date()) { if (!S.profile.dob) return 30; return (d - new Date(S.profile.dob + 'T00:00:00')) / (365.2425 * 864e5); }
+function latestBlood(id) { const b = S.bloods.filter(x => x.marker === id).sort((a, c) => c.date.localeCompare(a.date)); return b[0] || null; }
+function bioAge() {
+  const chrono = ageYears(), parts = [], miss = [];
+  const push = (name, yrs, detail, room) => parts.push({ name, yrs, detail, room: room || 0 });
+  const v = vo2now();
+  if (v) { const y = clamp(-(v.v - 46) * 0.25, -5, 5); push('VO2max', y, `${r1(v.v)} ml/kg/min from your ${v.from.name}`, Math.max(0, y + 5) > 2 ? 0.5 : 0.3); } else miss.push(['VO2max', 'Log a current time between 1500 m and 10 km', 2.5]);
+  const rh = lastN(7).map(x => day(x).rhr).filter(has);
+  if (rh.length >= 3) { const m = mean(rh), y = clamp((m - 62) * 0.12, -2, 3); push('Resting HR', y, `7-day mean ${r0(m)} bpm`, y + 2); } else miss.push(['Resting HR', 'Log resting HR on 3 of the last 7 mornings', 1.5]);
+  const hv = lastN(7).map(x => day(x).hrv).filter(has);
+  if (hv.length >= 3) { const m = mean(hv), y = clamp(-(m - 45) * 0.03, -1.5, 1.5); push('HRV', y, `7-day mean ${r0(m)} ms`, y + 1.5); } else miss.push(['HRV', 'Needs a wearable; optional', 0.8]);
+  const ci = circadian(14);
+  if (ci.n >= 4) { let y = 0; if (ci.avgSleep >= 7.5 && ci.avgSleep <= 9.3) y -= 0.5; else if (ci.avgSleep < 6.5) y += 1.5; else if (ci.avgSleep < 7) y += 0.7; if (ci.spread != null) y += ci.score >= 85 ? -0.5 : ci.score >= 70 ? 0 : 0.6; push('Sleep', y, `${r1(ci.avgSleep)} h average${ci.spread != null ? ', timing ±' + r0(ci.spread) + ' min' : '; log bed and wake times to score regularity'}`, y + 1); } else miss.push(['Sleep', 'Log sleep on 4 nights', 1]);
+  const bl = (id, name, fn) => { const b = latestBlood(id); if (b) { const y = fn(b.value); push(name, y, `${b.value} (${fmtD(b.date)})`, Math.max(0, y + 1)); } else miss.push([name, 'Not tested yet', 1]); };
+  bl('apob', 'ApoB', x => x <= 0.7 ? -1 : x <= 0.9 ? -0.3 : x <= 1.1 ? 0.5 : 1.5);
+  bl('hba1c', 'HbA1c', x => x <= 34 ? -0.7 : x <= 38 ? 0 : x <= 41 ? 0.8 : 2);
+  bl('crp', 'hs-CRP', x => x < 1 ? -0.7 : x <= 3 ? 0.3 : 1.2);
+  bl('vitd', 'Vitamin D', x => x >= 75 ? -0.5 : x >= 50 ? 0 : x >= 25 ? 0.6 : 1.2);
+  const bp = S.bp.filter(b => b.sys).slice(-7);
+  if (bp.length >= 4) { const s = mean(bp.map(b => b.sys)), di = mean(bp.map(b => b.dia)); const y = s >= 135 || di >= 85 ? 1.5 : s < 120 && di < 80 ? -0.5 : 0.3; push('Blood pressure', y, `${r0(s)}/${r0(di)} home average`, y + 0.5); } else miss.push(['Blood pressure', `${bp.length} of 4 home readings logged`, 1]);
+  const delta = clamp(parts.reduce((a, p) => a + p.yrs, 0), -8, 10);
+  // pace of ageing: longer-run delta, nudged by the last 14 days of behaviour
+  const l14 = lastN(14).map(day), cell = mean(l14.map(x => x.cellular).filter(has)), str = mean(l14.map(x => x.stress).filter(has));
+  let pace = 1 + delta * 0.04; if (cell != null) pace -= (cell - 60) / 100 * 0.08; if (str != null) pace += (str - 4) * 0.012; if (ci.avgSleep && ci.avgSleep < 7) pace += 0.05;
+  pace = clamp(pace, 0.65, 1.3);
+  // the next lever: the largest realistic gain still on the table
+  const levers = [...parts.filter(p => p.room > 0.4).map(p => [p.name, p.room, 'improve']), ...miss.map(m => [m[0], m[2], m[1]])].sort((a, b) => b[1] - a[1]);
+  return { chrono, bio: chrono + delta, delta, parts, miss, pace, lever: levers[0] || null, used: parts.length, of: parts.length + miss.length };
+}
+
+/* ============ game layer ============ */
+const AXES = ['Cardio', 'Strength', 'Cellular & looks', 'Nervous system', 'Nutrition', 'Deep focus'];
+const RANKS = [['Bronze', 0], ['Silver', 1500], ['Gold', 4000], ['Platinum', 8000], ['Apex', 14000]];
+function checksDone(d, list) { const c = day(d).checks || {}; return list.filter(h => c[h[0]]).length; }
+function axisScores(end = today()) { // last 7 days, 0-100
+  const ds = lastN(7, end), c = cfg(), ws = dAdd(end, -6), wr = weekRuns(ws), wg = weekGym(ws);
+  const cardio = clamp(wr.n / 3 * 55 + Math.min(wr.hard + wr.sub, 2) / 2 * 25 + (wr.hard <= 2 ? 20 : 0), 0, 100);
+  const strength = clamp(wg.n / (c.gymTarget || 4) * 70 + Math.min(wg.total, 60) / 60 * 30, 0, 100);
+  const cl = ds.map(d => { const x = day(d); if (has(x.cellular)) return x.cellular; const n = checksDone(d, CELL_HABITS) + checksDone(d, LOOK_HABITS); return n ? n / (CELL_HABITS.length + LOOK_HABITS.length) * 100 : null; }).filter(has);
+  const cellular = cl.length ? mean(cl) * Math.min(1, cl.length / 5) : 0;
+  const sl = ds.map(d => day(d).sleep).filter(has), st = ds.map(d => day(d).stress).filter(has);
+  let nerv = 0; if (sl.length) { nerv = clamp((mean(sl) - 5.5) / 3 * 70, 0, 70) + (st.length ? clamp((8 - mean(st)) / 6 * 30, 0, 30) : 15); nerv *= Math.min(1, sl.length / 5); }
+  const nd = ds.map(d => { const e = eaten(d); return e == null || day(d).partial ? null : Math.abs(e - target(d).kcal) <= 100 ? 1 : Math.abs(e - target(d).kcal) <= 200 ? 0.5 : 0; }).filter(has);
+  const nutrition = nd.length ? mean(nd) * 100 * Math.min(1, nd.length / 5) : 0;
+  const sh = ds.reduce((a, d) => a + (day(d).study || 0), 0), focus = c.studyTarget ? clamp(sh / c.studyTarget * 100, 0, 100) : 0;
+  return [cardio, strength, cellular, nerv, nutrition, focus].map(r0);
+}
+function xp() { // rebuilt from the log every time, so edits and deletions just work
+  const a = [0, 0, 0, 0, 0, 0];
+  S.runs.forEach(r => a[0] += isHard(r) ? 60 : r.type === 'sub' ? 55 : 40);
+  S.gym.forEach(g => a[1] += 30 + Math.min(setsOf(g), 24));
+  S.lifts.forEach(() => a[1] += 15);
+  Object.entries(S.days).forEach(([d, x]) => {
+    a[2] += (checksDone(d, CELL_HABITS) + checksDone(d, LOOK_HABITS) + checksDone(d, BLOAT_HABITS)) * 5 + (has(x.cellular) ? x.cellular * 0.3 : 0);
+    if (has(x.sleep)) a[3] += x.sleep >= 8 ? 35 : x.sleep >= 7 ? 20 : 5;
+    if (has(x.rhr)) a[3] += 5;
+    const e = eaten(d); if (e != null && !x.partial) a[4] += Math.abs(e - target(d).kcal) <= 100 ? 35 : 12;
+    if (x.sodium === 'low') a[4] += 8;
+    if (has(x.study)) a[5] += x.study * 22;
+    if (has(x.steps) && x.steps >= cfg().stepsLo) a[0] += 10;
+  });
+  S.sessions.forEach(s => { if (s.type === 'study') a[5] += 30; else a[3] += 50; });
+  const total = r0(a.reduce((x, y) => x + y, 0));
+  let ri = 0; RANKS.forEach((r, i) => { if (total >= r[1]) ri = i; });
+  const next = RANKS[ri + 1];
+  return { axes: a.map(r0), total, rank: RANKS[ri][0], ri, next, pct: next ? (total - RANKS[ri][1]) / (next[1] - RANKS[ri][1]) * 100 : 100 };
+}
+const dayLogged = d => { const x = S.days[d]; return !!x && ['wt', 'rhr', 'sleep', 'steps', 'cals', 'study'].some(k => has(x[k])); };
+function streak() { // one missed day in any 14 is forgiven (the recovery shield)
+  let n = 0, shieldUsed = null, d = dayLogged(today()) ? today() : dAdd(today(), -1);
+  for (let i = 0; i < 400; i++, d = dAdd(d, -1)) {
+    if (dayLogged(d)) n++;
+    else if (shieldUsed == null || dDiff(shieldUsed, d) >= 14) { if (!dayLogged(dAdd(d, -1))) break; shieldUsed = d; }
+    else break;
+  }
+  return { n, shield: shieldUsed == null || dDiff(today(), shieldUsed) >= 14 };
+}
+function trophies() {
+  const sk = streak().n, t = [], pr = m => S.prs.find(p => p.m === m), sess = ty => S.sessions.filter(s => s.type === ty).length;
+  const weeks = [...new Set(Object.keys(S.days).map(d => weekStart(d)))];
+  const wk = fn => weeks.some(fn);
+  const add = (name, how, on) => t.push({ name, how, on: !!on });
+  add('First sync', 'Log one full day', Object.keys(S.days).some(dayLogged));
+  add('Seven straight', '7-day logging streak', sk >= 7);
+  add('Fortnight', '14-day logging streak', sk >= 14);
+  add('Sleep bank', '7 nights averaging 8 h+', (() => { const v = lastN(7).map(d => day(d).sleep).filter(has); return v.length >= 6 && mean(v) >= 8; })());
+  add('Clockwork', 'Circadian consistency 90+', (circadian(14).score || 0) >= 90);
+  add('Sub-60 quarter', '400 m under 60 s', pr(400) && pr(400).cur < 60);
+  add('Three-minute K', '1 km under 3:00', pr(1000) && pr(1000).cur < 180);
+  add('Seventeen-something', '5 km under 18:00', pr(5000) && pr(5000).cur < 1080);
+  add('Boss down', 'Beat any goal time', S.prs.some(p => has(p.cur) && has(p.goal) && p.cur <= p.goal));
+  add('Right pace', 'A sub-threshold run inside the target band', S.runs.some(r => r.type === 'sub' && r.km >= 4 && r.sec / r.km >= 237 && r.sec / r.km <= 250));
+  add('Twenty-six strict', '26 pull-ups in one set', S.lifts.some(l => /pull/i.test(l.lift) && !l.kg && l.reps >= 26) || S.strength.some(s => /pull/i.test(s.name) && s.cur >= 26));
+  add('Bodyweight and a half', 'Bench e1RM at 1.5 × bodyweight', (() => { const w = latestWt(); return w && S.lifts.some(l => /bench/i.test(l.lift) && e1rm(l.kg, l.reps) >= w * KG * 1.5); })());
+  add('Four in the gym', 'A week with 4 gym days', wk(w => weekGym(w).n >= 4));
+  add('Step week', 'A week at the step target', wk(w => lastN(7, dAdd(w, 6)).reduce((a, d) => a + (day(d).steps || 0), 0) >= cfg().stepsWeek));
+  add('Deep week', 'A week at the study target', wk(w => lastN(7, dAdd(w, 6)).reduce((a, d) => a + (day(d).study || 0), 0) >= cfg().studyTarget));
+  add('Wave rider', 'Surf 3 urges', sess('urge') >= 3);
+  add('Stillness', '5 NSDR or sigh sessions', sess('nsdr') + sess('sigh') >= 5);
+  add('Clean refeed', 'A refeed day logged within 150 kcal', Object.entries(S.days).some(([d, x]) => x.refeed && eaten(d) != null && Math.abs(eaten(d) - cfg().refeedKcal) <= 150));
+  add('Known quantity', 'First blood panel entered', S.bloods.length >= 3);
+  add('Pressure checked', '7 home blood pressure readings', S.bp.length >= 7);
+  add('Rest is training', 'A full day off every week for 3 weeks', (() => { const ws = weekStart(); return [1, 2, 3].every(i => { const w = dAdd(ws, -7 * i); return lastN(7, dAdd(w, 6)).some(d => dayLogged(d) && !runsOn(d).length && !gymOn(d).length); }); })());
+  return t;
+}
+
+/* ============ food scoring ============ */
+function foodFlags(f) {
+  const n = (f.name || '').toLowerCase(), fl = [], ex = (cfg().excluded || []).map(x => x.toLowerCase());
+  const tags = f.tags || [];
+  const ing = ((f.ing || '') + ' ' + n).toLowerCase();
+  const gl = tags.includes('gluten') || f.gluten === 'yes' || (f.src === 'off' && f.gluten !== 'free' && GLUTEN_WORDS.some(w => ing.includes(w)));
+  const glx = tags.includes('glutenx') || f.gluten === 'trace' || (f.src === 'off' && !gl && f.gluten !== 'free' && /\boats?\b/.test(ing));
+  if (S.profile.coeliac) {
+    if (gl) fl.push({ lv: 'r', t: 'Contains gluten', d: 'Not safe with coeliac disease.' });
+    else if (glx) fl.push({ lv: 'r', t: 'Gluten cross-contamination risk', d: 'May contain gluten or uses oats that are not certified gluten-free. Check the pack for the crossed-grain symbol.' });
+    else if (f.src === 'off' && f.gluten !== 'free') fl.push({ lv: 'a', t: 'Gluten status not confirmed', d: 'This record does not list a gluten-free label. Open Food Facts data is entered by volunteers; read the pack.' });
+  }
+  const cru = tags.includes('crucif') || CRUCIF_WORDS.some(w => n.includes(w));
+  if (cru) fl.push({ lv: 'a', t: 'Cruciferous: gut bloat risk', d: 'More than about 75 g in one meal ferments noticeably. Lower-bloat swaps: courgette, cucumber, red pepper, carrot, green beans, berries.' });
+  const exHit = ex.find(w => w && n.includes(w));
+  if (exHit) fl.push({ lv: 'a', t: 'On your exclude list', d: `You chose to avoid ${exHit}.` });
+  if (f.na >= 600) fl.push({ lv: 'r', t: 'High sodium', d: `${r0(f.na)} mg per 100 g. A 150 g portion is ${r0(f.na * 1.5 / cfg().naCap * 100)}% of your daily cap.` });
+  else if (f.na >= 300) fl.push({ lv: 'a', t: 'Hidden sodium', d: `${r0(f.na)} mg per 100 g. Count it.` });
+  if (f.nova === 4) fl.push({ lv: 'a', t: 'Ultra-processed (NOVA 4)', d: 'Formulated from refined ingredients and additives.' });
+  if (tags.includes('fodmap') || tags.includes('pulse')) fl.push({ lv: 'a', t: 'High FODMAP', d: 'Ferments in the gut; keep portions small before a shoot or a hard session.' });
+  if (tags.includes('rawdairy')) fl.push({ lv: 'a', t: 'Unpasteurised', d: 'Carries a small but real infection risk.' });
+  if (tags.includes('vitA-high')) fl.push({ lv: 'a', t: 'Very high vitamin A', d: 'Regular portions can exceed the safe upper level.' });
+  return { fl, cru, gl: gl || glx };
+}
+function foodScore(f) { // house score, 0-100: nutrient density per calorie, minus sodium, sugar density and processing
+  if (!f.kcal && !f.na) return 50;
+  if (f.cat === 'other' && f.na > 5000) return 5;
+  const per = v => f.kcal > 0 ? v / f.kcal * 100 : 0, tags = f.tags || [];
+  let s = 42;
+  s += clamp(per(f.p) * 1.6, 0, 22);
+  s += clamp(per(f.fib) * 2.2, 0, 12);
+  s += clamp(per(f.k) / 45, 0, 10);
+  ['o3', 'poly', 'probiotic', 'haem', 'vitc', 'zinc', 'chol', 'nitrate', 'vitd', 'coq10', 'iod', 'se', 'mag', 'betaglucan', 'collagen', 'b12', 'carot', 'lyco', 'vite', 'mufa'].forEach(t => { if (tags.includes(t)) s += t === 'o3' ? 10 : 4; });
+  s -= clamp(f.na / 60, 0, 25);
+  if (tags.includes('sugardense') || (f.sug > 20 && f.fib < 3)) s -= 10;
+  if (tags.includes('processed') || f.nova === 4) s -= 15; else if (f.nova === 3) s -= 5;
+  if (tags.includes('satfat')) s -= 8;
+  if (f.src === 'off' && f.kcal > 350 && f.p < 8 && f.fib < 4) s -= 10;
+  const fg = foodFlags(f); if (S.profile.coeliac && fg.gl) s = Math.min(s, 5);
+  return r0(clamp(s, 0, 100));
+}
+function enzymes(f) {
+  const o = [], t = f.tags || [];
+  Object.keys(TAG_ENZ).forEach(k => { if (t.includes(k)) o.push(TAG_ENZ[k]); });
+  if (f.p >= 5) o.push('Protein: unfolded by stomach acid, cut by pepsin in the stomach, then trypsin and chymotrypsin from the pancreas, and finished by peptidases on the gut wall.');
+  if (f.c >= 8 && (t.includes('starch') || f.cat === 'carb')) o.push('Starch: salivary amylase starts it, pancreatic amylase finishes it, and maltase on the gut wall releases glucose.');
+  else if (f.c >= 8) o.push('Sugars: sucrase splits sucrose on the gut wall; glucose and fructose are then absorbed directly.');
+  if (f.f >= 5) o.push('Fat: emulsified by bile from the gallbladder, then split by pancreatic lipase. Slows stomach emptying, which is why it blunts a glucose spike and sits heavy before a run.');
+  if (f.fib >= 4) o.push('Fibre: no human enzyme digests it. Colon bacteria ferment it into short-chain fatty acids such as butyrate, which fuel the gut lining.');
+  return o;
+}
+function does(f) {
+  const o = (f.tags || []).map(t => TAG_DOES[t]).filter(Boolean);
+  if (f.kcal > 0 && f.p / f.kcal * 100 >= 12) o.unshift('High-quality protein per calorie: the raw material for muscle repair, and the most filling macronutrient on a cut.');
+  if (!o.length) o.push(f.src === 'off' ? 'No specific benefit recorded for this product. Judge it on the label: protein, fibre, sodium and how processed it is.' : 'A neutral whole food.');
+  return o;
+}
+
+/* ============ drawing ============ */
+const C = { acc: 'var(--acc)', ok: 'var(--ok)', warn: 'var(--warn)', bad: 'var(--bad)', gold: 'var(--gold)', mut: 'var(--mut)', dim: 'var(--dim)', line: 'var(--line)', violet: 'var(--violet)', fg: 'var(--fg)' };
+function lineChart(o) {
+  const W = o.w || 600, H = o.h || 190, L = 38, R = 12, T = 12, B = 20, n = o.days.length;
+  const all = o.series.flatMap(s => s.vals).filter(has).concat((o.hlines || []).map(h => h.y));
+  if (all.length < 2) return `<p class="mut small">${esc(o.empty || 'Not enough data yet. Log a few days and this fills in.')}</p>`;
+  let lo = o.min ?? Math.min(...all), hi = o.max ?? Math.max(...all); const padY = (hi - lo) * 0.12 || 1; if (o.min == null) lo -= padY; if (o.max == null) hi += padY;
+  const X = i => L + (n === 1 ? 0 : i / (n - 1)) * (W - L - R), Y = v => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+  const dp = o.dp ?? 1, f = v => v.toFixed(dp);
+  let g = '';
+  for (let i = 0; i <= 3; i++) { const v = lo + (hi - lo) * i / 3, y = Y(v); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${C.line}" stroke-width="1"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${f(v)}</text>`; }
+  [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i).forEach(i => { g += `<text x="${X(i)}" y="${H - 4}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${fmtD(o.days[i])}</text>`; });
+  (o.hlines || []).forEach(h => { const y = Y(h.y); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${h.color}" stroke-width="1.2" stroke-dasharray="5 4"/><text x="${W - R}" y="${y - 4}" text-anchor="end" style="fill:${h.color}">${esc(h.label)}</text>`; });
+  o.series.forEach(s => {
+    const pts = s.vals.map((v, i) => has(v) ? [X(i), Y(v), v, i] : null).filter(Boolean);
+    if (!pts.length) return;
+    if (s.line !== false && pts.length > 1) {
+      const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+      if (s.area) g += `<path d="${d} L${pts[pts.length - 1][0]} ${H - B} L${pts[0][0]} ${H - B} Z" fill="${s.color}" opacity=".08"/>`;
+      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w || 2}" stroke-linejoin="round" stroke-linecap="round" ${s.dash ? 'stroke-dasharray="4 4"' : ''}/>`;
+    }
+    if (s.dots) pts.forEach(p => { g += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${s.r || 2.6}" fill="${s.color}" opacity="${s.op || 1}"><title>${fmtD(o.days[p[3]])}: ${f(p[2])}${o.unit || ''}</title></circle>`; });
+    if (s.end) { const p = pts[pts.length - 1]; g += `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--bg)" stroke="${s.color}" stroke-width="2"/>`; }
+  });
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || 'chart')}">${g}</svg>`;
+}
+function barChart(o) {
+  const W = 600, H = o.h || 150, L = 38, R = 8, T = 10, B = 20, n = o.items.length;
+  const vals = o.items.map(i => i.v || 0); if (!vals.some(v => v > 0)) return `<p class="mut small">${esc(o.empty || 'Nothing logged yet.')}</p>`;
+  const hi = Math.max(o.max || 0, ...vals, o.target || 0) * 1.08, bw = (W - L - R) / n, Y = v => T + (1 - v / hi) * (H - T - B);
+  let g = '';
+  for (let i = 0; i <= 2; i++) { const v = hi * i / 2 / 1.08, y = Y(v); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${C.line}"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${o.fmt ? o.fmt(v) : r0(v)}</text>`; }
+  o.items.forEach((it, i) => {
+    const x = L + i * bw + bw * 0.18, w = bw * 0.64, y = Y(it.v || 0), h = Math.max(0, H - B - y);
+    if (it.v > 0) g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${it.color || C.acc}"><title>${esc(it.title || it.label)}: ${o.fmt ? o.fmt(it.v) : r1(it.v)}</title></rect>`;
+    if (n <= 16 || i % Math.ceil(n / 8) === 0) g += `<text x="${(x + w / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${esc(it.label)}</text>`;
+  });
+  if (o.target) { const y = Y(o.target); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${C.gold}" stroke-dasharray="5 4"/><text x="${W - R}" y="${y - 4}" text-anchor="end" style="fill:${C.gold}">${esc(o.targetLabel || 'target')}</text>`; }
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || 'bar chart')}">${g}</svg>`;
+}
+function ring(pct, big, small, color = C.acc) {
+  const r = 30, c = 2 * Math.PI * r, p = clamp(pct || 0, 0, 100);
+  return `<div style="text-align:center;min-width:0"><svg width="78" height="78" viewBox="0 0 78 78" role="img" aria-label="${esc(small)} ${r0(p)}%"><circle cx="39" cy="39" r="${r}" fill="none" stroke="${C.line}" stroke-width="6"/><circle cx="39" cy="39" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - p / 100)}" transform="rotate(-90 39 39)"/><text x="39" y="43" text-anchor="middle" style="font-size:13px;fill:var(--fg)">${esc(big)}</text></svg><div class="tiny mut">${esc(small)}</div></div>`;
+}
+function radar(sc) {
+  const W = 300, cx = 150, cy = 140, R = 92, pt = (i, v) => { const a = -Math.PI / 2 + i * Math.PI / 3; return [cx + Math.cos(a) * R * v, cy + Math.sin(a) * R * v]; };
+  let g = '';
+  [0.33, 0.66, 1].forEach(k => { g += `<polygon points="${AXES.map((_, i) => pt(i, k).map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${C.line}"/>`; });
+  AXES.forEach((a, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.2); g += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${C.line}"/><text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="middle">${esc(a)}</text><text x="${lx.toFixed(1)}" y="${(ly + 15).toFixed(1)}" text-anchor="middle" style="fill:var(--fg)">${sc[i]}</text>`; });
+  g += `<polygon points="${sc.map((v, i) => pt(i, Math.max(0.04, v / 100)).map(n => n.toFixed(1)).join(',')).join(' ')}" fill="var(--acc)" fill-opacity=".16" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"/>`;
+  sc.forEach((v, i) => { const [x, y] = pt(i, Math.max(0.04, v / 100)); g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--acc)"/>`; });
+  return `<svg class="chart" viewBox="0 0 ${W} 290" style="max-width:340px;margin:0 auto" role="img" aria-label="Six-axis radar of the last seven days">${g}</svg>`;
+}
+function gauge(p) { // pace of ageing, 0.6 to 1.3
+  const lo = 0.6, hi = 1.3, cx = 110, cy = 105, R = 84, ang = v => Math.PI + (clamp(v, lo, hi) - lo) / (hi - lo) * Math.PI, P = (v, r = R) => [cx + Math.cos(ang(v)) * r, cy + Math.sin(ang(v)) * r];
+  const arc = (a, b, col) => { const [x1, y1] = P(a), [x2, y2] = P(b); return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" opacity=".85"/>`; };
+  const [nx, ny] = P(p, R - 16), [t1x, t1y] = P(1, R + 10);
+  return `<svg class="chart" viewBox="0 0 220 124" style="max-width:240px;margin:0 auto" role="img" aria-label="Pace of ageing ${p.toFixed(2)}">${arc(0.6, 0.88, C.ok)}${arc(0.92, 1.08, C.warn)}${arc(1.12, 1.3, C.bad)}<line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="var(--fg)" stroke-width="2.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="var(--fg)"/><text x="${t1x.toFixed(1)}" y="${(t1y - 2).toFixed(1)}" text-anchor="middle">1.0</text><text x="22" y="120" text-anchor="middle">0.6</text><text x="198" y="120" text-anchor="middle">1.3</text></svg>`;
+}
+const drawer = (id, title, hint, body, open) => `<details class="drawer" data-id="${id}" ${(S.ui.open[id] ?? open) ? 'open' : ''}><summary>${esc(title)} <span class="hint">${esc(hint || '')}</span></summary><div class="body">${body}</div></details>`;
+const alertBox = a => `<div class="alert ${a.lv}"><span class="dot ${a.lv}"></span><div style="flex:1;min-width:0"><b style="font-weight:500">${esc(a.t)}</b><div class="mut">${esc(a.d)}</div></div>${a.act ? `<button class="btn sm" data-act="${a.act}">${esc(a.actL)}</button>` : ''}</div>`;
+const field = (label, inner) => `<div class="field"><label>${esc(label)}</label>${inner}</div>`;
+const dayIn = (d, key, label, attrs = '') => field(label, `<input class="in" id="f_${key}" data-f="${key}" data-date="${d}" value="${esc(day(d)[key] ?? '')}" ${attrs}>`);
+function checklist(d, list) {
+  const c = day(d).checks || {};
+  return list.map(h => `<label class="check"><input type="checkbox" id="ck_${h[0]}" data-check="${h[0]}" data-date="${d}" ${c[h[0]] ? 'checked' : ''}><span><span class="t">${esc(h[1])}</span>${h[2] ? `<span class="d"><br>${esc(h[2])}</span>` : ''}</span></label>`).join('');
+}
+const safeHtml = s => esc(s).replace(/&lt;(\/?)(h3|p|ul|li|b)&gt;/g, '<$1$2>');
+const tile = (label, v, s, cls = '') => `<div class="tile"><div class="eyebrow">${esc(label)}</div><div class="v ${cls}">${v}</div><div class="s">${s || '&nbsp;'}</div></div>`;
+
+/* ============ mission ============ */
+function eventsOn(d) { return (cfg().events || []).filter(e => e.date === d || (e.end && e.date <= d && d <= e.end)); }
+function peakState(d = today()) {
+  for (const m of cfg().milestones || []) {
+    if (!m.peak) continue; const to = dDiff(m.date, d);
+    if (to >= 1 && to <= 3) return { m, mode: 'pre', n: 4 - to };
+    if (to <= 0 && d <= (m.end || m.date)) return { m, mode: 'trip', n: 1 - to };
+    if (m.end && dDiff(d, m.end) >= 1 && dDiff(d, m.end) <= 2) return { m, mode: 'post' };
+  }
+  return null;
+}
+function mission() {
+  const now = new Date(), h = now.getHours() + now.getMinutes() / 60, d = today(), x = day(d), rd = readiness(d), c = cfg();
+  const ev = eventsOn(d).map(e => e.label).join(' · '), pk = peakState(d);
+  const bed = c.bedBy || '23:30', bh = (+bed.split(':')[0]) + (+bed.split(':')[1]) / 60, stepsLeft = has(x.steps) ? c.stepsLo - x.steps : null;
+  let m;
+  if (h < 5.5) m = ['Sleep.', 'Nothing here needs you before morning.'];
+  else if (x.sick) m = ['Rest. You are marked ill.', 'No training. Eat at maintenance, drink, sleep. Training through illness costs more days than it saves.'];
+  else if (h < 12 && !rd.n) m = ['Log this morning’s numbers.', 'Weight, resting heart rate and last night’s sleep. Thirty seconds, and everything below recalculates.', 'focusLog', 'Open today’s log'];
+  else if (rd.band === 'r' && h < 18) m = ['Recovery day.', 'Walk, mobility, daylight. Eat at maintenance. The hard session moves; it is not lost.', 'timer:nsdr', '10-min NSDR'];
+  else if (pk && pk.mode === 'trip') m = [`${pk.m.name}, day ${pk.n}. Enjoy it.`, 'Protein at each meal, walk everywhere, salt as normal, water with every coffee. Do not weigh yourself. Nothing eaten in three days undoes eleven weeks.'];
+  else if (dow(d) === c.offDay) m = ['Day off. No runs, no weights, no study.', 'Daylight, a walk, people. This is the day the training turns into fitness.'];
+  else if (h < 9.5) m = ['Get outside for 10 to 15 minutes.', 'Daylight in the first hour sets tonight’s melatonin. Then breakfast with protein. Caffeine before noon only.'];
+  else if (h < 12) m = ['Deep block one. 90 minutes, phone in another room.', 'Hardest thinking first.' + (ev ? ' Today: ' + ev + '.' : ''), 'timer:study', 'Start 90-min block'];
+  else if (h < 14.5) m = rd.band === 'a' ? ['Amber day: train easy.', 'Easy run or lighter gym, 30% fewer sets. Eat lunch with carbs first.'] : ['Fuel, then train.', 'Carbs 60 to 90 minutes before a hard run, carbs and protein within the hour after. Hard run never the day after legs.'];
+  else if (h < 16.5) m = (x.study || 0) < 3 ? ['Second deep block, or stop for the day.', 'One more 90 minutes if the first went well. Past four hours of deep work a day the quality falls.', 'timer:study', 'Start 90-min block'] : ['NSDR or a walk.', 'Study is done for today. Ten minutes lying down now buys back the afternoon.', 'timer:nsdr', '10-min NSDR'];
+  else if (h < 18.5) m = stepsLeft > 1500 ? [`Walk: ${stepsLeft.toLocaleString()} steps to your minimum.`, 'Outside while there is light. Easy pace; this is not training.'] : ['Ease off.', 'Steps are done. Prepare dinner: protein, potatoes or rice, a big plate.'];
+  else if (h < 20.75) m = ['Dinner: big plate, low salt.', 'Protein, potatoes, cooked low-bloat vegetables. Then the yoghurt bowl. Finish eating 2 to 3 hours before bed.'];
+  else if (h < bh) m = [`Wind down. Bed by ${bed}.`, 'Dim the lights, phone out of the bedroom, tomorrow’s first task written down.', 'timer:sigh', '2-min sigh'];
+  else m = ['In bed now.', 'Every 30 minutes past this costs tomorrow’s session more than any supplement gives back.'];
+  if (pk && pk.mode === 'pre') m[1] += ` Pre-${pk.m.name} day ${pk.n} of 3: salt steady at the low end, potassium foods at every meal, no new foods.`;
+  if (day(d).refeed) m[1] += ' Refeed day: extra rice, potatoes, oats and fruit; salt as usual.';
+  return { t: m[0], b: m[1], act: m[2], actL: m[3], ev };
+}
+
+/* ============ COMMAND ============ */
+function vCommand() {
+  const d = today(), c = cfg(), x = day(d), ms = mission(), rd = readiness(d), tr = triggers(d), ba = bioAge(), a = latestAvg(), X = xp(), sk = streak();
+  if (S.fresh && !Object.keys(S.days).length) return vWelcome();
+  const mk = (c.milestones || []).map(m => {
+    const to = dDiff(m.date, d), fl = v => r1(Math.max(v, c.floor || 0)) + ' lb';
+    const planR = c.maintenance ? (c.maintenance - (c.kcal * 6 + (c.satKcal || c.kcal)) / 7) / 3500 : null, ca = cutAudit(), tr = trend();
+    const realR = ca ? Math.max(0, ca.actual / ca.days) : tr != null ? Math.max(0, -tr) : null, showP = a && to >= 0 && c.phase === 'cut';
+    return `<div class="panel"><div class="row"><span class="eyebrow">${esc(m.name)}</span><span class="sp"></span><span class="pill">${fmtD(m.date)}</span></div>
+      <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${to >= 0 ? to : 0}</span><span class="mut">${to === 1 ? 'day' : 'days'} to go</span></div>
+      <div class="kv" style="margin-top:8px"><span class="mut">7-day average now</span><span class="num">${a ? r1(a.v) + ' lb' : '–'}</span></div>
+      <div class="kv"><span class="mut">If the logged deficit is real</span><span class="num">${showP && planR != null ? fl(a.v - planR * to) : '–'}</span></div>
+      <div class="kv"><span class="mut">At the rate the scale has shown</span><span class="num">${showP && realR != null ? fl(a.v - realR * to) : '–'}</span></div>
+      <div class="kv"><span class="mut">Target</span><span class="num">${m.target ? esc(m.target) : c.goalLo ? c.goalLo + '–' + c.goalHi + ' lb' : '–'}</span></div>
+      ${m.note ? `<p class="small mut" style="margin-top:8px">${esc(m.note)}</p>` : ''}</div>`;
+  }).join('');
+  const tg = target(d), e = eaten(d), b = burn(d), ws = weekStart(d), el = dDiff(d, ws) + 1;
+  const wr = weekRuns(ws), wg = weekGym(ws), wd = lastN(el, d), wSteps = wd.reduce((s, q) => s + (day(q).steps || 0), 0), wStudy = wd.reduce((s, q) => s + (day(q).study || 0), 0), wSl = mean(wd.map(q => day(q).sleep).filter(has));
+  const sc = axisScores(), bandN = rd.band ? RX[rd.band] : null;
+  const NN = [['n_light', 'Daylight outside before noon'], ['n_water', 'Water steady, salt as usual'], ['n_fuel', `Protein ${c.protein} g across 4 meals`], ['n_train', 'Training done as the readiness light allows'], ['n_deep', 'One 90-minute deep block'], ['n_spf', 'SPF and skin routine'], ['n_bed', `In bed by ${c.bedBy}`]];
+  return `<div class="stack fade">
+    <div class="mission"><div style="flex:1;min-width:0"><div class="eyebrow">Right now${ms.ev ? ' · ' + esc(ms.ev) : ''}</div><h2>${esc(ms.t)}</h2><p>${esc(ms.b)}</p></div>${ms.act ? `<button class="btn pri" data-act="${ms.act.startsWith('timer:') ? 'timer' : ms.act}" data-type="${ms.act.split(':')[1] || ''}">${esc(ms.actL)}</button>` : ''}</div>
+
+    <div class="panel"><div class="row"><div class="state ${rd.band || ''}" style="flex:1;min-width:220px"><div class="eyebrow">Readiness</div>
+      <div class="row" style="align-items:baseline"><span class="mid">${bandN ? bandN.name : 'Not logged'}</span>${rd.score != null ? `<span class="num mut">${rd.score}/100</span>` : ''}</div>
+      <div class="mut small">${bandN ? esc(bandN.line) : 'Enter resting HR, sleep and stress to switch this on.'}${rd.why.length ? ' ' + esc(rd.why.join(' · ')) + '.' : ''}</div></div>
+      ${bandN ? `<ul class="small mut" style="margin:0;padding-left:18px;flex:1;min-width:220px">${bandN.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}</div>
+      ${tr.length ? `<div class="stack" style="margin-top:12px;gap:8px">${tr.map(alertBox).join('')}</div>` : ''}</div>
+
+    ${mk ? `<div class="grid g2">${mk}</div>` : ''}
+
+    <div class="panel"><div class="row"><span class="eyebrow">Ageing clocks</span><span class="sp"></span><span class="pill">model estimate · ${ba.used} of ${ba.of} inputs</span></div>
+      <div class="grid g2" style="margin-top:10px;align-items:center">
+        <div><div class="clock"><div><div class="tiny mut">Chronological</div><div class="big num" id="clkC" style="font-family:var(--f-d)">${ba.chrono.toFixed(7)}</div></div><div class="vs">vs</div><div><div class="tiny mut">Biological (est.)</div><div class="big num ${ba.delta < 0 ? 'ok' : ba.delta > 0 ? 'warn' : ''}" id="clkB" style="font-family:var(--f-d)">${ba.bio.toFixed(2)}</div></div></div>
+          <p class="small mut" style="margin-top:8px">${ba.used ? `Your logged numbers put you <b class="${ba.delta < 0 ? 'ok' : 'warn'}">${Math.abs(ba.delta).toFixed(1)} years ${ba.delta < 0 ? 'younger' : 'older'}</b> than your birth certificate.` : 'Log data to start the clock.'} ${ba.lever ? `Next half-year: <b class="acc">${esc(ba.lever[0])}</b>${ba.lever[2] !== 'improve' ? ' (' + esc(ba.lever[2].toLowerCase()) + ')' : ''}.` : ''}</p></div>
+        <div style="text-align:center">${gauge(ba.pace)}<div class="num" style="font-size:20px">${ba.pace.toFixed(2)}<span class="mut small"> years aged per year</span></div></div>
+      </div>
+      ${drawer('ageHow', 'How this is worked out', '', `<p class="small mut">There is no validated way to measure biological age from a watch and a scale. This is a transparent points model: each input moves the clock by the years shown, using the direction and rough size of its link with lifespan in cohort studies. VO2max carries the most weight because it is the strongest single predictor of all-cause mortality. Treat the number as a compass, not a diagnosis.</p><div>${ba.parts.map(p => `<div class="kv"><span>${esc(p.name)} <span class="mut">· ${esc(p.detail)}</span></span><span class="num ${p.yrs < 0 ? 'ok' : p.yrs > 0 ? 'warn' : ''}">${p.yrs > 0 ? '+' : ''}${p.yrs.toFixed(1)} y</span></div>`).join('')}${ba.miss.map(p => `<div class="kv"><span class="mut">${esc(p[0])} · ${esc(p[1])}</span><span class="num dim">–</span></div>`).join('')}</div>`)}
+    </div>
+
+    <div class="grid g6">
+      ${tile('Weight · 7-day', a ? r1(a.v) + ' lb' : '–', has(x.wt) ? `today ${x.wt}` : 'no weigh-in today')}
+      ${tile('Eaten', e != null ? r0(e).toLocaleString() : '–', `target ${tg.kcal.toLocaleString()}${tg.mode !== 'cut' ? ' · ' + tg.mode : ''}`)}
+      ${tile('Deficit', e != null && b ? r0(b.total - e).toLocaleString() : '–', b ? `burn ≈ ${r0(b.total).toLocaleString()}` : '', e != null && b && b.total - e > 600 ? 'warn' : '')}
+      ${tile('Steps', has(x.steps) ? x.steps.toLocaleString() : '–', `${c.stepsLo / 1000}–${c.stepsHi / 1000}k`, has(x.steps) && x.steps > 14000 ? 'warn' : '')}
+      ${tile('Sleep', has(x.sleep) ? x.sleep + ' h' : '–', x.bed ? `bed ${esc(x.bed)}` : 'last night', has(x.sleep) && x.sleep < 6.5 ? 'bad' : '')}
+      ${tile('Resting HR', has(x.rhr) ? x.rhr : '–', rhrBase(d) ? `usual ${r0(rhrBase(d))}` : '')}
+    </div>
+
+    ${drawer('log', 'Today’s log', fmtDW(S.ui.logDate || d), vLog(S.ui.logDate || d), true)}
+
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Daily non-negotiables</span><span class="sp"></span><span class="num small mut">${checksDone(d, NN)}/${NN.length}</span></div><div style="margin-top:6px">${checklist(d, NN)}</div></div>
+      <div class="panel"><div class="eyebrow">This week</div><div class="grid g3" style="margin-top:12px;gap:14px 6px">
+        ${ring(wr.n / 3 * 100, `${wr.n}/${c.runsMax}`, 'runs (max)', wr.n > c.runsMax ? C.warn : C.acc)}
+        ${ring(wg.n / c.gymTarget * 100, `${wg.n}/${c.gymTarget}`, 'gym days')}
+        ${ring(wSteps / c.stepsWeek * 100, r0(wSteps / 1000) + 'k', `of ${c.stepsWeek / 1000}k steps`)}
+        ${ring(wStudy / c.studyTarget * 100, r1(wStudy) + 'h', `of ${c.studyTarget} h deep`, C.violet)}
+        ${ring(wSl ? (wSl - 5) / 3.5 * 100 : 0, wSl ? r1(wSl) + 'h' : '–', 'sleep average', wSl && wSl < 7 ? C.warn : C.ok)}
+        ${ring(mean(sc), r0(mean(sc)) + '', 'week score', C.gold)}
+      </div><p class="tiny mut" style="margin-top:10px">Day ${el} of 7. Streak ${sk.n} ${sk.n === 1 ? 'day' : 'days'} · recovery shield ${sk.shield ? 'ready' : 'used'}.</p></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="panel"><div class="eyebrow">Last 7 days</div>${radar(sc)}</div>
+      <div class="panel"><div class="row"><span class="eyebrow">Rank</span><span class="sp"></span><span class="pill au">${X.total.toLocaleString()} XP</span></div>
+        <div class="mid gold" style="margin:8px 0">${X.rank}</div>
+        <div class="bar thick"><i style="width:${clamp(X.pct, 2, 100)}%;background:var(--gold)"></i></div>
+        <p class="tiny mut" style="margin:6px 0 12px">${X.next ? `${(X.next[1] - X.total).toLocaleString()} XP to ${X.next[0]}` : 'Top rank.'}</p>
+        ${AXES.map((n, i) => { const lv = Math.floor(X.axes[i] / 400) + 1, p = X.axes[i] % 400 / 4; return `<div style="margin-bottom:8px"><div class="row small"><span>${n}</span><span class="sp"></span><span class="mut num">Lv ${lv} · ${X.axes[i]}</span></div><div class="bar"><i style="width:${Math.max(2, p)}%"></i></div></div>`; }).join('')}
+      </div>
+    </div>
+
+    ${drawer('trophies', 'Trophy cabinet', `${trophies().filter(t => t.on).length} of ${trophies().length} unlocked`, `<div class="trophies">${trophies().map(t => `<div class="trophy ${t.on ? 'on' : ''}"><b>${esc(t.name)}</b><span class="tiny mut">${esc(t.how)}</span></div>`).join('')}</div>`)}
+    ${S.brief ? drawer('brief', 'Coach’s brief', S.brief.date ? 'written ' + fmtD(S.brief.date) : '', `<div class="prose">${safeHtml(S.brief.html)}</div>`) : ''}
+    <div class="row"><button class="btn" data-act="report">Export Sunday boardroom report</button><span class="mut small">Seven-day averages, compliance and flags, ready to paste to your coach.</span></div>
+    ${memOnly ? '<div class="alert a"><span class="dot a"></span><div>This browser is blocking storage, so changes will be lost when the page closes. Use Settings &amp; data → Copy backup before you leave.</div></div>' : ''}
+  </div>`;
+}
+function vLog(d) {
+  const x = day(d);
+  return `<div class="row"><button class="btn sm ghost" data-act="logDate" data-n="-1">← Day before</button><span class="small">${fmtDW(d)}</span>${d < today() ? `<button class="btn sm ghost" data-act="logDate" data-n="1">Day after →</button><button class="btn sm ghost" data-act="logDate" data-n="0">Today</button>` : ''}</div>
+  <div class="grid g4">
+    ${dayIn(d, 'wt', 'Weight (lb)', 'inputmode="decimal"')}${dayIn(d, 'rhr', 'Resting HR', 'inputmode="numeric"')}${dayIn(d, 'hrv', 'HRV (ms)', 'inputmode="numeric" placeholder="optional"')}${dayIn(d, 'sleep', 'Sleep (h)', 'inputmode="decimal"')}
+    ${dayIn(d, 'bed', 'Bedtime', 'type="time"')}${dayIn(d, 'wake', 'Woke', 'type="time"')}${dayIn(d, 'steps', 'Steps', 'inputmode="numeric"')}${dayIn(d, 'cals', 'Calories eaten', 'inputmode="numeric"')}
+    ${dayIn(d, 'study', 'Deep study (h)', 'inputmode="decimal"')}${dayIn(d, 'stress', 'Stress 1–10', 'inputmode="numeric"')}${dayIn(d, 'sore', 'Soreness 1–10', 'inputmode="numeric"')}${dayIn(d, 'urge', 'Food urges 1–10', 'inputmode="numeric"')}
+    ${dayIn(d, 'light', 'Daylight (min)', 'inputmode="numeric"')}${dayIn(d, 'cellular', 'Cellular habits %', 'inputmode="numeric"')}
+    ${field('Sodium', `<select class="in" id="f_sodium" data-f="sodium" data-date="${d}">${['', 'low', 'med', 'high'].map(o => `<option value="${o}" ${x.sodium === o ? 'selected' : ''}>${o || '–'}</option>`).join('')}</select>`)}
+    ${field('Flags', `<div class="row" style="gap:6px">${[['refeed', 'Refeed'], ['sick', 'Ill'], ['partial', 'Part log']].map(f => `<button class="btn sm ${x[f[0]] ? 'pri' : 'ghost'}" data-act="flag" data-k="${f[0]}" data-date="${d}">${f[1]}</button>`).join('')}</div>`)}
+  </div>
+  ${field('Note', `<input class="in" style="font-family:var(--f-b)" id="f_note" data-f="note" data-date="${d}" value="${esc(x.note || '')}" placeholder="How the day went, how the legs felt">`)}`;
+}
+function vWelcome() {
+  return `<div class="stack fade"><div class="mission"><div><div class="eyebrow">Start here</div><h2>Load your data, or begin blank.</h2><p>This page holds no personal data of its own. Everything you enter stays in this browser. If your coach gave you a starting file, paste its contents below.</p></div></div>
+  <div class="panel stack">${field('Starting file or backup (JSON)', '<textarea class="in" id="impText" rows="6" placeholder="{ ... }" style="font-family:var(--f-m);font-size:12px"></textarea>')}
+  <div class="row"><button class="btn pri" data-act="importText">Load this data</button><label class="btn">Choose a file<input type="file" id="impFile" accept=".json,application/json" hidden></label><span class="sp"></span><button class="btn ghost" data-act="startBlank">Start blank</button></div></div></div>`;
+}
+
+/* ============ ENGINE ============ */
+function vEngine() {
+  const d = today(), c = cfg(), v = vo2now(), ws = weekStart(d);
+  const boss = p => {
+    const pct = has(p.cur) && has(p.goal) ? clamp(p.goal / p.cur * 100, 0, 100) : 0, w = clamp((pct - 85) / 15 * 100, 3, 100), pbw = has(p.pb) ? clamp((p.goal / p.pb * 100 - 85) / 15 * 100, 0, 100) : null, gap = p.cur - p.goal;
+    return `<div class="boss"><div class="row"><b style="font-weight:500">${esc(p.name)}</b><span class="sp"></span><span class="num">${fmtT(p.cur)}</span><span class="mut">→</span><span class="num gold">${fmtT(p.goal)}</span><button class="btn sm ghost" data-act="editPr" data-id="${p.id}">Update</button></div>
+      <div class="bar thick" style="margin:8px 0 6px;overflow:visible"><i style="width:${w}%"></i>${pbw != null ? `<span class="tick" style="left:${pbw}%" title="All-time best"></span>` : ''}</div>
+      <div class="row tiny mut"><span>${gap <= 0 ? '<b class="ok">Beaten.</b>' : `${pct.toFixed(1)}% of goal speed · ${fmtT(r1(gap))} to find`}</span><span class="sp"></span><span>${has(p.pb) ? `best ever ${fmtT(p.pb)}${p.pbNote ? ' · ' + esc(p.pbNote) : ''}` : ''}${p.dec ? ` · realistic this block ${esc(p.dec)}` : ''}</span></div>${p.note ? `<div class="tiny dim">${esc(p.note)}</div>` : ''}</div>`;
+  };
+  const sboss = s => { const pct = clamp(s.cur / s.goal * 100, 0, 100); return `<div class="boss"><div class="row"><b style="font-weight:500">${esc(s.name)}</b><span class="sp"></span><span class="num">${s.cur} ${esc(s.unit)}</span><span class="mut">→</span><span class="num gold">${s.goal}</span></div><div class="bar thick" style="margin:8px 0 6px"><i style="width:${pct}%"></i></div><div class="tiny mut">${pct.toFixed(0)}% · ${esc(s.note || '')}</div></div>`; };
+  // weight chart: 60 days
+  const wd = lastN(60, d), wRaw = wd.map(x => day(x).wt ?? null), wAvg = wd.map(x => avg7(x)), tr = trend(), a = latestAvg();
+  const floorDate = (tr != null && tr < -0.005 && a && c.floor) ? dAdd(a.d, Math.ceil((a.v - c.floor) / -tr)) : null;
+  const hd = lastN(30, d), weeks = Array.from({ length: 8 }, (_, i) => dAdd(ws, -7 * (7 - i)));
+  const wrs = weeks.map(w => weekRuns(w)), wgs = weekGym(ws), ST = S.setTargets || {};
+  const easy = S.runs.filter(r => r.type === 'easy').slice(-12), qual = S.runs.filter(r => (isHard(r) || r.type === 'sub') && r.km >= 1.5).slice(-12);
+  const f = S.ui.hist || 'all';
+  const rows = [];
+  if (f === 'all' || f === 'runs') S.runs.forEach(r => rows.push([r.date, 'Run', `${esc(r.name || r.type)} <span class="pill ${isHard(r) ? 'r' : r.type === 'sub' ? 'a' : 'g'}">${esc(r.type)}</span>`, `${r1(r.km)} km · ${fmtT(r.sec)} · ${pace(r.sec, r.km)}`, `delRun:${r.id}`]));
+  if (f === 'all' || f === 'gym') S.gym.forEach(g => rows.push([g.date, 'Gym', esc(g.focus || ''), Object.entries(g.sets || {}).map(([k, n]) => `${esc(k)} ${n}`).join(' · ') + (g.note ? ` · ${esc(g.note)}` : ''), `delGym:${g.id}`]));
+  if (f === 'all' || f === 'lifts') S.lifts.forEach(l => rows.push([l.date, 'Lift', esc(l.lift), `${l.kg ? l.kg + ' kg × ' : ''}${l.reps}${l.kg ? ` · e1RM ${r1(e1rm(l.kg, l.reps))} kg` : ' reps'}`, `delLift:${l.id}`]));
+  if (f === 'all' || f === 'days') Object.entries(S.days).forEach(([dt, x]) => { if (dayLogged(dt)) rows.push([dt, 'Day', [has(x.wt) ? x.wt + ' lb' : '', has(x.rhr) ? 'RHR ' + x.rhr : '', has(x.sleep) ? x.sleep + ' h sleep' : ''].filter(Boolean).join(' · '), [has(x.steps) ? x.steps.toLocaleString() + ' steps' : '', has(x.cals) ? x.cals + ' kcal' : '', has(x.study) ? x.study + ' h study' : '', x.refeed ? 'refeed' : '', esc(x.note || '')].filter(Boolean).join(' · '), '']); });
+  rows.sort((p, q) => q[0].localeCompare(p[0]));
+  return `<div class="stack fade">
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Boss fights · running</span></div>${S.prs.length ? S.prs.map(boss).join('') : '<p class="mut small" style="margin-top:8px">Add goal times in Settings &amp; data.</p>'}</div>
+      <div class="stack">
+        <div class="panel"><div class="eyebrow">Aerobic engine</div><div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${v ? r1(v.v) : '–'}</span><span class="mut">ml/kg/min · VO2max estimate</span></div>
+          <p class="small mut" style="margin-top:6px">${v ? `From your ${esc(v.from.name)} in ${fmtT(v.from.cur)}, using the Daniels–Gilbert race equations. A lab test can differ by about ±5%.` : 'Enter a current time between 1500 m and 10 km to estimate this.'}</p>
+          <div class="grid g3" style="margin-top:12px">${tile('Runs this week', `${wrs[7].n}`, `max ${c.runsMax}`, wrs[7].n > c.runsMax ? 'warn' : '')}${tile('Hard runs', `${wrs[7].hard}`, 'ceiling 2', wrs[7].hard > 2 ? 'bad' : '')}${tile('Easy minutes', `${r0(wrs[7].easyMin)}`, 'Zone 2 this week')}</div></div>
+        ${S.strength.length ? `<div class="panel"><div class="eyebrow">Boss fights · strength</div>${S.strength.map(sboss).join('')}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="panel"><div class="row"><span class="eyebrow">Weight · water vs true trend</span><span class="sp"></span><span class="legend"><span><i style="background:var(--dim);height:6px;width:6px;border-radius:50%"></i>daily (water)</span><span><i></i>7-day average (true trend)</span></span></div>
+      <div style="margin-top:10px">${lineChart({ days: wd, w: 1000, h: 250, label: 'Weight trend', unit: ' lb', series: [{ vals: wRaw, color: C.dim, line: false, dots: true, op: .8 }, { vals: wAvg, color: C.acc, w: 2.4, area: true, end: true }], hlines: c.floor ? [{ y: c.floor, color: C.bad, label: `floor ${c.floor} lb` }] : [] })}</div>
+      <div class="grid g4" style="margin-top:12px">
+        ${tile('7-day average', a ? r1(a.v) + ' lb' : '–', a ? `BMI ${bmi(a.v).toFixed(1)}` : '')}
+        ${tile('Trend', tr != null ? (tr * 7 > 0 ? '+' : '') + (tr * 7).toFixed(2) + ' lb/wk' : '–', 'last 21 days', tr != null && tr * 7 < -1 ? 'warn' : '')}
+        ${tile('To floor', a && c.floor ? r1(a.v - c.floor) + ' lb' : '–', c.floor ? `floor ${c.floor}` : 'no floor set')}
+        ${tile('Floor reached', floorDate ? fmtD(floorDate) : '–', floorDate ? 'at the current trend' : tr != null ? 'not on current trend' : '')}
+      </div>
+      <p class="tiny mut" style="margin-top:8px">Decisions use the blue line only. A single morning can swing 1–2 lb on salt, carbohydrate, a hard leg session or a late meal without any change in fat.</p></div>
+
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Resting HR${hd.some(x => has(day(x).hrv)) ? ' and HRV' : ''}</span><span class="sp"></span><span class="legend"><span><i style="background:var(--bad)"></i>RHR</span>${hd.some(x => has(day(x).hrv)) ? '<span><i style="background:var(--violet)"></i>HRV</span>' : ''}</span></div>
+        <div style="margin-top:10px">${lineChart({ days: hd, dp: 0, unit: ' bpm', label: 'Resting heart rate', series: [{ vals: hd.map(x => day(x).rhr ?? null), color: C.bad, dots: true, end: true }, { vals: hd.map(x => day(x).hrv ?? null), color: C.violet, dots: true }], hlines: rhrBase(d) ? [{ y: rhrBase(d) + 4, color: C.warn, label: 'baseline +4' }] : [] })}</div></div>
+      <div class="panel"><div class="eyebrow">Weekly distance (km)</div><div style="margin-top:10px">${barChart({ items: weeks.map((w, i) => ({ label: fmtD(w), v: wrs[i].km, color: wrs[i].hard > 2 ? C.warn : C.acc, title: `Week of ${fmtD(w)} · ${wrs[i].n} runs, ${wrs[i].hard} hard` })), fmt: r0 })}</div><p class="tiny mut">Amber bars are weeks with three or more hard runs.</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Pace trend (sec per km, lower is faster)</span><span class="sp"></span><span class="legend"><span><i style="background:var(--ok)"></i>easy</span><span><i style="background:var(--warn)"></i>quality</span></span></div>
+        <div style="margin-top:10px">${(() => { const all = [...easy, ...qual].sort((p, q) => p.date.localeCompare(q.date)); if (all.length < 2) return '<p class="mut small">Log runs to see this.</p>'; const ds = lastN(dDiff(d, all[0].date) + 1, d); const m = t => ds.map(x => { const r = t.find(q => q.date === x); return r ? r.sec / r.km : null; }); return lineChart({ days: ds, dp: 0, unit: ' s/km', label: 'Pace trend', series: [{ vals: m(easy), color: C.ok, dots: true }, { vals: m(qual), color: C.warn, dots: true }] }); })()}</div></div>
+      <div class="panel"><div class="eyebrow">Steps, last 14 days</div><div style="margin-top:10px">${barChart({ items: lastN(14, d).map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: day(x).steps || 0, color: (day(x).steps || 0) > 14000 ? C.warn : (day(x).steps || 0) >= c.stepsLo ? C.acc : C.dim })), target: c.stepsLo, targetLabel: `${c.stepsLo / 1000}k minimum`, fmt: v => r0(v / 1000) + 'k' })}</div></div>
+    </div>
+
+    <div class="panel"><div class="row"><span class="eyebrow">Hypertrophy split · sets this week</span><span class="sp"></span><span class="mut small">${wgs.n} of ${c.gymTarget} gym days</span></div>
+      <div class="scroll" style="margin-top:8px"><table><tr><th>Muscle</th><th class="n">Sets</th><th class="n">Range</th><th style="width:45%">&nbsp;</th><th>Status</th></tr>
+      ${Object.keys({ ...ST, ...wgs.sets }).map(k => { const n = wgs.sets[k] || 0, t = ST[k], st = !t ? ['', ''] : n > t[1] * 1.3 ? ['r', 'well over'] : n > t[1] ? ['a', 'over'] : n >= t[0] ? ['g', 'in range'] : ['', `${t[0] - n} to go`]; return `<tr><td>${esc(k)}</td><td class="n">${n}</td><td class="n mut">${t ? t[0] + '–' + t[1] : '–'}</td><td><div class="bar"><i style="width:${t ? clamp(n / t[1] * 100, 0, 100) : 50}%;background:${st[0] === 'r' ? C.bad : st[0] === 'a' ? C.warn : C.acc}"></i></div></td><td><span class="pill ${st[0]}">${st[1] || '–'}</span></td></tr>`; }).join('') || '<tr><td colspan="5" class="mut">No sessions this week yet.</td></tr>'}</table></div>
+      <p class="tiny mut" style="margin-top:8px">Upper body carries the look; legs are capped so they do not blunt the running. On a cut, keep the weight on the bar and trim sets.</p></div>
+
+    ${drawer('addRun', 'Log a run', '', `<div class="grid g4">${field('Date', `<input class="in" type="date" id="r_date" value="${d}">`)}${field('Distance (km)', '<input class="in" id="r_km" inputmode="decimal">')}${field('Time (mm:ss)', '<input class="in" id="r_time" placeholder="19:48">')}${field('Type', '<select class="in" id="r_type"><option value="easy">Easy</option><option value="sub">Sub-threshold</option><option value="hard">Hard reps</option><option value="speed">Speed</option><option value="tt">Time trial</option><option value="steady">Steady</option></select>')}</div>${field('Name and notes', '<input class="in" style="font-family:var(--f-b)" id="r_name" placeholder="6 × 800, legs felt good">')}<div><button class="btn pri" data-act="addRun">Save run</button></div>`)}
+    ${drawer('addGym', 'Log a gym session', '', `<div class="grid g4">${field('Date', `<input class="in" type="date" id="g_date" value="${d}">`)}${field('Focus', '<input class="in" style="font-family:var(--f-b)" id="g_focus" placeholder="Back + biceps">')}${field('Sets by muscle', '<input class="in" style="font-family:var(--f-b)" id="g_sets" placeholder="back 14, biceps 6">')}${field('Note', '<input class="in" style="font-family:var(--f-b)" id="g_note">')}</div><div><button class="btn pri" data-act="addGym">Save session</button></div>`)}
+    ${drawer('overload', 'Progressive overload log', `${S.lifts.length} entries`, `<div class="grid g4">${field('Date', `<input class="in" type="date" id="l_date" value="${d}">`)}${field('Lift', '<input class="in" style="font-family:var(--f-b)" id="l_lift" placeholder="Bench press" list="liftNames">')}${field('Weight (kg, blank for bodyweight)', '<input class="in" id="l_kg" inputmode="decimal">')}${field('Reps', '<input class="in" id="l_reps" inputmode="numeric">')}</div><datalist id="liftNames">${[...new Set(S.lifts.map(l => l.lift))].map(n => `<option value="${esc(n)}">`).join('')}</datalist><div><button class="btn pri" data-act="addLift">Save lift</button></div>
+      ${[...new Set(S.lifts.map(l => l.lift))].map(n => { const ls = S.lifts.filter(l => l.lift === n).sort((p, q) => p.date.localeCompare(q.date)), last = ls[ls.length - 1], best = ls.reduce((m, l) => Math.max(m, l.kg ? e1rm(l.kg, l.reps) : l.reps), 0); return `<div class="kv"><span>${esc(n)} <span class="mut">· ${ls.length} logged</span></span><span class="num">${last.kg ? last.kg + ' kg × ' + last.reps : last.reps + ' reps'} <span class="mut">· best ${last.kg ? r1(best) + ' kg e1RM' : best + ' reps'} · next: ${last.kg ? (last.reps >= 12 ? `${last.kg + 2.5} kg × 6` : `${last.kg} kg × ${last.reps + 1}`) : `${last.reps + 1} reps`}</span></span></div>`; }).join('')}`)}
+    ${drawer('form', 'Video form and gait review', `${S.form.length} notes`, `<div class="grid g3">${field('Date', `<input class="in" type="date" id="v_date" value="${d}">`)}${field('Kind', '<select class="in" id="v_kind"><option>Running gait</option><option>Lift</option><option>Physique check</option></select>')}${field('Title', '<input class="in" style="font-family:var(--f-b)" id="v_title" placeholder="Bench press, side view">')}</div>${field('Coaching notes and the two cues for next time', '<textarea class="in" id="v_notes"></textarea>')}<div><button class="btn pri" data-act="addForm">Save review</button></div>
+      ${[...S.form].reverse().map(n => `<div class="panel flat"><div class="row"><span class="pill b">${esc(n.kind)}</span><b style="font-weight:500">${esc(n.title)}</b><span class="sp"></span><span class="mut small">${fmtD(n.date)}</span><button class="x" data-act="del" data-k="delForm:${n.id}" aria-label="Delete">✕</button></div><p class="small mut" style="margin-top:6px;white-space:pre-wrap">${esc(n.notes)}</p></div>`).join('')}`)}
+    ${drawer('history', 'Full history and logs', `${rows.length} records`, `<div class="row">${['all', 'runs', 'gym', 'lifts', 'days'].map(k => `<button class="btn sm ${f === k ? 'pri' : 'ghost'}" data-act="hist" data-k="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div><div class="scroll tall"><table><tr><th>Date</th><th>Type</th><th>What</th><th>Detail</th><th></th></tr>${rows.map(r => `<tr><td class="n">${fmtD(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td class="mut">${r[3]}</td><td>${r[4] ? `<button class="x" data-act="del" data-k="${r[4]}" aria-label="Delete">✕</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="mut">Nothing yet.</td></tr>'}</table></div>`)}
+  </div>`;
+}
+
+/* ============ LONGEVITY ============ */
+function vLongevity() {
+  const d = today(), c = cfg(), x = day(d), sl = stressLoad(d), pk = peakState(d), reds = Object.values(S.reds || {}).filter(Boolean).length;
+  const peakCard = (() => {
+    const m = (c.milestones || []).find(q => q.peak); if (!m) return '';
+    const to = dDiff(m.date, d), st = pk ? pk.mode : to > 3 ? 'wait' : 'done';
+    const pre = [['p_na', 'Salt the same as every other day, at the low end of your range', 'Do not cut it. A sudden drop raises aldosterone and you rebound puffier on day one of the trip.'], ['p_k', 'Potassium foods at every meal (4,000 mg from food)', 'Potatoes, kiwi, banana, coconut water, yoghurt, fish.'], ['p_carb', 'Carbs up by 50-80 g from rice, potatoes, oats, fruit', 'Fills muscle glycogen so muscles look full, not flat.'], ['p_new', 'No new foods, no cruciferous veg, no pulses, no sweeteners in bulk', 'Nothing your gut has not seen this month.'], ['p_water', 'Water as normal', 'Never restrict it.'], ['p_sleep', 'Two nights of 8.5 h+', 'The cheapest de-bloat there is.'], ['p_train', 'Last hard session 3 days out, last legs 4 days out', 'Muscle damage holds water for 48-72 h.']];
+    const trip = [['t_prot', 'Protein at every meal: fish, steak, eggs, yoghurt', ''], ...(m.tips || []).map((t, i) => ['t_x' + i, t[0], t[1] || '']), ['t_walk', 'Walk everywhere: 10-14k steps happens by itself', ''], ['t_est', 'Estimate, do not log: palm of protein, fist of carbs, thumb of fat', 'Three days at maintenance changes nothing.'], ['t_wine', 'Water with every coffee; alcohol stays at zero', ''], ['t_scale', 'No scale until three mornings after you are home', 'Travel, restaurant salt and a flight add 2-4 lb of water. It is not fat and it leaves on its own.']];
+    return `<div class="panel"><div class="row"><span class="eyebrow">${esc(m.name)} peak and de-bloat protocol</span><span class="sp"></span><span class="pill ${st === 'pre' || st === 'trip' ? 'b' : ''}">${st === 'wait' ? `starts in ${to - 3} days` : st === 'pre' ? `day ${pk.n} of 3` : st === 'trip' ? `travel day ${pk.n}` : st === 'post' ? 'back home' : 'complete'}</span></div>
+      ${st === 'post' ? '<p class="small mut" style="margin-top:8px">Straight back to the normal plan today. No compensation: no extra deficit, no extra steps, no skipped meals. Weigh in from the third morning.</p>' : `<div class="grid g2" style="margin-top:8px"><div><div class="tiny mut">72 hours before</div>${checklist(d, pre)}</div><div><div class="tiny mut">Travel mode</div>${checklist(d, trip)}</div></div>`}</div>`;
+  })();
+  return `<div class="stack fade">
+    ${peakCard}
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Inside: cellular habits</span><span class="sp"></span><span class="num small mut">${checksDone(d, CELL_HABITS)}/${CELL_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, CELL_HABITS)}</div></div>
+      <div class="panel"><div class="row"><span class="eyebrow">Outside: skin and posture</span><span class="sp"></span><span class="num small mut">${checksDone(d, LOOK_HABITS)}/${LOOK_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, LOOK_HABITS)}</div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Face and physique de-bloat</span><span class="sp"></span><span class="num small mut">${checksDone(d, BLOAT_HABITS)}/${BLOAT_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, BLOAT_HABITS)}</div>
+        <div class="grid g2" style="margin-top:10px">${dayIn(d, 'puff', 'Morning puffiness 1–5', 'inputmode="numeric"')}${field('7-day average', `<div class="in" style="border-style:dashed">${(() => { const v = lastN(7, d).map(q => day(q).puff).filter(has); return v.length ? r1(mean(v)) : '–'; })()}</div>`)}</div></div>
+      <div class="panel"><div class="row"><span class="eyebrow">Stress load gauge</span><span class="sp"></span><span class="pill ${sl.band}">${sl.label}</span></div>
+        <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${sl.score}</span><span class="mut">/ 100 · lower is better</span></div>
+        <div class="bar thick" style="margin:10px 0"><i style="width:${Math.max(2, sl.score)}%;background:${sl.band === 'r' ? C.bad : sl.band === 'a' ? C.warn : C.ok}"></i></div>
+        ${sl.f.length ? sl.f.map(q => `<div class="kv"><span>${esc(q[0])}</span><span class="pill ${q[1] === 2 ? 'r' : 'a'}">${q[1] === 2 ? '+8' : '+3'}</span></div>`).join('') : `<p class="small mut">${sl.n ? 'Nothing is adding load today.' : 'Fill in today’s log to score this.'}</p>`}
+        <p class="tiny mut" style="margin-top:8px">A score built from behaviours that raise cortisol (short sleep, stacked hard days, under-eating, long study days). It is not a hormone measurement. ${c.phase === 'cut' ? 'The cut itself adds 5.' : ''}</p>
+        <div class="row" style="margin-top:8px"><button class="btn sm" data-act="timer" data-type="sigh">2-min sigh</button><button class="btn sm" data-act="timer" data-type="nsdr">10-min NSDR</button></div></div>
+    </div>
+    ${drawer('protocols', 'Cortisol-lowering protocols', 'what to do, and why it works', PROTOCOLS.map(p => `<div class="kv" style="display:block"><b style="font-weight:500">${esc(p[0])}</b><div class="mut small">${esc(p[1])}</div></div>`).join(''))}
+
+    <div class="panel"><div class="row"><span class="eyebrow">Biomarker lab</span><span class="sp"></span><span class="mut small">${S.bloods.length ? S.bloods.length + ' results' : 'no blood test yet'}</span></div>
+      <div class="scroll" style="margin-top:8px"><table><tr><th>Marker</th><th class="n">Latest</th><th class="n">Longevity target</th><th class="n">Lab range</th><th>Status</th></tr>
+      ${MARKERS.map(m => { const b = latestBlood(m.id), st = !b ? ['', 'not tested'] : b.value >= m.opt[0] && b.value <= m.opt[1] ? ['g', 'optimal'] : b.value >= m.lab[0] && b.value <= m.lab[1] ? ['a', 'in range'] : ['r', 'out of range']; return `<tr><td><b style="font-weight:500">${m.name}</b><div class="tiny mut" style="max-width:46ch">${m.why}</div></td><td class="n">${b ? b.value + ' <span class="mut">' + fmtD(b.date) + '</span>' : '–'}</td><td class="n">${m.opt[0]}–${m.opt[1]}</td><td class="n mut">${m.lab[0]}–${m.lab[1]} ${m.unit}</td><td><span class="pill ${st[0]}">${st[1]}</span></td></tr>`; }).join('')}</table></div>
+      <p class="tiny mut" style="margin-top:8px">Lab ranges are typical UK adult male values; the range printed on your own report is the one that counts. “Longevity target” is a tighter band drawn from guidelines and cohort studies, not a diagnostic threshold. Test fasted, before 10am, 48 hours after any hard session. An out-of-range result goes to your GP.</p>
+      ${drawer('addBlood', 'Add a result', '', `<div class="grid g3">${field('Date', `<input class="in" type="date" id="b_date" value="${d}">`)}${field('Marker', `<select class="in" id="b_marker">${MARKERS.map(m => `<option value="${m.id}">${m.name} (${m.unit})</option>`).join('')}</select>`)}${field('Value', '<input class="in" id="b_val" inputmode="decimal">')}</div><div><button class="btn pri" data-act="addBlood">Save result</button></div>${S.bloods.map(b => `<div class="kv"><span>${esc(MARKERS.find(m => m.id === b.marker)?.name || b.marker)} <span class="mut">· ${fmtD(b.date)}</span></span><span class="num">${b.value} <button class="x" data-act="del" data-k="delBlood:${b.id}" aria-label="Delete">✕</button></span></div>`).join('')}`)}
+    </div>
+
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Blood pressure, home readings</span><span class="sp"></span><span class="num small mut">${S.bp.length} logged</span></div>
+        ${(() => { const v = S.bp.slice(-7); if (!v.length) return '<p class="small mut" style="margin-top:8px">No readings yet.</p>'; const s = mean(v.map(q => q.sys)), di = mean(v.map(q => q.dia)), hi = s >= 135 || di >= 85; return `<div class="row" style="align-items:baseline;margin-top:6px"><span class="mid num" style="font-family:var(--f-d)">${r0(s)}/${r0(di)}</span><span class="mut small">average of last ${v.length}</span><span class="pill ${hi ? 'r' : s < 120 && di < 80 ? 'g' : 'a'}">${hi ? 'see your GP' : s < 120 && di < 80 ? 'ideal' : 'normal-high'}</span></div>`; })()}
+        <p class="tiny mut" style="margin:8px 0">Seated, rested 5 minutes, same arm, morning and evening for 7 days. A home average of 135/85 or more is the NHS threshold for seeing a GP. One clinic reading proves nothing either way.</p>
+        <div class="grid g3">${field('Date', `<input class="in" type="date" id="bp_date" value="${d}">`)}${field('Systolic', '<input class="in" id="bp_sys" inputmode="numeric">')}${field('Diastolic', '<input class="in" id="bp_dia" inputmode="numeric">')}</div>
+        <div style="margin-top:10px"><button class="btn" data-act="addBp">Save reading</button></div>
+        ${S.bp.slice(-5).reverse().map((b, i) => `<div class="kv"><span class="mut">${b.date ? fmtD(b.date) : ''}${b.note ? ' ' + esc(b.note) : ''}</span><span class="num">${b.sys}/${b.dia}</span></div>`).join('')}</div>
+      <div class="panel"><div class="row"><span class="eyebrow">Low-energy self-check</span><span class="sp"></span><span class="pill ${reds >= 2 ? 'r' : reds === 1 ? 'a' : 'g'}">${reds} ticked</span></div>
+        <p class="tiny mut" style="margin:6px 0">Tick anything true over the last two weeks. Two or more together ends the cut early. These are the early signs of relative energy deficiency in sport (REDs): the body switching off non-essential systems because training is using energy that food is not replacing.</p>
+        ${REDS_SIGNS.map(h => `<label class="check"><input type="checkbox" id="rd_${h[0]}" data-reds="${h[0]}" ${S.reds[h[0]] ? 'checked' : ''}><span class="t">${esc(h[1])}</span></label>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+/* ============ FUEL ============ */
+let OFF = { q: '', res: null, busy: false, err: '' };
+function libSearch(q) { q = q.toLowerCase().trim(); if (!q) return []; const w = q.split(/\s+/); return LIB.filter(f => w.every(x => f.name.toLowerCase().includes(x))).slice(0, 12); }
+function offMap(p) {
+  const n = p.nutriments || {}, g = k => num(n[k]);
+  let kcal = g('energy-kcal_100g'); if (kcal == null && g('energy_100g') != null) kcal = g('energy_100g') / 4.184;
+  let na = g('sodium_100g'); if (na == null && g('salt_100g') != null) na = g('salt_100g') / 2.5;
+  const k = g('potassium_100g'), al = (p.allergens_tags || []).join(' '), trc = (p.traces_tags || []).join(' '), lb = (p.labels_tags || []).join(' ');
+  return { name: [p.product_name, p.brands].filter(Boolean).join(' · ') || 'Unnamed product', cat: 'off', src: 'off', kcal: kcal || 0, p: g('proteins_100g') || 0, c: g('carbohydrates_100g') || 0, f: g('fat_100g') || 0, fib: g('fiber_100g') || 0, sug: g('sugars_100g') || 0, na: na != null ? na * 1000 : 0, naKnown: na != null, k: k != null ? k * 1000 : 0, kKnown: k != null, nova: p.nova_group || null, stores: p.stores || '', ing: p.ingredients_text || '', gluten: /gluten/.test(al) ? 'yes' : /gluten/.test(trc) ? 'trace' : /no-gluten|gluten-free/.test(lb) ? 'free' : null, tags: [], code: p.code };
+}
+async function offSearch(q, store) {
+  OFF = { q, res: null, busy: true, err: '' }; render();
+  const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=24&tagtype_0=countries&tag_contains_0=contains&tag_0=united-kingdom&fields=code,product_name,brands,nutriments,allergens_tags,traces_tags,labels_tags,nova_group,stores,ingredients_text&search_terms=' + encodeURIComponent((q + ' ' + (store || '')).trim());
+  try {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
+    const r = await fetch(url, { signal: ctl.signal }); clearTimeout(to);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const res = (j.products || []).filter(p => p.product_name && p.nutriments && (p.nutriments['energy-kcal_100g'] != null || p.nutriments.energy_100g != null)).map(offMap);
+    if (store) { const s = store.toLowerCase().replace(/[^a-z]/g, ''); res.sort((a, b) => ((b.name + b.stores).toLowerCase().replace(/[^a-z]/g, '').includes(s) ? 1 : 0) - ((a.name + a.stores).toLowerCase().replace(/[^a-z]/g, '').includes(s) ? 1 : 0)); }
+    OFF = { q, res, busy: false, err: res.length ? '' : 'No UK products matched. Try a shorter search.' };
+  } catch (e) {
+    OFF = { q, res: null, busy: false, err: 'Could not reach Open Food Facts from this page. Inside a Claude artifact outside requests are blocked; the copy of this file opened from your own device or site can search. The built-in library works everywhere.' };
+  }
+  render();
+}
+const scoreDot = s => `<span class="score" style="border-color:${s >= 70 ? C.ok : s >= 45 ? C.warn : C.bad};color:${s >= 70 ? C.ok : s >= 45 ? C.warn : C.bad}">${s}</span>`;
+function resRow(f, i, src) {
+  const fl = foodFlags(f).fl, worst = fl.some(x => x.lv === 'r') ? 'r' : fl.length ? 'a' : '';
+  return `<button class="res" data-act="food" data-src="${src}" data-i="${i}">${scoreDot(foodScore(f))}<span class="nm"><b>${esc(f.name)}</b><span class="tiny mut">${r0(f.kcal)} kcal · P ${r1(f.p)} · C ${r1(f.c)} · F ${r1(f.f)} · Na ${r0(f.na)} mg per 100 g${f.stores ? ' · ' + esc(f.stores) : ''}</span></span>${worst ? `<span class="pill ${worst}">${esc(fl.find(x => x.lv === worst).t)}</span>` : ''}</button>`;
+}
+function vFuel() {
+  const d = today(), c = cfg(), m = macros(d), t = foodTotals(d), e = eaten(d), b = burn(d), ds = deficitStats(14), ca = cutAudit(), a = latestAvg(), tr = trend(), run = deficitRun(d);
+  const q = S.ui.q || '', lib = libSearch(q), entries = S.food[d] || [], meals = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+  const mb = (label, v, tgt, unit, col, floor) => `<div><div class="row small"><span>${label}</span><span class="sp"></span><span class="num">${r0(v)}<span class="mut"> / ${tgt}${unit}</span></span></div><div class="bar"><i style="width:${clamp(v / tgt * 100, 0, 100)}%;background:${col}"></i></div>${floor ? `<div class="tiny mut">${floor}</div>` : ''}</div>`;
+  const naPct = t.na / c.naCap * 100, alerts = [];
+  if (t.na > c.naCap) alerts.push({ lv: 'r', t: 'Over the sodium cap', d: `${r0(t.na)} mg against ${c.naCap}. Expect the scale and your face to show water for a day or two. Do not respond by cutting salt tomorrow; go back to normal.` });
+  const byMeal = {}; entries.forEach(x => { if (x.crucif) byMeal[x.meal] = (byMeal[x.meal] || 0) + x.g; });
+  Object.entries(byMeal).forEach(([k, g]) => { if (g > 75) alerts.push({ lv: 'a', t: `Gut bloat alert: ${r0(g)} g cruciferous veg at ${k.toLowerCase()}`, d: 'More than one small serving in a meal. Swap part of it for courgette, cucumber, red pepper, carrot or green beans.' }); });
+  if (t.n && t.p < 90 && new Date().getHours() >= 19) alerts.push({ lv: 'a', t: 'Protein is low for the day', d: `${r0(t.p)} g so far. A 250 g bowl of 0% Greek yoghurt adds 26 g.` });
+  if (t.n && e < m.kcal - 300 && new Date().getHours() >= 20) alerts.push({ lv: 'a', t: 'More than 300 kcal under target', d: 'Under-eating tonight is the commonest set-up for a binge tomorrow. Eat the rest.' });
+  const fd = (tr != null && tr < -0.005 && a && c.floor) ? dAdd(a.d, Math.ceil((a.v - c.floor) / -tr)) : null;
+  const ladder = c.phase === 'reverse' && c.reverseStart ? Array.from({ length: 6 }, (_, i) => [dAdd(c.reverseStart, i * 7), Math.min(c.maintenance || 9999, (c.reverseFrom || c.kcal) + c.reverseStep * (i + 1))]) : Array.from({ length: 4 }, (_, i) => [`Week ${i + 1}`, Math.min(c.maintenance || 9999, m.kcal + c.reverseStep * (i + 1))]);
+  const hd = lastN(14, d);
+  return `<div class="stack fade">
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Today’s target</span><span class="sp"></span><span class="pill ${m.mode === 'cut' ? 'b' : m.mode === 'refeed' ? 'au' : 'g'}">${{ cut: 'Phase 1 · cut', refeed: 'Clean refeed day', reverse: 'Phase 2 · reverse diet', maintain: 'Maintenance' }[m.mode]}</span></div>
+        <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${m.kcal.toLocaleString()}</span><span class="mut">kcal · protein ${m.p} g · carbs ${m.c} g · fat ${m.f} g</span></div>
+        <div class="stack" style="margin-top:12px;gap:10px">
+          ${mb('Energy', e ?? 0, m.kcal, ' kcal', C.acc)}${mb('Protein', t.p, m.p, ' g', C.ok, `${(m.p / ((a?.v || latestWt() || 130) * KG)).toFixed(1)} g per kg bodyweight`)}${mb('Carbohydrate', t.c, m.c, ' g', C.gold)}${mb('Fat', t.f, m.f, ' g', C.violet, 'Never under 45 g: fat is the raw material for testosterone and other steroid hormones')}
+        </div>
+        <div class="row" style="margin-top:12px">${m.mode === 'refeed' ? '<button class="btn sm" data-act="refeedOff">Cancel refeed</button>' : '<button class="btn sm" data-act="refeedToday">Make today a refeed</button>'}${c.phase === 'cut' ? '<button class="btn sm ghost" data-act="startReverse">End cut, start reverse diet</button>' : '<button class="btn sm ghost" data-act="backToCut">Back to cut</button>'}<span class="sp"></span><span class="tiny mut">${c.phase === 'cut' ? `${run} days at the cut target since the last break` : ''}</span></div></div>
+      <div class="panel"><div class="eyebrow">Sodium and potassium balance</div>
+        <div class="stack" style="margin-top:10px;gap:10px">
+          <div><div class="row small"><span>Sodium</span><span class="sp"></span><span class="num ${naPct > 100 ? 'bad' : ''}">${r0(t.na)}<span class="mut"> / ${c.naCap} mg cap</span></span></div><div class="bar"><i style="width:${clamp(naPct, 0, 100)}%;background:${naPct > 100 ? C.bad : naPct > 80 ? C.warn : C.acc}"></i></div></div>
+          <div><div class="row small"><span>Potassium</span><span class="sp"></span><span class="num">${r0(t.k)}<span class="mut"> / ${c.kTarget} mg goal</span></span></div><div class="bar"><i style="width:${clamp(t.k / c.kTarget * 100, 0, 100)}%;background:${C.ok}"></i></div></div>
+          <div class="kv"><span class="mut">Potassium to sodium ratio</span><span class="num">${t.na > 0 ? (t.k / t.na).toFixed(1) + ' : 1' : '–'} <span class="mut">(aim 2 : 1 or better)</span></span></div>
+          <div class="kv"><span class="mut">Cruciferous veg today</span><span class="num">${r0(t.crucif)} g</span></div>
+          <div class="kv"><span class="mut">Fibre</span><span class="num">${r0(t.fib)} g</span></div>
+        </div>
+        <p class="tiny mut" style="margin-top:8px">Sodium counts only what is in the food log, so add your daily salt as “Sea salt” by the gram (1 g = 388 mg). Supermarket potassium is rarely on the label; whole-food values are from the library.</p></div>
+    </div>
+    ${alerts.length ? `<div class="stack" style="gap:8px">${alerts.map(alertBox).join('')}</div>` : ''}
+
+    <div class="panel"><div class="row"><span class="eyebrow">Food search</span><span class="sp"></span><span class="mut small">${LIB.length} whole-food staples built in · Open Food Facts for UK supermarket products</span></div>
+      <form class="row" id="foodForm" style="margin-top:10px"><input class="in" style="flex:1;min-width:160px;font-family:var(--f-b)" id="foodQ" placeholder="Search: hake, Fage, oats, M&amp;S chicken…" value="${esc(q)}" autocomplete="off">
+        <select class="in" id="foodStore" style="width:auto" aria-label="Supermarket">${['', "Sainsbury's", 'Waitrose', 'M&S'].map(s => `<option ${S.ui.store === s ? 'selected' : ''} value="${esc(s)}">${s ? esc(s) : 'Any store'}</option>`).join('')}</select>
+        <button class="btn" type="submit">Search</button><button class="btn pri" type="button" data-act="offGo">Search UK supermarkets</button></form>
+      ${q ? `<div style="margin-top:8px">${lib.length ? lib.map(f => resRow(f, LIB.indexOf(f), 'lib')).join('') : '<p class="small mut">Nothing in the built-in library. Try the supermarket search.</p>'}</div>` : ''}
+      ${OFF.busy ? '<p class="small mut" style="margin-top:8px">Searching Open Food Facts…</p>' : ''}${OFF.err ? `<div class="alert a" style="margin-top:8px"><span class="dot a"></span><div>${esc(OFF.err)}</div></div>` : ''}
+      ${OFF.res && OFF.res.length ? `<div class="eyebrow" style="margin-top:12px">UK supermarket products for “${esc(OFF.q)}”</div>${OFF.res.map((f, i) => resRow(f, i, 'off')).join('')}<p class="tiny mut" style="margin-top:6px">Open Food Facts is a volunteer database. Check the pack, above all for gluten.</p>` : ''}
+      ${S.favs.length ? `<div class="eyebrow" style="margin-top:14px">One-tap meals</div><div class="row" style="margin-top:6px">${S.favs.map((f, i) => `<button class="btn sm" data-act="fav" data-i="${i}" title="${esc(f.items.map(x => x.g + ' g ' + x.name).join(', '))}">${esc(f.name)}</button>`).join('')}</div>${S.favs.some(f => f.est) ? '<p class="tiny mut" style="margin-top:6px">Meals marked ≈ use amounts your coach estimated. Log one, then correct the grams.</p>' : ''}` : ''}
+    </div>
+
+    <div class="panel"><div class="row"><span class="eyebrow">Food log · ${fmtDW(d)}</span><span class="sp"></span><span class="num small">${r0(t.kcal).toLocaleString()} kcal</span></div>
+      ${entries.length ? meals.map(ml => { const es = entries.filter(x => x.meal === ml); if (!es.length) return ''; const k = es.reduce((s, x) => s + x.kcal, 0), p = es.reduce((s, x) => s + x.p, 0); return `<div style="margin-top:10px"><div class="row small"><b style="font-weight:500">${ml}</b><span class="mut num">${r0(k)} kcal · ${r0(p)} g protein</span>${p < 25 && ml !== 'Snacks' ? '<span class="pill a">under 25 g protein</span>' : ''}<span class="sp"></span><button class="btn sm ghost" data-act="saveFav" data-meal="${ml}">Save as one-tap meal</button></div>${es.map(x => `<div class="kv"><span>${esc(x.name)} <span class="mut num">· ${r0(x.g)} g</span></span><span class="num">${r0(x.kcal)} <span class="mut">P${r0(x.p)} C${r0(x.c)} F${r0(x.f)}</span> <button class="x" data-act="del" data-k="delFood:${x.id}" aria-label="Remove">✕</button></span></div>`).join('')}</div>`; }).join('') : `<p class="small mut" style="margin-top:8px">Nothing logged today. Search above, or type the day’s total into “Calories eaten” on the Command tab; the deficit maths uses whichever you give it.</p>`}
+    </div>
+
+    <div class="panel"><div class="eyebrow">Calorie deficit engine</div>
+      <div class="grid g4" style="margin-top:10px">
+        ${tile('Burn today', b ? r0(b.total).toLocaleString() : '–', b ? (b.stepsKnown ? 'from today’s steps and sessions' : 'steps not logged: using minimum') : 'needs a weight')}
+        ${tile('Deficit today', e != null && b ? r0(b.total - e).toLocaleString() : '–', e != null ? 'burn minus eaten' : `planned ${b ? r0(b.total - m.kcal) : '–'}`, e != null && b && b.total - e > 600 ? 'warn' : '')}
+        ${tile('14-day deficit', ds.modelDef != null ? r0(ds.modelDef * ds.logged).toLocaleString() : '–', ds.logged ? `${ds.logged} days logged · ≈ ${(ds.modelDef * ds.logged / 3500).toFixed(1)} lb` : 'no food logged')}
+        ${tile('Floor date', fd ? fmtD(fd) : '–', fd ? 'at the 21-day trend' : c.floor ? 'trend is flat or rising' : 'no floor set')}
+      </div>
+      ${b ? `<div class="kv" style="margin-top:10px"><span class="mut">Resting, digestion and fidgeting (BMR × 1.15)</span><span class="num">${r0(b.base)}</span></div><div class="kv"><span class="mut">Steps</span><span class="num">${r0(b.stepK)}</span></div><div class="kv"><span class="mut">Running</span><span class="num">${r0(b.runK)}</span></div><div class="kv"><span class="mut">Gym</span><span class="num">${r0(b.gymK)}</span></div>` : ''}
+      ${ca ? `<div class="alert ${ca.actual < ca.expected * 0.5 ? 'a' : 'g'}" style="margin-top:12px"><span class="dot ${ca.actual < ca.expected * 0.5 ? 'a' : 'g'}"></span><div><b style="font-weight:500">Plan versus scale since the cut began</b><div class="mut">At the current target and a maintenance of ${c.maintenance.toLocaleString()} kcal, ${ca.days} days should have taken about <b>${ca.expected.toFixed(1)} lb</b> off the 7-day average. It has moved <b>${ca.actual >= 0 ? '−' : '+'}${Math.abs(ca.actual).toFixed(1)} lb</b> (${r1(ca.start)} → ${r1(ca.now)}). ${ca.actual < ca.expected * 0.5 ? 'The gap is about ' + r0((ca.expected - ca.actual) * 3500 / ca.days) + ' kcal a day. Either some eating is not reaching the log (weekends, refeeds, tastes, binges), or true maintenance is lower than assumed. Fourteen days of complete logging below will show which.' : 'The plan and the scale agree.'}</div></div></div>` : ''}
+      ${ds.maint != null ? `<div class="kv" style="margin-top:8px"><span class="mut">Maintenance worked back from the scale (last ${ds.days} days)</span><span class="num">${r0(ds.maint).toLocaleString()} kcal</span></div><div class="kv"><span class="mut">Reality gap (model deficit minus scale deficit)</span><span class="num ${Math.abs(ds.gap) > 200 ? 'warn' : ''}">${r0(ds.gap)} kcal/day</span></div>` : `<p class="tiny mut" style="margin-top:8px">Log food on 10 of 14 days and this panel works your true maintenance back from the scale (${ds.logged} of 10 so far).</p>`}
+      <p class="tiny mut" style="margin-top:8px">Burn is a model: Mifflin–St Jeor resting rate, about 0.41 kcal per kg per 1,000 steps, 0.9 kcal per kg per km run, 7 kcal per gym set. Expect ±10%. One pound of fat is taken as 3,500 kcal.</p>
+      <div style="margin-top:10px">${barChart({ h: 140, items: hd.map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: eaten(x) || 0, color: day(x).refeed ? C.gold : day(x).partial ? C.dim : C.acc })), target: c.kcal, targetLabel: `${c.kcal.toLocaleString()} kcal`, fmt: r0, empty: 'No intake logged in the last 14 days.' })}</div></div>
+
+    ${drawer('reverse', 'Reverse-diet step-up calculator', c.phase === 'reverse' ? 'running' : 'starts automatically at the floor', `<p class="small mut">Starts the day the 7-day average touches ${c.floor || 'your floor'} lb, or earlier if two low-energy signs appear. Each week adds ${c.reverseStep} kcal, mostly carbohydrate placed before and after training, until maintenance${c.maintenance ? ' (' + c.maintenance.toLocaleString() + ' kcal)' : ''}. Protein stays where it is.</p><div class="scroll"><table><tr><th>${c.phase === 'reverse' ? 'From' : 'Step'}</th><th class="n">kcal</th><th class="n">Protein</th><th class="n">Carbs</th><th class="n">Fat</th></tr>${ladder.map(l => `<tr><td>${c.phase === 'reverse' ? fmtD(l[0]) : l[0]}</td><td class="n">${l[1].toLocaleString()}</td><td class="n">${c.protein}</td><td class="n">${r0((l[1] - c.protein * 4 - c.fat * 9) / 4)}</td><td class="n">${c.fat}</td></tr>`).join('')}</table></div>`)}
+    ${drawer('refeed', 'Clean refeed rules', `${c.refeedKcal.toLocaleString()} kcal, low salt`, `<div class="prose"><p><b>What:</b> one or two days at ${c.refeedKcal.toLocaleString()} kcal. The extra is about 120 g of carbohydrate from rice, potatoes, gluten-free oats and fruit. Fat about 40 g. Salt exactly as usual.</p><p><b>When:</b> every 10 to 14 days on the cut; sooner if resting HR is 3 above baseline with flat sessions or strong urges.</p><p><b>Why:</b> carbohydrate refills muscle glycogen, lifts leptin for a day or so and lowers the cortisol that a long deficit raises. It will not “boost metabolism” in any lasting way. Its real job is to make the next ten days easier to hold.</p><p><b>The scale after:</b> each gram of glycogen stores about 3 g of water, so expect +1 to 2 lb the next morning. It is gone within three days.</p></div>`)}
+    ${drawer('shield', 'Evening plate and urge shield', 'stop a binge before it starts', `<div class="prose"><p>Urges at night are mostly built earlier in the day: too little protein at breakfast and lunch, too little carbohydrate after training, too little sleep. Fix those first.</p><ul><li><b>Dinner, big plate:</b> 150 g chicken or white fish, 300 g boiled potatoes, 200 g cooked courgette, carrot or green beans. About 480 kcal and it fills a dinner plate.</li><li><b>After dinner:</b> 250 g 0% Greek yoghurt, 110 g blueberries, 12 g honey, 15 g 85% chocolate. About 330 kcal, 27 g protein.</li><li><b>Nothing is banned.</b> A food you forbid is the food you binge on. If you want it, plate it, sit down, eat it, log it.</li><li><b>If a binge happens:</b> log it, eat normally at the next meal, no extra steps, no cutting tomorrow. Compensation is what turns one evening into a cycle.</li></ul></div><div class="row"><button class="btn pri" data-act="timer" data-type="urge">Start 10-min urge surf</button></div>`)}
+  </div>`;
+}
+
+/* ============ MIND ============ */
+function vMind() {
+  const d = today(), c = cfg(), x = day(d), ci = circadian(14), ds = lastN(14, d), ws = weekStart(d), el = dDiff(d, ws) + 1;
+  const wStudy = lastN(el, d).reduce((s, q) => s + (day(q).study || 0), 0), pace = c.studyTarget * el / 7, blocks = S.sessions.filter(s => s.type === 'study' && s.date >= ws).length;
+  const short3 = lastN(3, d).every(q => has(day(q).sleep) && day(q).sleep < 6.5);
+  return `<div class="stack fade">
+    <div class="panel"><div class="eyebrow">Timers</div><div class="grid g4" style="margin-top:10px">
+      ${[['study', '90:00', 'Deep study block', 'One ultradian cycle. Phone in another room.'], ['sigh', '2:00', 'Physiological sigh', 'Fastest way to drop arousal.'], ['nsdr', '10:00', 'NSDR body scan', 'Guided. Lie down.'], ['urge', '10:00', 'Urge surf', 'Ride a craving out. +50 XP.']].map(t => `<button class="tile" style="text-align:left;background:var(--panel2);cursor:pointer" data-act="timer" data-type="${t[0]}"><div class="eyebrow">${t[2]}</div><div class="v">${t[1]}</div><div class="s">${t[3]}</div></button>`).join('')}</div></div>
+
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Sleep, last 14 nights</span><span class="sp"></span><span class="legend"><span><i></i>hours</span></span></div>
+        <div style="margin-top:10px">${lineChart({ days: ds, label: 'Sleep duration', unit: ' h', series: [{ vals: ds.map(q => day(q).sleep ?? null), color: C.acc, dots: true, area: true, end: true }], hlines: [{ y: 8, color: C.ok, label: '8 h' }, { y: 6.5, color: C.bad, label: 'back-off line 6.5 h' }] })}</div>
+        ${short3 ? '<div class="alert r" style="margin-top:8px"><span class="dot r"></span><div>Three nights under 6.5 hours. Deload is triggered on the Command tab.</div></div>' : has(x.sleep) && x.sleep < 6.5 ? '<div class="alert a" style="margin-top:8px"><span class="dot a"></span><div>Under 6.5 hours last night. Readiness is capped at amber today and the age clock takes the hit if it repeats.</div></div>' : ''}</div>
+      <div class="panel"><div class="eyebrow">Circadian consistency</div>
+        <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${ci.score != null ? r0(ci.score) : '–'}</span><span class="mut">/ 100 · from ${ci.basis}</span></div>
+        <div class="kv" style="margin-top:8px"><span class="mut">Average sleep</span><span class="num">${ci.avgSleep ? r1(ci.avgSleep) + ' h' : '–'}</span></div>
+        <div class="kv"><span class="mut">Average bedtime</span><span class="num">${ci.avgBed != null ? (() => { const mm = (r0(ci.avgBed) + 1080) % 1440; return String(Math.floor(mm / 60)).padStart(2, '0') + ':' + String(mm % 60).padStart(2, '0'); })() : '–'}</span></div>
+        <div class="kv"><span class="mut">Night-to-night spread</span><span class="num">${ci.spread != null ? '±' + r0(ci.spread) + ' min' : '–'}</span></div>
+        <div class="kv"><span class="mut">Deep sleep target</span><span class="num">1.5–2 h <span class="mut">(${has(x.deep) ? x.deep + ' h last night' : 'needs a wearable'})</span></span></div>
+        <div class="kv"><span class="mut">REM target</span><span class="num">1.5–2.5 h <span class="mut">(${has(x.rem) ? x.rem + ' h last night' : 'needs a wearable'})</span></span></div>
+        <p class="tiny mut" style="margin-top:8px">Regular timing predicts health outcomes at least as well as duration does. Within ±30 minutes is the mark to hold, weekends included.</p></div>
+    </div>
+    ${drawer('sleepLog', 'Sleep logger', fmtDW(d), `<div class="grid g4">${dayIn(d, 'bed', 'Bedtime', 'type="time"')}${dayIn(d, 'wake', 'Woke', 'type="time"')}${dayIn(d, 'sleep', 'Total sleep (h)', 'inputmode="decimal"')}${dayIn(d, 'sq', 'Quality 1–10', 'inputmode="numeric"')}${dayIn(d, 'deep', 'Deep (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'rem', 'REM (h)', 'inputmode="decimal" placeholder="wearable"')}${dayIn(d, 'nap', 'Nap (min)', 'inputmode="numeric"')}</div><p class="tiny mut">Enter bed and wake times and the hours fill in. Without a wearable, leave deep and REM empty; guessing them adds nothing.</p>
+      <div class="scroll tall"><table><tr><th>Night</th><th class="n">Bed</th><th class="n">Woke</th><th class="n">Sleep</th><th class="n">Quality</th></tr>${[...ds].reverse().filter(q => has(day(q).sleep)).map(q => `<tr><td>${fmtDW(q)}</td><td class="n">${esc(day(q).bed || '–')}</td><td class="n">${esc(day(q).wake || '–')}</td><td class="n ${day(q).sleep < 6.5 ? 'bad' : ''}">${day(q).sleep} h</td><td class="n">${day(q).sq ?? '–'}</td></tr>`).join('')}</table></div>`, true)}
+
+    <div class="grid g2">
+      <div class="panel"><div class="row"><span class="eyebrow">Deep study this week</span><span class="sp"></span><span class="pill ${wStudy >= pace ? 'g' : wStudy >= pace * 0.7 ? 'a' : 'r'}">${wStudy >= pace ? 'on pace' : 'behind pace'}</span></div>
+        <div class="row" style="margin-top:10px;gap:18px">${ring(wStudy / c.studyTarget * 100, r1(wStudy) + 'h', `of ${c.studyTarget} h`, C.violet)}<div style="flex:1;min-width:160px"><div class="kv"><span class="mut">Pace for day ${el}</span><span class="num">${r1(pace)} h</span></div><div class="kv"><span class="mut">90-min blocks timed here</span><span class="num">${blocks}</span></div><div class="kv"><span class="mut">Today</span><span class="num ${x.study > 5 ? 'bad' : x.study > 4 ? 'warn' : ''}">${has(x.study) ? x.study + ' h' : '–'}</span></div></div></div>
+        <div class="grid g2" style="margin-top:10px">${dayIn(d, 'study', 'Deep hours today', 'inputmode="decimal"')}<div class="field"><label>&nbsp;</label><button class="btn pri" data-act="timer" data-type="study">Start 90-min block</button></div></div>
+        <p class="tiny mut" style="margin-top:8px">Two or three blocks is a full day. Past four hours of deep work the next hour is worth less than a walk, and it counts against tomorrow’s readiness.</p></div>
+      <div class="panel"><div class="eyebrow">Deep hours, last 14 days</div><div style="margin-top:10px">${barChart({ items: ds.map(q => ({ label: fmtD(q).split(' ')[0], title: fmtD(q), v: day(q).study || 0, color: (day(q).study || 0) > 5 ? C.bad : (day(q).study || 0) > 4 ? C.warn : C.violet })), target: 4, targetLabel: '4 h daily ceiling', fmt: r1 })}</div></div>
+    </div>
+    ${drawer('sessions', 'Timer history', `${S.sessions.length} sessions`, S.sessions.length ? `<div class="scroll tall"><table><tr><th>Date</th><th>Session</th><th class="n">Minutes</th></tr>${[...S.sessions].reverse().map(s => `<tr><td>${fmtD(s.date)}</td><td>${esc(s.type === 'study' ? 'Deep study block' : GUIDES[s.type]?.name || s.type)}</td><td class="n">${r0(s.min)}</td></tr>`).join('')}</table></div>` : '<p class="small mut">Finish a timer and it appears here.</p>')}
+  </div>`;
+}
+
+/* ============ modals ============ */
+let CUR = null; // food open in the dissector
+const closeModal = () => { $('#modal').innerHTML = ''; CUR = null; if (T) { clearInterval(T.iv); T = null; } };
+function sheet(html) { $('#modal').innerHTML = `<div class="modal" data-act="backdrop"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`; }
+function foodSheet(f) {
+  CUR = f; const fl = foodFlags(f).fl, sc = foodScore(f), enz = enzymes(f), dz = does(f), g = f.cat === 'other' ? 1 : 100, hr = new Date().getHours(), ml = hr < 11 ? 'Breakfast' : hr < 15 ? 'Lunch' : hr < 20 ? 'Dinner' : 'Snacks';
+  sheet(`<div class="row"><div style="flex:1;min-width:0"><div class="eyebrow">${f.src === 'off' ? 'Open Food Facts · UK' : 'Whole-food library · raw weight'}</div><h2>${esc(f.name)}</h2></div>${scoreDot(sc)}</div>
+    ${fl.map(alertBox).join('')}
+    <div class="grid g4">${tile('kcal', r0(f.kcal), 'per 100 g')}${tile('Protein', r1(f.p) + ' g', '')}${tile('Carbs', r1(f.c) + ' g', `fibre ${r1(f.fib)} g`)}${tile('Fat', r1(f.f) + ' g', '')}</div>
+    <div class="grid g2">${tile('Sodium', f.src === 'off' && !f.naKnown ? 'not listed' : r0(f.na) + ' mg', `${r0(f.na / cfg().naCap * 100)}% of cap per 100 g`, f.na >= 600 ? 'bad' : f.na >= 300 ? 'warn' : '')}${tile('Potassium', f.src === 'off' && !f.kKnown ? 'not on label' : r0(f.k) + ' mg', `${r0(f.k / cfg().kTarget * 100)}% of goal per 100 g`)}</div>
+    ${f.mic ? `<div><div class="eyebrow">Key micronutrients</div><p class="small" style="margin-top:4px">${esc(f.mic)}</p></div>` : ''}
+    <div><div class="eyebrow">What it does for your body</div><ul class="small mut" style="margin:6px 0 0;padding-left:18px">${dz.map(x => `<li style="margin-bottom:5px">${esc(x)}</li>`).join('')}</ul></div>
+    <div><div class="eyebrow">Digestive enzyme profile</div><ul class="small mut" style="margin:6px 0 0;padding-left:18px">${enz.map(x => `<li style="margin-bottom:5px">${esc(x)}</li>`).join('') || '<li>Nothing to break down.</li>'}</ul></div>
+    <p class="tiny mut">Longevity score ${sc}/100 is a house score: protein, fibre and potassium per calorie plus protective nutrients, minus sodium, sugar density and processing. Values are typical and can be 10–20% out.</p>
+    <div class="grid g3">${field('Grams (raw weight)', `<input class="in" id="fs_g" inputmode="decimal" value="${g}">`)}${field('Meal', `<select class="in" id="fs_meal">${['Breakfast', 'Lunch', 'Dinner', 'Snacks'].map(m => `<option ${m === ml ? 'selected' : ''}>${m}</option>`).join('')}</select>`)}<div class="field"><label>&nbsp;</label><button class="btn pri" data-act="addFood">Add to today</button></div></div>
+    <button class="btn ghost" data-act="close">Close</button>`);
+}
+function logFood(f, g, meal, d = today()) {
+  const k = g / 100, fg = foodFlags(f);
+  (S.food[d] ||= []).push({ id: uid(), name: f.name, g, meal, kcal: f.kcal * k, p: f.p * k, c: f.c * k, f: f.f * k, fib: f.fib * k, na: f.na * k, k: f.k * k, crucif: fg.cru ? 1 : 0 });
+}
+function settingsSheet() {
+  const c = cfg(), p = S.profile, inp = (id, label, v, extra = '') => field(label, `<input class="in" id="${id}" value="${esc(v ?? '')}" ${extra}>`);
+  sheet(`<h2>Settings and data</h2>
+    <div class="eyebrow">Profile</div><div class="grid g3">${inp('s_dob', 'Date of birth', p.dob, 'type="date"')}${inp('s_h', 'Height (cm)', p.heightCm)}${field('Coeliac', `<select class="in" id="s_coe"><option value="0">No</option><option value="1" ${p.coeliac ? 'selected' : ''}>Yes: flag gluten</option></select>`)}</div>
+    <div class="eyebrow">Fuel</div><div class="grid g3">${inp('s_kcal', 'Cut calories', c.kcal)}${inp('s_sat', 'Saturday calories', c.satKcal)}${inp('s_maint', 'Maintenance', c.maintenance)}${inp('s_pro', 'Protein (g)', c.protein)}${inp('s_fat', 'Fat (g)', c.fat)}${inp('s_floor', 'Weight floor (lb)', c.floor)}${inp('s_na', 'Sodium cap (mg)', c.naCap)}${inp('s_k', 'Potassium goal (mg)', c.kTarget)}${inp('s_ref', 'Refeed calories', c.refeedKcal)}</div>
+    <div class="eyebrow">Training and study</div><div class="grid g3">${inp('s_slo', 'Steps minimum', c.stepsLo)}${inp('s_swk', 'Steps per week', c.stepsWeek)}${inp('s_study', 'Deep study h/week', c.studyTarget)}${inp('s_bed', 'In bed by', c.bedBy, 'type="time"')}${inp('s_dl', 'Last deload began', c.lastDeload, 'type="date"')}${inp('s_ex', 'Excluded foods (comma list)', (c.excluded || []).join(', '), 'style="font-family:var(--f-b)"')}</div>
+    <div><button class="btn pri" data-act="saveSettings">Save settings</button></div>
+    <div class="eyebrow">Backup</div>
+    <p class="small mut">Your data lives only in this browser. Copy a backup now and then, and paste it here on another device to move.</p>
+    <div class="row"><button class="btn" data-act="copyBackup">Copy backup</button><button class="btn ghost" data-act="dlBackup">Download .json</button><label class="btn ghost">Import a file<input type="file" id="impFile" accept=".json,application/json" hidden></label></div>
+    ${field('Paste a backup or starting file', '<textarea class="in" id="impText" rows="4" style="font-family:var(--f-m);font-size:12px" placeholder="{ ... }"></textarea>')}
+    <div class="row"><button class="btn" data-act="importText">Import pasted data</button><span class="sp"></span>${readSeed() ? '<button class="btn danger sm" data-act="resetSeed" data-step="1">Reset to starting data</button>' : ''}<button class="btn danger sm" data-act="wipe" data-step="1">Erase everything</button></div>
+    <button class="btn ghost" data-act="close">Close</button>`);
+}
+function textSheet(title, text, note) {
+  sheet(`<h2>${esc(title)}</h2>${note ? `<p class="small mut">${esc(note)}</p>` : ''}<textarea class="in" id="outText" rows="16" readonly style="font-family:var(--f-m);font-size:12px">${esc(text)}</textarea><div class="row"><button class="btn pri" data-act="copyOut">Copy</button><button class="btn ghost" data-act="close">Close</button></div>`);
+}
+function report() {
+  const d = today(), ds = lastN(7, d), c = cfg(), av = k => { const v = ds.map(x => day(x)[k]).filter(has); return v.length ? r1(mean(v)) : 'n/a'; }, a = latestAvg(), a0 = latestAvg(dAdd(d, -7)), wr = weekRuns(dAdd(d, -6)), wg = weekGym(dAdd(d, -6)), sc = axisScores(), ba = bioAge(), X = xp(), tr = triggers(d);
+  const cal = ds.filter(x => !day(x).partial).map(x => eaten(x)).filter(has), onT = ds.filter(x => eaten(x) != null && Math.abs(eaten(x) - target(x).kcal) <= 100).length;
+  const steps = ds.reduce((s, x) => s + (day(x).steps || 0), 0), study = ds.reduce((s, x) => s + (day(x).study || 0), 0);
+  const bands = ds.map(x => readiness(x).band || '-').join('').toUpperCase();
+  return [`WEEKLY BOARDROOM REPORT · ${fmtD(ds[0])} to ${fmtD(d)}`,
+    `WEIGHT: 7-day avg ${a ? r1(a.v) : 'n/a'} lb (prev ${a0 ? r1(a0.v) : 'n/a'}) | floor ${c.floor ?? 'n/a'} | to floor ${a && c.floor ? r1(a.v - c.floor) : 'n/a'} lb | 21-day trend ${trend() != null ? (trend() * 7).toFixed(2) + ' lb/wk' : 'n/a'}`,
+    `FUEL: phase ${c.phase} | target ${target(d).kcal} | avg eaten ${cal.length ? r0(mean(cal)) : 'n/a'} kcal (${cal.length}/7 logged) | on target ${onT}/7 | days since refeed ${deficitRun(d)} | sodium ${ds.map(x => (day(x).sodium || '-')[0]).join('')}`,
+    `RECOVERY: RHR avg ${av('rhr')} (baseline ${rhrBase(d) ? r0(rhrBase(d)) : 'n/a'}) | HRV ${av('hrv')} | sleep ${av('sleep')} h | consistency ${circadian(7).score != null ? r0(circadian(7).score) : 'n/a'} | stress ${av('stress')} | readiness ${bands} | stress load ${stressLoad(d).score}`,
+    `RUNNING: ${wr.n} runs, ${r1(wr.km)} km, ${wr.hard} hard, ${wr.sub} sub-threshold, ${r0(wr.easyMin)} easy min | VO2max est ${vo2now() ? r1(vo2now().v) : 'n/a'}`,
+    `PRs: ${S.prs.map(p => `${p.name} ${fmtT(p.cur)} (goal ${fmtT(p.goal)}, ${(p.goal / p.cur * 100).toFixed(1)}%)`).join(' | ') || 'n/a'}`,
+    `GYM: ${wg.n} days, ${wg.total} sets | ${Object.entries(wg.sets).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`,
+    `STEPS: ${steps.toLocaleString()} / ${c.stepsWeek.toLocaleString()} | STUDY: ${r1(study)} / ${c.studyTarget} h deep | cellular avg ${av('cellular')}%`,
+    `SCORES (0-100): ${AXES.map((n, i) => `${n} ${sc[i]}`).join(' | ')}`,
+    `AGE: chrono ${ba.chrono.toFixed(2)} | bio est ${ba.bio.toFixed(2)} | pace ${ba.pace.toFixed(2)} | rank ${X.rank} ${X.total} XP | streak ${streak().n}`,
+    `FLAGS: ${tr.map(t => t.t).join('; ') || 'none'} | low-energy signs ticked ${Object.values(S.reds).filter(Boolean).length}`,
+    `TROPHIES: ${trophies().filter(t => t.on).map(t => t.name).join(', ') || 'none'}`].join('\n');
+}
+
+/* ============ timers ============ */
+let T = null, actx = null;
+function chime() { try { const t = actx.currentTime;[523, 659, 784].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(0.0001, t + i * .28); g.gain.exponentialRampToValueAtTime(0.14, t + i * .28 + .04); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .28 + 1.1); o.start(t + i * .28); o.stop(t + i * .28 + 1.2); }); } catch (e) { /* no sound available */ } }
+function openTimer(type) {
+  const g = type === 'study' ? { name: 'Deep study block', min: 90 } : GUIDES[type];
+  T = { type, g, total: g.min * 60, left: g.min * 60, running: false, iv: null };
+  sheet(`<div class="eyebrow">${type === 'study' ? 'One ultradian cycle' : type === 'urge' ? 'Impulse shield' : 'Nervous system reset'}</div><h2>${esc(g.name)}</h2>
+    ${type === 'study' ? '' : '<div class="orb" id="orb"></div>'}<div class="tcount" id="tcount">${fmtClock(T.left)}</div><div class="cue" id="cue">${type === 'study' ? 'Phone in another room. One task. Write it down first.' : type === 'sigh' ? 'Two inhales through the nose, one long exhale.' : esc(g.cues[0])}</div>
+    ${g.note ? `<p class="tiny mut">${esc(g.note)}</p>` : ''}
+    <div class="row" style="justify-content:center"><button class="btn pri" data-act="tStart" id="tBtn">Start</button>${type === 'study' ? '<button class="btn" data-act="tEnd">End and log time so far</button>' : ''}<button class="btn ghost" data-act="close">Close</button></div>`);
+}
+const fmtClock = s => { s = Math.ceil(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+function tick() {
+  if (!T || !T.running) return;
+  T.left = Math.max(0, (T.end - Date.now()) / 1000); const el = T.total - T.left, tc = $('#tcount'); if (!tc) return;
+  tc.textContent = fmtClock(T.left);
+  const cue = $('#cue'), orb = $('#orb');
+  if (T.type === 'sigh') { let p = el % 9, acc = 0; for (const ph of T.g.cycle) { if (p < acc + ph[1]) { if (cue.textContent !== ph[0]) { cue.textContent = ph[0]; orb.style.transitionDuration = ph[1] + 's'; orb.style.transform = `scale(${ph[2]})`; } break; } acc += ph[1]; } }
+  else if (T.g.cues) { const i = Math.min(T.g.cues.length - 1, Math.floor(el / (T.total / T.g.cues.length))); if (cue.textContent !== T.g.cues[i]) cue.textContent = T.g.cues[i]; if (orb) { const b = el % 10; orb.style.transitionDuration = (b < 4 ? 4 : 6) + 's'; orb.style.transform = `scale(${b < 4 ? 1 : 0.6})`; } }
+  if (T.left <= 0) finishTimer(T.total / 60);
+}
+function finishTimer(min) {
+  const type = T.type; clearInterval(T.iv); T.running = false;
+  S.sessions.push({ id: uid(), date: today(), type, min: r1(min) });
+  if (type === 'study') D(today()).study = r1((day(today()).study || 0) + min / 60);
+  save(); chime(); T = null; $('#modal').innerHTML = ''; render();
+  toast(type === 'study' ? `Block logged: ${r0(min)} min of deep work. Stand up, look at something far away, drink water.` : type === 'urge' ? 'Wave ridden. +50 resilience XP.' : 'Done. +50 resilience XP.');
+}
+
+/* ============ sync line ============ */
+function parseSync(str) {
+  const parts = str.replace(/^\s*SYNC\s*:?/i, '').split('|').map(s => s.trim()).filter(Boolean), out = { f: {}, n: 0 };
+  const ORDER = ['WT', 'RHR', 'HRV', 'SLEEP', 'DEEP', 'REM', 'STEPS', 'CALS', 'STUDY', 'CELLULAR', 'STRESS', 'SODIUM'];
+  const MAP = { WT: 'wt', WEIGHT: 'wt', RHR: 'rhr', HRV: 'hrv', SLEEP: 'sleep', DEEP: 'deep', REM: 'rem', STEPS: 'steps', CALS: 'cals', KCAL: 'cals', CALORIES: 'cals', STUDY: 'study', CELLULAR: 'cellular', STRESS: 'stress', SORE: 'sore', SORENESS: 'sore', URGE: 'urge', LIGHT: 'light', MOOD: 'mood', PUFF: 'puff' };
+  const keyed = parts.some(p => /^[A-Za-z_ ]+\s*[=:]/.test(p) && !/^\d{1,2}:\d{2}/.test(p));
+  let pos = 0;
+  parts.forEach(p => {
+    let k, v; const m = p.match(/^([A-Za-z_ ]+?)\s*[=:]\s*(.*)$/);
+    if (keyed) { if (!m) return; k = m[1].toUpperCase().trim(); v = m[2].trim(); }
+    else { if (/^\d{4}-\d{2}-\d{2}$/.test(p)) { k = 'DATE'; v = p; } else { k = ORDER[pos++]; v = p; } }
+    v = v.replace(/^\[|\]$/g, '').trim(); if (!v || /^(—|–|-|n\/?a|none|null)$/i.test(v)) return;
+    if (k === 'DATE') { if (/^\d{4}-\d{2}-\d{2}$/.test(v)) out.date = v; return; }
+    if (k === 'SODIUM') { const s = v.toLowerCase(); out.f.sodium = /^l/.test(s) ? 'low' : /^m/.test(s) ? 'med' : /^h/.test(s) ? 'high' : (num(s) != null ? (num(s) <= 1700 ? 'low' : num(s) <= 2200 ? 'med' : 'high') : undefined); if (out.f.sodium) out.n++; return; }
+    if (k === 'BED' || k === 'WAKE') { if (/^\d{1,2}:\d{2}$/.test(v)) { out.f[k.toLowerCase()] = v.padStart(5, '0'); out.n++; } return; }
+    if (k === 'RUN') { const km = v.match(/([\d.]+)\s*k/i), tm = v.match(/(\d+:\d{2}(?::\d{2})?)/), ty = v.match(/\b(easy|hard|speed|sub|tt|steady)\b/i); if (km && tm) { out.run = { km: +km[1], sec: parseT(tm[1]), type: ty ? ty[1].toLowerCase() : 'easy', name: v }; out.n++; } return; }
+    if (k === 'LIFT' || k === 'GYM') { const n = v.match(/(\d+)\s*(sets)?\s*$/i), fo = v.replace(/(\d+)\s*(sets)?\s*$/i, '').trim() || 'gym'; out.lift = { focus: fo, sets: { [fo.toLowerCase()]: n ? +n[1] : 0 } }; out.n++; return; }
+    const key = MAP[k]; if (!key) return; const n = num(v.replace(/,/g, '').replace(/[^\d.\-]/g, '')); if (n == null) return;
+    out.f[key] = n; out.n++;
+  });
+  return out;
+}
+
+/* ============ shell ============ */
+const TABS = [['command', 'Command'], ['engine', 'Engine'], ['longevity', 'Longevity'], ['fuel', 'Fuel'], ['mind', 'Mind']];
+const VIEWS = { command: vCommand, engine: vEngine, longevity: vLongevity, fuel: vFuel, mind: vMind };
+function render() {
+  const tab = VIEWS[S.ui.tab] ? S.ui.tab : 'command', c = cfg(), X = xp(), rd = readiness();
+  $('#tabs').innerHTML = TABS.map(t => `<button role="tab" aria-selected="${t[0] === tab}" data-act="tab" data-tab="${t[0]}">${t[1]}</button>`).join('');
+  $('#chipPhase').innerHTML = `<span class="dot ${rd.band || ''}"></span><b>${{ cut: 'Cut', reverse: 'Reverse diet', maintain: 'Maintenance' }[c.phase] || 'Cut'}</b> ${target().kcal.toLocaleString()} kcal`;
+  $('#chipRank').innerHTML = `<b class="gold">${X.rank}</b> ${X.total.toLocaleString()} XP`;
+  const y = window.scrollY; $('#view').innerHTML = VIEWS[tab](); window.scrollTo(0, y);
+}
+let toastT; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 4200); }
+function importData(text) {
+  try { const j = JSON.parse(text); if (!j || typeof j !== 'object' || (!j.days && !j.settings && !j.profile)) throw 0; const ui = S.ui; S = merge(DEF(), j); S.ui = { ...ui, ...(j.ui || {}) }; delete S.fresh; save(); closeModal(); render(); toast('Data loaded.'); }
+  catch (e) { toast('That is not a valid data file. It should start with { and include days or settings.'); }
+}
+function copyText(text, okMsg) { const done = () => toast(okMsg); try { navigator.clipboard.writeText(text).then(done, () => { textSheet('Copy this', text, 'Select all and copy.'); }); } catch (e) { textSheet('Copy this', text, 'Select all and copy.'); } }
+const backup = () => { const c = JSON.parse(JSON.stringify(S)); delete c.fresh; return JSON.stringify(c); };
+function confirmStep(el, fn) { if (el.dataset.step === '1') { el.dataset.step = '2'; el.textContent = 'Tap again to confirm'; setTimeout(() => { if (el.isConnected) { el.dataset.step = '1'; } }, 4000); } else fn(); }
+
+const ACT = {
+  tab: el => { S.ui.tab = el.dataset.tab; save(); render(); window.scrollTo(0, 0); },
+  backdrop: (el, e) => { if (e.target === el) closeModal(); },
+  close: closeModal,
+  openSettings: settingsSheet,
+  focusLog: () => { S.ui.open.log = true; render(); $('#f_wt')?.focus(); $('#f_wt')?.scrollIntoView({ block: 'center' }); },
+  logDate: el => { const n = +el.dataset.n; S.ui.logDate = n === 0 ? today() : dAdd(S.ui.logDate || today(), n); if (S.ui.logDate > today()) S.ui.logDate = today(); render(); },
+  flag: el => { const x = D(el.dataset.date); x[el.dataset.k] = !x[el.dataset.k]; save(); render(); },
+  timer: el => openTimer(el.dataset.type),
+  tStart: el => { if (!T) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* silent */ } } try { navigator.wakeLock?.request('screen').catch(() => { }); } catch (e) { /* optional */ } if (T.running) { T.running = false; T.left = Math.max(0, (T.end - Date.now()) / 1000); clearInterval(T.iv); el.textContent = 'Resume'; } else { T.running = true; T.end = Date.now() + T.left * 1000; T.iv = setInterval(tick, 250); el.textContent = 'Pause'; tick(); } },
+  tEnd: () => { if (!T) return; const left = T.running ? Math.max(0, (T.end - Date.now()) / 1000) : T.left, min = (T.total - left) / 60; if (min < 5) { toast('Under 5 minutes: nothing logged.'); closeModal(); return; } finishTimer(min); },
+  report: () => textSheet('Sunday boardroom report', report(), 'Paste this to your coach for the weekly grade and next week’s three missions.'),
+  copyOut: () => { const t = $('#outText'); t.select(); copyText(t.value, 'Copied.'); },
+  copyBackup: () => copyText(backup(), 'Backup copied. Paste it somewhere safe.'),
+  dlBackup: () => { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([backup()], { type: 'application/json' })); a.download = `apex-hud-${today()}.json`; a.click(); toast('If no file appeared, this viewer blocks downloads: use Copy backup.'); } catch (e) { toast('Downloads are blocked here. Use Copy backup.'); } },
+  importText: () => importData($('#impText').value),
+  startBlank: () => { delete S.fresh; D(today()); S.days[today()].note = ''; save(); S.ui.open.log = true; settingsSheet(); render(); },
+  resetSeed: el => confirmStep(el, () => { const s = readSeed(); S = merge(DEF(), s); save(); closeModal(); render(); toast('Back to the starting data.'); }),
+  wipe: el => confirmStep(el, () => { try { localStorage.removeItem(KEY); } catch (e) { /* nothing stored */ } S = DEF(); S.fresh = true; closeModal(); render(); }),
+  saveSettings: () => { const c = cfg(), g = id => num($('#' + id).value); S.profile.dob = $('#s_dob').value; S.profile.heightCm = g('s_h') || S.profile.heightCm; S.profile.coeliac = $('#s_coe').value === '1';
+    [['kcal', 's_kcal'], ['satKcal', 's_sat'], ['maintenance', 's_maint'], ['protein', 's_pro'], ['fat', 's_fat'], ['floor', 's_floor'], ['naCap', 's_na'], ['kTarget', 's_k'], ['refeedKcal', 's_ref'], ['stepsLo', 's_slo'], ['stepsWeek', 's_swk'], ['studyTarget', 's_study']].forEach(([k, id]) => { const v = g(id); if (v != null || ['satKcal', 'maintenance', 'floor'].includes(k)) c[k] = v; });
+    if (c.fat < 45) { c.fat = 45; toast('Fat held at the 45 g floor.'); }
+    c.bedBy = $('#s_bed').value || c.bedBy; c.lastDeload = $('#s_dl').value || null; c.excluded = $('#s_ex').value.split(',').map(s => s.trim()).filter(Boolean); save(); closeModal(); render(); toast('Settings saved.'); },
+  refeedToday: () => { D(today()).refeed = true; save(); render(); toast(`Refeed day: ${cfg().refeedKcal.toLocaleString()} kcal. Extra carbs from rice, potatoes, oats and fruit. Salt as usual.`); },
+  refeedOff: () => { D(today()).refeed = false; save(); render(); },
+  startReverse: () => { const c = cfg(); c.reverseFrom = target().mode === 'cut' ? target().kcal : c.kcal; c.phase = 'reverse'; c.reverseStart = today(); save(); render(); toast(`Reverse diet started: ${target().kcal.toLocaleString()} kcal this week.`); },
+  backToCut: () => { cfg().phase = 'cut'; cfg().reverseStart = null; save(); render(); },
+  markDeload: () => { cfg().lastDeload = today(); save(); render(); toast('Deload started. Five easy days: no hard runs, half the sets, maintenance calories.'); },
+  hist: el => { S.ui.hist = el.dataset.k; S.ui.open.history = true; render(); },
+  editPr: el => { const p = S.prs.find(x => x.id === el.dataset.id); sheet(`<h2>${esc(p.name)}</h2><div class="grid g3">${field('Current best', `<input class="in" id="pr_cur" value="${fmtT(p.cur).replace(' s', '')}">`)}${field('Goal', `<input class="in" id="pr_goal" value="${fmtT(p.goal).replace(' s', '')}">`)}${field('All-time best', `<input class="in" id="pr_pb" value="${has(p.pb) ? fmtT(p.pb).replace(' s', '') : ''}">`)}</div><p class="tiny mut">Times as seconds (58.4) or minutes:seconds (17:45).</p><div class="row"><button class="btn pri" data-act="savePr" data-id="${p.id}">Save</button><button class="btn ghost" data-act="close">Cancel</button></div>`); },
+  savePr: el => { const p = S.prs.find(x => x.id === el.dataset.id), cur = parseT($('#pr_cur').value), goal = parseT($('#pr_goal').value), pb = parseT($('#pr_pb').value); if (cur) { if (cur < p.cur) toast(cur <= p.goal ? 'Boss down. Goal beaten.' : `New best: ${fmtT(p.cur - cur)} faster.`); p.cur = cur; } if (goal) p.goal = goal; p.pb = pb && cur ? Math.min(pb, cur) : pb || p.pb; save(); closeModal(); render(); },
+  addRun: () => { const km = num($('#r_km').value), sec = parseT($('#r_time').value); if (!km || !sec) return toast('Enter a distance and a time.'); S.runs.push({ id: uid(), date: $('#r_date').value || today(), km, sec, type: $('#r_type').value, name: $('#r_name').value.trim() }); S.runs.sort((a, b) => a.date.localeCompare(b.date)); save(); render(); toast(`Run saved: ${pace(sec, km)}.`); },
+  addGym: () => { const sets = {}; $('#g_sets').value.split(',').forEach(s => { const m = s.trim().match(/^(.+?)\s+(\d+)$/); if (m) sets[m[1].toLowerCase()] = +m[2]; }); const focus = $('#g_focus').value.trim(); if (!focus && !Object.keys(sets).length) return toast('Enter a focus or sets, for example “back 14, biceps 6”.'); S.gym.push({ id: uid(), date: $('#g_date').value || today(), focus, sets, note: $('#g_note').value.trim() }); S.gym.sort((a, b) => a.date.localeCompare(b.date)); save(); render(); toast('Session saved.'); },
+  addLift: () => { const lift = $('#l_lift').value.trim(), reps = num($('#l_reps').value), kg = num($('#l_kg').value); if (!lift || !reps) return toast('Enter the lift and the reps.'); S.lifts.push({ id: uid(), date: $('#l_date').value || today(), lift, kg, reps }); save(); S.ui.open.overload = true; render(); toast('Lift saved.'); },
+  addForm: () => { const notes = $('#v_notes').value.trim(); if (!notes) return toast('Paste the coaching notes first.'); S.form.push({ id: uid(), date: $('#v_date').value || today(), kind: $('#v_kind').value, title: $('#v_title').value.trim() || 'Review', notes }); save(); S.ui.open.form = true; render(); },
+  addBlood: () => { const v = num($('#b_val').value); if (v == null) return toast('Enter the value.'); S.bloods.push({ id: uid(), date: $('#b_date').value || today(), marker: $('#b_marker').value, value: v }); save(); render(); toast('Result saved. The age clock has been updated.'); },
+  addBp: () => { const s = num($('#bp_sys').value), di = num($('#bp_dia').value); if (!s || !di) return toast('Enter both numbers.'); S.bp.push({ date: $('#bp_date').value || today(), sys: s, dia: di }); save(); render(); },
+  del: el => { const [k, id] = el.dataset.k.split(':'), rm = (arr) => { const i = arr.findIndex(x => x.id === id); if (i >= 0) arr.splice(i, 1); };
+    ({ delRun: () => rm(S.runs), delGym: () => rm(S.gym), delLift: () => rm(S.lifts), delForm: () => rm(S.form), delBlood: () => rm(S.bloods), delFood: () => rm(S.food[today()] || []) })[k]?.(); save(); render(); },
+  food: el => foodSheet(el.dataset.src === 'lib' ? LIB[+el.dataset.i] : OFF.res[+el.dataset.i]),
+  addFood: () => { const g = num($('#fs_g').value); if (!g || g <= 0) return toast('Enter the grams.'); const f = CUR, fl = foodFlags(f); logFood(f, g, $('#fs_meal').value); save(); closeModal(); render(); toast(S.profile.coeliac && fl.gl ? 'Added, but this is flagged for gluten. Check the pack.' : `Added ${r0(g)} g ${f.name}.`); },
+  offGo: () => { const q = $('#foodQ').value.trim(); if (q.length < 2) return toast('Type at least two letters.'); S.ui.q = q; S.ui.store = $('#foodStore').value; offSearch(q, S.ui.store); },
+  fav: el => { const fv = S.favs[+el.dataset.i]; let miss = 0; fv.items.forEach(it => { const f = it.kcal != null ? it : LIB.find(x => x.name === it.name); if (!f) { miss++; return; } if (it.kcal != null) (S.food[today()] ||= []).push({ ...it, id: uid(), meal: fv.meal }); else logFood(f, it.g, fv.meal); }); save(); render(); toast(`${fv.name} logged${miss ? ` (${miss} item not found)` : ''}.`); },
+  saveFav: el => { const ml = el.dataset.meal, es = (S.food[today()] || []).filter(x => x.meal === ml); S.favs.push({ name: `${ml} ${fmtD(today())}`, meal: ml, items: es.map(x => ({ ...x })) }); save(); render(); toast('Saved as a one-tap meal.'); }
+};
+document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (!el) return; const fn = ACT[el.dataset.act]; if (fn) fn(el, e); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modal').innerHTML) closeModal(); });
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.f) {
+    const x = D(el.dataset.date), k = el.dataset.f, txt = ['bed', 'wake', 'note', 'sodium'].includes(k);
+    const v = txt ? el.value : num(el.value.replace(/,/g, ''));
+    if (v === '' || v == null) delete x[k]; else x[k] = v;
+    if ((k === 'bed' || k === 'wake') && x.bed && x.wake && !has(x.sleep)) { const b = bedMin(x.bed), w = wakeMin(x.wake) + 360; if (w > b) x.sleep = r1((w - b) / 60); }
+    save(); render();
+  } else if (el.dataset.check) { const x = D(el.dataset.date); (x.checks ||= {})[el.dataset.check] = el.checked; save(); render(); }
+  else if (el.dataset.reds) { S.reds[el.dataset.reds] = el.checked; save(); render(); }
+  else if (el.id === 'impFile' && el.files[0]) { const r = new FileReader(); r.onload = () => importData(r.result); r.readAsText(el.files[0]); }
+});
+document.addEventListener('toggle', e => { const el = e.target; if (el.matches?.('details.drawer')) { S.ui.open[el.dataset.id] = el.open; save(); } }, true);
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'syncForm') {
+    const p = parseSync($('#syncIn').value); if (!p.n) return toast('Nothing recognised. Format: SYNC: WT=150.2 | RHR=52 | SLEEP=8 | STEPS=10000 | CALS=2000');
+    const d = p.date || today(); Object.assign(D(d), p.f);
+    if (p.run) S.runs.push({ id: uid(), date: d, ...p.run }); if (p.lift) S.gym.push({ id: uid(), date: d, ...p.lift });
+    save(); $('#syncIn').value = ''; render(); const rd = readiness(d); toast(`Synced ${p.n} fields for ${fmtD(d)}.${rd.band ? ' Readiness: ' + RX[rd.band].name + '.' : ''}`);
+  } else if (e.target.id === 'foodForm') { S.ui.q = $('#foodQ').value.trim(); S.ui.store = $('#foodStore').value; OFF = { q: '', res: null, busy: false, err: '' }; render(); $('#foodQ')?.focus(); }
+});
+load(); render();
+setInterval(() => { const c = $('#clkC'); if (c && S.profile.dob) c.textContent = ageYears().toFixed(7); }, 1000);
+setInterval(() => { if (!$('#modal').innerHTML && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA' && document.activeElement?.tagName !== 'SELECT') render(); }, 300000);
+</script>
