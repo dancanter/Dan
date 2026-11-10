@@ -595,7 +595,7 @@ function macros(d = today()) {
 }
 function foodTotals(d) {
   const z = { kcal: 0, p: 0, c: 0, f: 0, fib: 0, na: 0, k: 0, n: 0, crucif: 0 };
-  (S.food[d] || []).forEach(e => { ['kcal', 'p', 'c', 'f', 'fib', 'na', 'k'].forEach(k => z[k] += +e[k] || 0); z.n++; if (e.crucif) z.crucif += e.g; });
+  (S.food[d] || []).forEach(e => { ['kcal', 'p', 'c', 'f', 'fib', 'na', 'k'].forEach(k => z[k] += +e[k] || 0); if (!(+e.fib) && e.m && e.m.fib) z.fib += e.m.fib; z.n++; if (e.crucif) z.crucif += e.g; });
   return z;
 }
 function eaten(d) { const t = foodTotals(d); return t.n ? t.kcal : (has(day(d).cals) ? day(d).cals : null); }
@@ -1798,7 +1798,7 @@ function libMatch(name) {
 }
 function addEntry(o, meal, d = today()) { // o: explicit totals for the portion; micros from the library when the name matches
   const f = libMatch(o.name), g = +o.g || 0, m = {}; if (f && f.m && g) for (const k in f.m) m[k] = f.m[k] * g / 100;
-  (S.food[d] ||= []).push({ id: uid(), name: o.name, g, meal, kcal: +o.kcal || 0, p: +o.p || 0, c: +o.c || 0, f: +o.f || 0, fib: +o.fib || 0, na: o.na != null ? +o.na : (f && g ? f.na * g / 100 : 0), k: o.k != null ? +o.k : (f && g ? f.k * g / 100 : 0), crucif: f && foodFlags(f).cru ? 1 : 0, m: f && f.m && g ? m : undefined });
+  (S.food[d] ||= []).push({ id: uid(), name: o.name, g, meal, kcal: +o.kcal || 0, p: +o.p || 0, c: +o.c || 0, f: +o.f || 0, fib: o.fib != null ? +o.fib : (f && g ? f.fib * g / 100 : 0), na: o.na != null ? +o.na : (f && g ? f.na * g / 100 : 0), k: o.k != null ? +o.k : (f && g ? f.k * g / 100 : 0), crucif: f && foodFlags(f).cru ? 1 : 0, m: f && f.m && g ? m : undefined });
 }
 function parseFood(str) { // FOOD: Lunch | Fage 0% 150g | eggs 100g | granola bar 40g 180kcal 4p 22c 8f
   const parts = str.replace(/^\s*FOOD\s*:?/i, '').split('|').map(s => s.trim()).filter(Boolean); let meal = null, date = today(), ok = 0; const miss = [];
