@@ -195,6 +195,8 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .sl-in{width:130px;font-size:16px}
 .sl-out{font:400 26px/1 var(--f-d);padding:0 6px 8px;min-width:90px}
 .sl-sum{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+[hidden]{display:none!important}
+.veil{position:fixed;inset:0;z-index:45;background:color-mix(in srgb,var(--bg) 70%,transparent);display:grid;place-items:center}.veil-in{background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:12px 18px;font-size:13px}
 </style>
 
 <div class="wrap">
@@ -202,6 +204,7 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
     <div class="brand">Apex <i>HUD</i></div>
     <span class="chip" id="chipPhase"></span>
     <span class="sp"></span>
+    <span class="chip" id="chipCloud"></span>
     <span class="chip" id="chipRank"></span>
     <button class="btn sm ghost" data-act="openSettings">Settings &amp; data</button>
   </header>
@@ -212,6 +215,7 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
   <nav class="tabs" role="tablist" id="tabs"></nav>
   <main id="view"></main>
 </div>
+<div id="loadVeil" class="veil" hidden><div class="veil-in">Loading your data from your account…</div></div>
 <div id="modal"></div>
 <div id="toast" class="toast" hidden></div>
 <script type="application/json" id="seed"></script>
@@ -535,7 +539,7 @@ function load() {
 let saveT;
 function save() {
   clearTimeout(saveT);
-  saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { memOnly = true; } }, 150);
+  saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { memOnly = true; } if (typeof cloudSoon === 'function') cloudSoon(); }, 150);
 }
 const D = d => (S.days[d] ||= {});
 const day = d => S.days[d] || {};
@@ -2383,10 +2387,83 @@ function puffCard() {
     <p class="tiny mut" style="margin-top:8px">Face puffiness is fluid, not fat: sodium jumps against your usual, low potassium, short sleep, cortisol, hard sessions and refeeds. All of it passes in a day or two. Sodium counts what is logged, so add your daily salt in Fuel.</p></div>`;
 }
 
+/* ============ saving to the account (db capability) ============
+   Browser storage inside the Claude app can come back empty after a reload, and every republish reloads
+   the page. So the record of truth lives in the viewer's private area of the artifact database:
+     data/users/<id>/core          everything except daily records and the per-device UI state
+     data/users/<id>/d-YYYY-MM-DD  one document per day: the day's log and its food
+   Each document carries `ts` (when it last changed). On load the newer copy of each piece wins, so a wiped
+   browser copy is refilled from the account, and an offline edit is pushed once the account answers.
+   Browser storage stays as a fast local cache. */
+const CL = { db: null, col: null, ready: false, busy: false, again: false, last: {}, state: 'local' };
+const CORE_SKIP = ['days', 'food', 'ui', 'fresh', 'ts'];
+const coreObj = () => { const o = {}; for (const k in S) if (!CORE_SKIP.includes(k)) o[k] = S[k]; return o; };
+const dayKeys = () => [...new Set([...Object.keys(S.days || {}), ...Object.keys(S.food || {})])].filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+const pieceJson = k => JSON.stringify(k === 'core' ? coreObj() : { day: S.days[k.slice(2)] || null, food: S.food[k.slice(2)] || [] });
+const EMPTY_DAY = JSON.stringify({ day: null, food: [] });
+function setCloud(st) {
+  CL.state = st; const el = $('#chipCloud'); if (!el) return;
+  const m = { local: ['', 'This device only'], loading: ['a', 'Loading your data…'], saving: ['a', 'Saving…'], saved: ['g', 'Saved to your account'], error: ['r', 'Not saved to account: retrying'], full: ['r', 'Account storage full'] }[st] || ['', st];
+  el.innerHTML = `<span class="dot ${m[0]}"></span>${m[1]}`; el.title = st === 'local' ? 'This copy cannot reach your Claude account, so data stays in this browser. Copy a backup in Settings now and then.' : '';
+  const ov = $('#loadVeil'); if (ov) ov.hidden = st !== 'loading';
+}
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r({ code: 'timeout' }), ms))]);
+async function cloudBoot() {
+  if (!window.claude || typeof window.claude.use !== 'function') return setCloud('local');
+  setCloud('loading');
+  try {
+    const [db, user] = await withTimeout(Promise.all([window.claude.use('db'), window.claude.use('user')]), 12000);
+    const id = db && user ? await user.id() : null;
+    if (!id) return setCloud('local');
+    CL.db = db; CL.col = db.collection('data/users/' + id);
+    const snap = await withTimeout(CL.col.get(), 15000), remote = {};
+    snap.docs.forEach(d => { if (d.exists) remote[d.id] = d.data(); });
+    S.ts ||= {}; let changed = false;
+    const rc = remote.core;
+    if (rc && rc.data && (rc.ts || 0) > (S.ts.core || 0)) { const keep = { ui: S.ui, days: S.days, food: S.food, ts: S.ts }; S = merge(DEF(), JSON.parse(JSON.stringify(rc.data))); Object.assign(S, keep); S.ts.core = rc.ts; changed = true; }
+    for (const [k, v] of Object.entries(remote)) {
+      if (!k.startsWith('d-') || !v || !v.data || (v.ts || 0) <= (S.ts[k] || 0)) continue;
+      const d = k.slice(2), b = JSON.parse(JSON.stringify(v.data));
+      if (b.day) S.days[d] = b.day; else delete S.days[d];
+      if (b.food && b.food.length) S.food[d] = b.food; else delete S.food[d];
+      S.ts[k] = v.ts; changed = true;
+    }
+    // what the account already holds, so only newer local pieces are sent
+    ['core', ...dayKeys().map(d => 'd-' + d)].forEach(k => { CL.last[k] = remote[k] && (remote[k].ts || 0) >= (S.ts[k] || 0) ? pieceJson(k) : null; });
+    Object.keys(remote).forEach(k => { if (k.startsWith('d-') && !(k in CL.last)) CL.last[k] = EMPTY_DAY; });
+    if (rc) delete S.fresh;
+    CL.ready = true; setCloud('saved');
+    if (changed) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* cache only */ } render(); toast('Your data is loaded from your account.'); }
+    cloudSave();
+  } catch (e) { setCloud(e && e.code === 'timeout' ? 'local' : 'error'); }
+}
+let cloudT;
+function cloudSoon() { if (!CL.ready) return; clearTimeout(cloudT); cloudT = setTimeout(cloudSave, 1200); }
+async function cloudSave() {
+  if (!CL.ready) return; if (CL.busy) { CL.again = true; return; }
+  CL.busy = true; let wrote = false;
+  try {
+    const keys = ['core', ...dayKeys().map(d => 'd-' + d)];
+    for (const k of keys) {
+      const j = pieceJson(k); if (j === CL.last[k]) continue;
+      if (!wrote) { setCloud('saving'); wrote = true; }
+      const ts = Date.now(); await CL.col.doc(k).set({ ts, data: JSON.parse(j) }); CL.last[k] = j; S.ts[k] = ts;
+    }
+    for (const k of Object.keys(CL.last)) if (k.startsWith('d-') && !keys.includes(k) && CL.last[k] !== EMPTY_DAY) { const ts = Date.now(); await CL.col.doc(k).set({ ts, data: { day: null, food: [] } }); CL.last[k] = EMPTY_DAY; S.ts[k] = ts; wrote = true; }
+    if (wrote) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* cache only */ } }
+    setCloud('saved');
+  } catch (e) { setCloud(e && e.code === 'quota_exceeded' ? 'full' : 'error'); setTimeout(cloudSoon, 15000); }
+  CL.busy = false; if (CL.again) { CL.again = false; cloudSave(); }
+}
+
 let dirtyR = false;
 function renderSoon() { dirtyR = true; setTimeout(() => { const a = document.activeElement; if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest('#view')) return; if (dirtyR) { dirtyR = false; render(); } }, 0); }
 document.addEventListener('focusout', () => { if (dirtyR) renderSoon(); });
-load(); render = (r => () => { r(); questCheck(); })(render); render();
+render = (r => () => { r(); questCheck(); })(render);
+// Keep what is in memory across a republish (the viewer hands it back), then reconcile with the account.
+function start(data) { if (data && data.S && data.S.days) { S = data.S; } else load(); render(); cloudBoot(); }
+try { window.claude?.hot?.snapshot?.(() => ({ S })); } catch (e) { /* not in a viewer */ }
+if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
 
 setInterval(() => { const c = $('#clkC'); if (c && S.profile.dob) c.textContent = ageYears().toFixed(7); }, 1000);
 setInterval(() => { if (!$('#modal').innerHTML && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA' && document.activeElement?.tagName !== 'SELECT') render(); }, 300000);
