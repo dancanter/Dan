@@ -2424,12 +2424,13 @@ async function cloudBoot() {
     for (const [k, v] of Object.entries(remote)) {
       if (!k.startsWith('d-') || !v || !v.data || (v.ts || 0) <= (S.ts[k] || 0)) continue;
       const d = k.slice(2), b = JSON.parse(JSON.stringify(v.data));
-      if (b.day) S.days[d] = b.day; else delete S.days[d];
-      if (b.food && b.food.length) S.food[d] = b.food; else delete S.food[d];
+      // combine, never wipe: the account's fields win, anything only this device holds is kept (and then sent)
+      if (b.day) S.days[d] = Object.assign({}, S.days[d] || {}, b.day);
+      if (b.food && b.food.length) S.food[d] = b.food;
       S.ts[k] = v.ts; changed = true;
     }
     // what the account already holds, so only newer local pieces are sent
-    ['core', ...dayKeys().map(d => 'd-' + d)].forEach(k => { CL.last[k] = remote[k] && (remote[k].ts || 0) >= (S.ts[k] || 0) ? pieceJson(k) : null; });
+    ['core', ...dayKeys().map(d => 'd-' + d)].forEach(k => { CL.last[k] = remote[k] && remote[k].data ? JSON.stringify(remote[k].data) : null; });
     Object.keys(remote).forEach(k => { if (k.startsWith('d-') && !(k in CL.last)) CL.last[k] = EMPTY_DAY; });
     if (rc) delete S.fresh;
     CL.ready = true; setCloud('saved');
