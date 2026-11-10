@@ -168,6 +168,19 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .prose{max-width:68ch;color:var(--fg)} .prose p{margin:0 0 8px;color:var(--mut)} .prose b{color:var(--fg);font-weight:500}
 .prose h3{font:400 19px/1.25 var(--f-d);margin:12px 0 6px}
 .prose ul{margin:0 0 8px;padding-left:18px;color:var(--mut)} .prose li{margin-bottom:5px}
+.tip{position:fixed;z-index:80;background:var(--fg);color:#0a0d11;font:500 12px var(--f-m);padding:6px 9px;border-radius:8px;pointer-events:none;max-width:260px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--gold);color:#1c1405;border:0;border-radius:999px;padding:13px 20px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.bub{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;white-space:pre-wrap;line-height:1.55}
+.bub.user{align-self:flex-end;background:var(--panel2);max-width:85%}
+.bub.assistant{border-color:color-mix(in srgb,var(--gold) 35%,var(--line))}
+.qbox{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex:none;margin-top:1px}
+.qbox.on{background:var(--gold);border-color:var(--gold)}
+.hgrid{display:flex;flex-direction:column;gap:7px}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) auto 86px;gap:10px;align-items:center;font-size:12px}
+.hn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hc{display:flex;gap:3px}.hc i{width:11px;height:11px;border-radius:3px;background:var(--line);cursor:pointer}.hc i.on{background:var(--acc)}
+.hrow .num{text-align:right}
+@media(max-width:520px){.hc i{width:8px;height:8px}.hrow{grid-template-columns:minmax(0,1fr) auto 64px}}
 </style>
 
 <div class="wrap">
@@ -767,6 +780,7 @@ function xp() { // rebuilt from the log every time, so edits and deletions just 
     if (has(x.steps) && x.steps >= cfg().stepsLo) a[0] += 10;
   });
   S.sessions.forEach(s => { if (s.type === 'study') a[5] += 30; else a[3] += 50; });
+  Object.values(S.quests || {}).forEach(q => { a[3] += (q.done || []).length * 25; });
   const total = r0(a.reduce((x, y) => x + y, 0));
   let ri = 0; RANKS.forEach((r, i) => { if (total >= r[1]) ri = i; });
   const next = RANKS[ri + 1];
@@ -890,7 +904,7 @@ function lineChart(o) {
       if (s.area) g += `<path d="${d} L${pts[pts.length - 1][0]} ${H - B} L${pts[0][0]} ${H - B} Z" fill="${s.color}" opacity=".08"/>`;
       g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w || 2}" stroke-linejoin="round" stroke-linecap="round" ${s.dash ? 'stroke-dasharray="4 4"' : ''}/>`;
     }
-    if (s.dots) pts.forEach(p => { g += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${s.r || 2.6}" fill="${s.color}" opacity="${s.op || 1}"><title>${fmtD(o.days[p[3]])}: ${f(p[2])}${o.unit || ''}</title></circle>`; });
+    if (s.dots) pts.forEach(p => { g += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${s.r || 2.6}" fill="${s.color}" opacity="${s.op || 1}"><title>${fmtD(o.days[p[3]])}: ${f(p[2])}${o.unit || ''}</title></circle><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${Math.max(7, Math.min(14, (W - L - R) / n / 2))}" fill="transparent" style="cursor:pointer" data-tip="${fmtD(o.days[p[3]])}: ${f(p[2])}${o.unit || ''}"/>`; });
     if (s.end) { const p = pts[pts.length - 1]; g += `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--bg)" stroke="${s.color}" stroke-width="2"/>`; }
   });
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || 'chart')}">${g}</svg>`;
@@ -904,6 +918,7 @@ function barChart(o) {
   o.items.forEach((it, i) => {
     const x = L + i * bw + bw * 0.18, w = bw * 0.64, y = Y(it.v || 0), h = Math.max(0, H - B - y);
     if (it.v > 0) g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${it.color || C.acc}"><title>${esc(it.title || it.label)}: ${o.fmt ? o.fmt(it.v) : r1(it.v)}</title></rect>`;
+    g += `<rect x="${(L + i * bw).toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${H - T - B}" fill="transparent" style="cursor:pointer" data-tip="${esc(it.title || it.label)}: ${it.v ? (it.v >= 1000 ? r0(it.v).toLocaleString() : r1(it.v)) + (o.unit || '') : 'nothing logged'}${it.extra ? ' · ' + esc(it.extra) : ''}"/>`;
     if (n <= 16 || i % Math.ceil(n / 8) === 0) g += `<text x="${(x + w / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${esc(it.label)}</text>`;
   });
   if (o.target) { const y = Y(o.target); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${C.gold}" stroke-dasharray="5 4"/><text x="${W - R}" y="${y - 4}" text-anchor="end" style="fill:${C.gold}">${esc(o.targetLabel || 'target')}</text>`; }
@@ -1023,6 +1038,7 @@ function vCommand() {
       ${tile('Resting HR', has(x.rhr) ? x.rhr : '–', rhrBase(d) ? `usual ${r0(rhrBase(d))}` : '')}
     </div>
 
+    <div class="grid g2">${questCard()}${studyCard()}</div>
     ${drawer('log', 'Today’s log', fmtDW(S.ui.logDate || d), vLog(S.ui.logDate || d), true)}
 
     <div class="grid g2">
@@ -1119,12 +1135,12 @@ function vEngine() {
     <div class="grid g2">
       <div class="panel"><div class="row"><span class="eyebrow">Resting HR${hd.some(x => has(day(x).hrv)) ? ' and HRV' : ''}</span><span class="sp"></span><span class="legend"><span><i style="background:var(--bad)"></i>RHR</span>${hd.some(x => has(day(x).hrv)) ? '<span><i style="background:var(--violet)"></i>HRV</span>' : ''}</span></div>
         <div style="margin-top:10px">${lineChart({ days: hd, dp: 0, unit: ' bpm', label: 'Resting heart rate', series: [{ vals: hd.map(x => day(x).rhr ?? null), color: C.bad, dots: true, end: true }, { vals: hd.map(x => day(x).hrv ?? null), color: C.violet, dots: true }], hlines: rhrBase(d) ? [{ y: rhrBase(d) + 4, color: C.warn, label: 'baseline +4' }] : [] })}</div></div>
-      <div class="panel"><div class="eyebrow">Weekly distance (km)</div><div style="margin-top:10px">${barChart({ items: weeks.map((w, i) => ({ label: fmtD(w), v: wrs[i].km, color: wrs[i].hard > 2 ? C.warn : C.acc, title: `Week of ${fmtD(w)} · ${wrs[i].n} runs, ${wrs[i].hard} hard` })), fmt: r0 })}</div><p class="tiny mut">Amber bars are weeks with three or more hard runs.</p></div>
+      <div class="panel"><div class="eyebrow">Weekly distance (km)</div><div style="margin-top:10px">${barChart({ items: weeks.map((w, i) => ({ label: fmtD(w), v: wrs[i].km, color: wrs[i].hard > 2 ? C.warn : C.acc, title: `Week of ${fmtD(w)}`, extra: `${wrs[i].n} runs, ${wrs[i].hard} hard` })), fmt: r0, unit: ' km' })}</div><p class="tiny mut">Amber bars are weeks with three or more hard runs.</p></div>
     </div>
     <div class="grid g2">
       <div class="panel"><div class="row"><span class="eyebrow">Pace trend (sec per km, lower is faster)</span><span class="sp"></span><span class="legend"><span><i style="background:var(--ok)"></i>easy</span><span><i style="background:var(--warn)"></i>quality</span></span></div>
         <div style="margin-top:10px">${(() => { const all = [...easy, ...qual].sort((p, q) => p.date.localeCompare(q.date)); if (all.length < 2) return '<p class="mut small">Log runs to see this.</p>'; const ds = lastN(dDiff(d, all[0].date) + 1, d); const m = t => ds.map(x => { const r = t.find(q => q.date === x); return r ? r.sec / r.km : null; }); return lineChart({ days: ds, dp: 0, unit: ' s/km', label: 'Pace trend', series: [{ vals: m(easy), color: C.ok, dots: true }, { vals: m(qual), color: C.warn, dots: true }] }); })()}</div></div>
-      <div class="panel"><div class="eyebrow">Steps, last 14 days</div><div style="margin-top:10px">${barChart({ items: lastN(14, d).map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: day(x).steps || 0, color: (day(x).steps || 0) > 14000 ? C.warn : (day(x).steps || 0) >= c.stepsLo ? C.acc : C.dim })), target: c.stepsLo, targetLabel: `${c.stepsLo / 1000}k minimum`, fmt: v => r0(v / 1000) + 'k' })}</div></div>
+      <div class="panel"><div class="eyebrow">Steps, last 14 days</div><div style="margin-top:10px">${barChart({ items: lastN(14, d).map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: day(x).steps || 0, color: (day(x).steps || 0) > 14000 ? C.warn : (day(x).steps || 0) >= c.stepsLo ? C.acc : C.dim })), target: c.stepsLo, targetLabel: `${c.stepsLo / 1000}k minimum`, fmt: v => r0(v / 1000) + 'k', unit: ' steps' })}</div></div>
     </div>
 
     <div class="panel"><div class="row"><span class="eyebrow">Hypertrophy split · sets this week</span><span class="sp"></span><span class="mut small">${wgs.n} of ${c.gymTarget} gym days</span></div>
@@ -1154,6 +1170,7 @@ function vLongevity() {
       ${st === 'post' ? '<p class="small mut" style="margin-top:8px">Straight back to the normal plan today. No compensation: no extra deficit, no extra steps, no skipped meals. Weigh in from the third morning.</p>' : `<div class="grid g2" style="margin-top:8px"><div><div class="tiny mut">72 hours before</div>${checklist(d, pre)}</div><div><div class="tiny mut">Travel mode</div>${checklist(d, trip)}</div></div>`}</div>`;
   })();
   return `<div class="stack fade">
+    ${longevityCard()}
     ${peakCard}
     <div class="grid g2">
       <div class="panel"><div class="row"><span class="eyebrow">Inside: cellular habits</span><span class="sp"></span><span class="num small mut">${checksDone(d, CELL_HABITS)}/${CELL_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, CELL_HABITS)}</div></div>
@@ -1255,6 +1272,8 @@ function vFuel() {
         <p class="tiny mut" style="margin-top:8px">Sodium counts only what is in the food log, so add your daily salt as “Sea salt” by the gram (1 g = 388 mg). Supermarket potassium is rarely on the label; whole-food values are from the library.</p></div>
     </div>
     ${alerts.length ? `<div class="stack" style="gap:8px">${alerts.map(alertBox).join('')}</div>` : ''}
+    ${microCard()}
+    ${fuelExtras()}
 
     <div class="panel"><div class="row"><span class="eyebrow">Food search</span><span class="sp"></span><span class="mut small">${LIB.length} whole-food staples built in · Open Food Facts for UK supermarket products</span></div>
       <form class="row" id="foodForm" style="margin-top:10px"><input class="in" style="flex:1;min-width:160px;font-family:var(--f-b)" id="foodQ" placeholder="Search: hake, Fage, oats, M&amp;S chicken…" value="${esc(q)}" autocomplete="off">
@@ -1281,7 +1300,7 @@ function vFuel() {
       ${ca ? `<div class="alert ${ca.actual < ca.expected * 0.5 ? 'a' : 'g'}" style="margin-top:12px"><span class="dot ${ca.actual < ca.expected * 0.5 ? 'a' : 'g'}"></span><div><b style="font-weight:500">Plan versus scale since the cut began</b><div class="mut">At the current target and a maintenance of ${c.maintenance.toLocaleString()} kcal, ${ca.days} days should have taken about <b>${ca.expected.toFixed(1)} lb</b> off the 7-day average. It has moved <b>${ca.actual >= 0 ? '−' : '+'}${Math.abs(ca.actual).toFixed(1)} lb</b> (${r1(ca.start)} → ${r1(ca.now)}). ${ca.actual < ca.expected * 0.5 ? 'The gap is about ' + r0((ca.expected - ca.actual) * 3500 / ca.days) + ' kcal a day. Either some eating is not reaching the log (weekends, refeeds, tastes, binges), or true maintenance is lower than assumed. Fourteen days of complete logging below will show which.' : 'The plan and the scale agree.'}</div></div></div>` : ''}
       ${ds.maint != null ? `<div class="kv" style="margin-top:8px"><span class="mut">Maintenance worked back from the scale (last ${ds.days} days)</span><span class="num">${r0(ds.maint).toLocaleString()} kcal</span></div><div class="kv"><span class="mut">Reality gap (model deficit minus scale deficit)</span><span class="num ${Math.abs(ds.gap) > 200 ? 'warn' : ''}">${r0(ds.gap)} kcal/day</span></div>` : `<p class="tiny mut" style="margin-top:8px">Log food on 10 of 14 days and this panel works your true maintenance back from the scale (${ds.logged} of 10 so far).</p>`}
       <p class="tiny mut" style="margin-top:8px">Burn is a model: Mifflin–St Jeor resting rate, about 0.41 kcal per kg per 1,000 steps, 0.9 kcal per kg per km run, 7 kcal per gym set. Expect ±10%. One pound of fat is taken as 3,500 kcal.</p>
-      <div style="margin-top:10px">${barChart({ h: 140, items: hd.map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: eaten(x) || 0, color: day(x).refeed ? C.gold : day(x).partial ? C.dim : C.acc })), target: c.kcal, targetLabel: `${c.kcal.toLocaleString()} kcal`, fmt: r0, empty: 'No intake logged in the last 14 days.' })}</div></div>
+      <div style="margin-top:10px">${barChart({ h: 140, items: hd.map(x => ({ label: fmtD(x).split(' ')[0], title: fmtD(x), v: eaten(x) || 0, color: day(x).refeed ? C.gold : day(x).partial ? C.dim : C.acc })), target: c.kcal, targetLabel: `${c.kcal.toLocaleString()} kcal`, fmt: r0, unit: ' kcal', empty: 'No intake logged in the last 14 days.' })}</div></div>
 
     ${drawer('reverse', 'Reverse-diet step-up calculator', c.phase === 'reverse' ? 'running' : 'starts automatically at the floor', `<p class="small mut">Starts the day the 7-day average touches ${c.floor || 'your floor'} lb, or earlier if two low-energy signs appear. Each week adds ${c.reverseStep} kcal, mostly carbohydrate placed before and after training, until maintenance${c.maintenance ? ' (' + c.maintenance.toLocaleString() + ' kcal)' : ''}. Protein stays where it is.</p><div class="scroll"><table><tr><th>${c.phase === 'reverse' ? 'From' : 'Step'}</th><th class="n">kcal</th><th class="n">Protein</th><th class="n">Carbs</th><th class="n">Fat</th></tr>${ladder.map(l => `<tr><td>${c.phase === 'reverse' ? fmtD(l[0]) : l[0]}</td><td class="n">${l[1].toLocaleString()}</td><td class="n">${c.protein}</td><td class="n">${r0((l[1] - c.protein * 4 - c.fat * 9) / 4)}</td><td class="n">${c.fat}</td></tr>`).join('')}</table></div>`)}
     ${drawer('refeed', 'Clean refeed rules', `${c.refeedKcal.toLocaleString()} kcal, low salt`, `<div class="prose"><p><b>What:</b> one or two days at ${c.refeedKcal.toLocaleString()} kcal. The extra is about 120 g of carbohydrate from rice, potatoes, gluten-free oats and fruit. Fat about 40 g. Salt exactly as usual.</p><p><b>When:</b> every 10 to 14 days on the cut; sooner if resting HR is 3 above baseline with flat sessions or strong urges.</p><p><b>Why:</b> carbohydrate refills muscle glycogen, lifts leptin for a day or so and lowers the cortisol that a long deficit raises. It will not “boost metabolism” in any lasting way. Its real job is to make the next ten days easier to hold.</p><p><b>The scale after:</b> each gram of glycogen stores about 3 g of water, so expect +1 to 2 lb the next morning. It is gone within three days.</p></div>`)}
@@ -1319,7 +1338,7 @@ function vMind() {
         <div class="row" style="margin-top:10px;gap:18px">${ring(wStudy / c.studyTarget * 100, r1(wStudy) + 'h', `of ${c.studyTarget} h`, C.violet)}<div style="flex:1;min-width:160px"><div class="kv"><span class="mut">Pace for day ${el}</span><span class="num">${r1(pace)} h</span></div><div class="kv"><span class="mut">90-min blocks timed here</span><span class="num">${blocks}</span></div><div class="kv"><span class="mut">Today</span><span class="num ${x.study > 5 ? 'bad' : x.study > 4 ? 'warn' : ''}">${has(x.study) ? x.study + ' h' : '–'}</span></div></div></div>
         <div class="grid g2" style="margin-top:10px">${dayIn(d, 'study', 'Deep hours today', 'inputmode="decimal"')}<div class="field"><label>&nbsp;</label><button class="btn pri" data-act="timer" data-type="study">Start 90-min block</button></div></div>
         <p class="tiny mut" style="margin-top:8px">Two or three blocks is a full day. Past four hours of deep work the next hour is worth less than a walk, and it counts against tomorrow’s readiness.</p></div>
-      <div class="panel"><div class="eyebrow">Deep hours, last 14 days</div><div style="margin-top:10px">${barChart({ items: ds.map(q => ({ label: fmtD(q).split(' ')[0], title: fmtD(q), v: day(q).study || 0, color: (day(q).study || 0) > 5 ? C.bad : (day(q).study || 0) > 4 ? C.warn : C.violet })), target: 4, targetLabel: '4 h daily ceiling', fmt: r1 })}</div></div>
+      <div class="panel"><div class="eyebrow">Deep hours, last 14 days</div><div style="margin-top:10px">${barChart({ items: ds.map(q => ({ label: fmtD(q).split(' ')[0], title: fmtD(q), v: day(q).study || 0, color: (day(q).study || 0) > 5 ? C.bad : (day(q).study || 0) > 4 ? C.warn : C.violet })), target: 4, targetLabel: '4 h daily ceiling', fmt: r1, unit: ' h deep study' })}</div></div>
     </div>
     ${drawer('sessions', 'Timer history', `${S.sessions.length} sessions`, S.sessions.length ? `<div class="scroll tall"><table><tr><th>Date</th><th>Session</th><th class="n">Minutes</th></tr>${[...S.sessions].reverse().map(s => `<tr><td>${fmtD(s.date)}</td><td>${esc(s.type === 'study' ? 'Deep study block' : GUIDES[s.type]?.name || s.type)}</td><td class="n">${r0(s.min)}</td></tr>`).join('')}</table></div>` : '<p class="small mut">Finish a timer and it appears here.</p>')}
   </div>`;
@@ -1344,7 +1363,7 @@ function foodSheet(f) {
 }
 function logFood(f, g, meal, d = today()) {
   const k = g / 100, fg = foodFlags(f);
-  (S.food[d] ||= []).push({ id: uid(), name: f.name, g, meal, kcal: f.kcal * k, p: f.p * k, c: f.c * k, f: f.f * k, fib: f.fib * k, na: f.na * k, k: f.k * k, crucif: fg.cru ? 1 : 0 });
+  (S.food[d] ||= []).push({ id: uid(), name: f.name, g, meal, kcal: f.kcal * k, p: f.p * k, c: f.c * k, f: f.f * k, fib: f.fib * k, na: f.na * k, k: f.k * k, crucif: fg.cru ? 1 : 0, m: f.m ? Object.fromEntries(Object.entries(f.m).map(([a, v]) => [a, v * k])) : undefined });
 }
 function settingsSheet() {
   const c = cfg(), p = S.profile, inp = (id, label, v, extra = '') => field(label, `<input class="in" id="${id}" value="${esc(v ?? '')}" ${extra}>`);
@@ -1516,13 +1535,460 @@ document.addEventListener('toggle', e => { const el = e.target; if (el.matches?.
 document.addEventListener('submit', e => {
   e.preventDefault();
   if (e.target.id === 'syncForm') {
+    if (/^\s*FOOD\b/i.test($('#syncIn').value)) { const r = parseFood($('#syncIn').value); save(); if (r.ok) $('#syncIn').value = ''; render(); return toast(r.ok ? `${r.ok} food${r.ok > 1 ? 's' : ''} logged.${r.miss.length ? ' Not recognised: ' + r.miss.join(', ') + '.' : ''}` : 'No foods recognised. Format: FOOD: Lunch | Fage 0% 150g | eggs 120g'); }
     const p = parseSync($('#syncIn').value); if (!p.n) return toast('Nothing recognised. Format: SYNC: WT=150.2 | RHR=52 | SLEEP=8 | STEPS=10000 | CALS=2000');
     const d = p.date || today(); Object.assign(D(d), p.f);
     if (p.run) S.runs.push({ id: uid(), date: d, ...p.run }); if (p.lift) S.gym.push({ id: uid(), date: d, ...p.lift });
     save(); $('#syncIn').value = ''; render(); const rd = readiness(d); toast(`Synced ${p.n} fields for ${fmtD(d)}.${rd.band ? ' Readiness: ' + RX[rd.band].name + '.' : ''}`);
   } else if (e.target.id === 'foodForm') { S.ui.q = $('#foodQ').value.trim(); S.ui.store = $('#foodStore').value; OFF = { q: '', res: null, busy: false, err: '' }; render(); $('#foodQ')?.focus(); }
 });
-load(); render();
+
+/* ============ micronutrients: per 100 g raw, typical values (USDA / UK CoFID). Estimates. ============ */
+const NUTR = [
+  ['d', 'Vitamin D', 'µg', 10, 'Lets the gut absorb calcium and keeps muscle and immune cells working. Skin makes it from summer sun; from October to March in the UK it makes none, so food and stores are all you have.'],
+  ['om', 'Omega-3 (EPA + DHA)', 'mg', 450, 'Long-chain fats built into the membranes of heart, brain and retina cells. They lower blood triglycerides and resolve inflammation after hard training. Only oily fish and shellfish supply them in useful amounts.'],
+  ['b', 'Vitamin B12', 'µg', 1.5, 'Needed to make red blood cells and the myelin sheath that insulates nerves. Low B12 feels like fatigue and heavy legs. Coeliac disease can reduce absorption.'],
+  ['fe', 'Iron', 'mg', 8.7, 'The centre of haemoglobin, which carries oxygen in blood, and of the enzymes that make energy in mitochondria. Runners lose extra through foot-strike and sweat. Haem iron from meat and fish absorbs 2-3 times better than plant iron.'],
+  ['zn', 'Zinc', 'mg', 9.5, 'Used by over 300 enzymes: skin repair, immune defence, testosterone production and taste. Low zinc shows first as slow-healing skin.'],
+  ['ca', 'Calcium', 'mg', 700, 'The mineral of bone, and the trigger for every muscle contraction. Bone density matters most for a lean runner eating in a deficit.'],
+  ['mg', 'Magnesium', 'mg', 300, 'Needed to make and use ATP, the cell’s energy currency, and to let muscle relax after contracting. Also involved in sleep depth.'],
+  ['c', 'Vitamin C', 'mg', 40, 'A co-factor for the enzymes that cross-link collagen in skin, tendon and gum. Also triples absorption of plant iron eaten in the same meal.'],
+  ['fol', 'Folate', 'µg', 200, 'Needed to copy DNA whenever a cell divides, so fast-renewing tissue (blood, gut lining, skin) feels a shortage first.'],
+  ['se', 'Selenium', 'µg', 75, 'Built into the enzymes that recycle glutathione, the cell’s main antioxidant, and that activate thyroid hormone.'],
+  ['i', 'Iodine', 'µg', 140, 'The raw material of thyroid hormones, which set metabolic rate. UK intake comes mostly from dairy and white fish.'],
+  ['a', 'Vitamin A', 'µg', 700, 'Drives skin-cell turnover (it is what retinoids imitate), night vision and the mucus barriers of gut and airway.'],
+  ['e', 'Vitamin E', 'mg', 4, 'The main fat-soluble antioxidant: it sits in cell membranes and stops their fats oxidising.'],
+  ['k', 'Potassium', 'mg', 3500, 'The main mineral inside cells. It helps the kidneys excrete sodium, which lowers blood pressure and reduces the water held outside cells (the puffy look). From food only, never tablets.'],
+  ['ch', 'Choline', 'mg', 400, 'Builds cell membranes and acetylcholine, the messenger nerves use to fire muscle and lay down memory. Eggs are by far the richest everyday source.'],
+  ['b2', 'Riboflavin (B2)', 'mg', 1.3, 'Part of the enzymes (FAD) that pass electrons along inside mitochondria to release energy from fat and carbohydrate.'],
+  ['b6', 'Vitamin B6', 'mg', 1.4, 'Needed to process amino acids from protein and to make serotonin, dopamine and haemoglobin. The more protein you eat, the more you use.'],
+  ['vk', 'Vitamin K', 'µg', 60, 'Switches on the proteins that clot blood and the ones that fix calcium into bone and keep it out of artery walls.'],
+  ['cu', 'Copper', 'mg', 1.2, 'Needed to move iron out of stores, to cross-link collagen and elastin in skin and blood vessels, and by a key antioxidant enzyme.'],
+  ['fib', 'Fibre', 'g', 30, 'Not digested by you. Gut bacteria ferment it into short-chain fatty acids that feed the gut lining; it also slows glucose absorption and lowers LDL cholesterol.']
+];
+const MIC = `
+Greek yoghurt 0% (Fage Total)|ca110 b0.5 i30 zn0.5 mg11 se10 fol7
+Greek yoghurt 2% (Fage Total)|ca110 b0.5 i30 zn0.5 mg11 se10 fol7 a20
+Greek yoghurt 5% (Fage Total)|ca105 b0.5 i30 zn0.5 mg11 se10 fol7 a45
+Kefir, whole milk|ca120 b0.4 i30 mg12 zn0.4 a35
+Skyr, plain|ca150 b0.4 i30 mg11 zn0.5
+Semi-skimmed milk|ca120 b0.9 i30 mg11 zn0.4 a20
+Whole milk|ca118 b0.9 i30 mg11 zn0.4 a35
+Raw whole milk (unpasteurised)|ca118 b0.9 i30 mg11 zn0.4 a35
+Cream cheese, protein (Philadelphia Protein)|ca120 b0.5 a50
+Cottage cheese|ca85 b0.6 se10 zn0.4 mg8
+Cheddar, mature|ca720 b1.1 zn3.6 a330 se6 mg28 i30 d0.3
+Comté|ca900 b1.5 zn4 a280 mg35
+Goat's cheese, soft|ca140 a290 zn0.9
+Mozzarella, fresh|ca350 b0.7 zn2.5 a180
+Parmesan|ca1180 b1.2 zn2.8 a210 mg44 se22
+Butter, unsalted|a680 e2.3 d0.9
+Egg, whole|d2 b1.1 fe1.8 zn1.3 ca56 mg12 fol47 se31 i50 a160 e1.1 om60
+Egg white|se20 mg11
+Egg yolk|d5.4 b2 fe2.7 zn2.3 ca129 fol146 se56 a380 e2.6 i130
+Salmon, wild|d11 b4.5 fe0.5 zn0.5 ca10 mg30 se33 i30 om1500 a35 e1 fol7
+Salmon, farmed|d8 b3.2 se24 om2000 mg27 e3.5 a60
+Trout|d10 b4.5 se13 om900 mg28 fe0.7 zn1
+Mackerel|d8 b8.7 fe1.6 zn0.6 mg76 se44 i140 om2500 a50 e1.5
+Sardines, tinned in spring water (drained)|d5 b9 fe2.9 zn1.3 ca380 mg39 se53 om1400 i30 a30 e2
+Hake|b1.1 se30 i60 mg25 om250 d1
+Cod|b0.9 se33 i190 mg32 om200 d1
+Sea bass|b3.8 se37 om600 mg41 d2
+Tuna, tinned in spring water (drained)|d1.2 b3 fe1.5 zn0.8 se80 mg30 om230 i12
+Smoked salmon|d9 b3.3 se24 om1500
+Prawns|b1.1 fe0.5 zn1.3 ca60 mg35 se30 i30 om250 e1.3
+Oysters|b16 fe5.1 zn17 ca8 mg22 se77 i160 om700 a80 d2
+Mussels|b12 fe4 zn1.6 ca26 mg34 se45 i140 om450 fol42 a48
+Scallops|b1.4 zn0.9 mg22 se13 om100
+Chicken breast, skinless|b0.2 fe0.4 zn0.7 mg28 se23 fol9
+Chicken thigh, skinless|b0.6 fe0.8 zn1.6 mg23 se23
+Turkey breast|b0.6 fe0.7 zn1.3 mg28 se22
+Beef mince, 5% fat|b2.2 fe2.4 zn5 mg22 se16
+Beef mince, 10% fat|b2.2 fe2.2 zn4.8 mg20 se17
+Sirloin steak, lean|b1.1 fe1.6 zn3.6 mg22 se27
+Venison steak|b6.3 fe3.4 zn2.1 mg23 se10
+Lamb leg, lean|b2.6 fe1.8 zn3.3 mg26 se20
+Pork tenderloin|b0.5 fe1 zn1.9 mg27 se30
+Beef heart|b8.5 fe4.3 zn1.7 mg21 se22
+Lamb kidney|b52 fe6.4 zn2.2 se127 a95 fol28 mg17
+Beef liver|b59 fe4.9 zn4 a4970 fol290 se40 d1.2
+Back bacon, smoked|b0.6 zn1.5 se20
+Ham, sliced|b0.4 zn1.4 se20
+Oats, gluten-free (dry)|fe4.3 zn3.6 ca52 mg130 fol32 se10 e0.4
+Oats, regular (not certified GF)|fe4.3 zn3.6 ca52 mg130 fol32 se10 e0.4
+White basmati rice (dry)|fe0.5 zn1.2 mg25 fol8 se10
+Brown rice (dry)|fe1.5 zn2 mg140 fol20 se10
+Quinoa (dry)|fe4.6 zn3.1 ca47 mg197 fol184 se8 e2.4
+Buckwheat (dry)|fe2.2 zn2.4 mg231 fol30 se8
+Gluten-free pasta, rice/corn (dry)|fe0.6 zn0.8 mg25
+Gluten-free bread|ca100 fe1
+Sourdough bread (wheat)|fe1.6 zn0.9 ca50 mg25 fol50 se15
+Rice cakes, unsalted|fe1.5 zn3 mg130 se24
+Lentil & rice cakes (Kallo-style, check pack)|fe4 zn2.5 mg70 fol100
+Potatoes|c20 fe0.8 mg23 fol15 zn0.3
+Sweet potato|c2.4 a709 mg25 fe0.6 fol11 e0.3 ca30
+Parsnip|c17 fol67 mg29 ca36 fe0.6 e1.5
+Carrot|a835 c6 ca33 fol19 mg12 e0.7
+Beetroot|fol109 c5 fe0.8 mg23
+Butternut squash|a532 c21 mg34 ca48 e1.4 fol27
+Tomato|c14 a42 fol15 e0.5 mg11
+Tinned tomatoes (no added salt)|c9 a20 fe1
+Cucumber|c3 mg13
+Courgette|c18 fol24 mg18 a10
+Red pepper|c128 a157 fol46 e1.6
+Mushrooms|se9 fol17 d0.2 zn0.5 mg9
+Romaine lettuce|a436 fol136 c4 fe1 ca33
+Green beans|c12 fol33 a35 ca37 mg25 fe1
+Asparagus|fol52 c6 a38 fe2.1 e1.1
+Ginger root|mg43 c5
+Broccoli|c89 fol63 ca47 a31 fe0.7 mg21 e0.8
+Cauliflower|c48 fol57 ca22 mg15
+Cabbage|c37 fol43 ca40
+Kale|c93 a241 ca254 fol62 fe1.6 mg33 e0.7
+Brussels sprouts|c85 fol61 ca42 fe1.4 a38
+Rocket|c15 fol97 ca160 a119 fe1.5 mg47
+Pak choi|c45 a223 ca105 fol66
+Spinach|c28 a469 fol194 fe2.7 ca99 mg79 e2
+Onion|c7 fol19
+Leek|c12 fol64 a83 fe2.1 ca59
+Garlic|c31 ca181 fe1.7 se14 mg25
+Lentils (dry)|fe6.5 zn3.3 fol479 mg47 ca35
+Chickpeas, tinned (drained)|fe1.1 zn0.6 fol24 ca35 mg24
+Banana|c9 mg27 fol20
+Blueberries|c10 e0.6 fol6 mg6
+Strawberries|c59 fol24 mg13 fe0.4
+Raspberries|c26 fol21 mg22 fe0.7 e0.9
+Grapes|c3 mg7
+Kiwi|c93 fol25 e1.5 mg17 ca34
+Clementine|c49 fol24 ca30
+Orange|c53 fol30 ca40
+Apple|c5
+Pineapple|c48 fol18 mg12
+Mango|c36 a54 fol43 e0.9
+Cherries|c7 mg11
+Pomegranate seeds|c10 fol38 mg12
+Watermelon|c8 a28 mg10
+Cantaloupe melon|c37 a169 fol21
+Raisins|fe1.9 mg32 ca50 c2
+Dates, Medjool|fe0.9 mg54 ca64 fol15
+Dried apricots|fe2.7 a180 mg32 ca55 e4.3
+Açai purée, unsweetened|a50 ca35 fe0.5
+Avocado|fol81 e2.1 c10 mg29 zn0.6 fe0.6 a7
+Lemon juice|c39
+Walnuts|fe2.9 zn3.1 ca98 mg158 fol98 se5 e0.7
+Hazelnuts|fe4.7 zn2.5 ca114 mg163 fol113 e15 se2
+Almonds|fe3.7 zn3.1 ca269 mg270 fol44 e25.6 se4
+Brazil nuts|se1917 mg376 zn4.1 ca160 fe2.4 e5.7
+Pumpkin seeds|fe8.8 zn7.8 mg592 ca46 fol58 se9 e2.2
+Sunflower seeds|fe5.3 zn5 mg325 ca78 fol227 se53 e35
+Chia seeds|fe7.7 zn4.6 ca631 mg335 se55 fol49
+Almond butter|fe3.5 zn3.3 ca347 mg279 e24
+Almond milk, unsweetened|ca120 e1.8 d0.75 b0.38
+Coconut water, 100%|mg25 ca24 c2
+Maple syrup|ca102 zn1.5 mg21
+Dark chocolate 85%|fe11 zn3.5 mg230 ca70 se7
+Cacao powder (varies by brand)|fe14 zn6.8 mg500 ca128 se14
+Extra-virgin olive oil|e14
+Avocado oil|e12
+Beef tallow|e2.7
+Soy sauce|fe1.5 mg40
+`;
+MIC.trim().split('\n').forEach(l => { const [n, t] = l.split('|'), f = LIB.find(x => x.name === n); if (!f) return; f.m = {}; t.replace(/([a-z]+)([\d.]+)/g, (_, k, v) => { f.m[k] = +v; }); });
+// The wider set (choline, B2, B6, vitamin K, copper) uses a typical value for each food group, corrected for the foods that stand out.
+const CATM = { meat: 'b20.2 b60.5 ch80 cu0.08 vk1', fish: 'b20.15 b60.4 ch75 cu0.05', dairy: 'b20.2 b60.05 ch15 cu0.01 vk1', egg: 'b20.46 b60.17 ch294 cu0.07', carb: 'b20.1 b60.2 ch30 cu0.3 vk1', veg: 'b20.06 b60.1 ch10 cu0.08 vk15', fruit: 'b20.03 b60.05 ch6 cu0.07 vk5', nut: 'b20.2 b60.4 ch50 cu1.2 vk5' };
+const OVR = `Potatoes|b60.3 vk2 ch12
+Banana|b60.37 vk0.5 ch10
+Chicken breast, skinless|b60.8 ch82
+Salmon, wild|b60.8 b20.4 ch90
+Salmon, farmed|b60.6 ch80
+Tuna, tinned in spring water (drained)|b60.4 ch30
+Beef heart|b20.9 cu0.4 ch230
+Lamb kidney|b22.2 cu0.45
+Beef liver|b22.8 cu9.8 ch333
+Oysters|cu1.6 ch65
+Prawns|cu0.3 ch80
+Mussels|ch65 cu0.1
+Pork tenderloin|b60.75
+Venison steak|b20.5
+Egg yolk|ch820 b20.5 b60.35
+Egg white|ch1 b20.44 b60.01
+Greek yoghurt 0% (Fage Total)|b20.27
+Greek yoghurt 2% (Fage Total)|b20.27
+Greek yoghurt 5% (Fage Total)|b20.27
+Cheddar, mature|b20.4 vk2.4
+Butter, unsalted|vk7 ch19 b20.03
+Almonds|b21.1 cu1 vk0
+Hazelnuts|cu1.7 vk14 b60.56
+Walnuts|cu1.6 vk2.7 b60.54
+Pumpkin seeds|cu1.3 vk7
+Sunflower seeds|cu1.8 b61.3
+Chia seeds|cu0.9
+Cacao powder (varies by brand)|cu3.8 b20.2 vk2.5 ch12
+Dark chocolate 85%|cu1.8 vk7 ch10 b20.08
+Avocado|vk21 b60.26 cu0.19 ch14 b20.13
+Kiwi|vk40
+Blueberries|vk19
+Grapes|vk15
+Raspberries|vk8
+Pomegranate seeds|vk16
+Romaine lettuce|vk100
+Green beans|vk43
+Asparagus|vk42
+Cucumber|vk16
+Courgette|vk4
+Carrot|vk13 b60.14
+Tomato|vk8
+Red pepper|vk5 b60.3
+Kale|vk390
+Spinach|vk483 b60.2
+Broccoli|vk102 b60.18
+Cabbage|vk76
+Brussels sprouts|vk177
+Rocket|vk109
+Pak choi|vk46
+Mushrooms|b20.4 cu0.3 ch17 vk0
+Quinoa (dry)|b20.3 b60.5 cu0.6 ch70
+Buckwheat (dry)|cu1.1 b20.4
+Oats, gluten-free (dry)|cu0.4 ch40 vk2
+Oats, regular (not certified GF)|cu0.4 ch40 vk2
+White basmati rice (dry)|cu0.2 ch6 b20.05 vk0
+Lentils (dry)|cu0.75 b60.5 ch96
+Dates, Medjool|cu0.36 b60.25
+Raisins|cu0.3 b60.17 vk3.5
+Dried apricots|cu0.34 b60.14 vk3
+Sweet potato|b60.2 cu0.15 vk2
+Parsnip|vk22 cu0.12
+Beetroot|vk0.2
+Kefir, whole milk|b20.17
+Semi-skimmed milk|b20.18
+Whole milk|b20.18
+Almond milk, unsweetened|b20.2
+Coconut water, 100%|b20.06 cu0.04`;
+const tok = (f, t) => t.replace(/([a-z]+\d?)([\d.]+)$|([a-z]{1,3}\d?)(?=[\d.])/g, '') && t.split(' ').forEach(x => { const m = x.match(/^(b2|b6|[a-z]+)([\d.]+)$/); if (m) f.m[m[1]] = +m[2]; });
+LIB.forEach(f => { f.m ||= {}; if (CATM[f.cat]) tok(f, CATM[f.cat]); if (f.kcal > 0 || f.k > 50) { f.m.k = f.k; f.m.fib = f.fib; } });
+OVR.split('\n').forEach(l => { const [n, t] = l.split('|'), f = LIB.find(x => x.name === n); if (f) tok(f, t); });
+function microTotals(d) { const z = {}; let known = 0, n = 0; (S.food[d] || []).forEach(e => { n++; if (e.m) { known++; for (const k in e.m) z[k] = (z[k] || 0) + e.m[k]; } else { z.k = (z.k || 0) + (e.k || 0); z.fib = (z.fib || 0) + (e.fib || 0); } }); return { z, known, n }; }
+function micro7() { const ds = lastN(7).filter(d => (S.food[d] || []).length >= 3), z = {}; ds.forEach(d => { const t = microTotals(d).z; for (const k in t) z[k] = (z[k] || 0) + t[k] / ds.length; }); return { z, days: ds.length }; }
+const okFood = f => { if (f.cat === 'other') return false; const fl = foodFlags(f).fl; return !fl.some(x => /exclude|gluten|Cruciferous|vitamin A/i.test(x.t)); };
+function sources(id) { return LIB.filter(f => f.m && f.m[id] && okFood(f) && f.cat !== 'supp').sort((a, b) => b.m[id] - a.m[id]).slice(0, 6); }
+function libMatch(name) {
+  const q = name.toLowerCase().replace(/[^a-z0-9% ]/g, ' ').split(/\s+/).filter(w => w.length > 1); if (!q.length) return null;
+  let best = null, bs = 0; LIB.forEach(f => { const n = f.name.toLowerCase(); const s = q.filter(w => n.includes(w)).length / q.length - (n.length / 400); if (s > bs) { bs = s; best = f; } });
+  return bs >= 0.55 ? best : null;
+}
+function addEntry(o, meal, d = today()) { // o: explicit totals for the portion; micros from the library when the name matches
+  const f = libMatch(o.name), g = +o.g || 0, m = {}; if (f && f.m && g) for (const k in f.m) m[k] = f.m[k] * g / 100;
+  (S.food[d] ||= []).push({ id: uid(), name: o.name, g, meal, kcal: +o.kcal || 0, p: +o.p || 0, c: +o.c || 0, f: +o.f || 0, fib: +o.fib || 0, na: o.na != null ? +o.na : (f && g ? f.na * g / 100 : 0), k: o.k != null ? +o.k : (f && g ? f.k * g / 100 : 0), crucif: f && foodFlags(f).cru ? 1 : 0, m: f && f.m && g ? m : undefined });
+}
+function parseFood(str) { // FOOD: Lunch | Fage 0% 150g | eggs 100g | granola bar 40g 180kcal 4p 22c 8f
+  const parts = str.replace(/^\s*FOOD\s*:?/i, '').split('|').map(s => s.trim()).filter(Boolean); let meal = null, date = today(), ok = 0; const miss = [];
+  parts.forEach(p => {
+    if (/^(breakfast|lunch|dinner|snacks?|tea)$/i.test(p)) { meal = /^b/i.test(p) ? 'Breakfast' : /^l/i.test(p) ? 'Lunch' : /^s/i.test(p) ? 'Snacks' : 'Dinner'; return; }
+    const dm = p.match(/^DATE\s*=\s*(\d{4}-\d{2}-\d{2})$/i); if (dm) { date = dm[1]; return; }
+    const g = p.match(/([\d.]+)\s*(g|ml)\b/i), kc = p.match(/([\d.]+)\s*kcal/i), mac = k => { const m = p.match(new RegExp('([\\d.]+)\\s*g?\\s*' + k + '\\b', 'i')); return m ? +m[1] : null; };
+    const name = p.split(/\s+[\d.]+\s*(g|ml|kcal)\b/i)[0].trim(); if (!name || !g) { miss.push(p); return; }
+    const hr = new Date().getHours(), ml = meal || (hr < 11 ? 'Breakfast' : hr < 15 ? 'Lunch' : hr < 20 ? 'Dinner' : 'Snacks');
+    if (kc) { addEntry({ name, g: +g[1], kcal: +kc[1], p: mac('p'), c: mac('c'), f: mac('f') }, ml, date); ok++; }
+    else { const f = libMatch(name); if (!f) { miss.push(name); return; } const m = S.food[date]?.length; logFood(f, +g[1], ml, date); ok++; }
+  });
+  return { ok, miss };
+}
+
+/* ============ tap-to-read charts ============ */
+const tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.hidden = true; document.body.appendChild(tipEl);
+function showTip(el, e) { tipEl.textContent = el.dataset.tip; tipEl.hidden = false; const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, x = clamp((e.clientX || r.left + r.width / 2) - w / 2, 8, innerWidth - w - 8), y = Math.max(8, (e.clientY || r.top) - tipEl.offsetHeight - 14); tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px'; }
+document.addEventListener('pointerover', e => { const el = e.target.closest?.('[data-tip]'); if (el) showTip(el, e); else if (e.pointerType === 'mouse') tipEl.hidden = true; });
+document.addEventListener('click', e => { const el = e.target.closest?.('[data-tip]'); if (el) showTip(el, e); else tipEl.hidden = true; });
+document.addEventListener('scroll', () => { tipEl.hidden = true; }, true);
+
+/* ============ celebration ============ */
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70'; document.body.appendChild(c); c.width = innerWidth; c.height = innerHeight;
+  const x = c.getContext('2d'), cols = ['#7cc4d6', '#cfab66', '#62c690', '#a99de6', '#ece8df'], ps = Array.from({ length: 90 }, () => ({ x: innerWidth / 2, y: innerHeight * 0.35, vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 3, s: 3 + Math.random() * 5, c: cols[Math.random() * 5 | 0], r: Math.random() * 6 }));
+  let t = 0; (function step() { x.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.42; p.r += 0.2; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.globalAlpha = Math.max(0, 1 - t / 90); x.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); x.restore(); }); if (++t < 90) requestAnimationFrame(step); else c.remove(); })();
+}
+
+/* ============ daily quests ============ */
+function quests(d = today()) {
+  const x = day(d), c = cfg(), ck = x.checks || {}, t = foodTotals(d), ses = ty => S.sessions.some(s => s.date === d && ty.includes(s.type));
+  const fish7 = lastN(7, d).filter(q => (day(q).checks || {}).c_o3 || (S.food[q] || []).some(e => e.m && e.m.om > 300)).length;
+  const pool = [
+    ['log', 'Log weight, resting HR and sleep', has(x.wt) && has(x.rhr) && has(x.sleep)],
+    ['light', 'Ten minutes of daylight before noon', !!ck.n_light || x.light >= 10],
+    ['prot', `Reach ${c.protein} g of protein`, t.n ? t.p >= c.protein * 0.95 : !!ck.n_fuel],
+    ['steps', `Walk ${c.stepsLo.toLocaleString()} steps`, x.steps >= c.stepsLo],
+    ['block', 'Finish one timed 90-minute deep block', ses(['study']) || x.study >= 1.5],
+    ['calm', 'One sigh or NSDR reset', ses(['sigh', 'nsdr', 'urge'])],
+    ['bed', `In bed by ${c.bedBy}`, !!ck.n_bed],
+    ...(fish7 < 2 ? [['fish', 'Eat oily fish today', !!ck.c_o3 || (S.food[d] || []).some(e => e.m && e.m.om > 300)]] : []),
+    ...(S.bp.length < 7 ? [['bp', 'Take a home blood pressure reading', S.bp.some(b => b.date === d)]] : []),
+    ['skin', 'SPF this morning, barrier routine tonight', !!ck.l_spf && !!ck.l_pm]
+  ];
+  if (dow(d) === c.offDay) return [['off', 'Full day off: no run, no weights, no study', !runsOn(d).length && !gymOn(d).length && !(x.study > 0)], pool[1], pool[6]];
+  const rest = pool.slice(1), n = dDiff(d, '2026-01-01'), a = rest[((n * 3) % rest.length + rest.length) % rest.length], b = rest[((n * 3 + 1 + (n % 2)) % rest.length + rest.length) % rest.length];
+  return [pool[0], a, b === a ? rest[(rest.indexOf(a) + 2) % rest.length] : b];
+}
+function questCheck() { // record completions, celebrate once
+  const d = today(), q = quests(d), done = q.filter(x => x[2]).map(x => x[0]), rec = (S.quests ||= {})[d] ||= { done: [], party: false };
+  if (done.length > rec.done.length) { rec.done = done; save(); }
+  if (done.length === 3 && !rec.party) { rec.party = true; save(); confetti(); toast('All three quests done. +75 XP.'); }
+  const on = trophies().filter(t => t.on).map(t => t.name), seen = S.seenTrophies;
+  if (!seen) { S.seenTrophies = on; save(); } else { const nu = on.filter(n => !seen.includes(n)); if (nu.length) { S.seenTrophies = on; save(); confetti(); toast('Trophy unlocked: ' + nu.join(', ')); } }
+}
+function questCard() {
+  const q = quests(), n = q.filter(x => x[2]).length;
+  return `<div class="panel"><div class="row"><span class="eyebrow">Today’s quests</span><span class="sp"></span><span class="pill ${n === 3 ? 'au' : ''}">${n}/3 · +25 XP each</span></div>
+    <div style="margin-top:6px">${q.map(x => `<div class="check" style="cursor:default"><span class="qbox ${x[2] ? 'on' : ''}"></span><span class="t" style="${x[2] ? 'color:var(--mut);text-decoration:line-through' : ''}">${esc(x[1])}</span></div>`).join('')}</div>
+    <p class="tiny mut" style="margin-top:6px">Quests tick themselves from what you log. Three a day, chosen from what your data says needs attention.</p></div>`;
+}
+
+/* ============ study card ============ */
+function nextDeadline(d = today()) { return (cfg().events || []).filter(e => e.date >= d && /deadline|submit/i.test(e.label)).sort((a, b) => a.date.localeCompare(b.date))[0] || null; }
+function studyCard() {
+  const d = today(), c = cfg(), x = day(d), ws = weekStart(d), el = dDiff(d, ws) + 1, wk = lastN(el, d), h = wk.reduce((s, q) => s + (day(q).study || 0), 0), pace = c.studyTarget * el / 7, dl = nextDeadline(d), ev = eventsOn(d).filter(e => /TMA|EMA|study|exam/i.test(e.label))[0];
+  return `<div class="panel"><div class="row"><span class="eyebrow">Study</span><span class="sp"></span><span class="pill ${h >= pace ? 'g' : h >= pace * 0.7 ? 'a' : 'r'}">${h >= pace ? 'on pace' : r1(pace - h) + ' h behind pace'}</span></div>
+    <div class="row" style="align-items:baseline;margin-top:6px"><span class="big num" style="font-family:var(--f-d)">${r1(h)}</span><span class="mut">of ${c.studyTarget} h deep work this week · ${has(x.study) ? x.study + ' h today' : 'none logged today'}</span></div>
+    <div class="bar thick" style="margin:10px 0"><i style="width:${clamp(h / c.studyTarget * 100, 0, 100)}%;background:var(--violet)"></i><span class="tick" style="left:${clamp(pace / c.studyTarget * 100, 0, 100)}%" title="Pace for today"></span></div>
+    ${ev ? `<div class="kv"><span class="mut">Today’s stage</span><span>${esc(ev.label)}</span></div>` : ''}${dl ? `<div class="kv"><span class="mut">${esc(dl.label)}</span><span class="num">${dDiff(dl.date, d) === 0 ? 'today' : dDiff(dl.date, d) + ' days'}</span></div>` : ''}
+    <div class="row" style="margin-top:10px"><button class="btn pri sm" data-act="timer" data-type="study">Start 90-min block</button><button class="btn sm" data-act="addStudy" data-h="0.5">+30 min</button><button class="btn sm" data-act="addStudy" data-h="1.5">+1.5 h</button><button class="btn sm ghost" data-act="coach" data-q="Plan my deep study for today around my training and my deadline.">Ask coach to plan it</button></div></div>`;
+}
+
+/* ============ longevity score and habit grid ============ */
+function longevity() {
+  const v = vo2now(), rh = lastN(7).map(d => day(d).rhr).filter(has), ci = circadian(14), m7 = micro7(), P = [];
+  const l14 = lastN(14), hab = l14.map(d => (checksDone(d, CELL_HABITS) + checksDone(d, LOOK_HABITS)) / (CELL_HABITS.length + LOOK_HABITS.length)), habDays = hab.filter(x => x > 0).length;
+  P.push(['Aerobic fitness', v ? clamp((v.v - 35) / 25 * 100, 0, 100) : null, v ? `VO2max about ${r0(v.v)}. The strongest single predictor of lifespan in cohort studies.` : 'Log a current race time.', 'Keep two quality runs and one easy run a week. Fitness is already your best asset; protect it by not overreaching.']);
+  P.push(['Heart at rest', rh.length >= 3 ? clamp((72 - mean(rh)) / 26 * 100, 0, 100) : null, rh.length >= 3 ? `Resting HR ${r0(mean(rh))} bpm over 7 days.` : 'Log resting HR on three mornings.', 'Watch the trend, not the number: 4 above baseline for three days means back off.']);
+  P.push(['Sleep', ci.n >= 4 ? clamp((ci.avgSleep - 5.5) / 2.7 * 70, 0, 70) + (ci.spread != null ? clamp((75 - ci.spread) / 60 * 30, 0, 30) : 15) : null, ci.n >= 4 ? `${r1(ci.avgSleep)} h average${ci.spread != null ? ', timing ±' + r0(ci.spread) + ' min' : ''}.` : 'Log four nights.', 'Log bed and wake times so regularity can be scored; hold bedtime within 30 minutes, weekends included.']);
+  if (m7.days >= 2) { const cov = mean(NUTR.map(n => clamp((m7.z[n[0]] || 0) / n[3], 0, 1))) * 100, low = NUTR.filter(n => (m7.z[n[0]] || 0) / n[3] < 0.6).map(n => n[1]); P.push(['Nutrient coverage', cov, `${r0(cov)}% of ${NUTR.length} targets covered over ${m7.days} logged days.${low.length ? ' Low: ' + low.slice(0, 4).join(', ') + '.' : ''}`, low.length ? `Fix ${low[0]} first: open it in Fuel for the foods that supply it.` : 'Keep the variety.']); }
+  else P.push(['Nutrient coverage', null, 'Log food item by item on two days to score this.', 'Use the one-tap meals or a photo in Fuel.']);
+  P.push(['Daily habits', habDays >= 3 ? mean(hab) * 100 : null, habDays >= 3 ? `${r0(mean(hab) * 100)}% of cellular and skin habits over 14 days.` : 'Tick habits on three days.', 'Pick the one habit with the emptiest row below and do only that for a week.']);
+  const bl = ['apob', 'hba1c', 'crp', 'vitd', 'ferritin'].filter(id => latestBlood(id)).length;
+  P.push(['Blood markers', bl ? bl / 5 * 100 : 0, bl ? `${bl} of 5 core markers on record.` : 'Nothing tested. This pillar is blind.', 'Book one GP panel: ferritin, vitamin D, B12, HbA1c, lipids, TSH, testosterone, coeliac antibodies.']);
+  const bp = S.bp.filter(b => b.date).length;
+  P.push(['Blood pressure', bp >= 4 ? (() => { const s = mean(S.bp.slice(-7).map(b => b.sys)); return clamp((145 - s) / 30 * 100, 0, 100); })() : bp / 4 * 40, bp >= 4 ? 'Home average on record.' : `${bp} of 4 home readings.`, 'Seven days of morning and evening readings, seated, after five minutes’ rest.']);
+  const known = P.filter(p => p[1] != null), score = known.length ? mean(P.map(p => p[1] ?? 0)) : 0;
+  const levers = [...P].sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0)).slice(0, 3);
+  return { P, score, levers, known: known.length };
+}
+function habitGrid(list) {
+  const ds = lastN(14);
+  return `<div class="hgrid">${list.map(h => { const on = ds.map(d => !!(day(d).checks || {})[h[0]]); let st = 0; for (let i = on.length - 1; i >= 0 && on[i]; i--) st++; if (!on[on.length - 1]) { st = 0; for (let i = on.length - 2; i >= 0 && on[i]; i--) st++; } return `<div class="hrow"><span class="hn">${esc(h[1].split(/[:,(]/)[0])}</span><span class="hc">${on.map((o, i) => `<i class="${o ? 'on' : ''}" data-tip="${fmtD(ds[i])}: ${o ? 'done' : 'not ticked'}"></i>`).join('')}</span><span class="num tiny mut">${st ? st + ' day streak' : r0(on.filter(Boolean).length / 14 * 100) + '%'}</span></div>`; }).join('')}</div>`;
+}
+function longevityCard() {
+  const L = longevity();
+  return `<div class="panel"><div class="row"><span class="eyebrow">Longevity score</span><span class="sp"></span><span class="pill">${L.known} of ${L.P.length} pillars measured</span></div>
+    <div class="grid g2" style="margin-top:8px;align-items:start"><div><div class="row" style="align-items:baseline"><span class="big num" style="font-family:var(--f-d);font-size:56px">${r0(L.score)}</span><span class="mut">/ 100</span></div>
+      <p class="small mut" style="margin:6px 0 10px">Seven pillars, equal weight. An unmeasured pillar scores zero, because what you have not measured you cannot claim. Tap a pillar for what it means.</p>
+      <div class="eyebrow">Your three biggest levers</div>${L.levers.map((p, i) => `<div class="kv" style="display:block"><b style="font-weight:500">${i + 1}. ${esc(p[0])}</b><div class="mut small">${esc(p[3])}</div></div>`).join('')}</div>
+    <div>${L.P.map((p, i) => `<button class="res" data-act="pillar" data-i="${i}" style="display:block"><div class="row small"><span>${esc(p[0])}</span><span class="sp"></span><span class="num ${p[1] == null ? 'dim' : p[1] >= 75 ? 'ok' : p[1] >= 45 ? 'warn' : 'bad'}">${p[1] == null ? 'not measured' : r0(p[1])}</span></div><div class="bar" style="margin-top:5px"><i style="width:${Math.max(2, p[1] ?? 0)}%;background:${p[1] == null ? C.dim : p[1] >= 75 ? C.ok : p[1] >= 45 ? C.warn : C.bad}"></i></div></button>`).join('')}</div></div>
+    ${drawer('habit14', 'Habit streaks, last 14 days', 'tap a square for the date', habitGrid([...CELL_HABITS, ...LOOK_HABITS, ...BLOAT_HABITS]))}</div>`;
+}
+
+/* ============ micronutrient panel ============ */
+function microCard() {
+  const d = today(), t = microTotals(d), m7 = micro7();
+  const row = n => { const v = t.z[n[0]] || 0, p = v / n[3] * 100, a = m7.days ? (m7.z[n[0]] || 0) / n[3] * 100 : null; return `<button class="res" data-act="nutr" data-id="${n[0]}" style="display:block"><div class="row small"><span>${n[1]}</span><span class="sp"></span><span class="num">${v >= 100 ? r0(v) : r1(v)}<span class="mut"> / ${n[3]} ${n[2]}</span></span><span class="num ${p >= 100 ? 'ok' : p >= 60 ? 'warn' : 'bad'}" style="width:48px;text-align:right">${r0(p)}%</span></div><div class="bar" style="margin-top:5px"><i style="width:${clamp(p, 2, 100)}%;background:${p >= 100 ? C.ok : p >= 60 ? C.warn : C.bad}"></i>${a != null ? `<span class="tick" style="left:${clamp(a, 0, 100)}%" title="7-day average"></span>` : ''}</div></button>`; };
+  return `<div class="panel"><div class="row"><span class="eyebrow">Micronutrients today</span><span class="sp"></span><span class="mut small">${t.n ? `${t.known} of ${t.n} foods have data` : 'log food to fill this'}${m7.days ? ' · gold tick = 7-day average' : ''}</span></div>
+    <div class="grid g2" style="margin-top:6px;gap:0 18px">${NUTR.map(row).join('')}</div>
+    <p class="tiny mut" style="margin-top:8px">Tap any nutrient for what it does for you and which of your foods supply it. Targets are UK adult male reference intakes (omega-3: the 450 mg a day behind UK fish advice; choline: the European adequate intake). Amounts are what is in the food, not what you absorb. Choline, B2, B6, vitamin K and copper use food-group typical values, so read them as rough. Supermarket products carry no micronutrient data. Not tracked: thiamin, niacin, phosphorus, manganese.</p></div>`;
+}
+function nutrSheet(id) {
+  const n = NUTR.find(x => x[0] === id), t = microTotals(today()), v = t.z[id] || 0, m7 = micro7(), src = sources(id), mine = (S.food[today()] || []).filter(e => e.m && e.m[id]).sort((a, b) => b.m[id] - a.m[id]).slice(0, 4);
+  const extra = { d: 'You do not take vitamin D tablets, so from October to March this number is the whole story. Oily fish three times a week plus eggs reaches roughly half the target. A blood test (25-OH vitamin D) is the only way to know if that is enough; under 50 nmol/L, the NHS winter dose of 10 µg is the evidence-based fix.', fe: 'Tea, coffee and calcium in the same meal cut iron absorption; vitamin C fruit raises it.', a: 'Liver is excluded for you, rightly: one portion is several days’ worth.', se: 'Do not chase this with Brazil nuts; fish, eggs and kidney already cover it.', om: 'One 130 g portion of salmon or mackerel covers about four days.' }[id];
+  sheet(`<div class="eyebrow">Micronutrient</div><h2>${n[1]}</h2><div class="row" style="align-items:baseline"><span class="mid num" style="font-family:var(--f-d)">${v >= 100 ? r0(v) : r1(v)} ${n[2]}</span><span class="mut">of ${n[3]} ${n[2]} today · ${r0(v / n[3] * 100)}%${m7.days ? ` · 7-day average ${r0((m7.z[id] || 0) / n[3] * 100)}%` : ''}</span></div>
+    <div><div class="eyebrow">What it does for you</div><p class="small mut" style="margin-top:4px">${esc(n[4])}</p>${extra ? `<p class="small" style="margin-top:6px">${esc(extra)}</p>` : ''}</div>
+    ${mine.length ? `<div><div class="eyebrow">Where today’s came from</div>${mine.map(e => `<div class="kv"><span>${esc(e.name)} <span class="mut num">· ${r0(e.g)} g</span></span><span class="num">${e.m[id] >= 100 ? r0(e.m[id]) : r1(e.m[id])} ${n[2]}</span></div>`).join('')}</div>` : ''}
+    <div><div class="eyebrow">Best sources among foods you eat</div>${src.map(f => `<div class="kv"><span>${esc(f.name)}</span><span class="num">${f.m[id]} ${n[2]} <span class="mut">per 100 g · ${r0(f.m[id] / n[3] * 100)}%</span></span></div>`).join('')}</div>
+    <button class="btn ghost" data-act="close">Close</button>`);
+}
+
+/* ============ coach ============ */
+let SAMPLE = null, SAMPLE_IMG = false, DL = null, COACH = { turns: [], busy: false, ctl: null };
+(async () => { try { if (window.claude?.use) { SAMPLE = await window.claude.use('sample'); DL = await window.claude.use('downloads'); if (SAMPLE) { try { SAMPLE_IMG = !!(await SAMPLE.limits()).images; } catch (e) { /* text only */ } render(); } } } catch (e) { /* no coach link here */ } })();
+function coachBrief() { // rules-based, works everywhere
+  const d = today(), c = cfg(), x = day(d), rd = readiness(d), tr = triggers(d), a = latestAvg(), ca = cutAudit(), L = longevity(), o = [];
+  o.push(rd.band ? `Readiness is ${RX[rd.band].name.toLowerCase()} (${rd.score}/100). ${RX[rd.band].line}${rd.why.length ? ' ' + rd.why.join('; ') + '.' : ''}` : 'No morning numbers yet. Log weight, resting HR and sleep and I can set today’s intensity.');
+  tr.slice(0, 3).forEach(t => o.push(`${t.t}. ${t.d}`));
+  if (a && c.floor) o.push(`7-day average ${r1(a.v)} lb, ${r1(a.v - c.floor)} lb above your ${c.floor} lb floor.${ca && ca.actual < ca.expected * 0.5 ? ` The scale has moved ${ca.actual.toFixed(1)} lb where the plan predicted ${ca.expected.toFixed(1)}: log every item for 14 days before changing calories.` : ''}`);
+  const e = eaten(d), m = macros(d); o.push(e != null ? `Eaten ${r0(e)} of ${m.kcal} kcal. ${e < m.kcal - 300 && new Date().getHours() >= 18 ? 'Eat the rest: finishing the day far under target is how tomorrow’s urges start.' : 'On track.'}` : `Today’s target: ${m.kcal} kcal, protein ${m.p} g, carbs ${m.c} g, fat ${m.f} g.`);
+  o.push(`Biggest longevity lever: ${L.levers[0][0].toLowerCase()}. ${L.levers[0][3]}`);
+  return o;
+}
+function snapshot() {
+  const d = today(), c = cfg(), x = day(d), m7 = micro7();
+  return [`DATE ${fmtDW(d)}, time ${new Date().toTimeString().slice(0, 5)}`, `PROFILE: male, born ${S.profile.dob}, ${S.profile.heightCm} cm${S.profile.coeliac ? ', COELIAC (strictly gluten-free)' : ''}. Excluded foods: ${(c.excluded || []).join(', ') || 'none'}.`,
+    `TARGETS: ${macros(d).kcal} kcal (${macros(d).mode}), protein ${c.protein} g, fat ${c.fat} g, weight floor ${c.floor} lb, steps ${c.stepsLo}-${c.stepsHi}, deep study ${c.studyTarget} h/week, bed by ${c.bedBy}, sodium cap ${c.naCap} mg.`,
+    `TODAY: ${JSON.stringify({ ...x, checks: undefined })} | food logged: ${(S.food[d] || []).map(e => `${e.name} ${r0(e.g)}g`).join(', ') || 'none'} | runs: ${runsOn(d).map(r => `${r.km}km ${fmtT(r.sec)} ${r.type}`).join(', ') || 'none'} | gym: ${gymOn(d).map(g => g.focus).join(', ') || 'none'}`,
+    `EVENTS: ${(c.events || []).filter(e => e.date >= d).slice(0, 8).map(e => `${e.date} ${e.label}`).join('; ')} | milestones: ${(c.milestones || []).map(m => `${m.name} ${m.date}`).join('; ')}`,
+    `LAST 10 RUNS: ${S.runs.slice(-10).map(r => `${r.date.slice(5)} ${r.km}km ${pace(r.sec, r.km)} ${r.type}`).join('; ')}`,
+    m7.days ? `MICRONUTRIENTS 7-day avg % of target: ${NUTR.map(n => `${n[1]} ${r0((m7.z[n[0]] || 0) / n[3] * 100)}`).join(', ')}` : '', report()].filter(Boolean).join('\n');
+}
+const COACH_RULES = `You are Dan's performance and longevity coach inside his dashboard. Be direct, specific and evidence-led; British English; no flattery, no generic advice. Tie every point to his numbers in the DATA block. Challenge weak reasoning. Distinguish established evidence from speculation and never invent studies. Rules that do not bend: never two hard days together; never a hard run the day after legs; one full day off a week; any session becomes a walk on a red morning; never advise eating under his calorie target or below the weight floor; never name fixed weekdays for runs (he picks the days); respect coeliac disease and his excluded foods; explain any physiology term in plain words. If he reports binge urges or loss-of-control eating, treat it as a fuelling and recovery signal first, and suggest his GP or Beat if it is regular or distressing. You are not a doctor: symptoms and out-of-range bloods go to his GP. Keep answers under 180 words unless he asks for more, plain text with short paragraphs or dashes, no markdown headings. End with one line starting "Next 60 minutes:" naming the single highest-leverage action. If he gives you new numbers, finish with one line he can paste into the sync bar, in the form SYNC: WT= | RHR= | SLEEP= | STEPS= | CALS= | STUDY= | STRESS= (only the fields he gave).`;
+function coachSheet(q) {
+  const b = coachBrief(), chips = ['What should I do today?', 'Review my last 7 days and grade them.', 'Is my cut working? Be blunt.', 'Plan my study blocks for today.', 'What should I eat for the rest of today?', 'What is the one thing holding me back?'];
+  sheet(`<div class="row"><div style="flex:1"><div class="eyebrow">Coach</div><h2>${SAMPLE ? 'Ask me anything about your data' : 'Today’s briefing'}</h2></div><span class="pill ${SAMPLE ? 'g' : ''}">${SAMPLE ? 'live · Claude' : 'built-in rules'}</span></div>
+    <div id="coachLog" class="stack" style="gap:10px">${COACH.turns.length ? COACH.turns.map(t => `<div class="bub ${t.role}">${esc(t.content)}</div>`).join('') : `<div class="bub assistant">${b.map(esc).join('\n\n')}</div>`}</div>
+    ${SAMPLE ? `<div class="row" style="gap:6px">${chips.map(c => `<button class="btn sm ghost" data-act="coachAsk" data-q="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+    <form id="coachForm" class="row"><input class="in" id="coachIn" style="flex:1;min-width:0;font-family:var(--f-b)" placeholder="How did the session go? What do you want to know?" autocomplete="off"><button class="btn pri" type="submit" id="coachGo">Send</button></form><p class="tiny mut">Each question sends a snapshot of your dashboard data to Claude on your own account. It keeps nothing between sessions.</p>`
+      : `<p class="small mut">This copy of the dashboard cannot reach Claude directly. The briefing above is worked out from your data by the dashboard’s own rules. For a full conversation, copy your check-in and paste it into your Claude chat, or open the dashboard from your Claude artifact link, where the coach answers here.</p><div class="row"><button class="btn pri" data-act="copySnap">Copy check-in for Claude</button></div>`}
+    <button class="btn ghost" data-act="close">Close</button>`);
+  if (q && SAMPLE) askCoach(q); else $('#coachIn')?.focus();
+}
+const COPY = { not_granted: 'You declined Claude access for this page, so the live coach is off for this visit. The built-in briefing still works.', rate_limited: 'Too many questions at once. Wait a minute and ask again.', cancelled: '' };
+async function askCoach(q) {
+  if (!SAMPLE || COACH.busy || !q.trim()) return; COACH.busy = true; COACH.turns.push({ role: 'user', content: q.trim() });
+  const log = $('#coachLog'); if (COACH.turns.length === 1) log.innerHTML = ''; log.insertAdjacentHTML('beforeend', `<div class="bub user">${esc(q.trim())}</div><div class="bub assistant" id="coachLive">Thinking…</div>`);
+  const live = $('#coachLive'), go = $('#coachGo'); if (go) go.disabled = true; live.scrollIntoView({ block: 'nearest' });
+  try {
+    const { text } = await SAMPLE([{ role: 'user', content: COACH_RULES + '\n\nDATA (from his dashboard, current):\n' + snapshot() + '\n\nReply "Ready." and wait for his message.' }, { role: 'assistant', content: 'Ready.' }, ...COACH.turns.slice(-12)], { cache: false, onText: ({ text }) => { live.textContent = text; } });
+    COACH.turns.push({ role: 'assistant', content: text }); live.textContent = text;
+    const m = text.match(/^\s*SYNC:.*$/m); if (m) live.insertAdjacentHTML('afterend', `<div><button class="btn sm" data-act="applySync" data-line="${esc(m[0].trim())}">Apply this sync line to the dashboard</button></div>`);
+  } catch (e) { COACH.turns.pop(); live.textContent = (e && e.text) || COPY[e && e.code] || 'The coach could not answer just now. Try again in a moment.'; }
+  live.removeAttribute('id'); COACH.busy = false; if (go) go.disabled = false;
+}
+
+/* ============ food from a photo or screenshot ============ */
+let PHOTO = null;
+async function foodPhoto(file) {
+  if (!SAMPLE || !SAMPLE_IMG) return toast('Photo logging needs the Claude artifact copy of this dashboard. Here, send the screenshot to Claude in chat and paste the FOOD line it gives you into the sync bar.');
+  sheet(`<div class="eyebrow">Reading your photo</div><h2>Thinking…</h2><p class="small mut">Claude is reading the image. This usually takes 10 to 40 seconds.</p>`);
+  try {
+    const r = await SAMPLE.json('The image is either a screenshot from a calorie-tracking app or a photo of food. Extract every food item. If the screenshot shows values, copy them exactly; if it is a photo, estimate portions conservatively and say so in "note". Weights are raw/uncooked where the source says so. The user has coeliac disease: put any gluten risk in "note". Return JSON only, no prose, in this shape: {"meal":"Breakfast|Lunch|Dinner|Snacks","items":[{"name":"short food name","g":number,"kcal":number,"p":number,"c":number,"f":number,"fib":number,"na":number or null,"k":number or null}],"note":"one sentence"} where p, c, f, fib are grams for that portion and na, k are milligrams for that portion (null if unknown).', { images: [file] });
+    if (!r || !Array.isArray(r.items) || !r.items.length) throw 0;
+    PHOTO = r; const tot = r.items.reduce((s, i) => s + (+i.kcal || 0), 0);
+    sheet(`<div class="eyebrow">Check before adding</div><h2>${r.items.length} items · ${r0(tot)} kcal</h2>${r.note ? `<div class="alert a"><span class="dot a"></span><div>${esc(r.note)}</div></div>` : ''}
+      <div>${r.items.map(i => `<div class="kv"><span>${esc(i.name)} <span class="mut num">· ${r0(i.g || 0)} g</span></span><span class="num">${r0(i.kcal || 0)} <span class="mut">P${r0(i.p || 0)} C${r0(i.c || 0)} F${r0(i.f || 0)}</span></span></div>`).join('')}</div>
+      ${field('Meal', `<select class="in" id="ph_meal">${['Breakfast', 'Lunch', 'Dinner', 'Snacks'].map(m => `<option ${m === r.meal ? 'selected' : ''}>${m}</option>`).join('')}</select>`)}
+      <p class="tiny mut">Photo estimates can be 20–30% out; app screenshots are copied as shown. Remove anything wrong from the log afterwards.</p>
+      <div class="row"><button class="btn pri" data-act="photoAdd">Add all to today</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+  } catch (e) { sheet(`<h2>Could not read that image</h2><p class="small mut">${esc(COPY[e && e.code] || 'Try a sharper screenshot, or one meal per photo.')}</p><button class="btn ghost" data-act="close">Close</button>`); }
+}
+function fuelExtras() {
+  return `<div class="panel"><div class="row"><span class="eyebrow">Fast logging</span><span class="sp"></span><span class="pill ${SAMPLE_IMG ? 'g' : ''}">${SAMPLE_IMG ? 'photo logging on' : 'photo logging: artifact copy only'}</span></div>
+    <div class="row" style="margin-top:10px"><label class="btn pri">Log from a photo or screenshot<input type="file" id="foodPhoto" accept="image/*" hidden></label><span class="small mut" style="flex:1;min-width:200px">A calorie-app screenshot or a picture of the plate. You check the items before anything is added.</span></div>
+    <div class="grid g6" style="margin-top:12px">${field('Quick add: name', '<input class="in" id="qa_name" style="font-family:var(--f-b)">')}${field('Grams', '<input class="in" id="qa_g" inputmode="decimal">')}${field('kcal', '<input class="in" id="qa_kcal" inputmode="decimal">')}${field('Protein', '<input class="in" id="qa_p" inputmode="decimal">')}${field('Carbs', '<input class="in" id="qa_c" inputmode="decimal">')}${field('Fat', '<input class="in" id="qa_f" inputmode="decimal">')}</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-act="quickAdd">Add to today</button><span class="tiny mut" style="flex:1;min-width:200px">Or paste a line into the sync bar at the top: FOOD: Lunch | Fage 0% 150g | eggs 120g | blueberries 110g</span></div></div>`;
+}
+
+Object.assign(ACT, {
+  coach: el => coachSheet(el.dataset.q), coachAsk: el => askCoach(el.dataset.q),
+  copySnap: () => copyText('Coach check-in from my dashboard. Give me today’s plan and the single highest-leverage action for the next 60 minutes.\n\n' + snapshot(), 'Check-in copied. Paste it into your Claude chat.'),
+  applySync: el => { $('#syncIn').value = el.dataset.line; closeModal(); $('#syncForm').requestSubmit(); },
+  nutr: el => nutrSheet(el.dataset.id),
+  pillar: el => { const p = longevity().P[+el.dataset.i]; sheet(`<div class="eyebrow">Longevity pillar</div><h2>${esc(p[0])}</h2><div class="mid num" style="font-family:var(--f-d)">${p[1] == null ? 'Not measured' : r0(p[1]) + ' / 100'}</div><p class="small mut">${esc(p[2])}</p><div><div class="eyebrow">What moves it</div><p class="small" style="margin-top:4px">${esc(p[3])}</p></div><button class="btn ghost" data-act="close">Close</button>`); },
+  addStudy: el => { const x = D(today()); x.study = r1((x.study || 0) + (+el.dataset.h)); save(); render(); toast(`Logged. ${x.study} h of deep work today.`); },
+  quickAdd: () => { const g = id => num($('#' + id).value), name = $('#qa_name').value.trim(); if (!name || g('qa_kcal') == null) return toast('Enter a name and the calories.'); const hr = new Date().getHours(); addEntry({ name, g: g('qa_g') || 0, kcal: g('qa_kcal'), p: g('qa_p'), c: g('qa_c'), f: g('qa_f') }, hr < 11 ? 'Breakfast' : hr < 15 ? 'Lunch' : hr < 20 ? 'Dinner' : 'Snacks'); save(); render(); toast(`Added ${name}.`); },
+  photoAdd: () => { const ml = $('#ph_meal').value; PHOTO.items.forEach(i => addEntry(i, ml)); save(); closeModal(); render(); toast(`${PHOTO.items.length} items added to ${ml.toLowerCase()}.`); PHOTO = null; },
+  dlBackup: async () => { const name = `apex-hud-${today()}.json`; if (DL) { try { await DL.save({ filename: name, data: backup() }); return; } catch (e) { return toast('Not saved. Use Copy backup instead.'); } } try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([backup()], { type: 'application/json' })); a.download = name; a.click(); } catch (e) { toast('Downloads are blocked here. Use Copy backup.'); } }
+});
+document.addEventListener('change', e => { if (e.target.id === 'foodPhoto' && e.target.files[0]) foodPhoto(e.target.files[0]); });
+document.addEventListener('submit', e => { if (e.target.id === 'coachForm') { const i = $('#coachIn'), q = i.value; i.value = ''; askCoach(q); } });
+document.body.insertAdjacentHTML('beforeend', '<button class="fab" data-act="coach" aria-label="Open coach">Coach</button>');
+
+load(); render = (r => () => { r(); questCheck(); })(render); render();
+
 setInterval(() => { const c = $('#clkC'); if (c && S.profile.dob) c.textContent = ageYears().toFixed(7); }, 1000);
 setInterval(() => { if (!$('#modal').innerHTML && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA' && document.activeElement?.tagName !== 'SELECT') render(); }, 300000);
 </script>

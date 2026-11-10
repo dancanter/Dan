@@ -4,6 +4,8 @@ A single-file health, training and study dashboard. Open `index.html` in any bro
 
 Five tabs: **Command** (current mission, readiness light, countdowns, age clock, ranks), **Engine** (running goals, weight trend, training logs), **Longevity** (habits, stress load, blood markers, blood pressure), **Fuel** (calorie and macro targets, food search, deficit maths) and **Mind** (sleep, deep study, breathing and focus timers).
 
+A **Coach** button gives a briefing worked out from your data. Charts can be tapped for exact values, food can be logged by search, one-tap meals, a `FOOD:` line in the sync bar or a quick-add row, and a micronutrient panel explains what each nutrient does and which foods supply it.
+
 ## Data and privacy
 
 - The file contains no personal data. Everything you enter is kept in that browser's local storage and nowhere else.
