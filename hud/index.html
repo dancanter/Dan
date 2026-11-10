@@ -182,6 +182,13 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .hrow .num{text-align:right}
 @media(max-width:520px){.hc i{width:8px;height:8px}.hrow{grid-template-columns:minmax(0,1fr) auto 64px}}
 .heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:6px}.heat span{height:34px;border-radius:7px;display:grid;place-items:center;cursor:pointer}.heat b{font:500 11px var(--f-m);color:#0a0d11;opacity:.75}
+.sb{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;margin-top:10px}
+.sb-main{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.sb-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sb-tile{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}
+.sb-tile:hover{border-color:var(--line2)}
+.sb-v{font-size:22px;line-height:1}
+@media(max-width:760px){.sb{grid-template-columns:1fr;justify-items:center}.sb-grid{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
 </style>
 
 <div class="wrap">
@@ -1012,6 +1019,8 @@ function vCommand() {
   const NN = [['n_light', 'Daylight outside before noon'], ['n_water', 'Water steady, salt as usual'], ['n_fuel', `Protein ${c.protein} g across 4 meals`], ['n_train', 'Training done as the readiness light allows'], ['n_deep', 'One 90-minute deep block'], ['n_spf', 'SPF and skin routine'], ['n_bed', `In bed by ${c.bedBy}`]];
   return `<div class="stack fade">
     <div class="mission"><div style="flex:1;min-width:0"><div class="eyebrow">Right now${ms.ev ? ' · ' + esc(ms.ev) : ''}</div><h2>${esc(ms.t)}</h2><p>${esc(ms.b)}</p></div>${ms.act ? `<button class="btn pri" data-act="${ms.act.startsWith('timer:') ? 'timer' : ms.act}" data-type="${ms.act.split(':')[1] || ''}">${esc(ms.actL)}</button>` : ''}</div>
+
+    ${scoreboardCard()}
 
     <div class="panel"><div class="row"><div class="state ${rd.band || ''}" style="flex:1;min-width:220px"><div class="eyebrow">Readiness</div>
       <div class="row" style="align-items:baseline"><span class="mid">${bandN ? bandN.name : 'Not logged'}</span>${rd.score != null ? `<span class="num mut">${rd.score}/100</span>` : ''}</div>
@@ -2151,6 +2160,50 @@ function cortisolCard() {
 }
 Object.assign(ACT, { cell: el => { const x = cellular()[+el.dataset.i]; sheet(`<div class="row"><div style="flex:1"><div class="eyebrow">Cellular system</div><h2>${esc(x[0])}</h2></div><span class="pill">${x[1]} evidence</span></div><div class="mid num" style="font-family:var(--f-d)">${x[3] == null ? 'No data yet' : r0(x[3]) + ' / 100'}</div><div><div class="eyebrow">What it is</div><p class="small mut" style="margin-top:4px">${esc(x[2])}</p></div><div><div class="eyebrow">Your last 7 days</div><p class="small" style="margin-top:4px">${esc(x[4])}</p></div><div><div class="eyebrow">What to do</div><p class="small" style="margin-top:4px">${esc(x[5])}</p></div><div class="row"><button class="btn sm" data-act="coach" data-q="${esc('As my longevity coach, go deeper on ' + x[0].toLowerCase() + ': what does the human evidence actually show, and what should I do this week given my data?')}">Ask the coach to go deeper</button><button class="btn ghost sm" data-act="close">Close</button></div>`); } });
 const _snap = snapshot; snapshot = () => { const rp = runPlan(), gp = gymPlan(); return _snap() + `\nDASHBOARD PLAN FOR TODAY (stay consistent with it unless his message gives a reason to change): run = ${rp.title}: ${rp.detail.join(' ')} (${rp.why}) | gym = ${gp.title}${gp.ex.length ? ': ' + gp.ex.map(e => `${e[0]} ${e[1]}x${e[2]}`).join(', ') : ''} | paces: ${rp.P ? `easy ${rp.P.easy}, sub-threshold ${rp.P.sub}, 5k ${rp.P.five}` : 'n/a'} | stress load ${stressLoad().score} | cellular board: ${cellular().map(x => `${x[0]} ${x[3] == null ? 'n/a' : r0(x[3])}`).join(', ')}`; };
+
+/* ============ overall scoreboard ============ */
+const calm = s => clamp(100 - s * 2, 0, 100); // stress load 0 = calm 100, 50+ = calm 0
+function dayScores(d) { // computable for any past day
+  const ax = axisScores(d), sl = lastN(7, d).filter(dayScored).map(q => stressLoad(q).score), st = sl.length ? mean(sl) : null;
+  const cel = cellular(d).filter(x => x[3] != null).map(x => x[3]);
+  return { training: (ax[0] + ax[1]) / 2, fuel: ax[4], focus: ax[5], recovery: ax[3], cellular: cel.length ? mean(cel) : null, stress: st, calm: st != null ? calm(st) : null };
+}
+function scoreboard() {
+  const d = today(), s = dayScores(d), L = longevity(), rd = readiness(d), sl = stressLoad(d);
+  const parts = [
+    ['Longevity', L.score, `${L.known} of ${L.P.length} pillars measured. Unmeasured pillars count as zero.`, 'longevity', 'Your lowest pillar: ' + L.levers[0][0].toLowerCase() + '. ' + L.levers[0][3]],
+    ['Calm', s.calm, s.stress != null ? `Stress load ${r0(s.stress)} averaged over 7 days (today ${sl.score}, ${sl.label.toLowerCase()}).` : 'Log sleep, resting HR or stress to score this.', 'longevity', sl.f.length ? 'Today’s biggest driver: ' + sl.f[0][0] + '.' : 'Nothing is adding load today.'],
+    ['Training', s.training, 'Runs, hard sessions and gym days against your weekly targets, last 7 days.', 'engine', runPlan(d).title + ' · ' + gymPlan(d).title],
+    ['Recovery', s.recovery, 'Sleep and stress over the last 7 days.', 'mind', rd.band ? `Readiness today: ${RX[rd.band].name.toLowerCase()} (${rd.score}).` : 'Log this morning’s numbers for readiness.'],
+    ['Fuel', s.fuel, 'Days within 100 kcal of target, last 7 days.', 'fuel', `Today: ${macros(d).kcal} kcal, protein ${macros(d).p} g.`],
+    ['Cellular', s.cellular, 'Mean of the scored systems on the cellular board.', 'longevity', (() => { const k = cellular(d).filter(x => x[3] != null).sort((a, b) => a[3] - b[3])[0]; return k ? 'Weakest: ' + k[0].toLowerCase() + '. ' + k[5] : 'Tick habits to score this.'; })()],
+    ['Focus', s.focus, `Deep study hours against ${cfg().studyTarget} h a week.`, 'mind', (() => { const dl = nextDeadline(d); return dl ? `${dl.label}: ${dDiff(dl.date, d)} days.` : 'No deadline set.'; })()]
+  ];
+  const known = parts.filter(p => p[1] != null), overall = known.length ? mean(known.map(p => p[1])) : null;
+  const hist = lastN(14, d).map(q => { const x = dayScores(q), v = [x.training, x.fuel, x.focus, x.recovery, x.cellular, x.calm].filter(has); return dayLogged(q) && v.length ? mean(v) : null; });
+  const prev = (() => { const x = dayScores(dAdd(d, -7)), v = [x.training, x.fuel, x.focus, x.recovery, x.cellular, x.calm].filter(has); return v.length ? mean(v) : null; })(), nowT = hist[hist.length - 1] ?? hist.filter(has).slice(-1)[0];
+  return { parts, overall, hist, delta: nowT != null && prev != null ? nowT - prev : null };
+}
+const band = v => v == null ? ['dim', 'no data'] : v >= 80 ? ['ok', 'excellent'] : v >= 65 ? ['ok', 'good'] : v >= 45 ? ['warn', 'fair'] : ['bad', 'needs work'];
+function scoreboardCard() {
+  const B = scoreboard(), ob = band(B.overall), r = 52, c = 2 * Math.PI * r, p = clamp(B.overall ?? 0, 0, 100), weakest = B.parts.filter(x => x[1] != null).sort((a, b) => a[1] - b[1])[0];
+  const days = lastN(14), spark = lineChart({ days, h: 110, dp: 0, min: 0, max: 100, label: 'Overall score, 14 days', series: [{ vals: B.hist, color: C.gold, dots: true, end: true, area: true }], empty: 'The trend fills in after a few logged days.' });
+  return `<div class="panel"><div class="row"><span class="eyebrow">Scoreboard</span><span class="sp"></span><span class="mut small">tap any score for what feeds it</span></div>
+    <div class="sb">
+      <button class="sb-main" data-act="score" data-i="-1"><svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Overall ${r0(p)} out of 100"><circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--line)" stroke-width="9"/><circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--gold)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - p / 100)}" transform="rotate(-90 70 70)" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1)"/><text x="70" y="76" text-anchor="middle" style="font:400 44px var(--f-d);fill:var(--fg)">${B.overall != null ? r0(B.overall) : '–'}</text><text x="70" y="98" text-anchor="middle" style="font-size:10px;letter-spacing:.1em">OVERALL</text></svg>
+        <div class="small"><span class="${ob[0]}">${ob[1]}</span>${B.delta != null ? ` · <span class="num ${B.delta >= 0 ? 'ok' : 'warn'}">${B.delta >= 0 ? '+' : ''}${r0(B.delta)}</span> <span class="mut">vs a week ago</span>` : ''}</div></button>
+      <div class="sb-grid">${B.parts.map((x, i) => { const b = band(x[1]); return `<button class="sb-tile" data-act="score" data-i="${i}"><div class="eyebrow">${x[0]}</div><div class="num sb-v ${b[0]}">${x[1] != null ? r0(x[1]) : '–'}</div><div class="bar" style="height:5px"><i style="width:${Math.max(2, x[1] ?? 0)}%;background:${x[1] == null ? C.dim : b[0] === 'ok' ? C.ok : b[0] === 'warn' ? C.warn : C.bad}"></i></div></button>`; }).join('')}</div>
+    </div>
+    <div style="margin-top:12px">${spark}</div>
+    ${weakest ? `<div class="alert ${weakest[1] < 45 ? 'a' : 'g'}" style="margin-top:8px"><span class="dot ${weakest[1] < 45 ? 'a' : 'g'}"></span><div><b style="font-weight:500">Lowest score: ${weakest[0].toLowerCase()} (${r0(weakest[1])})</b><div class="mut">${esc(weakest[4])}</div></div></div>` : ''}
+    <p class="tiny mut" style="margin-top:8px">Overall is the plain average of the seven scores you have data for. Calm is the stress load turned round, so higher is always better here. The trend line leaves out longevity, which cannot be worked out for past days.</p></div>`;
+}
+Object.assign(ACT, { score: el => {
+  const B = scoreboard(), i = +el.dataset.i;
+  if (i < 0) return sheet(`<div class="eyebrow">Scoreboard</div><h2>Overall ${B.overall != null ? r0(B.overall) : '–'} / 100</h2>${B.parts.map(x => `<div class="kv"><span>${x[0]}</span><span class="num ${band(x[1])[0]}">${x[1] != null ? r0(x[1]) : 'no data'}</span></div>`).join('')}<p class="small mut">The plain average of every score that has data. Raise the lowest one first: the same effort moves the average most there.</p><div class="row"><button class="btn sm" data-act="coach" data-q="Look at my scoreboard. Which score should I raise first this week and exactly how?">Ask the coach</button><button class="btn ghost sm" data-act="close">Close</button></div>`);
+  const x = B.parts[i], b = band(x[1]);
+  sheet(`<div class="eyebrow">Score</div><h2>${x[0]}</h2><div class="mid num ${b[0]}" style="font-family:var(--f-d)">${x[1] != null ? r0(x[1]) + ' / 100 · ' + b[1] : 'No data yet'}</div><div><div class="eyebrow">What feeds it</div><p class="small mut" style="margin-top:4px">${esc(x[2])}</p></div><div><div class="eyebrow">Today</div><p class="small" style="margin-top:4px">${esc(x[4])}</p></div><div class="row"><button class="btn pri sm" data-act="goTab" data-tab="${x[3]}">Open the ${x[3]} tab</button><button class="btn ghost sm" data-act="close">Close</button></div>`);
+}, goTab: el => { closeModal(); S.ui.tab = el.dataset.tab; save(); render(); window.scrollTo(0, 0); } });
 
 load(); render = (r => () => { r(); questCheck(); })(render); render();
 
