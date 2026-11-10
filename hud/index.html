@@ -181,6 +181,7 @@ svg text{font-family:var(--f-m);font-size:10px;fill:var(--mut)}
 .hc{display:flex;gap:3px}.hc i{width:11px;height:11px;border-radius:3px;background:var(--line);cursor:pointer}.hc i.on{background:var(--acc)}
 .hrow .num{text-align:right}
 @media(max-width:520px){.hc i{width:8px;height:8px}.hrow{grid-template-columns:minmax(0,1fr) auto 64px}}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:6px}.heat span{height:34px;border-radius:7px;display:grid;place-items:center;cursor:pointer}.heat b{font:500 11px var(--f-m);color:#0a0d11;opacity:.75}
 </style>
 
 <div class="wrap">
@@ -1038,6 +1039,7 @@ function vCommand() {
       ${tile('Resting HR', has(x.rhr) ? x.rhr : '–', rhrBase(d) ? `usual ${r0(rhrBase(d))}` : '')}
     </div>
 
+    ${coachesCard()}
     <div class="grid g2">${questCard()}${studyCard()}</div>
     ${drawer('log', 'Today’s log', fmtDW(S.ui.logDate || d), vLog(S.ui.logDate || d), true)}
 
@@ -1171,6 +1173,8 @@ function vLongevity() {
   })();
   return `<div class="stack fade">
     ${longevityCard()}
+    ${cellularCard()}
+    ${cortisolCard()}
     ${peakCard}
     <div class="grid g2">
       <div class="panel"><div class="row"><span class="eyebrow">Inside: cellular habits</span><span class="sp"></span><span class="num small mut">${checksDone(d, CELL_HABITS)}/${CELL_HABITS.length}</span></div><div style="margin-top:6px">${checklist(d, CELL_HABITS)}</div></div>
@@ -1916,7 +1920,7 @@ function coachBrief() { // rules-based, works everywhere
   o.push(`Biggest longevity lever: ${L.levers[0][0].toLowerCase()}. ${L.levers[0][3]}`);
   return o;
 }
-function snapshot() {
+let snapshot = function () {
   const d = today(), c = cfg(), x = day(d), m7 = micro7();
   return [`DATE ${fmtDW(d)}, time ${new Date().toTimeString().slice(0, 5)}`, `PROFILE: male, born ${S.profile.dob}, ${S.profile.heightCm} cm${S.profile.coeliac ? ', COELIAC (strictly gluten-free)' : ''}. Excluded foods: ${(c.excluded || []).join(', ') || 'none'}.`,
     `TARGETS: ${macros(d).kcal} kcal (${macros(d).mode}), protein ${c.protein} g, fat ${c.fat} g, weight floor ${c.floor} lb, steps ${c.stepsLo}-${c.stepsHi}, deep study ${c.studyTarget} h/week, bed by ${c.bedBy}, sodium cap ${c.naCap} mg.`,
@@ -1924,10 +1928,10 @@ function snapshot() {
     `EVENTS: ${(c.events || []).filter(e => e.date >= d).slice(0, 8).map(e => `${e.date} ${e.label}`).join('; ')} | milestones: ${(c.milestones || []).map(m => `${m.name} ${m.date}`).join('; ')}`,
     `LAST 10 RUNS: ${S.runs.slice(-10).map(r => `${r.date.slice(5)} ${r.km}km ${pace(r.sec, r.km)} ${r.type}`).join('; ')}`,
     m7.days ? `MICRONUTRIENTS 7-day avg % of target: ${NUTR.map(n => `${n[1]} ${r0((m7.z[n[0]] || 0) / n[3] * 100)}`).join(', ')}` : '', report()].filter(Boolean).join('\n');
-}
+};
 const COACH_RULES = `You are Dan's performance and longevity coach inside his dashboard. Be direct, specific and evidence-led; British English; no flattery, no generic advice. Tie every point to his numbers in the DATA block. Challenge weak reasoning. Distinguish established evidence from speculation and never invent studies. Rules that do not bend: never two hard days together; never a hard run the day after legs; one full day off a week; any session becomes a walk on a red morning; never advise eating under his calorie target or below the weight floor; never name fixed weekdays for runs (he picks the days); respect coeliac disease and his excluded foods; explain any physiology term in plain words. If he reports binge urges or loss-of-control eating, treat it as a fuelling and recovery signal first, and suggest his GP or Beat if it is regular or distressing. You are not a doctor: symptoms and out-of-range bloods go to his GP. Keep answers under 180 words unless he asks for more, plain text with short paragraphs or dashes, no markdown headings. End with one line starting "Next 60 minutes:" naming the single highest-leverage action. If he gives you new numbers, finish with one line he can paste into the sync bar, in the form SYNC: WT= | RHR= | SLEEP= | STEPS= | CALS= | STUDY= | STRESS= (only the fields he gave).`;
 function coachSheet(q) {
-  const b = coachBrief(), chips = ['What should I do today?', 'Review my last 7 days and grade them.', 'Is my cut working? Be blunt.', 'Plan my study blocks for today.', 'What should I eat for the rest of today?', 'What is the one thing holding me back?'];
+  const b = coachBrief(), chips = ['Running coach: what is today’s run and why?', 'Gym coach: today’s session, set by set.', 'Longevity coach: my top three levers this week.', 'Look coach: skin, face and grooming today.', 'What should I do today?', 'Review my last 7 days and grade them.', 'Is my cut working? Be blunt.', 'Plan my study blocks for today.', 'What should I eat for the rest of today?', 'What is the one thing holding me back?'];
   sheet(`<div class="row"><div style="flex:1"><div class="eyebrow">Coach</div><h2>${SAMPLE ? 'Ask me anything about your data' : 'Today’s briefing'}</h2></div><span class="pill ${SAMPLE ? 'g' : ''}">${SAMPLE ? 'live · Claude' : 'built-in rules'}</span></div>
     <div id="coachLog" class="stack" style="gap:10px">${COACH.turns.length ? COACH.turns.map(t => `<div class="bub ${t.role}">${esc(t.content)}</div>`).join('') : `<div class="bub assistant">${b.map(esc).join('\n\n')}</div>`}</div>
     ${SAMPLE ? `<div class="row" style="gap:6px">${chips.map(c => `<button class="btn sm ghost" data-act="coachAsk" data-q="${esc(c)}">${esc(c)}</button>`).join('')}</div>
@@ -1986,6 +1990,167 @@ Object.assign(ACT, {
 document.addEventListener('change', e => { if (e.target.id === 'foodPhoto' && e.target.files[0]) foodPhoto(e.target.files[0]); });
 document.addEventListener('submit', e => { if (e.target.id === 'coachForm') { const i = $('#coachIn'), q = i.value; i.value = ''; askCoach(q); } });
 document.body.insertAdjacentHTML('beforeend', '<button class="fab" data-act="coach" aria-label="Open coach">Coach</button>');
+
+/* ============ the four coaches: rules that turn the log into today's prescription ============ */
+function paces() {
+  const g = m => S.prs.find(p => p.m === m && has(p.cur)), p5 = g(5000), p8 = g(800), p4 = g(400); if (!p5) return null;
+  const k = p5.cur / 5, t = s => fmtT(Math.round(s)), rng = (a, b) => `${t(a)}–${t(b)}`;
+  return { k, easy: rng(k * 1.38, k * 1.58) + '/km', sub: rng(k * 1.09, k * 1.15) + '/km', subRep800: rng(k * 1.09 * 0.8, k * 1.15 * 0.8), five: t(k) + '/km', k1: rng(k * 0.97, k), r800: rng(k * 0.96 * 0.8, k * 0.98 * 0.8), r300: p8 ? `${Math.round(p8.cur * 0.365)}–${Math.round(p8.cur * 0.378)} s` : null, r200: p4 ? `${Math.round(p4.cur / 2 * 1.05)}–${Math.round(p4.cur / 2 * 1.09)} s` : null };
+}
+const deloading = (d = today()) => { const l = cfg().lastDeload; return !!l && dDiff(d, l) >= 0 && dDiff(d, l) <= 4; };
+function runPlan(d = today()) {
+  const c = cfg(), rd = readiness(d), P = paces(), ws = weekStart(d), wr = weekRuns(ws), wk = lastN(dDiff(d, ws) + 1, d).flatMap(runsOn), pk = peakState(d), y = dAdd(d, -1);
+  const done = runsOn(d), yHard = runsOn(y).some(isHard), yLegs = gymOn(y).some(isLegs), streak3 = [1, 2, 3].every(i => runsOn(dAdd(d, -i)).length), hard7 = lastN(7, d).filter(q => runsOn(q).some(isHard)).length;
+  const need = [], dl = deloading(d);
+  if (!wk.some(r => r.type === 'sub')) need.push('sub'); if (!dl && !wk.some(r => r.type === 'hard')) need.push('long'); if (!wk.some(r => r.type === 'speed' || r.type === 'tt')) need.push('speed');
+  const left = need.map(n => ({ sub: 'Norwegian sub-threshold', long: 'long reps (600 m+)', speed: 'speed (200–400 m)' }[n])).join(', ');
+  const R = (title, detail, why, kind) => ({ title, detail, why, kind, left, P });
+  const trial = eventsOn(d).find(e => /trial/i.test(e.label));
+  if (done.length) return R('Run done', [`${done.map(r => `${r1(r.km)} km at ${pace(r.sec, r.km)} (${r.type})`).join('; ')}.`, P ? `For reference: easy ${P.easy}, sub-threshold ${P.sub}.` : ''], left ? `Still to do this week: ${left}.` : 'All three quality slots for the week are filled.', 'done');
+  if (day(d).sick || rd.band === 'r') return R('No run. Walk 30–40 minutes.', ['Flat, easy, outside in daylight.'], 'Red readiness. A hard session today costs more fitness than it builds.', 'rest');
+  if (dow(d) === c.offDay) return R('Day off', ['No run today.'], 'One full day off a week is where the training is absorbed.', 'rest');
+  if (pk && pk.mode === 'pre') return R('Easy 20-minute jog, or rest', [P ? `At ${P.easy}. Four relaxed 15-second strides at the end if the legs feel good.` : 'Very easy.'], `Pre-${pk.m.name}: hard running now only adds muscle damage and water.`, 'easy');
+  if (pk && pk.mode === 'trip') return R('Walk the city', ['If you want to run, 20–30 easy minutes before breakfast.'], 'Travel days. Fitness does not move in three days.', 'rest');
+  if (wr.n >= c.runsMax) return R('No run today', [`You have ${wr.n} runs this week, which is your ceiling.`], 'More runs than four a week has cost you recovery every time your log shows it.', 'rest');
+  if (streak3) return R('No run today', ['Three run days in a row already.'], 'Never four in a row.', 'rest');
+  if (trial) return R(trial.label, ['Warm up 10–15 min easy, drills, 4 strides. One all-out effort. Walk and jog 10 min after.', 'Carbs 60–90 min before (oats or potatoes), carbs and protein within the hour after.'], 'Trial day replaces a hard run.', 'hard');
+  const easy = why => R('Easy run, 5–8 km', [P ? `Pace ${P.easy}. On a deficit, slower is never wrong.` : 'Conversational pace.', 'You should be able to speak full sentences the whole way.'], why, 'easy');
+  if (yLegs) return easy('Legs yesterday. Your own notes: hard running the day after legs gives “jelly legs” and a wasted session. Or take the day off running.');
+  if (yHard) return easy('Hard run yesterday. Never two hard days together.');
+  if (rd.band === 'a') return easy('Amber readiness: aerobic work only today.');
+  if (hard7 >= 2 && need[0] !== 'sub') return easy('Two hard runs already in the last 7 days. That is the ceiling on a cut.');
+  if (!need.length) return easy('The week’s quality is done. This one just adds easy aerobic volume, or skip it.');
+  const n = need[0], wkN = Math.floor(dDiff(ws, '2026-01-05') / 7);
+  if (n === 'sub') return R('Norwegian sub-threshold', [P ? (wkN % 2 ? `6 × 800 m at ${P.subRep800} per rep, 60 s jog between.` : `30 minutes continuous at ${P.sub}.`) : '30 minutes at a true 7 out of 10.', 'Finish with 6 hill sprints of 10 s, walking back down.', 'You should finish feeling you could do two more reps. If the watch shows faster than the range, slow down: that is the session failing, not succeeding.'], 'Sub-threshold work builds the aerobic base your 5 km and mile need, at a stress cost low enough to recover from on a deficit. Your last two were run 25–35 s/km too fast.', 'sub');
+  if (n === 'long') return R(wkN % 2 ? '5 × 800 m' : '4 × 1 km', [P ? (wkN % 2 ? `Each 800 in ${P.r800}, 2 min jog between.` : `Each km in ${P.k1}, 2 min 30 jog between.`) : 'At current 5 km effort.', 'Even splits: the last rep should match the first.', 'Oats 60–90 min before. Carbs and protein within the hour after.'], 'Reps at 5 km pace are what moved your 5 km in 2025 (4 × 1 km, 3:20 → 3:02). This is the session your recent log is weakest on.', 'hard');
+  return R(wkN % 2 ? '8 × 200 m' : '6 × 300 m', [P && (wkN % 2 ? P.r200 : P.r300) ? (wkN % 2 ? `Each 200 in ${P.r200}, walk 200 m back.` : `Each 300 in ${P.r300}, 3 min walk between.`) : 'Fast and relaxed, full recovery.', 'Stop the set when a rep slows by more than 2 seconds.', 'Carbs before and after.'], 'Speed is the part of your running that is improving on the cut. Fast, relaxed, fully recovered reps keep it without digging a hole.', 'speed');
+}
+const SPLIT = [
+  { key: 'shoulder', name: 'Shoulders + forearms', main: 'overhead press', ex: [['Lateral raise (cable or dumbbell)', 4, '10–15', 'Width comes from here. Lead with the elbow.'], ['Overhead press', 3, '6–10', ''], ['Rear-delt fly or face pull', 3, '12–15', 'Posture and the back of the shoulder.'], ['Wrist curl', 2, '12–15', ''], ['Hammer curl', 2, '10–12', '']] },
+  { key: 'chest', name: 'Chest + triceps', main: 'bench', ex: [['Incline dumbbell press', 3, '6–10', 'Upper chest first, while fresh.'], ['Bench press', 3, '5–8', ''], ['Cable fly, low to high', 2, '10–15', ''], ['Triceps pushdown', 3, '10–12', ''], ['Overhead triceps extension', 2, '10–12', '']] },
+  { key: 'back', name: 'Back + biceps', main: 'pull', ex: [['Pull-ups, weighted if 10+ is easy', 3, '6–10', 'Lat width.'], ['Chest-supported row', 3, '8–12', ''], ['Lat pulldown or straight-arm pulldown', 2, '10–15', ''], ['Barbell or dumbbell curl', 3, '8–12', ''], ['Incline curl', 2, '10–12', '']] },
+  { key: 'leg', name: 'Legs (run-friendly)', main: 'squat', ex: [['Squat or leg press', 3, '6–8', 'Two reps in reserve. No grinding.'], ['Romanian deadlift or hamstring curl', 3, '8–10', ''], ['Leg extension', 2, '10–12', ''], ['Calf raise', 3, '10–15', '']] }
+];
+function gymPlan(d = today()) {
+  const c = cfg(), rd = readiness(d), ws = weekStart(d), wg = weekGym(ws), pk = peakState(d), y = dAdd(d, -1), rp = runPlan(d);
+  const G = (title, ex, why, extra) => ({ title, ex: ex || [], why, ...(extra || {}) });
+  if (gymOn(d).length) return G('Gym done', [], `${gymOn(d).map(g => g.focus).join(', ')} logged. ${wg.n} of ${c.gymTarget} sessions this week.`);
+  if (day(d).sick || rd.band === 'r') return G('No lifting today', [], 'Red readiness. Mobility only.');
+  if (dow(d) === c.offDay) return G('Day off', [], 'No weights today.');
+  if (pk && pk.mode === 'trip') return G('No gym', [], 'Travel days. Twenty press-ups and a plank in the room if you want a pump before dinner.');
+  const last = k => { const g = [...S.gym].reverse().find(x => new RegExp(k, 'i').test(x.focus || '') || (k === 'leg' && isLegs(x))); return g ? g.date : '2000-01-01'; };
+  const legSets = ['quads', 'hamstrings', 'glutes', 'calves', 'legs'].reduce((s, k) => s + (wg.sets[k] || 0), 0);
+  const legsOK = (runsOn(y).some(isHard) || runsOn(d).some(isHard)) && rp.kind !== 'hard' && rp.kind !== 'speed' && legSets < 12 && !(pk && pk.mode === 'pre');
+  const order = SPLIT.filter(s => s.key !== 'leg' || legsOK).filter(s => !(pk && pk.mode === 'pre' && s.key === 'leg')).sort((a, b) => last(a.key).localeCompare(last(b.key)));
+  const s = order[0], cut = rd.band === 'a' || deloading(d) || (pk && pk.mode === 'pre'), sc = n => cut ? Math.max(1, Math.round(n * 0.7)) : n;
+  const ll = [...S.lifts].reverse().find(l => new RegExp(s.main, 'i').test(l.lift));
+  const beat = ll ? (ll.kg ? `Beat last time on ${ll.lift.toLowerCase()}: ${ll.kg} kg × ${ll.reps} → ${ll.reps >= 10 ? `${ll.kg + 2.5} kg × 6` : `${ll.kg} kg × ${ll.reps + 1}`}.` : `Beat last time: ${ll.reps} → ${ll.reps + 1} reps on the first set.`) : 'Log your main lift after this session so next time has a number to beat.';
+  const sets = s.ex.reduce((a, e) => a + sc(e[1]), 0), ago = last(s.key) === '2000-01-01' ? 'not logged yet' : `last trained ${dDiff(d, last(s.key))} days ago`;
+  return G(s.name, s.ex.map(e => [e[0], sc(e[1]), e[2], e[3]]), `${s.name.split(' ')[0]} is the muscle group ${ago}.${cut ? ' Sets cut by about 30% today; the weight stays the same.' : ''}${s.key === 'leg' ? ' Legs go here because you ran hard in the last day; this keeps them away from the next hard run.' : !legsOK && last('leg') < dAdd(d, -6) ? ' Legs wait until the day after your next hard run.' : ''}`, { beat, sets, rule: 'Every working set stops 1–2 reps short of failure. On a cut the load on the bar is what tells muscle to stay; trim sets before you ever trim weight.' });
+}
+function longPlan(d = today()) {
+  const x = day(d), ck = x.checks || {}, o = [], l7 = lastN(7, d), fish = l7.filter(q => (day(q).checks || {}).c_o3 || (S.food[q] || []).some(e => e.m && e.m.om > 300)).length, ci = circadian(7, d), sl = stressLoad(d);
+  if (fish < 2) o.push([`Oily fish today (${fish} of 2 this week)`, 'Salmon, trout, mackerel or sardines, 130 g. EPA and DHA are built into cell membranes and help switch inflammation off after training. It is also your only real vitamin D source until April.']);
+  if (!ck.n_light && !(x.light >= 10) && new Date().getHours() < 13) o.push(['Ten minutes of daylight before noon', 'Morning light sets the body clock that times cortisol, melatonin and overnight cell repair.']);
+  if (ci.spread != null && ci.spread > 30) o.push([`Tighten bedtime: it varies by ±${r0(ci.spread)} min`, 'Irregular timing predicts poor health outcomes about as well as short sleep does. Same bedtime tonight as last night.']);
+  if (sl.band !== 'g') o.push([`Bring the stress load down (${sl.score} today)`, `${sl.f.slice(0, 2).map(f => f[0]).join('; ')}. One NSDR session this afternoon and carbs around training.`]);
+  if (S.bp.filter(b => b.date).length < 7) o.push(['Blood pressure reading, morning and evening', 'One 134/82 clinic reading is on record with nothing after it. Seven days of home readings settles it.']);
+  if (!S.bloods.length) o.push(['Book the GP blood panel', 'Ferritin, vitamin D, B12, folate, HbA1c, lipids, TSH, testosterone, coeliac antibodies. You cannot optimise what you have never measured.']);
+  if (!ck.c_poly) o.push(['Two polyphenol foods today', 'Blueberries with breakfast, 15 g of 85% chocolate after dinner.']);
+  o.push(['A 10-minute walk after your biggest meal', 'Working muscle pulls glucose out of the blood without insulin, flattening the peak that drives glycation.']);
+  return o.slice(0, 3);
+}
+function lookPlan(d = today()) {
+  const x = day(d), y = day(dAdd(d, -1)), ck = x.checks || {}, o = [], ms = (cfg().milestones || []).filter(m => m.date >= d).sort((a, b) => a.date.localeCompare(b.date))[0], to = ms ? dDiff(ms.date, d) : null;
+  if ((has(x.sleep) && x.sleep < 7) || y.sodium === 'high' || x.puff >= 4) o.push(['Expect some face puffiness today', `${has(x.sleep) && x.sleep < 7 ? 'Short sleep' : y.sodium === 'high' ? 'A salty day yesterday' : 'Puffiness logged'}. Drink most of your water before 6pm, potassium foods at each meal, gua sha for two minutes, salt exactly as normal. It clears in 24–48 hours.`]);
+  if (!ck.l_spf) o.push(['SPF 50 now', 'UVA passes through cloud and glass all year and is the main cause of visible skin ageing. This is the single best-evidenced step in your routine.']);
+  if (to != null && to >= 3 && to <= 6) o.push([`Haircut and brows this week (${ms.name} in ${to} days)`, 'Three to five days before looks best: sharp, with the edge just softened.']);
+  if (to != null && to >= 1 && to <= 2) o.push(['Shave tonight, not tomorrow morning', 'Reactive skin needs 12 hours to settle. Warm water, sharp blade, with the grain, plain moisturiser after.']);
+  o.push(['Posture: two sets of face pulls or band pull-aparts', 'Shoulders back and chin level changes how lean and tall you read more than a pound of fat does.']);
+  if (!ck.l_pm) o.push(['Tonight: cleanse, then squalane or barrier cream', 'Skin repairs overnight; a calm barrier is what makes it look even in the morning.']);
+  if (!ck.l_col) o.push(['Collagen 15 g with kiwi or strawberries before training', 'Small trials show higher collagen-building markers when glycine and vitamin C arrive an hour before loading. Emerging evidence; cheap and harmless.']);
+  return o.slice(0, 3);
+}
+function timeline(d = today()) {
+  const c = cfg(), rp = runPlan(d), gp = gymPlan(d), rd = readiness(d), sl = stressLoad(d), ev = eventsOn(d).map(e => e.label).join(', '), off = dow(d) === c.offDay, hard = rp.kind === 'hard' || rp.kind === 'speed' || rp.kind === 'sub', t = [];
+  t.push(['07:30', 'Up. Weigh, resting HR, log. Water.']); t.push(['07:45', 'Daylight, 10–15 minutes outside.']); t.push(['08:15', 'Breakfast with 25 g+ protein.' + (hard ? ' Include the oats: fuel for the session.' : '')]);
+  if (!off) { t.push(['09:00', `Deep block 1, 90 minutes${ev ? ': ' + ev : ''}.`]); t.push(['10:45', 'Deep block 2, 90 minutes. Caffeine finished by noon.']); }
+  if (hard) t.push(['12:15', 'Pre-run carbs: 60–90 min before the session.']); else if (!off) t.push(['12:30', 'Lunch: protein, carbs, a vitamin C fruit.']);
+  if (rp.kind !== 'rest' && rp.kind !== 'done') t.push(['13:30', `Run: ${rp.title}.`]); if (gp.ex.length) t.push([rp.kind === 'rest' || rp.kind === 'done' ? '13:30' : '15:00', `Gym: ${gp.title}, ${gp.sets} sets.`]);
+  if (hard || gp.ex.length) t.push(['+1 h', 'Carbs and protein within the hour after training.']);
+  if (rd.band === 'a' || sl.band !== 'g') t.push(['15:30', 'NSDR, 10–20 minutes lying down.']);
+  t.push(['16:15', `Walk to finish your steps (${c.stepsLo.toLocaleString()} minimum).`]); t.push(['18:30', 'Dinner: big plate, your daily salt, then a 10-minute walk.']); t.push(['20:00', 'Yoghurt bowl. Kitchen closed after.']); t.push(['21:30', 'Lights low, phone out of the bedroom, PM skin routine.']); t.push([c.bedBy, 'In bed.']);
+  return t;
+}
+function coachesCard() {
+  const rp = runPlan(), gp = gymPlan(), lp = longPlan(), lk = lookPlan(), now = new Date().toTimeString().slice(0, 5), tl = timeline();
+  const card = (who, col, title, body, q) => `<div class="tile" style="padding:14px"><div class="row"><span class="eyebrow" style="color:${col}">${who}</span><span class="sp"></span><button class="btn sm ghost" data-act="coach" data-q="${esc(q)}">Ask</button></div><div class="mid" style="font-size:21px;margin:6px 0">${esc(title)}</div>${body}</div>`;
+  const li = a => `<ul class="small mut" style="margin:0;padding-left:18px">${a.filter(Boolean).map(x => `<li style="margin-bottom:4px">${esc(x)}</li>`).join('')}</ul>`;
+  const two = a => a.map(x => `<div style="margin-bottom:8px"><b class="small" style="font-weight:500">${esc(x[0])}</b><div class="small mut">${esc(x[1])}</div></div>`).join('');
+  return `<div class="panel"><div class="row"><span class="eyebrow">Today’s plan from your four coaches</span><span class="sp"></span><span class="mut small">${fmtDW(today())}</span></div>
+    <div class="grid g2" style="margin-top:10px">
+      ${card('Running coach', C.acc, rp.title, li(rp.detail) + `<p class="small" style="margin-top:8px">${esc(rp.why)}</p>${rp.left && rp.kind !== 'done' ? `<p class="tiny mut" style="margin-top:4px">Still to do this week: ${esc(rp.left)}.</p>` : ''}`, 'As my running coach: explain today’s run, exactly how to pace it, and how it moves me toward my goal times.')}
+      ${card('Gym coach', C.gold, gp.title, (gp.ex.length ? `<table style="margin-bottom:6px">${gp.ex.map(e => `<tr><td>${esc(e[0])}${e[3] ? `<div class="tiny mut">${esc(e[3])}</div>` : ''}</td><td class="n">${e[1]} × ${e[2]}</td></tr>`).join('')}</table><p class="small">${esc(gp.beat)}</p>` : '') + `<p class="small mut" style="margin-top:6px">${esc(gp.why)}</p>${gp.rule ? `<p class="tiny mut" style="margin-top:4px">${esc(gp.rule)}</p>` : ''}`, 'As my gym coach: walk me through today’s session to keep maximum muscle on the cut, with form cues for the main lift.')}
+      ${card('Longevity coach', C.ok, lp[0][0], two(lp), 'As my longevity coach: what are the highest-value things I can do today for cellular health and healthy ageing, given my data? Grade the evidence for each.')}
+      ${card('Look coach', C.violet, lk[0][0], two(lk), 'As my appearance coach: what should I do today for skin, face leanness, posture and grooming, given my data and my next milestone?')}
+    </div>
+    ${drawer('timeline', 'Today, hour by hour', 'when to do what', `<div>${tl.map(t => `<div class="kv" style="justify-content:flex-start"><span class="num ${/^\d/.test(t[0]) && t[0] <= now ? 'dim' : 'acc'}" style="width:52px;flex:none;text-align:left">${t[0]}</span><span style="text-align:left;${/^\d/.test(t[0]) && t[0] <= now ? 'color:var(--dim)' : ''}">${esc(t[1])}</span></div>`).join('')}</div><p class="tiny mut">Times are a default shape, not appointments. Move the blocks; keep the order.</p>`)}
+  </div>`;
+}
+
+/* ============ cellular anti-ageing board ============ */
+function cellular(d = today()) {
+  const l7 = lastN(7, d), tk = id => l7.filter(q => (day(q).checks || {})[id]).length, wr = weekRuns(dAdd(d, -6)), wg = weekGym(dAdd(d, -6)), v = vo2now(), ci = circadian(14, d), m7 = micro7(), sl = l7.map(q => day(q)).filter(x => has(x.sleep));
+  const fish = l7.filter(q => (day(q).checks || {}).c_o3 || (S.food[q] || []).some(e => e.m && e.m.om > 300)).length, avgSleep = mean(sl.map(x => x.sleep));
+  const sload = l7.filter(q => has(day(q).sleep) || has(day(q).rhr)).map(q => stressLoad(q).score), cov = ids => m7.days ? mean(ids.map(i => clamp((m7.z[i] || 0) / NUTR.find(n => n[0] === i)[3], 0, 1))) * 100 : null;
+  const pd = l7.filter(q => { const t = foodTotals(q); return t.n >= 3 && t.p >= cfg().protein * 0.9; }).length, logged = l7.filter(q => foodTotals(q).n >= 3).length, crp = latestBlood('crp'), a1c = latestBlood('hba1c');
+  return [
+    ['Mitochondria', 'established', 'The units inside each cell that turn food and oxygen into usable energy (ATP). Aerobic training makes muscle build more of them and keeps them efficient; their decline is one of the clearest features of ageing.', clamp(wr.easyMin / 100 * 55 + (v ? clamp((v.v - 40) / 20, 0, 1) * 45 : 0), 0, 100), `${r0(wr.easyMin)} easy minutes in 7 days${v ? `, VO2max about ${r0(v.v)}` : ''}.`, wr.easyMin < 80 ? 'Add one easy run or two brisk 30-minute walks this week. Easy volume is the stimulus; hard reps are the sharpening.' : 'Hold this. More is not better on a deficit.'],
+    ['Cell clean-up (autophagy)', 'emerging', 'Cells break down and recycle their own worn-out parts. It rises overnight, during exercise and when energy is short. Most of the evidence is from animals; in people the safe levers are sleep, training and a plain overnight gap between meals. Long fasts are not for you at this body weight.', sl.length >= 3 ? clamp((avgSleep - 6) / 2.5 * 60, 0, 60) + tk('c_fast') / 7 * 40 : null, sl.length >= 3 ? `${r1(avgSleep)} h sleep average; overnight gap ticked ${tk('c_fast')} of 7 days.` : 'Needs three nights of sleep logged.', 'Last big meal 2–3 hours before bed, 12 hours to breakfast. You are already in a deficit: that is signal enough. Do not add fasting.'],
+    ['Glycation', 'good', 'Glucose in the blood slowly bonds to proteins such as collagen, making skin and artery walls stiffer over decades. HbA1c measures the same reaction on haemoglobin.', a1c ? (a1c.value <= 34 ? 95 : a1c.value <= 38 ? 75 : 45) : tk('c_gly') ? tk('c_gly') / 7 * 100 : null, a1c ? `HbA1c ${a1c.value} mmol/mol.` : `Carbs paired with protein and a post-meal walk: ${tk('c_gly')} of 7 days. No HbA1c on record.`, 'Keep carbs around training, eat them with protein, and walk 10 minutes after the largest meal. Get HbA1c on the blood panel.'],
+    ['Inflammation control', 'good', 'Short bursts of inflammation after training are how you adapt. The harm comes from a low level that never switches off. Omega-3 fats, sleep and body fat level are the main dials; hs-CRP is the blood marker.', crp ? (crp.value < 1 ? 95 : crp.value <= 3 ? 60 : 30) : clamp(fish / 2 * 100, 0, 100), crp ? `hs-CRP ${crp.value} mg/L.` : `Oily fish on ${fish} of the last 7 days (target 2). No hs-CRP on record.`, fish < 2 ? 'Two oily-fish meals this week. One 130 g portion of salmon or mackerel covers four days of EPA and DHA.' : 'On target. Confirm with hs-CRP on the blood panel.'],
+    ['Skin and antioxidant defence', 'established', 'UV light and normal metabolism both produce reactive molecules that damage DNA, collagen and cell membranes. Sunscreen blocks the largest source; vitamins C and E, selenium and zinc run the repair enzymes.', (() => { const s = tk('l_spf') / 7 * 60, c5 = cov(['c', 'e', 'se', 'zn', 'a']); return tk('l_spf') || c5 != null ? s + (c5 != null ? c5 * 0.4 : tk('c_poly') / 7 * 40) : null; })(), `SPF ticked ${tk('l_spf')} of 7 days, polyphenol foods ${tk('c_poly')} of 7.${cov(['c', 'e', 'se', 'zn', 'a']) != null ? ` Vitamins C, E, A, selenium, zinc: ${r0(cov(['c', 'e', 'se', 'zn', 'a']))}% covered.` : ''}`, 'SPF every morning, including grey ones. A vitamin C fruit and a handful of berries daily.'],
+    ['Muscle and protein turnover', 'established', 'Muscle is rebuilt constantly from amino acids. Lifting sets the demand, protein supplies the material. Muscle mass and strength are among the strongest predictors of healthy later life, and a cut is when they are most at risk.', clamp(wg.n / (cfg().gymTarget || 4) * 60, 0, 60) + (logged ? pd / logged * 40 : 20), `${wg.n} gym days in 7.${logged ? ` Protein target hit on ${pd} of ${logged} logged days.` : ' Protein not logged item by item.'}`, 'Four sessions, each set 1–2 reps from failure, 25 g+ protein at every meal. Fix breakfast first.'],
+    ['Stress biology', 'observational', 'Cortisol is useful in short pulses and corrosive when it stays high: it breaks down muscle, raises blood glucose, thins skin and holds water. Long-term stress is also linked with shorter telomeres (the protective caps on chromosomes), though that link is an association, not proof of cause.', sload.length >= 3 ? clamp(100 - mean(sload) * 2, 0, 100) : null, sload.length >= 3 ? `Stress load averaged ${r0(mean(sload))} over ${sload.length} logged days.` : 'Needs three logged days.', 'One full day off a week, carbs around training, bedtime on time. The board below shows which behaviour is driving it.'],
+    ['Body clock', 'good', 'Almost every cell keeps a 24-hour rhythm that times repair, hormone release and metabolism. Light sets the clock; irregular sleep and late eating pull it apart.', ci.spread != null ? clamp((75 - ci.spread) / 60 * 60, 0, 60) + tk('c_light') / 7 * 40 : tk('c_light') ? tk('c_light') / 7 * 60 : null, ci.spread != null ? `Sleep timing varies ±${r0(ci.spread)} min. Morning light ticked ${tk('c_light')} of 7 days.` : `Morning light ticked ${tk('c_light')} of 7 days. Log bed and wake times to score regularity.`, 'Outside within an hour of waking. Same bedtime within 30 minutes, weekends included.']
+  ];
+}
+function cellularCard() {
+  const L = cellular(), known = L.filter(x => x[3] != null), worst = [...known].sort((a, b) => a[3] - b[3])[0], gr = { established: 'g', good: 'b', emerging: 'a', observational: 'a' };
+  return `<div class="panel"><div class="row"><span class="eyebrow">Cellular anti-ageing board</span><span class="sp"></span><span class="mut small">last 7 days · ${known.length} of ${L.length} scored</span></div>
+    ${worst ? `<div class="alert ${worst[3] < 50 ? 'a' : 'g'}" style="margin-top:10px"><span class="dot ${worst[3] < 50 ? 'a' : 'g'}"></span><div><b style="font-weight:500">Focus this week: ${esc(worst[0].toLowerCase())}</b><div class="mut">${esc(worst[5])}</div></div></div>` : ''}
+    <div class="grid g2" style="margin-top:8px;gap:0 18px">${L.map((x, i) => `<button class="res" data-act="cell" data-i="${i}" style="display:block"><div class="row small"><span>${esc(x[0])}</span><span class="pill ${gr[x[1]]}">${x[1]}</span><span class="sp"></span><span class="num ${x[3] == null ? 'dim' : x[3] >= 75 ? 'ok' : x[3] >= 45 ? 'warn' : 'bad'}">${x[3] == null ? 'no data' : r0(x[3])}</span></div><div class="bar" style="margin-top:5px"><i style="width:${Math.max(2, x[3] ?? 0)}%;background:${x[3] == null ? C.dim : x[3] >= 75 ? C.ok : x[3] >= 45 ? C.warn : C.bad}"></i></div><div class="tiny mut" style="margin-top:4px;white-space:normal">${esc(x[4])}</div></button>`).join('')}</div>
+    <p class="tiny mut" style="margin-top:8px">Tap a system for what it is and what moves it. The tag is the strength of the human evidence: established, good, emerging (mostly animal or small trials) or observational (linked, not proven to cause). Scores come from your habits and logs, not from a measurement inside your cells.</p></div>`;
+}
+
+/* ============ cortisol and stress board ============ */
+const dayScored = d => { const x = day(d); return has(x.sleep) || has(x.rhr) || has(x.stress); };
+function cortisolCurve() {
+  const W = 600, H = 150, L = 10, R = 10, T = 14, B = 26, c = cfg(), wk = lastN(14).map(d => wakeMin(day(d).wake)).filter(has), wake = wk.length ? mean(wk) / 60 : 7.5, X = h => L + (h - 5) / 19 * (W - L - R), Y = v => T + (1 - v) * (H - T - B);
+  const f = h => { const t = h - wake; return t < 0 ? 0.25 + 0.2 * Math.exp(t) : 0.22 + 0.78 * Math.exp(-((t - 0.6) ** 2) / 0.9) * (t < 0.6 ? 1 : 0) + (t >= 0.6 ? 0.78 * Math.exp(-(t - 0.6) / 4.2) : 0); };
+  let p = ''; for (let h = 5; h <= 24; h += 0.2) p += (p ? 'L' : 'M') + X(h).toFixed(1) + ' ' + Y(clamp(f(h), 0, 1)).toFixed(1) + ' ';
+  const now = new Date().getHours() + new Date().getMinutes() / 60, bed = (+c.bedBy.split(':')[0]) + (+c.bedBy.split(':')[1]) / 60, mk = (h, label, col, up) => `<line x1="${X(h)}" x2="${X(h)}" y1="${T}" y2="${H - B}" stroke="${col}" stroke-dasharray="3 4" opacity=".7"/><text x="${X(h)}" y="${up ? T - 3 : H - B + 11}" text-anchor="middle" style="fill:${col}">${label}</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Typical daily cortisol curve with your anchors"><path d="${p} L${X(24)} ${H - B} L${X(5)} ${H - B} Z" fill="var(--warn)" opacity=".08"/><path d="${p}" fill="none" stroke="var(--warn)" stroke-width="2"/>${mk(wake + 0.6, 'peak · light', C.gold)}${mk(12, 'caffeine off', C.mut)}${mk(14, 'train + carbs', C.acc)}${mk(21.5, 'lights low', C.violet)}${mk(Math.min(bed, 23.9), 'bed', C.ok)}${now >= 5 && now <= 24 ? `<line x1="${X(now)}" x2="${X(now)}" y1="${T}" y2="${H - B}" stroke="var(--fg)" stroke-width="1.5"/><circle cx="${X(now)}" cy="${Y(clamp(f(now), 0, 1))}" r="4" fill="var(--fg)"/>` : ''}${[6, 9, 12, 15, 18, 21, 24].map(h => `<text x="${X(h)}" y="${H - 3}" text-anchor="middle">${String(h % 24).padStart(2, '0')}:00</text>`).join('')}</svg>`;
+}
+function cortisolCard() {
+  const d = today(), sl = stressLoad(d), ds = lastN(14, d), sc = ds.map(q => dayScored(q) ? stressLoad(q).score : null), ws = weekStart(d), tw = lastN(dDiff(d, ws) + 1, d).filter(dayScored), lw = lastN(7, dAdd(ws, -1)).filter(dayScored);
+  const avg = a => a.length ? mean(a.map(q => stressLoad(q).score)) : null, at = avg(tw), al = avg(lw), tally = {};
+  [...tw, ...lw].forEach(q => stressLoad(q).f.forEach(f => { const k = f[0].replace(/[\d.,+±-]+/g, '').replace(/\s+/g, ' ').replace(/^ (h|min|kcal|bpm)/, '').trim(); tally[k] = (tally[k] || 0) + (f[1] === 2 ? 8 : 3); }));
+  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, 4), col = s => s == null ? 'var(--line)' : s >= 45 ? C.bad : s >= 25 ? C.warn : s >= 10 ? 'color-mix(in srgb,var(--ok) 55%,var(--warn))' : C.ok;
+  const fix = { 'Sleep h': 'In bed 30 minutes earlier tonight.', 'Bed :': 'Phone out of the room at 21:30.', 'Bedtime varies ± min': 'Same bedtime every night, weekends included.', 'Resting HR': 'Easy day today; carbs up 50 g.', 'hard runs in days': 'Next run is easy.', 'Hard run the day after legs': 'Legs go the day after a hard run, never before.', 'No full day off in': 'Book a full day off in the next 48 hours.', 'Ate kcal under target': 'Eat to target; under-eating is a stressor.', 'steps': 'Cap steps at 13,000.', 'h deep study': 'Stop at 4 hours of deep work.', 'Stress /': 'Two-minute sigh now; NSDR this afternoon.', 'min daylight': 'Get outside before noon.' };
+  return `<div class="panel"><div class="row"><span class="eyebrow">Cortisol and stress board</span><span class="sp"></span><span class="pill ${sl.band}">${sl.label} today · ${sl.score}</span></div>
+    <div class="grid g2" style="margin-top:10px;align-items:start">
+      <div><div class="tiny mut">Your day against a typical cortisol curve</div>${cortisolCurve()}<p class="tiny mut">An illustration of the normal daily rhythm, placed on your wake time: a sharp peak about 30–45 minutes after waking, then a slow fall to a low at bedtime. The markers are the habits that keep that shape. It is not a measurement of your cortisol; only a blood or saliva test is.</p></div>
+      <div><div class="tiny mut">Stress load, last 14 days (tap a day)</div>
+        <div class="heat">${ds.map((q, i) => `<span style="background:${col(sc[i])}" data-tip="${fmtDW(q)}: ${sc[i] == null ? 'not logged' : sc[i] + ' · ' + (stressLoad(q).f.map(f => f[0]).join('; ') || 'nothing adding load')}"><b>${fmtD(q).split(' ')[0]}</b></span>`).join('')}</div>
+        <div class="grid g3" style="margin-top:10px">${tile('This week', at != null ? r0(at) : '–', `${tw.length} days scored`, at >= 25 ? 'warn' : '')}${tile('Last week', al != null ? r0(al) : '–', `${lw.length} days scored`)}${tile('Change', at != null && al != null ? (at - al > 0 ? '+' : '') + r0(at - al) : '–', at != null && al != null ? (at < al ? 'calmer' : at > al ? 'more loaded' : 'level') : 'needs both weeks', at != null && al != null && at > al + 5 ? 'warn' : at != null && al != null && at < al ? 'ok' : '')}</div>
+        <div class="eyebrow" style="margin-top:12px">What has been driving it</div>${top.length ? top.map(t => { const k = Object.keys(fix).find(f => t[0].startsWith(f.split(' ')[0]) && (f.split(' ').slice(-1)[0] === f.split(' ')[0] || t[0].includes(f.split(' ').slice(-1)[0]))); return `<div class="kv" style="display:block"><div class="row small"><b style="font-weight:500">${esc(t[0])}</b><span class="sp"></span><span class="num mut">+${t[1]} over two weeks</span></div>${k ? `<div class="small mut">${esc(fix[k])}</div>` : ''}</div>`; }).join('') : '<p class="small mut">Nothing has added load in the days you have logged.</p>'}</div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-act="timer" data-type="sigh">2-min sigh</button><button class="btn sm" data-act="timer" data-type="nsdr">10-min NSDR</button><button class="btn sm ghost" data-act="coach" data-q="Look at my stress load for this week and last week. What is driving it and what exactly should I change in the next three days?">Ask coach about my stress</button></div>
+    <p class="tiny mut" style="margin-top:8px">The score (0 best, 100 worst) adds up behaviours known to raise cortisol: short or late sleep, raised resting HR, stacked hard days, no day off, under-eating, very high steps, long study days, low daylight. 0–9 low, 10–24 decent, 25–44 raised, 45+ high.</p></div>`;
+}
+Object.assign(ACT, { cell: el => { const x = cellular()[+el.dataset.i]; sheet(`<div class="row"><div style="flex:1"><div class="eyebrow">Cellular system</div><h2>${esc(x[0])}</h2></div><span class="pill">${x[1]} evidence</span></div><div class="mid num" style="font-family:var(--f-d)">${x[3] == null ? 'No data yet' : r0(x[3]) + ' / 100'}</div><div><div class="eyebrow">What it is</div><p class="small mut" style="margin-top:4px">${esc(x[2])}</p></div><div><div class="eyebrow">Your last 7 days</div><p class="small" style="margin-top:4px">${esc(x[4])}</p></div><div><div class="eyebrow">What to do</div><p class="small" style="margin-top:4px">${esc(x[5])}</p></div><div class="row"><button class="btn sm" data-act="coach" data-q="${esc('As my longevity coach, go deeper on ' + x[0].toLowerCase() + ': what does the human evidence actually show, and what should I do this week given my data?')}">Ask the coach to go deeper</button><button class="btn ghost sm" data-act="close">Close</button></div>`); } });
+const _snap = snapshot; snapshot = () => { const rp = runPlan(), gp = gymPlan(); return _snap() + `\nDASHBOARD PLAN FOR TODAY (stay consistent with it unless his message gives a reason to change): run = ${rp.title}: ${rp.detail.join(' ')} (${rp.why}) | gym = ${gp.title}${gp.ex.length ? ': ' + gp.ex.map(e => `${e[0]} ${e[1]}x${e[2]}`).join(', ') : ''} | paces: ${rp.P ? `easy ${rp.P.easy}, sub-threshold ${rp.P.sub}, 5k ${rp.P.five}` : 'n/a'} | stress load ${stressLoad().score} | cellular board: ${cellular().map(x => `${x[0]} ${x[3] == null ? 'n/a' : r0(x[3])}`).join(', ')}`; };
 
 load(); render = (r => () => { r(); questCheck(); })(render); render();
 
