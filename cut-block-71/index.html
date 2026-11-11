@@ -9563,7 +9563,8 @@ function renderGoodLife(){
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
   if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML();
-  if(E('liftCoach'))E('liftCoach').innerHTML=liftCoachHTML();
+  /* while a lift is being typed (weight, then reps) the card must not redraw under the fingers */
+  if(E('liftCoach')&&!(document.activeElement&&E('liftCoach').contains(document.activeElement))&&!(window.__liftHold&&Date.now()-window.__liftHold<1500))E('liftCoach').innerHTML=liftCoachHTML();
   if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
@@ -9809,7 +9810,7 @@ var LIFTS=['Bench press','Incline DB press','Overhead press','Pull-up','Lat pull
 function e1rm(kg,reps){return kg*(1+Math.min(reps,12)/30);}
 function liftBests(upTo,from){var out={};Object.keys(S.days).forEach(function(d){if(d>upTo||(from&&d<from))return;
   var r=S.days[d]||{},L=(r.lifts||[]).slice();if(r.challenge)L.push({ex:r.challenge.ex,kg:r.challenge.kg||0,reps:r.challenge.reps,bw:r.challenge.ex==='pull'});
-  L.forEach(function(x){var v=x.bw?x.reps:e1rm(x.kg,x.reps);if(!out[x.ex]||v>out[x.ex].v)out[x.ex]={v:v,kg:x.kg,reps:x.reps,d:d};});});return out;}
+  L.forEach(function(x){if(!(x.reps>0))return;var v=x.bw?(x.kg?e1rm(bodyKg()+x.kg,x.reps):x.reps):e1rm(x.kg,x.reps);if(!out[x.ex]||v>out[x.ex].v)out[x.ex]={v:v,kg:x.kg,reps:x.reps,d:d};});});return out;}
 function weekNums(ws){var t=today(),we=addD(ws,6),o={w:[],runs:0,gym:0,sets:0,steps:[],sleep:[],study:0,lifts:0},i,d,r;
   for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;r=S.days[d]||{};
     if(typeof S.weights[d]==='number')o.w.push(S.weights[d]);
@@ -10257,18 +10258,19 @@ function runCoachHTML(){
   else if(L.c==='done')nx='Done for today. '+(hardLeft.length||norLeft.length?'Next on a green day: '+esc((hardLeft[0]||norLeft[0]).n.replace(/ — .*/,''))+'.':'The week’s runs are done.');
   else if(L.c==='sat')nx='Saturday: no run. Rest is where the training lands.';
   else nx=esc(L.t||'')+(L.sub?' — '+esc(L.sub):'')+'. '+(hardLeft.length||norLeft.length?'Still to come on a green day: '+esc([hardLeft[0],norLeft[0]].filter(Boolean).map(function(x){return x.n.replace(/ — .*/,'');}).join(' and '))+'.':'');
+  var walkWk=walkWeekOn(t),xtR='';try{xtR=crossTalkHTML('run');}catch(e){}
+  if(walkWk)nx='A brisk walk in daylight, 45–60 min, and the gym as planned. No running this week.';
   /* the goals, in one line */
   var gl='';try{var RR=raceReady().filter(function(x){return x.on>=t;}).sort(function(a,b){return a.on<b.on?-1:1;})[0];
     if(RR)gl='Next trial: <b>'+repLabel(RR.dm)+'</b> on '+fmtS(RR.on)+', goal '+(RR.goal>=60?mmss(RR.goal):RR.goal+' s')+' · fitness now about '+(RR.fit>=60?mmss(Math.round(RR.fit)):f1(RR.fit)+' s')+' · '+RR.st[1]+'.';}catch(e){}
   return '<div class="p lift"><h2>🏃 Your running coach</h2>'+
     (F?'<h3 style="margin:4px 0 2px">'+F.when+': '+esc(F.label)+'</h3><p style="margin:2px 0"><span class="pill'+(F.tone?' '+F.tone:'')+'">'+(F.tone==='g'?'✓':(F.tone==='w'?'!':'·'))+'</span> '+F.line+'</p>':'<p class="note">No runs in the last two weeks yet.</p>')+
     '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G&&!(hardLeft.length||norLeft.length)?' · the week’s runs are done':'')+'</p>'+
-    (G&&(hardLeft.length||norLeft.length)?'<p style="margin:6px 0 2px"><b>Still to come, on green days:</b></p>'+hardLeft.concat(norLeft).map(function(x){
-      var nm=x.n.replace(/^Norwegian sub-threshold — /,'');
-      var pace=x.e==='🌊'?(/800/.test(nm)?' · 800s in '+secFmt(Math.round(PG.num.N[0]*0.8))+'–'+secFmt(Math.round(PG.num.N[1]*0.8)):(/400/.test(nm)?' · 400s in '+Math.round(PG.num.N[0]*0.4)+'–'+Math.round(PG.num.N[1]*0.4)+' s':' · '+kmPace(PG.num.N[0])+'–'+kmPace(PG.num.N[1])+'/km'))+', easy jogs between':'';
-      return '<p style="margin:3px 0">'+x.e+' '+(x.e==='🌊'?'<b>Norwegian:</b> ':'<b>Hard:</b> ')+esc(nm)+pace+(x.e==='🌊'&&norwTooFast()?'<br><span class="tiny">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</span>':'')+'</p>';}).join(''):'')+
+    (xtR?'<h3 style="margin:10px 0 2px">🤝 From your other coaches</h3><p style="margin:2px 0">'+xtR+'</p>':'')+
+    (walkWk?returnPlanHTML(PG):(G&&(hardLeft.length||norLeft.length)?'<p style="margin:6px 0 2px"><b>Still to come, on green days</b> <span class="tiny dim">(tap one for the full session)</span></p>'+hardLeft.concat(norLeft).map(function(x,ix){
+      return runSpecHTML(x,PG,ix===0&&L.c==='green')+(x.e==='🌊'&&norwTooFast()?'<p class="tiny" style="margin:0 0 4px">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</p>':'');}).join(''):''))+
     '<h3 style="margin:10px 0 2px">'+(L.e||'👉')+' Next</h3><p style="margin:2px 0">'+nx+'</p>'+
-    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+(function(){try{return absorbHTML();}catch(e){return '';}})()+(function(){try{return runProgressHTML();}catch(e){return '';}})()+cortisolHTML_run()+(function(){try{return '<details class="fold"><summary><b>🔎 In depth</b></summary>'+runDeepHTML()+'</details>';}catch(e){return '';}})()+'</div>';}
+    (gl?'<h3 style="margin:10px 0 2px">🎯 Goals</h3><p style="margin:2px 0">'+gl+'</p>':'')+(function(){try{return absorbHTML();}catch(e){return '';}})()+(function(){try{return runProgressHTML();}catch(e){return '';}})()+(function(){try{return roadHTML();}catch(e){return '';}})()+cortisolHTML_run()+(function(){try{return '<details class="fold"><summary><b>🔎 In depth</b></summary>'+runDeepHTML()+'</details>';}catch(e){return '';}})()+'</div>';}
 
 /* Dan, 3 Nov: "I don't need the others: say my achievements and my best runs,
    and a fun section on how my muscles are growing." */
@@ -10520,6 +10522,7 @@ function nutriCoachHTML(){
     'All from typical food values, not a blood test. Plants are counted for fibre and vitamin C, but your best-absorbed nutrients come from the animal foods.</p>');
   deep.push('<h3 style="margin:8px 0 2px">Your food rules, built in</h3><p class="tiny">Animal foods first (best-absorbed iron, zinc, B12, vitamin A, omega-3 and protein) · gluten-free always · no pulses, no liver, nothing processed · salt and water steady · 1,799 is the floor · carbs 200 g+ on training days · fat 40 g+.</p>');
   var ph=pushOn(t)?'The push to 24 Dec: calories as the shred, protein 140 g every day, carbs around training. The leaner you get, the more protein and sleep decide whether it is fat or muscle that goes.':(t<=STRICT.resetTo?'Christmas, then the reset cut at 1,899.':'The build at about 2,399: protein 140 g, carbs up for training, fat up for hormones and skin.');
+  try{var xn=crossTalkHTML('nutri');if(xn)parts.push(['🤝 From your other coaches',xn]);}catch(e){}
   parts.push(['🎯 Goal',ph]);
   return coachCard('🥩','Your nutrition coach',parts,deep.join(''));}
 
@@ -10811,6 +10814,132 @@ function dashHTML(){
     '</div>';}
 document.addEventListener('click',function(ev){var p=ev.target.closest&&ev.target.closest('.dpt');if(!p)return;var c=p.closest('.dash'),r=c&&c.querySelector('.dash-read');if(r){r.textContent=p.getAttribute('data-v');r.classList.add('on');}});
 
+/* ===================== coaches, second pass (Dan, 11 Nov) =====================
+   "Are you going to make my running coach, gym coach etc. way better?" … "I can log lifts, but put it as
+   an option, I might not remember." So: the gym coach gives the actual session, exercise by exercise, and
+   an OPTIONAL weight × reps box on the two main lifts of each split; logged, it names the exact number to
+   beat next time, and unlogged it still coaches from sets. The running coach spells out every session
+   (warm-up, target times, recoveries, cool-down, when to stop) and the road to the December trials. And
+   the coaches share notes: study, recovery, food and each other's sessions change what they ask. */
+var GYM_SESS={
+  chest:[{k:'bench',n:'Bench press (bar or dumbbells)',m:'Chest',s:3,r:[6,10],main:1},{k:'incline',n:'Incline dumbbell press',m:'Chest',s:3,r:[8,12],main:1,why:'upper chest'},
+    {n:'Cable or machine fly',m:'Chest',s:2,r:[10,15]},{n:'Dips or close-grip press',m:'Triceps',s:3,r:[8,12]},{n:'Rope pushdown',m:'Triceps',s:3,r:[10,15]},{n:'Overhead triceps extension',m:'Triceps',s:2,r:[10,15]}],
+  back:[{k:'pull',n:'Pull-ups (add weight once you pass 12)',m:'Back',s:4,r:[6,12],main:1,bw:1},{k:'row',n:'Barbell or chest-supported row',m:'Back',s:3,r:[8,12],main:1},
+    {n:'Lat pulldown',m:'Back',s:3,r:[10,12],why:'lats, for the V shape'},{n:'Seated cable row',m:'Back',s:2,r:[10,12]},{n:'Face pulls',m:'Back',s:2,r:[12,15],why:'posture'},
+    {n:'Incline dumbbell curl',m:'Biceps',s:3,r:[8,12]},{n:'Hammer curl',m:'Biceps',s:3,r:[10,12]}],
+  delts:[{k:'ohp',n:'Shoulder press (bar, dumbbells or machine)',m:'Shoulders',s:3,r:[6,10],main:1},{k:'lat',n:'Dumbbell lateral raise',m:'Shoulders',s:4,r:[12,20],main:1,step:1,why:'width'},
+    {n:'Rear-delt fly',m:'Shoulders',s:3,r:[12,15]},{n:'Cable lateral raise',m:'Shoulders',s:2,r:[12,20]},{n:'Wrist curl',m:'Forearms',s:3,r:[12,15]},{n:'Reverse curl or farmer carry',m:'Forearms',s:3,r:[10,15]}],
+  legs:[{k:'squat',n:'Squat',m:'Legs',s:4,r:[6,10],main:1,step:5},{n:'Leg extension',m:'Legs',s:4,r:[10,15]},{k:'hamcurl',n:'Hamstring curl',m:'Legs',s:5,r:[8,12],main:1},
+    {n:'Hip abductor',m:'Legs',s:3,r:[12,15]},{n:'Hip adductor',m:'Legs',s:3,r:[12,15]},{n:'Calf raise',m:'Legs',s:4,r:[10,15]}]};
+function gymEx(k){for(var sp in GYM_SESS){var x=GYM_SESS[sp].filter(function(e){return e.k===k;})[0];if(x)return x;}return null;}
+/* days[d].lifts is a list [{ex, kg, reps, bw?}], the same one the front page's lift bests read */
+function dayLift(r,k){return Array.isArray(r&&r.lifts)?r.lifts.filter(function(x){return x&&x.ex===k;})[0]||null:null;}
+function liftHist(k){var out=[];Object.keys(S.days).sort().forEach(function(d){var r=S.days[d]||{},l=dayLift(r,k);
+    if(l&&l.reps>0)out.push({d:d,kg:l.kg||0,reps:l.reps});else if(r.challenge&&r.challenge.ex===k&&r.challenge.reps>0)out.push({d:d,kg:r.challenge.kg||0,reps:r.challenge.reps});});return out;}
+function liftScore(ex,x){return e1rm((ex&&ex.bw?bodyKg():0)+(x.kg||0),x.reps);}
+function liftTxt(ex,x){return ex&&ex.bw&&!x.kg?x.reps+' reps':(ex&&ex.bw?'+':'')+x.kg+' kg × '+x.reps;}
+function liftTarget(ex,last){
+  if(!last)return 'Log it once (optional) and I set the exact number to beat.';
+  var lo=ex.r[0],hi=ex.r[1],st=ex.step||2.5;
+  if(ex.bw&&!last.kg)return last.reps>=12?'Add 2.5–5 kg (belt or backpack) and aim for '+lo+'–8 reps':'Beat '+last.reps+': aim for <b>'+(last.reps+1)+' reps</b>';
+  if(last.reps>=hi)return '<b>'+(ex.bw?'+':'')+(last.kg+st)+' kg × '+lo+'</b> or more: you topped the range, so the weight goes up';
+  return '<b>'+(ex.bw?'+':'')+last.kg+' kg × '+(last.reps+1)+'</b> (one more rep), or '+(last.kg+st)+' kg × '+Math.max(lo,last.reps-2);}
+/* what the other coaches know that changes this coach's ask */
+function crossTalk(who){
+  var t=today(),r=S.days[t]||{},y=S.days[addD(t,-1)]||{},N=[],add=function(e,x){N.push(e+' '+x);};
+  var walk=walkWeekOn(t),easy=!walk&&easyWeekOn(t),tm=tmaOn(t),CX=null,A=null;try{CX=cortisolScore();}catch(e){}try{A=absorbState();}catch(e){}
+  if(walk){var end=addD(S.settings.walkFrom,EASY_WK_DAYS-1);
+    if(who==='run')add('🚶','<b>Run-free week to '+fmtS(end)+'.</b> Walks and gym only. Fitness barely moves in 7 days; this is the week the last month of training lands.');
+    if(who==='lift')add('🏃','No runs this week (running coach), so legs do not have to dodge a hard run: any day works, and it is a good week to beat last time.');
+    if(who==='nutri')add('🚶','Run-free week: about 150–250 kcal a day less burned on what would have been run days. Your steps cover it. Keep 1,799 and 140 g protein.');}
+  if(easy&&who!=='study')add('🌿','Easy week: one controlled hard run at most, and a third fewer sets.');
+  if(tm){if(who==='run'||who==='lift')add('🎓','TMA week (study coach): keep sessions to 45–60 min, after your study blocks, not before.');
+    if(who==='nutri')add('🎓','TMA week: steady carbs through the day keep focus up. Oats or potatoes at breakfast and lunch.');}
+  for(var i=0;i<3;i++){var v=(S.days[addD(t,-i)]||{}).vaccine;if(v){if(who==='lift')add('💉','Flu jab on '+fmtS(addD(t,-i))+': if the arm is still sore, pressing can wait a day.');if(who==='run')add('💉','Flu jab on '+fmtS(addD(t,-i))+': easy only until you feel normal.');break;}}
+  if(CX&&CX.score>=25){if(who==='run')add('🧪','Cortisol '+CX.score+'/100 (recovery coach): the 2nd Norwegian is off'+(CX.score>=45?', and the hard runs become walks until it settles':'')+'.');
+    if(who==='lift')add('🧪','Cortisol '+CX.score+'/100 (recovery coach): same weights, one set fewer per exercise today.');
+    if(who==='study')add('🧪','Cortisol '+CX.score+'/100 (recovery coach): two 90-minute blocks, then stop for the day.');}
+  if(typeof r.sleep==='number'&&r.sleep<7){if(who==='lift')add('😴','Short night ('+f1(r.sleep)+' h): keep the weight, drop a set per exercise, nothing to failure.');if(who==='run')add('😴','Short night ('+f1(r.sleep)+' h): an easy run or a walk today; the hard run keeps for tomorrow.');if(who==='study')add('😴','Short night: do the hardest thinking first, and finish earlier.');}
+  if(A&&who==='run'&&!walk){var lg=A.items[2];if(lg[1]&&lg[2]<100)add('🏋️','Legs are '+lg[2]+'% landed (lifting coach): a hard run waits until they are back.');}
+  if(A&&who==='lift'&&!walk){var hr=A.items[0];if(hr[1]&&(hr[1]===t||hr[1]===addD(t,-1)))add('🏃','Hard run '+(hr[1]===t?'today':'yesterday')+' (running coach): a good day for legs. Never the day before a hard run.');}
+  var pw=[];for(var q=1;q<=4;q++){var g=(S.days[addD(t,-q)]||{}).glowSum;if(g&&g.n>=3)pw.push(g.protein);}
+  if(pw.length>=2&&mean(pw)<130&&who==='lift')add('🥩','Protein has averaged '+Math.round(mean(pw))+' g (nutrition coach): the session only builds muscle if the 140 g is there. 30–40 g within a couple of hours after.');
+  if(who==='nutri'){if(r.gym)add('🏋️','Gym today (lifting coach): 30–40 g protein in the next meal, with carbs.');
+    if((r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))add('🏃','Hard run today (running coach): carbs to 200 g or more, and 30–40 g protein within the hour after.');}
+  if(typeof y.deep==='number'&&y.deep>4.5&&(who==='run'||who==='lift'))add('🧠',sh(y.deep)+' of deep study yesterday (study coach): that counts as load too. Keep today’s session short and sharp.');
+  if(who==='study'){if(r.gym||(r.runs||[]).length)add('🏋️','You trained today: study blocks before training stick better than after.');}
+  return N;}
+function crossTalkHTML(who){var N=crossTalk(who);return N.join('<br>');}
+/* the session to show: today's if the gym is ticked, otherwise the next one the week needs */
+function gymSessionHTML(){
+  var t=today(),r=S.days[t]||{},sp=null,isToday=false,NL=null;
+  if(r.gym&&GYM_SESS[r.split]){sp=r.split;isToday=true;}else{try{NL=nextLift();}catch(e){}if(NL)sp=NL.sp;}
+  if(!sp)return '';
+  var ws=weekSets(t),ses=GYM_SESS[sp],trim=false;try{var CX=cortisolScore();trim=CX.score>=25;}catch(e){}if(typeof r.sleep==='number'&&r.sleep<7)trim=true;
+  var rows=ses.map(function(e){var st=Math.max(2,e.s-(trim?1:0)),h=e.k?liftHist(e.k):[],todayL=(e.k&&dayLift(r,e.k))||{},prev=h.filter(function(x){return x.d<t;}).pop();
+    var line='<div style="padding:8px 0;border-bottom:1px solid var(--rule)"><div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><span>'+(e.main?'<b>'+esc(e.n)+'</b>':esc(e.n))+(e.why?' <span class="tiny dim">· '+e.why+'</span>':'')+'</span><span class="mono" style="white-space:nowrap">'+st+' × '+e.r[0]+'–'+e.r[1]+'</span></div>';
+    if(e.main){line+='<div class="tiny" style="margin:3px 0">'+(prev?'Last: <b>'+liftTxt(e,prev)+'</b> ('+fmtS(prev.d)+') · 🎯 '+liftTarget(e,prev):'🎯 '+liftTarget(e,null))+'</div>'+
+        '<div class="row" style="gap:6px;align-items:center;flex-wrap:nowrap"><span class="tiny dim" style="white-space:nowrap">Log it (optional)</span>'+
+        '<input type="number" inputmode="decimal" step="0.5" min="0" max="400" data-lift="'+e.k+'" data-f="kg" value="'+(todayL.kg!==undefined?todayL.kg:'')+'" placeholder="'+(e.bw?'+kg':'kg')+'" aria-label="'+esc(e.n)+' kg" style="max-width:84px">'+
+        '<span class="tiny dim">×</span><input type="number" inputmode="numeric" step="1" min="1" max="60" data-lift="'+e.k+'" data-f="reps" value="'+(todayL.reps!==undefined?todayL.reps:'')+'" placeholder="reps" aria-label="'+esc(e.n)+' reps" style="max-width:84px">'+
+        (todayL.reps>0&&prev?(liftScore(e,todayL)>liftScore(e,prev)*1.001?'<span class="pill g">💪 beat it</span>':(liftScore(e,todayL)>=liftScore(e,prev)*0.97?'<span class="pill">held</span>':'<span class="pill w">down</span>')):'')+'</div>';}
+    return line+'</div>';}).join('');
+  var tot={};ses.forEach(function(e){tot[e.m]=(tot[e.m]||0)+Math.max(2,e.s-(trim?1:0));});
+  var totTxt=Object.keys(tot).map(function(m){var rg=setsRange(m),v=ws[m]||0;return m+' '+tot[m]+' sets'+(sp==='legs'?'':' (week so far '+v+' of '+rg[0]+'–'+rg[1]+')');}).join(' · ');
+  return '<h3 style="margin:10px 0 2px">📋 '+(isToday?'Today’s session':'Next session')+': '+SPLIT_NAME[sp]+'</h3>'+
+    '<p class="tiny keep" style="margin:2px 0">'+totTxt+(trim?' · <b>one set fewer today</b> (recovery says so)':'')+'. Hard sets, 1–2 reps short of failure, 2–3 min rest on the first two lifts, 60–90 s on the rest.</p>'+rows+
+    '<p class="tiny dim keep" style="margin:6px 0 0">A session that hits your weekly numbers'+(sp==='legs'?' (your own legs session)':'')+'. Swap any exercise for what your gym has: the sets, the reps and beating last time are what matter. Logging is optional: two boxes on the two main lifts, and the coach does the rest.</p>';}
+document.addEventListener('change',function(ev){var i=ev.target;if(!i||!i.matches||!i.matches('input[data-lift]'))return;
+  var t=today(),r=S.days[t]=S.days[t]||{},k=i.dataset.lift,ex=gymEx(k);if(!Array.isArray(r.lifts))r.lifts=[];
+  var o=dayLift(r,k),v=parseFloat(i.value);if(!o){o={ex:k};if(ex&&ex.bw)o.bw=true;r.lifts.push(o);}
+  if(i.value===''||!(v>=0))delete o[i.dataset.f];else o[i.dataset.f]=i.dataset.f==='reps'?Math.round(v):v;
+  if(o.kg===undefined&&o.reps===undefined)r.lifts=r.lifts.filter(function(x){return x!==o;});if(!r.lifts.length)delete r.lifts;
+  if(o.reps>0){var prev=liftHist(k).filter(function(x){return x.d<t;}).pop();if(prev&&liftScore(ex,o)>liftScore(ex,prev)*1.001)r.pr=true;}
+  window.__liftHold=Date.now();touch();
+  clearTimeout(window.__liftT);window.__liftT=setTimeout(function(){var c=E('liftCoach');if(c&&!(document.activeElement&&c.contains(document.activeElement)))c.innerHTML=liftCoachHTML();},1700);});
+/* ---- running: every session spelled out ---- */
+function repRange(a,b,dm){var x=a*dm/1000,y=b*dm/1000;return x<100?(Math.round(x*2)/2)+'–'+(Math.round(y*2)/2)+' s':secFmt(Math.round(x))+'–'+secFmt(Math.round(y));}
+function runSpec(x,PG){
+  var nm=String(x.n),isN=x.e==='🌊',trial=x.e==='⏱'||/Time trial|^Timed/.test(nm),m=/(\d+) × (\d+(?:\.\d+)?) ?(km|mile|min|m)\b/.exec(nm),tgt='',rec,warm,cool,stop,fuel='Oats or potatoes 60–90 min before. Afterwards: carbs and 30–40 g protein within the hour.';
+  var title=isN?nm.replace(/^Norwegian sub-threshold — /,''):nm.replace(/ — .*/,'');
+  if(isN){warm='10–15 min easy jog.';var N=PG.num.N;
+    tgt=m&&m[3]!=='min'?repRange(N[0],N[1],(+m[2])*(m[3]==='km'?1000:(m[3]==='mile'?1609:1)))+' a rep':kmPace(N[0])+'–'+kmPace(N[1])+' a km';
+    tgt+=' · or continuous 5 km at 4:00–4:05/km';rec='60 s easy jog between reps. Never stand still.';cool='5–10 min easy, then the hill sprints if they are on the session: about 10 s each, walk all the way down.';
+    stop='True 7 out of 10: short sentences the whole way. If it turns into 8 out of 10, slow down; faster is not better on this one.';}
+  else if(trial){warm='15 min easy, drills, 4 × 100 m strides, 1 × 200 m at race pace, 5 min easy.';tgt='even pace, strongest in the last third';rec='One effort.';cool='10–15 min very easy.';stop='Calm, dry day, fresh legs: no legs session the day before, carbs the night before.';}
+  else{warm='15 min easy jog, leg swings and drills, 4 × 80 m strides.';var dm=m?(+m[2])*(m[3]==='km'?1000:(m[3]==='mile'?1609:1)):0,own=/ — (.+)$/.exec(nm);
+    if(own)tgt=own[1];
+    else if(dm>=600){var L=PG.num.L,f=dm>=1500?[1.02,1.04]:(dm>=1000?[1,1]:(dm>=800?[0.98,0.98]:[0.97,0.97]));tgt=repRange(L[0]*f[0],L[1]*f[1],dm)+' a rep';}
+    else if(dm>0){var Sx=dm<=250?PG.num.S2:PG.num.S,g=dm===300?[0.98,0.98]:[1,1];tgt=repRange(Sx[0]*g[0],Sx[1]*g[1],dm)+' a rep';}
+    if(dm>=600||!dm){rec='Walk or jog 2–3 min, until your breathing settles.';stop='About 8 out of 10. First rep controlled, every rep inside the range. Stop if a rep comes in clearly slower than the first two.';}
+    else{rec='Walk back, 2–3 min, full recovery: this is speed, not fitness.';stop='Fast but relaxed: tall, loose shoulders. Stop when the form goes or a rep drops off.';}
+    cool='10 min easy jog.';}
+  return {title:title,tgt:tgt,warm:warm,rec:rec,cool:cool,stop:stop,fuel:fuel,kind:isN?'Norwegian':(trial?'Trial':'Hard')};}
+function runSpecHTML(x,PG,open){var s=runSpec(x,PG);
+  return '<details class="fold"'+(open?' open':'')+' style="margin:6px 0"><summary>'+x.e+' <b>'+s.kind+':</b> '+esc(s.title)+(s.tgt?' <span class="mono tiny" style="color:var(--accent)">· '+esc(s.tgt)+'</span>':'')+'</summary>'+
+    '<div class="tiny" style="line-height:1.6;margin-top:4px"><b>Warm-up:</b> '+s.warm+'<br><b>Main set:</b> '+esc(s.title)+(s.tgt?', '+esc(s.tgt):'')+'<br><b>Recovery:</b> '+s.rec+'<br><b>Cool-down:</b> '+s.cool+'<br><b>The rule:</b> '+s.stop+'<br><b>Fuel:</b> '+s.fuel+'</div></details>';}
+function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
+  return '<h3 style="margin:10px 0 2px">🔜 Your first week back</h3><div class="tiny" style="line-height:1.7">'+
+    '1. <b>Norwegian first:</b> 5 × 5 min at '+kmPace(N[0])+'–'+kmPace(N[1])+'/km, or 5 km continuous at 4:00–4:05/km. It wakes the engine without the cost.<br>'+
+    '2. A day off running.<br>3. <b>Hard, 600 m+:</b> 4 × 1 km at '+repRange(L[0],L[1],1000)+' a rep, the first one controlled. Fresh legs.<br>'+
+    '4. A day off running.<br>5. <b>Speed:</b> 5 × 300 m at '+repRange(Sx[0]*0.98,Sx[1]*0.98,300)+', full walk recoveries.<br>'+
+    'Legs go the day after a hard run, never the day before. You pick the days.</div>';}
+/* the road to the December trials, week by week */
+function roadHTML(){
+  var t=today(),C=CFG.camp,ws=mondayOf(t),rows=[],RR=[];try{RR=raceReady();}catch(e){}
+  var f=function(v){return v>=60?mmss(Math.round(v)):f1(v)+' s';};
+  for(var w=ws;w<='2026-12-27';w=addD(w,7)){var we=addD(w,6),tr=C.pb.filter(function(x){return x.on>=w&&x.on<=we;}).sort(function(a,b){return a.on<b.on?-1:1;}),lab;
+    if(walkWeekOn(w)||(w===ws&&walkWeekOn(t)))lab='🚶 Run-free: walks and gym. The training lands.';
+    else if(tr.length)lab='⏱ <b>Trials:</b> '+tr.map(function(x){return repLabel(x.dm)+' ('+fmtS(x.on)+')';}).join(', ')+'. Fewer reps, same speed, two easy days before each.';
+    else if(w<='2026-12-05'&&we>='2026-12-03')lab='🇫🇷 France 3–5 Dec: one hard run before you go; walk lots there.';
+    else if(w<='2026-11-21'&&we>='2026-11-21')lab='🏗️ Build: 2 hard + Norwegian. London on 21 Nov, so sessions sit earlier in the week.';
+    else if(w>='2026-12-21')lab='🎄 Last trials, then Christmas: the week off that fully recovers you.';
+    else lab='🏗️ Build: 2 hard (600 m+ and speed) + Norwegian, each with a day off around it.';
+    rows.push('<div style="margin:4px 0"><span class="mono tiny dim">'+fmtS(w)+'</span> '+lab+'</div>');}
+  var gap=RR.length?'<div class="scroll" style="margin-top:6px"><table class="tbl"><thead><tr><th></th><th class="n">Fitness now</th><th class="n">December range</th><th class="n">Goal</th></tr></thead><tbody>'+RR.map(function(x){return '<tr><td><b>'+repLabel(x.dm)+'</b><div class="tiny dim">'+fmtS(x.on)+'</div></td><td class="n">'+f(x.fit)+'</td><td class="n">'+f(x.lo)+'–'+f(x.hi)+'</td><td class="n">'+f(x.goal)+'</td></tr>';}).join('')+'</tbody></table></div>':'';
+  return '<details class="fold"><summary><b>🗺️ The road to the December trials</b></summary>'+rows.join('')+gap+
+    '<p class="tiny dim" style="margin-top:4px">Estimates from your own bests. Trial dates are a guide: you pick the days, on fresh legs.</p></details>';}
+
 function coachCard(e,title,parts,deep){return '<div class="p lift"><h2>'+e+' '+title+'</h2>'+parts.filter(Boolean).map(function(x){return '<h3 style="margin:8px 0 2px">'+x[0]+'</h3><p style="margin:2px 0">'+x[1]+'</p>';}).join('')+(deep?'<details class="fold"><summary><b>🔎 In depth</b></summary>'+deep+'</details>':'')+'</div>';}
 var IMP={big:'<span class="pill g" style="font-size:10px">big difference</span>',medium:'<span class="pill" style="font-size:10px">helps</span>',small:'<span class="pill" style="font-size:10px">small extra</span>'};
 /* Dan, 5 Nov: "along with the green light can you do the absorbing — fully recovered etc." A session makes
@@ -10872,7 +11001,11 @@ function liftCoachHTML(){
   var CK=[[gyms>=4,'4 gym sessions ('+gyms+')'],[under.length===0,'every muscle in its growing range ('+inr+' of '+CFG.sets.length+')'],[prs>=2,'beat last time twice or more ('+prs+')'],
     [pw.length&&mean(pw)>=135,'protein 140 g a day ('+(pw.length?Math.round(mean(pw))+' g':'—')+')'],[sw.length&&mean(sw)>=8,'8 h sleep ('+(sw.length?f1(mean(sw))+' h':'—')+')']];
   var ckH=CK.map(function(c){return (c[0]?'✅ ':'⬜ ')+esc(c[1]);}).join('<br>')+'<br><span class="tiny">These five decide whether a cut keeps and builds muscle. Heavy weights, close to failure, every muscle twice-ish a week, protein spread over 3–4 meals, and sleep.</span>';
-  return coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],['👉 Next',nx+(C?'<br>'+C:'')],['🏗️ This week’s muscle checklist',ckH],['🎯 Goal',phase]],dpL);}
+  if(last&&Array.isArray(last.lifts)){var lt=last.lifts.filter(function(x){return x&&x.reps>0;}).map(function(x){var ex=gymEx(x.ex);return (ex?ex.n.replace(/ \(.*/,''):x.ex)+' '+liftTxt(ex,{kg:x.kg||0,reps:x.reps});});if(lt.length)fb+='<br><span class="tiny">Logged: '+esc(lt.join(' · '))+'</span>';}
+  var xt='';try{xt=crossTalkHTML('lift');}catch(e){}
+  var card=coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],(xt?['🤝 From your other coaches',xt]:null),['👉 Next',nx+(C?'<br>'+C:'')],['🏗️ This week’s muscle checklist',ckH],['🎯 Goal',phase]],dpL);
+  var gs='';try{gs=gymSessionHTML();}catch(e){}
+  return gs?card.replace('<details class="fold"><summary><b>🔎 In depth',gs+'<details class="fold"><summary><b>🔎 In depth'):card;}
 function hardRunSoon(){try{var G=campGame();return G.left.some(function(x){return x.e==='⚡'||x.e==='⏱';});}catch(e){return false;}}
 function longCoachHTML(){
   var t=today(),W=bankWeek(mondayOf(t)),X=stressScore(),H=null;try{H=window.GLOW&&window.GLOW.health?window.GLOW.health():null;}catch(e){}
@@ -10907,6 +11040,7 @@ function studyCoachHTML(){
     else if(deep>15)nx.push(['Deep study is past 15 h: more now costs recovery more than it adds marks','big']);}
   return coachCard('🎓','Your study coach',[['Last session',fb],['This week',(function(){var SP=studyPace(t);return sh(tot)+' studied · <b>'+sh(deep)+' deep</b> · <b>'+SP.st[0]+'</b>. '+SP.st[2]+(SP.dayOver?' One day went past '+(DEEP.day+1)+' h deep ('+fmtS(SP.maxD)+'): two or three blocks is the sweet spot.':'')+'<br><span class="tiny">'+DEEP_LIMITS+'</span>';})()],
     ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],
+    (function(){try{var x=crossTalkHTML('study');return x?['🤝 From your other coaches',x]:null;}catch(e){return null;}})(),
     ['🎯 Goal','Distinction-level work in SK297 and SK298'+(avg!==null?' · your marks average <b>'+Math.round(avg)+'%</b> ('+ouBand(avg)+')':' · marks appear here once you enter them')+'. Evaluate, don’t describe: every paragraph needs a judgement.']],(function(){try{return studyDeepHTML();}catch(e){return '';}})());}
 /* ===================== race readiness (Dan, 1 Nov) =====================
    "More training and running focused, very professional — check whether I'm
