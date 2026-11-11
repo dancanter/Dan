@@ -29,6 +29,8 @@ export interface Profile {
   bloatProne?: boolean;
   /** Supplements taken every day (Dan, 5 Nov: astaxanthin 16 mg). Counted on every logged day. */
   dailySupps?: { foodId: string; grams: number }[];
+  /** Set when Dan picks his own protein target, so the 2.4 g/kg floor no longer applies. */
+  proteinChosen?: boolean;
   /** Start dates of deload weeks you’ve taken. */
   deloads?: string[];
   /** Your usual times: walk/run and gym (HH:MM). */
@@ -349,12 +351,15 @@ export const DEFAULT_PROFILE: Profile = {
   heightCm: 172.7,
   unit: 'lb',
   kcalTarget: 1799,
-  proteinPerKg: 2.0,
+  /* Dan, 11 Nov: 140 g at 58 kg, one target across the whole app */
+  proteinPerKg: 2.4,
   exerciseKcal: 650,
   bodyFatPct: 10,
   glutenFree: true,
   races: { mile: '4:57', k5: '17:17', k10: '36:55' },
   dailySpf: true,
   bloatProne: true,
+  /* Dan, 11 Nov: astaxanthin 8 mg a day */
+  dailySupps: [{ foodId: 'uk-astaxanthin-8', grams: 1 }],
 };
 

@@ -64,6 +64,14 @@ const KEY = 'glow-state-v1';
 export const EMPTY_OBJ = Object.freeze({}) as Record<string, never>;
 export const EMPTY_ARR = Object.freeze([]) as unknown as never[];
 
+/* Dan, 11 Nov: a stale copy on another device kept writing back the old 2.0 g/kg and no supplements. */
+function migrateProfile(p: Profile): Profile {
+  const out = { ...p };
+  if (!out.proteinChosen && (out.proteinPerKg ?? 0) < 2.4) out.proteinPerKg = 2.4;
+  if (!out.dailySupps || !out.dailySupps.length) out.dailySupps = DEFAULT_PROFILE.dailySupps;
+  return out;
+}
+
 export function initial(): State {
   return { version: 1, profile: DEFAULT_PROFILE, days: {}, weights: [], sleeps: [], customFoods: [], favourites: [], breathMinutes: {}, vitals: {}, training: {}, bp: [], labs: [] };
 }
@@ -129,7 +137,7 @@ export function refreshFromHost() {
 
 /** Replace everything, e.g. with data loaded from the cloud store. */
 export function replaceState(next: State) {
-  setState(() => ({ ...initial(), ...next, profile: { ...DEFAULT_PROFILE, ...next.profile }, vitals: next.vitals ?? {}, training: next.training ?? {}, bp: next.bp ?? [], labs: next.labs ?? [] }));
+  setState(() => ({ ...initial(), ...next, profile: migrateProfile({ ...DEFAULT_PROFILE, ...next.profile }), vitals: next.vitals ?? {}, training: next.training ?? {}, bp: next.bp ?? [], labs: next.labs ?? [] }));
 }
 
 export function getState() {
