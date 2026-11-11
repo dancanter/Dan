@@ -1560,6 +1560,8 @@ function mergeByDate(older,newer){
   }
   /* foods are keyed by id: a food saved on either side survives the merge */
   for(k in (older.foods||{})){if(!(k in out.foods)){out.foods[k]=clone(older.foods[k]);added++;}}
+  /* Dan, 11 Nov: a run-free week set on one device vanished when a stale copy saved. Week choices keep the latest date from either side. */
+  if(older.settings){if(!out.settings)out.settings={};['walkFrom','easyFrom'].forEach(function(f){var a=older.settings[f],b=out.settings[f];if(a&&(!b||a>b)){out.settings[f]=a;added++;}});}
   /* Dan, 4 Nov: a TMA added on one device vanished when a stale copy saved. University lists merge by id. */
   if(older.uni&&typeof older.uni==='object'){if(!out.uni||typeof out.uni!=='object')out.uni={};
     var gone=(out.uni.gone||[]).concat(older.uni.gone||[]);
