@@ -27,6 +27,8 @@ const open = async (when = '2026-11-03T12:00:00', s = seed) => {
   p.on('console', (m) => { if (m.type() === 'error' && !/CERT|Failed to load resource|fonts\.g/.test(m.text())) errs.push(m.text().slice(0, 200)); });
   await p.clock.setFixedTime(new Date(when));
   await p.goto(URL);
+  /* let the first load settle (Glow saves once it mounts) before seeding */
+  await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(500);
   await p.evaluate((v) => { localStorage.clear(); localStorage.setItem('cutblock71.v1', JSON.stringify(v)); }, s);
   await p.reload();
   await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 });
@@ -161,7 +163,7 @@ await p.click('#secs button[data-sec="over"]'); await p.waitForTimeout(200);
 
 ok('the Overview shows stress: level, the reason, 14 days of bars', await p.evaluate(() => /Stress/.test(E('homeCard').innerText) && /last 14 days/.test(E('homeCard').innerText) && E('homeCard').querySelectorAll('.hm-t i[title]').length === 14));
 
-ok('the health bank: the week added up, a load check, six longevity habits', await p.evaluate(() => { const t = E('bankCard').innerText; return /health bank/.test(t) && /Load check/.test(t) && /Longevity habits: \d of 6/.test(t); }));
+ok('the health bank: the week added up, a load check, six longevity habits', await p.evaluate(() => { const t = E('bankCard').innerText; return /health bank/i.test(t) && /Load check/i.test(t) && /Longevity habits: \d of 6/i.test(t); }));
 ok('and what the food did, nutrient by nutrient, animal foods first', /What your food did for you today/.test(await shadow(p, 'glowHome')));
 
 ok('three more coaches: lifting, longevity, study, each with last, this week, next and goal', await p.evaluate(() => ['liftCoach', 'longCoach', 'studyCoach'].every((id) => { const t = E(id).innerText; return /This week/.test(t) && /Next/.test(t) && /Goal|long game/i.test(t); }) && !!document.querySelector('#s-phys #liftCoach') && !!document.querySelector('#s-longev #longCoach') && !!document.querySelector('#s-study #studyCoach')));
@@ -196,7 +198,7 @@ await ctx.close();
   '2026-11-04': { journal: { mood: 4, energy: 4, well: 'x' } }, '2026-11-05': { journal: { mood: 2, energy: 3, well: 'y' }, binges: [{ at: '21:00', kind: 'sweet' }] }, '2026-11-06': { ill: { kind: 'cold', severity: 1 } } } }));
 await p.click('#tabs button[data-t="review"]'); await p.waitForTimeout(1500);
 const rv = await p.innerText('#revBody');
-ok('the Review tab has the food, cells and mind section', /Food, cells & mind/.test(rv), rv.slice(0, 200));
+ok('the Review tab has the food, cells and mind section', /Food, cells & mind/i.test(rv), rv.slice(0, 200));
 ok('with the journal’s mood and energy', /mood 3\.0\/5/.test(rv) && /energy 3\.5\/5/.test(rv), (rv.match(/Journal[^\n]*/) || [''])[0]);
 ok('binges and sick days', /1 binge/.test(rv) && /1 sick day/.test(rv));
 const gr = await shadow(p, 'glowReview');

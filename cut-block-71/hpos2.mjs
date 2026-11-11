@@ -17,6 +17,8 @@ p.on('pageerror', (e) => errs.push('PAGEERROR ' + e.message));
 p.on('console', (m) => { if (m.type() === 'error' && !/CERT|Failed to load resource|fonts\.g/.test(m.text())) errs.push(m.text().slice(0, 200)); });
 await p.clock.setFixedTime(new Date('2026-11-03T12:00:00'));
 await p.goto(URL);
+  /* let the first load settle (Glow saves once it mounts) before seeding */
+  await p.waitForFunction(() => !!window.GLOW, null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(500);
 await p.evaluate((v) => { localStorage.clear(); localStorage.setItem('cutblock71.v1', JSON.stringify(v)); }, seed);
 await p.reload(); await p.waitForTimeout(800);
 const cc = await p.locator('#ccCard').innerText();
