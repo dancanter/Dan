@@ -1570,6 +1570,11 @@ function mergeByDate(older,newer){
       a.forEach(function(x){if(x&&x.id&&!ids[x.id]&&gone.indexOf(x.id)<0){out.uni[f].push(clone(x));added++;}});
       out.uni[f]=out.uni[f].filter(function(x){return !(x&&x.id&&gone.indexOf(x.id)>=0);});});
     out.uni.gone=gone.slice(-300);}
+  /* Dan, 11 Nov: a blood pressure reading vanished when a stale copy saved. Readings merge by date (the newer copy wins a clash). */
+  if(older.glow&&Array.isArray(older.glow.bp)){if(!out.glow)out.glow={};if(!Array.isArray(out.glow.bp))out.glow.bp=[];
+    var bpd={};out.glow.bp.forEach(function(b){if(b&&b.date)bpd[b.date]=1;});
+    older.glow.bp.forEach(function(b){if(b&&b.date&&!bpd[b.date]){out.glow.bp.push(clone(b));added++;}});
+    out.glow.bp.sort(function(a,b){return a.date<b.date?-1:1;});}
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }
