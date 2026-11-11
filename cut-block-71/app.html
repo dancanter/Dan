@@ -3804,7 +3804,12 @@ function weekRunsModel(){
   var optN=phys&&!easeOff&&!pushNow&&dipM.level<2&&!(CXw&&CXw.score>=25);
   /* one hard slot left (eased or the push): the week owes one */
   if(phys&&!(use.long&&use.short))T=Object.assign({},T,{hard:1,runs:2});
-  return {phys:phys,optN:optN,mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
+  /* Dan, 11 Nov: "how come it's telling me to do 1 hard run when we said a week off?" A run-free week
+     owes no runs at all: no hard slot, no Norwegian, nothing left to pick. */
+  var walkW=walkWeekOn(t);
+  if(walkW){use=Object.assign({},use,{long:null,short:null,tt:false});T=Object.assign({},T,{hard:0,runs:0,easy:0});mix=[];easyTarget=0;optN=false;longDone=true;shortDone=true;
+    ST={k:'easy',t:'Run-free week',w:'A run-free week: walks, steps and gym. No hard runs and no Norwegian runs until '+fmtS(addD(S.settings.walkFrom,EASY_WK_DAYS-1))+'.'};}
+  return {walk:walkW,phys:phys,optN:optN,mix:mix,dip:dipM,thrOn:thrOn,thrDone:thrDone,wk:wk,P:use,orig:P,repeat:repeat,T:T,w:w,longDone:longDone,shortDone:shortDone,easeOff:easeOff,ST:ST,kcal5:kcal5,easyTarget:easyTarget};
 }
 /* Options, not orders (Dan, 28 Sep): each hard slot is a menu with this
    week's pick marked. He loves time trials and feels they are what makes
@@ -3948,15 +3953,15 @@ function weekRunsHTML(){
     (!longTTok&&shortTTok?'Short time trials (200, 400, 600) are on this week. The longer ones (800 m and up) are every other week — you had one last week.':
      'Time trials are on the menu this week: one at most, in place of a hard run, never on top.'))));
   return '<div class="p"><h2>Runs this week · ideas · week '+M.wk+(P.deload?' · deload':'')+(P.tt?' · test week':'')+'</h2>'+
-    '<p class="lede">'+(M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and two short Norwegian sub-threshold runs. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
-    ' <span class="tiny">Any days. Hard runs never back to back; the day after legs is fine if legs stayed short (6–10 sets, nothing to failure) — run it later in the day. One full day a week with no session at all.</span></p>'+
+    '<p class="lede">'+(M.walk?'<b>A run-free week:</b> no hard runs and no Norwegian runs. Walks in daylight, your steps and the gym. The runs come back on '+fmtS(addD(S.settings.walkFrom,EASY_WK_DAYS))+'.':M.easeOff?'<b>An easier week:</b> one hard run and the easy 5 miles, kept truly easy.':((T.easy>1||M.mix)?'<b>A camp week, '+T.runs+' runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+' and two short Norwegian sub-threshold runs. Gym 4.'+(T.ramp?' <b>Ramp week</b> — '+T.easy+' five-milers while your legs adapt to the extra running; 3 from '+fmtS(addD(mondayOf(CFG.camp.start),7*CFG.camp.rampWeeks))+'.':''):'<b>A good week, 3–4 runs:</b> '+(P.deload?'one hard run':'a longer and a shorter hard run')+', an easy 5 miles, and an easy 5 km only if you feel fresh. 4 gym sessions.'))+
+    (M.walk?'':' <span class="tiny">Any days. Hard runs never back to back; the day after legs is fine if legs stayed short (6–10 sets, nothing to failure) — run it later in the day. One full day a week with no session at all.</span>')+'</p>'+
     '<div class="tiles t3" style="margin:6px 0 4px">'+
       tile('hard runs',w.hard+' <span class="tiny">of '+(M.easeOff||P.deload?1:2)+'</span>','keep your times')+
       (M.mix?tile('Norwegian runs',campGame().quests.filter(function(x){return x[1]==='Fun fast run'||x[1]==='Norwegian sub-threshold';}).reduce(function(a,x){return a+x[2];},0)+' <span class="tiny">of '+M.easyTarget+'</span>','controlled, never a race'):
       tile('easy 5 miles',w.five+' <span class="tiny">of '+M.easyTarget+'</span>',w.easy5k?'+ '+w.easy5k+' easy 5 km':(T.easy>1?'the engine':'takes the weight off')))+
       tile('runs all in',w.runs,'the plan is '+(M.easeOff||P.deload?(T.runs-1)+'':(T.easy>1?T.runs+'':'3–4')))+
     '</div>'+
-    (M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
+    (M.walk?'':M.easeOff?'<p class="note wn"><b>Back off: '+M.ST.t.charAt(0).toLowerCase()+M.ST.t.slice(1)+'.</b> This week is <b>one hard run</b>, the shorter one, and no time trial. In a deficit, backing off early costs you nothing; pushing through costs you weeks.</p>':'')+
     (M.repeat?'<p class="note wn">Last week’s hard runs felt like a 9 or 10, so <b>this week’s pick is last week’s session again</b> rather than a step up.</p>':'')+
     rows+
     '<p class="note" style="margin-top:6px">⏱ '+ttNote+(ttOK?' They are all-out, so they cost more than a session — which is why they are rationed on a cut, not banned.':'')+'</p>'+
@@ -4397,11 +4402,12 @@ function coachModel(){
   var sinceEasy=0;
   for(var k=1;k<=12;k++){
     var ws=addD(mondayOf(t),-7*k);if(ws<CFG.cutStart&&addD(ws,6)<CFG.cutStart)break;
-    var h=0,g=0,taken=S.settings.easyFrom&&S.settings.easyFrom>=ws&&S.settings.easyFrom<=addD(ws,6);
+    var h=0,g=0,taken=(S.settings.easyFrom&&S.settings.easyFrom>=ws&&S.settings.easyFrom<=addD(ws,6))||(S.settings.walkFrom&&S.settings.walkFrom>=ws&&S.settings.walkFrom<=addD(ws,6));
     for(i=0;i<7;i++){rec=S.days[addD(ws,i)]||{};if(rec.gym)g++;(rec.runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty&&m.hard)h++;});}
     if(taken||(h<=1&&g<=3))break;
     sinceEasy++;
   }
+  if(walkWeekOn(t)||easyWeekOn(t))sinceEasy=0;   /* this week IS the easy one */
   /* strain: each thing that is costing him, with why */
   var strain=[],pts=0;
   var strainP=[];var add=function(p,txt){pts+=p;strain.push(txt);strainP.push(p);};
@@ -10240,7 +10246,7 @@ function runProgress(){
     return {a:null,b:null,parts:parts,ch:ch,na:na,nb:nb,nch:nch,nA:A.length,nB:B.length,st:st,call:call,imp:'big',tired:tired,dip:dip};}
   if(ch===null){st=['Building the picture','','Two more hard sessions logged and I can tell whether you are moving forward.'];call='Keep the week as planned: two hard runs and the Norwegian.';imp='medium';}
   else if(ch>=1){st=['Improving','g','Hard sessions are about '+f1(ch)+'% faster than the weeks before.'];
-    call=tired?'Hold this week: you are improving but tired, so recover into the next jump.':'More is earned: take the 2nd Norwegian when green, and aim for one more rep or a second faster on the speed session.';imp='big';}
+    call=tired?'Hold this week: you are improving but tired, so recover into the next jump.':walkWeekOn(today())?'Improving, and this run-free week is where it lands. When the runs come back: take the 2nd Norwegian when green, and aim for one more rep or a second faster on the speed session.':'More is earned: take the 2nd Norwegian when green, and aim for one more rep or a second faster on the speed session.';imp='big';}
   else if(ch>-1){st=['Holding','','Hard sessions are level with the weeks before (within 1%).'];
     call=tired?'You are holding while tired: an easier few days now usually brings a jump after.':'Time to nudge: a slightly faster target on one hard run, or one more rep; keep the Norwegian at 7/10.';imp='medium';}
   else{st=['Slipping','w','Hard sessions are about '+f1(-ch)+'% slower than the weeks before.'];
