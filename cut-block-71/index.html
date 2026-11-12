@@ -1189,7 +1189,7 @@ var CFG={
      hard runs and the gym), 2 LIGHT days (easy 5-milers, light stuff), and
      SATURDAY — fully stress-free: no runs, no weights, no study, steps only if
      they come naturally. */
-  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-13',end:'2026-12-23',tmpl:{hard:2,easy:2,easyMax:2,sprints:0,runs:4,gym:4},rampWeeks:0,rampEasy:2,
+  camp:{start:'2026-10-12',offDay:6,workDays:4,window:'2026-12-13',end:'2026-12-23',tmpl:{hard:2,easy:2,easyMax:2,sprints:0,runs:4,gym:5},rampWeeks:0,rampEasy:2,
     /* all-time bests, all 2025, from Strava's own best efforts and Dan (8 Oct):
        400 57 s and the half mile 2:12 came inside the 4 × 1 km on 4 Jun 2025,
        1 km 2:48 the same session, mile 4:54 on 22 May 2025, 5 km 17:17 on
@@ -4721,7 +4721,7 @@ function campGame(){
   var Mq=weekRunsModel(),eT=Mq?Mq.easyTarget:T.easy;
   if(Mq&&Mq.T)T=Mq.T;
   var quests0=[['⚡','Hard runs',q.hard,T.hard],(Mq&&Mq.mix?['🔥','Fun fast run',Math.min(q.fun,1),Mq.mix.indexOf('fun')>=0?1:0]:['🏃','Easy 5-milers',q.five,eT]),
-    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,Mq.mix.filter(function(k){return k==='norw';}).length),Mq.mix.filter(function(k){return k==='norw';}).length]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym, 4–6 a week',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
+    (Mq&&Mq.mix?['🌊','Norwegian sub-threshold',Math.min(q.subt,Mq.mix.filter(function(k){return k==='norw';}).length),Mq.mix.filter(function(k){return k==='norw';}).length]:['🌊','Norwegian sub-threshold',0,0]),['🏋️','Gym, 5–6 a week',q.gym,T.gym],['💪','Beat last time',q.pr,T.gym],['🎯','Every muscle in its set range',allIn?1:0,1],['🧘','Stress-free Saturday',q.sat,1],['🌿','Reset day',Math.min(q.reset,1),1],['😴','8 h nights',q.sleep,5],['🧘','Meditate 3 days',q.med,3]];
   if(Mq&&Mq.phys&&Mq.P.long&&Mq.P.short){quests0[0]=['⚡','Hard run, 600 m and up',Mq.longDone?1:0,1];quests0.splice(1,0,['💨','Speed run, 200–400 m',Mq.shortDone?1:0,1]);}
   var quests=quests0.filter(function(x){return x[3]>0;});
   /* Dan, 8 Oct: never which day — the runs left this week, he picks the day,
@@ -10664,9 +10664,9 @@ function weekFullHTML(a,b){
   if(T.hard>=3)fix.push(['Two hard runs, the third easy','big']);if(T.afterLegs)fix.push(['An easy day between legs and a hard run','medium']);
   /* lifting */
   var ws=weekSets(b>today()?today():b),inR=0,under=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(v>=rg[0])inR++;else under.push(x.m);});
-  sec('🏋️','Lifting',G(T.gym>=4,T.gym>=3),'<b>'+T.gym+'</b> gym sessions (aim 4) · '+inR+' of '+CFG.sets.length+' muscle groups in range'+(T.pr?' · beat last time '+T.pr+'×':'')+(A.rpe!==null?' · felt '+f1(A.rpe)+'/10':''),
+  sec('🏋️','Lifting',G(T.gym>=5,T.gym>=4),'<b>'+T.gym+'</b> gym sessions (aim 5, 6 on a good week) · '+inR+' of '+CFG.sets.length+' muscle groups in range'+(T.pr?' · beat last time '+T.pr+'×':'')+(A.rpe!==null?' · felt '+f1(A.rpe)+'/10':''),
     (under.length?'Short this week: '+under.slice(0,3).join(', ')+'. ':'')+(T.pr?'Beating last time on a cut is the clearest sign muscle is being kept and built.':'Aim to beat last time on one main lift per session: a rep or 2.5 kg.'));
-  if(T.gym>=4)good.push(T.gym+' gym sessions');if(T.gym<3)fix.push(['Four gym sessions: the priority in the shred','big']);
+  if(T.gym>=5)good.push(T.gym+' gym sessions');if(T.gym<4)fix.push(['Five gym sessions: the priority for the look','big']);
   /* recovery */
   sec('😴','Sleep & recovery',G(A.sleep!==null&&A.sleep>=8&&(T.bedSd===null||T.bedSd<=45),A.sleep!==null&&A.sleep>=7),
     'Sleep '+arrow(A.sleep,B.sleep,true,' h',true)+' · bedtime '+(A.bed!==null?'<b>'+bT(A.bed)+'</b>':'—')+(T.bedSd!==null?' ±'+Math.round(T.bedSd)+' min':'')+' · resting HR '+arrow(A.rhr,B.rhr,false,'',false)+' · full days off <b>'+T.off+'</b>',
@@ -10983,12 +10983,12 @@ function push2HTML(){
     '<div class="tiny dim">The line runs from '+f1(PUSH2.startAvg)+' on 16 Nov to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
   return '<div class="p lift" style="border-color:var(--gold)"><h2>🔥 The push · shredded, strong, fast</h2>'+
     '<div class="row" style="gap:14px;flex-wrap:wrap;align-items:baseline"><span><b class="mono" style="font-size:1.6em">'+(dF>=0?dF:'—')+'</b> <span class="tiny dim">days to France</span></span><span><b class="mono" style="font-size:1.6em">'+dX+'</b> <span class="tiny dim">days to Christmas Eve</span></span>'+(pre?'<span class="pill">starts Mon 16 Nov</span>':'')+'</div>'+
-    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> any morning below 127 (126.9 or less) by then = just more gym (up to 5). If not, the full push: gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: the only change is more gym (up to 5 a week).</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k as the week average.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
+    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> gym is 5 a week (6 on a good week) either way. Any morning below 127 (126.9 or less) by then = nothing else changes. If not, the full push also allows the 2nd Norwegian under cortisol 35 and steps 12–13k.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: gym 5 a week (6 on a good week), everything else as planned.</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym 5 (6 on a good week), the 2nd Norwegian allowed under cortisol 35, steps 12–13k as the week average.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
     '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
     tick(g?g.protein>=135:null,'Protein <b>140 g</b> in 4 feeds of 30–40 g'+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
-    tick(gyms>=4?true:(gyms?false:null),'Gym <b>'+(PM.k==='full'||PM.k==='gym'?'4–5':'4+')+' this week</b>, beat last time'+(PM.k==='full'||PM.k==='gym'?' (a 5th on a good week: shoulders, upper chest, arms, back)':'')+' · '+gyms+' so far','big')+
+    tick(gyms>=5?true:(gyms?false:null),'Gym <b>5 this week</b>, 6 on a good week (the extra goes to shoulders, arms, upper chest), beat last time · '+gyms+' so far','big')+
     tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
     tick(WS.avg===null?null:WS.avg>=(PM.k==='full'?12000:11000)&&WS.avg<=13000,'Steps <b>'+(PM.k==='full'?'12–13k':'11–13k')+' as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+
     tick(fish>=2?true:(fish?false:null),'Oily fish <b>2–3× this week</b> · '+fish+' so far','medium')+
@@ -11048,6 +11048,9 @@ function nextLift(){
   var cands=['chest','back','delts','legs'].map(function(sp){var ms=CFG.sets.filter(function(x){return x.day===sp;}),short=0,detail=[];
     ms.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(sp==='legs'&&legsDone)v=Math.max(v,rg[0]);if(v<rg[0]){short+=rg[0]-v;detail.push(x.m+' '+(rg[0]-v));}});
     return {sp:sp,short:short,detail:detail,recent:!!rec[sp]};}).filter(function(c){return c.short>0&&!c.recent;}).sort(function(a,b){return b.short-a.short;});
+  /* Dan, 12 Nov: "I want 5 gym sessions anyway, even 6 — I want that look." Every muscle already in range:
+     the extra session goes to what shows on camera (shoulders and arms first, then upper chest, then back), never two days running. */
+  if(!cands[0]){var ex=['delts','chest','back'].filter(function(sp){return !rec[sp];});if(ex.length)return {sp:ex[0],short:0,detail:[],recent:false,extra:true};}
   return cands[0]||null;}
 function liftCoachHTML(){
   var t=today(),last=null,ld=null;for(var i=0;i<14;i++){var d=addD(t,-i),r=S.days[d]||{};if(r.gym){last=r;ld=d;break;}}
@@ -11071,12 +11074,12 @@ function liftCoachHTML(){
   /* the weekly muscle-building checklist: the things that decide muscle on a cut */
   var pw=[],sw=[];for(var q=0;q<7;q++){var dq=addD(mondayOf(t),q);if(dq>=t)break;var xq=S.days[dq]||{};if(xq.glowSum&&xq.glowSum.n>=3)pw.push(xq.glowSum.protein);if(typeof xq.sleep==='number')sw.push(xq.sleep);}
   var prs=0;for(var q2=0;q2<7;q2++){var xr=S.days[addD(mondayOf(t),q2)]||{};if(xr.pr)prs++;}
-  var CK=[[gyms>=4,'4 gym sessions ('+gyms+')'],[under.length===0,'every muscle in its growing range ('+inr+' of '+CFG.sets.length+')'],[prs>=2,'beat last time twice or more ('+prs+')'],
+  var CK=[[gyms>=5,'5 gym sessions, 6 on a good week ('+gyms+')'],[under.length===0,'every muscle in its growing range ('+inr+' of '+CFG.sets.length+')'],[prs>=2,'beat last time twice or more ('+prs+')'],
     [pw.length&&mean(pw)>=135,'protein 140 g a day ('+(pw.length?Math.round(mean(pw))+' g':'—')+')'],[sw.length&&mean(sw)>=8,'8 h sleep ('+(sw.length?f1(mean(sw))+' h':'—')+')']];
   var ckH=CK.map(function(c){return (c[0]?'✅ ':'⬜ ')+esc(c[1]);}).join('<br>')+'<br><span class="tiny">These five decide whether a cut keeps and builds muscle. Heavy weights, close to failure, every muscle twice-ish a week, protein spread over 3–4 meals, and sleep.</span>';
   if(last&&Array.isArray(last.lifts)){var lt=last.lifts.filter(function(x){return x&&x.reps>0;}).map(function(x){var ex=gymEx(x.ex);return (ex?ex.n.replace(/ \(.*/,''):x.ex)+' '+liftTxt(ex,{kg:x.kg||0,reps:x.reps});});if(lt.length)fb+='<br><span class="tiny">Logged: '+esc(lt.join(' · '))+'</span>';}
   var xt='';try{xt=crossTalkHTML('lift');}catch(e){}
-  var card=coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 4–6) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],(xt?['🤝 From your other coaches',xt]:null),['👉 Next',nx+(C?'<br>'+C:'')],['🏗️ This week’s muscle checklist',ckH],['🎯 Goal',phase]],dpL);
+  var card=coachCard('🏋️','Your lifting coach',[['Last session',fb],['This week',gyms+' gym session'+(gyms===1?'':'s')+' (aim 5, 6 on a good week) · '+inr+' of '+CFG.sets.length+' muscle groups in range'+(over.length?' · plenty for: '+over.join(', '):'')],(xt?['🤝 From your other coaches',xt]:null),['👉 Next',nx+(C?'<br>'+C:'')],['🏗️ This week’s muscle checklist',ckH],['🎯 Goal',phase]],dpL);
   var gs='';try{gs=gymSessionHTML();}catch(e){}
   return gs?card.replace('<details class="fold"><summary><b>🔎 In depth',gs+'<details class="fold"><summary><b>🔎 In depth'):card;}
 function hardRunSoon(){try{var G=campGame();return G.left.some(function(x){return x.e==='⚡'||x.e==='⏱';});}catch(e){return false;}}
