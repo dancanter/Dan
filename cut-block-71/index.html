@@ -483,6 +483,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div id="glowIll"></div>
   <div id="jrnlCard"></div>
   <div id="homeCard"></div>
+  <div id="pushCard"></div>
   <div id="dashCard" class="stack"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
   <div id="ovLong"></div>
@@ -9580,6 +9581,7 @@ function renderGoodLife(){
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
   try{if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}
+  try{if(E('pushCard'))E('pushCard').innerHTML=push2HTML();}catch(e){if(E('pushCard'))E('pushCard').innerHTML='';}
   try{if(E('dashCard'))E('dashCard').innerHTML=dashHTML();}catch(e){if(E('dashCard'))E('dashCard').innerHTML='';}
   try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();}catch(e){}
   try{if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();}catch(e){}
@@ -10935,6 +10937,53 @@ function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
     '2. A day off running.<br>3. <b>Hard, 600 m+:</b> 4 × 1 km at '+repRange(L[0],L[1],1000)+' a rep, the first one controlled. Fresh legs.<br>'+
     '4. A day off running.<br>5. <b>Speed:</b> 5 × 300 m at '+repRange(Sx[0]*0.98,Sx[1]*0.98,300)+', full walk recoveries.<br>'+
     'Legs go the day after a hard run, never the day before. You pick the days.</div>';}
+
+/* ===================== the push (Dan, 12 Nov) =====================
+   "When I'm back running on Monday I haven't got long till France or Xmas. I really want to push the
+   running and times and really push the shred, as much as I can, with your guidance. Shredded, optimising
+   muscle and running times, and obviously health." This is NOT the old push (5 Nov): nothing is dropped.
+   The full week of runs, the gym 4+, calories as the shred (never lower), precision in the logging, and
+   the one gate: stress/cortisol. The weight line runs from the 7-day average on 16 Nov to 123.5 on 24 Dec. */
+var PUSH2={from:'2026-11-16',to:'2026-12-24',france:['2026-12-03','2026-12-05'],goal:123.5,startAvg:128.3};
+function push2On(t){t=t||today();return t>=PUSH2.from&&t<=PUSH2.to;}
+function push2Line(d){var n=diffD(PUSH2.from,PUSH2.to),i=Math.max(0,Math.min(n,diffD(PUSH2.from,d)));return PUSH2.startAvg+(PUSH2.goal-PUSH2.startAvg)*i/n;}
+function push2Week(t){var ws=mondayOf(t);
+  if(ws<'2026-11-16')return ['🚶 Run-free week','Walks, steps and gym. The training lands; the push starts Monday 16 Nov.'];
+  if(ws==='2026-11-16')return ['🔙 Back','<b>Norwegian first</b> (5 × 5 min at 3:57–4:10/km, or 5 km at 4:00–4:05). Then <b>hard 600 m+</b> (4 × 1 km at 3:15–3:19, the first rep controlled). Then <b>speed</b> (200–400 m reps, full walk recoveries). No 2nd Norwegian this week.'];
+  if(ws==='2026-11-23')return ['🔥 Full week','2 hard (one 600 m+, one speed) + Norwegian with hill sprints + a <b>2nd Norwegian if cortisol is under 25</b>. Aim for one more rep or a second faster than last time.'];
+  if(ws==='2026-11-30')return ['🇫🇷 France week','One hard run and one Norwegian before you go (3 Dec). In France: walks and exploring, no tracking stress.'];
+  if(ws>='2026-12-21')return ['🎄 Last trials, then Christmas','The last sessions fresh, then 25–26 Dec at maintenance.'];
+  return ['⚡ Sharpen','Full weeks with the trials where the road has them. The last 4–5 days before a trial lighter, so you arrive fresh.'];}
+function push2HTML(){
+  var t=today();if(t>PUSH2.to)return '';
+  var pre=t<PUSH2.from,dF=diffD(t,PUSH2.france[0]),dX=diffD(t,PUSH2.to),W=push2Week(t);
+  var aw=avgWindow(t,7),avg=aw&&aw.n>=3?aw.avg:null,line=push2Line(t),gap=avg!==null?avg-line:null;
+  var CX=null;try{CX=cortisolScore();}catch(e){}
+  var r=S.days[t]||{},y=S.days[addD(t,-1)]||{},g=r.glowSum&&r.glowSum.n>=3?r.glowSum:null,kt=dayTarget(t);
+  var ws=mondayOf(t),gyms=0,fish=0;for(var d=ws;d<=t;d=addD(d,1)){var x=S.days[d]||{};if(x.gym)gyms++;if(x.glowSum&&(x.glowSum.omega3||0)>=1)fish++;}
+  var WS=weekSteps(t);
+  var tick=function(ok,txt,imp){return '<div style="margin:3px 0">'+(ok===null?'◻️':ok?'✅':'▫️')+' '+txt+(imp?' '+IMP[imp]:'')+'</div>';};
+  var gate=CX?(CX.score>=45?'<p class="note wn"><b>Gate: cortisol '+CX.score+'/100.</b> This week eases: hard runs become a walk or a Norwegian until it settles. That is how you avoid losing two weeks.</p>':
+    '<p class="keep" style="margin:6px 0;font-size:.9em">🧪 Cortisol <b>'+CX.score+'/100</b>'+(CX.score<25?' · green: the full week is on, 2nd Norwegian allowed.':' · raised: the full week stays, the 2nd Norwegian waits.')+'</p>'):'';
+  var wl=avg===null?'<span class="tiny dim">Weigh in on 3+ mornings to see the line.</span>':
+    'Your 7-day average <b>'+f1(avg)+'</b> · the line today <b>'+f1(line)+'</b> · '+(gap<=0.2?'<b>on the line</b> ✅':'<b>'+f1(gap)+' lb above it</b>: tighten the logging (every gram, oils, honey, nuts) and add a gym session — not steps, not fewer calories.')+
+    '<div class="tiny dim">The line runs from '+f1(PUSH2.startAvg)+' on 16 Nov to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
+  return '<div class="p lift" style="border-color:var(--gold)"><h2>🔥 The push · shredded, strong, fast</h2>'+
+    '<div class="row" style="gap:14px;flex-wrap:wrap;align-items:baseline"><span><b class="mono" style="font-size:1.6em">'+(dF>=0?dF:'—')+'</b> <span class="tiny dim">days to France</span></span><span><b class="mono" style="font-size:1.6em">'+dX+'</b> <span class="tiny dim">days to Christmas Eve</span></span>'+(pre?'<span class="pill">starts Mon 16 Nov</span>':'')+'</div>'+
+    '<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
+    '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
+    '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
+    tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
+    tick(g?g.protein>=135:null,'Protein <b>140 g</b> in 4 feeds of 30–40 g'+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
+    tick(gyms>=4?true:(gyms?false:null),'Gym <b>4+ this week</b>, beat last time · '+gyms+' so far','big')+
+    tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
+    tick(WS.avg===null?null:WS.avg>=11000&&WS.avg<=13000,'Steps <b>11–13k as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+
+    tick(fish>=2?true:(fish?false:null),'Oily fish <b>2–3× this week</b> · '+fish+' so far','medium')+
+    tick(null,'Carbs before and after every hard run; never a hard run the day after legs; Norwegians at their pace (4:00–4:05/km continuous)','big')+
+    gate+
+    '<details class="fold"><summary><b>🗓️ The whole push, week by week</b></summary><div class="tiny" style="line-height:1.7">'+
+    [['2026-11-16','Back'],['2026-11-23','Full'],['2026-11-30','France'],['2026-12-07','Sharpen'],['2026-12-14','Sharpen'],['2026-12-21','Trials and Christmas']].map(function(w){var P=push2Week(w[0]);return '<div><span class="mono dim">'+fmtS(w[0])+'</span> <b>'+P[0]+'</b> — '+P[1]+'</div>';}).join('')+
+    '</div><p class="tiny" style="margin-top:6px">Calories never go under 1,799: lower costs muscle and times and raises cortisol. If the weight sits above the line for a week, the lever is precision and an extra gym session. The check-in at 9 pm says exactly what to change for tomorrow.</p></details></div>';}
 /* the road to the December trials, week by week */
 function roadHTML(){
   var t=today(),C=CFG.camp,ws=mondayOf(t),rows=[],RR=[];try{RR=raceReady();}catch(e){}

@@ -200,6 +200,13 @@ export const actions = {
       return { ...s, days: { ...s.days, [date]: { ...d, items: d.items.filter((i) => i.uid !== itemUid) } } };
     });
   },
+  /** one-tap meal: every item of a preset at once (Dan, 12 Nov) */
+  addMeal(date: string, items: { foodId: string; grams: number; qty?: StoredItem['qty'] }[], meal: Meal) {
+    setState((s) => {
+      const d = day(s, date);
+      return { ...s, days: { ...s.days, [date]: { ...d, items: [...d.items, ...items.map((i) => ({ uid: uid(), foodId: i.foodId, grams: i.grams, meal, ...(i.qty ? { qty: i.qty } : {}) }))] } } };
+    });
+  },
   copyDay(from: string, to: string) {
     setState((s) => {
       const src = day(s, from);

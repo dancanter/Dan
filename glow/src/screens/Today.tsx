@@ -7,9 +7,11 @@ import { scoreFood, targetsFor } from '@/engine/score';
 import { kcalForDate } from '@/engine/season';
 import { PhaseBanner, TravelGuide } from '@/components/Season';
 import { phaseOn } from '@/engine/season';
-import { actions, getState, resolveItems, useStore } from '@/store';
+import { actions, findFood, getState, resolveItems, useStore } from '@/store';
 import { AddFood } from '@/components/AddFood';
-import { FoodDetail, MEALS } from '@/components/FoodDetail';
+import { FoodDetail, MEALS, defaultMeal } from '@/components/FoodDetail';
+import { MEAL_PRESETS } from '@/data/meals';
+
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
 import { VitalsCard } from '@/components/Vitals';
@@ -145,6 +147,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           <Button onClick={() => setAdding(true)}><Plus size={16} />Add</Button>
         </div>
       }>
+        <QuickMeals date={date} isToday={isToday} />
         {!items.length && (
           <button onClick={() => setAdding(true)} className="w-full rounded-2xl border-2 border-dashed border-line p-6 text-center text-sm text-muted hover:border-sea">
             Type what you had, e.g. <i>“3 eggs, 150g wild salmon, handful blueberries”</i>
@@ -326,5 +329,31 @@ function CheckIn({ date }: { date: string }) {
         )}
       </div>
     </Card>
+  );
+}
+
+/** Dan, 12 Nov: his usual meals in one tap each. Today they go in the slot for the time of day. */
+function QuickMeals({ date, isToday }: { date: string; isToday: boolean }) {
+  const s = useStore((x) => x);
+  const [done, setDone] = useState('');
+  return (
+    <div className="mb-3">
+      <div className="mb-1.5 text-xs font-semibold tracking-wide text-muted uppercase">⚡ One-tap meals</div>
+      <div className="grid grid-cols-2 gap-2">
+        {MEAL_PRESETS.map((p) => {
+          const ok = p.items.filter((i) => findFood(i.foodId, s));
+          const kcal = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.kcal * i.grams) / 100, 0);
+          const pro = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.protein * i.grams) / 100, 0);
+          return (
+            <button key={p.id} className={`rounded-2xl border border-line px-3 py-2 text-left text-sm hover:border-sea ${done === p.id ? 'ring-2 ring-good' : ''}`}
+              onClick={() => { actions.addMeal(date, ok, isToday ? defaultMeal() : p.meal); setDone(p.id); setTimeout(() => setDone(''), 1500); }}>
+              <div>{p.emoji} {p.name}</div>
+              <div className="num text-xs text-muted">{Math.round(kcal)} kcal · {Math.round(pro)} g protein</div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-1 text-xs text-muted">Adds every item at once. Change any grams on the list below.</div>
+    </div>
   );
 }
