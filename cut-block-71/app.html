@@ -10813,6 +10813,22 @@ function bossHTML(){
       '<div class="bossbar"><i style="width:'+done+'%"></i>'+(tick!==null?'<u style="left:'+tick+'%" title="all-time best '+f(at.t)+'"></u>':'')+'</div>'+
       '<div class="tiny dim">'+(won?'Goal beaten.':f(b.t-x.goal).replace(' s','')+(b.t-x.goal>=60?'':' s')+' to go'+(at&&at.t?' · all-time '+f(at.t):'')+(x.on&&x.on>=t?' · trial '+fmtS(x.on):''))+'</div></div>';}).join('');
   return '<div class="p dash"><h2>⚔️ Boss fights · your race goals</h2>'+rows+'<p class="tiny dim" style="margin-top:6px">Each bar fills as your 2026 best closes on the goal. The gold mark is your all-time best.</p></div>';}
+/* Dan, 12 Nov: "on that other link it had the boss fights for strength, where are they?" Strength boss fights
+   next to the race ones: the best single set of strict pull-ups, and e1RM for the main lifts, each with a ladder
+   of goals. Beat one and the next appears; the beaten one shows as 💎. Only lifts he has logged appear. */
+var STR_BOSS=[{k:'pull',n:'Strict pull-ups, one set',u:'reps',goals:[30,35,40,45]},
+  {k:'bench',n:'Bench press e1RM',u:'kg',goals:[100,110,120],why:function(g){return f1(g/bodyKg())+' × bodyweight';}},
+  {k:'incline',n:'Incline press e1RM',u:'kg',goals:[60,70,80]},{k:'ohp',n:'Shoulder press e1RM',u:'kg',goals:[60,70,80],why:function(g){return f1(g/bodyKg())+' × bodyweight';}},
+  {k:'row',n:'Row e1RM',u:'kg',goals:[90,100,110]},{k:'squat',n:'Squat e1RM',u:'kg',goals:[120,140,160]}];
+function strBest(k){var best=null;Object.keys(S.days).forEach(function(d){var r=S.days[d]||{},L=(r.lifts||[]).slice();if(r.challenge)L.push({ex:r.challenge.ex,kg:r.challenge.kg||0,reps:r.challenge.reps,bw:r.challenge.ex==='pull'});
+  L.forEach(function(x){if(x.ex!==k||!(x.reps>0))return;var v=k==='pull'?(x.kg?null:x.reps):e1rm(x.kg,x.reps);if(v===null)return;if(!best||v>best.v)best={v:v,d:d,kg:x.kg,reps:x.reps};});});return best;}
+function strBossHTML(){var rows=STR_BOSS.map(function(B){var b=strBest(B.k);if(!b)return '';var cur=B.u==='kg'?Math.round(b.v):b.v,g=null,beat=[];
+    B.goals.forEach(function(x){if(cur>=x)beat.push(x);else if(g===null)g=x;});if(g===null)g=B.goals[B.goals.length-1];
+    var pct=Math.max(0,Math.min(100,Math.round(cur/g*100))),fmt=function(v){return v+(B.u==='kg'?' kg':' reps');};
+    var src=B.k==='pull'?'best set '+b.reps+' on '+fmtS(b.d):b.kg+' kg × '+b.reps+' on '+fmtS(b.d);
+    return '<div class="boss"><div class="row" style="justify-content:space-between;align-items:baseline"><b>'+(beat.length?'💎 ':'')+B.n+'</b><span class="mono">'+fmt(cur)+' <span class="tiny dim">→ '+fmt(g)+'</span></span></div>'+
+      '<div class="bossbar"><i style="width:'+pct+'%"></i></div><div class="keep" style="font-size:.85em;opacity:.8">'+pct+'% · '+src+(beat.length?' · beaten: '+beat.map(fmt).join(', '):'')+(B.why?' · '+fmt(g)+' is '+B.why(g):'')+'</div></div>';}).join('');
+  return rows?'<div class="p dash"><h2>⚔️ Boss fights · strength</h2>'+rows+'<p class="keep" style="font-size:.85em;opacity:.75;margin-top:6px">Log a top set on the gym card (optional) and the bar moves. Beat a goal and the next one appears.</p></div>':'';}
 function dashHTML(){
   var t=today(),days=function(n){var a=[];for(var i=n-1;i>=0;i--)a.push(addD(t,-i));return a;};
   var W=[];for(var i=55;i>=0;i--){var d=addD(t,-i),a=avgWindow(d,7);W.push({d:d,v:a.n>=3?a.avg:null});}
@@ -10824,7 +10840,7 @@ function dashHTML(){
   var LS=null;try{LS=longevityScores();}catch(e){}
   return '<div class="dash-chips">'+st.map(function(x){return '<div class="dchip'+(x[2]>=3?' hot':'')+'"><span>'+x[0]+'</span><b>'+x[2]+'</b><i>day'+(x[2]===1?'':'s')+' · '+x[1]+'</i></div>';}).join('')+
       (LS?'<div class="dchip hot"><span>🧬</span><b>'+LS.all.score+'</b><i>longevity · overall</i></div>':'')+'</div>'+
-    bossHTML()+
+    bossHTML()+strBossHTML()+
     '<div class="dash-grid">'+
     dashChart('⚖️ Weight · 7-day average','lb · goal 123–124',W,{lo:123,hi:124,fmt:function(v){return f1(v);}})+
     dashChart('😴 Sleep','hours · aim 8–9',get('sleep'),{bars:true,zero:5,line:8,good:function(v){return v>=8;},fmt:function(v){return f1(v)+' h';}})+
