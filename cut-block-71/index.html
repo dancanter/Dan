@@ -10953,10 +10953,10 @@ function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
 var PUSH2={from:'2026-11-16',to:'2026-12-24',france:['2026-12-03','2026-12-05'],goal:123.5,startAvg:128.3};
 function push2On(t){t=t||today();return t>=PUSH2.from&&t<=PUSH2.to;}
 /* Dan, 12 Nov: "only do this if I'm not 127 by Monday. If I hit 127 there's no need, maybe just one thing like more gym."
-   Any morning at 127.0 or under from 12 to 16 Nov = 'gym' (gym up to 5 only). Otherwise, from 16 Nov, 'full':
+   Any morning below 127 (126.9 or less) from 12 to 16 Nov = 'gym' (gym up to 5 only). Otherwise, from 16 Nov, 'full':
    gym up to 5, the 2nd Norwegian allowed under cortisol 35 (not 25), steps at the top of the range (~13k week average). */
 PUSH2.check='2026-11-16';PUSH2.under=127.0;
-function push2Mode(t){t=t||today();var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-11-12'&&k<=PUSH2.check&&typeof S.weights[k]==='number'&&S.weights[k]<=PUSH2.under&&!hit)hit=k;});
+function push2Mode(t){t=t||today();var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-11-12'&&k<=PUSH2.check&&typeof S.weights[k]==='number'&&S.weights[k]<PUSH2.under&&!hit)hit=k;});
   if(hit)return {k:'gym',hit:hit};if(t<PUSH2.check)return {k:'pending'};return {k:push2On(t)?'full':'off'};}
 function norwCap(t){var m=push2Mode(t);return m.k==='full'?35:25;}
 function push2Line(d){var n=diffD(PUSH2.from,PUSH2.to),i=Math.max(0,Math.min(n,diffD(PUSH2.from,d)));return PUSH2.startAvg+(PUSH2.goal-PUSH2.startAvg)*i/n;}
@@ -10983,7 +10983,7 @@ function push2HTML(){
     '<div class="tiny dim">The line runs from '+f1(PUSH2.startAvg)+' on 16 Nov to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
   return '<div class="p lift" style="border-color:var(--gold)"><h2>🔥 The push · shredded, strong, fast</h2>'+
     '<div class="row" style="gap:14px;flex-wrap:wrap;align-items:baseline"><span><b class="mono" style="font-size:1.6em">'+(dF>=0?dF:'—')+'</b> <span class="tiny dim">days to France</span></span><span><b class="mono" style="font-size:1.6em">'+dX+'</b> <span class="tiny dim">days to Christmas Eve</span></span>'+(pre?'<span class="pill">starts Mon 16 Nov</span>':'')+'</div>'+
-    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> any morning at 127.0 or under by then = just more gym (up to 5). If not, the full push: gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: the only change is more gym (up to 5 a week).</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k as the week average.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
+    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> any morning below 127 (126.9 or less) by then = just more gym (up to 5). If not, the full push: gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: the only change is more gym (up to 5 a week).</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym up to 5, the 2nd Norwegian allowed under cortisol 35, steps 12–13k as the week average.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
     '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
