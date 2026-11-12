@@ -3,7 +3,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Copy, Flame, Moon, Plus, Scal
 import { MICROS, NUTRIENTS, format, type NKey } from '@/data/nutrients';
 import { addDays, fromDisplay, prettyDate, todayISO, toDisplay } from '@/engine/body';
 import { dayResult, questFor, rankFor, streak, xpTotal } from '@/engine/game';
-import { scoreFood, targetsFor } from '@/engine/score';
+import { nutrientModeOn, scoreFood, targetsFor } from '@/engine/score';
 import { kcalForDate } from '@/engine/season';
 import { PhaseBanner, TravelGuide } from '@/components/Season';
 import { phaseOn } from '@/engine/season';
@@ -40,6 +40,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
   const items = resolveItems(s.days[date], s);
   const t = targetsFor({ ...s.profile, kcalTarget: kcalForDate(s.profile, date, r.weightKg).kcal }, r.weightKg);
   const [adding, setAdding] = useState(false);
+  const nm = nutrientModeOn(s.profile, date);
   const [detail, setDetail] = useState<Food | null>(null);
   const quest = questFor(date);
   const questDone = quest.done(r, s);
@@ -160,7 +161,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           const kcal = its.reduce((a, i) => a + (i.food.n.kcal * i.grams) / 100, 0);
           return (
             <div key={m.value} className="mb-3">
-              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold tracking-wide text-muted uppercase"><span>{m.label}</span><span className="flex items-center gap-3">{its.filter((i) => !i.uid.startsWith('supp-')).length >= 2 && <SaveMeal key={`${date}-${m.value}-${its.length}`} items={its.filter((i) => !i.uid.startsWith('supp-'))} meal={m.value} />}<span className="num">{Math.round(kcal)} kcal</span></span></div>
+              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold tracking-wide text-muted uppercase"><span>{m.label}</span><span className="flex items-center gap-3">{its.filter((i) => !i.uid.startsWith('supp-')).length >= 2 && <SaveMeal key={`${date}-${m.value}-${its.length}`} items={its.filter((i) => !i.uid.startsWith('supp-'))} meal={m.value} />}{!nm && <span className="num">{Math.round(kcal)} kcal</span>}</span></div>
               <ul className="divide-y divide-line">
                 {its.map((i) => {
                   const sc = scoreFood(i.food, t);
@@ -169,7 +170,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
                       <button onClick={() => setDetail(i.food)} aria-label={`About ${i.food.name}`}><Grade grade={sc.grade} score={sc.score} /></button>
                       <button onClick={() => setDetail(i.food)} className="min-w-0 flex-1 text-left">
                         <div className="truncate text-sm">{i.food.name}</div>
-                        <div className="num text-xs text-muted">{i.qty ? `${describeQty(i.qty.count, i.qty)} · ` : ''}{Math.round((i.food.n.kcal * i.grams) / 100)} kcal · {((i.food.n.protein * i.grams) / 100).toFixed(1)} g protein</div>
+                        <div className="num text-xs text-muted">{i.qty ? `${describeQty(i.qty.count, i.qty)} · ` : ''}{nm ? '' : `${Math.round((i.food.n.kcal * i.grams) / 100)} kcal · `}{((i.food.n.protein * i.grams) / 100).toFixed(1)} g protein</div>
                       </button>
                       <input aria-label="Grams" className="field num w-16 px-2 py-1 text-right text-sm" inputMode="decimal" defaultValue={i.grams} onBlur={(e) => { const g = Number(e.target.value); if (g > 0 && g !== i.grams) actions.updateItem(date, i.uid, g); }} />
                       <span className="text-xs text-muted">g</span>
@@ -185,15 +186,15 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
 
       {items.length > 0 && (
         <>
-          <Card title="Fuel" eyebrow="Macros against your targets">
+          <Card title="Fuel" eyebrow={nm ? 'Nutrient mode: no calories, just what fuels you' : 'Macros against your targets'}>
             <div className="space-y-3">
-              {(['kcal', 'protein', 'carbs', 'fat', 'fibre', 'omega3'] as NKey[]).map((k) => (
+              {((nm ? ['protein', 'fibre', 'omega3'] : ['kcal', 'protein', 'carbs', 'fat', 'fibre', 'omega3']) as NKey[]).map((k) => (
                 <MacroRow key={k} k={k} v={r.analysis.totals[k]} target={t[k]} />
               ))}
               <MacroRow k="sugar" v={r.analysis.freeSugar} target={30} limit />
               <MacroRow k="satFat" v={r.analysis.totals.satFat} target={t.satFat} limit />
             </div>
-            {r.ea !== undefined && <p className="mt-3 text-xs text-muted">Energy availability so far: <b className="num" style={{ color: r.ea < 30 ? 'var(--bad)' : r.ea < 45 ? 'var(--warn)' : 'var(--good)' }}>{Math.round(r.ea)}</b> kcal per kg fat-free mass (healthy ≥ 45, low &lt; 30). Set your training estimate in Me.</p>}
+            {!nm && r.ea !== undefined && <p className="mt-3 text-xs text-muted">Energy availability so far: <b className="num" style={{ color: r.ea < 30 ? 'var(--bad)' : r.ea < 45 ? 'var(--warn)' : 'var(--good)' }}>{Math.round(r.ea)}</b> kcal per kg fat-free mass (healthy ≥ 45, low &lt; 30). Set your training estimate in Me.</p>}
           </Card>
 
           {(() => {
@@ -354,7 +355,7 @@ function QuickMeals({ date, isToday }: { date: string; isToday: boolean }) {
       <div key={p.id} className={`relative rounded-2xl border px-3 py-2 text-sm ${kind === 'mine' ? 'border-gold' : 'border-line'} ${done === p.id ? 'ring-2 ring-good' : ''}`}>
         <button className="w-full text-left" onClick={() => { actions.addMeal(date, ok, isToday ? defaultMeal() : p.meal); setDone(p.id); setTimeout(() => setDone(''), 1500); }}>
           <div className="pr-5">{p.emoji} {p.name}</div>
-          <div className="num text-xs text-muted">{Math.round(kcal)} kcal · {Math.round(pro)} g protein{times ? ` · had ${times}×` : ''}</div>
+          <div className="num text-xs text-muted">{nutrientModeOn(s.profile, date) ? '' : `${Math.round(kcal)} kcal · `}{Math.round(pro)} g protein{times ? ` · had ${times}×` : ''}</div>
         </button>
         {kind === 'usual' && !edit && <button className="mt-1 text-xs text-sea" onClick={() => actions.saveMeal({ ...p, id: `my-${Date.now().toString(36)}`, emoji: '⭐' })}>☆ Save</button>}
         {edit && <button aria-label={`Remove ${p.name}`} className="absolute top-1.5 right-2 text-muted hover:text-bad" onClick={() => actions.hideMeal(p.id)}>✕</button>}

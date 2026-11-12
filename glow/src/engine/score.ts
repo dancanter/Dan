@@ -29,6 +29,10 @@ export interface Profile {
   bloatProne?: boolean;
   /** Supplements taken every day (Dan, 5 Nov: astaxanthin 16 mg). Counted on every logged day. */
   dailySupps?: { foodId: string; grams: number }[];
+  /** Nutrient mode (Dan, 12 Nov): calories hidden, food judged on nutrients. Unset = on from 2027-01-10; true/false = his choice. */
+  nutrientMode?: boolean;
+  /** 7-day average weight when he switched nutrient mode on (the one safety net) */
+  nutrientAnchor?: number | null;
   /** Set when Dan picks his own protein target, so the 2.4 g/kg floor no longer applies. */
   proteinChosen?: boolean;
   /** Start dates of deload weeks you’ve taken. */
@@ -363,3 +367,10 @@ export const DEFAULT_PROFILE: Profile = {
   dailySupps: [{ foodId: 'uk-astaxanthin-8', grams: 1 }],
 };
 
+
+/** Nutrient mode (Dan, 12 Nov): "stop counting calories, focus on micronutrients and the most bioavailable foods".
+ *  On by itself from 10 Jan 2026 (after the shred, Christmas and the reset); his on/off choice always wins. */
+export const NUTRIENT_MODE_FROM = '2027-01-10';
+export function nutrientModeOn(p: Profile, date: string): boolean {
+  return p.nutrientMode ?? date >= NUTRIENT_MODE_FROM;
+}

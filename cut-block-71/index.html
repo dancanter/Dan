@@ -483,7 +483,8 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div id="glowIll"></div>
   <div id="jrnlCard"></div>
   <div id="homeCard"></div>
-  <div id="pushCard"></div>
+  <div id="push2Card"></div>
+  <div id="nutriModeCard"></div>
   <div id="dashCard" class="stack"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
   <div id="ovLong"></div>
@@ -9587,7 +9588,8 @@ function renderGoodLife(){
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
   try{if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}
-  try{if(E('pushCard'))E('pushCard').innerHTML=push2HTML();}catch(e){if(E('pushCard'))E('pushCard').innerHTML='';}
+  try{if(E('push2Card'))E('push2Card').innerHTML=push2HTML();}catch(e){if(E('push2Card'))E('push2Card').innerHTML='';}
+  try{if(E('nutriModeCard'))E('nutriModeCard').innerHTML=nutriModeHTML();}catch(e){if(E('nutriModeCard'))E('nutriModeCard').innerHTML='';}
   try{if(E('dashCard'))E('dashCard').innerHTML=dashHTML();}catch(e){if(E('dashCard'))E('dashCard').innerHTML='';}
   try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();}catch(e){}
   try{if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();}catch(e){}
@@ -11004,6 +11006,38 @@ function push2HTML(){
     '<details class="fold"><summary><b>🗓️ The whole push, week by week</b></summary><div class="tiny" style="line-height:1.7">'+
     [['2026-11-16','Back'],['2026-11-23','Full'],['2026-11-30','France'],['2026-12-07','Sharpen'],['2026-12-14','Sharpen'],['2026-12-21','Trials and Christmas']].map(function(w){var P=push2Week(w[0]);return '<div><span class="mono dim">'+fmtS(w[0])+'</span> <b>'+P[0]+'</b> — '+P[1]+'</div>';}).join('')+
     '</div><p class="tiny" style="margin-top:6px">Calories never go under 1,799: lower costs muscle and times and raises cortisol. If the weight sits above the line for a week, the lever is precision and an extra gym session. The check-in at 9 pm says exactly what to change for tomorrow.</p></details></div>';}
+
+/* ===================== nutrient mode (Dan, 12 Nov) =====================
+   "When I'm shredded my ultimate goal and dream is to stop counting calories, focus way more on the
+   micronutrients of foods, have what I want and focus on the world's most bioavailable foods."
+   "Yeah, cause I can always change my mind." On by itself from 10 Jan (after the shred, Christmas and
+   the reset); his switch always wins. Calories are hidden on the food log; the day is judged on nutrients,
+   protein, oily fish and plants. A meal without much protein is fine: protein is a daily total. The one
+   safety net: the 7-day average weight against where he started. */
+var NUTRI_MODE_FROM='2027-01-10';
+function nutriModeOn(t){var p=(S.glow&&S.glow.profile)||{};return typeof p.nutrientMode==='boolean'?p.nutrientMode:(t||today())>=NUTRI_MODE_FROM;}
+function nutriModeHTML(){
+  var t=today(),on=nutriModeOn(t),p=(S.glow&&S.glow.profile)||{},chosen=typeof p.nutrientMode==='boolean';
+  if(!on)return '<div class="p"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><span>🧬 <b>Nutrient mode</b> <span class="keep" style="font-size:.85em;opacity:.75">· no calorie counting, food judged on nutrients · '+(chosen?'off (your choice)':'switches on by itself '+fmtS(NUTRI_MODE_FROM))+'</span></span><button type="button" class="btn ghost sm" data-nm="on">Turn on now</button></div></div>';
+  var r=S.days[t]||{},y=S.days[addD(t,-1)]||{},g=r.glowSum&&r.glowSum.n>=3?r.glowSum:(y.glowSum&&y.glowSum.n>=3?y.glowSum:null),gl=g===r.glowSum?'today':'yesterday';
+  var ws=mondayOf(t),fish=0,plantDays=0,cov=[];for(var d=ws;d<=t;d=addD(d,1)){var q=(S.days[d]||{}).glowSum;if(q&&q.n>=3){if((q.omega3||0)>=1)fish++;if((q.plants||0)>=5)plantDays++;if(typeof q.coverage==='number')cov.push(q.coverage);}}
+  var start=typeof p.nutrientAnchor==='number'?p.nutrientAnchor:null;if(start===null&&!chosen){var a0=avgWindow(addD(NUTRI_MODE_FROM,-1),7);if(a0&&a0.n>=3)start=Math.round(a0.avg*10)/10;}var aw=avgWindow(t,7),avg=aw&&aw.n>=3?aw.avg:null;
+  var w=start!==null&&avg!==null?(avg-start>1.5?'<b>'+f1(avg-start)+' lb over</b> where you started ('+f1(start)+'): for one week, slightly smaller carb and fat portions. Still no counting.':'7-day average <b>'+f1(avg)+'</b> · started at '+f1(start)+' · steady ✅'):(avg!==null?'7-day average <b>'+f1(avg)+'</b>. The only number that stays.':'Weigh in a few mornings a week: the only number that stays.');
+  var li=function(ok,txt){return '<div style="margin:3px 0">'+(ok===null?'◻️':ok?'✅':'▫️')+' '+txt+'</div>';};
+  return '<div class="p lift"><h2>🧬 Nutrient mode · no calories</h2>'+
+    '<p style="margin:2px 0">Eat what you want; judge it on what it gives you. '+(g?'<b>'+gl+':</b> nutrients covered <b>'+(g.coverage||0)+'%</b> · nutrition score <b>'+(g.nutrition||'—')+'</b> · '+(g.plants||0)+' plant foods.':'Log a few meals to see the nutrients.')+'</p>'+
+    li(g?g.protein>=120:null,'Protein about 120–140 g across the day (not every meal needs it)'+(g?' · '+Math.round(g.protein)+' g':''))+
+    li(fish>=2?true:(fish?false:null),'Oily fish or shellfish 2–3× a week · '+fish+' so far')+
+    li(plantDays>=4?true:(plantDays?false:null),'5+ different plant foods on most days · '+plantDays+' day'+(plantDays===1?'':'s')+' this week')+
+    li(cov.length?mean(cov)>=80:null,'Nutrients 80%+ covered on average'+(cov.length?' · '+Math.round(mean(cov))+'%':''))+
+    '<p style="margin:6px 0 2px">⚖️ '+w+'</p>'+
+    '<details class="fold"><summary><b>🧬 The most bioavailable foods</b></summary><div class="keep" style="font-size:.88em;line-height:1.7">'+
+    'Oysters and mussels (zinc, B12, copper) · salmon roe, sardines with bones, mackerel, wild salmon (omega-3 as EPA/DHA, vitamin D, selenium) · pasture-raised egg yolks (choline, vitamin A ready to use, D, lutein) · red meat, venison, beef heart (haem iron, zinc, B12, creatine) · full-fat and raw dairy, kefir (calcium, iodine, K2) · berries, cacao, red grapes (polyphenols) · kiwi, red peppers, citrus (vitamin C; it triples plant iron) · cooked carrots and sweet potato with a little fat (carotenoids).<br>'+
+    'Fat-soluble vitamins (A, D, E, K) with a meal that has fat · vitamin C with plant iron · fermented food most days · rotate fish and meats.</div></details>'+
+    '<div class="row" style="gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn ghost sm" data-nm="off">Count calories again</button><span class="keep" style="font-size:.85em;opacity:.75">'+(chosen?'your choice':'on by itself since '+fmtS(NUTRI_MODE_FROM))+' · switch any time</span></div></div>';}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-nm]');if(!b)return;
+  if(!S.glow)S.glow={};if(!S.glow.profile)S.glow.profile={};var on=b.dataset.nm==='on';S.glow.profile.nutrientMode=on;
+  if(on){var aw=avgWindow(today(),7);S.glow.profile.nutrientAnchor=aw&&aw.n>=3?Math.round(aw.avg*10)/10:null;}touch();});
 /* the road to the December trials, week by week */
 function roadHTML(){
   var t=today(),C=CFG.camp,ws=mondayOf(t),rows=[],RR=[];try{RR=raceReady();}catch(e){}
