@@ -48,3 +48,30 @@ export const MEAL_PRESETS: MealPreset[] = [
     ],
   },
 ];
+
+/** The meals he repeats: any meal slot of 2+ foods logged the same way on 2+ days in the last 6 weeks
+ *  (grams averaged). Shown as suggestions he can save with one tap. */
+export function usualMeals(days: Record<string, { items: { foodId: string; grams: number; meal: Meal; qty?: MealPreset['items'][number]['qty'] }[] }>, today: string, name: (id: string) => string): (MealPreset & { times: number })[] {
+  const from = new Date(new Date(`${today}T12:00:00`).getTime() - 42 * 864e5).toISOString().slice(0, 10);
+  const seen = new Map<string, { meal: Meal; days: Set<string>; grams: Record<string, number[]>; qty: Record<string, MealPreset['items'][number]['qty']> }>();
+  for (const [d, log] of Object.entries(days)) {
+    if (d < from || d > today) continue;
+    const bySlot = new Map<Meal, typeof log.items>();
+    for (const i of log.items ?? []) { if (i.foodId.startsWith('supp')) continue; bySlot.set(i.meal, [...(bySlot.get(i.meal) ?? []), i]); }
+    for (const [meal, its] of bySlot) {
+      const ids = [...new Set(its.map((i) => i.foodId))].sort();
+      if (ids.length < 2) continue;
+      const key = ids.join('|');
+      const e = seen.get(key) ?? { meal, days: new Set<string>(), grams: {}, qty: {} };
+      e.days.add(d);
+      for (const i of its) { (e.grams[i.foodId] ??= []).push(i.grams); if (i.qty) e.qty[i.foodId] = i.qty; }
+      seen.set(key, e);
+    }
+  }
+  return [...seen.entries()].filter(([, e]) => e.days.size >= 2).map(([key, e]) => {
+    const ids = key.split('|');
+    const items = ids.map((id) => ({ foodId: id, grams: Math.round(e.grams[id].reduce((a, b) => a + b, 0) / e.grams[id].length), ...(e.qty[id] ? { qty: e.qty[id] } : {}) }));
+    const top = [...items].sort((a, b) => b.grams - a.grams).slice(0, 2).map((i) => name(i.foodId).split(/[,(]/)[0].trim().split(' ').slice(0, 2).join(' '));
+    return { id: `usual-${key}`, name: top.join(' + ') + (ids.length > 2 ? ` +${ids.length - 2}` : ''), emoji: '🔁', meal: e.meal, items, times: e.days.size };
+  }).sort((a, b) => b.times - a.times);
+}

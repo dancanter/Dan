@@ -10,7 +10,8 @@ import { phaseOn } from '@/engine/season';
 import { actions, findFood, getState, resolveItems, useStore } from '@/store';
 import { AddFood } from '@/components/AddFood';
 import { FoodDetail, MEALS, defaultMeal } from '@/components/FoodDetail';
-import { MEAL_PRESETS } from '@/data/meals';
+import { MEAL_PRESETS, usualMeals, type MealPreset } from '@/data/meals';
+import type { Meal } from '@/engine/score';
 
 import { Bar, Button, Card, Grade, Pill, Ring, Sheet, scoreColour } from '@/components/ui';
 import type { Food } from '@/data/foods';
@@ -159,7 +160,7 @@ export function Today({ date, setDate }: { date: string; setDate: (d: string) =>
           const kcal = its.reduce((a, i) => a + (i.food.n.kcal * i.grams) / 100, 0);
           return (
             <div key={m.value} className="mb-3">
-              <div className="mb-1 flex justify-between text-xs font-semibold tracking-wide text-muted uppercase"><span>{m.label}</span><span className="num">{Math.round(kcal)} kcal</span></div>
+              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold tracking-wide text-muted uppercase"><span>{m.label}</span><span className="flex items-center gap-3">{its.filter((i) => !i.uid.startsWith('supp-')).length >= 2 && <SaveMeal key={`${date}-${m.value}-${its.length}`} items={its.filter((i) => !i.uid.startsWith('supp-'))} meal={m.value} />}<span className="num">{Math.round(kcal)} kcal</span></span></div>
               <ul className="divide-y divide-line">
                 {its.map((i) => {
                   const sc = scoreFood(i.food, t);
@@ -332,28 +333,63 @@ function CheckIn({ date }: { date: string }) {
   );
 }
 
-/** Dan, 12 Nov: his usual meals in one tap each. Today they go in the slot for the time of day. */
+/** Dan, 12 Nov: his meals in one tap each. "You might not know all the varied possibilities I have":
+ *  so his own saved meals come first, then the ones he keeps repeating (learned from the log), then
+ *  the starters. Any can be removed. Today they go in the slot for the time of day. */
 function QuickMeals({ date, isToday }: { date: string; isToday: boolean }) {
   const s = useStore((x) => x);
   const [done, setDone] = useState('');
+  const [edit, setEdit] = useState(false);
+  const hidden = new Set(s.hiddenMeals ?? []);
+  const mine = (s.myMeals ?? []).filter((m) => !hidden.has(m.id));
+  const mineKeys = new Set(mine.map((m) => m.items.map((i) => i.foodId).sort().join('|')));
+  const usual = usualMeals(s.days as never, todayISO(), (id) => findFood(id, s)?.name ?? id)
+    .filter((u) => !hidden.has(u.id) && !mineKeys.has(u.items.map((i) => i.foodId).sort().join('|'))).slice(0, 6);
+  const starters = MEAL_PRESETS.filter((p) => !hidden.has(p.id));
+  const chip = (p: MealPreset, kind: 'mine' | 'usual' | 'starter', times?: number) => {
+    const ok = p.items.filter((i) => findFood(i.foodId, s));
+    const kcal = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.kcal * i.grams) / 100, 0);
+    const pro = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.protein * i.grams) / 100, 0);
+    return (
+      <div key={p.id} className={`relative rounded-2xl border px-3 py-2 text-sm ${kind === 'mine' ? 'border-gold' : 'border-line'} ${done === p.id ? 'ring-2 ring-good' : ''}`}>
+        <button className="w-full text-left" onClick={() => { actions.addMeal(date, ok, isToday ? defaultMeal() : p.meal); setDone(p.id); setTimeout(() => setDone(''), 1500); }}>
+          <div className="pr-5">{p.emoji} {p.name}</div>
+          <div className="num text-xs text-muted">{Math.round(kcal)} kcal · {Math.round(pro)} g protein{times ? ` · had ${times}×` : ''}</div>
+        </button>
+        {kind === 'usual' && !edit && <button className="mt-1 text-xs text-sea" onClick={() => actions.saveMeal({ ...p, id: `my-${Date.now().toString(36)}`, emoji: '⭐' })}>☆ Save</button>}
+        {edit && <button aria-label={`Remove ${p.name}`} className="absolute top-1.5 right-2 text-muted hover:text-bad" onClick={() => actions.hideMeal(p.id)}>✕</button>}
+      </div>
+    );
+  };
   return (
     <div className="mb-3">
-      <div className="mb-1.5 text-xs font-semibold tracking-wide text-muted uppercase">⚡ One-tap meals</div>
-      <div className="grid grid-cols-2 gap-2">
-        {MEAL_PRESETS.map((p) => {
-          const ok = p.items.filter((i) => findFood(i.foodId, s));
-          const kcal = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.kcal * i.grams) / 100, 0);
-          const pro = ok.reduce((a, i) => a + (findFood(i.foodId, s)!.n.protein * i.grams) / 100, 0);
-          return (
-            <button key={p.id} className={`rounded-2xl border border-line px-3 py-2 text-left text-sm hover:border-sea ${done === p.id ? 'ring-2 ring-good' : ''}`}
-              onClick={() => { actions.addMeal(date, ok, isToday ? defaultMeal() : p.meal); setDone(p.id); setTimeout(() => setDone(''), 1500); }}>
-              <div>{p.emoji} {p.name}</div>
-              <div className="num text-xs text-muted">{Math.round(kcal)} kcal · {Math.round(pro)} g protein</div>
-            </button>
-          );
-        })}
+      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold tracking-wide text-muted uppercase">
+        <span>⚡ One-tap meals</span>
+        <button className="normal-case tracking-normal text-sea" onClick={() => setEdit(!edit)}>{edit ? 'Done' : 'Edit'}</button>
       </div>
-      <div className="mt-1 text-xs text-muted">Adds every item at once. Change any grams on the list below.</div>
+      {mine.length > 0 && <><div className="mb-1 text-xs text-muted">⭐ Yours</div><div className="mb-2 grid grid-cols-2 gap-2">{mine.map((p) => chip(p, 'mine'))}</div></>}
+      {usual.length > 0 && <><div className="mb-1 text-xs text-muted">🔁 You keep having these</div><div className="mb-2 grid grid-cols-2 gap-2">{usual.map((p) => chip(p, 'usual', p.times))}</div></>}
+      {starters.length > 0 && <><div className="mb-1 text-xs text-muted">Starters</div><div className="grid grid-cols-2 gap-2">{starters.map((p) => chip(p, 'starter'))}</div></>}
+      <div className="mt-1 text-xs text-muted">Log any meal your way, then tap <b>☆ Save as one-tap</b> on it below. Meals you repeat show up here by themselves.</div>
     </div>
+  );
+}
+
+/** "Save as one-tap" on a logged meal: names it, keeps the foods and grams as logged. */
+function SaveMeal({ items, meal }: { items: { food: Food; grams: number; qty?: { count: number; label: string; plural?: string } }[]; meal: Meal }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [saved, setSaved] = useState(false);
+  if (saved) return <span className="text-xs text-good normal-case tracking-normal">⭐ Saved</span>;
+  if (!open) return <button className="text-xs text-sea normal-case tracking-normal" onClick={() => setOpen(true)}>☆ Save as one-tap</button>;
+  return (
+    <span className="flex items-center gap-1 normal-case tracking-normal">
+      <input autoFocus className="field w-36 px-2 py-0.5 text-xs" placeholder="Name it" value={name} onChange={(e) => setName(e.target.value)} />
+      <button className="text-xs text-sea" onClick={() => {
+        const nm = name.trim() || items.slice(0, 2).map((i) => i.food.name.split(/[,(]/)[0].trim()).join(' + ');
+        actions.saveMeal({ id: `my-${Date.now().toString(36)}`, name: nm, emoji: '⭐', meal, items: items.map((i) => ({ foodId: i.food.id, grams: i.grams, ...(i.qty ? { qty: i.qty } : {}) })) });
+        setSaved(true);
+      }}>Save</button>
+    </span>
   );
 }

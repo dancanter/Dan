@@ -1465,10 +1465,10 @@ function glowLoad(){
     var ss=glowSessions(r,d);if(ss.length)training[d]=ss;});
   var weights=Object.keys(S.weights).sort().filter(function(d){return typeof S.weights[d]==='number';}).map(function(d){return {date:d,kg:Math.round(S.weights[d]/LB_KG*100)/100};});
   return {version:1,profile:Object.assign({},G.profile||{},{unit:'lb',glutenFree:true}),days:days,weights:weights,sleeps:sleeps,vitals:vitals,training:training,
-    customFoods:G.customFoods||[],favourites:G.favourites||[],breathMinutes:G.breathMinutes||{},bp:G.bp||[],labs:G.labs||[],films:G.films};
+    customFoods:G.customFoods||[],favourites:G.favourites||[],breathMinutes:G.breathMinutes||{},bp:G.bp||[],labs:G.labs||[],films:G.films,myMeals:G.myMeals||[],hiddenMeals:G.hiddenMeals||[]};
 }
 function glowSave(gs,sums){
-  S.glow={profile:gs.profile,customFoods:gs.customFoods||[],favourites:gs.favourites||[],breathMinutes:gs.breathMinutes||{},bp:gs.bp||[],labs:gs.labs||[],films:gs.films};
+  S.glow={profile:gs.profile,customFoods:gs.customFoods||[],favourites:gs.favourites||[],breathMinutes:gs.breathMinutes||{},bp:gs.bp||[],labs:gs.labs||[],films:gs.films,myMeals:gs.myMeals||[],hiddenMeals:gs.hiddenMeals||[]};
   /* breathing done in Glow counts as meditation in the tracker (the quest, the reset day) */
   Object.keys(gs.breathMinutes||{}).forEach(function(d){var m=+gs.breathMinutes[d]||0;if(m>0){var rr=S.days[d]=S.days[d]||{};if(!(rr.medMin>=m))rr.medMin=Math.min(240,m);}});
   var dates={};Object.keys(gs.days||{}).forEach(function(d){dates[d]=1;});Object.keys(gs.vitals||{}).forEach(function(d){if((gs.vitals[d]||{}).outdoorMin!==undefined)dates[d]=1;});
@@ -1576,6 +1576,12 @@ function mergeByDate(older,newer){
     var bpd={};out.glow.bp.forEach(function(b){if(b&&b.date)bpd[b.date]=1;});
     older.glow.bp.forEach(function(b){if(b&&b.date&&!bpd[b.date]){out.glow.bp.push(clone(b));added++;}});
     out.glow.bp.sort(function(a,b){return a.date<b.date?-1:1;});}
+  /* Dan, 12 Nov: his own one-tap meals merge by id; a removed one stays removed on both sides. */
+  if(older.glow&&(Array.isArray(older.glow.myMeals)||Array.isArray(older.glow.hiddenMeals))){if(!out.glow)out.glow={};
+    var hid=(out.glow.hiddenMeals||[]).concat(older.glow.hiddenMeals||[]).filter(function(x,i,a){return a.indexOf(x)===i;});
+    var mm=(out.glow.myMeals||[]).slice(),mid={};mm.forEach(function(m){if(m&&m.id)mid[m.id]=1;});
+    (older.glow.myMeals||[]).forEach(function(m){if(m&&m.id&&!mid[m.id]){mm.push(clone(m));added++;}});
+    out.glow.myMeals=mm.filter(function(m){return hid.indexOf(m.id)<0;});out.glow.hiddenMeals=hid.slice(-200);}
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }

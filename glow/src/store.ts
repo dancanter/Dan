@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Food } from '@/data/foods';
 import { FOOD_BY_ID } from '@/data/foods';
+import type { MealPreset } from '@/data/meals';
 import { DEFAULT_PROFILE, type LoggedItem, type Meal, type Profile } from '@/engine/score';
 import type { SleepEntry, WeightEntry } from '@/engine/body';
 import type { Vitals } from '@/engine/vitals';
@@ -56,6 +57,10 @@ export interface State {
   labs: { date: string; key: string; value: number }[];
   stravaSyncedAt?: string;
   films?: { seen: string[]; watchlist: string[] };
+  /** Dan's own one-tap meals, saved from his log (12 Nov). */
+  myMeals?: MealPreset[];
+  /** one-tap meals he removed (his own or the starter ones) */
+  hiddenMeals?: string[];
 }
 
 const KEY = 'glow-state-v1';
@@ -199,6 +204,13 @@ export const actions = {
       const d = day(s, date);
       return { ...s, days: { ...s.days, [date]: { ...d, items: d.items.filter((i) => i.uid !== itemUid) } } };
     });
+  },
+  /** save a logged meal as his own one-tap meal */
+  saveMeal(m: MealPreset) {
+    setState((s) => ({ ...s, myMeals: [...(s.myMeals ?? []).filter((x) => x.id !== m.id), m], hiddenMeals: (s.hiddenMeals ?? []).filter((h) => h !== m.id) }));
+  },
+  hideMeal(id: string) {
+    setState((s) => ({ ...s, myMeals: (s.myMeals ?? []).filter((x) => x.id !== id), hiddenMeals: [...new Set([...(s.hiddenMeals ?? []), id])] }));
   },
   /** one-tap meal: every item of a preset at once (Dan, 12 Nov) */
   addMeal(date: string, items: { foodId: string; grams: number; qty?: StoredItem['qty'] }[], meal: Meal) {
