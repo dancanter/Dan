@@ -4964,9 +4964,38 @@ function campAchievements(){
     if(dow(d3)===0){var hw=0,fv=0,gy=0;for(var j=0;j<7;j++){var rr=S.days[addD(d3,-j)]||{};if(rr.gym)gy++;(rr.runs||[]).forEach(function(x){var m=runMeta(x);if(m.empty)return;if(m.hard)hw++;else if(isFiveMiler(m))fv++;});}
       if(hw>=2&&fv>=2&&gy>=4){perfect++;out.push({id:'pw'+d3,d:d3,tier:'h',e:'⭐',n:'PERFECT WEEK',sub:hw+' hard · '+fv+' five-milers · '+gy+' gym',xp:0});}}
   }
+  try{out=out.concat(healthWins());}catch(e){}
   out.sort(function(a,b){return a.d<b.d?1:(a.d>b.d?-1:0);});
   return out;
 }
+/* ===================== health accomplishments (Dan, 13 Nov) =====================
+   "When I achieve something or boost my longevity, or better my times or weight or sleep and nutrition,
+   give me an accomplishment to acknowledge I'm doing well — and say what it boosts." Judged on finished
+   weeks (Monday to Sunday) against the week before, and on new bests, so one good day never fakes it.
+   Each one names what it does for him (boost). They join the badge wall and the celebration card. */
+function healthWins(){
+  var t=today(),out=[],C=CFG.camp,start=mondayOf(C.start>CFG.cutStart?C.start:CFG.cutStart);
+  var wk=function(ws){var o={sl:[],pro:[],cov:[],fish:0,st:[],rhr:[],fd:0};
+    for(var i=0;i<7;i++){var d=addD(ws,i),r=S.days[d]||{};if(typeof r.sleep==='number')o.sl.push(r.sleep);if(typeof r.steps==='number'&&!r.ill)o.st.push(r.steps);if(typeof r.rhr==='number')o.rhr.push(r.rhr);
+      var g=r.glowSum;if(g&&g.n>=3){o.fd++;if(typeof g.protein==='number')o.pro.push(g.protein);if(typeof g.coverage==='number')o.cov.push(g.coverage);if((g.omega3||0)>=1)o.fish++;}}
+    return o;};
+  var add=function(id,d,e,n,sub,boost,xp){out.push({id:id,d:d,tier:'health',e:e,n:n,sub:sub,boost:boost,xp:xp||20});};
+  var prev=null,bestSleep=0,bestCov=0,firstFish=true,firstProt=true,firstSteps=true;
+  for(var ws=start;addD(ws,6)<t;ws=addD(ws,7)){var we=addD(ws,6),W=wk(ws),sl=W.sl.length>=4?mean(W.sl):null,cov=W.cov.length>=3?mean(W.cov):null,st=W.st.length>=4?mean(W.st):null;
+    if(sl!==null&&sl>=PLANV.sleep.lo&&sl>bestSleep+0.05){add('hsl'+we,we,'😴',bestSleep?'BEST SLEEP WEEK YET':'AN 8-HOUR SLEEP WEEK',f1(sl)+' h a night on average'+(bestSleep?' · up from '+f1(bestSleep):''),'muscle repair, testosterone, a calmer cortisol rhythm, clearer skin and under-eyes',30);}
+    if(sl!==null)bestSleep=Math.max(bestSleep,sl);
+    if(cov!==null&&cov>=80&&cov>bestCov+2){add('hcov'+we,we,'🥗',bestCov>=80?'BEST NUTRITION WEEK YET':'NUTRITION WEEK: 80%+ COVERED',Math.round(cov)+'% of your vitamins and minerals, absorbed','your cells’ repair (DNA, mitochondria), skin and immunity',30);}
+    if(cov!==null)bestCov=Math.max(bestCov,cov);
+    var pd=W.pro.filter(function(v){return v>=PLANV.protein-5;}).length;
+    if(pd>=5){add('hpro'+we,we,'🥩',firstProt?'PROTEIN WEEK':'PROTEIN WEEK AGAIN',pd+' days at '+pProtein()+' this week','keeping and building muscle on the cut: the sculpted look',25);firstProt=false;}
+    if(W.fish>=2){add('hfish'+we,we,'🐟',firstFish?'OILY FISH TWICE IN A WEEK':'OMEGA-3 WEEK',W.fish+' oily-fish days','heart, brain, skin glow and less puffiness; vitamin D in winter',25);firstFish=false;}
+    if(st!==null&&st>=planNow(we).steps.lo&&st<=planNow(we).steps.hi){add('hst'+we,we,'👣',firstSteps?'STEPS IN THE SWEET SPOT':'STEPS ON PLAN AGAIN',ci(Math.round(st))+' a day on average','heart, blood sugar and longevity, without the fatigue of too many',20);firstSteps=false;}
+    if(prev&&W.rhr.length>=3&&prev.rhr.length>=3&&mean(W.rhr)<=mean(prev.rhr)-1.5){add('hrhr'+we,we,'❤️','RESTING HEART RATE DOWN',Math.round(mean(W.rhr))+' bpm, from '+Math.round(mean(prev.rhr)),'your aerobic engine and recovery: one of the strongest markers of a long life',30);}
+    prev=W;}
+  /* strength: a new best on a lift (the strength boss fights) */
+  STR_BOSS.forEach(function(B){var best=0,first=true;Object.keys(S.days).sort().forEach(function(d){if(d<CFG.cutStart)return;var r=S.days[d]||{},L=(r.lifts||[]).slice();if(r.challenge)L.push({ex:r.challenge.ex,kg:r.challenge.kg||0,reps:r.challenge.reps,bw:r.challenge.ex==='pull'});
+    L.forEach(function(x){if(x.ex!==B.k||!(x.reps>0))return;var v=B.k==='pull'?(x.kg?0:x.reps):Math.round(e1rm(x.kg,x.reps));if(v>best){if(!first)add('hlift'+B.k+d,d,'💪','STRONGER — '+B.n.toUpperCase(),v+(B.u==='kg'?' kg':' reps')+', a new best','muscle, bone density and healthy ageing',40);best=v;first=false;}});});});
+  return out;}
 function celeSeen(id,set){var k=LS+'.cele';try{var s=JSON.parse(localStorage.getItem(k)||'{}');if(set){s[id]=1;localStorage.setItem(k,JSON.stringify(s));}return !!s[id];}catch(e){return false;}}
 function celeHTML(){
   if(today()<CFG.camp.start)return '';
@@ -4977,6 +5006,7 @@ function celeHTML(){
   return '<div class="p lift cb-cele">'+c+'<div style="font-size:44px;line-height:1.1">'+a.e+'</div>'+
     '<div style="font-weight:800;letter-spacing:.04em;margin-top:4px">'+a.n+'</div>'+
     '<div class="num" style="font-size:1.4em;margin:4px 0">'+a.sub+'</div>'+
+    (a.boost?'<div class="keep" style="font-size:.92em;margin:2px 0 4px">⚡ Boosts: <b>'+a.boost+'</b></div>':'')+
     (a.xp?'<div class="pill g" style="display:inline-block">+'+a.xp+' XP</div>':'')+
     '<div style="margin-top:8px"><button type="button" class="btn sm" data-cele="'+a.id+'">'+(a.tier==='goal'?'LEGEND 💎':(a.tier==='all'?'Let’s go 👑':(a.tier==='wbig'?'Chiselled 🗿':(a.tier==='low'?'Lower 📉':'Nice! 🙌'))))+'</button></div></div>';
 }
@@ -4989,7 +5019,7 @@ function achievementsHTML(){
   C.pb.slice().sort(function(a,b){return a.dm-b.dm;}).forEach(function(x){var tiers=A.filter(function(a){return a.id.indexOf('pb'+x.dm)===0;}).map(function(a){return a.tier;});
     if(tiers.indexOf('goal')<0)locked.push({e:'💎',n:repLabel(x.dm)+' sub-'+(x.goal>=60?mmss(x.goal):x.goal),sub:'goal'});
     if(C.allTime[x.dm]&&tiers.indexOf('all')<0&&tiers.indexOf('goal')<0)locked.push({e:'👑',n:repLabel(x.dm)+' all-time',sub:'beat '+secFmt(C.allTime[x.dm].t)});});
-  var card=function(a,lock){return '<div class="cb-badge'+(lock?' lock':'')+'"><span class="bi">'+a.e+'</span><b>'+a.n+'</b><div class="tiny">'+(lock?a.sub:fmtS(a.d)+' · '+a.sub)+'</div></div>';};
+  var card=function(a,lock){return '<div class="cb-badge'+(lock?' lock':'')+'"><span class="bi">'+a.e+'</span><b>'+a.n+'</b><div class="tiny">'+(lock?a.sub:fmtS(a.d)+' · '+a.sub)+'</div>'+(a.boost&&!lock?'<div class="tiny" style="color:var(--good)">⚡ '+a.boost+'</div>':'')+'</div>';};
   return '<div style="margin-top:12px"><b>🏅 ACHIEVEMENTS</b> <span class="tiny dim">'+A.length+' earned</span>'+
     '<div class="cb-badges">'+A.map(function(a){return card(a,false);}).join('')+locked.map(function(a){return card(a,true);}).join('')+'</div></div>';
 }
