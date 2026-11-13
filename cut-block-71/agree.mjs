@@ -11,6 +11,8 @@ const iso = (d) => d.toISOString().slice(0, 10);
 const LOGGED_PROTEIN = 131; // what the seeded days ate: a logged value, told apart from the 140 g target
 function seed(today, walk) {
   const days = {}, weights = {}; const t = new Date(today + 'T12:00:00Z');
+  // weights from the start of the cut, so the weekly plan curve has its baseline
+  for (let i = 24; i < 75; i++) weights[iso(new Date(t - i * 864e5))] = 128.6 + (i - 24) * 0.02;
   for (let i = 0; i < 24; i++) { const d = iso(new Date(t - i * 864e5));
     weights[d] = 128.4 - (24 - i) * 0.01;
     days[d] = { sleep: 8.2, bed: '23:10', wake: '07:20', rhr: 48, steps: 11800, kcal: 1799, skinAM: true, skinPM: true,
@@ -29,7 +31,7 @@ async function crawl(today, walk) {
   await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 20000 }); await p.waitForTimeout(800);
   const tabs = await p.$$eval('button[role="tab"][data-sec]', (xs) => xs.map((x) => ({ t: x.dataset.t, g: x.dataset.g || '', name: x.textContent.trim() })));
   const seeded = await p.evaluate(() => Object.keys(S.days).length);
-  const plan = await p.evaluate(() => ({ kcal: pKcal(), base: pKcalBase(), protein: PLANV.protein, steps: pSteps(), goal: pGoal(), gym: pGymShort(), gymLong: pGym(), walk: planNow().walk, hostPlan: window.__PLAN__() }));
+  const plan = await p.evaluate(() => ({ kcal: pKcal(), base: pKcalBase(), protein: PLANV.protein, steps: pSteps(), goal: pGoal(), gym: pGymShort(), gymLong: pGym(), walk: planNow().walk, hostPlan: window.__PLAN__(), phase: phaseNow(), clock: pClock(), cutDays: CUT_DAYS, revStart: REV_START, line: push2Line(today()), curve: (function () { var m = weightModel(), k = weekOf(today()); return m.curve && m.curve[k] !== undefined ? m.curve[k] : null; })(), weekEnd: addD(mondayOf(today()), 6), lineAtWeekEnd: push2Line(addD(mondayOf(today()), 6)) }));
   plan.seeded = seeded;
   const out = [];
   for (const T of tabs) {
@@ -69,6 +71,15 @@ for (const [label, today, walk] of [['a run-free week', '2026-11-12', true], ['a
   const stale = ['12,800', '10,500', '14,500', '13k on weekdays', '10–13k', '122–124', '122–123', 'Gym 3–4', 'fresh. 4 gym sessions', 'four days — the priority', 'about 95 g', 'lift 4×', 'hold at 1,899'];
   const seen = stale.filter((s) => R.tabs.some((t) => t.text.includes(s)));
   ok(`${label}: none of the audit’s stale targets is on any screen`, !seen.length, seen.map((s) => s + ' on ' + R.tabs.filter((t) => t.text.includes(s)).map((t) => t.name).join('/')).join(' · '));
+  // step 2: one phase, one clock, one weight line
+  h = all(R, /\bday \d+ of \d+/g); const clk = `day ${P.phase.day} of ${P.phase.of}`; // text runs on ("of 97" + "0.2 lb"), so compare the start
+  ok(`${label}: one clock: every “day N of M” is day ${P.phase.day} of ${P.phase.of} of ${P.phase.n} (${h.length} places)`, h.length >= 3 && P.phase.of === P.cutDays && !wrong(h, (x) => x.m[0].startsWith(clk)), wrong(h, (x) => x.m[0].startsWith(clk)));
+  ok(`${label}: the clock line is on Today, the Training log and the After the shred tab`, ['Today', 'Training log', 'After the shred'].every((n) => (R.tabs.find((t) => t.name === n) || { text: '' }).text.includes(`${P.phase.n} · day ${P.phase.day} of ${P.phase.of}`)), P.clock);
+  const old = ['28 November', 'your birthday', 'Cut Block 71', '3 December optimisation', '3 Dec optimisation', 'camp day ', 'Trip and refuel', 'The reverse starts', 'start the reverse', 'Calories: up — the reverse', 'Reverse: a choice to make'];
+  const seenOld = old.filter((s) => R.tabs.some((t) => t.name !== 'After the shred' && t.text.includes(s)));
+  ok(`${label}: no replaced plan or old date is on any screen`, !seenOld.length, seenOld.map((s) => s + ' on ' + R.tabs.filter((t) => t.text.includes(s)).map((t) => t.name).join('/')).join(' · '));
+  ok(`${label}: what follows the shred is one sequence, and the build starts on ${P.revStart}`, P.revStart === '2027-01-10' && /Christmas[\s\S]{0,400}The reset cut[\s\S]{0,400}The build/.test((R.tabs.find((t) => t.name === 'After the shred') || { text: '' }).text));
+  ok(`${label}: one weight line: this week’s planned weight is the push line (${P.lineAtWeekEnd.toFixed(1)})`, P.curve !== null && Math.abs(P.curve - P.lineAtWeekEnd) < 0.05, 'curve ' + P.curve + ' vs line ' + P.lineAtWeekEnd);
   if (walk) { const bad = ['against a target of', 'One hard run this week, not two'].filter((s) => R.tabs.some((t) => t.text.includes(s)));
     ok('a run-free week: no screen asks for a hard run', P.walk && !bad.length, 'walk=' + P.walk + ' ' + bad.map((x) => x + ' on ' + R.tabs.filter((t) => t.text.includes(x)).map((t) => t.name).join('/')).join(' · '));
     if (process.env.DEBUG) console.log((R.tabs.find((t) => t.name === 'Coach') || {}).text.slice(0, 900)); }

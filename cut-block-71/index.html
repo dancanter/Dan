@@ -361,7 +361,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
     <button role="tab" data-t="glow" data-g="today" data-sec="food" aria-selected="false">Food</button>
     <button role="tab" data-t="glow" data-g="foods" data-sec="food" aria-selected="false">Foods</button>
     <button role="tab" data-t="food" data-sec="food" aria-selected="false">Diary & seasons</button>
-    <button role="tab" data-t="reverse" data-sec="food" aria-selected="false">Calories & reverse</button>
+    <button role="tab" data-t="reverse" data-sec="food" aria-selected="false">After the shred</button>
     <button role="tab" data-t="longev" data-sec="long" aria-selected="false">Health &amp; longevity</button>
     <button role="tab" data-t="glow" data-g="cellular" data-sec="long" aria-selected="false">Cells</button>
     <button role="tab" data-t="glow" data-g="body" data-sec="long" aria-selected="false">Body &amp; health</button>
@@ -762,15 +762,23 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 
 <!-- ================= REVERSE ================= -->
 <section id="s-reverse" class="stack" hidden>
-  <div id="revCard"></div>
-  <div id="revTop"></div>
-  <div id="revLadder"></div>
-  <div id="revXmas"></div>
+  <!-- 13 Nov, one phase: what follows the shred is Christmas, the reset cut, then the build. The October
+       reverse ladder was replaced on 3 Nov; it is kept, folded, at the bottom (nothing is removed). -->
+  <div id="afterCard"></div>
   <div id="revPhase"></div>
-  <div id="revWater"></div>
-  <div id="revFace"></div>
+  <div id="revXmas"></div>
   <div id="revTrain"></div>
-  <div id="revRest"></div>
+  <details class="p" id="revOld"><summary><b>📜 The October reverse plan</b> <span class="tiny">replaced on 3 Nov · kept for reference</span></summary>
+    <p class="tiny" style="margin:8px 0">This was the plan before the shred was extended to Christmas Eve: calories stepping up by about 100 a week from the end of the cut. The plan above replaces it. The notes on water, the face and rest still hold whenever calories go up.</p>
+    <div class="stack">
+      <div id="revCard"></div>
+      <div id="revTop"></div>
+      <div id="revLadder"></div>
+      <div id="revWater"></div>
+      <div id="revFace"></div>
+      <div id="revRest"></div>
+    </div>
+  </details>
 </section>
 
 <!-- ================= WINS ================= -->
@@ -885,7 +893,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
     </div>
   </div>
   <div class="p flag"><h2>What products cannot do</h2>
-    <p>They move barrier and tone. They do not move sleep, being too lean, or how much water you are holding — and those three decide more about how your face looks on 28 November than every bottle combined.</p>
+    <p>They move barrier and tone. They do not move sleep, being too lean, or how much water you are holding — and those three decide more about how your face looks on Christmas Eve than every bottle combined.</p>
     <p class="tiny">Persistent redness across nose and cheeks is a GP or pharmacist conversation — azelaic acid 10–15% is the ingredient to raise by name, but it is not a self-start.</p>
   </div>
   <div class="p"><h2>Facial puffiness, ranked for you</h2>
@@ -956,7 +964,7 @@ function mondayOf(is){return addD(is,-fmod(dow(is)-1,7));}
 
 /* ===================== one config, everything derived ===================== */
 var CFG={
-  cutStart:'2026-09-19', cutEnd:'2026-12-02',   /* Dan, 31 Oct: strict to the trip on 3 Dec (was 28 Nov) */
+  cutStart:'2026-09-19', cutEnd:'2026-12-24',   /* Dan, 3 Nov: the shred runs to Christmas Eve (was 2 Dec, before that 28 Nov). One phase, one clock: AUDIT.md step 2 */
   /* 29 Sep, Dan: no fixed deloads (every 4 weeks was too soon). Rest is
      judged from his data on the Feedback tab — days off, or an easy week. */
   deloadWeeks:[],
@@ -1015,21 +1023,21 @@ var CFG={
      push-ups-only session and a push-ups-and-pull-ups session are not the
      same test: the combined one splits 40 minutes between two movements.
      The prior record is from the combined test. */
-  calis:{mins:40,when:'before Cut Block 71',
+  calis:{mins:40,when:'before the shred',
     types:[{k:'both',n:'Push-ups + pull-ups'},{k:'push',n:'Push-ups only'},{k:'pull',n:'Pull-ups only'}],
     prior:{both:{push:392,pull:138}}},
   /* What the two blocks are actually FOR, in Dan's words, plus the thing a
      list of goals never has and always needs: what wins when two of them
      fight. Without the tie-breaks this is a mood board, not a plan. */
   mission:{
-    cut:{n:'Cut Block 71',w:'19 Sep \u2013 28 Nov',
+    cut:{n:'The shred',w:'19 Sep \u2013 24 Dec',
       lede:'Balance health while getting genuinely shredded \u2014 and keep the times and the study moving through it.',
       /* Dan's own order, 25 Sep: "the most important is sleep, getting to my
          weight, skincare, 2 hard runs per week, and the gym goals". Study was
          on the earlier list and was not taken off, so it stays, after them. */
       goals:['Sleep \u2014 the one everything else runs on','Getting to my goal weight','Skincare, morning and night',
              'Two hard runs a week','Gym goals \u2014 the split and the records','Study hours protected']},
-    rev:{n:'The reverse',w:'from 29 Nov',
+    rev:{n:'After Christmas',w:'the reset to 9 Jan, the build from 10 Jan',
       lede:'Get the calories back up so you hold the weight <i>and</i> the shreds \u2014 then use the energy that comes back to optimise everything else.',
       goals:['Calories up, goal weight held through Christmas','Hormones and cellular health','Gym strength','Running times',
              'Study','Looks, on a body that is finally fed']},
@@ -1038,7 +1046,7 @@ var CFG={
       ['Study vs a session','Study. The deadline does not move and the session does. Drop the third hard day, never the hours.'],
       ['Times vs shredded, on the cut','Shredded. The cut does not set your times, it sets them up \u2014 you arrive lighter than you have ever raced and then put the fuel back in.'],
       ['Leaner vs looking better','There is a floor, and you are heading to it. Past it, leaner starts costing sleep, mood and hormones, and those show up in the face as exactly the puffiness you are trying to avoid.'],
-      ['Strength vs running, on the reverse','Neither \u2014 they only fight when they are stacked. Space them and you can have both, which is the whole reason the week is laid out the way it is.']]
+      ['Strength vs running, in the build','Neither \u2014 they only fight when they are stacked. Space them and you can have both, which is the whole reason the week is laid out the way it is.']]
   },
   rev:{first:100,holdWeeks:2,step:50,creatine:5,holdOver:0.5,settleWeeks:2,hardDays:3,deloadEvery:4,
        /* Dan, 4 Oct: the reverse week — 2 hard runs, 2 easy (one 5 mile, one
@@ -1103,10 +1111,10 @@ var CFG={
      Dan asked to be told when to change gear; this is the thing that gets
      compared against the dates and his own logged numbers. */
   phases:[
-    {k:'cut',n:'Cut Block 71',f:'Get lean, keep the muscle, set up the times rather than chase them.',
-     e:'28 November, on the date. Not early because the scale is ahead, and not late because it is behind.'},
-    {k:'rev',n:'The reverse',f:'Food back to maintenance, health and sleep first, times held rather than chased, a bit of muscle if it comes.',
-     e:'When the ladder reaches maintenance and the weight has sat flat there for a few weeks. Length is your call — say the word and I will set it.'},
+    {k:'cut',n:'The shred',f:'Get lean, keep the muscle, set up the times rather than chase them.',
+     e:'Christmas Eve, on the date. Not early because the scale is ahead, and not late because it is behind.'},
+    {k:'rev',n:'Christmas, the reset, then the build',f:'Two days at maintenance for Christmas, a two-week reset cut, then the build from 10 January: a very small surplus, the gym first, health and sleep leading.',
+     e:'The build runs to the end of March, when the running block takes over.'},
     {k:'run',n:'The running block',f:'The one that actually moves the times. Volume goes up and lifting drops back to holding what you have — but the hard sessions do not: still two a week, three at the very most. More volume, not more hard days.',
      e:'When the times stop moving for three or four weeks, or the legs stop recovering between sessions. That is the end of it, not a reason to add another session.'},
     {k:'next',n:'The next cut, if you want one',f:'Only if there is something to cut for, and only from a maintenance that is genuinely restored.',
@@ -1116,7 +1124,7 @@ var CFG={
     {n:'VO₂ max',w:'The strongest modifiable predictor of all-cause mortality that has been measured — stronger than smoking status, blood pressure or BMI. Moving it is the same project as beating your times, which is the happiest overlap on this page. It is also the one place hard effort earns the stress it costs.'},
     {n:'Lean mass and strength',w:'Muscle mass and grip strength track with how long people live, independently of everything else, and the gap widens the older you get. The lifting is not vanity work and it is not separate from the health goal — it is a large part of it.'},
     {n:'Sleep',w:'The biggest lever and the cheapest one. Under-sleeping raises cortisol, blunts recovery, blunts glucose handling and blunts the muscle you are trying to keep. Nothing else here works properly without it, and no amount of training buys it back.'},
-    {n:'Not living in chronic stress',w:'A deficit, heavy intensity and short sleep at the same time is the combination that actually wears you down. The reverse removes the deficit and this week removes the second hard run. That is the whole mechanism — there is nothing more exotic going on.'}
+    {n:'Not living in chronic stress',w:'A deficit, heavy intensity and short sleep at the same time is the combination that actually wears you down. The build removes the deficit and this week removes the second hard run. That is the whole mechanism — there is nothing more exotic going on.'}
   ],
   /* 5'8", born 28 Nov 2000 — age is derived so it cannot rot, and he turns 26
      on the last day of the block. Height already lives in w.heightM. */
@@ -1240,6 +1248,28 @@ function pGym(){return PLANV.gym.lo+' a week, '+PLANV.gym.hi+' on a good week';}
 function pGymShort(){return PLANV.gym.lo+'–'+PLANV.gym.hi;}
 function pGoal(){return CFG.goals.weightLo+'–'+CFG.goals.weightHi;}
 function pSleep(){return PLANV.sleep.lo+'–'+PLANV.sleep.hi+' h';}
+/* ===================== ONE PHASE, ONE CLOCK (Dan, 13 Nov; AUDIT.md step 2) =====================
+   The audit found five clocks on screen at once (block day 55 of 75, camp day 32 of 73, "3 Dec optimisation",
+   the push, the old push) and plans that had been replaced still showing (a reverse from 3 Dec, a decision
+   on 15 Nov). There is one sequence now, and every "where am I" line reads it:
+   the shred (19 Sep – 24 Dec) → Christmas (25–26 Dec) → the reset cut (to 9 Jan) → the build (from 10 Jan).
+   Dated events inside it are marks: the push, London, France, the first trial, Christmas Eve. */
+function phaseList(){return [
+  {k:'shred',n:'The shred',from:CFG.cutStart,to:CFG.cutEnd},
+  {k:'xmas',n:'Christmas',from:STRICT.xmas,to:STRICT.xmasEnd},
+  {k:'reset',n:'The reset cut',from:addD(STRICT.xmasEnd,1),to:STRICT.resetTo},
+  {k:'build',n:'The build',from:addD(STRICT.resetTo,1),to:null}];}
+function phaseMarks(){var tr=((CFG.camp&&CFG.camp.pb)||[]).map(function(x){return x.on;}).filter(Boolean).sort();
+  return [{d:PUSH2.from,n:'the push'},{d:'2026-11-21',n:'London'},{d:STRICT.tripFrom,n:'France'},{d:tr[0],n:'the first trial'},
+    {d:CFG.cutEnd,n:'Christmas Eve'},{d:addD(STRICT.resetTo,1),n:'the build'}].filter(function(m){return m.d;});}
+function phaseNow(t){t=t||today();var L=phaseList(),P=L[0],i;for(i=0;i<L.length;i++)if(t>=L[i].from)P=L[i];
+  var of=P.to?diffD(P.from,P.to)+1:null,day=Math.max(1,diffD(P.from,t)+1);
+  var next=phaseMarks().filter(function(m){return m.d>t;}).map(function(m){return {n:m.n,d:m.d,days:diffD(t,m.d)};});
+  return {k:P.k,n:P.n,from:P.from,to:P.to,day:of?Math.min(day,of):day,of:of,left:P.to?Math.max(0,diffD(t,P.to)):null,next:next};}
+/* the one clock, as a line: "The shred · day 56 of 97 · 20 days to France · 41 days to Christmas Eve" */
+function pClock(t,n){var P=phaseNow(t);n=n===undefined?2:n;
+  var big=P.next.filter(function(m){return m.n==='France'||m.n==='Christmas Eve'||m.n==='the build';}).slice(0,n);
+  return P.n+' · day '+P.day+(P.of?' of '+P.of:'')+big.map(function(m){return ' · '+m.days+' day'+(m.days===1?'':'s')+' to '+m.n;}).join('');}
 /* Glow (the food side) reads the same plan through this */
 window.__PLAN__=function(){var P=planNow();return {kcal:P.kcal,kcalBase:CFG.kcal.avg,protein:P.protein,steps:pSteps(),stepsFloor:ci(P.steps.floor),gym:pGymShort(),goal:pGoal()};};
 var KCAL_DAY=CFG.kcal.avg;
@@ -1311,7 +1341,7 @@ function physOn(is){is=is||today();return is>=PHYS.from&&is<=CFG.camp.end;}
    at 123 or under 1,999 (hold, lose no more), under 122 2,199 (stop). Trial
    days and the day before are 1,999 — the trials are fuelled. From 25 Dec,
    maintenance at about 2,199. */
-var STRICT={from:'2026-11-02',to:'2026-12-24',raiseAt:124.9,holdAt:123,floor:122,high:1999,tripFrom:'2026-12-03',tripTo:'2026-12-05',maint:2199,xmas:'2026-12-25',
+var STRICT={from:'2026-11-02',to:CFG.cutEnd,raiseAt:124.9,holdAt:123,floor:122,high:1999,tripFrom:'2026-12-03',tripTo:'2026-12-05',maint:2199,xmas:'2026-12-25',
   /* Dan, 3 Nov: Christmas, then a short two-week reset cut, then higher calories to build */
   xmasEnd:'2026-12-26',resetTo:'2027-01-09',reset:1899,build:2399};
 function strictKcal(is){if(is>=STRICT.xmas){if(is<=STRICT.xmasEnd)return STRICT.maint;if(is<=STRICT.resetTo)return dow(is)===6?STRICT.reset+100:STRICT.reset;return STRICT.build;}if(is<STRICT.from||is>STRICT.to)return null;if(is>=STRICT.tripFrom&&is<=STRICT.tripTo)return null;
@@ -1678,6 +1708,10 @@ function weightModel(){
       if(w<CFG.w.floor)w=CFG.w.floor;
       m.curve.push(w);
     }
+    /* 13 Nov, one weight line: the plan was reset on 12 Nov (128.3 on 16 Nov to 123.5 on 24 Dec). From the week
+       before the push starts, each week's planned weight is that line, so the Weight tab, the Review and the
+       push card can never show two different plans. Earlier weeks keep the old curve as history. */
+    try{for(var kk=1;kk<m.curve.length;kk++){var we=addD(WEIGH_START,kk*7-1);if(we>=addD(PUSH2.from,-7))m.curve[kk]=push2Line(we);}}catch(e){}
   }
   var a=avgWindow(t,7);m.a7=a.avg;m.a7n=a.n;
   var b=avgWindow(addD(t,-7),7);m.prev7=b.avg;
@@ -2760,7 +2794,7 @@ function achList(){
     {n:'Halfway — day '+half,got:c.elapsed>=half,when:c.elapsed>=half?addD(CFG.cutStart,half-1):null,
      m:c.elapsed>=half?('reached '+fmtS(addD(CFG.cutStart,half-1))):((half-c.elapsed)+' days away')},
     {n:'Final fortnight',got:c.remaining<=14&&!c.before,when:null,m:c.remaining<=14?'you are in it':((c.remaining-14)+' days away')},
-    {n:'28 November',got:c.after,when:c.after?CFG.cutEnd:null,m:c.after?'done':(c.toEnd+' days — and your birthday')}
+    {n:'Christmas Eve — the shred done',got:c.after,when:c.after?CFG.cutEnd:null,m:c.after?'done':(c.toEnd+' days')}
   ];
   return [
     {g:'Weight',items:weight},
@@ -2835,7 +2869,7 @@ function blockProgressHTML(){
   if(o.study)reel.push('<b>'+sh(o.study)+'</b> of study');
   var runsSub=[o.hard?o.hard+' hard':'',o.spr?o.spr+' sprint'+(o.spr===1?'':'s'):'',o.easy?o.easy+' easy':''].filter(Boolean).join(' · ');
   var calisTxt=(o.calis&&o.calis.d)?'40-min record '+ci(o.calis.total)+' reps':'';
-  return '<div class="p lift"><h2>Your block so far · day '+o.day+' of '+CUT_DAYS+'</h2>'+
+  return '<div class="p lift"><h2>The shred so far · day '+o.day+' of '+CUT_DAYS+'</h2>'+
     (reel.length?'<p class="lede">'+reel.slice(0,-1).join(', ')+(reel.length>1?' and ':'')+reel[reel.length-1]+'.</p>':'<p class="note">Log a few days and this fills in.</p>')+
     '<div class="tiles t4" style="margin-top:8px">'+
     tile('weight',o.now===null?'—':(hide?'logged':f1(o.now)+' lb'),lost===null?'weighing opens '+fmtS(WEIGH_START):(Math.abs(lost)<0.05?'level with '+fmtS(o.first.d):(lost>0?'−'+f1(lost):'+'+f1(-lost))+' lb since '+fmtS(o.first.d))+(o.low&&!hide?' · low '+f1(o.low.lb):''))+
@@ -3203,7 +3237,7 @@ var PLAN={
           'Continuous hard running, the 5 km threshold sessions you already do.',
           '<b>5 × 1 km</b> and 2 km reps.',
           '3 km reps — you have not done a single 3 km effort this year.'],
-    note:'You can run a kilometre in 3:00, which is 15:00 5 km pace. You are nowhere near speed-limited at this distance. The gap is the engine, and engines are built with volume and time, which is exactly what a ten-week deficit is worst at giving you. This is mostly a reverse-phase target and it is honest to say so.'}
+    note:'You can run a kilometre in 3:00, which is 15:00 5 km pace. You are nowhere near speed-limited at this distance. The gap is the engine, and engines are built with volume and time, which is exactly what a ten-week deficit is worst at giving you. This is mostly a build-phase target and it is honest to say so.'}
 };
 /* What he has actually been running, by rep distance, from the 2026 record
    plus anything logged in the block. A distance he used to do and has stopped
@@ -4367,7 +4401,7 @@ function glanceHTML(){
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
-    (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',(shredGoal(t).n==='France'?'3 Dec optimisation · ':'Shred to Christmas · ')+diffD(t,shredGoal(t).d)+' days',esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · '+pProtein()+' protein · every gram logged'),'camp'):'')+
+    (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',pClock(t,1),esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · '+pProtein()+' protein · every gram logged'),'camp'):'')+
     (function(){var CC=calCall();return CC&&CC.k!=='push'&&CC.k!=='rev'?row(CC.e,'Calorie call',esc(CC.t.replace(/^Calories: /,'')),'food'):'';})()+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
@@ -4585,8 +4619,8 @@ function campPhase(t){
   var C=CFG.camp;t=t||today();
   if(t<C.start)return {k:'pre',n:'Starts '+fmtS(C.start)};
   if(t<'2026-11-23')return {k:'build',n:physOn(t)?'Build · physique':'Build',w:physOn(t)?'Physique camp: two hard runs (one 600 m and up, one 200–400 m speed), one Norwegian run with hill sprints at the end, a 4th run only when recovery is good, the gym first. Muscle, the shred and low stress lead; the times still come.':'Quality over volume: two hard runs and two short Norwegian sub-threshold runs. The cut carries on.'};
-  if(t<=CFG.cutEnd)return {k:'check',n:'Checkpoint',w:'Test week on the last of the cut — the 1 km or mile and the 400 or 200, only if the week is clear.'};
-  if(t<C.window)return {k:'refuel',n:'Refuel',w:'The reverse starts: carbs back in, sessions controlled, no trials. Legs fill up and fresh up.'};
+  if(t<STRICT.tripFrom)return {k:'check',n:'Checkpoint',w:'The full weeks before France — a test of the 1 km or mile and the 400 or 200 only if the week is clear.'};
+  if(t<C.window)return {k:'refuel',n:'France, then sharpen',w:'France '+fmtS(STRICT.tripFrom)+'–'+fmtS(STRICT.tripTo)+': walks and good food, no tracking stress. Then controlled sessions, no trials, until the PB window opens.'};
   if(t<=C.end)return {k:'pb',n:'PB window',w:'The trials are the hard sessions now — two a week at most, three days apart, easy runs between.'};
   return {k:'done',n:'Camp done'};
 }
@@ -4847,12 +4881,12 @@ function campGame(){
    from 15 Nov, if 28 Nov is projecting well above 123, it is a calm choice
    between starting anyway and cutting a little longer. Dates move when he
    says go — I set them up. */
-var REV_DECIDE='2026-11-15';
+var REV_DECIDE='9999-12-31';   /* no reverse decision any more: the shred runs to 24 Dec (Dan, 3 Nov) */
 function revWatch(){
   var t=today();if(t<CFG.cutStart||t>=REV_START)return null;
   var a=avgWindow(t,7).avg,G=CFG.goals;if(a===null)return null;
   var nm=addD(mondayOf(t),7);
-  if(a<STRICT.floor)return {k:'below',e:'🛑',t:'Under your range — start the reverse now',w:'Your 7-day average is '+f1(a)+' lb, below '+STRICT.floor+'. Going lower costs muscle, hormones and the face you are after. Say “start the reverse” and I set it up from tomorrow.'};
+  if(a<STRICT.floor)return {k:'below',e:'🛑',t:'Under your range — eat more now',w:'Your 7-day average is '+f1(a)+' lb, below '+STRICT.floor+'. Going lower costs muscle, hormones and the face you are after. The tracker has moved you to '+ci(STRICT.maint)+' a day until you are back in your '+pGoal()+' range.'};
   if(a<=STRICT.holdAt)return {k:'goal',e:'🎯',t:'Goal weight — now hold it',w:'Your 7-day average is '+f1(a)+' lb, at the bottom of your '+pGoal()+' goal. Do not lose more: the tracker has moved you to '+ci(STRICT.high)+' a day, the extra as carbs, everything else the same.'};
   if(t>=REV_DECIDE){var a3=avgWindow(addD(t,-21),7).avg,rate=a3!==null?Math.max(0,(a3-a)/3):0,proj=a-rate*diffD(t,CFG.cutEnd)/7;
     if(proj>G.weightHi+0.5)return {k:'decide',e:'🗓️',t:'Reverse: a choice to make',w:'At your pace you land around '+f1(proj)+' lb on '+fmtS(CFG.cutEnd)+'. Two good options: start the reverse on '+fmtS(REV_START)+' anyway — best for the December PB window — or keep cutting a week or two at '+ci(CFG.kcal.up)+' and I move the PB window back. No wrong answer; tell me which.'};}
@@ -4868,7 +4902,7 @@ function calCall(t){
   t=t||today();if(t<CFG.cutStart||t>CFG.cutEnd)return null;
   var PS=pushState(t),RW=revWatch();
   if(PS.k==='on')return {k:'push',e:'🔥',t:'Calories: 1,799 for the push (Saturday 1,999)',w:'The push runs to '+fmtS(PUSH.to)+'. Calories never go lower than this: the extra comes from walking.'}; /* plan-ok: the old push (PUSH.off), never shown */
-  if(RW&&(RW.k==='goal'||RW.k==='below'))return {k:'rev',e:'⬆️',t:'Calories: up — the reverse',w:RW.w};
+  if(RW&&(RW.k==='goal'||RW.k==='below'))return {k:'rev',e:'⬆️',t:'Calories: up — hold your weight',w:RW.w};
   var w0=avgWindow(t,7),w1=avgWindow(addD(t,-7),7),w2=avgWindow(addD(t,-14),7);
   if(w0.n<3||w1.n<3)return {k:'hold',e:'✅',t:'Calories: hold at '+pKcal(t),w:'Not enough mornings this week to judge — 3 or more and I read the trend.'};
   var r1=w1.avg-w0.avg,r2=w2.n>=3?w2.avg-w1.avg:null,rate=r2===null?r1:(r1+r2)/2;
@@ -5188,7 +5222,7 @@ function campGameHTML(){
     return '<div class="p" style="box-shadow:none;border:1px dashed var(--rule);margin:0 0 10px"><b>🚀 Camp starts in '+d+' day'+(d===1?'':'s')+'.</b> <span class="tiny">From Monday: the week’s runs to pick from, XP for every session, rest day and 8 h night, levels from Rookie to Olympian, and six time trials to beat as bosses.</span></div>';}
   var G=campGame(),pc=G.nx?Math.round((G.xp-G.lv[0])/(G.nx[0]-G.lv[0])*100):100;
   return '<div class="p" style="box-shadow:none;margin:0 0 10px">'+
-    '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.3em">'+G.lv[2]+' '+G.lv[1]+'</b><span class="mono">'+ci(G.xp)+' XP</span><span class="tiny dim" style="margin-left:auto">camp day '+G.day+' of '+G.days+'</span></div>'+
+    '<div class="row" style="gap:10px;align-items:baseline"><b style="font-size:1.3em">'+G.lv[2]+' '+G.lv[1]+'</b><span class="mono">'+ci(G.xp)+' XP</span><span class="tiny dim" style="margin-left:auto">shred day '+phaseNow().day+' of '+phaseNow().of+'</span></div>'+
     '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:6px 0 2px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:var(--accent)"></div></div>'+
     '<div class="tiny dim">'+(G.nx?(ci(G.nx[0]-G.xp)+' XP to '+G.nx[2]+' '+G.nx[1]):'Top level. Legend.')+'</div>'+
     (G.warn?'<p class="note wn" style="margin:10px 0 4px"><b>'+G.warn.t+'.</b> '+G.warn.w+'</p>':'')+
@@ -5200,7 +5234,7 @@ function campGameHTML(){
       var span=Math.max(0.1,(S2.start||S2.now)-S2.target),done=Math.max(0,Math.min(1,((S2.start||S2.now)-S2.now)/span));
       var togo=Math.max(0,S2.now-S2.hi);
       return '<div style="margin-top:10px"><b>🔪 Shred meter</b> <span class="tiny dim">the cut · day '+S2.cutDay+' of '+CUT_DAYS+' · 7-day average'+(S2.start&&!S.settings.hideDaily?' · '+(S2.start-S2.now>=0?'−':'+')+f1(Math.abs(S2.start-S2.now))+' lb since 19 Sep':'')+'</span>'+
-        '<div class="row" style="gap:8px;align-items:baseline;margin-top:2px"><b class="num" style="font-size:1.2em">'+(S.settings.hideDaily?'—':f1(S2.now)+' lb')+'</b><span class="tiny">'+(togo>0?f1(togo)+' lb to '+S2.hi+' · '+f1(S2.weeksLeft)+' weeks to 28 Nov':'in the '+S2.lo+'–'+S2.hi+' zone ✓')+'</span></div>'+
+        '<div class="row" style="gap:8px;align-items:baseline;margin-top:2px"><b class="num" style="font-size:1.2em">'+(S.settings.hideDaily?'—':f1(S2.now)+' lb')+'</b><span class="tiny">'+(togo>0?f1(togo)+' lb to '+S2.hi+' · '+f1(S2.weeksLeft)+' weeks to '+fmtS(CFG.cutEnd):'in the '+S2.lo+'–'+S2.hi+' zone ✓')+'</span></div>'+
         '<div style="height:8px;background:var(--rule-2);border-radius:4px;margin:4px 0;overflow:hidden"><div style="height:100%;width:'+Math.round(done*100)+'%;background:var(--accent)"></div></div>'+
         '<div class="row" style="gap:4px;flex-wrap:wrap">'+MILESTONES.filter(function(m){return m<=(S2.start||S2.now)+0.01;}).map(function(m){var hit=S2.now<=m;return '<span class="pill'+(hit?' g':'')+'">'+m+(hit?' ✓':'')+'</span>';}).join('')+'</div></div>';})()+
     '<div style="margin-top:8px"><b class="tiny">THIS WEEK’S QUESTS</b><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:4px">'+G.quests.map(function(x){var ok=x[2]>=x[3];
@@ -5221,7 +5255,7 @@ function campHTML(){
     var at=C.allTime[x.dm];
     var smash=beat&&cur<x.goal;
     return '<tr><td><b>'+repLabel(x.dm)+'</b></td><td class="n">'+(cur?secFmt(cur):'—')+'</td><td class="n">'+(at?secFmt(at.t):'—')+'</td><td class="n"><b class="acc">'+campGoalTxt(x)+'</b></td><td class="tiny">'+(showDates?fmtS(x.on):'PB window')+'</td><td>'+(beat?'<span class="pill g">'+(smash?'💎':(at&&cur<at.t?'👑':'✓'))+'</span>':'')+'</td></tr>';}).join('');
-  var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23 Nov – 2 Dec'],['refuel','Trip and refuel','3–12 Dec'],['pb','PB window','13–23 Dec']];
+  var phases=[['build','Build','12 Oct – 22 Nov'],['check','Checkpoint','23 Nov – 2 Dec'],['refuel','France, then sharpen','3–12 Dec'],['pb','PB window','13–23 Dec']];
   return '<div class="p lift"><h2>🏁 Race camp · PBs before Christmas'+(ph.k==='pre'?'':' · '+left+' days')+'</h2>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap;margin:4px 0 8px">'+phases.map(function(x){return '<span class="pill'+(x[0]===ph.k?' a':'')+'">'+x[1]+' <span class="tiny">'+x[2]+'</span></span>';}).join('')+'</div>'+
     celeHTML()+greenLightHTML()+campCallHTML()+campGameHTML()+muscleMaxHTML()+(greenLight()&&greenLight().c==='reset'?'':'<div class="p">'+resetGuideHTML(false)+'</div>')+(today()>=CFG.camp.start?achievementsHTML():'')+
@@ -5324,7 +5358,7 @@ var FACE_GROUPS=[
  {k:'glow',e:'✨',n:'Glow',w:'Omega-3 for the skin barrier, vitamin C to make collagen, lycopene and flavanols against sun damage.',
   f:['🐟 Salmon, mackerel, sardines, trout','🍓 Strawberries, blueberries, raspberries','🥝 Kiwi and 🍊 oranges','🌶️ Red and yellow peppers','🍅 Tomatoes, cooked','🌰 Hazelnuts — vitamin E','🥚 Egg yolks','🍫 85% dark chocolate, about 20 g','🥩 Red meat and 🦪 oysters — zinc for clear skin']},
  {k:'hormones',e:'⚡',n:'Hormones',w:'Testosterone and thyroid run on zinc, vitamin D, cholesterol, enough fat, enough carbs, selenium and iodine.',
-  f:['🦪 Oysters — the most zinc of any food','🥩 Beef, lamb, venison — zinc, iron, B12','🥚 Whole eggs — cholesterol, choline, vitamin D','🐟 Oily fish — vitamin D, omega-3','🧈 Grass-fed butter and 🥛 A2 whole milk, in the reverse','🥛 Fage and kefir — iodine for thyroid','🎃 Pumpkin seeds — zinc and magnesium','🌰 Walnuts and hazelnuts','🥔 Potatoes, rice, GF oats — carbs keep cortisol down','🍓 Fruit every day']},
+  f:['🦪 Oysters — the most zinc of any food','🥩 Beef, lamb, venison — zinc, iron, B12','🥚 Whole eggs — cholesterol, choline, vitamin D','🐟 Oily fish — vitamin D, omega-3','🧈 Grass-fed butter and 🥛 A2 whole milk, in the build','🥛 Fage and kefir — iodine for thyroid','🎃 Pumpkin seeds — zinc and magnesium','🌰 Walnuts and hazelnuts','🥔 Potatoes, rice, GF oats — carbs keep cortisol down','🍓 Fruit every day']},
  {k:'muscle',e:'💪',n:'Muscle',w:''+pProtein()+' protein a day over 3–4 meals of 30–40 g, from foods rich in leucine.',
   f:['🥩 Beef and lamb — creatine too','🐔 Chicken','🐟 Cod, salmon, prawns','🥚 Eggs','🥛 Fage 0%, 2%, 5%','🥛 Milk and kefir','🥔 Carbs around training — potatoes, rice, GF oats','🍯 Raw honey before a hard session']},
  {k:'limit',e:'🚫',n:'Limit',w:'What puffs a face up, or pulls hormones down.',
@@ -5374,10 +5408,10 @@ function macroHTML(){
   return '<div class="p"><h2>Your macros · and why</h2>'+
     row('On the cut','now · '+ci(KCAL_DAY)+' kcal · up days '+ci(KCAL_UP)+' with '+CARB_UP+' g carbs',
       [MACRO.pro+' g',gk(MACRO.pro)+' · '+pct(MACRO.pro,4,KCAL_DAY)],[MACRO.fat+' g',gk(MACRO.fat)+' · '+pct(MACRO.fat,9,KCAL_DAY)],[cutC+' g','never under '+CARB_FLOOR+' · '+pct(cutC,4,KCAL_DAY)],
-      '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. It is not higher on the cut only because every extra 10 g of fat costs 22 g of carbs, and carbs are already at their floor — it goes up in the reverse. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
-    row('The reverse, at the top','from '+fmtS(REV_START)+' · '+ci(top.kcal)+' kcal',
-      [top.pro+' g','holds steady'],[top.fat+' g','up from '+MACRO.fat],[top.carbs+' g','+'+(top.carbs-cutC)+' on the cut'],
-      'Most of the extra food goes to <b>carbs</b>: they refill glycogen, and that is where the PBs come from. Protein holds — with more food you need less of it to keep muscle. <b>Fat rises to 30% of the day</b>: testosterone is made from it, and the benefit levels off around 30–35%, so this is the sweet spot while still leaving about 4 g/kg of carbs for your running. The Reverse tab has every week. Expect 1–2 lb on the scale the first week: glycogen and water, not fat.')+
+      '<b>Protein</b> high, because in a deficit the body takes muscle for fuel unless protein covers it — this is what keeps the shredded look. <b>Fat</b> clear of about 20% of the day, under which testosterone drops 10–15%. It is not higher on the cut only because every extra 10 g of fat costs 22 g of carbs, and carbs are already at their floor — it goes up in the build. <b>Carbs</b> pay for the hard runs and the gym; low carbs with hard training push cortisol up and testosterone and thyroid down — flat sessions, worse sleep, a puffier face.')+
+    row('The build','from '+fmtS(REV_START)+' · about '+ci(STRICT.build)+' kcal',
+      [PLANV.protein+' g','holds steady'],[Math.round(STRICT.build*0.30/9)+' g','up from '+MACRO.fat],[Math.round((STRICT.build-PLANV.protein*4-Math.round(STRICT.build*0.30/9)*9)/4)+' g','+'+(Math.round((STRICT.build-PLANV.protein*4-Math.round(STRICT.build*0.30/9)*9)/4)-cutC)+' on the cut'],
+      'Most of the extra food goes to <b>carbs</b>: they refill glycogen, and that is where the PBs come from. Protein holds — with more food you need less of it to keep muscle. <b>Fat rises to 30% of the day</b>: testosterone is made from it, and the benefit levels off around 30–35%, so this is the sweet spot while still leaving about 4 g/kg of carbs for your running. The After the shred tab has every week. Expect 1–2 lb on the scale the first week: glycogen and water, not fat.')+
     row('In general · health, hormones, longevity','at maintenance',
       ['105–140','g · 1.8–2.4 g/kg'],['25–35%','65–90 g'],['45–55%','the rest'],
       'For a young person who trains, more muscle predicts a longer, healthier life, so protein stays high — split over 3–4 meals of 30–40 g. Fat from whole foods: oily fish 2–3 times a week, eggs, dairy, walnuts, hazelnuts, meat. Carbs from fruit, potatoes, rice, certified GF oats and honey — more on hard days, less on rest days.')+
@@ -5637,7 +5671,7 @@ var LONGEVITY=[
   ['🏋️','Muscle and strength','Muscle protects blood sugar, bones, hormones and independence as you age. Gym '+pGym()+', beat last time, protein '+pProtein()+'.'],
   ['😴','Sleep 8 h+, bed before 23:00','Deep sleep is when the brain clears waste and growth hormone repairs tissue. The cheapest anti-ageing there is.'],
   ['🍽️','Real food, gluten-free, no sweeteners','Coeliac-safe every time; red meat and oily fish for iron, zinc, B12, omega-3 and vitamin D; berries, dark chocolate and colourful veg for polyphenols; kiwis and potatoes for potassium.'],
-  ['📉','A gentle deficit, never a crash','Slow fat loss protects hormones, thyroid, hair and bone. The reverse brings you back to full fuel.'],
+  ['📉','A gentle deficit, never a crash','Slow fat loss protects hormones, thyroid, hair and bone. The build brings you back to full fuel.'],
   ['🌿','Calm nervous system','Saturday off, a reset day, slow breathing, nature, people. Chronic stress ages cells faster — it shortens telomeres.'],
   ['☀️','Daylight in, screens out','Morning daylight sets your body clock; dim, warm light at night; phone out of the bedroom.'],
   ['🧴','Skin','SPF every morning (UV is most of visible skin ageing), a calm barrier — gentle cleanse, moisturiser, Cicaplast — and water steady.'],
@@ -6082,7 +6116,9 @@ function niggleModel(){
   return {days:days,n:days.length,today:!!(S.days[t]&&S.days[t].niggle),
           persistent:days.length>=NIG_RUN,top:names[0]||null,names:names};
 }
-var REV_START=addD(CFG.cutEnd,1);
+/* 13 Nov: no reverse in November (Dan, 3 Nov). What follows the shred is Christmas, the reset cut, then the
+   build from 10 Jan: REV_START is the first day of that build. */
+var REV_START=addD(STRICT.resetTo,1);
 /* Which block he is in today, and which one follows. The reverse has no end
    date yet on purpose — that one is Dan's to set — so everything after it is
    named as a sequence rather than dated. */
@@ -6670,9 +6706,9 @@ function weightCard(w){
     '<div class="gs">'+(next===null?'every milestone through':('next milestone '+next+(cur!==null?' — '+f1(cur-next)+' lb':'')))+'</div></div>';
 }
 function daysCard(c){
-  return '<div class="goal"><div class="gt"><span class="gn">The block</span><span class="gs">'+c.elapsed+' of '+CUT_DAYS+' days</span></div>'+
+  return '<div class="goal"><div class="gt"><span class="gn">The shred</span><span class="gs">'+c.elapsed+' of '+CUT_DAYS+' days</span></div>'+
     '<div class="gl">'+c.remaining+' <small>days left</small></div>'+bar(c.elapsed,CUT_DAYS,c.elapsed)+
-    '<div class="gs">ends '+fmtL(CFG.cutEnd)+' — your birthday</div></div>';
+    '<div class="gs">ends '+fmtL(CFG.cutEnd)+' — Christmas Eve</div></div>';
 }
 function tile(k,v,s){return '<div class="tile"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+(s||'')+'</div></div>';}
 function weekExtrasHTML(start,end){
@@ -7847,7 +7883,7 @@ function renderFood(c,tr){
     '<p class="tiny" style="margin-top:10px">You overruled the 1,999 / 1,719 cycle, and it costs nothing: the week totals '+ci(KCAL_DAY*7)+' either way — the cycle only moved calories between days. It also clears the carb floor on its own. At '+MACRO.pro+' g protein and '+MACRO.fat+' g fat, '+ci(KCAL_DAY)+' leaves <b class="num">'+CARB_AT+' g</b> of carbohydrate, clear of the '+CARB_FLOOR+' g floor a hard day asks for. '+ /* plan-ok: history: the October calorie cycle */
     'The budget could carry protein as high as <b>'+PRO_MAX+' g</b> before carbohydrate fell through that floor, and there is no strong reason to go there: '+MACRO.pro+
     ' g is '+f1(MACRO.pro/(CFG.w.target*0.45359237))+' g per kg of goal bodyweight, which is already past the point where the curve flattens. It holds at '+MACRO.proRev+
-    ' g on the reverse, where the extra food goes to carbs and a little fat. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
+    ' g in the build, where the extra food goes to carbs and a little fat. What a session still changes is the <b>breakfast</b>, not the total: oats before a hard run, fish or eggs otherwise.</p>'+
     '<hr class="d"><div class="cols"><div>'+
     '<table class="tbl"><tbody>'+
     '<tr><td>300 ml semi-skimmed milk, across the day</td><td class="n">'+CFG.kcal.milk+'</td></tr>'+
@@ -8015,7 +8051,7 @@ function renderTimes(){
   E('timesReal').innerHTML='<div class="p flag"><h2>What ten weeks can actually do</h2>'+
     '<p class="lede">Losing '+f1(lbs)+' lb is worth about <b class="num acc">'+Math.round(2*3.107*lbs)+' s</b> off a 5 km on weight alone — roughly 2 s per mile per pound.</p>'+
     '<p>What it will not do is buy fitness. <b>On a deficit you do not gain five VDOT points</b>, and 18:05 to 16:50 is five. You gain one, maybe two, and holding what you have is a good outcome.</p>'+
-    '<p class="note">So: <b>5 km around 17:20–17:30 and a 400 around 57</b> by 28 November. Sub-55 and sub-17 land on the reverse — light, glycogen back, creatine in. The cut does not set the times, it sets them up. That is the order, and it is not softening the target.</p>'+
+    '<p class="note">So: <b>5 km around 17:20–17:30 and a 400 around 57</b> in the December trials. Sub-55 and sub-17 are most likely in the build after Christmas — fed, glycogen back, creatine in. The shred does not set the times, it sets them up. That is the order, and it is not softening the target.</p>'+
     '<details style="margin-top:8px"><summary>Why the gaps above are smaller than they look</summary>'+
     '<p class="tiny" style="margin-top:8px">Almost none of your numbers are all-out efforts. The 800 is a rep average off a 3 × 800; the mile came from inside a 5 km. You have not raced a flat 800, 1 km or mile all year, and a genuine single is usually 5–8 s quicker than a rep average — so the real 800 is nearer <b>2:25</b> and the real mile nearer <b>5:05</b>. The 1 km card proves it: the rep average says 3:13, the actual fastest kilometre you ran this year is <b class="acc">3:00</b>.</p></details></div>';
 
@@ -8126,7 +8162,7 @@ function renderStudy(tr){
       tile('term starts',fmtS(CFG.study.term),'SK297 + SK298')+
       tile('days away',m.toTerm,'nothing to judge until then')+
       tile('logged so far',sh(m.preTotal)+'',m.preDays+' day'+(m.preDays===1?'':'s')+(m.preDeep>0?' · '+sh(m.preDeep)+' deep':''))+
-      tile('cut day then',(diffD(CFG.cutStart,CFG.study.term)+1)+' / '+CUT_DAYS,'four days past halfway')+
+      tile('shred day then',(diffD(CFG.cutStart,CFG.study.term)+1)+' / '+CUT_DAYS,'when term started')+
       '</div><p class="tiny" style="margin-top:10px">Log hours whenever you like — they are kept, and nothing judges them until term. '+DEEP_AIM+'</p></div>';
   }else{
     h='<div class="p"><h2>Study · last 7 days</h2><div class="tiles t4">'+
@@ -8182,7 +8218,7 @@ function buildHTML(preview){
   var now=['','<b>Weeks 1–2: crank up the weights.</b> Same sets as the cut — the extra food goes into heavier lifts first. Glycogen is back, so you will be stronger within days: add weight wherever the reps allow.',
     '<b>Weeks 3–4: add leg sets.</b> Upper body is already at build volume from 2 Nov; legs go up about 2 hard sets, and keep the weights climbing.',
     '<b>Full build.</b> The growth range for every muscle — and the weights keep going up every week.'][stage];
-  return '<div class="p lift"><h2>🏗️ '+(preview?'The reverse: build mode, from '+fmtS(REV_START):'Build mode · reverse week '+bw)+'</h2>'+
+  return '<div class="p lift"><h2>🏗️ '+(preview?'The build, from '+fmtS(REV_START):'The build · week '+bw)+'</h2>'+
     (stage?'<p class="lede" style="margin:0 0 8px">'+now+'</p>':'<p class="lede" style="margin:0 0 8px">On '+fmtL(REV_START)+' the goal flips from keeping muscle to <b>building as much as you can while staying shredded</b>. This is when the weights go up.</p>')+
     '<p class="keep" style="margin:4px 0"><b>Crank up the weights:</b> 6–12 reps, every set 1–2 reps from failure, the last set of each exercise to about 1 rep left. Every week add <b>a rep or 2.5 kg</b> to your main lifts — when you hit the top of the rep range on all sets, go heavier. That steady climb is what builds muscle.</p>'+
     '<div class="scroll"><table class="tbl" style="margin-top:6px"><thead><tr><th>Hard sets a week</th><th class="n">Cut</th><th class="n">Build</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
@@ -8311,10 +8347,10 @@ function renderSplit(){
   var defTxt=(blk.n&&blk.perDay>0)?('a measured '+ci(Math.round(blk.perDay))+' kcal a day under'):'a deficit this size';
   h+='<div class="p flag"><h2>Hard sets per muscle, per week</h2>'+
     '<p class="lede">'+(onRev
-      ? 'You are on the reverse now, so these are <b>growth</b> numbers — the right-hand column.'
-      : '<b>Building muscle in a deficit is limited, not impossible.</b> With a gentle deficit like yours, high protein and hard sets, a little growth is possible — most in the muscles you have trained least. The left-hand column is set to get the most the cut allows; the big growth still comes on the reverse.')+'</p>'+
+      ? 'You are in the build now, so these are <b>growth</b> numbers — the right-hand column.'
+      : '<b>Building muscle in a deficit is limited, not impossible.</b> With a gentle deficit like yours, high protein and hard sets, a little growth is possible — most in the muscles you have trained least. The left-hand column is set to get the most the cut allows; the big growth still comes in the build.')+'</p>'+
     '<div class="scroll"><table class="tbl"><thead><tr><th>Muscle</th>'+
-    '<th class="n">Now · the most a cut allows</th><th class="n">Reverse · growing it</th><th class="n">This week</th><th>Where it lands</th></tr></thead><tbody>';
+    '<th class="n">Now · the most a cut allows</th><th class="n">The build · growing it</th><th class="n">This week</th><th>Where it lands</th></tr></thead><tbody>';
   var WS=weekSets(today());
   CFG.sets.forEach(function(x){
     var cutN=x.cut[0]+'–'+x.cut[1],revN=x.rev[0]+'–'+x.rev[1];
@@ -8335,8 +8371,8 @@ function renderSplit(){
     'If a session has to shrink, lose the last set, not the plates.</p>'+
     (onRev?'':'<p><b>If you want the most growth this block can give you, run the top of the left column, not the bottom.</b> '+
       'That is the whole lever — fifteen chest sets rather than ten, sixteen back rather than twelve, every one of them within a few reps of failure. '+
-      'At '+defTxt+', with your running in the same week, do not expect much new muscle — but a little is realistic, and what matters more is how much you still have on 28 November: every pound you keep now is a pound you are not spending December to February getting back. '+
-      '<b>The growth happens on the reverse.</b> This block just protects the starting point for it.</p>')+
+      'At '+defTxt+', with your running in the same week, do not expect much new muscle — but a little is realistic, and what matters more is how much you still have at the end of the shred: every pound you keep now is a pound you are not spending December to February getting back. '+
+      '<b>The growth happens in the build.</b> This block just protects the starting point for it.</p>')+
     '<p class="note"><b>Legs are low on purpose.</b> Two hard run sessions, a sprint session and '+pSteps()+' steps a day is already an enormous amount of leg work — the gym only has to top it up. '+
     'The trap is putting a heavy legs day next to a hard run day; they compete for the same recovery and both come out worse.</p>'+
     '<p class="note"><b>Do not add volume as the block runs.</b> Recovery falls as you get leaner and the deficit accumulates, so the sensible direction is the same or slightly less, not more. If anything starts feeling heavier than it should, that is the signal to drop a set rather than push through.</p>'+
@@ -8362,13 +8398,13 @@ function renderSplit(){
     '<p><b>About '+SESSION_CAP+' hard sets is all one muscle can absorb in a single session.</b> '+
     'Weekly volume keeps paying well past that; volume crammed into one sitting does not — the last sets of a 20-set chest day are done tired, on lighter weight, and buy close to nothing for what they cost. '+
     'Training a muscle once a week makes the weekly number and the session number the same number, so <b>'+SESSION_CAP+' a week is your real ceiling until a muscle gets a second day</b>. '+
-    'That is what the accent notes in the table mean. The fifth day is how you get past it, and on the reverse it stops being optional.</p>'+
-    (onRev?'':'<p class="note"><b>Why not just do the reverse numbers now, on the cut?</b> Because volume you cannot recover from is not training, it is damage. '+
+    'That is what the accent notes in the table mean. The fifth day is how you get past it, and in the build it stops being optional.</p>'+
+    (onRev?'':'<p class="note"><b>Why not just do the build numbers now, on the cut?</b> Because volume you cannot recover from is not training, it is damage. '+
       'Recovery is a fixed budget and you have already committed most of it to two hard runs, a sprint session, a five-mile and '+pSteps()+' steps a day, on '+pKcal()+' kcal. '+
       'Doubling the sets into what is left does not produce growth in a deficit — there is no spare energy to build with — it produces fatigue, and fatigue shows up as lighter weight on the bar. '+
       '<b>The weight on the bar is the one signal keeping your muscle on you.</b> So the extra sets would not just fail to add muscle, they would cost you some. '+
       'What actually changes on 29 November is not permission, it is recovery: the calories come back, so the budget grows, so the sets can.</p>')+
-    (onRev?'':'<p class="tiny">These roughly double on the reverse. Everything on the Reverse tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
+    (onRev?'':'<p class="tiny">These roughly double in the build. Everything on the After the shred tab about timing the food applies to the sets too: add them back gradually rather than all at once on 29 November.</p>')+
     '</div>';
 
   /* calisthenics: three 40-minute tests, each with its own record */
@@ -8479,7 +8515,7 @@ function renderPlan(){
   rh+='<hr class="d"><h2>Before you actually go for a time</h2>'+
     '<p class="note">Volume down for about a week, a little intensity kept in so you do not go flat, and a genuinely easy day or two immediately before. '+
     'You cannot build fitness in the last week but you can absolutely lose the freshness that shows it. '+
-    'The Reverse tab stages the real attempts — nothing in the first week, the 400 at weeks three to four, the 5 km later.</p></div>';
+    'The After the shred tab stages the real attempts — nothing in the first week, the 400 at weeks three to four, the 5 km later.</p></div>';
   E('tRest').innerHTML=rh;
   renderPredict();
 }
@@ -8707,7 +8743,20 @@ function renderXmas(){
       'The scale will jump on the 26th: ignore it until the second week of the reset. And check everything for gluten.</p></div>';
   }else E('xmasCard').innerHTML='';
 }
+/* what follows the shred, from the same numbers the day's target uses (STRICT) */
+function afterShredHTML(){
+  var t=today(),P=phaseNow(t),L=phaseList(),bk=STRICT.build,bp=PLANV.protein,bf=Math.round(bk*0.30/9),bc=Math.round((bk-bp*4-bf*9)/4);
+  var row=function(ph,what,kc,note){var on=P.k===ph.k;return '<div style="padding:8px 0;border-bottom:1px solid var(--rule-2)"><div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><b>'+(on?'👉 ':'')+ph.n+'</b><span class="mono">'+kc+'</span></div>'+
+    '<div class="keep" style="font-size:.88em;opacity:.8">'+fmtS(ph.from)+(ph.to?' – '+fmtS(ph.to):' onwards')+' · '+what+'</div><div class="keep" style="font-size:.88em;margin-top:2px">'+note+'</div></div>';};
+  return '<div class="p lift"><h2>🗺️ '+pClock(t)+'</h2>'+
+    '<p class="lede" style="margin:0 0 4px">One plan, in order. The day’s calories always come from this.</p>'+
+    row(L[0],'the cut to '+pGoal()+' lb',pKcalBase()+' kcal','Saturday and trial days '+ci(STRICT.high)+'. '+ci(CFG.kcal.up)+' once your 7-day average is '+STRICT.raiseAt+' or under, '+ci(STRICT.high)+' and hold at '+STRICT.holdAt+'. France '+fmtS(STRICT.tripFrom)+'–'+fmtS(STRICT.tripTo)+' is a holiday: no tracking.')+
+    row(L[1],'maintenance',ci(STRICT.maint)+' kcal','Enjoy it. No tracking pressure.')+
+    row(L[2],'two weeks to clear Christmas',ci(STRICT.reset)+' kcal','Saturday '+ci(STRICT.reset+100)+'. The first mornings are food and water: judge it in the second week.')+
+    row(L[3],'a very small surplus, the gym first','about '+ci(bk)+' kcal','Protein '+pProtein()+', fat about '+bf+' g, carbs about '+bc+' g. Weight roughly steady, strength up. Nutrient mode (no calorie counting) switches on by itself on '+fmtS(NUTRI_MODE_FROM)+'; run times come back in March.')+
+    '<p class="keep" style="font-size:.85em;opacity:.75;margin-top:8px">These are the same numbers the Today tab and the Food tab use. If the plan changes, it changes here and everywhere at once.</p></div>';}
 function renderReverse(){
+  try{if(E('afterCard'))E('afterCard').innerHTML=afterShredHTML();}catch(e){if(E('afterCard'))E('afterCard').innerHTML='';}
   var R=reverseModel(),c=cutTally();
   var h='<div class="p '+(R.live?'lift':'flag')+'"><h2>The reverse'+(R.live?' · week '+R.cur+' of '+R.weeks:'')+'</h2>';
   if(!R.live){
@@ -9093,9 +9142,9 @@ function renderRetinol(){
     'And you already reacted to a retinoid once — which is not a reason not to try again, but it is a reason the first fortnight is one night a week rather than three.</p>'+
     '<p class="tiny"><b>The timing is better than it looks.</b> Irritation, if it comes, usually lands between weeks two and six — '+
     fmtS(addD(m.start,14))+' to '+fmtS(addD(m.start,42))+' for you. '+(m.area
-      ?'On the forehead alone it is small and easy to settle — and if anything is pink in the week before 28 November, just skip those nights.</p></div>'
-      :'That clears 28 November by about three weeks, '+
-    'so the worst of it should be well behind you by your birthday. Starting any later than this week and it would not have been.</p></div>');
+      ?'On the forehead alone it is small and easy to settle — and if anything is pink in the week before a shoot or a trip, just skip those nights.</p></div>'
+      :'That clears your trips by a few weeks, '+
+    'so the worst of it should be well behind you by your next trip. Starting any later than this week and it would not have been.</p></div>');
   E('skRetinol').innerHTML=h;
 }
 
@@ -9711,18 +9760,18 @@ function decOptHTML(){
     tick(!!(r.skinAM&&r.skinPM),'Skin morning and night — SPF in the morning'),
     tick(!!r.teeth,'Teeth'),
     tick(!!r.gym||(r.runs||[]).length>0||dow(t)===6,dow(t)===6?'Saturday: stress-free — nothing to train':'Training as the green light says')];
-  return '<div class="p lift" id="decOpt"><h2>'+(SG.n==='France'?'🎯 3 December optimisation':'🎄 Shred to Christmas')+'</h2>'+
+  return '<div class="p lift" id="decOpt"><h2>🎯 '+pClock(t)+'</h2>'+
     '<div class="tiles t3" style="margin:6px 0">'+
       '<div class="t"><i>days to '+SG.n+'</i><b class="num">'+left+'</b><span class="tiny">'+fmtS(SG.d)+'</span></div>'+
       '<div class="t"><i>7-day average</i><b class="num">'+(a!==null?f1(a):'—')+'</b><span class="tiny">target '+pGoal()+'</span></div>'+
-      '<div class="t"><i>pace needed to 124</i><b class="num">'+(need===null?'—':(need<=0?'there':f1(need)+' lb/wk'))+'</b><span class="tiny">'+(need!==null&&need>1.1?'more than the plan can do safely — 124 may land a week after':'on the 7-day average')+'</span></div></div>'+
+      '<div class="t"><i>the line today</i><b class="num">'+f1(push2Line(t))+'</b><span class="tiny">'+(a===null?'weigh in to compare':(a-push2Line(t)<=0.2?'you are on it':f1(a-push2Line(t))+' lb above it'))+'</span></div></div>'+
     '<div class="note" style="margin:4px 0 8px"><b>Today’s food:</b> '+phase+'.</div>'+
     '<b>Today’s non-negotiables</b>'+list.join('')+
-    '<details style="margin-top:8px"><summary><b>The plan to 3 Dec</b></summary>'+
+    '<details style="margin-top:8px"><summary><b>The plan, date by date</b></summary>'+
     '<div class="tiny" style="line-height:1.6;margin-top:6px">'+
     '<b>2 Nov – 2 Dec · strict at '+pKcalBase()+', Saturday '+ci(STRICT.high)+'.</b> Weigh everything raw on scales and log it before you eat — the oil, honey, squash, sauces and the bits too. Protein '+pProtein()+', carbs 200 g+, fat 48 g+.<br>'+
     '<b>The moment the 7-day average is 124.9 or under:</b> up to '+ci(CFG.kcal.up)+' (Saturday stays '+ci(STRICT.high)+') — the tracker does it on its own. At '+STRICT.holdAt+': '+ci(STRICT.high)+' and hold — do not lose more.<br>'+
-    '<b>4 Nov – 24 Dec · the push.</b> Calories as above, steps '+pSteps()+' as your week average, one 600 m+ hard run and the Norwegian.<br>'+
+    '<b>'+fmtS(PUSH2.from)+' – '+fmtS(PUSH2.to)+' · the push.</b> Calories as above, steps '+pSteps()+' as your week average, the full week of runs (two hard, the Norwegian), gym '+pGym()+'.<br>'+
     '<b>1–2 Dec · sharpen, safely.</b> Nothing new to eat, carbs normal (they fill the muscle), salt and water exactly as usual, 9 h in bed, haircut, no alcohol. Never cut water or salt — it looks flat, not lean.<br>'+
     '<b>3–5 Dec · away.</b> Eat well and enjoy it — that is the refuel. Gluten-free, protein at each meal, walk lots.<br>'+
     '<b>Back 6 Dec · on to Christmas.</b> Same rules: '+pKcalBase()+' (Saturday '+ci(STRICT.high)+'), '+ci(CFG.kcal.up)+' at a 124.9 average, '+ci(STRICT.high)+' at 123 — lose no more — and '+ci(STRICT.maint)+' under '+STRICT.floor+'. Trial days and the day before are '+ci(STRICT.high)+' so the trials are fuelled: 5 km 13 Dec, 1 km 16 Dec, 400 18 Dec, mile 20 Dec, 800 22 Dec, 200 and 600 23 Dec.<br>'+
@@ -10455,7 +10504,7 @@ function cortisolScore(){
     var trained=r.gym||(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;});if(g&&trained&&g.carbs<180)lowC++;}
   if(under)add(8*under,under+' of the last '+days+' days were 200 kcal or more under your target','Eat the full target: '+pKcalBase()+' is the floor, never lower','Calorie restriction raises cortisol (Tomiyama 2010); the bigger and longer the deficit, the more.');
   if(lowC)add(7*lowC,'Carbs under 180 g on '+lowC+' training day'+(lowC===1?'':'s'),'Potatoes, rice or GF oats before and after hard sessions','Carbs during and around hard exercise blunt the cortisol rise (Bishop 1999, Gleeson 2004).');
-  add(5,'You are in a cut (the push to 24 Dec)','Nothing to fix: it is the plan. Keep the rest of the list clean and it stays small','Any sustained deficit is a mild stress; it ends on time.');
+  add(5,'You are in a cut (the shred to '+fmtS(CFG.cutEnd)+')','Nothing to fix: it is the plan. Keep the rest of the list clean and it stays small','Any sustained deficit is a mild stress; it ends on time.');
   /* 5. steps */
   var big=0;for(var q=1;q<=3;q++){var st=(S.days[addD(t,-q)]||{}).steps;if(typeof st==='number'&&st>14000)big++;}
   if(big)add(4*big,big+' day'+(big===1?'':'s')+' over '+pk(PLANV.steps.strain)+' steps','Keep your week average at '+pSteps()+', and single days under '+pk(PLANV.steps.strain),'Past about '+pStepsHi()+', extra walking adds fatigue more than health (Paluch 2022: benefit levels off at 8–10k).'); /* plan-ok: the evidence figure (Paluch 2022) */
@@ -10996,7 +11045,7 @@ function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
    muscle and running times, and obviously health." This is NOT the old push (5 Nov): nothing is dropped.
    The full week of runs, the gym 4+, calories as the shred (never lower), precision in the logging, and
    the one gate: stress/cortisol. The weight line runs from the 7-day average on 16 Nov to 123.5 on 24 Dec. */
-var PUSH2={from:'2026-11-16',to:'2026-12-24',france:['2026-12-03','2026-12-05'],goal:123.5,startAvg:128.3};
+var PUSH2={from:'2026-11-16',to:CFG.cutEnd,france:[STRICT.tripFrom,STRICT.tripTo],goal:123.5,startAvg:128.3};
 function push2On(t){t=t||today();return t>=PUSH2.from&&t<=PUSH2.to;}
 /* Dan, 12 Nov: "only do this if I'm not 127 by Monday. If I hit 127 there's no need, maybe just one thing like more gym."
    Any morning below 127 (126.9 or less) from 12 to 16 Nov = 'gym' (gym up to 5 only). Otherwise, from 16 Nov, 'full':

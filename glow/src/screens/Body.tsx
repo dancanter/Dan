@@ -57,7 +57,7 @@ export function Body() {
     <div className="space-y-4">
       {header}
 
-      {hosted() ? <p className="px-1 text-xs text-muted">Your phases, calories and the reverse are set on the tracker’s Camp and Reverse tabs, so there is only one plan.</p> : <SeasonCard />}
+      {hosted() ? <p className="px-1 text-xs text-muted">Your phases and calories are set on the tracker’s After the shred tab, so there is only one plan.</p> : <SeasonCard />}
       <TravelGuide date={todayISO()} />
 
       <Card title="Weight" eyebrow={latest ? `7-day average ${d(latest.avg)} ${unit}` : 'No weigh-ins yet'}>
