@@ -4,6 +4,7 @@ import type { Tag } from '@/data/foods';
 import { bioFactors, targetsFor } from '@/engine/score';
 import { weightOn } from '@/engine/game';
 import { resolveItems, useStore } from '@/store';
+import { plan } from '@/plan';
 
 // What your food did for you today (Dan, 3 Nov): each food, the nutrients the
 // body actually absorbs from it (bioavailability-adjusted, as a share of the day's
@@ -54,7 +55,7 @@ export function FoodPower({ date }: { date: string }) {
       const f = it.food, bio = bioFactors(f);
       const row = by.get(f.id) ?? { name: f.name.replace(/\s*\([^)]*\)/g, ''), animal: ANIMAL.includes(f.category), pct: {}, tags: f.tags };
       for (const k of KEYS) {
-        const tgt = k === 'protein' ? 140 : (t[k] ?? NUTRIENTS[k].target);
+        const tgt = k === 'protein' ? plan().protein : (t[k] ?? NUTRIENTS[k].target);
         row.pct[k] = (row.pct[k] ?? 0) + ((f.n[k] ?? 0) * (bio[k] ?? 1) * it.grams) / 100 / Math.max(tgt, 1e-9);
       }
       by.set(f.id, row);

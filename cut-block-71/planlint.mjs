@@ -10,6 +10,7 @@ const RULES = [
   ['steps', /\b\d{1,2}(?:[–-]\d{1,2})?k\b|\b(?:[89]|1[0-5]),\d{3}\b[^'"`<]{0,25}\bsteps?\b|\bsteps?\b[^'"`<]{0,40}\b(?:[89]|1[0-5]),\d{3}\b|\b80,000\b/i, /steps?|walk/i],
   ['weight goal', /\b12[2-4](?:\.5)?[–-]12[2-5]\b|\b122\.5\b/],
   ['protein', /\b1[2-5]\d g\b[^'"`<]{0,20}protein|protein[^'"`<]{0,30}\b1[2-5]\d g\b|about 95 g/i],
+  ['protein (code)', /protein\s*[<>]=?\s*1[2-5]\d\b|\b1[2-5]\d\s*-\s*\w+\.protein|g<\/b> of 1[2-5]\d|'protein' \? 1[2-5]\d/],
   ['gym a week', /\b[Gg]ym,? [3-6](?:[–-][3-6])?[×+ .]|\b[3-6](?:[–-][3-6])?\+? gym\b|[Ff]our gym|\blift [3-6]×/],
 ];
 function walk(d, out = []) { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p, out); else if (/\.(ts|tsx)$/.test(f)) out.push(p); } return out; }

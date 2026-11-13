@@ -18,7 +18,7 @@ export function microWeek(s: State, date: string) {
   const t = targetsFor(s.profile, weightOn(s, date));
   const dow = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
   const week = Array.from({ length: dow + 1 }, (_, i) => addDays(date, -i)).filter((d) => (s.days[d]?.items ?? []).length >= 2);
-  const tgt = (k: NKey) => (k === 'protein' ? 140 : (t[k] ?? NUTRIENTS[k].target));
+  const tgt = (k: NKey) => (k === 'protein' ? plan().protein : (t[k] ?? NUTRIENTS[k].target));
   const eff = (d: string, k: NKey) => { const a = dayResult(s, d).analysis; return k === 'protein' ? a.totals.protein : (a.effective[k] ?? 0); };
   const todayOn = (s.days[date]?.items ?? []).length > 0;
   const rows = KEYS.map((k) => ({

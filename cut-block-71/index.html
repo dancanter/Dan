@@ -485,6 +485,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div id="homeCard"></div>
   <div id="push2Card"></div>
   <div id="nutriModeCard"></div>
+  <div id="foodCoachToday"></div>
   <div id="dashCard" class="stack"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
   <div id="ovLong"></div>
@@ -795,6 +796,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 
 <!-- ================= REVIEW ================= -->
 <section id="s-nutri" class="stack" hidden>
+  <div id="foodCoach"></div>
   <div id="nutriCoach"></div>
   <div id="glowHome"></div>
 </section>
@@ -9698,7 +9700,7 @@ function renderGoodLife(){
   try{if(E('push2Card'))E('push2Card').innerHTML=push2HTML();}catch(e){if(E('push2Card'))E('push2Card').innerHTML='';}
   try{if(E('nutriModeCard'))E('nutriModeCard').innerHTML=nutriModeHTML();}catch(e){if(E('nutriModeCard'))E('nutriModeCard').innerHTML='';}
   try{if(E('dashCard'))E('dashCard').innerHTML=dashHTML();}catch(e){if(E('dashCard'))E('dashCard').innerHTML='';}
-  try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();}catch(e){}
+  try{if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();renderFoodCoach();}catch(e){}
   try{if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();}catch(e){}
   if(E('runWins'))E('runWins').innerHTML=runWinsHTML();
   if(E('muscleFun'))E('muscleFun').innerHTML=muscleFunHTML();
@@ -10619,6 +10621,59 @@ function cortisolHTML(){var X=cortisolScore();
     '<p class="tiny dim" style="margin-top:6px"><b>Stress score vs cortisol score:</b> the stress score is your whole load (training, life, recovery signs). This one is narrower: the things studies show raise the hormone cortisol most. Both are estimates from your logs, not a blood or saliva test.</p></div>';}
 
 /* ---- the nutrition coach ---- */
+/* ===================== the food coach (Dan, 13 Nov) =====================
+   "Constantly give me, and adapt, the foods I should be eating, adding and limiting, for the most health,
+   longevity and bioavailability, for my cells, micronutrient density, the shred, the look and the face."
+   Read from what he actually ate in the last 7 days (Glow's absorbed nutrients, lowest first, and his
+   logged items), so it changes as he eats. ADD: the nutrients furthest behind, each with the forms the
+   body absorbs best, from foods he can eat (PROFILE: no liver, no spinach/kale/broccoli, no pulses, no
+   Brazil nuts, no olive oil, no vitamin D tablets). LIMIT: what went over the guide's amounts. KEEP: what
+   is working. Animal foods first where they are the better-absorbed form. */
+var FOOD_ADD={
+  vitD:['🐟','Vitamin D','salmon, mackerel, sardines or trout (2–3× a week), egg yolks, salmon roe','In the UK your skin makes almost none from October to March; it runs your immune system, mood and muscle. Food is your source (no tablets, your rule).'],
+  vitE:['🌰','Vitamin E','almonds, hazelnuts, sunflower seeds, avocado, trout (a weighed 15 g handful of nuts)','The antioxidant inside cell membranes: protects skin from UV and pollution damage.'],
+  vitA:['🥚','Vitamin A','egg yolks, full-fat or raw dairy, salmon roe (ready to use); carrots or sweet potato cooked with a little butter','Skin cell turnover and repair, night vision and immunity. The animal form is used directly; the orange plant form needs fat and cooking.'],
+  vitC:['🥝','Vitamin C','kiwi, red pepper, strawberries, clementines, blackcurrants','Your body cannot build collagen without it: firm skin and strong tendons. It also triples iron absorption when eaten with plants.'],
+  vitK:['🥑','Vitamin K','egg yolks, hard cheese (K2), kiwi, avocado','Sends calcium to bone instead of arteries.'],
+  b2:['🥛','Vitamin B2','Fage, milk, kefir, eggs, almonds','Energy production in the mitochondria; cracked lip corners mean you are short.'],
+  folate:['🍓','Folate','avocado, strawberries, oranges, egg yolks, kiwi','DNA copying and repair in every new cell.'],
+  b12:['🦪','Vitamin B12','mussels or clams, sardines, beef, venison, eggs, dairy','Nerves, red blood cells and energy. Only animal foods have it.'],
+  choline:['🍳','Choline','eggs (the yolk), salmon, chicken','Cell membranes, liver fat clearance and memory.'],
+  iron:['🥩','Iron','venison, lean beef, mussels; any plant iron with a vitamin C food','Haem iron (meat) is absorbed 2–3× better than plant iron. It carries oxygen to your running muscles.'],
+  zinc:['🦪','Zinc','oysters (the richest food there is), beef, venison, beef heart, pumpkin seeds','Testosterone, skin healing and immunity. Meat zinc is absorbed far better than seed zinc.'],
+  copper:['🍫','Copper','oysters, cacao, hazelnuts, cashews','Builds collagen and elastin with vitamin C: skin that springs back.'],
+  selenium:['🐟','Selenium','eggs, salmon, sardines, chicken, tuna','Powers glutathione, the cell’s own antioxidant, and your thyroid.'],
+  magnesium:['🎃','Magnesium','pumpkin seeds, cacao, oats, almonds, avocado','300+ enzymes, sleep quality and muscle relaxation.'],
+  potassium:['🥔','Potassium','potatoes with skin, kiwi, avocado, salmon, yoghurt','Blood pressure, muscle contraction and less puffiness.'],
+  calcium:['🧀','Calcium','Fage, milk, kefir, sardines with the bones, cheese','Bone strength for running, and muscle contraction.'],
+  iodine:['🥛','Iodine','Fage, milk, kefir, eggs, cod or hake','Your thyroid: metabolism and energy. UK milk is the main source.']};
+var FOOD_LIMIT=[
+  {re:/honey/,n:'Honey',max:15,u:'g a day',why:'fast sugar; best around training'},
+  {re:/^(almonds|walnuts|hazelnuts|cashews|pecans|macadamia|pistachios|peanut-butter|almond-butter)/,n:'Nuts and nut butter',max:15,u:'g a day',why:'about 6 kcal a gram: healthy, but weigh them'},
+  {re:/dark-choc|milk-choc|uk-choc/,n:'Chocolate',max:25,u:'g a day',why:'calories sneak in fast'},
+  {re:/raisins|dates|dried|sultana/,n:'Dried fruit',max:20,u:'g a day',why:'concentrated sugar'},
+  {re:/^avocado$/,n:'Avocado',max:70,u:'g a day',why:'half an avocado covers it'},
+  {re:/butter$|^butter|-oil$/,n:'Butter and oil',max:7,u:'g a day',why:'measure with a teaspoon, never pour'}];
+function foodCoach(t){t=t||today();var N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  var days=[],items=[];for(var i=0;i<7;i++){var d=addD(t,-i),g=(S.days[d]||{}).glow;var it=(g&&g.items)||[];if(it.length>=3){days.push(d);items=items.concat(it);}}
+  var nd=days.length,add=[],limit=[],keep=[];
+  if(N&&N.week)N.week.filter(function(r){return FOOD_ADD[r.k]&&typeof r.week==='number'&&r.week<90;}).slice(0,3).forEach(function(r){var F=FOOD_ADD[r.k];add.push({e:F[0],n:F[1],pct:Math.round(r.week),foods:F[2],why:F[3]});});
+  if(nd)FOOD_LIMIT.forEach(function(L){var g=0;items.forEach(function(x){if(L.re.test(x.foodId))g+=x.grams||0;});var per=g/nd;if(per>L.max*1.15)limit.push({n:L.n,per:Math.round(per),max:L.max,u:L.u,why:L.why});});
+  var fish=0,pro=0,cov=[];days.forEach(function(d){var gs=(S.days[d]||{}).glowSum||{};if((gs.omega3||0)>=1)fish++;if((gs.protein||0)>=PLANV.protein-5)pro++;if(typeof gs.coverage==='number')cov.push(gs.coverage);});
+  if(nd&&fish<2)add.unshift({e:'🐟',n:'Oily fish',pct:null,foods:'salmon, mackerel, sardines or trout: '+(2-fish)+' more in the next few days',why:'Omega-3 (EPA and DHA) your body uses directly: calmer inflammation, skin glow, less puffiness, brain and heart. Plant omega-3 (walnuts) converts under 10%.'});
+  if(fish>=2)keep.push('🐟 Oily fish '+fish+'× in 7 days');
+  if(nd&&pro>=Math.max(3,nd-1))keep.push('🥩 Protein at target on '+pro+' of '+nd+' days');
+  if(cov.length&&mean(cov)>=80)keep.push('🥗 '+Math.round(mean(cov))+'% of your vitamins and minerals covered');
+  return {days:nd,add:add.slice(0,4),limit:limit,keep:keep};}
+function foodCoachHTML(){var F=foodCoach();
+  if(!F.days)return '<div class="p"><h2>🧬 Your food coach</h2><p class="tiny">Log a few days of food (or send screenshots) and this tells you exactly what to add and what to limit, from what you actually eat.</p></div>';
+  var li=function(x){return '<div style="margin:6px 0"><b>'+x.e+' '+x.n+'</b>'+(x.pct!==null?' <span class="mono" style="font-size:.85em">'+x.pct+'% of need</span>':'')+'<div style="font-size:.92em">→ '+x.foods+'</div><div class="keep" style="font-size:.85em;opacity:.8">'+x.why+'</div></div>';};
+  return '<div class="p lift"><h2>🧬 Your food coach · this week</h2><p class="keep" style="font-size:.85em;opacity:.75;margin:0 0 6px">From your last '+F.days+' logged day'+(F.days===1?'':'s')+'. It changes as you eat; ranked by how well your body absorbs it.</p>'+
+    (F.add.length?'<h3 style="margin:8px 0 2px">➕ Add '+IMP.big+'</h3>'+F.add.map(li).join(''):'<p>✅ Nothing is far behind this week.</p>')+
+    (F.limit.length?'<h3 style="margin:10px 0 2px">➖ Limit '+IMP.medium+'</h3>'+F.limit.map(function(x){return '<div style="margin:4px 0"><b>'+x.n+'</b>: about '+x.per+' '+x.u+' (aim under '+x.max+') · '+x.why+'</div>';}).join(''):'<h3 style="margin:10px 0 2px">➖ Limit</h3><p style="margin:2px 0">Nothing over the amounts this week. Keep weighing the honey, nuts and chocolate.</p>')+
+    (F.keep.length?'<h3 style="margin:10px 0 2px">✅ Keep doing</h3>'+F.keep.map(function(k){return '<div>'+k+'</div>';}).join(''):'')+
+    '<details class="fold"><summary><b>Always limit</b></summary><div class="keep" style="font-size:.88em;line-height:1.6">Sweeteners, ultra-processed snacks and bars, alcohol (save it for France or Christmas), deep-fried food, and your bloat foods. Never under '+pKcalBase()+' and never cut salt.</div></details></div>';}
+function renderFoodCoach(){try{var h=foodCoachHTML();if(E('foodCoach'))E('foodCoach').innerHTML=h;if(E('foodCoachToday'))E('foodCoachToday').innerHTML=h;}catch(e){}}
 function nutriCoachHTML(){
   var t=today(),r=S.days[t]||{},g=r.glowSum||null,N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
   var tg=dayTarget(t),hard=(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;}),gymD=!!r.gym;
@@ -10627,11 +10682,11 @@ function nutriCoachHTML(){
   var parts=[],deep=[];
   /* today */
   if(g){var left=tg-g.kcal;
-    parts.push(['Today so far','<b>'+ci(g.kcal)+'</b> of '+ci(tg)+' kcal · protein <b>'+g.protein+' g</b> of 140 · carbs '+g.carbs+' g · fat '+g.fat+' g · fibre '+g.fibre+' g'+(left>0?'. About '+ci(left)+' kcal and '+Math.max(0,140-g.protein)+' g protein still to come.':'.')]);}
+    parts.push(['Today so far','<b>'+ci(g.kcal)+'</b> of '+ci(tg)+' kcal · protein <b>'+g.protein+' g</b> of '+PLANV.protein+' · carbs '+g.carbs+' g · fat '+g.fat+' g · fibre '+g.fibre+' g'+(left>0?'. About '+ci(left)+' kcal and '+Math.max(0,PLANV.protein-g.protein)+' g protein still to come.':'.')]);}
   else parts.push(['Today so far','Nothing logged yet. Send a screenshot or add food and this coach reads it.']);
   /* next */
   var nx=[];
-  if(g&&g.protein<140-15)nx.push([(140-g.protein)+' g protein still to find: Fage, eggs, hake, chicken or venison','big']);
+  if(g&&g.protein<PLANV.protein-15)nx.push([(PLANV.protein-g.protein)+' g protein still to find: Fage, eggs, hake, chicken or venison','big']);
   if(g&&(hard||gymD)&&g.carbs<180)nx.push(['A training day: carbs to 200 g or more (potatoes, rice, GF oats) keeps cortisol down','big']);
   if(g&&g.fat<40&&g.kcal>tg*0.6)nx.push(['Fat at '+g.fat+' g: an egg or some butter or cheese takes it past 40 g (hormones and skin)','medium']);
   if(N&&N.next)N.next.filter(function(x){return !/protein still to find/.test(x.title);}).slice(0,3).forEach(function(x){if(nx.length<4)nx.push([x.emoji+' '+x.title+': '+x.foods.slice(0,3).join(', '),x.impact]);});
@@ -11389,7 +11444,7 @@ var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 function loadGlow(){
   if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
   window.__GLOW_START__=GLOW_SUB;
-  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
+  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();renderFoodCoach();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
