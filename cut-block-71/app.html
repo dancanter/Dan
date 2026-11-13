@@ -485,6 +485,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div id="homeCard"></div>
   <div id="push2Card"></div>
   <div id="nutriModeCard"></div>
+  <div id="scoreToday"></div>
   <div id="foodCoachToday"></div>
   <div id="dashCard" class="stack"></div>
   <!-- Dan, 3 Nov: "go back to the overview that had my stress on… health age… how I'm doing run-wise… a round-up of everything like the micros so far. I'm not bothered if it's long." -->
@@ -822,6 +823,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div class="p"><h2>Week review</h2>
     <div class="row"><div class="f" style="max-width:260px"><label for="revPick">Which week</label><select id="revPick"></select></div></div>
   </div>
+  <div id="scoreReview"></div>
   <div id="weekFull"></div>
   <div id="revBody"></div>
   <div id="glowReview"></div>
@@ -9697,6 +9699,7 @@ function renderGoodLife(){
   if(E('studyCoach'))E('studyCoach').innerHTML=studyCoachHTML();
   try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;}catch(e){}
   try{if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}
+  renderScorecards();
   try{if(E('push2Card'))E('push2Card').innerHTML=push2HTML();}catch(e){if(E('push2Card'))E('push2Card').innerHTML='';}
   try{if(E('nutriModeCard'))E('nutriModeCard').innerHTML=nutriModeHTML();}catch(e){if(E('nutriModeCard'))E('nutriModeCard').innerHTML='';}
   try{if(E('dashCard'))E('dashCard').innerHTML=dashHTML();}catch(e){if(E('dashCard'))E('dashCard').innerHTML='';}
@@ -10910,6 +10913,52 @@ function weekFullHTML(a,b){
    recovery). OVERALL is the last 4 weeks plus the slow markers that predict a long life (fitness,
    resting HR, sleep, strength, steps, food, calm). Overall is the one that matters; today is the step
    towards it. Built from his own logs; an estimate, not a medical test. */
+/* ===================== the scorecard (Dan, 13 Nov) =====================
+   "When you do feedback for the day and the week, give me the data and the scores, each day for everything,
+   and each week together, and guidance on top." One table: every day of the week scored 0–100 on sleep,
+   food quality, protein, calories against the plan, steps and recovery, a day score (the mean of what was
+   logged), then the week together and the three things that would lift it most. Same plan numbers as
+   everywhere else (planNow / dayTarget / PLANV). */
+function dayScores(d){var r=S.days[d]||{},g=r.glowSum&&r.glowSum.n>=3?r.glowSum:null,P=planNow(d),o={};
+  var c=function(v){return Math.max(0,Math.min(100,Math.round(v)));};
+  var sl=sleepScoreOn(d);if(sl!==null)o.sleep={v:sl,t:f1(r.sleep)+' h'+(r.bed?' · bed '+r.bed:'')};
+  if(g){o.food={v:c(g.nutrition||0),t:(g.coverage||0)+'% covered'};
+    o.protein={v:c(g.protein/P.protein*100),t:Math.round(g.protein)+' g'};
+    var kt=dayTarget(d),off=Math.abs(g.kcal-kt);o.kcal={v:c(100-Math.max(0,off-50)/kt*400),t:ci(g.kcal)+' / '+ci(kt)};}
+  if(typeof r.steps==='number'){var st=r.steps;o.steps={v:st>P.steps.strain?75:c(st/P.steps.lo*100),t:ci(st)};}
+  var b=rhrBase(d);if(typeof r.rhr==='number')o.rhr={v:b===null?80:(r.rhr<=b+2?100:(r.rhr<=b+4?70:45)),t:r.rhr+' bpm'};
+  var tr=[];if(r.gym)tr.push('🏋️'+(r.split?' '+(SPLIT_NAME[r.split]||r.split).split(' ')[0]:''));(r.runs||[]).forEach(function(x){var m=runMeta(x);if(!m.empty)tr.push(m.hard?'⚡':'🏃');});
+  o.train=tr.join(' ');
+  var ks=['sleep','food','protein','kcal','steps','rhr'].filter(function(k){return o[k];});
+  o.day=ks.length>=3?Math.round(mean(ks.map(function(k){return o[k].v;}))):null;
+  return o;}
+var SC_COLS=[['sleep','😴 Sleep'],['food','🥗 Food'],['protein','🥩 Protein'],['kcal','🔥 Calories'],['steps','👣 Steps'],['rhr','❤️ Recovery']];
+var SC_FIX={sleep:['Sleep','in bed by 23:30, 8–9 h, phone out: the face, recovery and appetite all run on it'],food:['Food quality','follow the food coach: the oily fish and the vitamin D, E and A foods'],
+  protein:['Protein','4 feeds of 30–40 g; a pot of Fage 0% closes most gaps'],kcal:['Calories','weigh everything raw; honey, nuts and chocolate are where it slips'],
+  steps:['Steps','easy runs or an incline walk to keep the week average in range'],rhr:['Recovery','a raised morning HR means an easy day and an early night']};
+function scoreCls(v){return v===null||v===undefined?'':(v>=85?'g':(v>=70?'':'w'));}
+function scorecardHTML(ws,title,open){var t=today(),rows='',sum={},n={},days=[];
+  for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;days.push(d);}
+  if(!days.length)return '';
+  days.forEach(function(d){var o=dayScores(d);
+    rows+='<tr><td><b>'+DOWS[dow(d)]+'</b> <span class="tiny dim">'+fmtS(d)+'</span>'+(o.train?'<div class="tiny">'+o.train+'</div>':'')+'</td>'+
+      SC_COLS.map(function(c){var x=o[c[0]];if(x){sum[c[0]]=(sum[c[0]]||0)+x.v;n[c[0]]=(n[c[0]]||0)+1;}
+        return '<td class="n">'+(x?'<span class="pill '+scoreCls(x.v)+'" style="font-size:11px">'+x.v+'</span><div class="tiny dim">'+x.t+'</div>':'<span class="tiny dim">—</span>')+'</td>';}).join('')+
+      '<td class="n"><b class="num">'+(o.day===null?'—':o.day)+'</b></td></tr>';});
+  var avg={},ks=[];SC_COLS.forEach(function(c){if(n[c[0]]){avg[c[0]]=Math.round(sum[c[0]]/n[c[0]]);ks.push(c[0]);}});
+  var wk=ks.length>=3?Math.round(mean(ks.map(function(k){return avg[k];}))):null;
+  var grade=wk===null?'—':(wk>=90?'A+':wk>=85?'A':wk>=78?'B+':wk>=70?'B':wk>=60?'C':'D');
+  var low=ks.slice().sort(function(a,b){return avg[a]-avg[b];}).filter(function(k){return avg[k]<85;}).slice(0,3);
+  var best=ks.slice().sort(function(a,b){return avg[b]-avg[a];})[0];
+  return '<details class="fold p lift"'+(open?' open':'')+'><summary><b>📊 '+title+'</b> <span class="pill '+scoreCls(wk)+'">'+(wk===null?'log more to score':'week '+wk+' · '+grade)+'</span></summary>'+
+    '<div class="scroll" style="margin-top:6px"><table class="tbl"><thead><tr><th>Day</th>'+SC_COLS.map(function(c){return '<th class="n">'+c[1]+'</th>';}).join('')+'<th class="n">Day</th></tr></thead><tbody>'+rows+
+    '<tr><td><b>The week</b></td>'+SC_COLS.map(function(c){var v=avg[c[0]];return '<td class="n">'+(v===undefined?'—':'<b class="pill '+scoreCls(v)+'">'+v+'</b>')+'</td>';}).join('')+'<td class="n"><b class="num">'+(wk===null?'—':wk)+'</b></td></tr></tbody></table></div>'+
+    '<p class="keep" style="font-size:.85em;opacity:.75;margin:4px 0">0–100, higher is better · 85+ green · under 70 amber. The day score is the average of what was logged that day.</p>'+
+    (best?'<p style="margin:6px 0 2px">🏆 <b>Strongest:</b> '+SC_FIX[best][0]+' ('+avg[best]+').</p>':'')+
+    (low.length?'<h3 style="margin:8px 0 2px">👉 What would lift the week most</h3>'+low.map(function(k,i){return '<div style="margin:3px 0">'+(i+1)+'. <b>'+SC_FIX[k][0]+'</b> ('+avg[k]+'): '+SC_FIX[k][1]+' '+(i===0?IMP.big:IMP.medium)+'</div>';}).join(''):'<p>✅ Every part of the week is 85 or more. Keep it exactly like this.</p>')+
+    '</details>';}
+function renderScorecards(){try{var t=today(),ws=mondayOf(t),h=scorecardHTML(ws,'Your scores · this week',true)+scorecardHTML(addD(ws,-7),'Last week · '+fmtS(addD(ws,-7))+'–'+fmtS(addD(ws,-1)),false);
+  if(E('scoreToday'))E('scoreToday').innerHTML=h;if(E('scoreReview'))E('scoreReview').innerHTML=h;}catch(e){if(E('scoreToday'))E('scoreToday').innerHTML='';}}
 function sleepScoreOn(d){var r=S.days[d]||{};if(typeof r.sleep!=='number')return null;
   var h=r.sleep,p=h>=8&&h<=9.5?60:(h>9.5?55:(h>=7?40+(h-7)*20:Math.max(0,40-(7-h)*20)));
   var b=bedMin(r.bed);if(b!==null)p+=b<=23*60+30?20:(b<=24*60+15?10:0);else p+=10;
