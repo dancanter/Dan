@@ -10,6 +10,7 @@ import { FOODS, type Food, type Tag } from '@/data/foods';
 import { targetsFor } from './score';
 import { phaseOn } from './season';
 import { weightOn } from './game';
+import { plan } from '@/plan';
 
 // The weekly review: this week (7 days ending on `end`) against the week
 // before, across everything Glow tracks. Improvements and slips are only
@@ -122,7 +123,7 @@ export function weeklyReview(s: State, end: string): Review {
     { key: 'omegaDays', label: 'Omega-3 days', now: now.omegaDays, prev: prev.omegaDays, unit: '', better: 'up', fmt: (v) => String(v), target: '3+' },
     { key: 'vitD', label: 'Vitamin D from food', now: now.vitD, prev: prev.vitD, unit: 'µg/day', better: 'up', fmt: (v) => v.toFixed(1), target: '10' },
     { key: 'alcoholDays', label: 'Alcohol days', now: now.alcoholDays, prev: prev.alcoholDays, unit: '', better: 'down', fmt: (v) => String(v), target: '0' },
-    { key: 'steps', label: 'Steps (avg)', now: now.steps, prev: prev.steps, unit: '', better: 'range', fmt: (v) => Math.round(v).toLocaleString('en-GB'), target: '10–13k' },
+    { key: 'steps', label: 'Steps (avg)', now: now.steps, prev: prev.steps, unit: '', better: 'range', fmt: (v) => Math.round(v).toLocaleString('en-GB'), target: plan().steps },
     { key: 'outdoor', label: 'Minutes outdoors (avg)', now: now.outdoor, prev: prev.outdoor, unit: 'min', better: 'up', fmt: (v) => v.toFixed(0) },
     { key: 'runKm', label: 'Running', now: now.runKm, prev: prev.runKm, unit: 'km', better: 'range', fmt: (v) => v.toFixed(1) },
     { key: 'lifts', label: 'Weights sessions', now: now.lifts, prev: prev.lifts, unit: '', better: 'range', fmt: (v) => String(v) },
@@ -155,7 +156,7 @@ export function weeklyReview(s: State, end: string): Review {
   }
   if (now.load === 'too-much') slips.push('Training load hit “too much” this week. Next week, hold or reduce it.');
   if (now.load === 'balanced') wins.push('Training load stayed balanced: stress you can adapt to.');
-  if (now.steps !== undefined && now.steps > 16000) slips.push('Steps averaged over 16k. Bring them back to 10–13k during the cut.');
+  if (now.steps !== undefined && now.steps > 16000) slips.push(`Steps averaged over 16,000. Bring them back to ${plan().steps} during the cut.`);
 
   // Score: weighted from what's logged this week.
   const parts: number[] = [];

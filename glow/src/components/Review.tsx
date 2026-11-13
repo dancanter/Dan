@@ -7,6 +7,7 @@ import { phaseCompare, weeklyReview, type Cellular, type PhaseRow, type SinceSta
 import { addDays, prettyDate, todayISO } from '@/engine/body';
 import { actions, useStore } from '@/store';
 import { Card, Grade, Pill } from './ui';
+import { plan } from '@/plan';
 
 const AREA_LABEL: Record<string, string> = { health: 'health', looks: 'looks', style: 'style', mind: 'mind', social: 'people', learn: 'learn', career: 'career', fun: 'fun' };
 
@@ -172,7 +173,7 @@ export function PhaseCompareCard() {
   const rev = s.profile.reverseFrom;
   return (
     <Card eyebrow="Cut vs maintenance" title="How much healthier when you eat more">
-      <p className="mb-2 text-sm text-ink-2">Each phase’s averages side by side. Once you hit 122–124 lb and add calories back, watch energy availability, sleep, heart rate and the pillars rise while your weight barely moves. That’s the proof the extra food is building health, not fat.</p>
+      <p className="mb-2 text-sm text-ink-2">Each phase’s averages side by side. Once you hit {plan().goal} lb and add calories back, watch energy availability, sleep, heart rate and the pillars rise while your weight barely moves. That’s the proof the extra food is building health, not fat.</p>
       {rows.length === 0 ? <p className="text-sm text-muted">Fills in from 2 November as you log.</p> : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

@@ -5,6 +5,7 @@ import { assessLoad } from './training';
 import { rhrAnalysis } from './vitals';
 import { illAdvice } from './illness';
 import { resolveItems, type State } from '@/store';
+import { plan } from '@/plan';
 
 // The coach's judgement calls: when to refeed, when to take a full rest
 // day, which weigh-ins to ignore, and the next best things to do.
@@ -118,7 +119,7 @@ export function nextMoves(s: State, date: string): Move[] {
   const acid = logged.reduce((a, d) => a + (dayResult(s, d).analysis.tagServings.acidic ?? 0), 0) / Math.max(1, logged.length);
   if (acid >= 2.5) moves.push({ w: 5, impact: 'medium', text: 'Squash and diet drinks average 3 or more a day. Keep them to meals and drink water in between to protect your enamel (a bright smile is part of the look).' });
   if (!vit.rhr) moves.push({ w: 4, impact: 'low', text: 'Log your morning heart rate (30 seconds, before getting up). It’s your best early warning for over-training and illness.' });
-  if (vit.steps !== undefined && vit.steps > 16000) moves.push({ w: 6, impact: 'medium', text: 'Steps are very high. On a cut, keep them to 10–13k and spend the energy on training quality instead.' });
+  if (vit.steps !== undefined && vit.steps > 16000) moves.push({ w: 6, impact: 'medium', text: `Steps are very high. On a cut, keep them to ${plan().steps} as your week average and spend the energy on training quality instead.` });
   if ((vit.outdoorMin ?? 0) < 10 && vit.outdoorMin !== undefined) moves.push({ w: 5, impact: 'medium', text: 'Under 10 minutes outdoors. Morning daylight sets tonight’s sleep and a healthy cortisol rhythm.' });
   if (!(s.bp ?? []).length) moves.push({ w: 3, impact: 'low', text: 'Take a blood pressure reading this week (Body → Health age). It completes your Glow age.' });
   if (logged.some((d) => resolveItems(s.days[d], s).some((i) => i.food.tags.includes('alc')))) moves.push({ w: 7, impact: 'high', text: 'Alcohol this week. Even small amounts cost deep sleep and show as puffiness. Skipping it until Christmas Eve is a quick win.' });
@@ -278,9 +279,9 @@ export function goalCall(s: State, date: string): Call {
   return {
     kind: 'goal',
     title: 'Goal weight reached: time to eat more',
-    why: [`Your 7-day average is ${lb} lb, inside your 122–124 lb target (refeed days excluded).`, 'Staying in a deficit now only costs muscle, hormones, sleep and facial fullness. The cut has done its job.'],
+    why: [`Your 7-day average is ${lb} lb, inside your ${plan().goal} lb target (refeed days excluded).`, 'Staying in a deficit now only costs muscle, hormones, sleep and facial fullness. The cut has done its job.'],
     how: [
-      `Add ${100} kcal a week (1,899 next week, then about 2,000…) until you reach maintenance. Glow raises your target automatically.`,
+      `Add ${100} kcal a week until you reach maintenance. Glow raises your target automatically.`,
       'Put the extra mostly into carbs around training, plus a little more fat (avocado, salmon, egg yolks).',
       'Watch the 7-day average: a gain of up to 1–1.5 lb in the first fortnight is glycogen and water, not fat. You will look fuller, not softer.',
       'If the average climbs more than 0.5 lb a week after week 2, hold calories there for a week.',

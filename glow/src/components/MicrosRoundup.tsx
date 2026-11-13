@@ -5,6 +5,7 @@ import { addDays } from '@/engine/body';
 import { dayResult, weightOn } from '@/engine/game';
 import { useStore, type State } from '@/store';
 import { Bar } from './ui';
+import { plan } from '@/plan';
 
 // Dan, 3 Nov: "a round-up of everything, like the micros so far… I'm not bothered
 // if it's long, it's important data that I love to see." Every micronutrient, what
@@ -52,7 +53,7 @@ export function MicrosRoundup({ date }: { date: string }) {
           );
         })}
       </ul>
-      <p className="text-[11px] text-muted">What your body actually absorbs, as a share of the day’s need (protein against 140 g). Typical food values, not a blood test; foods with incomplete records (iodine especially) can read low.</p>
+      <p className="text-[11px] text-muted">What your body actually absorbs, as a share of the day’s need (protein against {plan().protein} g). Typical food values, not a blood test; foods with incomplete records (iodine especially) can read low.</p>
     </div>
   );
 }

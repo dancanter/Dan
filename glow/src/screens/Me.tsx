@@ -8,6 +8,7 @@ import { Bar, Button, Card } from '@/components/ui';
 import { DEFAULT_ROUTINE } from '@/engine/dayplan';
 import { PhaseCompareCard, WeeklyReviewCard } from '@/components/Review';
 import { inClaude, saveBackup, useCloudStatus } from '@/cloud';
+import { plan } from '@/plan';
 
 export function Me() {
   const s = useStore((x) => x);
@@ -81,7 +82,7 @@ export function Me() {
           <Field label="Digestion"><label className="field flex items-center gap-2"><input type="checkbox" checked={!!p.bloatProne} onChange={(e) => actions.setProfile({ bloatProne: e.target.checked })} />I get bloated easily</label></Field>
           <Field label="Sun protection"><label className="field flex items-center gap-2"><input type="checkbox" checked={!!p.dailySpf} onChange={(e) => actions.setProfile({ dailySpf: e.target.checked })} />SPF50 every day</label></Field>
         </div>
-        <p className="mt-3 text-xs text-muted">Training energy: four lifts (about 250–350 kcal each) plus 3–4 runs (a 5 km is about 300 kcal at your weight) averages roughly 550–750 kcal a day. Your 13k steps are counted separately in the maintenance estimate. Protein of 2.0 g/kg is the evidence-backed level for keeping muscle on a cut (gains plateau around 1.6 g/kg at maintenance; deficits justify more).</p>
+        <p className="mt-3 text-xs text-muted">Training energy: four lifts (about 250–350 kcal each) plus 3–4 runs (a 5 km is about 300 kcal at your weight) averages roughly 550–750 kcal a day. Your steps ({plan().steps} a day) are counted separately in the maintenance estimate. Protein of 2.0 g/kg is the evidence-backed level for keeping muscle on a cut (gains plateau around 1.6 g/kg at maintenance; deficits justify more).</p>
       </Card>
 
       {hosted() ? (

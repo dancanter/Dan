@@ -4,6 +4,7 @@ import { outdoorVerdict, parseVitals, rhrAnalysis, stepsVerdict, type Tone, type
 import { actions, useStore, EMPTY_OBJ } from '@/store';
 import { Bar, Button, Card } from './ui';
 import { hosted } from '@/host';
+import { plan } from '@/plan';
 
 const TONE: Record<Tone, string> = { good: 'var(--good)', ok: 'var(--sea)', warn: 'var(--warn)', bad: 'var(--bad)' };
 
@@ -31,7 +32,7 @@ export function VitalsCard({ date, kg }: { date: string; kg?: number }) {
     <Card title="Vitals" eyebrow="Steps · outdoors · morning heart rate">
       {hosted() && <p className="mb-3 text-xs text-muted">Steps and morning heart rate come from your Today log, so you only type them once.</p>}
       {!hosted() && <form className="mb-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (Object.keys(parsed).length) { actions.setVitals(date, parsed); setText(''); } }}>
-        <input className="field" placeholder="e.g. 12k steps, 40 min outside, HR 48" value={text} onChange={(e) => setText(e.target.value)} aria-label="Tell Glow about your day" />
+        <input className="field" placeholder="e.g. steps 11000, 40 min outside, HR 48" value={text} onChange={(e) => setText(e.target.value)} aria-label="Tell Glow about your day" />
         <Button type="submit" disabled={!Object.keys(parsed).length}><Sparkles size={16} />Log</Button>
       </form>}
       {text && Object.keys(parsed).length > 0 && (
@@ -50,7 +51,7 @@ export function VitalsCard({ date, kg }: { date: string; kg?: number }) {
       <details className="mt-3 text-xs text-ink-2">
         <summary className="cursor-pointer text-sea">How much is enough, and how much is too much?</summary>
         <div className="mt-2 space-y-2 leading-relaxed">
-          <p><b>Steps.</b> In a 2022 meta-analysis of 47,000 people, the drop in mortality risk levelled off at about 8,000–10,000 steps a day for under-60s. For you, the target is <b>13k on weekdays and 12k on Sunday</b>, and Saturday is whatever comes naturally (about 10,500 at most). Past about 15–18k, stacked on 4 lifts, 3–4 runs and a calorie deficit, extra steps add no health benefit. They add fatigue, lower-leg bone load and 300–400+ kcal of energy cost, which pushes you towards under-fuelling. Walking after meals is the most valuable walking you can do.</p>
+          <p>{/* plan-ok: the evidence figure (Paluch 2022) */}<b>Steps.</b> In a 2022 meta-analysis of 47,000 people, the drop in mortality risk levelled off at about 8,000–10,000 steps a day for under-60s. For you, the target is <b>{plan().steps} as your week average</b>, never under {plan().stepsFloor} on average. Past about 15–18k, stacked on 4 lifts, 3–4 runs and a calorie deficit, extra steps add no health benefit. They add fatigue, lower-leg bone load and 300–400+ kcal of energy cost, which pushes you towards under-fuelling. Walking after meals is the most valuable walking you can do.</p>
           <p><b>Outdoors.</b> 10+ minutes of daylight before 10am sets your body clock: sleepier at night, more alert in the morning, a healthier cortisol curve. Aim for 120+ minutes a week in green space or by water. From April to September, short midday sun on your arms makes vitamin D; keep SPF on your face.</p>
           <p><b>Morning heart rate.</b> Measure it on waking, lying still, before you get up, the same way every day (watch, or count 30 seconds × 2). Your own baseline matters more than the number: <b>+5 bpm</b> means take it easier, and <b>+8</b> is often illness incoming. Alcohol, late meals, heat, stress and short sleep all push it up. A heart rate that keeps falling while you feel flat and keep losing weight can signal under-fuelling rather than fitness.</p>
         </div>

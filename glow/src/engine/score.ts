@@ -1,6 +1,7 @@
 import { MICROS, NUTRIENT_KEYS, NUTRIENTS, type NKey, type Nutrients } from '@/data/nutrients';
 import { PLANT_CATEGORIES, type Food, type Tag } from '@/data/foods';
 import { PILLARS, type Component, type Pillar } from '@/data/science';
+import { hostPlan } from '@/plan';
 
 // ── Targets ──────────────────────────────────────────────────────────────
 export interface Profile {
@@ -49,7 +50,8 @@ export function targetsFor(p: Profile, weightKg: number | undefined): Targets {
   const t = Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, NUTRIENTS[k].target])) as Targets;
   const kg = weightKg ?? 57;
   t.kcal = p.kcalTarget;
-  t.protein = Math.round(kg * p.proteinPerKg);
+  /* inside The Good Life the tracker's plan sets protein, so every screen says the same number */
+  t.protein = hostPlan()?.protein ?? Math.round(kg * p.proteinPerKg);
   t.fat = Math.round((p.kcalTarget * 0.27) / 9);
   t.carbs = Math.max(0, Math.round((p.kcalTarget - t.protein * 4 - t.fat * 9) / 4));
   t.satFat = Math.round((p.kcalTarget * 0.1) / 9);

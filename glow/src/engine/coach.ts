@@ -1,5 +1,6 @@
 import type { DayResult } from './game';
 import { outdoorVerdict, rhrAnalysis, stepsVerdict, walkingKcal, type Vitals } from './vitals';
+import { plan } from '@/plan';
 
 // The Glow coach: a few short, specific, slightly cheeky lines reacting to
 // today's data. Always grounded in a number you logged, never generic.
@@ -23,7 +24,7 @@ export function coachLines(r: DayResult, vitals: Record<string, Vitals>, opts: {
     const sv = stepsVerdict(v.steps, kg, r.date);
     if (v.steps > 18000) out.push({ emoji: '🦶', tone: 'alert', text: `${v.steps.toLocaleString('en-GB')} steps is roughly ${walkingKcal(v.steps, kg)} kcal of walking. Legendary legs, but on a cut that’s a meal you didn’t eat. Refuel tonight; tomorrow your usual step target is plenty.` });
     else if (v.steps >= 8000 && v.steps <= 14000) out.push({ emoji: '👟', tone: 'good', text: `${v.steps.toLocaleString('en-GB')} steps: ${sv.headline.toLowerCase()}. Peak health benefit, minimal recovery cost.` });
-    else if (v.steps < 7000 && opts.isToday && opts.hour >= 12) out.push({ emoji: '🚶', tone: 'nudge', text: `${v.steps.toLocaleString('en-GB')} steps so far. A 10-minute walk after your next meal blunts its blood-sugar spike and gets you closer to 8k.` });
+    else if (v.steps < 7000 && opts.isToday && opts.hour >= 12) out.push({ emoji: '🚶', tone: 'nudge', text: `${v.steps.toLocaleString('en-GB')} steps so far. A 10-minute walk after your next meal blunts its blood-sugar spike and gets you closer to your ${plan().stepsFloor} floor.` });
   }
 
   if (v.outdoorMin !== undefined) {
@@ -66,7 +67,7 @@ export const FUN_FACTS = [
   'Two eggs give about a quarter of your day’s selenium, with choline for the brain.',
   'Oysters have more zinc per gram than almost any other food on earth.',
   'Your heart beats roughly 100,000 times a day. As your fitness grows, it needs fewer beats to do the same work.',
-  'Health benefits from daily steps flatten out at around 8,000–10,000 for under-60s.',
+  'Health benefits from daily steps flatten out at around 8,000–10,000 for under-60s.', // plan-ok: the evidence figure
   'Caffeine’s half-life is about 5 hours. A 4pm coffee is still a quarter there at 2am.',
   'Cooking tomatoes with a little fat releases several times more lycopene than eating them raw.',
   'Two hours a week in nature is the threshold linked with better health and wellbeing in a study of 20,000 people.',

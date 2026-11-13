@@ -5,6 +5,7 @@ import { KIND_LABEL, defaultSeason, kcalForDate, phaseDayInfo, phaseOn, plannedW
 import { actions, useStore } from '@/store';
 import { cleanWeights } from '@/engine/calls';
 import { Button, Card, LineChart, Pill } from './ui';
+import { plan } from '@/plan';
 
 const KIND_COLOUR: Record<PhaseKind, string> = { cut: 'var(--sea)', peak: 'var(--gold)', travel: 'var(--gold)', maintain: 'var(--good)' };
 
@@ -14,7 +15,7 @@ export const PHASE_GUIDE: Record<PhaseKind, { title: string; points: string[] }>
     'Lose 0.5% of body weight a week (about 0.6 lb for you). Faster costs muscle, hormones and facial fullness.',
     'Protein at 2.0–2.2 g/kg every day, spread over 3–4 meals, each with 25–40 g.',
     'Put most of your carbohydrate around runs and lifts so quality sessions stay fast. Cut fat and snacks first, not training fuel.',
-    'Keep steps steady at 10–13k. Don’t add extra cardio to speed things up: eat 100 kcal less on rest days instead.',
+    `Keep steps steady at ${plan().steps} as your week average. Don’t add extra cardio to speed things up.`,
     'Sleep 8–9 hours. Short sleep turns the weight you lose from fat into muscle.',
     'One higher-carb day a week (at maintenance) around your hardest session keeps training and mood up.',
   ] },
@@ -22,7 +23,7 @@ export const PHASE_GUIDE: Record<PhaseKind, { title: string; points: string[] }>
   travel: { title: 'Travel without losing your edge', points: [
     'Eat at maintenance and enjoy it. Three days can’t undo a month, and the 1–2 lb you’ll see afterwards is restaurant salt and carbs (water). It’s gone within 3–4 days of normal eating.',
     'Two protein-led meals a day: steak, fish, seafood, eggs, duck. Then enjoy the rest.',
-    'Walk everywhere: 12–15k steps a day happens by itself on a city trip.',
+    /* plan-ok: what a travel day looks like, not a target */ 'Walk everywhere: 12–15k steps a day happens by itself on a city trip.',
     'Get morning daylight and keep your normal bedtime in local time (France is 1 hour ahead).',
     'On the flight: drink water, skip the alcohol and salty snacks, and walk the aisle. That’s how you land without a puffy face.',
   ] },
@@ -75,7 +76,7 @@ export function SeasonCard() {
       <Card eyebrow="Season plan" title="Your winter, planned">
         <p className="mb-3 text-sm text-ink-2">Lean and sharp for France on 3 December, at your best by Christmas, then a proper recovery so your hormones and cells rebuild instead of rebounding. Glow sets your calorie target for each phase automatically.</p>
         <Timeline season={proposal} today={today} />
-        <p className="mt-3 text-xs text-muted">At 0.5% a week from 126.6 lb, that lands you at about {d(plannedWeight(proposal, 126.6 / 2.20462, addDays(proposal[1].start, -1))!)} {unit} for France and {d(plannedWeight(proposal, 126.6 / 2.20462, proposal[2].end)!)} {unit} by Christmas, inside your 122–124 lb target without crash dieting.</p>
+        <p className="mt-3 text-xs text-muted">At 0.5% a week from 126.6 lb, that lands you at about {d(plannedWeight(proposal, 126.6 / 2.20462, addDays(proposal[1].start, -1))!)} {unit} for France and {d(plannedWeight(proposal, 126.6 / 2.20462, proposal[2].end)!)} {unit} by Christmas, inside your {plan().goal} lb target without crash dieting.</p>
         <Button tone="gold" className="mt-3 w-full" onClick={() => actions.setProfile({ season: proposal })}>Start this plan</Button>
       </Card>
     );

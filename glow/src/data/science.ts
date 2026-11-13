@@ -1,5 +1,6 @@
 import type { NKey } from './nutrients';
 import type { Tag } from './foods';
+import { plan } from '@/plan';
 
 export type Evidence = 'strong' | 'moderate' | 'emerging' | 'speculative';
 
@@ -285,7 +286,7 @@ export interface CutItem {
 
 export const CUT_OUT: CutItem[] = [
   { title: 'Under-eating while training hard', verdict: 'cut', evidence: 'strong', pillars: ['hormones', 'energy', 'skin'], sources: ['reds-2023'],
-    why: 'This is the big one, and it’s yours. When the energy left after training (energy availability) drops below about 30 kcal per kg of fat-free mass, the body downregulates testosterone and thyroid hormone, sleeps worse, heals slower, loses bone, and your face shows it: dull skin, hollow eyes, puffiness from raised cortisol. An aggressive cut stacked on four lifts, 3–4 runs and 13k steps a day can land there.',
+    why: 'This is the big one, and it’s yours. When the energy left after training (energy availability) drops below about 30 kcal per kg of fat-free mass, the body downregulates testosterone and thyroid hormone, sleeps worse, heals slower, loses bone, and your face shows it: dull skin, hollow eyes, puffiness from raised cortisol. An aggressive cut stacked on four lifts, 3–4 runs and 13k steps a day can land there.', // plan-ok: illustrates a heavy load, not a target
     instead: 'Cut slowly (0.25–0.5% body weight a week), keep carbohydrate around hard sessions, and check the energy availability card on the Body screen.' },
   { title: 'Alcohol', verdict: 'cut', evidence: 'strong', pillars: ['hormones', 'renewal', 'skin', 'inflammation'], sources: ['gbd-alcohol-2018'],
     why: 'It fragments REM and deep sleep, lowers testosterone, raises cortisol, dehydrates and inflames skin (redness, puffiness), cuts muscle protein synthesis after training, and is a carcinogen with no safe dose for cancer risk.',
@@ -581,7 +582,7 @@ export const STRAIGHT_ANSWERS: { q: string; a: string }[] = [
 
 // ── The chiselled-face guide ─────────────────────────────────────────────
 export const FACE_GUIDE: { title: string; text: string; evidence: Evidence }[] = [
-  { title: 'Body fat sets the jawline, and you’re already there', evidence: 'moderate', text: 'Jaw and cheekbone definition in men usually shows from roughly 10–12% body fat. Going much lower mostly hollows the cheeks and under-eyes, which reads tired and older, not sharper. Your cut to 122–124 lb is about the limit for the look you want.' },
+  { title: 'Body fat sets the jawline, and you’re already there', evidence: 'moderate', text: 'Jaw and cheekbone definition in men usually shows from roughly 10–12% body fat. Going much lower mostly hollows the cheeks and under-eyes, which reads tired and older, not sharper. Your cut to ' + plan().goal + ' lb is about the limit for the look you want.' },
   { title: 'Water is the day-to-day difference', evidence: 'moderate', text: 'The same face looks sharp or soft depending on sleep, alcohol, sudden salt and cortisol. Use the De-puff check: 8+ hours of sleep, steady salt with plenty of potassium, no alcohol before big days.' },
   { title: 'Posture shapes the jawline in photos', evidence: 'emerging', text: 'A forward head (from phone and desk time) softens the jaw-to-neck angle. Chin tucks, upper-back strength (rows, face pulls) and a screen at eye level help how you hold yourself, and so how your jaw reads. Neck training adds a little thickness, a classic "model" proportion.' },
   { title: 'Skip the gimmicks', evidence: 'speculative', text: '“Mewing” (tongue posture) has no good evidence of reshaping an adult face. Jawline exercisers and constant hard gum chewing can strain the jaw joint (TMJ). Facial "fat loss" exercises don’t spot-reduce fat. Spend that effort on sleep and posture.' },
