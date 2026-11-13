@@ -1,0 +1,11 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const d = JSON.parse(fs.readFileSync('db/state/main.json')); const S = d.data || d;
+const b = await chromium.launch(); const p = await b.newPage({viewport:{width:390,height:900}}); const errs=[]; p.on('pageerror',e=>errs.push(String(e)));
+await p.clock.setFixedTime(new Date('2026-11-02T08:00:00'));
+await p.goto('file://' + process.cwd() + '/cb71.test.html');
+await p.evaluate(s => { localStorage.clear(); localStorage.setItem('cutblock71.v1', JSON.stringify(s)); }, S);
+await p.reload(); await p.waitForTimeout(800); await p.click('[data-t="camp"]'); await p.waitForTimeout(300);
+console.log((await p.innerText('#raceCard')).replace(/\n/g,' | ').slice(0,900));
+console.log('scroll', await p.evaluate(()=>document.documentElement.scrollWidth));
+await p.screenshot({path:'rr.png'}); console.log(errs.length?'ERR '+errs:'no errors'); await b.close();

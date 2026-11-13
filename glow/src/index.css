@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+/* Riviera at golden hour: warm linen, deep navy, sea teal, one gold accent.
+   Every colour is a token so light and dark are both designed. */
+:root {
+  color-scheme: light;
+  --paper: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-2: #efe8da;
+  --ink: #1e1d1a;
+  --ink-2: #4d4a43;
+  --muted: #85806f;
+  --line: #e4dccb;
+  --navy: #2b2a25;
+  --navy-ink: #ece8df;
+  --sea: #6b7a45;
+  --gold: #9c7442;
+  --gold-soft: #efe4d0;
+  --good: #2e7d4f;
+  --good-soft: #dff0e4;
+  --warn: #9a6a00;
+  --warn-soft: #f7ecd0;
+  --bad: #b23b33;
+  --bad-soft: #f8e0dd;
+  --shadow: 0 1px 2px rgb(22 27 38 / 0.05), 0 10px 28px -14px rgb(22 27 38 / 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0a0d11;
+    --surface: #10141a;
+    --surface-2: #161b23;
+    --ink: #ece8df;
+    --ink-2: #b4bcc8;
+    --muted: #8d96a4;
+    --line: #1e2530;
+    --navy: #1e2530;
+    --navy-ink: #ece8df;
+    --sea: #7cc4d6;
+    --gold: #cfab66;
+    --gold-soft: #2b2415;
+    --good: #62c690;
+    --good-soft: #12291d;
+    --warn: #e3aa4f;
+    --warn-soft: #2c2412;
+    --bad: #e8706f;
+    --bad-soft: #301817;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -14px rgb(0 0 0 / 0.6);
+  }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0a0d11;
+    --surface: #10141a;
+    --surface-2: #161b23;
+    --ink: #ece8df;
+    --ink-2: #b4bcc8;
+    --muted: #8d96a4;
+    --line: #1e2530;
+    --navy: #1e2530;
+    --navy-ink: #ece8df;
+    --sea: #7cc4d6;
+    --gold: #cfab66;
+    --gold-soft: #2b2415;
+    --good: #62c690;
+    --good-soft: #12291d;
+    --warn: #e3aa4f;
+    --warn-soft: #2c2412;
+    --bad: #e8706f;
+    --bad-soft: #301817;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -14px rgb(0 0 0 / 0.6);
+  }
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-navy: var(--navy);
+  --color-navy-ink: var(--navy-ink);
+  --color-sea: var(--sea);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+}
+
+html, body { background: var(--paper); color: var(--ink); }
+body {
+  margin: 0;
+  font-family: 'Inter', ui-sans-serif, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+@layer components {
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+.num { font-variant-numeric: tabular-nums; }
+input, select, textarea { font: inherit; color: inherit; }
+.field { width: 100%; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; outline: none; }
+.field:focus { border-color: var(--sea); }
+}
+:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 0.35s ease both; }
+@keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+.pop { animation: pop 0.4s ease both; }
+@media (prefers-reduced-motion: reduce) { .rise, .pop { animation: none; } }

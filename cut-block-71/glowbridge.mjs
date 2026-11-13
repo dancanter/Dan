@@ -1,0 +1,17 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch(); const p = await b.newPage({viewport:{width:390,height:900}}); const errs=[];
+p.on('pageerror',e=>errs.push('page '+e)); 
+await p.clock.setFixedTime(new Date('2026-11-03T12:00:00'));
+await p.goto('http://localhost:8765/index.html');
+await p.evaluate(()=>{localStorage.clear();localStorage.setItem('cutblock71.v1',JSON.stringify({weights:{'2026-11-02':127.4,'2026-11-03':127.0},days:{},settings:{}}));
+  localStorage.setItem('glow-state-v1',JSON.stringify({version:1,days:{'2026-11-03':{items:[{uid:'a',foodId:'salmon-wild',grams:150,meal:'lunch'}],rituals:[]}},weights:[],sleeps:[]}));});
+await p.reload(); await p.waitForTimeout(600);
+await p.click('button[data-t="glow"]'); await p.waitForTimeout(3500);
+const fr = p.frame({url:/glow\.html/}); fr && fr.on && null;
+const glowText = fr ? (await fr.innerText('body')).slice(0,200).replace(/\n/g,' | ') : 'NO FRAME';
+const bridge = await p.evaluate(()=>({b:localStorage.getItem('glow-bridge-v1'), gw:JSON.parse(localStorage.getItem('glow-state-v1')).weights}));
+await p.click('button[data-t="today"]'); await p.waitForTimeout(400);
+const cc = (await p.innerText('#ccCard')).replace(/\n/g,' | ');
+console.log('GLOW:', glowText); console.log('BRIDGE:', JSON.stringify(bridge).slice(0,400)); console.log('CC:', cc.slice(cc.indexOf('CALORIES')-10, cc.indexOf('CALORIES')+120), '| glow line:', /Glow \d+/.test(cc));
+await p.click('button[data-t="glow"]'); await p.waitForTimeout(500); await p.screenshot({path:'/tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/glowtab.png'});
+console.log(errs.length?errs.join(' || ').slice(0,500):'no errors'); await b.close();
