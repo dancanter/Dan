@@ -894,7 +894,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
       <tr><td class="n mono">2</td><td><b>Cortisol from the deficit</b></td><td class="note">Sustained deficit plus low carbs raises cortisol, which has genuine mineralocorticoid activity. This is why the scale flatlines then drops all at once — and an argument for not dropping carbs below the floor</td></tr>
       <tr><td class="n mono">3</td><td><b>Salt</b></td><td class="note">You have this backwards. Acutely yes; chronically no — kidneys adapt within days and a year on high salt has built no backlog. Keep the once-a-day salt. The lever is potassium</td></tr>
       <tr><td class="n mono">4</td><td><b>Gluten</b></td><td class="note">Specific to you. Accidental exposure causes inflammation and fluid retention. Puffy with no explanation — look back 24–48 hours</td></tr>
-      <tr><td class="n mono">5</td><td><b>Training load</b></td><td class="note">Hard sessions + deficit + 12,800 steps is a lot of total stress</td></tr>
+      <tr><td class="n mono">5</td><td><b>Training load</b></td><td class="note">Hard sessions + a deficit + high steps is a lot of total stress</td></tr>
       <tr><td class="n mono">6</td><td><b>Sleeping position</b></td><td class="note">On your back, head slightly elevated</td></tr>
       <tr><td class="n mono">7</td><td><b>Alcohol</b></td><td class="note">Worst single-night input there is</td></tr>
       <tr><td class="n mono">8</td><td><b>Dehydration</b></td><td class="note">Counterintuitive — under-drinking makes you hold more</td></tr>
@@ -1005,7 +1005,7 @@ var CFG={
   /* The band he wants to sit in after the cut, through Christmas. Separate
      from the landing target on purpose: the cut still aims at 122.5, this is
      where he stays once he is there. */
-  hold:{lo:122,hi:124,until:'2026-12-31'},
+  hold:{lo:123,hi:124,until:'2026-12-31'},
   xmas:{day:'2026-12-25',from:'2026-12-18',to:'2027-01-02',free:2,judge:'2027-01-02'},
   /* Dan's 40-minute test, done before this tracker existed — as many push-ups
      and pull-ups as he can in 40 minutes. It is the number to beat, so it has
@@ -1027,11 +1027,11 @@ var CFG={
       /* Dan's own order, 25 Sep: "the most important is sleep, getting to my
          weight, skincare, 2 hard runs per week, and the gym goals". Study was
          on the earlier list and was not taken off, so it stays, after them. */
-      goals:['Sleep \u2014 the one everything else runs on','Getting to 122\u2013124 lb','Skincare, morning and night',
+      goals:['Sleep \u2014 the one everything else runs on','Getting to my goal weight','Skincare, morning and night',
              'Two hard runs a week','Gym goals \u2014 the split and the records','Study hours protected']},
     rev:{n:'The reverse',w:'from 29 Nov',
       lede:'Get the calories back up so you hold the weight <i>and</i> the shreds \u2014 then use the energy that comes back to optimise everything else.',
-      goals:['Calories up, 122\u2013124 lb held through Christmas','Hormones and cellular health','Gym strength','Running times',
+      goals:['Calories up, goal weight held through Christmas','Hormones and cellular health','Gym strength','Running times',
              'Study','Looks, on a body that is finally fed']},
     ties:[
       ['Sleep vs anything','Sleep wins, every time. It is the input to the leanness, the hormones, the face, the times and the studying \u2014 nothing on either list survives without it.'],
@@ -2716,18 +2716,18 @@ function achList(){
   days.forEach(function(d){
     var v=S.days[d].steps;if(typeof v!=='number')return;
     var dd=dow(d);
-    if(!wkd&&dd>=1&&dd<=5&&v>=CFG.steps.weekday)wkd=d;
-    if(!sat&&dd===6&&v<=STEPS_SAT)sat=d;
+    if(!wkd&&v>=PLANV.steps.lo&&v<=PLANV.steps.hi)wkd=d;
+    if(!sat&&dd===6&&v<=PLANV.steps.hi)sat=d;
   });
-  var wkTarget=5*CFG.steps.weekday+CFG.steps.sunday+STEPS_SAT;
+  var wkTarget=PLANV.steps.week;
   for(var ws=mondayOnOrAfter(CFG.cutStart);ws<=t;ws=addD(ws,7)){
     var tot=0,nlog=0;
     for(i2=0;i2<7;i2++){var dv=S.days[addD(ws,i2)];if(dv&&typeof dv.steps==='number'){tot+=dv.steps;nlog++;}}
     if(nlog===7&&tot>=wkTarget&&!fullWk)fullWk=addD(ws,6);
   }
   var steps=[
-    {n:'A 15,000 weekday',got:!!wkd,when:wkd,m:wkd?('first on '+fmtS(wkd)):'log a weekday at target'},
-    {n:'A Saturday under the ceiling',got:!!sat,when:sat,m:sat?('first on '+fmtS(sat)):(ci(STEPS_SAT)+' or under on a Saturday')},
+    {n:'A day inside the plan’s range',got:!!wkd,when:wkd,m:wkd?('first on '+fmtS(wkd)):'a day at '+pSteps()},
+    {n:'An easy Saturday',got:!!sat,when:sat,m:sat?('first on '+fmtS(sat)):('under '+pStepsHi()+' on a Saturday')},
     {n:'A full week at '+ci(wkTarget),got:!!fullWk,when:fullWk,m:fullWk?('week to '+fmtS(fullWk)):'all seven days logged, at or over target'}
   ];
   var sleep=[
@@ -4503,7 +4503,7 @@ function coachModel(){
   if(o.defN>=3&&o.def>0)good.push('About <b>'+ci(Math.round(o.def/10)*10)+' kcal</b> of deficit in the last 7 days — roughly '+f2(o.def/3500)+' lb of fat.');
   if(o.hard>=1||o.easy>=1)good.push(o.hard+' hard run'+(o.hard===1?'':'s')+' and '+o.easy+' easy one'+(o.easy===1?'':'s')+' in the last 7 days'+(o.hard<=2&&o.five>=CFG.tmpl.easy?' — the week as planned.':'.'));
   if(o.gym>=3)good.push('<b>'+o.gym+' gym sessions</b> — the muscle is being held.');
-  if(stAvg!==null&&stAvg>=CFG.goals.steps)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
+  if(stAvg!==null&&stAvg>=PLANV.steps.lo)good.push('Steps averaging <b>'+ci(Math.round(stAvg/100)*100)+'</b> a day.');
   if(slAvg!==null&&slAvg>=CFG.sleep.line)good.push('Sleep averaging <b>'+hm(slAvg*60)+'</b> — the biggest testosterone lever, covered.');
   if(o.sl.length>=3&&o.phone>=o.sl.length-1)good.push('Phone out of the bed '+o.phone+' of '+o.sl.length+' nights.');
   if(o.deep>=DEEP.lo&&o.deep<=DEEP.hi)good.push('<b>'+sh(o.deep)+'</b> of deep study — the range for a distinction.');
@@ -4514,7 +4514,7 @@ function coachModel(){
   if(under>=2)sug.push('<b>Two weeks under the band.</b> Check steps, sleep and study load first; only then a small trim.');
   if(o.hard>=3)sug.push('<b>'+o.hard+' hard runs in 7 days.</b> Two is where the times are kept on a deficit — make the next one easy.');
   if(o.runs>=6)sug.push('<b>'+o.runs+' runs in 7 days.</b> The plan is four; walk instead of the extra ones.');
-  if(stAvg!==null&&stAvg<CFG.goals.steps-1500)sug.push('<b>Steps:</b> '+ci(Math.round(stAvg/100)*100)+' a day. A 20-minute walk after lunch closes most of it.');
+  if(stAvg!==null&&stAvg<PLANV.steps.floor)sug.push('<b>Steps:</b> '+ci(Math.round(stAvg/100)*100)+' a day. A 20-minute walk after lunch closes most of it.');
   if(o.deep>DEEP.cap)sug.push('<b>Deep study is past '+DEEP.cap+' h</b> — '+sh(o.deep)+'. That is too much: keep to about '+DEEP.day+' h a day and '+DEEP.lo+'–'+DEEP.hi+' a week; the extra rarely sticks.');
   if(o.sl.length>=3&&o.phone<o.sl.length/2)sug.push('<b>Phone out of the bedroom</b> — only '+o.phone+' of '+o.sl.length+' nights so far.');
   if(moodAvg!==null&&moodAvg<=2.5)sug.push('<b>Mood has been low.</b> Get out somewhere green, see a mate, and a film night — they count.');
@@ -4829,7 +4829,7 @@ function campGame(){
         if(back.length)changes.push({e:'✅',t:'Recovery is back — '+back.join(' and ')+' '+(back.length>1?'are':'is')+' on again',why:'your resting HR and sleep have settled'});}})();
     if(M.phys&&mondayOf(t)===PHYS.from)changes.push({e:'💪',t:'Physique camp from this week: two hard runs (one 600 m+, one 200–400 m speed), one Norwegian run with hill sprints, a 4th run only if recovery is good, the gym first',why:'more muscle, a sharper look and less stress — the trials, bosses and XP all stay'});
     if(pushOn(t)&&!M.easeOff)changes.push({e:'🔥',t:M.phys?'Push: calories as the shred, steps that follow the scale ('+ci(pushSteps(t).n)+') — runs stay the physique week':'Push: one hard run and two Norwegian runs this week',why:'more fat loss, same recovery'});
-    if(M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
+    if(!M.walk&&M.easeOff&&M.orig&&M.orig.long&&q.hard<T.hard)changes.push({e:'⚡',t:'One hard run this week, not two',why:(ST&&ST.t)||'recovery first'});
     if(M.dip.level)changes.push({e:'📉',t:M.mix?'Times dipping — one easy 5 km this week, no 5-miler':(M.dip.level===2?'Times dipping — one 5-miler and one easy 5 km this week':'Times dipping — two 5-milers this week, not three'),
       why:M.dip.dips.map(function(x){return x.label+': '+x.why;}).join(' · ')+'. '+DIP_DO});
     if(M.mix&&M.dip.level)changes[changes.length-1].t=M.dip.level>=2?(M.phys?'Times dipping again — no 2nd Norwegian this week':'Times dipping again — one Norwegian run this week, not two'):'Times dipped — keep the Norwegian runs truly 7 out of 10';
@@ -4874,7 +4874,7 @@ function calCall(t){
   var r1=w1.avg-w0.avg,r2=w2.n>=3?w2.avg-w1.avg:null,rate=r2===null?r1:(r1+r2)/2;
   var rTxt=(rate>=0?'down ':'up ')+f1(Math.abs(rate))+' lb a week';
   /* too fast for two weeks running: muscle, hormones and a gaunt face are the cost */
-  if(r2!==null&&r1>=1.0&&r2>=1.0&&rate>=1.25)return {k:'up',e:'⬆️',t:'Calories: up to '+ci(CFG.kcal.up),w:'Your average is '+rTxt+' over two weeks — fast enough to start costing muscle, hormones and the fullness in your face. The extra 100 as carbs around training.'};
+  if(r2!==null&&r1>=1.0&&r2>=1.0&&rate>=1.25)return {k:'up',e:'⬆️',t:'Calories: up to '+ci(planNow(t).kcal+100),w:'Your average is '+rTxt+' over two weeks — fast enough to start costing muscle, hormones and the fullness in your face. The extra 100 as carbs around training.'};
   if(r2!==null&&r1<0.25&&r2<0.25){
     if(PS.k==='pending')return {k:'hold',e:'✅',t:'Calories: hold at '+pKcal(t),w:'Flat for two weeks ('+rTxt+') — the push check on '+fmtS(PUSH.check)+' covers it. Nothing to change before then.'};
     var C=coachModel();if(['day','days','week','on'].indexOf(C.rest.k)>=0)return {k:'hold',e:'✅',t:'Calories: hold at '+pKcal(t),w:'Flat for two weeks, but recovery is flagged — stress holds water, so rest first, not less food.'};
@@ -6654,9 +6654,9 @@ function goalCard(name,p){
 }
 function stepsCard(tr){
   var a=tr.stepsAvg;
-  return '<div class="goal"><div class="gt"><span class="gn">Steps, daily average</span><span class="gs">'+(a===null?'—':ci(a))+' of '+ci(CFG.goals.steps)+'</span></div>'+
-    '<div class="gl">'+(a===null?'—':(a>=CFG.goals.steps?'on it':ci(CFG.goals.steps-a)))+' <small>'+(a===null?'nothing logged yet':(a>=CFG.goals.steps?'average is over target':'a day short on average'))+'</small></div>'+
-    bar(a||0,CFG.goals.steps,CFG.goals.steps)+
+  return '<div class="goal"><div class="gt"><span class="gn">Steps, daily average</span><span class="gs">'+(a===null?'—':ci(a))+' · plan '+pSteps()+'</span></div>'+
+    '<div class="gl">'+(a===null?'—':(a>=PLANV.steps.lo?'on it':ci(PLANV.steps.lo-a)))+' <small>'+(a===null?'nothing logged yet':(a>=PLANV.steps.lo?'average is in the plan’s range':'a day short of '+pSteps()+' on average'))+'</small></div>'+
+    bar(a||0,PLANV.steps.lo,PLANV.steps.lo)+
     '<div class="gs">'+ci(tr.stepsTotal)+' steps over '+tr.stepsDays+' logged day'+(tr.stepsDays===1?'':'s')+(tr.stepsUnlogged>0?' · '+tr.stepsUnlogged+' unlogged, left out rather than counted as zero':'')+'</div></div>';
 }
 function weightCard(w){
@@ -7915,13 +7915,13 @@ function renderTraining(tr,c){
     var v=typeof rec.steps==='number'?rec.steps:null;
     if(d<=t){due+=tg;if(v!==null)got+=v;}
     srows+='<tr'+(d>t?' class="dim"':'')+'><td>'+DOWS[dow(d)]+' '+fmtS(d)+'</td><td class="n">'+ci(tg)+'</td><td class="n">'+(v===null?'—':ci(v))+'</td>'+
-      '<td>'+(v===null?'':(dow(d)===6?(v<=tg?'<span class="pill g">under the ceiling</span>':'<span class="pill w">over the ceiling</span>'):(v>=tg?'<span class="pill g">met</span>':'<span class="pill">'+ci(tg-v)+' short</span>')))+'</td></tr>';
+      '<td>'+(v===null?'':(v>planNow().steps.strain?'<span class="pill w">a big day</span>':(v>=tg?'<span class="pill g">over the floor</span>':'<span class="pill">a lighter day</span>')))+'</td></tr>';
   }
-  var st='<div class="p"><h2>Steps'+(tr.pre?' · pre-block, '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd):'')+' — Saturday is derived from the average, so the pattern can never drift from the target</h2>'+
-    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Target</th><th class="n">Logged</th><th></th></tr></thead><tbody>'+srows+
-    '<tr><td><b>'+(tr.pre?'Pre-block':'Week')+'</b></td><td class="n"><b>'+ci(totTarget)+'</b></td><td class="n"><b>'+ci(got)+'</b></td><td class="tiny">'+ci(CFG.goals.steps)+'/day average</td></tr>'+
+  var st='<div class="p"><h2>Steps'+(tr.pre?' · pre-block, '+fmtS(tr.wkStart)+'–'+fmtS(tr.wkEnd):'')+' · the week against your plan of '+pSteps()+' on average</h2>'+
+    '<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Floor</th><th class="n">Logged</th><th></th></tr></thead><tbody>'+srows+
+    '<tr><td><b>'+(tr.pre?'Pre-block':'Week')+'</b></td><td class="n"><b>'+ci(totTarget)+'</b></td><td class="n"><b>'+ci(got)+'</b></td><td class="tiny">plan '+pSteps()+' a day on average</td></tr>'+
     '</tbody></table></div>'+
-    '<p class="tiny" style="margin-top:8px">Mon–Fri '+ci(CFG.steps.weekday)+', Sunday '+ci(CFG.steps.sunday)+', so Saturday absorbs the rest: <b class="num">'+ci(STEPS_SAT)+'</b>. That is a <b>ceiling, not a floor</b> — a 15,000-step Saturday is not a better week, it is a missing rest day.</p>'+ /* plan-ok: an illustration, not a target */
+    '<p class="tiny" style="margin-top:8px">The plan is '+pStepsLong()+'. One day is never judged on its own: the average is what counts, and a low day after a big one is recovery, not a miss.</p>'+
     '<p class="tiny">Block so far: '+ci(tr.stepsTotal)+' steps over '+tr.stepsDays+' logged day'+(tr.stepsDays===1?'':'s')+(tr.stepsAvg!==null?' — averaging <b class="num">'+ci(tr.stepsAvg)+'</b>':'')+'.'+(tr.stepsUnlogged>0?' '+tr.stepsUnlogged+' day'+(tr.stepsUnlogged===1?'':'s')+' of the block have no step count, and are left out of that average rather than counted as zero.':'')+'</p></div>';
   E('tSteps').innerHTML=st;
 
@@ -8821,7 +8821,7 @@ function renderReverse(){
     '<tr><td><b>Glycogen and its water</b></td><td class="note">Every gram of glycogen holds about 3 g of water with it. Going from ten weeks depleted to full is 2–4 lb on the scale in a few days, and it is the thing you have been waiting for — it is stored fuel arriving in the muscle.</td></tr>'+
     '<tr><td><b>Creatine</b></td><td class="note">Another 1–2 lb, and it is intracellular water, which is inside the muscle rather than under the skin. It does not make you look softer.</td></tr>'+
     '<tr><td><b>Food in transit</b></td><td class="note">More food means more actually in you at any moment. A pound or so, and it is not you.</td></tr>'+
-    '<tr><td><b>Cortisol coming down</b></td><td class="note">Ten weeks of deficit plus 12,800 steps keeps cortisol up, which holds water. It releases unevenly as you eat again, so the scale can do nothing for four days and then move.</td></tr>'+ /* plan-ok: history: the October cut, on the reverse tab */
+    '<tr><td><b>Cortisol coming down</b></td><td class="note">Ten weeks of deficit plus high daily steps keeps cortisol up, which holds water. It releases unevenly as you eat again, so the scale can do nothing for four days and then move.</td></tr>'+ /* plan-ok: history: the October cut, on the reverse tab */
     '</tbody></table>'+
     '<hr class="d"><p><b>The arithmetic that settles it:</b> a pound of fat is 3,500 kcal of surplus. At +'+ci(CFG.rev.first)+
     ' a week you are adding '+ci(CFG.rev.first*7)+' kcal across a whole week — '+f1(CFG.rev.first*7/3500)+' lb even if every calorie of it were stored, which it is not, and that is the <i>biggest</i> step in the whole ladder. '+
@@ -8841,7 +8841,7 @@ function renderReverse(){
     '<table class="tbl"><tbody>'+
     '<tr><td><b>1. Body fat</b></td><td class="note">By far the largest. Nothing else on this list moves the face as much as being lean does, and you are about to be the leanest you have been. At +'+ci(CFG.rev.first)+' on day one and +'+ci(CFG.rev.step)+' a week after the hold, meaningful fat regain is arithmetically hard — that is the whole point of the shape you chose.</td></tr>'+
     '<tr><td><b>2. Sleep</b></td><td class="note">The second biggest and the fastest-acting. One short night shows in the face the next morning; a fortnight of them shows all day. If you want one lever for how you look, it is this one, not the food.</td></tr>'+
-    '<tr><td><b>3. Cortisol</b></td><td class="note">Chronic stress holds water in the face specifically. Ten weeks of deficit, 12,800 steps and hard sessions keeps it high — which means your face is currently carrying some puff <i>because</i> of the cut, not in spite of it. Eating again is what releases it.</td></tr>'+ /* plan-ok: history: the October cut, on the reverse tab */
+    '<tr><td><b>3. Cortisol</b></td><td class="note">Chronic stress holds water in the face specifically. Ten weeks of deficit, high daily steps and hard sessions keeps it high — which means your face is currently carrying some puff <i>because</i> of the cut, not in spite of it. Eating again is what releases it.</td></tr>'+ /* plan-ok: history: the October cut, on the reverse tab */
     '<tr><td><b>4. Alcohol, illness, crying, bad allergies</b></td><td class="note">Real, obvious, and temporary. Worth knowing so you do not read a hangover as fat gain and panic-cut.</td></tr>'+
     '</tbody></table>'+
     '<hr class="d">'+
@@ -8952,7 +8952,7 @@ function renderReverse(){
     '<li>Plain monohydrate. Not a blend, not something with creatine in it — the blends are where the additives you do not want live.</li>'+
     '<li>It is one of the few supplements with genuinely strong evidence, and it is pointed straight at the 400m: repeat sprint work and short efforts are exactly what it improves.</li></ul></div>'+
     '<div class="p"><h2>Steps come down</h2>'+
-    '<p class="note">12,800 a day was a tool for creating a deficit, not a health target. On the reverse it can drop to whatever you want — <b>8,000–10,000 is plenty</b>.</p>'+
+    '<p class="note">A high step count was a tool for creating a deficit, not a health target. On the reverse it can drop to whatever you want — <b>8,000–10,000 is plenty</b>.</p>'+
     '<p class="tiny">That is worth roughly 150–250 kcal a day of energy you get back without eating it, and it is 150–250 kcal of recovery the legs keep instead. Coming down on steps is part of the reverse, not a separate decision.</p></div>'+
     '</div>'+
     '<div class="p flag"><h2>When to actually go for the times</h2>'+
@@ -9274,7 +9274,7 @@ function physAssessHTML(){
       '<div class="t"><i>target 123</i><b class="num">BMI '+f1(bmi(123))+'</b><span class="tiny">healthy range 18.5–24.9</span></div>'+
       '<div class="t"><i>phase</i><b class="num">'+phase+' of 4</b><span class="tiny">'+(['','assess','approach the target','reassess','long-term physique'][phase])+'</span></div></div>'+
     '<p class="tiny"><b>Honest view:</b> at 5\'8" you are already light. '+pGoal()+' is still a healthy weight (BMI about 18.7–18.9) and it is where your face and abs showed before — so a slow approach is reasonable. Below 122 (BMI 18.5) the costs start to outweigh the look: energy availability, hormones, bone health, mood and your running. The tracker stops the cut there on its own.</p>'+
-    '<p class="tiny"><b>At the target (phase 3):</b> my call will be to stop losing — reverse to maintenance and build muscle (recomposition) rather than chase a lower number. More muscle at 123–126 looks leaner than less muscle at 120.</p>'+
+    '<p class="tiny"><b>At the target (phase 3):</b> my call will be to stop losing — reverse to maintenance and build muscle (recomposition) rather than chase a lower number. More muscle a few pounds heavier looks leaner than less muscle at 120.</p>'+
     '<div class="'+(flags.length>=2?'note wn':'tiny')+'" style="margin-top:6px"><b>Low energy availability check:</b> '+(flags.length?flags.join(' · ')+'.'+(flags.length>=2?' Two or more together: hold the deficit, no push, more carbs, and sleep first. If it persists, see your GP.':' One sign alone is usually noise — watch it.'):'no warning signs right now.')+'</div>'+
     '<div class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><div class="f" style="max-width:150px"><label for="glWaist">Waist at the navel (cm)</label><input type="number" step="0.1" min="50" max="110" id="glWaist" placeholder="'+(wl!==null?wl:'—')+'"></div>'+
     '<button class="btn sm" type="button" data-gl="waist">Save today</button></div>'+

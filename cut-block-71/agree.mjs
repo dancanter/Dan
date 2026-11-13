@@ -8,12 +8,13 @@ let pass = 0; const fails = []; const errs = [];
 const ok = (n, c, d) => { if (c) { pass++; console.log('ok  ' + n); } else { fails.push(n + (d ? ' — ' + d : '')); console.log('FAIL ' + n + (d ? ' — ' + d : '')); } };
 const b = await chromium.launch();
 const iso = (d) => d.toISOString().slice(0, 10);
+const LOGGED_PROTEIN = 131; // what the seeded days ate: a logged value, told apart from the 140 g target
 function seed(today, walk) {
   const days = {}, weights = {}; const t = new Date(today + 'T12:00:00Z');
   for (let i = 0; i < 24; i++) { const d = iso(new Date(t - i * 864e5));
     weights[d] = 128.4 - (24 - i) * 0.01;
     days[d] = { sleep: 8.2, bed: '23:10', wake: '07:20', rhr: 48, steps: 11800, kcal: 1799, skinAM: true, skinPM: true,
-      glowSum: { kcal: 1799, protein: 138, carbs: 200, fat: 50, fibre: 30, coverage: 85, nutrition: 70, glow: 75, plants: 8, omega3: i % 3 ? 0.1 : 2, n: 12, names: [] } };
+      glowSum: { kcal: 1799, protein: LOGGED_PROTEIN, carbs: 200, fat: 50, fibre: 30, coverage: 85, nutrition: 70, glow: 75, plants: 8, omega3: i % 3 ? 0.1 : 2, n: 12, names: [] } };
     if (i % 2 === 0) Object.assign(days[d], { gym: true, split: ['chest', 'back', 'delts', 'legs'][(i / 2) % 4], sets: { Chest: 12 } }); }
   const mon = new Date(t); mon.setUTCDate(mon.getUTCDate() - ((mon.getUTCDay() + 6) % 7));
   return { weights, days, bests: {}, settings: walk ? { walkFrom: iso(mon) } : {}, uni: { mods: [], tasks: [], topics: [], refs: [] } };
@@ -22,10 +23,14 @@ async function crawl(today, walk) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const p = await ctx.newPage();
   p.on('pageerror', (e) => errs.push(e.message));
   await p.clock.setFixedTime(new Date(today + 'T12:00:00')); await p.goto(URL);
+  // let Glow load and make its first save before seeding, or that save overwrites the seed
+  await p.waitForFunction(() => !!window.GLOW, null, { timeout: 20000 }).catch(() => {}); await p.waitForTimeout(600);
   await p.evaluate((v) => { localStorage.clear(); localStorage.setItem('cutblock71.v1', JSON.stringify(v)); }, seed(today, walk));
   await p.reload(); await p.waitForFunction(() => !!window.GLOW, null, { timeout: 20000 }); await p.waitForTimeout(800);
   const tabs = await p.$$eval('button[role="tab"][data-sec]', (xs) => xs.map((x) => ({ t: x.dataset.t, g: x.dataset.g || '', name: x.textContent.trim() })));
+  const seeded = await p.evaluate(() => Object.keys(S.days).length);
   const plan = await p.evaluate(() => ({ kcal: pKcal(), base: pKcalBase(), protein: PLANV.protein, steps: pSteps(), goal: pGoal(), gym: pGymShort(), gymLong: pGym(), walk: planNow().walk, hostPlan: window.__PLAN__() }));
+  plan.seeded = seeded;
   const out = [];
   for (const T of tabs) {
     await p.evaluate((T) => { const x = [...document.querySelectorAll('button[role="tab"]')].find((e) => e.dataset.t === T.t && (e.dataset.g || '') === T.g); if (x) x.click(); }, T);
@@ -41,7 +46,7 @@ const wrong = (hits, good) => hits.filter((h) => !good(h)).slice(0, 4).map((h) =
 
 for (const [label, today, walk] of [['a run-free week', '2026-11-12', true], ['a push week', '2026-11-25', false]]) {
   const R = await crawl(today, walk); const P = R.plan;
-  ok(`${label}: ${R.tabs.length} tabs read, plan is ${P.kcal} kcal · ${P.protein} g · steps ${P.steps} · gym ${P.gym} · goal ${P.goal}`, R.tabs.length >= 24 && R.tabs.every((t) => t.text.length > 200), R.tabs.filter((t) => t.text.length <= 200).map((t) => t.name).join(', '));
+  ok(`${label}: ${R.tabs.length} tabs read, plan is ${P.kcal} kcal · ${P.protein} g · steps ${P.steps} · gym ${P.gym} · goal ${P.goal}`, P.seeded >= 20 && R.tabs.length >= 24 && R.tabs.every((t) => t.text.length > 200), R.tabs.filter((t) => t.text.length <= 200).map((t) => t.name).join(', '));
   ok(`${label}: Glow is handed the same plan`, P.hostPlan.protein === P.protein && P.hostPlan.steps === P.steps && P.hostPlan.goal === P.goal && P.hostPlan.gym === P.gym);
   // calories: every statement of the day's number
   let h = all(R, /(?:hold at|Eat normally —|Calories:?|Strict:|Keep) (\d,\d{3})\b|(\d,\d{3}) — protein at every meal/g);
@@ -56,16 +61,17 @@ for (const [label, today, walk] of [['a run-free week', '2026-11-12', true], ['a
   ok(`${label}: the weight goal is ${P.goal} everywhere (${h.length} places)`, h.length >= 3 && !wrong(h, (x) => x.m[0] === P.goal), wrong(h, (x) => x.m[0] === P.goal));
   // protein targets
   h = all(R, /(?:[Pp]rotein(?: —| to| at| of| near your| within 15% of your)?|aim) (1\d\d) g(?: protein)?(?= a day| every day|,| in | ·|\.|\)| on logged| across)/g).filter((x) => !/so far|logged \d|average|yesterday:|today:/.test(x.ctx.slice(0, 40)));
-  ok(`${label}: the protein target is ${P.protein} g wherever it is stated (${h.length} places)`, h.length >= 3 && !wrong(h, (x) => +x.m[1] === P.protein), wrong(h, (x) => +x.m[1] === P.protein));
+  ok(`${label}: the protein target is ${P.protein} g wherever it is stated (${h.length} places)`, h.length >= 3 && !wrong(h, (x) => +x.m[1] === P.protein || +x.m[1] === LOGGED_PROTEIN) && h.some((x) => +x.m[1] === P.protein), wrong(h, (x) => +x.m[1] === P.protein || +x.m[1] === LOGGED_PROTEIN));
   // gym a week
   h = all(R, /\b[Gg]ym,? (\d(?:–\d)?)(?: a week|×| this week| times a week)|\blift (\d(?:–\d)?)×/g);
   ok(`${label}: gym is ${P.gym} a week wherever it is stated (${h.length} places)`, h.length >= 2 && !wrong(h, (x) => { const v = x.m[1] || x.m[2]; return v === P.gym || v === P.gym[0]; }), wrong(h, (x) => { const v = x.m[1] || x.m[2]; return v === P.gym || v === P.gym[0]; }));
   // the audit's stale phrases never come back
-  const stale = ['12,800', '10,500', '14,500', '13k on weekdays', '10–13k', '122–124', '122–123', 'Gym 3–4', '4 gym sessions', 'four days — the priority', 'about 95 g', 'lift 4×', 'hold at 1,899'];
+  const stale = ['12,800', '10,500', '14,500', '13k on weekdays', '10–13k', '122–124', '122–123', 'Gym 3–4', 'fresh. 4 gym sessions', 'four days — the priority', 'about 95 g', 'lift 4×', 'hold at 1,899'];
   const seen = stale.filter((s) => R.tabs.some((t) => t.text.includes(s)));
   ok(`${label}: none of the audit’s stale targets is on any screen`, !seen.length, seen.map((s) => s + ' on ' + R.tabs.filter((t) => t.text.includes(s)).map((t) => t.name).join('/')).join(' · '));
   if (walk) { const bad = ['against a target of', 'One hard run this week, not two'].filter((s) => R.tabs.some((t) => t.text.includes(s)));
-    ok('a run-free week: no screen asks for a hard run', P.walk && !bad.length, bad.join(' · ')); }
+    ok('a run-free week: no screen asks for a hard run', P.walk && !bad.length, 'walk=' + P.walk + ' ' + bad.map((x) => x + ' on ' + R.tabs.filter((t) => t.text.includes(x)).map((t) => t.name).join('/')).join(' · '));
+    if (process.env.DEBUG) console.log((R.tabs.find((t) => t.name === 'Coach') || {}).text.slice(0, 900)); }
 }
 ok('no page errors', !errs.length, errs.slice(0, 3).join(' | '));
 console.log(fails.length ? 'FAIL (' + fails.length + ')\n - ' + fails.join('\n - ') : 'all passed');

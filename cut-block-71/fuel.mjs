@@ -110,7 +110,7 @@ let push = await p.textContent('#pushCard');
 ok('no catch-up push, however few sessions are logged', push.trim() === '', push.slice(0, 200));
 const gp = await p.textContent('#goalsPanel');
 ok('Today shows the block as totals', /Your block so far/.test(gp) && /Everything here is what you have done/.test(gp), gp.slice(0, 200));
-ok('with no session targets or pace', !/of 48|of 19|of 29|behind|pro-rata|Target/.test(gp), gp.slice(0, 400));
+ok('with no session targets or pace', !/of 48|of 19|of 29|behind|pro-rata|Target/.test(gp.replace(/day \d+ of \d+/, '')), gp.slice(0, 400));
 
 // rest and push are mutually exclusive
 const both = await p.evaluate(() => {

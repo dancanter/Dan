@@ -60,3 +60,11 @@ The targets each screen states were then pulled out of the rendered text and com
    one dashboard, review at 9 pm. Every existing card kept, grouped behind those five.
 4. Sync by field with timestamps, plus a replay test with a stale phone copy.
 5. Usage counters for a week, task timings, Lighthouse and axe-core, and the evidence table for the coaching rules.
+
+## Step 1 done (13 Nov): one plan
+Every target now comes from one place (`PLANV`, `CFG`, `STRICT`, `dayTarget`) through the `p…()` helpers; Glow reads the
+same plan. About 110 hand-typed targets were replaced. Guarded by `planlint.mjs` (source) and `agree.mjs` (all 26 tabs
+rendered, two different weeks). Resolved: calories (1,799 vs 1,899), steps (eight targets → 11–13k week average),
+weight goal (four → 123–124), protein, gym a week, a hard run asked for in a run-free week.
+Still open for step 2: the phase clocks and superseded plans (block day 55 of 75, the old push, the reverse from 3 Dec,
+"London on 21 Nov"); for step 3: three recovery verdicts, duplicates, the length of Today.

@@ -150,7 +150,7 @@ await pg.click('[data-t="wins"]');
 const wins = await pg.textContent('#s-wins');
 ok('wins opens with the block so far, as totals', /Your block so far/.test(wins) && /runs/.test(wins) && /gym/.test(wins), wins.slice(0, 300));
 ok('with no session targets, pace or "behind"', !/Against pace|pro-rata|of 19|of 29|of 48/.test(wins));
-ok('wins keeps the weight goal', /Weight goal · 122–123 lb/.test(wins), wins.slice(0, 200));
+ok('wins keeps the weight goal', /Weight goal · 123–124 lb/.test(wins), wins.slice(0, 200));
 ok('and the weight milestones', /Weight milestones/.test(wins) && /Through 125 lb/.test(wins));
 ok('and the times', /2026 records/.test(wins));
 // The steps ACHIEVEMENT board is gone; the step AVERAGE was added later by
@@ -245,9 +245,9 @@ M.cut.goals.forEach(g => ok('cut goal listed: ' + g.slice(0, 28), tM.includes(g.
 M.rev.goals.forEach(g => ok('reverse goal listed: ' + g.slice(0, 28), tM.includes(g.replace(/<[^>]+>/g, ''))));
 ok('the goals are numbered, so there is an order', /1 Sleep/.test(tM), tM.slice(0, 260));
 // Dan's own order for the cut, 25 Sep.
-ok('his top five, in his order', /1 Sleep.*2 Getting to 122–124 lb.*3 Skincare.*4 Two hard runs a week.*5 Gym goals/.test(tM), tM.slice(0, 400));
+ok('his top five, in his order', /1 Sleep.*2 Getting to my goal weight.*3 Skincare.*4 Two hard runs a week.*5 Gym goals/.test(tM), tM.slice(0, 400));
 ok('study is kept, after them', /6 Study hours protected/.test(tM));
-ok('the reverse holds 122–124 through Christmas', /Calories up, 122–124 lb held through Christmas/.test(tM));
+ok('the reverse holds the goal weight through Christmas', /Calories up, goal weight held through Christmas/.test(tM));
 ok('the live block is flagged', /Cut Block 71 19 Sep [^ ]+ 28 Nov now/.test(tM), tM.slice(0, 160));
 
 ok('there is a tie-break table', /When two of them pull against each other/.test(tM));

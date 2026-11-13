@@ -157,8 +157,8 @@ ok('no unrendered placeholders leaked into it', !/\+D\+|undefined|NaN/.test(tCar
 const tX = (await p.textContent('#revXmas')).replace(/\s+/g, ' ');
 const XM = await p.evaluate(() => xmasModel());
 const HB = await p.evaluate(() => CFG.hold);
-ok('the hold band is 122–124', HB.lo === 122 && HB.hi === 124, JSON.stringify(HB));
-ok('the landing target is untouched', await p.evaluate(() => CFG.w.target === 122.5 && CFG.goals.weightLo === 122 && CFG.goals.weightHi === 123));
+ok('the hold band is the 123–124 goal', HB.lo === 123 && HB.hi === 124, JSON.stringify(HB));
+ok('the landing target is the middle of the goal', await p.evaluate(() => CFG.w.target === 123.5 && CFG.goals.weightLo === 123 && CFG.goals.weightHi === 124));
 ok('the Christmas card exists', /Christmas — smaller than the scale will tell you/.test(tX), tX.slice(0, 80));
 ok('it says when the build starts', /build from 10 Jan/.test(tX), tX.slice(0, 300));
 ok('and the plan: maintenance, the reset cut, the build (3 Nov)', /Christmas at maintenance/.test(tX) && /two-week reset cut/.test(tX) && /1,899/.test(tX) && /build/.test(tX));
@@ -174,7 +174,7 @@ ok('and the gluten risk is named, since he is coeliac', /Your real Christmas ris
 // Standing constraint: salt is never to be cut. The card may explain salty
 // food holds water, but must not tell him to cut it.
 ok('it never tells him to cut salt', !/(cut|reduce|lower|less) (the )?salt/i.test(tX));
-ok('the one-screen card carries the band', /Stay between 122 and 124 lb through Christmas/.test((await p.textContent('#revCard')).replace(/\s+/g, ' ')));
+ok('the one-screen card carries the band', /Stay between 123 and 124 lb through Christmas/.test((await p.textContent('#revCard')).replace(/\s+/g, ' ')));
 // On Today it only shows in the Christmas window.
 ok('outside the window there is no Christmas card on Today', (await p.innerHTML('#xmasCard')) === '');
 await p.evaluate(() => { CFG.xmas.from = addD(today(), -1); CFG.xmas.to = addD(today(), 1); render(); });

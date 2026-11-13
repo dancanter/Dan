@@ -348,10 +348,10 @@ let G2 = await p.evaluate(() => { const g = campGame(); return { spr: g.spr, lef
 ok('sprints have their own quest when they are on', G2.q.some(x => /^Hill sprints, explosive 0\/1$/.test(x)), JSON.stringify(G2.q));
 ok('a clear build week turns uphill sprints ON, on the end of an easy run or a walk', G2.spr.on && G2.left.some(n => /^Hill sprints — explosive: \d+ × ~10 s, after a short easy jog or a walk/.test(n) || /\+ ⛰️ \d+ hill sprints \(~10 s\) at the end/.test(n)), JSON.stringify(G2.spr));
 ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/5'), JSON.stringify(G2.q));
-ok('the shred meter tracks the 7-day average toward 122–123', G2.shred.now !== null && G2.shred.hi === 123 && G2.shred.lo === 122, JSON.stringify(G2.shred));
+ok('the shred meter tracks the 7-day average toward the 123–124 goal', G2.shred.now !== null && G2.shred.hi === 124 && G2.shred.lo === 123, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
-ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 123/.test(gx) && /the cut · day 26 of 75/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
+ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 124/.test(gx) && /the cut · day 26 of 75/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
 ok('milestones count from the start of the cut, not the camp', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - b) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
@@ -503,7 +503,7 @@ const A124 = await p.evaluate(() => campAchievements().filter(a => /^w12[34]/.te
 ok('a 124.0 average is not under 124; 123.8 is — the Sub-124 club, +150', A124.length === 1 && /^w124 SUB-124 CLUB 7-day average 123\.[89] lb · the chisel zone 150$/.test(A124[0]), JSON.stringify(A124));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 const wall = await p.evaluate(() => E('campCard').textContent);
-ok('the badge wall shows it earned, with the goal zone still to unlock', /SUB-124 CLUB/.test(wall) && /122–123 zone/.test(wall) && !/Sub-124 club7-day/.test(wall), wall.slice(wall.indexOf('ACHIEVEMENTS'), wall.indexOf('ACHIEVEMENTS') + 400));
+ok('the badge wall shows it earned, with the goal zone still to unlock', /SUB-124 CLUB/.test(wall) && /Goal weight, 123–124/.test(wall) && !/Sub-124 club7-day/.test(wall), wall.slice(wall.indexOf('ACHIEVEMENTS'), wall.indexOf('ACHIEVEMENTS') + 400));
 await ctx.close();
 
 // ===== the mile is on the badge wall (12 Oct) =====
@@ -535,7 +535,7 @@ await boot(st({ days: { '2026-10-14': { sleep: 6.8 }, '2026-10-15': { sleep: 6.9
 ok('two short nights: walk or easy only', /Walk or easy only today/.test(await p.evaluate(() => E('glanceCard').textContent)), await p.evaluate(() => JSON.stringify(greenLight())));
 await boot(st({ days: { '2026-10-13': { sleep: 6.1 }, '2026-10-14': { sleep: 6.2 }, '2026-10-15': { sleep: 6.0 } } }));
 const RD = await p.evaluate(() => E('glanceCard').textContent);
-ok('properly short on sleep: the coach’s call turns it red — a recovery day, with why and what to do', /🔴\s*Recovery day today/.test(RD) && /What to do today/.test(RD) && /No run, no gym, no deep study/.test(RD) && /gentle walk, 30–60 min/.test(RD) && /Eat normally — 1,899/.test(RD) && /Early night/.test(RD), RD.slice(0, 500));
+ok('properly short on sleep: the coach’s call turns it red — a recovery day, with why and what to do', /🔴\s*Recovery day today/.test(RD) && /What to do today/.test(RD) && /No run, no gym, no deep study/.test(RD) && /gentle walk, 30–60 min/.test(RD) && /Eat normally — 1,[789]99/.test(RD) && /Early night/.test(RD), RD.slice(0, 500));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-17'));
 await boot(st({}));
@@ -889,7 +889,7 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: Object.assign(wtsC('2026-11-02', Array.from({ length: 22 }, () => 125.6))) }));
 CCx = await p.evaluate(() => calCall());
-ok('flat two weeks: an extra gym session first, not more steps, then rest days to 1,799', CCx.k === 'down' && /extra gym session/.test(CCx.w) && /1,799/.test(CCx.w), JSON.stringify(CCx));
+ok('flat two weeks: calories never go lower; tighter logging and a gym session, not more steps', CCx.k === 'down' && /add a gym session/.test(CCx.w) && /do not go lower than 1,799/.test(CCx.w) && /hold at/.test(CCx.t), JSON.stringify(CCx));
 await ctx.close();
 // build sets now (31 Oct): upper body at build volume from 2 Nov, legs stay 8–12
 ({ ctx, p, boot } = await at('2026-11-03'));

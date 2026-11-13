@@ -199,7 +199,7 @@ ok('cut numbers are lower than reverse numbers everywhere',
 ok('legs are the lowest of the big muscles',
   sets.filter(x => x.m === 'Legs')[0].cut[1] <= sets.filter(x => x.m === 'Chest')[0].cut[1],
   JSON.stringify(sets.filter(x => /Legs|Chest/.test(x.m)).map(x => [x.m, x.cut])));
-ok('and it says why legs are low', /Legs are low on purpose/.test(t) && /12,800 steps a day/.test(t));
+ok('and it says why legs are low', /Legs are low on purpose/.test(t) && /1[12]–13k steps a day/.test(t));
 ok('a hard set is defined', /within one to three reps of failure/.test(t));
 ok('junk volume is excluded', /Eight real sets beat fourteen soft ones/.test(t));
 ok('the load rule is the headline', /drop sets, never load/.test(t));

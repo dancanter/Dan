@@ -154,7 +154,7 @@ ok('an ordinary day has no refeed card', (await p.innerText('#refeedCard')).trim
   ok('weight: −0.8 lb on last week', /127\.5 lb −0\.8 lb on last week/.test(bt), bt.slice(0, 200));
   ok('with nothing wrong, no warning line', !/Back off|overtrain|Rest what/i.test(bt));
   ok('the overall % still exists for the Wins tile', typeof BM.overall === 'number');
-  ok('and the distance to 122–124', /to 122–124/i.test(bt));
+  ok('and the distance to the 123–124 goal', /to 123–124/i.test(bt));
   // a slower session is said plainly, and not made into a trend
   days[d2].runs = [{ k: 'reps', dm: 400, n: 6, secs: 384 }];
   await boot(st({ weights, days }));
