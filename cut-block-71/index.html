@@ -9673,7 +9673,7 @@ function renderGoodLife(){
   if(E('ccCard'))E('ccCard').innerHTML=missionHTML();
   if(E('homeCard'))E('homeCard').innerHTML=homeHTML();
   if(E('ovStress'))try{E('ovStress').innerHTML='<div class="p"><h2>🧘 Your stress</h2>'+stressDetailHTML()+'</div>';}catch(e){}
-  if(E('ovRun'))try{E('ovRun').innerHTML=runCoachHTML()+runWinsHTML();}catch(e){}
+  if(E('ovRun'))try{E('ovRun').innerHTML=runCoachHTML()+winterHTML()+runWinsHTML();}catch(e){}
   if(E('calmCard'))E('calmCard').innerHTML=calmHTML();
   if(E('bankCard'))E('bankCard').innerHTML=bankHTML();
   if(E('longCardTop'))E('longCardTop').innerHTML=healthLongHTML();
@@ -9690,7 +9690,7 @@ function renderGoodLife(){
   if(E('uniCard'))E('uniCard').innerHTML=uniHTML();
   if(E('lifeCard'))E('lifeCard').innerHTML=goodLifeHTML();
   if(E('decCard'))E('decCard').innerHTML=decOptHTML();
-  if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML();
+  if(E('runCoach'))E('runCoach').innerHTML=runCoachHTML()+winterHTML();
   /* while a lift is being typed (weight, then reps) the card must not redraw under the fingers */
   if(E('liftCoach')&&!(document.activeElement&&E('liftCoach').contains(document.activeElement))&&!(window.__liftHold&&Date.now()-window.__liftHold<1500))E('liftCoach').innerHTML=liftCoachHTML();
   if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();
@@ -10674,6 +10674,24 @@ function foodCoachHTML(){var F=foodCoach();
     (F.keep.length?'<h3 style="margin:10px 0 2px">✅ Keep doing</h3>'+F.keep.map(function(k){return '<div>'+k+'</div>';}).join(''):'')+
     '<details class="fold"><summary><b>Always limit</b></summary><div class="keep" style="font-size:.88em;line-height:1.6">Sweeteners, ultra-processed snacks and bars, alcohol (save it for France or Christmas), deep-fried food, and your bloat foods. Never under '+pKcalBase()+' and never cut salt.</div></details></div>';}
 function renderFoodCoach(){try{var h=foodCoachHTML();if(E('foodCoach'))E('foodCoach').innerHTML=h;if(E('foodCoachToday'))E('foodCoachToday').innerHTML=h;}catch(e){}}
+/* ===================== winter running (Dan, 13 Nov) =====================
+   "It's basically winter now: how should I adapt my training, running etc. in the cold? Very advanced
+   coaching." October to March. Cold muscle makes less power and pulls more easily, so the warm-up,
+   the time of day and where the speed work happens change; Norwegians and easy runs go by effort. */
+function winterOn(t){var m=+(t||today()).slice(5,7);return m>=10||m<=3;}
+function winterHTML(){if(!winterOn())return '';
+  var R=[['🔥','Warm up longer','15–20 min easy, drills (A-skips, high knees, butt kicks), then 4–6 strides building to race pace. Jacket and hat back on between reps, and walk or jog the recoveries: never stand still.','big'],
+    ['🕛','Hard runs midday, on the best two days','12–3 pm is the warmest window. Check the forecast on Monday and put the two hard runs on the calmest, mildest days.','big'],
+    ['🏟️','Speed work indoors when it is bitter','Under about 2°C, icy or a gale: the 200–400 m session goes on an indoor track or a treadmill at 1% incline. Short fast reps in the cold are where hamstrings go.','big'],
+    ['🧭','Effort, not pace, in the cold','Below about 0°C or into wind, the same effort is 1–3% slower. Norwegians and easy 5-milers by feel (full sentences on the easy ones). Hard reps with a cross or tail wind.','medium'],
+    ['🧣','Breathing and kit','Below 0°C a buff over your mouth for the warm-up and recoveries. Easy runs: dress as if it is 10°C warmer. Hard sessions: layers you take off after the warm-up. Gloves and a hat always; lights in the dark.','medium'],
+    ['🤧','Stay well','A cold costs 1–2 weeks. Sleep '+pSleep()+', never under '+pKcalBase()+', carbs around hard runs. Above the neck and mild: easy only. Below the neck or a fever: rest.','big'],
+    ['🧊','No ice baths after lifting','Cold plunges within about 6 h of the gym blunt muscle growth. A cold morning shower is fine; a sauna after a run is good.','medium'],
+    ['☀️','Daylight before noon','10–20 min outside every morning sets your sleep and cortisol rhythm. October to March your skin makes almost no vitamin D: oily fish 2–3× a week.','big'],
+    ['💧','Water and skin','You lose water in the cold without feeling thirsty: 2.5–3 litres. Central heating dries skin: ceramide moisturiser morning and night, SPF every morning, lip balm.','small'],
+    ['⏱️','Trials in the cold','A calm, mild midday window and a 25-minute warm-up. If the weather is bad, move it a day or two: never race in a gale.','medium']];
+  return '<details class="fold p"><summary><b>❄️ Winter running · how to adapt</b> <span class="tiny">October to March</span></summary>'+
+    R.map(function(x){return '<div style="margin:6px 0"><b>'+x[0]+' '+x[1]+'</b> '+IMP[x[3]]+'<div style="font-size:.92em">'+x[2]+'</div></div>';}).join('')+'</details>';}
 function nutriCoachHTML(){
   var t=today(),r=S.days[t]||{},g=r.glowSum||null,N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
   var tg=dayTarget(t),hard=(r.runs||[]).some(function(x){var m=runMeta(x);return m.hard;}),gymD=!!r.gym;
