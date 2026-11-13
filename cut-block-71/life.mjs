@@ -176,7 +176,7 @@ ok('a bedtime after midnight works', await p.evaluate(() => S.days[today()].slee
 ok('the read-back shows the times and phone-free', await p.evaluate(() => { const r = dayFeedback(today()).find(x => x[0] === 'Sleep'); return /00:40→07:25/.test(r[1]) && /Phone-free/.test(r[2]); }));
 ok('the sleep number still feeds everything else', await p.evaluate(() => sleepFromTimes('22:30', '06:45').h === 8 && sleepFromTimes('07:00', '07:10') === null));
 await p.click('[data-t="review"]'); await p.waitForTimeout(150);
-ok('every week review ends with the whole-cut totals', /YOUR BLOCK SO FAR/i.test(sq(await p.innerText('#revBody')).slice(-1500)));
+ok('every week review ends with the whole-cut totals', /THE SHRED SO FAR/i.test(sq(await p.innerText('#revBody')).slice(-1500)));
 await p.click('[data-t="today"]'); await p.waitForTimeout(100);
 await p.fill('#inBed', '23:20'); await p.press('#inBed', 'Tab'); await p.waitForTimeout(150);
 ok('odd minutes are shown exactly: 23:20 → 07:25 is 7.8 h · 7 hours 50 mins', /≈ 7\.8 h · 7 hours 50 mins asleep/.test(sq(await p.innerText('#sleepCalc'))), sq(await p.innerText('#sleepCalc')));
@@ -245,17 +245,17 @@ let bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), l
 ok('on the cut the sets are the cut ranges', bm.bw === 0 && bm.chest.join() === '10,15' && bm.legs.join() === '8,12', JSON.stringify(bm));
 await p.click('[data-t="reverse"]'); await p.waitForTimeout(120);
 let rt = sq(await p.innerText('#revTrain'));
-ok('the Reverse tab previews build mode and when it starts', /build mode, from 3 Dec/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
+ok('the Reverse tab previews build mode and when it starts', /The build, from 10 Jan/i.test(rt) && /Crank up the weights/.test(rt) && /a rep or 2\.5 kg/.test(rt), rt.slice(0, 300));
 ok('the Training tab has no build card yet', !/Build mode/.test(sq(await p.innerText('#tSets'))));
 await ctx.close();
-for (const [day, wk, chest, legs, line] of [['2026-12-04', 1, '12,18', '8,12', /crank up the weights/i], ['2026-12-18', 3, '12,18', '9,13', /add leg sets/i], ['2027-01-01', 5, '12,18', '10,14', /full growth range/i]]) {
+for (const [day, wk, chest, legs, line] of [['2027-01-11', 1, '12,18', '8,12', /crank up the weights/i], ['2027-01-25', 3, '12,18', '9,13', /add leg sets/i], ['2027-02-08', 5, '12,18', '10,14', /full growth range/i]]) {
   ({ ctx, p, boot } = await at(day));
   await boot(st());
   bm = await p.evaluate(() => ({ bw: buildWeek(), chest: setsRange('Chest'), legs: setsRange('Legs'), sug: coachModel().sug[0] || '' }));
   ok('reverse week ' + wk + ': sets ' + chest + ' chest, ' + legs + ' legs', bm.bw === wk && bm.chest.join() === chest && bm.legs.join() === legs, JSON.stringify(bm));
   ok('and Feedback says it first (week ' + wk + ')', line.test(bm.sug), bm.sug);
   await p.click('[data-t="training"]'); await p.waitForTimeout(120);
-  ok('the Training tab shows build mode (week ' + wk + ')', new RegExp('Build mode · reverse week ' + wk, 'i').test(sq(await p.innerText('#tSets'))));
+  ok('the Training tab shows build mode (week ' + wk + ')', new RegExp('The build · week ' + wk, 'i').test(sq(await p.innerText('#tSets'))));
   await ctx.close();
 }
 
@@ -263,6 +263,7 @@ for (const [day, wk, chest, legs, line] of [['2026-12-04', 1, '12,18', '8,12', /
 ({ ctx, p, boot } = await at('2026-10-04'));
 await boot(st());
 await p.click('[data-t="reverse"]'); await p.waitForTimeout(150);
+await p.evaluate(() => { E('revOld').open = true; }); // the October reverse plan is kept, folded, as history (13 Nov)
 let rc = sq(await p.innerText('#revCard'));
 ok('the reverse card leads with his order: lean, health, muscle, times', /1 Lean — the angular, chiselled face · 2 Health and recovery/.test(rc) && /3 Muscle · 4 Times/.test(rc), rc.slice(0, 300));
 ok('with the reverse week: 2 hard, 2 easy, gym 5, 11,000 steps', /2 hard · 1–2 easy/.test(rc) && /a 5 mile, a 5 km if fresh/.test(rc) && /4 days/.test(rc) && /About 11,000 a day/.test(rc), rc.slice(0, 600));
@@ -351,7 +352,7 @@ ok('beat last time counts as a quest and XP', G2.q.includes('Beat last time 1/5'
 ok('the shred meter tracks the 7-day average toward the 123–124 goal', G2.shred.now !== null && G2.shred.hi === 124 && G2.shred.lo === 123, JSON.stringify(G2.shred));
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
-ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 124/.test(gx) && /the cut · day 26 of 75/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
+ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 124/.test(gx) && /the cut · day 26 of 97/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
 ok('milestones count from the start of the cut, not the camp', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - b) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
@@ -699,7 +700,7 @@ ok('above range before 15 Nov: nothing to call', await p.evaluate(() => revWatch
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-16'));
 await boot(st({ weights: wAt('2026-11-16', i => 126 + i * 0.01) }));
-ok('from 15 Nov, projecting well above 123: a calm choice, start anyway or cut a little longer', await p.evaluate(() => { const r = revWatch(); return r && r.k === 'decide' && /start the reverse on 3 Dec anyway/.test(r.w) && /move the PB window back/.test(r.w); }));
+ok('no reverse decision any more: the shred runs to Christmas Eve (Dan, 3 Nov)', await p.evaluate(() => { const r = revWatch(); return !r || r.k !== 'decide'; }));
 await ctx.close();
 
 // ===== the run ceiling: 4 a week, sprints on top (18 Oct) =====
@@ -901,8 +902,8 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-02'));
 await boot(st({ weights: { '2026-11-01': 127.0, '2026-11-02': 126.8 }, days: { '2026-11-02': { kcal: 1899, steps: 13500 } } }));
 let DO = await p.evaluate(() => ({ h: decOptHTML(), g: E('glanceCard').innerText, k: dayTarget(today()) }));
-ok('the 3 Dec card shows days to go, the food and the non-negotiables', /3 December optimisation/.test(DO.h) && /days to France/.test(DO.h) && /Strict — 1,799/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1799, DO.h.slice(0, 300));
-ok('and Today has a row for it', /3 Dec optimisation · 31 days/i.test(DO.g), DO.g.slice(0, 400));
+ok('the 3 Dec card shows days to go, the food and the non-negotiables', /The shred · day \d+ of 97/.test(DO.h) && /days to France/.test(DO.h) && /Strict — 1,799/.test(DO.h) && /✅ Weigh in/.test(DO.h) && DO.k === 1799, DO.h.slice(0, 300));
+ok('and Today has a row for it', /The shred · day \d+ of 97 · 31 days to France/i.test(DO.g), DO.g.slice(0, 400));
 await ctx.close();
 const fw = {}; for (let i = 0; i < 10; i++) { const d = new Date('2026-11-14T12:00:00'); d.setDate(d.getDate() + i); fw[d.toISOString().slice(0, 10)] = 125.0; }
 ({ ctx, p, boot } = await at('2026-11-23'));
@@ -913,14 +914,14 @@ await ctx.close();
 ({ ctx, p, boot } = await at('2026-11-23'));
 await boot(st({ weights: Object.fromEntries(Object.keys(fw).map(k => [k, 123.6])) }));
 ok('at 124.9 or under the 7-day average raises it to 1,899', await p.evaluate(() => dayTarget('2026-11-24') === 1899), JSON.stringify(await p.evaluate(() => [dayTarget('2026-11-24'), avgWindow('2026-11-23', 7), Object.keys(S.weights).length])));
-ok('the trials sit just before Christmas: 5 km 13, 1 km 16, 400 18, mile 20, 800 22, 200 and 600 23 Dec', await p.evaluate(() => { const o = {}; CFG.camp.pb.forEach(x => o[x.dm] = x.on); return o[5000] === '2026-12-13' && o[1000] === '2026-12-16' && o[400] === '2026-12-18' && o[1609] === '2026-12-20' && o[800] === '2026-12-22' && o[200] === '2026-12-23' && o[600] === '2026-12-23' && CFG.cutEnd === '2026-12-02' && campPhase('2026-12-10').k === 'refuel' && campPhase('2026-12-13').k === 'pb'; }));
+ok('the trials sit just before Christmas: 5 km 13, 1 km 16, 400 18, mile 20, 800 22, 200 and 600 23 Dec', await p.evaluate(() => { const o = {}; CFG.camp.pb.forEach(x => o[x.dm] = x.on); return o[5000] === '2026-12-13' && o[1000] === '2026-12-16' && o[400] === '2026-12-18' && o[1609] === '2026-12-20' && o[800] === '2026-12-22' && o[200] === '2026-12-23' && o[600] === '2026-12-23' && CFG.cutEnd === '2026-12-24' && campPhase('2026-12-10').k === 'refuel' && campPhase('2026-12-13').k === 'pb'; }));
 await ctx.close();
 // on to Christmas (1 Nov): strict to 24 Dec, the trip free, trials fuelled, maintenance from 25 Dec
 ({ ctx, p, boot } = await at('2026-12-08'));
 { const w = {}; for (let i = 0; i < 7; i++) { const d = new Date('2026-12-01T12:00:00'); d.setDate(d.getDate() + i); w[d.toISOString().slice(0, 10)] = 125.6; }
   await boot(st({ weights: w })); }
 const XM = await p.evaluate(() => ({ trip: strictKcal('2026-12-04'), wk: dayTarget('2026-12-08'), sat: dayTarget('2026-12-12'), pre: dayTarget('2026-12-15'), trial: dayTarget('2026-12-16'), xmas: dayTarget('2026-12-25'), card: decOptHTML(), sg: shredGoal().n }));
-ok('after France: strict on to Christmas, trials and the day before fuelled at 1,999, maintenance from 25 Dec', XM.trip === null && XM.wk === 1799 && XM.sat === 1999 && XM.pre === 1999 && XM.trial === 1999 && XM.xmas === 2199 && XM.sg === 'Christmas' && /Shred to Christmas/.test(XM.card), JSON.stringify({ ...XM, card: XM.card.slice(0, 80) }));
+ok('after France: strict on to Christmas, trials and the day before fuelled at 1,999, maintenance from 25 Dec', XM.trip === null && XM.wk === 1799 && XM.sat === 1999 && XM.pre === 1999 && XM.trial === 1999 && XM.xmas === 2199 && XM.sg === 'Christmas' && /16 days to Christmas Eve/.test(XM.card), JSON.stringify({ ...XM, card: XM.card.slice(0, 80) }));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-12-10'));
 { const w = {}; for (let i = 0; i < 7; i++) { const d = new Date('2026-12-03T12:00:00'); d.setDate(d.getDate() + i); w[d.toISOString().slice(0, 10)] = 122.8; }

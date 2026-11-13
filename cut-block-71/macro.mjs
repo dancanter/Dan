@@ -42,10 +42,10 @@ ok('the Macros panel shows the derived range', foodTxt.includes(m.txt), foodTxt.
 ok('the budget card states the headroom rather than a stale claim',
   new RegExp('as high as\\s*' + m.max + ' g').test(foodTxt.replace(/\s+/g, ' ')),
   (foodTxt.replace(/\s+/g, ' ').match(/could carry protein[^.]{0,80}/) || [''])[0]);
-ok('and says where it goes on the reverse',
-  new RegExp('holds at ' + m.proRev + ' g on the reverse').test(foodTxt.replace(/\s+/g, ' ')));
+ok('and says where it goes in the build',
+  new RegExp('holds at ' + m.proRev + ' g in the build').test(foodTxt.replace(/\s+/g, ' ')));
 const mc = (await p.textContent('#macroCard')).replace(/\s+/g, ' ');
-ok('the Food tab has your macros on the cut, in the reverse, and in general', /Your macros · and why/i.test(mc) && /On the cut/.test(mc) && /The reverse, at the top/.test(mc) && /In general · health, hormones, longevity/.test(mc), mc.slice(0, 300));
+ok('the Food tab has your macros on the cut, in the reverse, and in general', /Your macros · and why/i.test(mc) && /On the cut/.test(mc) && /The build/.test(mc) && /In general · health, hormones, longevity/.test(mc), mc.slice(0, 300));
 ok('with the why for each, and by goal and season', /testosterone drops 10–15%/.test(mc) && /refill glycogen/.test(mc) && /By goal:/.test(mc) && /By season:/.test(mc), mc.slice(0, 200));
 ok('cut macros are the live numbers', mc.includes(m.pro + ' g') && mc.includes(m.fat + ' g') && mc.includes(m.carb + ' g'));
 // 1,719 survives in one place on purpose — the line explaining the cycle Dan
@@ -72,7 +72,7 @@ ok('the sets card answers the growth question head on',
 ok('it no longer claims protein as a lever', !/protein at \d+ g instead/.test(tr),
   (tr.match(/.{40}protein at \d+ g instead.{20}/) || [''])[0]);
 ok('it does not promise growth in the deficit',
-  /do not expect much new muscle/.test(tr) && /a little is realistic/.test(tr) && /growth happens on the reverse/i.test(tr));
+  /do not expect much new muscle/.test(tr) && /a little is realistic/.test(tr) && /growth happens in the build/i.test(tr));
 // With nothing logged there is no measured deficit, so it must not invent one.
 ok('with no data logged it stays qualitative', /a deficit this size/.test(tr),
   (tr.match(/It will not add muscle at [^.]{0,60}/) || [''])[0]);

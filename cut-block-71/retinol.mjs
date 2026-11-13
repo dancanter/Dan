@@ -88,7 +88,7 @@ ok('and to restart a step lower', /restart <b>one step below<\/b>/.test(await p.
 ok('it names the deficit as a complication', /repairs a barrier more slowly/.test(t));
 ok('and that he reacted before', /already reacted to a retinoid once/.test(t));
 ok('without using that to refuse', /not a reason not to try again/.test(t));
-ok('and it does the birthday arithmetic', /clears 28 November by about three weeks/.test(t));
+ok('and it does the trip arithmetic', /clears your trips by a few weeks/.test(t));
 ok('naming the irritation window', /8 Oct to 5 Nov/.test(t), (t.match(/\d+ \w+ to \d+ \w+/) || [])[0]);
 
 // the old blanket ban is gone from both places

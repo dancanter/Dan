@@ -17,11 +17,11 @@ const boot = async (s) => { await p.goto(FILE);
 await boot(st({}));
 let t = await p.textContent('#revTop');
 ok('the tab exists and renders', t.length > 200, String(t.length));
-ok('it names the start date', /Thursday 3 December/.test(t), t.slice(0, 160));
+ok('it names the start date', /Sunday 10 January/.test(t), t.slice(0, 160));
 ok('and counts the days', /\d+ days? away/.test(t), (t.match(/\d+ days? away/) || [])[0]);
 ok('it says this is where the times come from', /Sub-55 and sub-17 do not happen on a deficit/.test(t));
 let m = await p.evaluate(() => reverseModel());
-ok('starts the day after the cut ends', m.start === '2026-12-03', m.start);
+ok('starts the day after the reset cut ends', m.start === '2027-01-10', m.start);
 ok('before it starts, it is not live', m.live === false);
 ok('with no data it falls back to the plan', m.est.from === 'planned', m.est.from);
 ok('and says so rather than pretending', /Sized off the taper for now/.test(t) && /Do not write these figures down yet/.test(t));
@@ -87,7 +87,7 @@ ok('no rung adds a trivial amount',
 ok('the last climb is a real one', m.rungs[m.rungs.length - 1].carb === 0 ? m.rungs[m.rungs.length - 1].hold : m.rungs[m.rungs.length - 1].carb >= 5,
   JSON.stringify(m.rungs.slice(-2)));
 ok('each week is seven days', m.rungs.every(r => r.from < r.to));
-ok('week 1 starts on the start date', m.rungs[0].from === '2026-12-03', m.rungs[0].from);
+ok('week 1 starts on the start date', m.rungs[0].from === '2027-01-10', m.rungs[0].from);
 ok('every step is carbohydrate', m.rungs.every(r => r.carb === Math.round((r.kcal - (m.rungs[m.rungs.indexOf(r) - 1] || { kcal: rev.kcal }).kcal) / 4)), JSON.stringify(m.rungs.map(r => r.carb)));
 // Derived, not typed: protein moved 135 -> 150 g and this assertion was the
 // only thing that noticed. It should never need editing again when it moves.

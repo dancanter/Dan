@@ -68,3 +68,6 @@ rendered, two different weeks). Resolved: calories (1,799 vs 1,899), steps (eigh
 weight goal (four → 123–124), protein, gym a week, a hard run asked for in a run-free week.
 Still open for step 2: the phase clocks and superseded plans (block day 55 of 75, the old push, the reverse from 3 Dec,
 "London on 21 Nov"); for step 3: three recovery verdicts, duplicates, the length of Today.
+
+## Step 2 done (13 Nov): one phase, one clock
+One sequence (shred to 24 Dec → Christmas → reset → build from 10 Jan) and one clock line everywhere. The old reverse plan, the 15 Nov decision, "28 November", "Cut Block 71" and "3 Dec optimisation" are off the screens; the reverse ladder is kept, folded, as history. One weight line. All 32 suites, the plan lint and `agree.mjs` (30 checks) pass.

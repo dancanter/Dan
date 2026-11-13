@@ -207,7 +207,7 @@ ok('with the reason', /how people finish a cut smaller than they planned/.test(t
 ok('it warns against adding volume later', /Do not add volume as the block runs/.test(t));
 ok('and names the scheduling trap', /heavy legs day next to a hard run day/.test(t));
 ok('each muscle is mapped to a split day', /Chest \+ triceps/.test(t) && /Back \+ biceps/.test(t));
-ok('and it points at the reverse for growth', /roughly double on the reverse/.test(t));
+ok('and it points at the reverse for growth', /roughly double in the build/.test(t));
 
 // the per-week / per-session point
 ok('it says outright these are weekly totals', /These are weekly totals/.test(t), t.slice(t.indexOf('weekly totals') - 40, t.indexOf('weekly totals') + 200));
@@ -236,7 +236,7 @@ ok('a second session beats more sets', /a second session beats adding sets to th
 // on the reverse the growth column is the live one
 await p.evaluate(() => { CFG.cutEnd = '2026-09-01'; REV_START = addD(CFG.cutEnd, 1); render(); });
 t = await p.textContent('#tSplit');
-ok('after the cut it switches to growth numbers', /You are on the reverse now/.test(t), t.slice(0, 200));
+ok('after the cut it switches to growth numbers', /You are in the build now/.test(t), t.slice(0, 200));
 
 // ===== the week's runs, totalled and split ===============================
 // The older counters overlap (a five-miler is also an easy run), so the split

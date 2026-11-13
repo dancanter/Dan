@@ -39,7 +39,7 @@ ok('and it recommends 300s as the classic 400 session', /300m reps<\/b> — the 
 ok('it cites his own 59 from the 4 x 600 as evidence', /Your 59 came inside a 4 × 600/.test(t));
 ok('the 5 km limiter is the engine, from his own 3:00',
   /3:00, which is 15:00 5 km pace/.test(t), t.slice(t.indexOf('5 km'), t.indexOf('5 km') + 300));
-ok('and it says so honestly for a deficit', /mostly a reverse-phase target and it is honest to say so/.test(t));
+ok('and it says so honestly for a deficit', /mostly a build-phase target and it is honest to say so/.test(t));
 ok('it flags he has never run a flat-out 800', /never run a flat-out 800 in 2026/.test(t));
 ok('and that the 5:27 mile was not a mile effort', /Treat it as a floor, not a best/.test(t));
 ok('each distance reports his own session count', /Your own record at this distance/.test(t));
