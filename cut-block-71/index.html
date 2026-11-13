@@ -4503,7 +4503,7 @@ function coachModel(){
   var rest;
   if(walkWeekOn(t)){
     var leftW=EASY_WK_DAYS-diffD(S.settings.walkFrom,t);
-    rest={k:'walkon',t:'Run-free week — '+leftW+' day'+(leftW===1?'':'s')+' to go',w:'No runs. Walk in daylight: steps '+pStepsLong()+'. Gym as normal with your usual sets, but nothing to failure and no strength challenge. Food stays exactly the same, protein '+pProtein()+'. Sleep '+pSleep()+'.'};
+    rest={k:'walkon',t:'Run-free week — '+leftW+' day'+(leftW===1?'':'s')+' to go',w:'No runs. Too cold to walk? An incline walk on the treadmill or 20–30 min easy on the bike or cross-trainer counts, or let steps sit nearer your '+ci(PLANV.steps.floor)+' floor this week. Steps '+pStepsLong()+'. Gym as normal with your usual sets, but nothing to failure and no strength challenge. Food stays exactly the same, protein '+pProtein()+'. Sleep '+pSleep()+'.'};
   }else if(easyWeekOn(t)){
     var left=EASY_WK_DAYS-diffD(S.settings.easyFrom,t);
     rest={k:'on',t:'Easy week — '+left+' day'+(left===1?'':'s')+' to go',w:'One hard run, kept controlled. The easy miles and steps stay. Same gym sessions with about a third fewer sets, nothing to failure. No time trials. Food stays exactly the same.'};
@@ -11169,8 +11169,33 @@ function push2Week(t){var ws=mondayOf(t);
    From 16 Nov: up to 2 EASY 5-milers a week, in place of walking time (a 5-miler is about 8,000 steps). Truly easy
    (EASY_PACE, can talk in full sentences), never the day after legs or before a hard run, eat back about half
    (~250 kcal, carbs and protein). Cortisol over the cap or legs heavy: it becomes the walk. */
-var EASY5={from:'2026-11-16',max:2};
+/* Dan, 13 Nov: "I'd rather run than go for walks now, it's too cold to walk." Up to 3 easy runs a week in place
+   of walking (a 5-miler is about 8,000 steps), with a cap of 6 runs a week in all: two hard, the Norwegian(s),
+   the easy runs. More than that on 1,799 with 5–6 gym sessions costs the legs and the look. */
+var EASY5={from:'2026-11-16',max:3,maxRuns:6};
 function easy5Count(t){var ws=mondayOf(t),n=0;for(var d=ws;d<=t;d=addD(d,1))((S.days[d]||{}).runs||[]).forEach(function(r){var m=runMeta(r);if(!m.empty&&!m.hard&&(r.type==='easy'||r.type==='fun')&&(r.km||m.km||0)>=6)n++;});return n;}
+/* ===================== the runway plan (Dan, 13 Nov) =====================
+   "Make sure I arrive at France and Christmas absolutely shredded, skin glowing, face chiselled: treat it
+   like a runway show." Two peaks, France (STRICT.tripFrom) and Christmas Eve (CFG.cutEnd). The last week
+   before each one is a countdown: nothing new, sleep up, water and salt steady (never cut: it looks flat),
+   carbs up a little the day before to fill the muscle, no heavy legs in the last 3 days, a pump on the day. */
+function runwaySteps(){return [
+  [7,'🛌','Sleep 9 h every night from here. Phone out of the room.','the face: under-eyes, puffiness, skin'],
+  [7,'🧴','No new skincare, foods or supplements. Only what you know agrees with you.','no surprise breakouts or bloating'],
+  [7,'🧂','Salt, water and fibre exactly the same every day. No takeaways or restaurant salt bombs.','a steady, tight look, no water swing'],
+  [5,'💇','Haircut 3–5 days before (it settles), brows tidied, a clean neckline.','the frame of the face'],
+  [4,'🧽','Last gentle exfoliation now, never the day before.','skin smooth, not red'],
+  [3,'🦵','No heavy legs and no new exercises from here: upper body and easy runs only.','no stiffness or water held in sore muscle'],
+  [3,'🐟','Oily fish and eggs in these days; kiwi or red pepper daily; potassium foods (potatoes, yoghurt).','glow and less puffiness'],
+  [1,'🍚','A little more carbs (about 200 kcal of rice, potatoes or oats) spread through the day; same salt and water. Last big meal 3 h before bed.','full, hard-looking muscle'],
+  [1,'🚫','Do not cut water or salt, no laxatives, no skipping meals. It looks flat and drawn, not shredded.','safety, and the look'],
+  [0,'💪','Morning: a normal breakfast, then 10–15 min of push-ups and band work for the pump. Stand tall, chin slightly forward and down in photos.','the shoulders and arms on show'],
+  [0,'🧊','Under-eyes: cold water or a cold spoon for a minute, moisturiser, SPF.','fresh, awake eyes']];}
+function runwayHTML(t){t=t||today();var P=[{n:'France',d:STRICT.tripFrom},{n:'Christmas Eve',d:CFG.cutEnd}].filter(function(x){return x.d>=t;})[0];if(!P)return '';
+  var left=diffD(t,P.d),live=left<=7,S0=runwaySteps();
+  var row=function(x){var due=left<=x[0],now=left===x[0];return '<div style="margin:5px 0;'+(due?'':'opacity:.65')+'">'+(now?'👉 ':due?'▫️ ':'◻️ ')+'<b>'+x[1]+' '+(x[0]===0?'On the day':x[0]===1?'The day before':x[0]+' days out')+':</b> '+x[2]+' <span class="keep" style="font-size:.85em;color:var(--good)">⚡ '+x[3]+'</span></div>';};
+  return '<details class="fold"'+(live?' open':'')+'><summary><b>🎬 The runway plan · '+P.n+'</b> '+(live?'<span class="pill g">'+left+' day'+(left===1?'':'s')+' to go</span>':'<span class="tiny">starts 7 days before ('+fmtS(addD(P.d,-7))+')</span>')+'</summary>'+
+    S0.map(row).join('')+'<p class="keep" style="font-size:.85em;opacity:.8;margin-top:6px">The same countdown runs again before Christmas Eve. The shredded look is the weeks before this; these days make sure it shows.</p></details>';}
 function push2HTML(){
   var t=today();if(t>PUSH2.to)return '';
   var pre=t<PUSH2.from,dF=diffD(t,PUSH2.france[0]),dX=diffD(t,PUSH2.to),W=push2Week(t);
@@ -11196,9 +11221,10 @@ function push2HTML(){
     tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
     tick(WS.avg===null?null:WS.avg>=planNow(t).steps.lo&&WS.avg<=planNow(t).steps.hi,'Steps <b>'+pSteps(t)+' as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+
     tick(fish>=2?true:(fish?false:null),'Oily fish <b>2–3× this week</b> · '+fish+' so far','medium')+
-    (t>=EASY5.from?tick(null,'Easy 5-milers: <b>up to 2</b> this week in place of walks, truly easy ('+EASY_PACE+'/km, full sentences), never the day after legs or before a hard run, eat back ~250 kcal · '+easy5Count(t)+' so far','medium'):'')+
+    (t>=EASY5.from?tick(null,'Easy runs instead of walks: <b>up to '+EASY5.max+'</b> this week (5 miles or 35–40 min), no more than '+EASY5.maxRuns+' runs in all, truly easy ('+EASY_PACE+'/km, full sentences), never the day after legs or before a hard run, eat back ~250 kcal · '+easy5Count(t)+' so far','medium'):'')+
     tick(null,'Carbs before and after every hard run; never a hard run the day after legs; Norwegians at their pace (4:00–4:05/km continuous)','big')+
     gate+
+    runwayHTML(t)+
     '<details class="fold"><summary><b>🗓️ The whole push, week by week</b></summary><div class="tiny" style="line-height:1.7">'+
     [['2026-11-16','Back'],['2026-11-23','Full'],['2026-11-30','France'],['2026-12-07','Sharpen'],['2026-12-14','Sharpen'],['2026-12-21','Trials and Christmas']].map(function(w){var P=push2Week(w[0]);return '<div><span class="mono dim">'+fmtS(w[0])+'</span> <b>'+P[0]+'</b> — '+P[1]+'</div>';}).join('')+
     '</div><p class="tiny" style="margin-top:6px">Calories never go under '+pKcalBase()+': lower costs muscle and times and raises cortisol. If the weight sits above the line for a week, the lever is precision and an extra gym session. The check-in at 9 pm says exactly what to change for tomorrow.</p></details></div>';}
