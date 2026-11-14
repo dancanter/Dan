@@ -10650,18 +10650,11 @@ var FOOD_ADD={
   potassium:['🥔','Potassium','potatoes with skin, kiwi, avocado, salmon, yoghurt','Blood pressure, muscle contraction and less puffiness.'],
   calcium:['🧀','Calcium','Fage, milk, kefir, sardines with the bones, cheese','Bone strength for running, and muscle contraction.'],
   iodine:['🥛','Iodine','Fage, milk, kefir, eggs, cod or hake','Your thyroid: metabolism and energy. UK milk is the main source.']};
-var FOOD_LIMIT=[
-  {re:/honey/,n:'Honey',max:15,u:'g a day',why:'fast sugar; best around training'},
-  {re:/^(almonds|walnuts|hazelnuts|cashews|pecans|macadamia|pistachios|peanut-butter|almond-butter)/,n:'Nuts and nut butter',max:15,u:'g a day',why:'about 6 kcal a gram: healthy, but weigh them'},
-  {re:/dark-choc|milk-choc|uk-choc/,n:'Chocolate',max:25,u:'g a day',why:'calories sneak in fast'},
-  {re:/raisins|dates|dried|sultana/,n:'Dried fruit',max:20,u:'g a day',why:'concentrated sugar'},
-  {re:/^avocado$/,n:'Avocado',max:70,u:'g a day',why:'half an avocado covers it'},
-  {re:/butter$|^butter|-oil$/,n:'Butter and oil',max:7,u:'g a day',why:'measure with a teaspoon, never pour'}];
+/* No amount limits on foods (Dan, 14 Nov): "don't be giving me limits on foods, what if some days I want more honey or more avocado." Calories and protein still steer the day. */
 function foodCoach(t){t=t||today();var N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
   var days=[],items=[];for(var i=0;i<7;i++){var d=addD(t,-i),g=(S.days[d]||{}).glow;var it=(g&&g.items)||[];if(it.length>=3){days.push(d);items=items.concat(it);}}
   var nd=days.length,add=[],limit=[],keep=[];
   if(N&&N.week)N.week.filter(function(r){return FOOD_ADD[r.k]&&typeof r.week==='number'&&r.week<90;}).slice(0,3).forEach(function(r){var F=FOOD_ADD[r.k];add.push({e:F[0],n:F[1],pct:Math.round(r.week),foods:F[2],why:F[3]});});
-  if(nd)FOOD_LIMIT.forEach(function(L){var g=0;items.forEach(function(x){if(L.re.test(x.foodId))g+=x.grams||0;});var per=g/nd;if(per>L.max*1.15)limit.push({n:L.n,per:Math.round(per),max:L.max,u:L.u,why:L.why});});
   var fish=0,pro=0,cov=[];days.forEach(function(d){var gs=(S.days[d]||{}).glowSum||{};if((gs.omega3||0)>=1)fish++;if((gs.protein||0)>=PLANV.protein-5)pro++;if(typeof gs.coverage==='number')cov.push(gs.coverage);});
   if(nd&&fish<2)add.unshift({e:'🐟',n:'Oily fish',pct:null,foods:'salmon, mackerel, sardines or trout: '+(2-fish)+' more in the next few days',why:'Omega-3 (EPA and DHA) your body uses directly: calmer inflammation, skin glow, less puffiness, brain and heart. Plant omega-3 (walnuts) converts under 10%.'});
   if(fish>=2)keep.push('🐟 Oily fish '+fish+'× in 7 days');
@@ -10669,11 +10662,10 @@ function foodCoach(t){t=t||today();var N=null;try{N=window.GLOW&&window.GLOW.nut
   if(cov.length&&mean(cov)>=80)keep.push('🥗 '+Math.round(mean(cov))+'% of your vitamins and minerals covered');
   return {days:nd,add:add.slice(0,4),limit:limit,keep:keep};}
 function foodCoachHTML(){var F=foodCoach();
-  if(!F.days)return '<div class="p"><h2>🧬 Your food coach</h2><p class="tiny">Log a few days of food (or send screenshots) and this tells you exactly what to add and what to limit, from what you actually eat.</p></div>';
+  if(!F.days)return '<div class="p"><h2>🧬 Your food coach</h2><p class="tiny">Log a few days of food (or send screenshots) and this tells you exactly what to add, from what you actually eat.</p></div>';
   var li=function(x){return '<div style="margin:6px 0"><b>'+x.e+' '+x.n+'</b>'+(x.pct!==null?' <span class="mono" style="font-size:.85em">'+x.pct+'% of need</span>':'')+'<div style="font-size:.92em">→ '+x.foods+'</div><div class="keep" style="font-size:.85em;opacity:.8">'+x.why+'</div></div>';};
   return '<div class="p lift"><h2>🧬 Your food coach · this week</h2><p class="keep" style="font-size:.85em;opacity:.75;margin:0 0 6px">From your last '+F.days+' logged day'+(F.days===1?'':'s')+'. It changes as you eat; ranked by how well your body absorbs it.</p>'+
     (F.add.length?'<h3 style="margin:8px 0 2px">➕ Add '+IMP.big+'</h3>'+F.add.map(li).join(''):'<p>✅ Nothing is far behind this week.</p>')+
-    (F.limit.length?'<h3 style="margin:10px 0 2px">➖ Limit '+IMP.medium+'</h3>'+F.limit.map(function(x){return '<div style="margin:4px 0"><b>'+x.n+'</b>: about '+x.per+' '+x.u+' (aim under '+x.max+') · '+x.why+'</div>';}).join(''):'<h3 style="margin:10px 0 2px">➖ Limit</h3><p style="margin:2px 0">Nothing over the amounts this week. Keep weighing the honey, nuts and chocolate.</p>')+
     (F.keep.length?'<h3 style="margin:10px 0 2px">✅ Keep doing</h3>'+F.keep.map(function(k){return '<div>'+k+'</div>';}).join(''):'')+
     '<details class="fold"><summary><b>Always limit</b></summary><div class="keep" style="font-size:.88em;line-height:1.6">Sweeteners, ultra-processed snacks and bars, alcohol (save it for France or Christmas), deep-fried food, and your bloat foods. Never under '+pKcalBase()+' and never cut salt.</div></details></div>';}
 function renderFoodCoach(){try{var h=foodCoachHTML();if(E('foodCoach'))E('foodCoach').innerHTML=h;if(E('foodCoachToday'))E('foodCoachToday').innerHTML=h;}catch(e){}}
