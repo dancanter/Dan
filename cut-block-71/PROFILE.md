@@ -227,3 +227,5 @@ Data & backup → Load to bring it across.
 | Needs Dan | Module titles for SK297 / SK298; TMA dates; any marks so far; whether olive oil is now allowed (the brief lists extra-virgin olive oil, his excluded list says no — the exclusion stands until he says otherwise); home BP week; grip strength if he can measure it. |
 
 **Tests:** `hpos2.mjs` (served `app.html` on :8765) covers stage 2.
+
+- **Xmas Camp Checklist (Dan, 15 Nov, from his door whiteboard):** "my goals till Christmas … with the countdown and all the goals and how close I am, making it really fun." `XCAMP` / `xcampModel()` / `xcampHTML()` → `#xcampCard` at the top of Today. 15 Nov – 24 Dec (39 days left on 15 Nov). His numbers, kept as he wrote them: runs 24, gym 25, cals 1,799–1,899 unless eating out (`days[d].eatOut` days don't count), weight 123–124 from a start of 127.6 (7-day average), finish assignments and all uni work (`S.uni.tasks` due by 24 Dec), teeth 3× plus floss (`days[d].teeth`), sleep 8–10 h without the phone (`days[d].sleep`, `days[d].noPhone`). Overall % with levels 🎁 / ❄️ 25 / 🔥 50 / ⭐ 75 / 🎄 90; "on pace" and "about N a week" from here. Mention it in check-ins.

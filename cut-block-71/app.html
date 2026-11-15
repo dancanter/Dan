@@ -101,6 +101,7 @@ section[hidden]{display:none!important}
 .tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .camptbl{font-size:13px}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;background:rgba(127,127,127,.16);font-size:.9em}
 @keyframes cbPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
 @keyframes cbFall{0%{transform:translateY(-30px) rotate(0);opacity:1}100%{transform:translateY(140px) rotate(320deg);opacity:0}}
 .cb-cele{position:relative;overflow:hidden;animation:cbPop .6s ease-out both;border:2px solid var(--accent);text-align:center}
@@ -388,6 +389,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
+  <div id="xcampCard"></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
     <div class="row" style="margin-bottom:12px">
@@ -4423,6 +4425,7 @@ function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
+  E('xcampCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-xc]');if(!b)return;var t=today(),k=b.dataset.xc;S.days[t]=S.days[t]||{};if(S.days[t][k])delete S.days[t][k];else S.days[t][k]=true;touch();});
   E('campToday').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
 /* ===================== Feedback: the coach's calls =====================
@@ -6420,10 +6423,60 @@ function parseTime(s){
 
 /* ===================== render ===================== */
 var CUR='today';
+/* ===================== Xmas camp checklist (Dan, 15 Nov) =====================
+   His whiteboard on the door, in the app: "My goals till Christmas … with the
+   countdown and all the goals and how close I am, making it really fun."
+   Board: runs 24, cals 1,799–1,899 unless eating out, gym 25, weight 123–124
+   (start 127.6), finish assignments and all uni work, teeth 3× plus floss,
+   sleep without phone 8–10 h. Days left 39 on 15 Nov → ends 24 Dec. */
+var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10}; /* plan-ok: Dan's own whiteboard numbers */
+function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
+  for(d=X.from;d<=end;d=addD(d,1))days.push(d);
+  var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0;
+  days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;if(x.gym)gym++;
+    if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
+    if(x.teeth)teeth++;if(typeof x.sleep==='number'){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone)np++;});
+  var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
+  var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number')ws.push(v);}
+  var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
+  var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(X.startW-wa)/(X.startW-X.wHi)));
+  var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;
+  return {t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
+function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
+  if(t>X.to)return '';
+  var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
+  var paceTxt=function(done,goal){var weeksLeft=Math.max(1,M.left/7),need=Math.max(0,goal-done);if(!need)return '🏆 done!';var due=goal*M.gone/M.total;
+    return (done>=due?'<b class="gd">on pace ✓</b>':'')+(done>=due?' · ':'')+need+' to go · about '+f1(need/weeksLeft)+' a week';};
+  var row=function(e,n,valTxt,p,sub){var c=p>=1?'#2ecc71':p>=.66?'#7bd389':p>=.33?'#f5c542':'#f08a5d';
+    return '<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+e+' '+n+'</b><span class="mono">'+valTxt+'</span></div>'+
+      '<div style="height:10px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden;margin:4px 0"><div style="height:100%;width:'+(p*100).toFixed(0)+'%;background:'+c+';border-radius:6px;transition:width .6s"></div></div>'+
+      '<div class="keep" style="font-size:.85em;opacity:.8">'+sub+'</div></div>';};
+  var kP=pct(M.kOk,M.kLog),slP=pct(M.sl,M.slLog),tP=pct(M.teeth,M.days),uP=M.uni.length?M.uDone/M.uni.length:0;
+  var parts=[pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,kP,uP,tP,slP],score=Math.round(mean(parts)*100);
+  var lv=score>=90?['🎄','Christmas legend']:score>=75?['⭐','Star of the camp']:score>=50?['🔥','On fire']:score>=25?['❄️','Building']:['🎁','Just unwrapped'];
+  var big=M.left===0?'🎄 It’s camp day! Final weigh-in and photos.':'<span style="font-size:2.4em;font-weight:800;line-height:1">'+M.left+'</span> <span>day'+(M.left===1?'':'s')+' left</span>';
+  var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-xc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
+  return '<div class="p lift" id="xcampIn" style="background:linear-gradient(135deg,rgba(192,57,43,.14),rgba(39,174,96,.14))">'+
+    '<h2>🎄 Xmas Camp Checklist</h2>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · day '+Math.min(M.gone,M.total)+' of '+M.total+'</div></div>'+
+    '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
+      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span></div>'+
+    row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
+    row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
+    row('⚖️','Weight 123–124',(M.wa===null?'—':f1(M.wa))+' lb',M.wp,'Started '+f1(X.startW)+(M.wa===null?'':' · '+f1(Math.max(0,X.startW-M.wa))+' lb down (7-day average), '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last '+f1(M.wl):''))+
+    row('🍽️','Cals '+X.kLo+'–'+X.kHi,M.kOk+' / '+M.kLog+' days',kP,(M.kLog?Math.round(kP*100)+'% of logged days on target':'Log food to start this one')+(M.out?' · '+M.out+' eating-out day'+(M.out===1?'':'s')+' (don’t count)':''))+
+    row('🎓','Assignments and uni work',M.uni.length?M.uDone+' / '+M.uni.length:'—',uP,M.uni.length?M.uni.map(function(k){return (k.done?'✅ ':'⬜ ')+esc((k.mod?k.mod+' ':'')+k.title)+' (due '+fmtS(k.due)+')';}).join(' · '):'Add your assignments on the University tab')+
+    row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
+    row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Log your sleep to start')+' · 📵 phone-free nights: '+M.np)+
+    '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!x.noPhone,'📵 No phone in bed')+tg('eatOut',!!x.eatOut,'🍽️ Eating out')+'</div>'+
+    '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight and sleep fill in by themselves from what you log.</p></div>';}
+function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
 function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
   paintHeader(c,tr);
   renderToday(c,w,tr);
+  renderXCamp();
   renderAlerts(w,tr,c);
   renderSignals(tr);
   renderGains();
