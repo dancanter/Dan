@@ -1494,7 +1494,7 @@ function normalise(x){
   if(!s.foods||typeof s.foods!=='object')s.foods={};
   if(typeof s.updatedAt!=='number')s.updatedAt=0;
   /* legs split by muscle: the Legs total always comes from the split (3 Nov) */
-  for(var dk in s.days){var rd=s.days[dk];if(rd&&rd.legs&&typeof rd.legs==='object'){var sm=0;for(var lk in rd.legs)sm+=+rd.legs[lk]||0;if(sm){rd.sets=rd.sets||{};rd.sets.Legs=sm;}}}
+  for(var dk in s.days){var rd=s.days[dk];if(LEG_SPLIT&&rd&&rd.legs&&typeof rd.legs==='object'){var sm=0;for(var lk in rd.legs)sm+=+rd.legs[lk]||0;if(sm){rd.sets=rd.sets||{};rd.sets.Legs=sm;}}}
   return s;
 }
 function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
@@ -1515,7 +1515,7 @@ var SPLIT_NICE={chest:'chest & triceps',back:'back & biceps',delts:'shoulders',l
 function glowSessions(r,d){var out=[];
   (r.runs||[]).forEach(function(x,i){var m=runMeta(x);if(m.empty)return;var reps=m.kind==='reps';
     out.push({id:'t-'+d+'-'+i,source:'manual',kind:'run',name:runNice(m)||(reps?'Reps':'Run'),minutes:Math.max(10,Math.round((x.secs||0)/60*(reps?2:1)+(reps?20:0))),km:m.km||undefined,intensity:m.hard?'hard':(m.subt||m.fun?'moderate':'easy'),intensitySet:true});});
-  if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(k==='Legs'&&r.legs){for(var lk in r.legs)sets[lk]=r.legs[lk];return;}if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
+  if(r.gym){var sets={};Object.keys(r.sets||{}).forEach(function(k){if(k==='Legs'&&LEG_SPLIT&&r.legs){for(var lk in r.legs)sets[lk]=r.legs[lk];return;}if(GLOW_MUSCLE[k])sets[GLOW_MUSCLE[k]]=r.sets[k];});
     out.push({id:'g-'+d,source:'manual',kind:'lift',name:r.split?('Gym · '+(SPLIT_NICE[r.split]||r.split)):'Gym',minutes:60,intensity:(r.gymRpe||0)>=8?'hard':'moderate',intensitySet:true,sets:sets});}
   return out;}
 function glowLoad(){
@@ -4471,7 +4471,7 @@ function coachModel(){
     if(i<7)X.km7+=km;else X.km28+=km;
     if(i<14&&rec.ill)X.ill++;
     if(i<7){if(rec.journal&&rec.journal.energy)X.en.push(rec.journal.energy);X.bin+=(rec.binges||[]).length;}}
-  var wsL=mondayOf(t);for(i=0;i<7;i++){rec=S.days[addD(wsL,i)]||{};X.legs+=rec.legs?((rec.legs.quads||0)+(rec.legs.hamstrings||0)):((rec.sets&&+rec.sets.Legs)||0);}
+  var wsL=mondayOf(t);for(i=0;i<7;i++){rec=S.days[addD(wsL,i)]||{};X.legs+=(rec.sets&&+rec.sets.Legs)||0;}
   var kmAvg=X.km28/3,enAvg=X.en.length>=3?mean(X.en):null;
   var slAvg=o.sl.length>=3?mean(o.sl):null,stAvg=o.steps.length>=3?mean(o.steps):null,moodAvg=o.mood.length>=3?mean(o.mood):null;
   /* weeks since the last easy week: a finished week with at most one hard
@@ -4501,7 +4501,7 @@ function coachModel(){
   if(enAvg!==null&&enAvg<=2.5)add(1,'your journal energy is averaging '+enAvg.toFixed(1)+' out of 5');
   if(X.ill>=2)add(2,X.ill+' sick days in the last fortnight');else if(X.ill)add(1,'a sick day in the last fortnight');
   if(X.bin>=2)add(1,X.bin+' binges this week, usually a sign of too little fuel for the training');
-  if(X.legs>16)add(1,X.legs+' sets of quads and hamstrings this week on top of the running');
+  if(X.legs>24)add(1,X.legs+' sets of legs this week on top of the running');
   if(kmAvg>=3&&X.km7>kmAvg*1.4)add(1,'running '+f1(X.km7)+' km this week against your usual '+f1(kmAvg));
   try{var FN=paceGuide().form.N;if(FN!==null&&FN<0.94)add(1,'Norwegian runs going much faster than planned, so even the easy sessions are hard');}catch(e){}
   /* the rest call */
@@ -5180,7 +5180,7 @@ function muscleMaxHTML(){
   var t=today();if(t<CFG.camp.start||t>CFG.camp.end)return '';
   var ws=weekSets(t),pr=0,gy=0;
   for(var i=0;i<7;i++){var d=addD(mondayOf(t),i);if(d>t)break;var r=S.days[d]||{};if(r.gym)gy++;if(r.gym&&r.pr)pr++;}
-  var WL={},hasL=false;for(var li=0;li<7;li++){var lr=S.days[addD(mondayOf(t),li)]||{};if(lr.legs){hasL=true;for(var lk2 in lr.legs)WL[lk2]=(WL[lk2]||0)+(+lr.legs[lk2]||0);}}
+  var WL={},hasL=false;for(var li=0;li<7;li++){var lr=S.days[addD(mondayOf(t),li)]||{};if(LEG_SPLIT&&lr.legs){hasL=true;for(var lk2 in lr.legs)WL[lk2]=(WL[lk2]||0)+(+lr.legs[lk2]||0);}}
   var rows=CFG.sets.map(function(x){
     if(x.m==='Legs'&&hasL){var parts=LEG_PARTS.filter(function(p){return WL[p[0]];}),mx=0;parts.forEach(function(p){mx=Math.max(mx,WL[p[0]]);});
       return '<div style="margin:4px 0"><div class="row" style="gap:6px;align-items:baseline"><b style="min-width:84px">'+(MUSCLE_E.Legs||'')+' Legs</b><span class="mono">'+(ws.Legs||0)+'</span><span class="tiny dim">by muscle</span><span class="tiny" style="margin-left:auto">'+(mx>12?'⚠ one muscle over 12':'✅ each muscle in range')+'</span></div>'+
@@ -8341,13 +8341,16 @@ function setsBoxHTML(d){
     '<p class="tiny" style="margin:6px 0 0">Judged on the <b>week</b> — Monday to Sunday, every session added up.</p>'+
     '</div>';
 }
-/* Dan, 3 Nov: "it has me doing 20 sets for quads": legs are four muscle groups.
-   Optional split; the total still fills Legs. */
+/* Dan, 3 Nov: legs split by muscle. Dan, 15 Nov: "take out the how many quads etc,
+   I just want legs for sets and maybe calves to record." So: Legs is one number
+   (the normal Legs box) and calves is an optional extra (days[d].calves).
+   Old per-muscle records (days[d].legs) are kept but no longer shown. */
+var LEG_SPLIT=false;
 var LEG_PARTS=[['quads','Quads'],['hamstrings','Hamstrings'],['glutes','Glutes & hips'],['calves','Calves']];
-function legsBoxHTML(r){var L=r.legs||{};
-  return '<div class="tiny" style="margin:8px 0 4px"><b>Legs by muscle</b> (optional): squats and extensions are quads, curls are hamstrings, abductors and adductors are hips.</div>'+
-    '<div class="row" style="gap:8px;flex-wrap:wrap">'+LEG_PARTS.map(function(x){return '<div class="f" style="max-width:96px"><label>'+x[1]+'</label><input type="number" inputmode="numeric" min="0" max="30" step="1" data-legs="'+x[0]+'" value="'+(L[x[0]]||'')+'" placeholder="0"></div>';}).join('')+'</div>'+
-    (r.legs?'<p class="note" style="margin:6px 0 0">'+LEG_PARTS.filter(function(x){return L[x[0]];}).map(function(x){var v=L[x[0]];return x[1]+' '+v+(v>12?' (a lot for one week)':'');}).join(' · ')+'. Each muscle in about 6–12 hard sets a week is the sweet spot.</p>':'');}
+function calvesWeek(d){var n=0,m=mondayOf(d||today());for(var i=0;i<7;i++){var r=S.days[addD(m,i)]||{};n+=+r.calves||(r.legs&&+r.legs.calves)||0;}return n;}
+function legsBoxHTML(r){var c=r.calves||'';
+  return '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><div class="f" style="max-width:120px"><label>🦶 Calves (optional)</label><input type="number" inputmode="numeric" min="0" max="30" step="1" data-calves="1" value="'+c+'" placeholder="0"></div></div>'+
+    (calvesWeek()?'<p class="tiny" style="margin:4px 0 0">Calves this week: <b>'+calvesWeek()+'</b> sets.</p>':'');}
 /* the sets log: every week's totals, kept for the block */
 function setsBetween(a,b){
   var out={},n=0;
@@ -10475,7 +10478,7 @@ function runWinsHTML(){
     '<div class="scroll" style="margin-top:8px"><table class="tbl"><thead><tr><th></th><th class="n">2026 best</th><th class="n">All-time</th><th class="n">Goal</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny dim" style="margin-top:4px">🏆 beat your 2026 best · 👑 beat your all-time best · 💎 hit the goal</p></div>';}
 function muscleFunHTML(){
-  var t=today(),ws=weekSets(t),WL={},hasL=false;for(var i=0;i<7;i++){var r=S.days[addD(mondayOf(t),i)]||{};if(r.legs){hasL=true;for(var k in r.legs)WL[k]=(WL[k]||0)+(+r.legs[k]||0);}}
+  var t=today(),ws=weekSets(t),WL={},hasL=false;for(var i=0;i<7;i++){var r=S.days[addD(mondayOf(t),i)]||{};if(LEG_SPLIT&&r.legs){hasL=true;for(var k in r.legs)WL[k]=(WL[k]||0)+(+r.legs[k]||0);}}
   var mood=function(v,lo,hi){return v===0?['😴','snoozing','wake it up when it fits']:(v<lo?['🌱','waking up',(lo-v)+' more set'+(lo-v===1?'':'s')+' and it starts growing']:(v<=hi?['💪','growing','in the sweet spot this week']:['🥵','overcooked','plenty for this week, let it recover']));};
   var list=[];
   CFG.sets.forEach(function(x){if(x.m==='Legs'&&hasL){LEG_PARTS.forEach(function(p){var v=WL[p[0]]||0,m=mood(v,6,12);list.push([{quads:'🦵',hamstrings:'🐆',glutes:'🍑',calves:'🦶'}[p[0]]||'🦵',p[1],v,m]);});return;}
@@ -11401,7 +11404,7 @@ function absorbHTML(){var A=absorbState();
 var SPLIT_NAME={chest:'Chest & triceps',back:'Back & biceps',delts:'Shoulders & forearms',legs:'Legs'};
 function nextLift(){
   var t=today(),ws=weekSets(t),rec={};for(var i=0;i<2;i++){var r=S.days[addD(t,-i)]||{};if(r.gym&&r.split)rec[r.split]=1;}
-  var legsDone=Object.keys(S.days).some(function(k){return k>=mondayOf(t)&&k<=t&&S.days[k].legs;});
+  var legsDone=Object.keys(S.days).some(function(k){return k>=mondayOf(t)&&k<=t&&legsDay(k);});
   var cands=['chest','back','delts','legs'].map(function(sp){var ms=CFG.sets.filter(function(x){return x.day===sp;}),short=0,detail=[];
     ms.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(sp==='legs'&&legsDone)v=Math.max(v,rg[0]);if(v<rg[0]){short+=rg[0]-v;detail.push(x.m+' '+(rg[0]-v));}});
     return {sp:sp,short:short,detail:detail,recent:!!rec[sp]};}).filter(function(c){return c.short>0&&!c.recent;}).sort(function(a,b){return b.short-a.short;});
@@ -11411,7 +11414,7 @@ function nextLift(){
   return cands[0]||null;}
 function liftCoachHTML(){
   var t=today(),last=null,ld=null;for(var i=0;i<14;i++){var d=addD(t,-i),r=S.days[d]||{};if(r.gym){last=r;ld=d;break;}}
-  var ws=weekSets(t),under=[],inr=0,over=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(x.m==='Legs'&&S.days&&Object.keys(S.days).some(function(k){return k>=mondayOf(t)&&S.days[k].legs;})){inr++;return;}
+  var ws=weekSets(t),under=[],inr=0,over=[];CFG.sets.forEach(function(x){var rg=setsRange(x.m),v=ws[x.m]||0;if(x.m==='Legs'&&LEG_SPLIT&&S.days&&Object.keys(S.days).some(function(k){return k>=mondayOf(t)&&S.days[k].legs;})){inr++;return;}
     if(v<rg[0])under.push([x.m,rg[0]-v]);else if(v>rg[1])over.push(x.m);else inr++;});
   var gyms=0;for(var j=0;j<7;j++){var dd=addD(mondayOf(t),j);if(dd>t)break;if((S.days[dd]||{}).gym)gyms++;}
   var fb='Nothing logged in the last two weeks.';
@@ -11652,11 +11655,9 @@ function wire(){
     setDay(d,{sets:Object.keys(cur).length?cur:null});
   });
   E('setsBox').addEventListener('change',function(ev){
-    var i=ev.target.closest('input[data-legs]');if(!i)return;
-    var d=E('logDate').value||today(),r=S.days[d]||{},L=clone(r.legs||{}),cur=clone(r.sets||{}),v=Math.round(Number(i.value));
-    if(isFinite(v)&&v>0)L[i.dataset.legs]=Math.min(30,v);else delete L[i.dataset.legs];
-    var sum=0;for(var k in L)sum+=L[k];if(sum)cur.Legs=sum;
-    setDay(d,{legs:Object.keys(L).length?L:null,sets:Object.keys(cur).length?cur:null});E('setsBox').innerHTML=setsBoxHTML(d);
+    var i=ev.target.closest('input[data-calves]');if(!i)return;
+    var d=E('logDate').value||today(),v=Math.round(Number(i.value));
+    setDay(d,{calves:isFinite(v)&&v>0?Math.min(30,v):null});E('setsBox').innerHTML=setsBoxHTML(d);
   });
   ['inBed','inWake'].forEach(function(id){E(id).addEventListener('change',function(){
     var d=E('logDate').value||today(),bed=E('inBed').value||null,wake=E('inWake').value||null,sh=clockShift(d),c=sleepFromTimes(bed,wake,sh);
