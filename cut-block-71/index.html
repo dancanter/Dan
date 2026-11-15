@@ -6429,13 +6429,13 @@ var CUR='today';
    Board: runs 24, cals 1,799–1,899 unless eating out, gym 25, weight 123–124
    (start 127.6), finish assignments and all uni work, teeth 3× plus floss,
    sleep without phone 8–10 h. Days left 39 on 15 Nov → ends 24 Dec. */
-var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10}; /* plan-ok: Dan's own whiteboard numbers */
+var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
 function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   for(d=X.from;d<=end;d=addD(d,1))days.push(d);
   var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0;
   days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;if(x.gym)gym++;
     if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
-    if(x.teeth)teeth++;if(typeof x.sleep==='number'){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone)np++;});
+    if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone)np++;});
   var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
   var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number')ws.push(v);}
   var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
@@ -6468,7 +6468,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     row('🍽️','Cals '+X.kLo+'–'+X.kHi,M.kOk+' / '+M.kLog+' days',kP,(M.kLog?Math.round(kP*100)+'% of logged days on target':'Log food to start this one')+(M.out?' · '+M.out+' eating-out day'+(M.out===1?'':'s')+' (don’t count)':''))+
     row('🎓','Assignments and uni work',M.uni.length?M.uDone+' / '+M.uni.length:'—',uP,M.uni.length?M.uni.map(function(k){return (k.done?'✅ ':'⬜ ')+esc((k.mod?k.mod+' ':'')+k.title)+' (due '+fmtS(k.due)+')';}).join(' · '):'Add your assignments on the University tab')+
     row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
-    row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Log your sleep to start')+' · 📵 phone-free nights: '+M.np)+
+    row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Starts tonight 🌙 log it in the morning')+' · 📵 phone-free nights: '+M.np)+
     '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!x.noPhone,'📵 No phone in bed')+tg('eatOut',!!x.eatOut,'🍽️ Eating out')+'</div>'+
     '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight and sleep fill in by themselves from what you log.</p></div>';}
 function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
