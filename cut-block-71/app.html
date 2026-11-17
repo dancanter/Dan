@@ -6440,7 +6440,7 @@ var CUR='today';
    Board: runs 24, cals 1,799–1,899 unless eating out, gym 25, weight 123–124
    (start 127.6), finish assignments and all uni work, teeth 3× plus floss,
    sleep without phone 8–10 h. Days left 39 on 15 Nov → ends 24 Dec. */
-var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
+var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,stepsAvg:12500,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
 function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   for(d=X.from;d<=end;d=addD(d,1))days.push(d);
   var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0,stuH=0,deepH=0,stuN=0;
@@ -6455,7 +6455,7 @@ function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(X.startW-wa)/(X.startW-X.wHi)));
   var wk=0,wkN=0,mo=mondayOf(t);for(var j=0;j<7;j++){var dd=addD(mo,j);if(dd>t)break;var sx=(S.days[dd]||{}).steps;if(typeof sx==='number'&&sx>0){wk+=sx;wkN++;}}
   var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;
-  return {lowest:lowest,wn:ws.length,wprev:pw.length?mean(pw):null,stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
+  return {stT:stT,lowest:lowest,wn:ws.length,wprev:pw.length?mean(pw):null,stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
 function xcampWeightHTML(M){var X=XCAMP,t=M.t;
   if(M.wa===null)return '<div class="tiny" style="margin:6px 0">Weigh in each morning (same time, after the loo) and this tells you where you are against the line to '+X.wLo+'–'+X.wHi+' lb.</div>';
   var goal=PUSH2.goal,line=push2Line(t),gap=M.wa-line,toGo=Math.max(0,M.wa-goal),to124=Math.max(0,M.wa-X.wHi),wks=Math.max(1,M.left/7),need=toGo/wks;
@@ -6495,12 +6495,17 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · '+Math.min(M.gone,M.total)+' of '+M.total+' camp days done</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
-      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
+      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,(M.wa===null?'Started '+f1(X.startW):'7-day average, '+(X.startW-M.wa>=0.05?'<b>down '+f1(X.startW-M.wa)+' lb</b> from the '+f1(X.startW)+' you started at':X.startW-M.wa<=-0.05?'up '+f1(M.wa-X.startW)+' lb on the '+f1(X.startW)+' you started at':'level with the '+f1(X.startW)+' you started at')+' · '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last weigh-in '+f1(M.wl):''))+
     xcampWeightHTML(M)+
     row('👟','Steps this week',ci(M.wk)+' / '+ci(PLANV.steps.week),Math.min(1,M.wk/PLANV.steps.week),'Averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b> a day since camp began ('+M.stN+' day'+(M.stN===1?'':'s')+' logged)'+(M.wk>=PLANV.steps.week?' · 🏆 week done!':' · '+ci(PLANV.steps.week-M.wk)+' to go this week'))+
+    (function(){var tot=M.stT,goalAvg=X.stepsAvg,goalTot=goalAvg*M.total,todayIn=typeof x.steps==='number'&&x.steps>0,elapsed=Math.max(0,M.gone-(todayIn?0:1)),exp=goalAvg*elapsed,diff=tot-exp,remain=Math.max(0,goalTot-tot),daysLeft=Math.max(1,M.total-elapsed),need=remain/daysLeft,p=Math.min(1,tot/goalTot),
+      next=Math.ceil((tot+1)/100000)*100000,ms=next>goalTot?goalTot:next;
+      return row('🏔️','Camp steps, all together',ci(tot)+' / '+ci(goalTot),p,
+        'Goal <b>'+ci(goalAvg)+' a day</b> for '+M.total+' camp days = '+ci(goalTot)+'. You’re averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b>'+(M.stAvg!==null&&elapsed?' · '+(diff>=0?'<b class="gd">'+ci(diff)+' steps ahead</b> ✓':'<b>'+ci(-diff)+' steps behind</b>'):'')+
+        '<br>'+(remain?ci(remain)+' to go · about <b>'+ci(Math.round(need))+'</b> a day from here · next milestone <b>'+ci(ms)+'</b> ('+ci(Math.max(0,ms-tot))+' to go)':'🏆 Camp steps done!'));})()+
     row('📚','Study since camp began',f1(M.stuH)+' h',null,(M.stuN?'About <b>'+f1(M.stuH/M.stuN)+' h</b> on the days you studied · <b>'+f1(M.deepH)+' h</b> deep work · '+M.stuN+' study day'+(M.stuN===1?'':'s'):'Log your study hours on Today to start this one'))+
     row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
     row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Starts tonight 🌙 log it in the morning')+' · 📵 phone-free nights: '+M.np)+
