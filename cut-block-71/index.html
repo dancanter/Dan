@@ -6436,28 +6436,28 @@ var CUR='today';
 var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
 function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   for(d=X.from;d<=end;d=addD(d,1))days.push(d);
-  var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0;
+  var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0,stuH=0,deepH=0,stuN=0;
   days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;if(x.gym)gym++;
     if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
-    if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone||x.phoneOut)np++;});
+    if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(typeof x.study==='number'&&x.study>0){stuH+=x.study;stuN++;}if(typeof x.deep==='number')deepH+=x.deep;if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone||x.phoneOut)np++;});
   var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
   var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number')ws.push(v);}
   var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
   var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(X.startW-wa)/(X.startW-X.wHi)));
   var wk=0,wkN=0,mo=mondayOf(t);for(var j=0;j<7;j++){var dd=addD(mo,j);if(dd>t)break;var sx=(S.days[dd]||{}).steps;if(typeof sx==='number'&&sx>0){wk+=sx;wkN++;}}
   var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;
-  return {stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
+  return {stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
 function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
   if(t>X.to)return '';
   var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
   var paceTxt=function(done,goal){var weeksLeft=Math.max(1,M.left/7),need=Math.max(0,goal-done);if(!need)return '🏆 done!';var due=goal*M.gone/M.total;
     return (done>=due?'<b class="gd">on pace ✓</b>':'')+(done>=due?' · ':'')+need+' to go · about '+f1(need/weeksLeft)+' a week';};
-  var row=function(e,n,valTxt,p,sub){var c=p>=1?'#2ecc71':p>=.66?'#7bd389':p>=.33?'#f5c542':'#f08a5d';
+  var row=function(e,n,valTxt,p,sub){var c=p===null?'':p>=1?'#2ecc71':p>=.66?'#7bd389':p>=.33?'#f5c542':'#f08a5d';
     return '<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+e+' '+n+'</b><span class="mono">'+valTxt+'</span></div>'+
-      '<div style="height:10px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden;margin:4px 0"><div style="height:100%;width:'+(p*100).toFixed(0)+'%;background:'+c+';border-radius:6px;transition:width .6s"></div></div>'+
+      (p===null?'':'<div style="height:10px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden;margin:4px 0"><div style="height:100%;width:'+(p*100).toFixed(0)+'%;background:'+c+';border-radius:6px;transition:width .6s"></div></div>')+
       '<div class="keep" style="font-size:.85em;opacity:.8">'+sub+'</div></div>';};
-  var kP=pct(M.kOk,M.kLog),slP=pct(M.sl,M.slLog),tP=pct(M.teeth,M.days),uP=M.uni.length?M.uDone/M.uni.length:0;
-  var parts=[pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,kP,uP,tP,slP],score=Math.round(mean(parts)*100);
+  var slP=pct(M.sl,M.slLog),tP=pct(M.teeth,M.days);
+  var parts=[pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,tP,slP],score=Math.round(mean(parts)*100);
   var lv=score>=90?['🎄','Christmas legend']:score>=75?['⭐','Star of the camp']:score>=50?['🔥','On fire']:score>=25?['❄️','Building']:['🎁','Just unwrapped'];
   var big=M.left===0?'🎄 It’s camp day! Final weigh-in and photos.':'<span style="font-size:2.4em;font-weight:800;line-height:1">'+M.left+'</span> <span>day'+(M.left===1?'':'s')+' left</span>';
   var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-xc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
@@ -6466,17 +6466,16 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · '+Math.min(M.gone,M.total)+' of '+M.total+' camp days done</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
-      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span></div>'+
+      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb',M.wp,'Started '+f1(X.startW)+(M.wa===null?'':' · '+f1(Math.max(0,X.startW-M.wa))+' lb down (7-day average), '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last '+f1(M.wl):''))+
     row('👟','Steps this week',ci(M.wk)+' / '+ci(PLANV.steps.week),Math.min(1,M.wk/PLANV.steps.week),'Averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b> a day since camp began ('+M.stN+' day'+(M.stN===1?'':'s')+' logged)'+(M.wk>=PLANV.steps.week?' · 🏆 week done!':' · '+ci(PLANV.steps.week-M.wk)+' to go this week'))+
-    row('🍽️','Cals '+X.kLo+'–'+X.kHi,M.kOk+' / '+M.kLog+' days',kP,(M.kLog?Math.round(kP*100)+'% of logged days on target':'Log food to start this one')+(M.out?' · '+M.out+' eating-out day'+(M.out===1?'':'s')+' (don’t count)':''))+
-    row('🎓','Assignments and uni work',M.uni.length?M.uDone+' / '+M.uni.length:'—',uP,M.uni.length?M.uni.map(function(k){return (k.done?'✅ ':'⬜ ')+esc((k.mod?k.mod+' ':'')+k.title)+' (due '+fmtS(k.due)+')';}).join(' · '):'Add your assignments on the University tab')+
+    row('📚','Study since camp began',f1(M.stuH)+' h',null,(M.stuN?'About <b>'+f1(M.stuH/M.stuN)+' h</b> on the days you studied · <b>'+f1(M.deepH)+' h</b> deep work · '+M.stuN+' study day'+(M.stuN===1?'':'s'):'Log your study hours on Today to start this one'))+
     row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
     row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Starts tonight 🌙 log it in the morning')+' · 📵 phone-free nights: '+M.np)+
-    '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!(x.noPhone||x.phoneOut),'📵 No phone in bed')+tg('eatOut',!!x.eatOut,'🍽️ Eating out')+'</div>'+
-    '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight and sleep fill in by themselves from what you log.</p></div>';}
+    '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!(x.noPhone||x.phoneOut),'📵 No phone in bed')+'</div>'+
+    '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight, steps, study and sleep fill in by themselves from what you log.</p></div>';}
 function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
 function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
