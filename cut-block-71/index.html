@@ -1647,6 +1647,10 @@ function mergeByDate(older,newer){
     var mm=(out.glow.myMeals||[]).slice(),mid={};mm.forEach(function(m){if(m&&m.id)mid[m.id]=1;});
     (older.glow.myMeals||[]).forEach(function(m){if(m&&m.id&&!mid[m.id]){mm.push(clone(m));added++;}});
     out.glow.myMeals=mm.filter(function(m){return hid.indexOf(m.id)<0;});out.glow.hiddenMeals=hid.slice(-200);}
+  /* Dan, 16 Nov: foods I had added to his own list vanished when a stale phone copy saved. Custom foods merge by id. */
+  if(older.glow&&Array.isArray(older.glow.customFoods)){if(!out.glow)out.glow={};if(!Array.isArray(out.glow.customFoods))out.glow.customFoods=[];
+    var cfi={};out.glow.customFoods.forEach(function(f){if(f&&f.id)cfi[f.id]=1;});
+    older.glow.customFoods.forEach(function(f){if(f&&f.id&&!cfi[f.id]){out.glow.customFoods.push(clone(f));added++;}});}
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }
@@ -4425,7 +4429,7 @@ function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
-  E('xcampCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-xc]');if(!b)return;var t=today(),k=b.dataset.xc;S.days[t]=S.days[t]||{};if(S.days[t][k])delete S.days[t][k];else S.days[t][k]=true;touch();});
+  E('xcampCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-xc]');if(!b)return;var t=today(),k=b.dataset.xc;S.days[t]=S.days[t]||{};if(k==='noPhone'){if(S.days[t].noPhone||S.days[t].phoneOut){delete S.days[t].noPhone;delete S.days[t].phoneOut;}else S.days[t].phoneOut=true;}else if(S.days[t][k])delete S.days[t][k];else S.days[t][k]=true;touch();});
   E('campToday').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
 /* ===================== Feedback: the coach's calls =====================
@@ -6435,7 +6439,7 @@ function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0;
   days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;if(x.gym)gym++;
     if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
-    if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone)np++;});
+    if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone||x.phoneOut)np++;});
   var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
   var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number')ws.push(v);}
   var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
@@ -6462,7 +6466,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · day '+Math.min(M.gone,M.total)+' of '+M.total+'</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
-      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span></div>'+
+      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span></div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     row('⚖️','Weight 123–124',(M.wa===null?'—':f1(M.wa))+' lb',M.wp,'Started '+f1(X.startW)+(M.wa===null?'':' · '+f1(Math.max(0,X.startW-M.wa))+' lb down (7-day average), '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last '+f1(M.wl):''))+
@@ -6471,7 +6475,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     row('🎓','Assignments and uni work',M.uni.length?M.uDone+' / '+M.uni.length:'—',uP,M.uni.length?M.uni.map(function(k){return (k.done?'✅ ':'⬜ ')+esc((k.mod?k.mod+' ':'')+k.title)+' (due '+fmtS(k.due)+')';}).join(' · '):'Add your assignments on the University tab')+
     row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
     row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Starts tonight 🌙 log it in the morning')+' · 📵 phone-free nights: '+M.np)+
-    '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!x.noPhone,'📵 No phone in bed')+tg('eatOut',!!x.eatOut,'🍽️ Eating out')+'</div>'+
+    '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!(x.noPhone||x.phoneOut),'📵 No phone in bed')+tg('eatOut',!!x.eatOut,'🍽️ Eating out')+'</div>'+
     '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight and sleep fill in by themselves from what you log.</p></div>';}
 function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
 function render(){
