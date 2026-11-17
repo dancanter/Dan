@@ -1266,7 +1266,7 @@ function phaseList(){return [
   {k:'reset',n:'The reset cut',from:addD(STRICT.xmasEnd,1),to:STRICT.resetTo},
   {k:'build',n:'The build',from:addD(STRICT.resetTo,1),to:null}];}
 function phaseMarks(){var tr=((CFG.camp&&CFG.camp.pb)||[]).map(function(x){return x.on;}).filter(Boolean).sort();
-  return [{d:PUSH2.from,n:'the push'},{d:'2026-11-21',n:'London'},{d:STRICT.tripFrom,n:'France'},{d:tr[0],n:'the first trial'},
+  return [{d:PUSH2.from,n:'the camp'},{d:'2026-11-21',n:'London'},{d:STRICT.tripFrom,n:'France'},{d:tr[0],n:'the first trial'},
     {d:CFG.cutEnd,n:'Christmas Eve'},{d:addD(STRICT.resetTo,1),n:'the build'}].filter(function(m){return m.d;});}
 function phaseNow(t){t=t||today();var L=phaseList(),P=L[0],i;for(i=0;i<L.length;i++)if(t>=L[i].from)P=L[i];
   var of=P.to?diffD(P.from,P.to)+1:null,day=Math.max(1,diffD(P.from,t)+1);
@@ -4411,7 +4411,7 @@ function glanceHTML(){
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
     (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
-    (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',pClock(t,1),esc((pushOn(t)?'Push: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · '+pProtein()+' protein · every gram logged'),'camp'):'')+
+    (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',pClock(t,1),esc((pushOn(t)?'Camp: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · '+pProtein()+' protein · every gram logged'),'camp'):'')+
     (function(){var CC=calCall();return CC&&CC.k!=='push'&&CC.k!=='rev'?row(CC.e,'Calorie call',esc(CC.t.replace(/^Calories: /,'')),'food'):'';})()+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
     row('🔥','Deficit this week',wn?(wd>=0?'−':'+')+ci(Math.round(Math.abs(wd)/10)*10)+' kcal · ~'+f2(Math.abs(wd)/3500)+' lb':'nothing logged','food')+
@@ -6463,13 +6463,13 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
   var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-xc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
   return '<div class="p lift" id="xcampIn" style="background:linear-gradient(135deg,rgba(192,57,43,.14),rgba(39,174,96,.14))">'+
     '<h2>🎄 Xmas Camp Checklist</h2>'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · day '+Math.min(M.gone,M.total)+' of '+M.total+'</div></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · '+Math.min(M.gone,M.total)+' of '+M.total+' camp days done</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
       '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span></div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
-    row('⚖️','Weight 123–124',(M.wa===null?'—':f1(M.wa))+' lb',M.wp,'Started '+f1(X.startW)+(M.wa===null?'':' · '+f1(Math.max(0,X.startW-M.wa))+' lb down (7-day average), '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last '+f1(M.wl):''))+
+    row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb',M.wp,'Started '+f1(X.startW)+(M.wa===null?'':' · '+f1(Math.max(0,X.startW-M.wa))+' lb down (7-day average), '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last '+f1(M.wl):''))+
     row('👟','Steps this week',ci(M.wk)+' / '+ci(PLANV.steps.week),Math.min(1,M.wk/PLANV.steps.week),'Averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b> a day since camp began ('+M.stN+' day'+(M.stN===1?'':'s')+' logged)'+(M.wk>=PLANV.steps.week?' · 🏆 week done!':' · '+ci(PLANV.steps.week-M.wk)+' to go this week'))+
     row('🍽️','Cals '+X.kLo+'–'+X.kHi,M.kOk+' / '+M.kLog+' days',kP,(M.kLog?Math.round(kP*100)+'% of logged days on target':'Log food to start this one')+(M.out?' · '+M.out+' eating-out day'+(M.out===1?'':'s')+' (don’t count)':''))+
     row('🎓','Assignments and uni work',M.uni.length?M.uDone+' / '+M.uni.length:'—',uP,M.uni.length?M.uni.map(function(k){return (k.done?'✅ ':'⬜ ')+esc((k.mod?k.mod+' ':'')+k.title)+' (due '+fmtS(k.due)+')';}).join(' · '):'Add your assignments on the University tab')+
@@ -10779,7 +10779,7 @@ function nutriCoachHTML(){
     '<b>Glow score (0–100):</b> the whole day: nutrition 45%, sleep 25%, rituals 15%, vitals 15% (only the parts you logged count).<br>'+
     'All from typical food values, not a blood test. Plants are counted for fibre and vitamin C, but your best-absorbed nutrients come from the animal foods.</p>');
   deep.push('<h3 style="margin:8px 0 2px">Your food rules, built in</h3><p class="tiny">Animal foods first (best-absorbed iron, zinc, B12, vitamin A, omega-3 and protein) · gluten-free always · no pulses, no liver, nothing processed · salt and water steady · '+pKcalBase()+' is the floor · carbs 200 g+ on training days · fat 40 g+.</p>');
-  var ph=pushOn(t)?'The push to 24 Dec: calories as the shred, protein '+pProtein()+' every day, carbs around training. The leaner you get, the more protein and sleep decide whether it is fat or muscle that goes.':(t<=STRICT.resetTo?'Christmas, then the reset cut at '+ci(CFG.kcal.up)+'.':'The build at about '+ci(STRICT.build)+': protein '+pProtein()+', carbs up for training, fat up for hormones and skin.');
+  var ph=pushOn(t)?'The camp to 24 Dec: calories as the shred, protein '+pProtein()+' every day, carbs around training. The leaner you get, the more protein and sleep decide whether it is fat or muscle that goes.':(t<=STRICT.resetTo?'Christmas, then the reset cut at '+ci(CFG.kcal.up)+'.':'The build at about '+ci(STRICT.build)+': protein '+pProtein()+', carbs up for training, fat up for hormones and skin.');
   try{var xn=crossTalkHTML('nutri');if(xn)parts.push(['🤝 From your other coaches',xn]);}catch(e){}
   parts.push(['🎯 Goal',ph]);
   return coachCard('🥩','Your nutrition coach',parts,deep.join(''));}
@@ -10805,7 +10805,7 @@ function skinCoachHTML(){
     '<h3 style="margin:8px 0 2px">The routine</h3><p class="tiny"><b>Morning:</b> gentle cleanse or just water · vitamin C or niacinamide serum · moisturiser · SPF 30–50 · caffeine eye cream if puffy. <b>Evening:</b> gentle cleanser · ceramide moisturiser. No retinol (stopped). No scrubs more than once a week.</p>'+
     '<h3 style="margin:8px 0 2px">Eat for skin (animal first)</h3><p class="tiny">Salmon, trout, mackerel (omega-3, astaxanthin) · eggs (biotin and lutein in food, fat for the barrier) · beef, venison, oysters (zinc, iron: low iron darkens circles) · Fage and kefir (protein, iodine) · kiwi, berries, oranges (vitamin C for collagen) · carrots, sweet potato, egg yolks (warm colour from food carotenoids) · fat 40 g+ · protein '+pProtein()+'.</p>'+
     '<h3 style="margin:8px 0 2px">Shoot day</h3><p class="tiny">A few more carbs the day before (they fill the muscle), salt and water exactly as usual, 9 h in bed, cold on the eyes, a pump before shooting. Never cut water or salt: it looks flat and hollow, not lean.</p>';
-  var ph=pushOn(t)?'The push to 24 Dec: the face leans out last, so the final weeks show most. Sleep and low cortisol stop it looking tired as you get leaner.':'Eating more in the build softens under-eye hollows and brings back glow.';
+  var ph=pushOn(t)?'The camp to 24 Dec: the face leans out last, so the final weeks show most. Sleep and low cortisol stop it looking tired as you get leaner.':'Eating more in the build softens under-eye hollows and brings back glow.';
   return coachCard('✨','Your skin & model coach',[['How you look today',look.join('<br>')],['This week','SPF / skin AM <b>'+am+' of '+dd+'</b> days · skin PM '+pm+' of '+dd+' · oily-fish days '+fish+(nut('omega3')!==null?' · omega-3 '+nut('omega3')+'% of need':'')],['👉 Next',nx.slice(0,4).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 Goal',ph]],deep);}
 
 /* ---- in depth for the running, lifting, longevity and study coaches ---- */
@@ -10953,7 +10953,7 @@ function weekFullHTML(a,b){
       lowN.forEach(function(x){fix.push([x.label+' at '+Math.round(x.week)+'%: '+(FOOD[x.label]||'see food options'),x.week<40?'big':'medium']);});}}catch(e){}
   /* coaching */
   fix.sort(function(x,y){var o={big:0,medium:1,small:2};return o[x[1]]-o[y[1]];});
-  var ph=pushOn(today())?'The push to 24 Dec: lose fat while keeping and building muscle and the run base. Calm and well fed beats hard and hungry.':'Keep building: muscle, the run base and health.';
+  var ph=pushOn(today())?'The camp to 24 Dec: lose fat while keeping and building muscle and the run base. Calm and well fed beats hard and hungry.':'Keep building: muscle, the run base and health.';
   return '<div class="p lift"><h2>📊 Full analysis · '+fmtS(a)+' to '+fmtS(b>today()?today():b)+'</h2>'+
     '<p class="tiny" style="margin:2px 0">Each area against the week before (food counts complete days only, so today joins tomorrow). A = on target · B = close · C = the place to look. ▲▼ against the week before (green = the good direction).</p>'+rows.join('')+
     '<h3 style="margin:12px 0 2px">🌟 What went well</h3><p style="margin:2px 0">'+(good.length?good.map(esc).join(' · '):'Logging the week is the first win: the more days logged, the sharper this gets.')+'</p>'+
@@ -11257,7 +11257,10 @@ function push2On(t){t=t||today();return t>=PUSH2.from&&t<=PUSH2.to;}
    Any morning below 127 (126.9 or less) from 12 to 16 Nov = 'gym' (gym up to 5 only). Otherwise, from 16 Nov, 'full':
    gym up to 5, the 2nd Norwegian allowed under cortisol 35 (not 25), steps at the top of the range (~13k week average). */
 PUSH2.check='2026-11-16';PUSH2.under=127.0;
+/* Dan, 17 Nov: "gonna cancel the push, I'm still making progress with this Xmas camp and I'd rather want that." From this date the extras of the full push are off: the 2nd Norwegian is back under the normal cortisol cap (25), steps back to 11–13k as the week average. The Xmas camp (his whiteboard) is the plan. */
+PUSH2.off='2026-11-17';
 function push2Mode(t){t=t||today();var hit=null;Object.keys(S.weights).forEach(function(k){if(k>='2026-11-12'&&k<=PUSH2.check&&typeof S.weights[k]==='number'&&S.weights[k]<PUSH2.under&&!hit)hit=k;});
+  if(PUSH2.off&&t>=PUSH2.off)return {k:'camp'};
   if(hit)return {k:'gym',hit:hit};if(t<PUSH2.check)return {k:'pending'};return {k:push2On(t)?'full':'off'};}
 function norwCap(t){var m=push2Mode(t);return m.k==='full'?35:25;}
 function push2Line(d){var n=diffD(PUSH2.from,PUSH2.to),i=Math.max(0,Math.min(n,diffD(PUSH2.from,d)));return PUSH2.startAvg+(PUSH2.goal-PUSH2.startAvg)*i/n;}
@@ -11313,9 +11316,9 @@ function push2HTML(){
   var wl=avg===null?'<span class="tiny dim">Weigh in on 3+ mornings to see the line.</span>':
     'Your 7-day average <b>'+f1(avg)+'</b> · the line today <b>'+f1(line)+'</b> · '+(gap<=0.2?'<b>on the line</b> ✅':'<b>'+f1(gap)+' lb above it</b>: tighten the logging (every gram, oils, honey, nuts) and add a gym session — not steps, not fewer calories.')+
     '<div class="tiny dim">The line runs from '+f1(PUSH2.startAvg)+' on 16 Nov to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
-  return '<div class="p lift" style="border-color:var(--gold)"><h2>🔥 The push · shredded, strong, fast</h2>'+
+  return '<div class="p lift" style="border-color:var(--gold)"><h2>'+(PM.k==='camp'?'🎄 The camp plan':'🔥 The push')+' · shredded, strong, fast</h2>'+
     '<div class="row" style="gap:14px;flex-wrap:wrap;align-items:baseline"><span><b class="mono" style="font-size:1.6em">'+(dF>=0?dF:'—')+'</b> <span class="tiny dim">days to France</span></span><span><b class="mono" style="font-size:1.6em">'+dX+'</b> <span class="tiny dim">days to Christmas Eve</span></span>'+(pre?'<span class="pill">starts Mon 16 Nov</span>':'')+'</div>'+
-    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> gym is '+pGym()+' either way. Any morning below 127 (126.9 or less) by then = nothing else changes. If not, the full push also allows the 2nd Norwegian under cortisol 35 and steps '+pk(PLANV.steps.loFull).replace('k','')+'–'+pStepsHi()+'.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: gym '+pGym()+', everything else as planned.</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym '+pGym()+', the 2nd Norwegian allowed under cortisol 35, steps '+pSteps(t)+' as the week average.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
+    (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> gym is '+pGym()+' either way. Any morning below 127 (126.9 or less) by then = nothing else changes. If not, the full push also allows the 2nd Norwegian under cortisol 35 and steps '+pk(PLANV.steps.loFull).replace('k','')+'–'+pStepsHi()+'.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: gym '+pGym()+', everything else as planned.</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym '+pGym()+', the 2nd Norwegian allowed under cortisol 35, steps '+pSteps(t)+' as the week average.</p>':PM.k==='camp'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🎄 <b>The push is off (your call, 17 Nov).</b> The Xmas camp is the plan: gym '+pGym()+', one Norwegian a week (a 2nd only if cortisol is under '+norwCap(t)+'), steps '+pSteps(t)+' as the week average, calories '+ci(kt)+', protein '+pProtein()+'.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
     '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
@@ -11328,7 +11331,7 @@ function push2HTML(){
     tick(null,'Carbs before and after every hard run; never a hard run the day after legs; Norwegians at their pace (4:00–4:05/km continuous)','big')+
     gate+
     runwayHTML(t)+
-    '<details class="fold"><summary><b>🗓️ The whole push, week by week</b></summary><div class="tiny" style="line-height:1.7">'+
+    '<details class="fold"><summary><b>🗓️ The whole plan, week by week</b></summary><div class="tiny" style="line-height:1.7">'+
     [['2026-11-16','Back'],['2026-11-23','Full'],['2026-11-30','France'],['2026-12-07','Sharpen'],['2026-12-14','Sharpen'],['2026-12-21','Trials and Christmas']].map(function(w){var P=push2Week(w[0]);return '<div><span class="mono dim">'+fmtS(w[0])+'</span> <b>'+P[0]+'</b> — '+P[1]+'</div>';}).join('')+
     '</div><p class="tiny" style="margin-top:6px">Calories never go under '+pKcalBase()+': lower costs muscle and times and raises cortisol. If the weight sits above the line for a week, the lever is precision and an extra gym session. The check-in at 9 pm says exactly what to change for tomorrow.</p></details></div>';}
 
