@@ -101,6 +101,13 @@ section[hidden]{display:none!important}
 .tiles.t4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .camptbl{font-size:13px}
+.cc-vits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.cc-vit{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px;border-radius:14px;background:var(--panel-2);border:1px solid var(--rule-2);color:inherit;font:inherit;cursor:pointer}
+.cc-vit small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;font-weight:700}
+.cc-vbig{font-family:'JetBrains Mono',monospace;font-size:2.9em;font-weight:800;line-height:1}.cc-vbig i{font-size:.32em;font-style:normal;opacity:.7;margin-left:3px;font-weight:600}
+.cc-vchip{font-size:12px;color:#fff;padding:2px 9px;border-radius:99px}
+.cc-vit:last-child:nth-child(odd){grid-column:1/-1}
+.cc-vline{font-size:.82em;opacity:.85}.cc-vlev{font-size:.82em;font-weight:600}
 .chip{display:inline-block;padding:3px 9px;border-radius:999px;background:rgba(127,127,127,.16);font-size:.9em}
 @keyframes cbPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
 @keyframes cbFall{0%{transform:translateY(-30px) rotate(0);opacity:1}100%{transform:translateY(140px) rotate(320deg);opacity:0}}
@@ -9808,6 +9815,8 @@ function wireGoodLife(){
       j[a]=parseInt(b.dataset.n,10);E('jrnlCard').innerHTML=journalHTML();}});
   document.addEventListener('input',function(ev){if(ev.target&&ev.target.id==='jrSearch'){JR.q=ev.target.value;var h=E('jrnlHist');var pos=ev.target.selectionStart;h.innerHTML=journalHistoryHTML();var ns=E('jrSearch');ns.focus();try{ns.setSelectionRange(pos,pos);}catch(e){}}});
   document.addEventListener('click',function(ev){
+    var vt=ev.target.closest&&ev.target.closest('button[data-vit]');
+    if(vt){var ve=E(vt.dataset.vit);if(ve){var vd=ve.closest('details');if(vd)vd.open=true;ve.scrollIntoView({behavior:'smooth',block:'start'});}return;}
     var pl=ev.target.closest&&ev.target.closest('button[data-plan]');
     if(pl){var td=today(),rr=S.days[td]=S.days[td]||{};rr.plan=!rr.plan;touch();return;}
     var f=ev.target.closest&&ev.target.closest('button[data-feel]');
@@ -9977,6 +9986,29 @@ function idStripHTML(t){
     cell('Weight',w!==null?f1(w)+' lb':'—',w!==null?lbl:'weigh in')+cell('Phase',esc(ph),'')+'</div>';
 }
 function seasonStripHTML(t){return '<div class="cc-phase">'+SEASON.map(function(x){var on=t>=x[0]&&t<=x[1];return '<div class="'+(on?'on':'')+'">'+(on?'● ':'')+x[2]+'</div>';}).join('')+'</div>';}
+/* ===================== the three numbers (Dan, 17 Nov) =====================
+   "On the main, make my longevity score, my age, my stress / cortisol score very, very clear."
+   Three big tiles at the very top of the Overview (inside Mission Control): longevity score,
+   health age against his real age, and the stress / cortisol score (0 is best). Each says
+   what it means in one line and the one thing that moves it; a tap jumps to the detail. */
+function vitalsHTML(t){
+  var L=null,H=null,CX=null;try{L=longevityScores();}catch(e){}
+  H=L&&L.H?L.H:null;CX=L&&L.CX?L.CX:null;if(!CX){try{CX=cortisolScore();}catch(e){}}
+  var col=function(c){return c==='g'?'var(--good)':c==='w'?'var(--bad)':'var(--warn)';};
+  var tile=function(go,k,big,unit,chip,c,line,lever){return '<button type="button" class="cc-vit" data-vit="'+go+'">'+
+    '<small>'+k+'</small><span class="cc-vbig" style="color:'+col(c)+'">'+big+'<i>'+unit+'</i></span>'+
+    '<b class="cc-vchip" style="background:'+col(c)+'">'+chip+'</b>'+
+    '<span class="cc-vline">'+line+'</span>'+(lever?'<span class="cc-vlev">↑ '+lever+'</span>':'')+'</button>';};
+  var out='';
+  if(L){var ba=lsBand(L.all.score),lowA=L.all.parts.slice().sort(function(a,b){return a[1]/a[2]-b[1]/b[2];})[0];
+    out+=tile('ovLong','🧬 Longevity score',L.all.score,'/100',ba[0],ba[1]==='g'?'g':(ba[1]==='w'?'w':''),'Last 4 weeks and your markers · today <b>'+L.day.score+'</b> · 100 is best','Biggest lever: <b>'+esc(lowA[0].replace(/^\S+ /,''))+'</b>'+(lowA[4]?' — '+esc(lowA[4]):''));}
+  else out+=tile('ovLong','🧬 Longevity score','…','','loading','','Working it out from your logs','');
+  if(H){var yg=H.age-H.glowAge;
+    out+=tile('glowHealthOv','🎂 Health age',H.glowAge,' yrs',yg>0?yg+' younger than you':(yg<0?(-yg)+' older than you':'same as you'),yg>0?'g':(yg<0?'w':''),'Your real age is <b>'+H.age+'</b> · from your VO₂, resting HR, sleep and food',H.vo2?'VO₂ about '+Math.round(H.vo2)+(H.rhr?', resting HR '+H.rhr:'')+': hard runs and sleep bring it down':'Hard runs, sleep and resting HR bring it down');}
+  else out+=tile('glowHealthOv','🎂 Health age','…','','loading','','Comes from your VO₂, resting HR, sleep and food','');
+  if(CX){var cc=CX.score<25?'g':(CX.score<45?'':'w'),top=CX.parts&&CX.parts[0];
+    out+=tile('ovCort','🧪 Stress / cortisol',CX.score,'/100',CX.band[0],cc,'<b>0 is best</b> · 25+ no 2nd Norwegian · 45+ hard runs become walks',top?'Biggest thing: '+esc(top.why)+(top.fix?' → '+esc(top.fix):''):'Nothing is pushing it up');}
+  return '<div class="cc-vits">'+out+'</div>';}
 function missionHTML(){
   var t=today();if(t<CFG.cutStart)return '';
   var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
@@ -10001,6 +10033,7 @@ function missionHTML(){
     '<div class="cc-top"><div><div class="cc-k">THE GOOD LIFE · MISSION CONTROL</div><div class="cc-date">'+DOWS[dow(t)]+' '+fmtS(t)+'</div></div>'+
       (lv?'<div class="cc-lv"><span>'+lv[2]+' '+lv[1]+'</span><div class="cc-bar sm"><i style="width:'+Math.round(lvPct*100)+'%"></i></div><small>'+ci(xp)+' XP'+(nx?' · '+ci(nx[0]-xp)+' to '+nx[2]+' '+nx[1]:'')+'</small></div>':'')+'</div>'+
     idStripHTML(t)+
+    vitalsHTML(t)+
     seasonStripHTML(t)+
     '<div class="cc-hero">'+
       '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
@@ -11616,7 +11649,7 @@ var GLOW_SUB='today',GLOW_LOADED=false,GLOW_APP=false;
 function loadGlow(){
   if(GLOW_LOADED)return;var code=E('glowCode');if(!code)return;GLOW_LOADED=true;
   window.__GLOW_START__=GLOW_SUB;
-  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();renderFoodCoach();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
+  window.addEventListener('glow-ready',function(){placeGlow();glowRecompute();try{if(E('ccCard'))E('ccCard').innerHTML=missionHTML();}catch(e){}try{var cH=cortisolHTML();if(E('ovCort'))E('ovCort').innerHTML=cH;if(E('cortCalm'))E('cortCalm').innerHTML=cH;if(E('nutriCoach'))E('nutriCoach').innerHTML=nutriCoachHTML();renderFoodCoach();if(E('skinCoach'))E('skinCoach').innerHTML=skinCoachHTML();if(E('longCoach'))E('longCoach').innerHTML=longCoachHTML();if(E('ovLong'))E('ovLong').innerHTML=longevityScoreHTML();}catch(e){}if(CUR==='glow')startGlow();},{once:true});
   var sc=document.createElement('script');sc.type='module';sc.textContent=code.textContent;document.body.appendChild(sc);
 }
 var GLOW_OPEN={binge:false,ill:false},GLOW_REV_END=null;
