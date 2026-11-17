@@ -1703,6 +1703,21 @@ function preAvg(){
           hi:Math.max.apply(null,rs.map(function(r){return r.lb;}))};
 }
 
+/* ===================== weight reference (Dan, 17 Nov) =====================
+   "For the weight don't go on my all-time averages, go from the start of last week, and do averages since then."
+   Weight progress is read from Monday 9 Nov: the average of that week is the start, then each week's average,
+   and the average since. The old all-time baseline stays inside the Weight tab and the achievements. */
+var WREF={from:'2026-11-09'};
+function wRef(t){t=t||today();
+  var ks=Object.keys(S.weights).sort().filter(function(k){return k>=WREF.from&&k<=t&&typeof S.weights[k]==='number';});
+  var wk={};ks.forEach(function(k){var m=mondayOf(k);(wk[m]=wk[m]||[]).push(S.weights[k]);});
+  var weeks=Object.keys(wk).sort().map(function(m){return {a:m,avg:mean(wk[m]),n:wk[m].length,cur:m===mondayOf(t)};});
+  var all=ks.map(function(k){return S.weights[k];}),low=null,lowOn=null;
+  ks.forEach(function(k){var v=S.weights[k];if(low===null||v<low){low=v;lowOn=k;}});
+  var last=weeks.filter(function(w){return !w.cur;}),cur=weeks.filter(function(w){return w.cur;})[0]||null;
+  return {from:WREF.from,n:all.length,avg:all.length?mean(all):null,weeks:weeks,start:weeks.length?weeks[0].avg:null,
+    lastWeek:last.length?last[last.length-1]:null,thisWeek:cur,low:low,lowOn:lowOn};}
+function wRefStart(){var R=null;try{R=wRef();}catch(e){}return R&&R.start!==null?R.start:127.6;}
 function weightModel(){
   var t=today(), cr=cutReadings();
   var m={reads:cr,n:cr.length,baseline:null,seed:null,curve:[],a7:null,a7n:0,prev7:null,
@@ -4868,7 +4883,7 @@ function campGame(){
   if(!q.sat&&!(dow(t)===0))left.push({e:'🧘',n:'Saturday: the stress-free day',how:'No runs, no weights, no study, nothing to think about. Steps only if they come naturally. This is where the fitness — and your head — catch up.'});
   var warn=(ST&&(ST.k==='rest'||ST.k==='warn'||ST.k==='legs'))?ST:null;
   /* the shred meter */
-  var startW=a0!==null?a0:(cutReadings().length?cutReadings()[0].lb:null);
+  var startW=wRefStart();
   var shred={now:aN,start:startW,target:CFG.w.target,lo:CFG.goals.weightLo,hi:CFG.goals.weightHi,miles:miles,weeksLeft:Math.max(0,diffD(t,CFG.cutEnd)/7),cutDay:Math.min(CUT_DAYS,diffD(CFG.cutStart,t)+1)};
   /* Dan, 11 Oct: make any change to the week obvious on Today, with why */
   var changes=[];
@@ -6452,15 +6467,15 @@ function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
   var lowest=null;Object.keys(S.weights).sort().forEach(function(k){var v=S.weights[k];if(k>=X.from&&k<=t&&typeof v==='number'&&(lowest===null||v<lowest))lowest=v;});
   var pw=[];for(var q=7;q<14;q++){var pv=S.weights[addD(t,-q)];if(typeof pv==='number')pw.push(pv);}
-  var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(X.startW-wa)/(X.startW-X.wHi)));
+  var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(wRefStart()-wa)/(wRefStart()-X.wHi)));
   var wk=0,wkN=0,mo=mondayOf(t);for(var j=0;j<7;j++){var dd=addD(mo,j);if(dd>t)break;var sx=(S.days[dd]||{}).steps;if(typeof sx==='number'&&sx>0){wk+=sx;wkN++;}}
   var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;
   return {stT:stT,lowest:lowest,wn:ws.length,wprev:pw.length?mean(pw):null,stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
 function xcampWeightHTML(M){var X=XCAMP,t=M.t;
   if(M.wa===null)return '<div class="tiny" style="margin:6px 0">Weigh in each morning (same time, after the loo) and this tells you where you are against the line to '+X.wLo+'–'+X.wHi+' lb.</div>';
   var goal=PUSH2.goal,line=push2Line(t),gap=M.wa-line,toGo=Math.max(0,M.wa-goal),to124=Math.max(0,M.wa-X.wHi),wks=Math.max(1,M.left/7),need=toGo/wks;
-  var rate=M.wprev!==null?M.wprev-M.wa:null,down=X.startW-M.wa;
-  var dn=Math.abs(down)<0.05?'level with the 127.6 you started at':(down>0?'down <b>'+f1(down)+' lb</b> from the '+f1(X.startW)+' you started at':'up <b>'+f1(-down)+' lb</b> on the '+f1(X.startW)+' you started at (water and noise, judge it over a week or two)');
+  var rate=M.wprev!==null?M.wprev-M.wa:null,RW=wRef(t),st0=wRefStart(),down=st0-M.wa;
+  var dn=Math.abs(down)<0.05?'level with last week’s average of <b>'+f1(st0)+'</b>':(down>0?'down <b>'+f1(down)+' lb</b> from last week’s average of <b>'+f1(st0)+'</b>':'up <b>'+f1(-down)+' lb</b> on last week’s average of <b>'+f1(st0)+'</b> (water and noise, judge it over a week or two)');
   var verdict=gap<=0.3?'<b>on the line ✅</b>':gap<=1?'<b>'+f1(gap)+' lb above the line</b>':'<b>'+f1(gap)+' lb above the line</b>, so this is the week to tighten up';
   var lever=function(imp,txt){return '<div style="margin:4px 0">'+IMP[imp]+' '+txt+'</div>';};
   var todo=gap<=0.3?lever('big','Nothing to change. Keep calories at the base day, '+pKcalBase()+' (never under it), protein '+pProtein()+', steps '+pSteps(t)+' and gym '+pGym()+'.')+lever('small','Keep weighing every morning: the 7-day average is the number that counts, a single morning moves 1 lb on water alone after a hard day.'):
@@ -6498,7 +6513,10 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
       '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
-    row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,(M.wa===null?'Started '+f1(X.startW):'7-day average, '+(X.startW-M.wa>=0.05?'<b>down '+f1(X.startW-M.wa)+' lb</b> from the '+f1(X.startW)+' you started at':X.startW-M.wa<=-0.05?'up '+f1(M.wa-X.startW)+' lb on the '+f1(X.startW)+' you started at':'level with the '+f1(X.startW)+' you started at')+' · '+(M.wa<=X.wHi?'🎯 in the zone!':f1(M.wa-X.wHi)+' lb to 124'))+(M.wl!==null?' · last weigh-in '+f1(M.wl):''))+
+    (function(){var R=wRef(t),lw=R.lastWeek,tw=R.thisWeek,d=lw&&tw?lw.avg-tw.avg:null;
+      return row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,
+        (lw?'Last week (from '+fmtS(lw.a)+') <b>'+f1(lw.avg)+'</b>':'')+(tw?' → this week so far <b>'+f1(tw.avg)+'</b>'+(d!==null?' ('+(d>=0.05?'<b class="gd">down '+f1(d)+' lb</b>':d<=-0.05?'up '+f1(-d)+' lb':'level')+' on last week)':''):'')+
+        (R.avg!==null?'<br>Average since '+fmtS(R.from)+': <b>'+f1(R.avg)+'</b> ('+R.n+' weigh-ins) · '+(M.wa!==null&&M.wa<=X.wHi?'🎯 in the zone!':M.wa===null?'':f1(M.wa-X.wHi)+' lb to 124')+(R.low!==null?' · lowest '+f1(R.low)+' on '+fmtS(R.lowOn):''):''));})()+
     xcampWeightHTML(M)+
     row('👟','Steps this week',ci(M.wk)+' / '+ci(PLANV.steps.week),Math.min(1,M.wk/PLANV.steps.week),'Averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b> a day since camp began ('+M.stN+' day'+(M.stN===1?'':'s')+' logged)'+(M.wk>=PLANV.steps.week?' · 🏆 week done!':' · '+ci(PLANV.steps.week-M.wk)+' to go this week'))+
     (function(){var tot=M.stT,goalAvg=X.stepsAvg,goalTot=goalAvg*M.total,todayIn=typeof x.steps==='number'&&x.steps>0,elapsed=Math.max(0,M.gone-(todayIn?0:1)),exp=goalAvg*elapsed,diff=tot-exp,remain=Math.max(0,goalTot-tot),daysLeft=Math.max(1,M.total-elapsed),need=remain/daysLeft,p=Math.min(1,tot/goalTot),
@@ -10019,7 +10037,7 @@ function missionHTML(){
   var r=S.days[t]||{},G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null,L=greenLight()||{};
   /* trip countdown and shred meter */
   var SG=shredGoal(t),left=diffD(t,SG.d);
-  var wm=weightModel(),start=wm.baseline!==null?wm.baseline:null;
+  var wm=weightModel(),start=wRefStart();
   var A=avgWindow(t,7),now=A.n?A.avg:null;
   if(now===null){var ks=Object.keys(S.weights).filter(function(k){return k<=t;}).sort();if(ks.length)now=S.weights[ks[ks.length-1]];}
   var tgt=123.5,shredPct=start!==null&&now!==null&&start>tgt?Math.max(0,Math.min(1,(start-now)/(start-tgt))):0;
@@ -10044,7 +10062,7 @@ function missionHTML(){
       '<div class="cc-count"><b>'+Math.max(0,left)+'</b><span>days to<br>'+SG.n+'</span></div>'+
       '<div class="cc-shred"><div class="cc-gh"><b>Shred meter</b><span>'+(now!==null?f1(now)+' lb':'weigh in')+' → <b class="acc">'+pGoal()+'</b></span></div>'+
         '<div class="cc-bar big"><i style="width:'+Math.round(shredPct*100)+'%"></i></div>'+
-        '<div class="cc-gs">'+(start!==null?'from '+f1(start)+' at the start of the cut · ':'')+Math.round(shredPct*100)+'% of the way · '+ci(kT)+' kcal today</div></div></div>'+
+        '<div class="cc-gs">'+(start!==null?'from '+f1(start)+' (the average of the week of 9 Nov) · ':'')+Math.round(shredPct*100)+'% of the way · '+ci(kT)+' kcal today</div></div></div>'+
     '<div class="cc-ready '+dl+'"><span class="cc-dot"></span><div><b>'+esc(L.t||'')+'</b>'+(L.sub?'<small>'+esc(L.sub)+'</small>':'')+'</div></div>'+
     '<div class="cc-rings">'+rings+'</div>'+
     '<div class="cc-week">'+ccWeek()+'</div>'+
@@ -11311,7 +11329,7 @@ function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
    muscle and running times, and obviously health." This is NOT the old push (5 Nov): nothing is dropped.
    The full week of runs, the gym 4+, calories as the shred (never lower), precision in the logging, and
    the one gate: stress/cortisol. The weight line runs from the 7-day average on 16 Nov to 123.5 on 24 Dec. */
-var PUSH2={from:'2026-11-16',to:CFG.cutEnd,france:[STRICT.tripFrom,STRICT.tripTo],goal:123.5,startAvg:127.6}; /* 17 Nov: the line starts from Dan's own whiteboard weight, 127.6 */
+var PUSH2={from:'2026-11-16',to:CFG.cutEnd,france:[STRICT.tripFrom,STRICT.tripTo],goal:123.5,startAvg:127.6}; /* startAvg is the fallback: the live start is the average of the week of 9 Nov, wRefStart() (Dan, 17 Nov) */
 function push2On(t){t=t||today();return t>=PUSH2.from&&t<=PUSH2.to;}
 /* Dan, 12 Nov: "only do this if I'm not 127 by Monday. If I hit 127 there's no need, maybe just one thing like more gym."
    Any morning below 127 (126.9 or less) from 12 to 16 Nov = 'gym' (gym up to 5 only). Otherwise, from 16 Nov, 'full':
@@ -11323,7 +11341,7 @@ function push2Mode(t){t=t||today();var hit=null;Object.keys(S.weights).forEach(f
   if(PUSH2.off&&t>=PUSH2.off)return {k:'camp'};
   if(hit)return {k:'gym',hit:hit};if(t<PUSH2.check)return {k:'pending'};return {k:push2On(t)?'full':'off'};}
 function norwCap(t){var m=push2Mode(t);return m.k==='full'?35:25;}
-function push2Line(d){var n=diffD(PUSH2.from,PUSH2.to),i=Math.max(0,Math.min(n,diffD(PUSH2.from,d)));return PUSH2.startAvg+(PUSH2.goal-PUSH2.startAvg)*i/n;}
+function push2Line(d){var n=diffD(PUSH2.from,PUSH2.to),i=Math.max(0,Math.min(n,diffD(PUSH2.from,d)));var a=wRefStart();return a+(PUSH2.goal-a)*i/n;}
 function push2Week(t){var ws=mondayOf(t);
   if(ws<'2026-11-16')return ['🚶 Run-free week','Walks, steps and gym. The training lands; the push starts Monday 16 Nov.'];
   if(ws==='2026-11-16')return ['🔙 Back','<b>Norwegian first</b> (5 × 5 min at 3:57–4:10/km, or 5 km at 4:00–4:05). Then <b>hard 600 m+</b> (4 × 1 km at 3:15–3:19, the first rep controlled). Then <b>speed</b> (200–400 m reps, full walk recoveries). No 2nd Norwegian this week.'];
@@ -11375,7 +11393,7 @@ function push2HTML(){
     '<p class="keep" style="margin:6px 0;font-size:.9em">🧪 Cortisol <b>'+CX.score+'/100</b>'+(CX.score<norwCap(t)?' · the full week is on, 2nd Norwegian allowed (under '+norwCap(t)+').':' · raised: the full week stays, the 2nd Norwegian waits until it is under '+norwCap(t)+'.')+'</p>'):'';
   var wl=avg===null?'<span class="tiny dim">Weigh in on 3+ mornings to see the line.</span>':
     'Your 7-day average <b>'+f1(avg)+'</b> · the line today <b>'+f1(line)+'</b> · '+(gap<=0.2?'<b>on the line</b> ✅':'<b>'+f1(gap)+' lb above it</b>: tighten the logging (every gram, oils, honey, nuts) and add a gym session — not steps, not fewer calories.')+
-    '<div class="tiny dim">The line runs from '+f1(PUSH2.startAvg)+' on 16 Nov to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
+    '<div class="tiny dim">The line runs from '+f1(wRefStart())+' on 16 Nov (last week’s average) to '+f1(PUSH2.goal)+' on 24 Dec: about ¾ lb a week. France lands near '+f1(push2Line(PUSH2.france[0]))+'.</div>';
   return '<div class="p lift" style="border-color:var(--gold)"><h2>'+(PM.k==='camp'?'🎄 The camp plan':'🔥 The push')+' · shredded, strong, fast</h2>'+
     '<div class="row" style="gap:14px;flex-wrap:wrap;align-items:baseline"><span><b class="mono" style="font-size:1.6em">'+(dF>=0?dF:'—')+'</b> <span class="tiny dim">days to France</span></span><span><b class="mono" style="font-size:1.6em">'+dX+'</b> <span class="tiny dim">days to Christmas Eve</span></span>'+(pre?'<span class="pill">starts Mon 16 Nov</span>':'')+'</div>'+
     (PM.k==='pending'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">⚖️ <b>The 127 check (Mon 16 Nov):</b> gym is '+pGym()+' either way. Any morning below 127 (126.9 or less) by then = nothing else changes. If not, the full push also allows the 2nd Norwegian under cortisol 35 and steps '+pk(PLANV.steps.loFull).replace('k','')+'–'+pStepsHi()+'.</p>':PM.k==='gym'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">✅ <b>127 hit on '+fmtS(PM.hit)+'</b>: gym '+pGym()+', everything else as planned.</p>':PM.k==='full'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🔥 <b>Full push</b> (127 not hit by 16 Nov): gym '+pGym()+', the 2nd Norwegian allowed under cortisol 35, steps '+pSteps(t)+' as the week average.</p>':PM.k==='camp'?'<p class="keep" style="margin:8px 0 0;font-size:.9em">🎄 <b>The push is off (your call, 17 Nov).</b> The Xmas camp is the plan: gym '+pGym()+', one Norwegian a week (a 2nd only if cortisol is under '+norwCap(t)+'), steps '+pSteps(t)+' as the week average, calories '+ci(kt)+', protein '+pProtein()+'.</p>':'')+'<h3 style="margin:10px 0 2px">'+W[0]+' · this week</h3><p style="margin:2px 0">'+W[1]+'</p>'+
