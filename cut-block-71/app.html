@@ -4432,7 +4432,7 @@ function glanceHTML(){
     (function(){var sd=shootDays();if(sd===null||sd>7)return '';var pl=shootPlan(sd);return row('📸',pl.t,esc(pl.items[0]),'model');})()+
     (reviewReady()?row('📋','Your week’s review is ready','what you built, your timeline, next week’s focus','camp'):'')+
     (t<CFG.camp.start?row('🏁','Race camp','starts '+(diffD(t,CFG.camp.start)===1?'tomorrow':'in '+diffD(t,CFG.camp.start)+' days')+' — '+DOWS[dow(CFG.camp.start)]+' '+fmtS(CFG.camp.start),'camp'):'')+
-    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return x.e==='🔥'||x.e==='🌊';}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
+    (t>=CFG.camp.start&&t<=CFG.camp.end?(function(){var G=campGame();var hl=G.left.filter(function(x){return x.e==='⚡';}).length,el=G.left.filter(function(x){return x.e==='🏃';}).length,fl=G.left.filter(function(x){return (x.e==='🔥'||x.e==='🌊')&&!x.opt;}).length;return row('🏁','Camp day '+G.day+' · '+G.lv[2]+' '+G.lv[1]+' · '+ci(G.xp)+' XP',(hl||el||fl)?'Left this week: '+[hl?hl+' hard':'',fl?fl+' fun':'',el?el+' easy':''].filter(Boolean).join(' · ').replace(/(\d) fun/,'$1 fun/Norwegian')+' — you pick the days':'✅ week done','camp');})():'')+
     (decOn(t)?row(shredGoal(t).n==='France'?'🎯':'🎄',pClock(t,1),esc((pushOn(t)?'Camp: ':(finishOn(t)?'Finish: ':'Strict: '))+ci(dayTarget(t))+' kcal · '+pProtein()+' protein · every gram logged'),'camp'):'')+
     (function(){var CC=calCall();return CC&&CC.k!=='push'&&CC.k!=='rev'?row(CC.e,'Calorie call',esc(CC.t.replace(/^Calories: /,'')),'food'):'';})()+
     row('⚖️','Weight · 7-day average',A.avg===null?'no mornings yet':(S.settings.hideDaily?'logged':f1(A.avg)+' lb'),'weight')+
@@ -4862,7 +4862,8 @@ function campGame(){
     if(norwTooFast()){var cA=norwCalmPick(t),cB=norwCalmPick(addD(t,7));nP=[cB.k!==cA.k?cB:nP[0],cA];}
     if(nP[0].k==='n400'&&/400/.test(M.P.short||'')){var alt=norwMenu().filter(function(y){return y.c==='short'&&y.k!=='n400';});nP[0]=alt[weekOf(t)%alt.length];}
     var order=nN>=2?[nP[1],nP[0]]:[nP[1]];
-    for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)});}
+    /* Dan, 18 Nov: "I'd rather the hard workout over the Norwegian, harder runs always take priority, and if I don't feel great I'll do an easy run rather than the Norwegian." The Norwegian is optional: the hard runs come first, and an easy run is an equal swap. */
+    for(var ni=q.subt;ni<nN;ni++){var np=order[ni]||nP[0];easyL.push({e:'🌊',c:np.c,opt:true,n:'Norwegian sub-threshold — '+np.n,how:runHow('Norwegian sub-threshold — '+np.n)+' <b>Optional.</b> The hard runs come first; if you do not feel great, an easy run does the same job for recovery and nothing is lost.'});}
     if(M.optN&&q.subt<2&&!walkSwap)easyL.push({e:'➕',c:'opt',n:'Optional: a 2nd Norwegian — '+nP[0].n+' (only on a 🟢 day, when recovered and cortisol is under 25)',how:runHow('Norwegian sub-threshold — '+nP[0].n)+' A bonus for the engine and the 5 km, never owed — skip it and nothing is lost.'});
     /* four runs is the most — anything extra is a walk */
     easyL.push({e:'➕',n:'Optional: a brisk 45-min walk',how:'Adds to the burn without touching your recovery. Four runs a week is the most — the walk is the extra.'});
@@ -5290,7 +5291,7 @@ function campGameHTML(){
     '<div class="tiny dim">'+(G.nx?(ci(G.nx[0]-G.xp)+' XP to '+G.nx[2]+' '+G.nx[1]):'Top level. Legend.')+'</div>'+
     (G.warn?'<p class="note wn" style="margin:10px 0 4px"><b>'+G.warn.t+'.</b> '+G.warn.w+'</p>':'')+
     '<div style="margin:10px 0 4px"><b>🗓️ Runs left this week — you pick the days</b>'+
-      (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
+      (G.left.length?G.left.map(function(x){return '<div style="margin:6px 0 0"><b>'+x.e+' '+x.n+(x.opt?' · optional':'')+'</b><div class="tiny" style="margin-left:22px">'+x.how+'</div></div>';}).join(''):'<div style="margin-top:4px">✅ The week is done — walk, stretch, early night.</div>')+
       (G.spr.done?'<div class="tiny" style="margin-top:6px">⛰️ Uphill sprints done this week ✓</div>':(!G.spr.on&&G.spr.why?'<div class="tiny dim" style="margin-top:6px">⛰️ Uphill sprints: off this week — '+G.spr.why+'.</div>':''))+
       '<div class="tiny dim" style="margin-top:6px"><b>Your week:</b> 4 work days — study plus the hard training (both hard runs and the gym); 2 light days — the easy runs and light stuff; Saturday stress-free. Pick the days inside that: hard runs 3+ days apart; legs the day before is fine if legs stay short (6–10 sets, nothing to failure), and the same day with the run first is best.</div></div>'+
     (function(){var S2=G.shred;if(S2.now===null)return '';
@@ -11314,7 +11315,7 @@ function runSpec(x,PG){
     cool='10 min easy jog.';}
   return {title:title,tgt:tgt,warm:warm,rec:rec,cool:cool,stop:stop,fuel:fuel,kind:isN?'Norwegian':(trial?'Trial':'Hard')};}
 function runSpecHTML(x,PG,open){var s=runSpec(x,PG);
-  return '<details class="fold"'+(open?' open':'')+' style="margin:6px 0"><summary>'+x.e+' <b>'+s.kind+':</b> '+esc(s.title)+(s.tgt?' <span class="mono tiny" style="color:var(--accent)">· '+esc(s.tgt)+'</span>':'')+'</summary>'+
+  return '<details class="fold"'+(open?' open':'')+' style="margin:6px 0"><summary>'+x.e+' <b>'+s.kind+':</b> '+esc(s.title)+(x.opt?' <span class="pill">optional</span>':'')+(s.tgt?' <span class="mono tiny" style="color:var(--accent)">· '+esc(s.tgt)+'</span>':'')+'</summary>'+
     '<div class="tiny" style="line-height:1.6;margin-top:4px"><b>Warm-up:</b> '+s.warm+'<br><b>Main set:</b> '+esc(s.title)+(s.tgt?', '+esc(s.tgt):'')+'<br><b>Recovery:</b> '+s.rec+'<br><b>Cool-down:</b> '+s.cool+'<br><b>The rule:</b> '+s.stop+'<br><b>Fuel:</b> '+s.fuel+'</div></details>';}
 function returnPlanHTML(PG){var N=PG.num.N,L=PG.num.L,Sx=PG.num.S;
   return '<h3 style="margin:10px 0 2px">🔜 Your first week back</h3><div class="tiny" style="line-height:1.7">'+
