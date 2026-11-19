@@ -1242,7 +1242,8 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
    number is typed anywhere else; a line that must keep a literal (history, an evidence statement, a
    threshold definition) carries a plan-ok comment saying why.
    Calories: dayTarget(t). Weight goal: CFG.goals / CFG.w.target. Everything else: PLANV. */
-var PLANV={protein:140,feed:[30,40],feeds:4,gym:{lo:5,hi:6},sleep:{lo:8,hi:9},
+/* Dan, 19 Nov: protein aim 130 to 140 g. 130 counts as on target, 140 is the target. */
+var PLANV={protein:140,proteinMin:130,feed:[30,40],feeds:4,gym:{lo:5,hi:6},sleep:{lo:8,hi:9},
   steps:{floor:8000,lo:11000,loFull:12000,hi:13000,strain:14000,week:80000},hard:2,fish:[2,3]};
 function planNow(t){t=t||today();var full=false,walk=false;try{full=push2Mode(t).k==='full';walk=walkWeekOn(t);}catch(e){}
   var st=PLANV.steps,k=CFG.kcal.avg;try{k=dayTarget(t);}catch(e){}
@@ -5020,7 +5021,7 @@ function healthWins(){
     if(sl!==null)bestSleep=Math.max(bestSleep,sl);
     if(cov!==null&&cov>=80&&cov>bestCov+2){add('hcov'+we,we,'🥗',bestCov>=80?'BEST NUTRITION WEEK YET':'NUTRITION WEEK: 80%+ COVERED',Math.round(cov)+'% of your vitamins and minerals, absorbed','your cells’ repair (DNA, mitochondria), skin and immunity',30);}
     if(cov!==null)bestCov=Math.max(bestCov,cov);
-    var pd=W.pro.filter(function(v){return v>=PLANV.protein-5;}).length;
+    var pd=W.pro.filter(function(v){return v>=PLANV.proteinMin;}).length;
     if(pd>=5){add('hpro'+we,we,'🥩',firstProt?'PROTEIN WEEK':'PROTEIN WEEK AGAIN',pd+' days at '+pProtein()+' this week','keeping and building muscle on the cut: the sculpted look',25);firstProt=false;}
     if(W.fish>=2){add('hfish'+we,we,'🐟',firstFish?'OILY FISH TWICE IN A WEEK':'OMEGA-3 WEEK',W.fish+' oily-fish days','heart, brain, skin glow and less puffiness; vitamin D in winter',25);firstFish=false;}
     if(st!==null&&st>=planNow(we).steps.lo&&st<=planNow(we).steps.hi){add('hst'+we,we,'👣',firstSteps?'STEPS IN THE SWEET SPOT':'STEPS ON PLAN AGAIN',ci(Math.round(st))+' a day on average','heart, blood sugar and longevity, without the fatigue of too many',20);firstSteps=false;}
@@ -10796,7 +10797,7 @@ function foodCoach(t){t=t||today();var N=null;try{N=window.GLOW&&window.GLOW.nut
   var days=[],items=[];for(var i=0;i<7;i++){var d=addD(t,-i),g=(S.days[d]||{}).glow;var it=(g&&g.items)||[];if(it.length>=3){days.push(d);items=items.concat(it);}}
   var nd=days.length,add=[],limit=[],keep=[];
   if(N&&N.week)N.week.filter(function(r){return FOOD_ADD[r.k]&&typeof r.week==='number'&&r.week<90;}).slice(0,3).forEach(function(r){var F=FOOD_ADD[r.k];add.push({e:F[0],n:F[1],pct:Math.round(r.week),foods:F[2],why:F[3]});});
-  var fish=0,pro=0,cov=[];days.forEach(function(d){var gs=(S.days[d]||{}).glowSum||{};if((gs.omega3||0)>=1)fish++;if((gs.protein||0)>=PLANV.protein-5)pro++;if(typeof gs.coverage==='number')cov.push(gs.coverage);});
+  var fish=0,pro=0,cov=[];days.forEach(function(d){var gs=(S.days[d]||{}).glowSum||{};if((gs.omega3||0)>=1)fish++;if((gs.protein||0)>=PLANV.proteinMin)pro++;if(typeof gs.coverage==='number')cov.push(gs.coverage);});
   if(nd&&fish<2)add.unshift({e:'🐟',n:'Oily fish',pct:null,foods:'salmon, mackerel, sardines or trout: '+(2-fish)+' more in the next few days',why:'Omega-3 (EPA and DHA) your body uses directly: calmer inflammation, skin glow, less puffiness, brain and heart. Plant omega-3 (walnuts) converts under 10%.'});
   if(fish>=2)keep.push('🐟 Oily fish '+fish+'× in 7 days');
   if(nd&&pro>=Math.max(3,nd-1))keep.push('🥩 Protein at target on '+pro+' of '+nd+' days');
@@ -11401,7 +11402,7 @@ function push2HTML(){
     '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
-    tick(g?g.protein>=PLANV.protein-5:null,'Protein <b>'+pProtein()+'</b> in 4 feeds of 30–40 g'+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
+    tick(g?g.protein>=PLANV.proteinMin:null,'Protein <b>'+pProtein()+'</b> in 4 feeds of 30–40 g'+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
     tick(gyms>=PLANV.gym.lo?true:(gyms?false:null),'Gym <b>'+PLANV.gym.lo+' this week</b>, '+PLANV.gym.hi+' on a good week (the extra goes to shoulders, arms, upper chest), beat last time · '+gyms+' so far','big')+
     tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
     tick(WS.avg===null?null:WS.avg>=planNow(t).steps.lo&&WS.avg<=planNow(t).steps.hi,'Steps <b>'+pSteps(t)+' as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+
