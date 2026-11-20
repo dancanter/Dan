@@ -3922,7 +3922,8 @@ function weekRunsModel(){
    The cut is for the look and the weight; the runs serve that. */
 /* easy pace: wide, and slower is never wrong. His 5 km best of 18:05 puts
    easy at roughly 4:45–5:20; on a deficit the top end comes off. */
-var EASY_PACE='5:00–5:45';
+/* Dan, 20 Nov: his 2025 easy 5-milers (Mar–Jun) ran 4:17–4:42/km, mostly 4:20–4:35, so 5:00–5:45 was far too slow for him. Easy is 4:30–5:00 here (winter, in a deficit); only faster than about 4:20 is flagged. */
+var EASY_PACE='4:30–5:00';
 /* ===================== current fitness (Dan, 9 Oct) =====================
    Ballpark paces that move as he gets fitter. His bests at 400 m, 1 km and
    5 km are anchors; any distance between them is read off a straight line on
@@ -5335,7 +5336,7 @@ function campHTML(){
     '<details style="margin-top:6px"><summary class="tiny"><b>Everything that makes you faster</b></summary>'+
     '<ul class="clean tiny" style="margin-top:6px">'+
     '<li><b>Sleep 8 h+</b> — the one that matters most for speed and for staying lean.</li>'+
-    '<li><b>Easy runs truly easy</b> (5:00–5:45). The hard runs are only as good as the easy ones are easy.</li>'+
+    '<li><b>Easy runs truly easy</b> ('+EASY_PACE+'/km). The hard runs are only as good as the easy ones are easy.</li>'+
     '<li><b>Strides</b>: 6–8 × 80 m fast-relaxed at the end of one easy run a week — speed for the 400 and 600 at almost no cost.</li>'+
     '<li><b>Fuel the hard days</b>: the same calories ('+pKcal()+' today) with the carbs moved around the run; oats 60–90 min before, carbs and protein within the hour after.</li>'+
     '<li><b>Gym '+pGymShort()+'</b>: legs once (never the day before a hard run), the extra sessions for shoulders, arms and upper chest.</li>'+
