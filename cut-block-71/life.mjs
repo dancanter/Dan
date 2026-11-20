@@ -138,7 +138,7 @@ await p.click('[data-t="today"]'); await p.waitForTimeout(200);
 ok('Overview opens with Mission Control, then the Xmas camp card (15 Nov), then the log (4 Nov), binge/ill/journal, Today, then the round-up: stress, health age, running, health bank, micros', await p.evaluate(() => {
   const kids = [...E('s-today').children].filter(c => c.id !== 'storeWarn');
   const ids = kids.map(c => c.id);
-  return kids[0].id === 'ccCard' && kids[1].id === 'xcampCard' && /Log ·/.test(kids[2].querySelector('h2').textContent) && ids.indexOf('jrnlCard') < ids.indexOf('homeCard') && ids.indexOf('homeCard') < ids.indexOf('ovStress') && ids.indexOf('ovRun') < ids.indexOf('bankCard') && !!E('glowHealthOv') && !!E('glowMicrosOv') && !!E('moreToday').querySelector('#tdeeCard');
+  return kids[0].id === 'ccCard' && kids[1].id === 'allCard' && kids[2].id === 'xcampCard' && /Log ·/.test(kids[3].querySelector('h2').textContent) && ids.indexOf('jrnlCard') < ids.indexOf('homeCard') && ids.indexOf('homeCard') < ids.indexOf('ovStress') && ids.indexOf('ovRun') < ids.indexOf('bankCard') && !!E('glowHealthOv') && !!E('glowMicrosOv') && !!E('moreToday').querySelector('#tdeeCard');
 }));
 let g = sq(await p.innerText('#glanceCard'));
 ok('Today opens with the main things at a glance', /TODAY AT A GLANCE/i.test(g) && /128\.2 lb/.test(g) && /1 hard/.test(g) && /1 session/.test(g) && /8\.2 h · 8 h 12 min ✓/.test(g) && /Tonight is film night/.test(g) && /2 steps done/.test(g), g);

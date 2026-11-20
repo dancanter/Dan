@@ -40,6 +40,8 @@ let gc = await text(p, 'longCoach');
 ok('the longevity coach knows the program', /Your program this week \(running coach\)/.test(gc) && /VO₂/.test(gc), gc.slice(-400));
 const strip = await p.evaluate(() => document.getElementById('xcampCard').innerText);
 ok('the camp card carries the week at a glance', /This week:/.test(strip) && /3 of 4 this week/.test(strip), strip.slice(0, 400));
+const ac = await p.evaluate(() => document.getElementById('allCard').innerText);
+ok('the overview has one card with the camp, the data and the program together', /Everything in one place/.test(ac) && /Camp score/.test(ac) && /Weight/.test(ac) && /Steps/.test(ac) && /Nutrition score/.test(ac) && /Sleep 8/.test(ac) && /This week/.test(ac), ac.slice(0, 300));
 await ctx.close();
 
 ok('C is a fortnightly 200 m session with 80 m uphill sprints in between', /200 m uphill at about 30 s a rep/.test(rc) && /80 m uphill/.test(rc), rc.slice(0,200));

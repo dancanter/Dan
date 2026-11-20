@@ -396,6 +396,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 <section id="s-today" class="stack">
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
+  <div id="allCard"></div>
   <div id="xcampCard"></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
@@ -6534,11 +6535,38 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!(x.noPhone||x.phoneOut),'📵 No phone in bed')+'</div>'+
     '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight, steps, study and sleep fill in by themselves from what you log.</p></div>';}
 function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
+/* Dan, 20 Nov: "on the overview I'd want all my data on it and the Xmas camp, so it's all together rather than scrolling down." */
+function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
+  var M=xcampModel(t),W=null,x=S.days[t]||{},i,d;try{W=prog25Week(t);}catch(e){}
+  var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
+  var score=Math.round(mean([pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,pct(M.teeth,M.days),pct(M.sl,M.slLog)])*100);
+  var nA=[],sA=[];for(i=0;i<14;i++){d=addD(t,-i);var rr=S.days[d]||{},nv=rr.glowSum?rr.glowSum.nutrition:null,sv=sleepScoreOn(d);if(typeof nv==='number')nA.push(nv);if(typeof sv==='number')sA.push(sv);}
+  var av=function(a){return a.length?Math.round(mean(a)):null;},nS=av(nA),sS=av(sA);
+  var gd=null;try{gd=glowDay(t);}catch(e){}
+  var kc=gd?gd.kcal:(typeof x.kcal==='number'?x.kcal:null),pr=gd?gd.protein:null,kT=dayTarget(t);
+  var R=wRef(t),down=M.wa!==null?wRefStart()-M.wa:null;
+  var tile=function(e,n,v,sub){return '<div style="padding:9px 10px;border-radius:12px;background:rgba(127,127,127,.12);min-width:0"><div class="tiny dim">'+e+' '+n+'</div><div style="font-size:1.25em;font-weight:800;line-height:1.25">'+v+'</div><div class="tiny keep" style="opacity:.85">'+sub+'</div></div>';};
+  var tiles=[
+    tile('🎄','Camp score',score+'%',Math.min(M.gone,M.total)+' of '+M.total+' camp days done · '+M.left+' to go'),
+    tile('🏃','Runs',M.runs+' / '+X.runs,'this week '+(W?W.done+' of 4 sessions':'—')),
+    tile('🏋️','Gym',M.gym+' / '+X.gym,'goal '+pGym()+' a week'),
+    tile('⚖️','Weight',M.wa===null?'—':f1(M.wa)+' lb',(M.wa===null?'weigh in':(down!==null&&Math.abs(down)>=0.05?(down>0?'down '+f1(down)+' on last week':'up '+f1(-down)+' on last week'):'level with last week')+' · '+(M.wa>X.wHi?f1(M.wa-X.wHi)+' to 124':'🎯 in the zone'))),
+    tile('👟','Steps',ci(M.wk),'this week · camp total '+ci(M.stT)+' of '+ci(X.stepsAvg*M.total)),
+    tile('📚','Study',f1(M.stuH)+' h','since camp began'),
+    tile('🦷','Teeth',M.teeth+' / '+M.days,'days with 3× + floss'),
+    tile('😴','Sleep 8–10 h',M.sl+' / '+M.slLog,'nights · score '+(sS===null?'—':sS+'/100')),
+    tile('🥗','Nutrition score',nS===null?'—':nS+'/100','14-day avg · baseline 56–80'),
+    tile('🍽️','Today',kc===null?'—':ci(kc)+' kcal',(pr===null?'':ci(pr)+' g protein · ')+'of '+ci(kT)+' kcal')].join('');
+  return '<div class="p lift"><h2>📋 Everything in one place</h2><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'+tiles+'</div>'+
+    '<div class="tiny keep" style="margin:8px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
+    '<div class="tiny keep dim">Longevity, health age and cortisol are the three tiles above. The full camp checklist is just below.</div></div>';}
+function renderAllCard(){var el=E('allCard');if(!el)return;try{el.innerHTML=allInOneHTML();}catch(e){el.innerHTML='';}}
+
 function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
   paintHeader(c,tr);
   renderToday(c,w,tr);
-  renderXCamp();
+  renderXCamp();renderAllCard();
   renderAlerts(w,tr,c);
   renderSignals(tr);
   renderGains();
