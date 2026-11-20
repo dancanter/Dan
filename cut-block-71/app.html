@@ -10588,6 +10588,11 @@ function prog25WhereHTML(){var t=today(),last={},i,d;
   for(i=0;i<70;i++){d=addD(t,-i);((S.days[d]||{}).runs||[]).forEach(function(r){var k=prog25Slot(r);if(k&&!last[k]&&'ABCD'.indexOf(k)>=0)last[k]={d:d,r:r,m:runMeta(r),k:k};});}
   var rows=PROG25.map(function(x){var o=last[x.k];
     return '<tr><td><b>'+x.e+' '+x.n+'</b></td><td class="tiny">'+esc(PROG25_2025[x.k])+'</td><td class="tiny">'+(o?fmtS(o.d)+': '+prog25RowDone(o):'nothing logged in 10 weeks')+'</td></tr>';}).join('');
+  var nA=[],sA=[],nL=null,sL=null;for(i=0;i<14;i++){d=addD(t,-i);var rr=S.days[d]||{},nv=rr.glowSum?rr.glowSum.nutrition:null,sv=sleepScoreOn(d);
+    if(typeof nv==='number'){nA.push(nv);if(nL===null)nL=[d,nv];}if(typeof sv==='number'){sA.push(sv);if(sL===null)sL=[d,sv,rr.sleep];}}
+  var avg=function(a){return a.length?Math.round(mean(a)):null;};
+  var hrow=function(n,l,a,note){return '<tr><td><b>'+n+'</b></td><td class="tiny">'+esc(note)+'</td><td class="tiny">'+(l?fmtS(l[0])+': <b>'+Math.round(l[1])+'/100</b>'+(l[2]?' ('+f1(l[2])+' h)':''):'not logged')+(a!==null?' · '+a+'/100 14-day avg':'')+'</td></tr>';};
+  rows+=hrow('🥗 Nutrition score',nL,avg(nA),'baseline 56–80, best 80')+hrow('😴 Sleep score',sL,avg(sA),'8–9 h is the target');
   return '<details class="fold"><summary><b>📊 Where you are vs spring 2025</b></summary><div class="scroll"><table class="tbl"><thead><tr><th>Session</th><th>2025 (Strava)</th><th>Your latest</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="tiny keep" style="margin:4px 0">2025 bests: '+PROG25_BEST+'. Being a few seconds off mid-deficit is normal. The 13–23 Dec trials show where you really are.</p></details>';}
 function prog25HTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
