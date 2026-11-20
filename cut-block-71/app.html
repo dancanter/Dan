@@ -10555,7 +10555,7 @@ function prog25NextA(W){var d0=W.lastA?(W.lastA.dm||(W.lastA.tt?1609:0)):0,dm=10
 function prog25How(k,W){
   if(k==='A')return prog25NextA(W).how;
   if(k==='B')return '5–6 × 400 m (start with 4 if you are tired), the last 120 m uphill, 64–69 s a rep flat (add 3–4 s for the hill), walk back 3–4 min';
-  if(k==='C')return '5–6 × 200 m uphill, hard but relaxed, full walk back. Short and cheap: you should finish feeling fast, not drained';
+  if(k==='C')return '5–6 × 200 m uphill at about 30 s a rep (your 2025 sets; roughly every 2 weeks), or 6–8 × 80 m uphill sprints in the weeks between. Hard but relaxed, full walk back. Short and cheap: you should finish feeling fast, not drained';
   return '8 km at 4:30–5:00/km (your 2025 easy 5-milers were 4:20–4:35): chatty, no watch-chasing';}
 function prog25Next(W,t){
   var L=greenLight()||{},left=['A','B','C','D'].filter(function(k){return !W.got[k].length;});
@@ -10578,8 +10578,18 @@ function prog25RowDone(o){var m=o.m,k=o.k,vs='';
     if(a&&m.pace&&a.dm===1000){var d=m.pace-193;vs=d<=0?' · in line with 2025 ('+a.refTxt+')':' · '+Math.round(d)+' s/km off 2025 ('+a.refTxt+')';}
     else if(a&&m.repAvg&&a.dm===800){var d2=m.repAvg-143;vs=d2<=0?' · in line with 2025':' · '+Math.round(d2)+' s off 2025 ('+a.refTxt+')';}}
   if(k==='B'&&m.repAvg){vs=m.repAvg<=69?' · in your 2025 range (64–69 s)':' · '+Math.round(m.repAvg-69)+' s slower than 2025 (64–69 s)';}
+  if(k==='C'&&m.repAvg&&(o.r.dm||0)>=150&&(o.r.dm||0)<=250){vs=m.repAvg<=31?' · in line with 2025 (about 30 s a rep)':' · '+Math.round(m.repAvg-30)+' s slower than 2025 (about 30 s a rep)';}
   if(k==='D'&&m.pace){vs=m.pace<260?' · quicker than your usual easy: ease off':' · easy pace ✓';}
   return '<b>'+esc(m.label||'run')+'</b> on '+DOWS[dow(o.d)]+(m.repAvg?' · '+secFmt(m.repAvg)+' a rep':(m.pace&&m.km?' · '+kmPace(m.pace)+'/km':''))+vs;}
+/* Where Dan is: his latest session in each slot next to the 2025 numbers read from his Strava (Mar–Jun 2025). */
+var PROG25_2025={A:'1 km reps 3:10–3:13/km (best 3:01) · 800s 2:23 · mile 4:53',B:'400s 64–69 s a rep (flat 64, uphill 66–68)',C:'200 m uphill about 30 s a rep, 5–6 reps, about every 2 weeks (25 Mar, 6 Apr, 14 May, 29 May, 11 Jun); 80 m sprints in between, not recorded',D:'8 km at 4:20–4:45/km'};
+var PROG25_BEST='5 km 17:18 (1 May) · 10 km 36:56 (5 May) · mile 4:53 (22 May) · 800 m 2:23 reps (15 Jun)';
+function prog25WhereHTML(){var t=today(),last={},i,d;
+  for(i=0;i<70;i++){d=addD(t,-i);((S.days[d]||{}).runs||[]).forEach(function(r){var k=prog25Slot(r);if(k&&!last[k]&&'ABCD'.indexOf(k)>=0)last[k]={d:d,r:r,m:runMeta(r),k:k};});}
+  var rows=PROG25.map(function(x){var o=last[x.k];
+    return '<tr><td><b>'+x.e+' '+x.n+'</b></td><td class="tiny">'+esc(PROG25_2025[x.k])+'</td><td class="tiny">'+(o?fmtS(o.d)+': '+prog25RowDone(o):'nothing logged in 10 weeks')+'</td></tr>';}).join('');
+  return '<details class="fold"><summary><b>📊 Where you are vs spring 2025</b></summary><div class="scroll"><table class="tbl"><thead><tr><th>Session</th><th>2025 (Strava)</th><th>Your latest</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="tiny keep" style="margin:4px 0">2025 bests: '+PROG25_BEST+'. Being a few seconds off mid-deficit is normal. The 13–23 Dec trials show where you really are.</p></details>';}
 function prog25HTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
   var rows=PROG25.map(function(x){var g=W.got[x.k];
     if(g.length)return '<div style="margin:5px 0">✅ <b>'+x.e+' '+x.n+'</b> · '+g.map(prog25RowDone).join(' · ')+'</div>';
@@ -10587,7 +10597,8 @@ function prog25HTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
   var ex=W.got.E.length?'<div class="tiny keep" style="margin:4px 0">➕ Extra this week: '+W.got.E.map(function(o){return esc(o.m.label||'run')+' on '+DOWS[dow(o.d)];}).join(', ')+'</div>':'';
   return '<h3 style="margin:10px 0 2px">🏃 Your program · '+W.done+' of 4 done this week</h3>'+rows+ex+
     '<p style="margin:6px 0 2px"><b>👉 Next:</b> '+N.txt+'</p>'+
-    '<p class="tiny keep" style="margin:2px 0">The shape from spring 2025: a longer interval, 400s with a hill, short sharp sprints, one easy 5-miler; a 5th run only when everything is green. Hard sessions 48 h apart, legs the day after a hard session, never the day before.</p>';}
+    (function(){try{return prog25WhereHTML();}catch(e){return '';}})()+
+    '<p class="tiny keep" style="margin:2px 0">The shape from spring 2025: a longer interval, 400s with a hill, short sharp sprints (200 m about every 2 weeks, 80 m uphill in between), one easy 5-miler; a 5th run only when everything is green. Hard sessions 48 h apart, legs the day after a hard session, never the day before.</p>';}
 function prog25StripHTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
   return PROG25.map(function(x){return x.e+(W.got[x.k].length?'✅':'⬜');}).join(' ')+' · '+W.done+' of 4 this week'+(N.k?' · next: '+PROG25.filter(function(x){return x.k===N.k;})[0].n.toLowerCase():'');}
 function prog25Notes(who){var t=today(),W=prog25Week(t),N=prog25Next(W,t),K={A:'longer interval',B:'400s',C:'sprints',D:'easy run'},dn=[],lf=[],out=[];
