@@ -334,7 +334,7 @@ await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gc = sq(await p.innerText('#campCard'));
 ok('the card shows level, XP, runs left, quests and bosses', /Rookie/.test(gc) && /XP/.test(gc) && /Runs left this week — you pick the days/.test(gc) && !/Today’s mission|Monday|Tuesday|Wednesday|Thursday|Friday|Sunday/.test(gc.replace('ready Sunday at 8 pm', '')) && /THIS WEEK’S QUESTS/i.test(gc) && /BOSSES/i.test(gc), gc.slice(0, 500));
 await p.click('[data-t="today"]'); await p.waitForTimeout(100);
-ok('Today at a glance has the camp line and what is left', /Camp day 4 · 🥉 Rookie/.test(sq(await p.innerText('#glanceCard'))) && /Left this week: 1 hard · 2 fun\/Norwegian — you pick the days/.test(sq(await p.innerText('#glanceCard'))));
+ok('Today at a glance has the camp line and what is left', /Camp day 4 · 🥉 Rookie/.test(sq(await p.innerText('#glanceCard'))) && /Left this week: 1 hard — you pick the days/.test(sq(await p.innerText('#glanceCard'))));
 await ctx.close();
 ({ ctx, p, boot } = await at('2026-10-17'));   // Saturday, 4 days after the 800s
 await boot(st({ days: { '2026-10-13': { runs: [{ k: 'reps', dm: 800, n: 5, secs: 770 }] } } }));
@@ -353,7 +353,7 @@ ok('the shred meter tracks the 7-day average toward the 123–124 goal', G2.shre
 await p.click('[data-t="camp"]'); await p.waitForTimeout(120);
 let gx = sq(await p.innerText('#campCard'));
 ok('the card shows the shred meter and milestones, from the start of the cut', /Shred meter/.test(gx) && /lb to 124/.test(gx) && /the cut · day 26 of 97/.test(gx) && /since 19 Sep/.test(gx), gx.slice(0, 900));
-ok('milestones count from the start of the cut, not the camp', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - b) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
+ok('the shred meter starts from the last-week average (17 Nov), milestones still count from the start of the cut', await p.evaluate(() => { const g = campGame(), b = weightModel().baseline; return Math.abs(g.shred.start - wRefStart()) < 0.01 && JSON.stringify(g.shred.miles) === JSON.stringify(MILESTONES.filter(m => b > m && g.shred.now <= m)); }));
 await p.click('[data-t="today"]'); await p.waitForTimeout(80);
 ok('the 💪 Beat last time toggle shows on a gym day', await p.evaluate(() => { E('logDate').value = '2026-10-12'; paintForm(); return !E('tgPR').hidden; }));
 await ctx.close();

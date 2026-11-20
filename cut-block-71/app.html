@@ -6514,6 +6514,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
       '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
+    '<div class="tiny keep" style="margin:4px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
     row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     (function(){var R=wRef(t),lw=R.lastWeek,tw=R.thisWeek,d=lw&&tw?lw.avg-tw.avg:null;
@@ -10522,6 +10523,84 @@ function runProgressHTML(){var R=runProgress(),f=function(v){return v>=60?mmss(M
     '<p style="margin:2px 0">'+R.st[2]+['long','speed'].map(function(k){var q=R.parts[k];return q.a&&q.b?' '+(k==='long'?'600 m+ sessions':'Speed sessions')+' as a 1 km equivalent: <b>'+f(q.a)+'</b> lately vs '+f(q.b)+' before.':(q.a?' '+(k==='long'?'600 m+':'Speed')+': '+f(q.a)+' lately (nothing comparable before).':'');}).join('')+(R.na&&R.nb?' Norwegian pace '+kmPace(R.na)+'/km vs '+kmPace(R.nb)+(R.nch>1?' (faster at the same effort: the engine is growing)':'')+'.':'')+'</p>'+
     '<p style="margin:4px 0">👉 <b>'+esc(R.call)+'</b> '+IMP[R.imp]+'</p>'+
     '<p class="tiny" style="margin:2px 0">I compare every hard session as an equivalent 1 km time, speed sessions against speed sessions and 600 m+ against 600 m+. Last 3 weeks vs the 5 before. The call is more, hold, less or rest — whatever moves your times forward.</p>';}
+/* ===================== Dan's program (Dan, 20 Nov) =====================
+   "Look at what I did end of March to end of June 2025 ... that's the exact program I want ... adapt it with my
+   running coach, make sure I know what I'm doing with what I've already done this week, and every coach needs to
+   know it." Four slots a week, read from his Strava: A a longer interval (4 x 1 km at 3:10-3:13/km, rotating with
+   4 x 800 m and a fast mile), B 400s with the last bit uphill (64-69 s a rep), C short sharp uphill sprints
+   (5-6 x 200 m), D one easy 5-miler (4:20-4:35/km). The week is read from the runs he has logged. */
+var PROG25=[{k:'A',e:'🔥',n:'Longer interval'},{k:'B',e:'⚡',n:'400s, last bit uphill'},{k:'C',e:'💨',n:'Short sharp uphill sprints'},{k:'D',e:'🏃',n:'Easy 5-miler'}];
+var PROG25_A=[{dm:1000,how:'4 × 1 km at 3:10–3:13/km, 3 min walk between (2025 best 3:02)',ref:190,refTxt:'3:10–3:13/km',lab:'1 km reps'},
+  {dm:800,how:'4 × 800 m at about 2:23–2:30 a rep (2025 record 2:23), 3 min walk between',ref:143,refTxt:'about 2:23 a rep',lab:'800 m reps'},
+  {dm:1609,how:'1 fast mile at about 5:00–5:10 (2025 best 4:53), then 2–3 miles easy',ref:300,refTxt:'4:53–5:10',lab:'a fast mile'}];
+var PROG25_EASY=[260,285];
+function prog25Slot(r){var m=runMeta(r);if(!m||m.empty)return null;
+  if(r.k==='reps'){var dm=r.dm||0;if(!dm&&r.laps&&r.laps.length)dm=mean(r.laps);
+    if(dm>=600)return 'A';if(dm>=300)return 'B';if(dm>0)return 'C';return null;}
+  var ty=r.type||'easy';
+  if(r.tt||ty==='threshold'||ty==='reps')return 'A';
+  if(ty==='sprints')return 'C';
+  if(ty==='subt'||ty==='fun')return 'E';
+  return (m.km>=4.5)?'D':'E';}
+function prog25Week(t){t=t||today();var ws=mondayOf(t),got={A:[],B:[],C:[],D:[],E:[]},i,d;
+  for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;((S.days[d]||{}).runs||[]).forEach(function(r){var k=prog25Slot(r);if(!k)return;got[k].push({d:d,r:r,m:runMeta(r),k:k});});}
+  var done=['A','B','C','D'].filter(function(k){return got[k].length>0;}).length;
+  var lastHard=null;for(i=0;i<8&&!lastHard;i++){d=addD(t,-i);if(((S.days[d]||{}).runs||[]).some(function(r){var k=prog25Slot(r);return k==='A'||k==='B';}))lastHard=d;}
+  var lastA=null;for(i=0;i<45&&!lastA;i++){d=addD(t,-i);((S.days[d]||{}).runs||[]).forEach(function(r){if(!lastA&&prog25Slot(r)==='A')lastA=r;});}
+  return {ws:ws,got:got,done:done,lastHard:lastHard,sinceHard:lastHard?diffD(lastHard,t):null,lastA:lastA,
+    legsY:(S.days[addD(t,-1)]||{}).split==='legs',todayRun:((S.days[t]||{}).runs||[]).some(function(r){return !!prog25Slot(r);})};}
+function prog25NextA(W){var d0=W.lastA?(W.lastA.dm||(W.lastA.tt?1609:0)):0,dm=1000;
+  if(d0===1000)dm=800;else if(d0===800)dm=1609;
+  return PROG25_A.filter(function(x){return x.dm===dm;})[0]||PROG25_A[0];}
+function prog25How(k,W){
+  if(k==='A')return prog25NextA(W).how;
+  if(k==='B')return '5–6 × 400 m (start with 4 if you are tired), the last 120 m uphill, 64–69 s a rep flat (add 3–4 s for the hill), walk back 3–4 min';
+  if(k==='C')return '5–6 × 200 m uphill, hard but relaxed, full walk back. Short and cheap: you should finish feeling fast, not drained';
+  return '8 km at 4:30–5:00/km (your 2025 easy 5-milers were 4:20–4:35): chatty, no watch-chasing';}
+function prog25Next(W,t){
+  var L=greenLight()||{},left=['A','B','C','D'].filter(function(k){return !W.got[k].length;});
+  if(!left.length)return {k:null,txt:'All four sessions are done this week. Anything more is a bonus (an easy run only if you feel great). This is where it lands: sleep, food, a rest day.'};
+  var hardLeft=left.filter(function(k){return k==='A'||k==='B';}),pick=hardLeft[0]||left[0],nm=PROG25.filter(function(x){return x.k===pick;})[0].n;
+  var hard=(pick==='A'||pick==='B'),why=[];
+  if(dow(t)===CFG.camp.offDay)return {k:pick,txt:'Today is your stress-free day: no run, no weights, no study. Next up: <b>'+nm+'</b> when the week allows.'};
+  if(W.todayRun)return {k:pick,txt:'You have run today. Next up: <b>'+nm+'</b>, on a green day.'};
+  if(L.c==='red')return {k:pick,txt:'Recovery day: rest or a walk. Next up: <b>'+nm+'</b> when the green light is back.'};
+  if(hard&&W.sinceHard!==null&&W.sinceHard<2)why.push('give it 48 h after your last hard session ('+fmtS(W.lastHard)+'): earliest '+fmtS(addD(W.lastHard,2)));
+  if(hard&&W.legsY)why.push('not the day after legs');
+  if(!hard&&pick==='C'&&W.sinceHard!==null&&W.sinceHard<1)why.push('give it a day after your hard run');
+  if(why.length)return {k:pick,txt:'Next up: <b>'+nm+'</b> — '+why.join(' and ')+'.'};
+  if(L.c==='amber'||(typeof (S.days[t]||{}).sleep==='number'&&(S.days[t]||{}).sleep<6.5)){
+    var sw=left.filter(function(k){return k==='C'||k==='D';})[0];
+    return {k:pick,txt:'Yellow day (short sleep or a high resting HR): swap in the easy run'+(sw==='C'?' or the short sprints':'')+' instead of <b>'+nm+'</b>. Nothing is lost.'};}
+  return {k:pick,go:true,txt:'<b>Green for '+nm+'</b>: '+prog25How(pick,W)+'.'};}
+function prog25RowDone(o){var m=o.m,k=o.k,vs='';
+  if(k==='A'){var a=PROG25_A.filter(function(x){return x.dm===(o.r.dm||0)||(x.dm===1609&&o.r.tt);})[0];
+    if(a&&m.pace&&a.dm===1000){var d=m.pace-193;vs=d<=0?' · in line with 2025 ('+a.refTxt+')':' · '+Math.round(d)+' s/km off 2025 ('+a.refTxt+')';}
+    else if(a&&m.repAvg&&a.dm===800){var d2=m.repAvg-143;vs=d2<=0?' · in line with 2025':' · '+Math.round(d2)+' s off 2025 ('+a.refTxt+')';}}
+  if(k==='B'&&m.repAvg){vs=m.repAvg<=69?' · in your 2025 range (64–69 s)':' · '+Math.round(m.repAvg-69)+' s slower than 2025 (64–69 s)';}
+  if(k==='D'&&m.pace){vs=m.pace<260?' · quicker than your usual easy: ease off':' · easy pace ✓';}
+  return '<b>'+esc(m.label||'run')+'</b> on '+DOWS[dow(o.d)]+(m.repAvg?' · '+secFmt(m.repAvg)+' a rep':(m.pace&&m.km?' · '+kmPace(m.pace)+'/km':''))+vs;}
+function prog25HTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
+  var rows=PROG25.map(function(x){var g=W.got[x.k];
+    if(g.length)return '<div style="margin:5px 0">✅ <b>'+x.e+' '+x.n+'</b> · '+g.map(prog25RowDone).join(' · ')+'</div>';
+    return '<div style="margin:5px 0;'+(N.k===x.k?'':'opacity:.8')+'">⬜ <b>'+x.e+' '+x.n+'</b>'+(N.k===x.k?' <span class="pill g">next</span>':'')+'<div class="tiny keep" style="margin-left:22px">'+prog25How(x.k,W)+'</div></div>';}).join('');
+  var ex=W.got.E.length?'<div class="tiny keep" style="margin:4px 0">➕ Extra this week: '+W.got.E.map(function(o){return esc(o.m.label||'run')+' on '+DOWS[dow(o.d)];}).join(', ')+'</div>':'';
+  return '<h3 style="margin:10px 0 2px">🏃 Your program · '+W.done+' of 4 done this week</h3>'+rows+ex+
+    '<p style="margin:6px 0 2px"><b>👉 Next:</b> '+N.txt+'</p>'+
+    '<p class="tiny keep" style="margin:2px 0">The shape from spring 2025: a longer interval, 400s with a hill, short sharp sprints, one easy 5-miler; a 5th run only when everything is green. Hard sessions 48 h apart, legs the day after a hard session, never the day before.</p>';}
+function prog25StripHTML(){var t=today(),W=prog25Week(t),N=prog25Next(W,t);
+  return PROG25.map(function(x){return x.e+(W.got[x.k].length?'✅':'⬜');}).join(' ')+' · '+W.done+' of 4 this week'+(N.k?' · next: '+PROG25.filter(function(x){return x.k===N.k;})[0].n.toLowerCase():'');}
+function prog25Notes(who){var t=today(),W=prog25Week(t),N=prog25Next(W,t),K={A:'longer interval',B:'400s',C:'sprints',D:'easy run'},dn=[],lf=[],out=[];
+  ['A','B','C','D'].forEach(function(k){(W.got[k].length?dn:lf).push(K[k]);});
+  var line='Your program this week (running coach): done '+(dn.join(', ')||'nothing yet')+(lf.length?' · still to come: '+lf.join(', '):' · all four done');
+  var hardLeft=!W.got.A.length||!W.got.B.length;
+  if(who==='lift'){out.push('🏃 '+line+'.');
+    out.push('🏃 '+(hardLeft?'A hard session is still to come, so keep legs for the day after it, never the day before. Upper body is free any day.':'Both hard sessions are done: legs can go any day now, even the day after a hard run.')+(W.todayRun?' You have run today: keep the lifting short.':''));}
+  if(who==='nutri'){out.push('🏃 '+line+'.');
+    out.push('🏃 '+(W.todayRun?'You have run today: eat back about 250 kcal, carbs and 30–40 g protein in the next meal.':(N.go?'The next session is green: oats, potato or rice 60–90 min before, then carbs and protein after. Eat back about 250 kcal.':'On the days with a hard session, carbs 60–90 min before and 30–40 g protein with carbs after; about 250 kcal back.')));}
+  if(who==='long'){out.push('🏃 '+line+'.');
+    out.push('🏃 '+(hardLeft?'Two hard sessions a week (intervals and 400s) are the sweet spot for VO₂, which is one of the strongest predictors of a long life. The sprints are cheap and keep fast-twitch muscle and bone strong.':'Your hard work for the week is done: sleep, food and a rest day are what turn it into fitness. Keep cortisol under 25 before adding a third hard session.'));}
+  return out;}
 function runCoachHTML(){
   var t=today(),L=greenLight()||{},G=null,PG=paceGuide();try{G=(t>=CFG.camp.start&&t<=CFG.camp.end)?campGame():null;}catch(e){}
   var F=null;try{F=lastRunFeedback();}catch(e){}
@@ -10541,7 +10620,7 @@ function runCoachHTML(){
     if(RR)gl='Next trial: <b>'+repLabel(RR.dm)+'</b> on '+fmtS(RR.on)+', goal '+(RR.goal>=60?mmss(RR.goal):RR.goal+' s')+' · fitness now about '+(RR.fit>=60?mmss(Math.round(RR.fit)):f1(RR.fit)+' s')+' · '+RR.st[1]+'.';}catch(e){}
   return '<div class="p lift"><h2>🏃 Your running coach</h2>'+
     (F?'<h3 style="margin:4px 0 2px">'+F.when+': '+esc(F.label)+'</h3><p style="margin:2px 0"><span class="pill'+(F.tone?' '+F.tone:'')+'">'+(F.tone==='g'?'✓':(F.tone==='w'?'!':'·'))+'</span> '+F.line+'</p>':'<p class="note">No runs in the last two weeks yet.</p>')+
-    '<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G&&!(hardLeft.length||norLeft.length)?' · the week’s runs are done':'')+'</p>'+
+    (function(){try{return prog25HTML();}catch(e){return '';}})()+'<h3 style="margin:10px 0 2px">This week</h3><p style="margin:2px 0">'+runs+' run'+(runs===1?'':'s')+' · '+hardDone+' hard'+(G&&!(hardLeft.length||norLeft.length)?' · the week’s runs are done':'')+'</p>'+
     (xtR?'<h3 style="margin:10px 0 2px">🤝 From your other coaches</h3><p style="margin:2px 0">'+xtR+'</p>':'')+
     (walkWk?returnPlanHTML(PG):(G&&(hardLeft.length||norLeft.length)?'<p style="margin:6px 0 2px"><b>Still to come, on green days</b> <span class="tiny dim">(tap one for the full session)</span></p>'+hardLeft.concat(norLeft).map(function(x,ix){
       return runSpecHTML(x,PG,ix===0&&L.c==='green')+(x.e==='🌊'&&norwTooFast()?'<p class="tiny" style="margin:0 0 4px">A steadier format this week: your last Norwegians came out quick, and longer reps are easier to keep at 7 out of 10.</p>':'');}).join(''):''))+
@@ -11269,6 +11348,7 @@ function crossTalk(who){
     if((r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))add('🏃','Hard run today (running coach): carbs to 200 g or more, and 30–40 g protein within the hour after.');}
   if(typeof y.deep==='number'&&y.deep>4.5&&(who==='run'||who==='lift'))add('🧠',sh(y.deep)+' of deep study yesterday (study coach): that counts as load too. Keep today’s session short and sharp.');
   if(who==='study'){if(r.gym||(r.runs||[]).length)add('🏋️','You trained today: study blocks before training stick better than after.');}
+  if(who==='lift'||who==='nutri'||who==='long'){try{prog25Notes(who).forEach(function(x){N.push(x);});}catch(e){}}
   return N;}
 function crossTalkHTML(who){var N=crossTalk(who);return N.join('<br>');}
 /* the session to show: today's if the gym is ticked, otherwise the next one the week needs */
@@ -11547,7 +11627,7 @@ function longCoachHTML(){
   var how=H?'Health age <b>'+H.glowAge+'</b> (you’re '+H.age+')'+(H.vo2?' · VO₂ about '+Math.round(H.vo2):'')+(H.rhr?' · resting HR '+H.rhr:'')+'. Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.':'Stress <b>'+X.score+'/100</b>, '+X.band[0].toLowerCase()+'.';
   var phase=t<STRICT.xmas?'In the shred the longevity risk is under-fuelling for too long: keep protein at '+pProtein()+', carbs around hard sessions, and take the easy weeks. The cut ends on time.':(t<=STRICT.resetTo?'Short reset cut, then the build: the build is where hormones, bone and recovery come back to full.':'The build: eat enough, train hard, sleep long. This is your healthiest phase.');
   return coachCard('🧬','Your longevity coach',[['How you’re doing',how],['This week','<b>'+W.score+' of 6</b> longevity habits'+(miss.length?' · still open: '+miss.map(function(h){return h[1].toLowerCase();}).join(', '):' · all six')],
-    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 The long game',phase]],(function(){try{return longDeepHTML();}catch(e){return '';}})());}
+    ['👉 Next',nx.slice(0,3).map(function(x){return esc(x[0])+' '+IMP[x[1]];}).join('<br>')],['🎯 The long game',phase],(function(){try{var x=crossTalkHTML('long');return x?['🤝 From your other coaches',x]:null;}catch(e){return null;}})()],(function(){try{return longDeepHTML();}catch(e){return '';}})());}
 function studyCoachHTML(){
   var t=today();glStore();var U=S.uni,ws=mondayOf(t),tot=0,deep=0,last=null,ld=null;
   for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var r=S.days[d]||{};if(typeof r.study==='number')tot+=r.study;if(typeof r.deep==='number')deep+=r.deep;}
