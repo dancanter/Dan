@@ -28,23 +28,30 @@ export const MEAL_PRESETS: MealPreset[] = [
     ],
   },
   {
-    id: 'chicken', name: 'Chicken, potatoes & veg', emoji: '🍗', meal: 'lunch',
+    id: 'chicken', name: 'Chicken & potatoes', emoji: '🍗', meal: 'dinner',
+    items: [{ foodId: 'chicken-breast', grams: 180 }, { foodId: 'potato', grams: 275 }],
+  },
+  {
+    id: 'seabass', name: 'Sea bass & sweet potato mash', emoji: '🐟', meal: 'dinner',
+    items: [{ foodId: 'seabass', grams: 180 }, { foodId: 'uk-asda-sweet-potato-mash', grams: 380 }, { foodId: 'chicken-breast', grams: 40 }],
+  },
+  {
+    id: 'bowl', name: '2025 lunch bowl', emoji: '🍓', meal: 'lunch',
     items: [
-      { foodId: 'chicken-breast', grams: 175 }, { foodId: 'potato', grams: 270 },
-      { foodId: 'carrots', grams: 40 }, { foodId: 'broccoli', grams: 40 }, { foodId: 'cauliflower', grams: 40 },
-      { foodId: 'uk-milk-unhomog-semi', grams: 60 },
+      { foodId: 'strawberries', grams: 150 }, { foodId: 'uk-almond-milk', grams: 150 }, { foodId: 'raisins', grams: 15 },
+      { foodId: 'hazelnuts', grams: 8 }, { foodId: 'cocoa', grams: 7 }, { foodId: 'spinach', grams: 30 },
+      { foodId: 'avocado', grams: 60 }, { foodId: 'uk-tpw-collagen-whey', grams: 28 }, { foodId: 'milk-semi', grams: 40 },
     ],
   },
   {
-    id: 'porridge', name: 'Cacao porridge', emoji: '🥣', meal: 'dinner',
-    items: [{ foodId: 'oats', grams: 75 }, { foodId: 'cocoa', grams: 7 }, { foodId: 'walnuts', grams: 10 }, { foodId: 'honey', grams: 12 }],
+    id: 'porridge', name: 'Cacao porridge', emoji: '🥣', meal: 'breakfast',
+    items: [{ foodId: 'oats', grams: 70 }, { foodId: 'cocoa', grams: 7 }, { foodId: 'walnuts', grams: 6 }, { foodId: 'honey', grams: 12 }, { foodId: 'milk-semi', grams: 80 }],
   },
   {
     id: 'yog', name: 'Yoghurt bowl', emoji: '🫐', meal: 'snacks',
     items: [
-      { foodId: 'uk-fage-0', grams: 110 }, { foodId: 'uk-fage-2', grams: 110 }, { foodId: 'kefir', grams: 80 },
-      { foodId: 'uk-milk-unhomog-semi', grams: 120 }, { foodId: 'blueberries', grams: 110 }, { foodId: 'grapes', grams: 70 },
-      { foodId: 'honey', grams: 18 }, { foodId: 'dark-choc-85', grams: 25 },
+      { foodId: 'uk-fage-0', grams: 230 }, { foodId: 'uk-biotiful-kefir-protein', grams: 110 }, { foodId: 'blueberries', grams: 100 },
+      { foodId: 'grapes', grams: 60 }, { foodId: 'honey', grams: 18 }, { foodId: 'dark-choc-85', grams: 30 }, { foodId: 'milk-semi', grams: 80 },
     ],
   },
 ];

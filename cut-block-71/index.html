@@ -10963,6 +10963,7 @@ function nutriCoachHTML(){
   if(g){var left=tg-g.kcal;
     parts.push(['Today so far','<b>'+ci(g.kcal)+'</b> of '+ci(tg)+' kcal · protein <b>'+g.protein+' g</b> of '+PLANV.protein+' · carbs '+g.carbs+' g · fat '+g.fat+' g · fibre '+g.fibre+' g'+(left>0?'. About '+ci(left)+' kcal and '+Math.max(0,PLANV.protein-g.protein)+' g protein still to come.':'.')]);}
   else parts.push(['Today so far','Nothing logged yet. Send a screenshot or add food and this coach reads it.']);
+  parts.push(['Your plan until '+XCAMP.wLo+'–'+XCAMP.wHi+' lb','The 2025 diet you looked and felt best on: cacao porridge, the strawberry and avocado lunch bowl, chicken and potatoes (or sea bass and sweet potato mash), the yoghurt bowl. Your May 2025 days came to about '+ci(pKcalBase())+' kcal with 120–146 g protein. All four are one-tap meals in Glow. When you reach '+XCAMP.wLo+'–'+XCAMP.wHi+' we move to longevity eating.']); /* plan-ok: his May 2025 history, not a target */
   /* next */
   var nx=[];
   if(g&&g.protein<PLANV.protein-15)nx.push([(PLANV.protein-g.protein)+' g protein still to find: Fage, eggs, hake, chicken or venison','big']);
