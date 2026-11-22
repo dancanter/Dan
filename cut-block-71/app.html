@@ -1569,7 +1569,7 @@ window.__GLOW_HOST__={
   steps:function(d){try{return stepTarget(d);}catch(e){return undefined;}},
   verdict:function(){try{var L=greenLight();return L?{c:L.c,t:L.t,sub:L.sub}:null;}catch(e){return null;}}
 };
-function touch(){S.updatedAt=Date.now();saveLocal();queueRemote();render();}
+function touch(){try{fsStamp();}catch(e){}S.updatedAt=Date.now();saveLocal();queueRemote();render();}
 function queueRemote(){
   if(!dbDoc)return;
   if(saveTimer)clearTimeout(saveTimer);
@@ -1626,6 +1626,35 @@ function mergeDayInto(n,o){var ch=false,k;if(!o)return false;
 function runSig(x){return JSON.stringify([x.k||'',x.dm||0,x.n||0,x.laps||0,x.km||0,Math.round(x.secs||0)]);}
 /* the same session saved two ways (two rep records, or one ladder) counts once */
 function sameRun(a,b){var ka=runMeta(a).km||a.km||0,kb=runMeta(b).km||b.km||0;return Math.abs(ka-kb)<0.05&&Math.abs((a.secs||0)-(b.secs||0))<3;}
+/* ---- Field-by-field sync (Dan, 22 Nov) ----
+   Whole-document "newest wins" lets a stale phone copy, newer only because it was opened, overwrite a value you
+   typed later somewhere else. Now every value you change gets its own timestamp (S.ts, keyed by weight date or day+field).
+   When two copies meet, a value edited later wins, whichever copy it is in; a value only one side ever stamped is kept
+   from that side. Copies with no stamps behave exactly as before. Switch off: Data tab > Storage > Safer syncing (S.settings.fieldSync=false);
+   or republish version 285 / git tag pre-fieldsync. Runs and the food diary keep their id-based merges. */
+function fsOn(s){return !(s&&s.settings&&s.settings.fieldSync===false);}
+var FS_SHADOW=null;
+function fsLeaves(s){var o={},d,k,v,r;
+  for(d in s.weights)o['w|'+d]=s.weights[d];
+  for(d in s.days){r=s.days[d];if(!r||typeof r!=='object')continue;
+    for(k in r){if(k==='runs'||k==='glow'||k==='glowSum')continue;v=r[k];o['d|'+d+'|'+k]=(v!==null&&typeof v==='object')?JSON.stringify(v):v;}}
+  return o;}
+function fsStamp(){if(!S||!fsOn(S))return;var cur=fsLeaves(S),now=Date.now(),p;
+  if(!S.ts||typeof S.ts!=='object')S.ts={};
+  if(FS_SHADOW){for(p in cur)if(FS_SHADOW[p]!==cur[p])S.ts[p]=now;
+    for(p in FS_SHADOW)if(!(p in cur))S.ts[p]=now;}
+  FS_SHADOW=cur;}
+function fsReset(){FS_SHADOW=(S&&fsOn(S))?fsLeaves(S):null;}
+function fsApply(out,older,newer){var to=older.ts||{},tn=newer.ts||{},p,n=0,a,m,d,k,v;
+  for(p in to){if(tn[p]!==undefined&&tn[p]>=to[p])continue;
+    a=p.split('|');
+    if(a[0]==='w'){if(older.weights&&(a[1] in older.weights))out.weights[a[1]]=older.weights[a[1]];else delete out.weights[a[1]];n++;}
+    else if(a[0]==='d'){d=a[1];k=a.slice(2).join('|');m=older.days&&older.days[d];
+      if(m&&(k in m)){v=clone(m[k]);if(!out.days[d])out.days[d]={};out.days[d][k]=v;}else if(out.days[d])delete out.days[d][k];n++;}}
+  var ts={},lim=Date.now()-6e9;
+  for(p in to)if(to[p]>lim)ts[p]=to[p];
+  for(p in tn)if(tn[p]>lim&&(ts[p]===undefined||tn[p]>ts[p]))ts[p]=tn[p];
+  out.ts=ts;return n;}
 function mergeByDate(older,newer){
   var out=normalise(clone(newer)),k,added=0;
   for(k in older.weights){if(!(k in out.weights)){out.weights[k]=older.weights[k];added++;}}
@@ -1661,6 +1690,7 @@ function mergeByDate(older,newer){
   if(older.glow&&Array.isArray(older.glow.customFoods)){if(!out.glow)out.glow={};if(!Array.isArray(out.glow.customFoods))out.glow.customFoods=[];
     var cfi={};out.glow.customFoods.forEach(function(f){if(f&&f.id)cfi[f.id]=1;});
     older.glow.customFoods.forEach(function(f){if(f&&f.id&&!cfi[f.id]){out.glow.customFoods.push(clone(f));added++;}});}
+  if(fsOn(older)&&fsOn(newer))added+=fsApply(out,older,newer);
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
 }
@@ -9359,6 +9389,7 @@ function paintStatus(){
   if(el)el.innerHTML='<div class="p"><h2>Storage</h2><p class="note">State: <b>'+esc(txt)+'</b>. '+
     (dbState==='local'?'No shared store on this view, so the log lives in this browser only — export it from below if you are moving devices.':'The log is written to the artifact\'s own store, so it survives a cleared cache and follows you between devices.')+
     '</p><p class="tiny">Everything is keyed by date, never by position in a grid. Moving the block start re-reads the dates; it cannot re-date finished work onto days you have not trained yet.</p>'+
+    '<p class="tiny" style="margin:8px 0 2px"><b>Safer syncing</b> is <b>'+(fsOn(S)?'on':'off')+'</b>: each value you change keeps its own timestamp, so an old copy on another device cannot overwrite something you typed later. <button type="button" class="btn sm ghost" id="btnFieldSync">'+(fsOn(S)?'Turn off (back to the old way)':'Turn on')+'</button></p>'+
     (MERGED?'<p class="tiny acc">'+MERGED+' record'+(MERGED===1?'':'s')+' this browser had and the store did not were merged in on load, and pushed back up.</p>':'')+
     '</div>';
   /* The one state worth interrupting for: everything logged is sitting in one
@@ -11986,6 +12017,7 @@ function wire(){
     touch();
   });
   E('btnHide').addEventListener('click',function(){S.settings.hideDaily=!S.settings.hideDaily;touch();});
+  E('dStatus').addEventListener('click',function(ev){if(ev.target&&ev.target.id==='btnFieldSync'){S.settings.fieldSync=!fsOn(S);if(fsOn(S))fsReset();else S.ts={};touch();paintStatus();}});
   /* the distance picker is rebuilt on every render, so it is delegated */
   document.addEventListener('change',function(e){
     if(e.target&&e.target.id==='predDist'){PRED_DM=Number(e.target.value);renderPredict();}
@@ -12105,6 +12137,7 @@ function absorbOldGlow(db){
 function boot(){
   var local=loadLocal();
   S=local?local:normalise(clone(SEED));
+  fsReset();
   PRUNED+=pruneEmptyRuns();
   if(migrateEaten())PRUNED++;
   if(!local||PRUNED)saveLocal();
@@ -12125,7 +12158,7 @@ function boot(){
         if(hasContent(remote)){
           var newer=(remote.updatedAt>=S.updatedAt)?remote:S;
           var m=mergeByDate(newer===remote?S:remote,newer);
-          MERGED=m.added;S=m.s;
+          MERGED=m.added;S=m.s;fsReset();
           if(migrateEaten())m.added=(m.added||0)+1;
           PRUNED+=pruneEmptyRuns();saveLocal();dbState='synced';dbSettled=true;
           if(m.added)queueRemote();          /* push whatever the store was missing */
@@ -12137,8 +12170,8 @@ function boot(){
         dbDoc.onSnapshot(function(sn){
           if(!sn.exists)return;
           var r=normalise(sn.data());
-          if(r.updatedAt>S.updatedAt){var mm=mergeByDate(S,r);S=mm.s;PRUNED+=pruneEmptyRuns();saveLocal();render();if(mm.added)queueRemote();}
-          else{var m2=mergeByDate(r,S);if(m2.added){S=m2.s;saveLocal();render();queueRemote();}}
+          if(r.updatedAt>S.updatedAt){var mm=mergeByDate(S,r);S=mm.s;fsReset();PRUNED+=pruneEmptyRuns();saveLocal();render();if(mm.added)queueRemote();}
+          else{var m2=mergeByDate(r,S);if(m2.added){S=m2.s;fsReset();saveLocal();render();queueRemote();}}
         },function(){});
       },function(err){settle('error:'+(err&&err.code||'unknown'));});
     },function(){settle('local');});
