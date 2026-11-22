@@ -587,7 +587,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
         <tr><td class="mono">Gym day</td><td>A small snack 30–60 min before, a real meal after</td></tr>
         <tr><td class="mono">No gym</td><td>No pre-gym snack needed. Just a good evening meal</td></tr>
       </tbody></table>
-      <p class="tiny" style="margin-top:8px">Times move with your day. What counts: about 4 protein feeds, roughly 3–5 hours apart. Skipped the gym or ate late? That's fine, nothing is missed. Log meals on the Food tab, the one diary.Log them on the Food tab — it is the one diary.</p>
+      <p class="tiny" style="margin-top:8px">Times move with your day. What counts: about 3 protein feeds of 30–40 g, roughly 4–5 hours apart. Skipped the gym or ate late? That's fine, nothing is missed. Log meals on the Food tab, the one diary.Log them on the Food tab — it is the one diary.</p>
     </div>
   </div>
   <div class="p"><h2>Breakfast follows the session, not the clock</h2>
@@ -1243,8 +1243,9 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
    number is typed anywhere else; a line that must keep a literal (history, an evidence statement, a
    threshold definition) carries a plan-ok comment saying why.
    Calories: dayTarget(t). Weight goal: CFG.goals / CFG.w.target. Everything else: PLANV. */
-/* Dan, 19 Nov: protein aim 130 to 140 g. 130 counts as on target, 140 is the target. */
-var PLANV={protein:140,proteinMin:130,feed:[30,40],feeds:4,gym:{lo:5,hi:6},sleep:{lo:8,hi:9},
+/* Dan, 22 Nov: "140 is a load of crap, it should be at least 0.8 g per pound." 0.8 g/lb of about 127-130 lb is about 102-104 g: that is the aim,
+   100 g counts as on target, and 130+ is a bonus (about 1 g/lb), never a need. */
+var PLANV={protein:105,proteinMin:100,proteinHi:130,feed:[30,40],feeds:3,gym:{lo:5,hi:6},sleep:{lo:8,hi:9},
   steps:{floor:8000,lo:11000,loFull:12000,hi:13000,strain:14000,week:80000},hard:2,fish:[2,3]};
 function planNow(t){t=t||today();var full=false,walk=false;try{full=push2Mode(t).k==='full';walk=walkWeekOn(t);}catch(e){}
   var st=PLANV.steps,k=CFG.kcal.avg;try{k=dayTarget(t);}catch(e){}
@@ -1387,7 +1388,7 @@ function targetTxt(is){
 /* Dan, 29 Oct (physique camp): protein 140 — 135–145 g, about 2.4 g/kg at
    his weight, the top of the range for keeping and adding muscle on a cut.
    Carbs still clear their 200 g floor. */
-var MACRO={pro:140,fat:48,proRev:135,fatRevPct:0.30};
+var MACRO={pro:PLANV.protein,fat:48,proRev:PLANV.protein,fatRevPct:0.30};
 function fatTop(maint){return Math.max(MACRO.fat,Math.round(maint*MACRO.fatRevPct/9));}
 /* protein, fat and carbs for any rung of the reverse */
 function revMacros(k,first,maint){
@@ -5169,7 +5170,7 @@ function reviewTimeline(o){
 function MUSCLE_RULES(){return [
   ['🎯','Sets in range, near failure','Main lifts 6–12 reps, stopping 1–2 reps short; the last set of an isolation move can go to failure. Inside the range builds; past it on a cut only costs recovery.'],
   ['📈','Beat last time, every session','One more rep or a little more weight on one main lift. That is the signal that builds muscle in a deficit — tick 💪 when you do.'],
-  ['🥩','Protein: 4 feeds of 30–40 g','Breakfast, lunch, tea and the evening bowl. About '+pProtein()+' a day — 2.4 g per kg, the top of what the research supports on a cut.'],
+  ['🥩','Protein: '+pFeeds(),'Breakfast, lunch and tea or the evening bowl. About '+pProtein()+' a day is 0.8 g per lb, the evidence-based floor on a cut; '+PLANV.proteinHi+'+ is a bonus, never a need.'],
   ['🌙','The evening yoghurt bowl stays — it is perfect','Greek yoghurt is mostly casein, the slow protein that feeds muscle through the night.'],
   ['🍌','The extra 100 kcal goes after the gym','Carbs plus protein within a couple of hours of lifting — a banana with your yoghurt, or extra potatoes with tea. Same day total, aimed at the muscle.'],
   ['⏱️','Run first, lift later','On a day with both, run in the morning and lift 6 h or more later where you can — the muscle signal stays cleaner. Easy runs barely interfere.'],
@@ -5184,7 +5185,7 @@ function PHYS_PLAN(){return [
    'Two hard runs on 🟢 days, never back to back: one of 600 m and up (800s, 1 km, mile reps) and one speed run of 200–400 m reps. One Norwegian run, 30–40 min at 7 out of 10 (short sentences, never straining), with 6–10 hill sprints of about 10 s at the end, walking back down. A 4th run — a second Norwegian — only when recovery is good. Trials, bosses and XP all stay, the 5 km included. Saturday stress-free.'],
   ['🏋️','The gym, '+pGym()+' — the priority',
    'Your split: shoulders + forearms, chest + triceps, back + biceps, legs — at build volume from 2 Nov: chest, shoulders 12–18 hard sets a week, back 14–20, biceps and triceps 8–14, forearms 6–10; legs stay 8–12 for the running. About 6–10 hard sets per muscle in one session is the useful limit, so the rest goes on a second day: side raises on 2–3 days, pull-ups on the calisthenics day, a few arm sets on another session. Main lifts 6–12 reps, 1–2 short of failure. Beat last time on one main lift every session. Leave 24 h between legs and the hard run where you can.'],
-  ['🥩','Protein — '+pProtein()+', four feeds of about 35 g',
+  ['🥩','Protein — '+pProtein()+', '+pFeeds(),
    'Fage 0% is the base — 200–300 g a day, the protein that got you shredded in 2024–25. Breakfast: 200 g Fage 0% + 2 eggs. Lunch: 120 g chicken or turkey, or a tin of salmon or sardines. Tea: 150 g lean beef, cod or salmon. Evening: the yoghurt or cottage cheese bowl — slow casein through the night. Oily fish (salmon, sardines, mackerel) 2–3 times a week for the skin and the cells. Oats certified GF.'],
   ['🍚','Carbs and the full look',
    pKcal()+' a day, carbs 200 g or more, aimed before and after training — that is what fills the muscle and brings the hardness and veins back. Potassium every day: potatoes with the skin, bananas, kiwi, yoghurt, salmon. Salt and water the same every day.'],
@@ -9975,7 +9976,7 @@ function decOptHTML(){
     '<b>Why it works:</b> protein at every meal for muscle; oily fish 2–3 times a week for omega-3; berries, grapes and kiwi for polyphenols and vitamin C (with eggs and greens it helps iron absorption); a little fat with carrots and peppers to absorb their carotenoids; kefir and Fage for the gut. Sweeten with berries, cinnamon, vanilla or honey — not sweetener.<br>'+
     '<b>Salt:</b> 9 salted meals a week — dinner every day, and lunch on the two hard-run days (you lose more in sweat). The same amount each time.</div></details>'+
     '<details style="margin-top:6px"><summary><b>Muscle and the look, every day to the trip</b></summary><div class="tiny" style="line-height:1.6;margin-top:6px">'+
-    'Gym '+pGymShort()+'× a week at build volume for the upper body, 1–2 short of failure, beat last time. Protein '+pProtein()+' in four feeds, Fage 0% before bed. Carbs around training. Two hard runs on 🟢 days only, the Norwegian at 7/10. Daylight before noon. No alcohol, little fizzy. Posture tall. Waist measured every Sunday.</div></details>'+
+    'Gym '+pGymShort()+'× a week at build volume for the upper body, 1–2 short of failure, beat last time. Protein '+pProtein()+' in '+pFeeds()+', Fage 0% before bed. Carbs around training. Two hard runs on 🟢 days only, the Norwegian at 7/10. Daylight before noon. No alcohol, little fizzy. Posture tall. Waist measured every Sunday.</div></details>'+
     '<p class="tiny dim" style="margin-top:6px">Never: dehydration, water tablets, laxatives, skipping meals, or under '+pKcalBase()+'. Two warning signs together (resting HR up, times dipping, sleep short, feeling low) and the deficit holds — the tracker says so.</p></div>';
 }
 /* ===================== Mission Control (Dan, 1 Nov) =====================
@@ -11092,9 +11093,9 @@ function weekFullHTML(a,b){
   var proOK=A.pro!==null&&A.pro>=135;
   sec('🥩','Nutrition',A.pro===null?'':G(proOK&&T.kOn>=T.kD-1,A.pro>=115),
     'Calories '+arrow(A.kcal,B.kcal,false,' kcal',false)+' a day · on plan (within 120) <b>'+T.kOn+' of '+T.kD+'</b> days · protein '+arrow(A.pro,B.pro,false,' g',true)+' · fat '+arrow(A.fat,B.fat,false,' g',true)+' · carbs on training days '+arrow(A.carbT,B.carbT,false,' g',true)+' · omega-3 '+arrow(A.om3,B.om3,true,' g',true)+' · coverage '+arrow(A.cov,B.cov,false,'%',true),
-    (A.pro!==null&&A.pro<135?'Protein averaged '+Math.round(A.pro)+' g: this is the one that decides whether the weight lost is fat or muscle. 30–40 g at each meal. ':'')+(A.carbT!==null&&A.carbT<190?'Training-day carbs under 200 g: more potatoes, rice or GF oats around sessions keeps cortisol down. ':'')+(A.fat!==null&&A.fat<40?'Fat under 40 g: eggs, butter or cheese for hormones and skin. ':'')+(T.fish<2?'Oily fish on '+T.fish+' day'+(T.fish===1?'':'s')+': 2–3 is the aim (omega-3 for skin, recovery, heart). ':''));
+    (A.pro!==null&&A.pro<PLANV.proteinMin?'Protein averaged '+Math.round(A.pro)+' g: this is the one that decides whether the weight lost is fat or muscle. 30–40 g at each meal. ':'')+(A.carbT!==null&&A.carbT<190?'Training-day carbs under 200 g: more potatoes, rice or GF oats around sessions keeps cortisol down. ':'')+(A.fat!==null&&A.fat<40?'Fat under 40 g: eggs, butter or cheese for hormones and skin. ':'')+(T.fish<2?'Oily fish on '+T.fish+' day'+(T.fish===1?'':'s')+': 2–3 is the aim (omega-3 for skin, recovery, heart). ':''));
   if(proOK)good.push('Protein at '+Math.round(A.pro)+' g a day');
-  if(A.pro!==null&&A.pro<135)fix.push(['Protein to '+pProtein()+' every day, 30–40 g a meal','big']);
+  if(A.pro!==null&&A.pro<PLANV.proteinMin)fix.push(['Protein to '+pProtein()+' every day, 30–40 g a meal','big']);
   if(A.carbT!==null&&A.carbT<190)fix.push(['Carbs to 200 g+ on training days','big']);
   if(T.fish<2)fix.push(['Oily fish 2–3 times','medium']);
   /* running */
@@ -11193,7 +11194,7 @@ function dayScores(d){var r=S.days[d]||{},g=r.glowSum&&r.glowSum.n>=3?r.glowSum:
   return o;}
 var SC_COLS=[['sleep','😴 Sleep'],['food','🥗 Food'],['protein','🥩 Protein'],['kcal','🔥 Calories'],['steps','👣 Steps'],['rhr','❤️ Recovery']];
 var SC_FIX={sleep:['Sleep','in bed by 23:30, 8–9 h, phone out: the face, recovery and appetite all run on it'],food:['Food quality','follow the food coach: the oily fish and the vitamin D, E and A foods'],
-  protein:['Protein','4 feeds of 30–40 g; a pot of Fage 0% closes most gaps'],kcal:['Calories','weigh everything raw; honey, nuts and chocolate are where it slips'],
+  protein:['Protein',pFeeds()+'; a pot of Fage 0% closes most gaps'],kcal:['Calories','weigh everything raw; honey, nuts and chocolate are where it slips'],
   steps:['Steps','easy runs or an incline walk to keep the week average in range'],rhr:['Recovery','a raised morning HR means an easy day and an early night']};
 function scoreCls(v){return v===null||v===undefined?'':(v>=85?'g':(v>=70?'':'w'));}
 function scorecardHTML(ws,title,open){var t=today(),rows='',sum={},n={},days=[];
@@ -11232,7 +11233,7 @@ function longevityScores(){
   var ss=sleepScoreOn(t);D.push(['😴 Sleep',ss===null?12:Math.round(ss*0.25),25,ss===null?'not logged':'sleep score '+ss+'/100 ('+f1(r.sleep)+' h)','8–9 h in bed by 23:30, phone out']);
   var CX=null;try{CX=cortisolScore();}catch(e){}D.push(['🧪 Calm (cortisol)',CX?Math.round((100-CX.score)*0.2):10,20,CX?'cortisol '+CX.score+'/100':'—',CX&&CX.parts[0]?CX.parts[0].fix:'']);
   var fd=r.glowSum&&r.glowSum.n>=3?r.glowSum:null,fdl='today';if(!fd&&y.glowSum&&y.glowSum.n>=3){fd=y.glowSum;fdl='yesterday';}
-  D.push(['🥩 Food',fd?Math.round(((Math.min(100,fd.coverage||0)*0.5)+Math.min(1,fd.protein/140)*50)*0.2):0,20,fd?fdl+': '+fd.protein+' g protein, '+(fd.coverage||0)+'% coverage':'not logged yet',''+pProtein()+' protein, animal foods first, oily fish 2–3× a week']);
+  D.push(['🥩 Food',fd?Math.round(((Math.min(100,fd.coverage||0)*0.5)+Math.min(1,fd.protein/PLANV.protein)*50)*0.2):0,20,fd?fdl+': '+fd.protein+' g protein, '+(fd.coverage||0)+'% coverage':'not logged yet',''+pProtein()+' protein, animal foods first, oily fish 2–3× a week']);
   var WS=weekSteps(t),mv=WS.avg!==null?Math.min(10,Math.round(WS.avg/WS.target*10)):5,hard=(r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});
   mv+=hard&&legsDay(addD(t,-1))?5:10;D.push(['👣 Movement',mv,20,(WS.avg!==null?'steps '+ci(Math.round(WS.avg))+' week avg':'steps not logged')+(r.gym?' · gym':'')+((r.runs||[]).length?' · ran':''),'steps on the week average, training that fits recovery']);
   var b=rhrBase(t),rh=typeof r.rhr==='number'?r.rhr:null,rp=b===null||rh===null?10:(rh<=b+2?15:(rh<=b+4?8:3));
@@ -11248,7 +11249,7 @@ function longevityScores(){
   var gW=gyms/4;O.push(['🏋️ Strength',gW>=3?10:(gW>=2?7:(gW>=1?4:1)),10,f1(gW)+' sessions a week','muscle and strength predict healthy ageing; 2+ a week']);
   var stA=st.length?mean(st):null;O.push(['👣 Steps',stA===null?5:(stA>=8000&&stA<=13000?10:(stA>13000?7:(stA>=6000?6:3))),10,stA===null?'—':ci(Math.round(stA))+' a day','your plan: '+pSteps()+' as the week average']);
   var pA=pro.length?mean(pro):null,cA=cov.length?mean(cov):null,fw=fish/4;
-  var np=pA===null?7:Math.round(((cA||0)*0.5+Math.min(1,pA/140)*50)*0.15)-(fw<1?2:0);O.push(['🥩 Food',Math.max(0,np),15,pA===null?'—':Math.round(pA)+' g protein · '+Math.round(cA||0)+'% coverage · oily fish '+f1(fw)+'×/wk','oily fish 2–3× a week, protein '+pProtein()+'']);
+  var np=pA===null?7:Math.round(((cA||0)*0.5+Math.min(1,pA/PLANV.protein)*50)*0.15)-(fw<1?2:0);O.push(['🥩 Food',Math.max(0,np),15,pA===null?'—':Math.round(pA)+' g protein · '+Math.round(cA||0)+'% coverage · oily fish '+f1(fw)+'×/wk','oily fish 2–3× a week, protein '+pProtein()+'']);
   var dA=dst.length?mean(dst):null;O.push(['🧘 Calm',dA===null?8:Math.round((1-Math.min(1,dA/4))*15),15,dA===null?'—':'daily load '+f1(dA)+' (0 is calm)','sleep, food, two hard runs, the day off']);
   var sum=function(a){return a.reduce(function(z,p){return z+p[1];},0);};
   return {day:{score:Math.min(100,sum(D)),parts:D},all:{score:Math.min(100,sum(O)),parts:O},H:H,CX:CX};}
@@ -11388,7 +11389,7 @@ function crossTalk(who){
   if(A&&who==='run'&&!walk){var lg=A.items[2];if(lg[1]&&lg[2]<100)add('🏋️','Legs are '+lg[2]+'% landed (lifting coach): a hard run waits until they are back.');}
   if(A&&who==='lift'&&!walk){var hr=A.items[0];if(hr[1]&&(hr[1]===t||hr[1]===addD(t,-1)))add('🏃','Hard run '+(hr[1]===t?'today':'yesterday')+' (running coach): a good day for legs. Never the day before a hard run.');}
   var pw=[];for(var q=1;q<=4;q++){var g=(S.days[addD(t,-q)]||{}).glowSum;if(g&&g.n>=3)pw.push(g.protein);}
-  if(pw.length>=2&&mean(pw)<130&&who==='lift')add('🥩','Protein has averaged '+Math.round(mean(pw))+' g (nutrition coach): the session only builds muscle if the '+pProtein()+' is there. 30–40 g within a couple of hours after.');
+  if(pw.length>=2&&mean(pw)<PLANV.proteinMin&&who==='lift')add('🥩','Protein has averaged '+Math.round(mean(pw))+' g (nutrition coach): the session only builds muscle if the '+pProtein()+' is there. 30–40 g within a couple of hours after.');
   if(who==='nutri'){if(r.gym)add('🏋️','Gym today (lifting coach): 30–40 g protein in the next meal, with carbs.');
     if((r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard;}))add('🏃','Hard run today (running coach): carbs to 200 g or more, and 30–40 g protein within the hour after.');}
   if(typeof y.deep==='number'&&y.deep>4.5&&(who==='run'||who==='lift'))add('🧠',sh(y.deep)+' of deep study yesterday (study coach): that counts as load too. Keep today’s session short and sharp.');
@@ -11528,7 +11529,7 @@ function push2HTML(){
     '<h3 style="margin:10px 0 2px">⚖️ The weight line</h3><p style="margin:2px 0">'+wl+'</p>'+
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
-    tick(g?g.protein>=PLANV.proteinMin:null,'Protein <b>'+pProtein()+'</b> in 4 feeds of 30–40 g'+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
+    tick(g?g.protein>=PLANV.proteinMin:null,'Protein <b>'+pProtein()+'</b> in '+pFeeds()+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
     tick(gyms>=PLANV.gym.lo?true:(gyms?false:null),'Gym <b>'+PLANV.gym.lo+' this week</b>, '+PLANV.gym.hi+' on a good week (the extra goes to shoulders, arms, upper chest), beat last time · '+gyms+' so far','big')+
     tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
     tick(WS.avg===null?null:WS.avg>=planNow(t).steps.lo&&WS.avg<=planNow(t).steps.hi,'Steps <b>'+pSteps(t)+' as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+

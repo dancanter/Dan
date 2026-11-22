@@ -20,6 +20,7 @@ import { isAvoided } from '@/data/avoid';
 import { NUTRIENTS, MICROS, type NKey } from '@/data/nutrients';
 import { SEASON_GUIDE } from '@/data/seasons';
 import { seasonOf } from '@/data/films';
+import { plan } from '@/plan';
 import { bioFactors, targetsFor, type Targets } from '@/engine/score';
 import { addDays } from '@/engine/body';
 import { dayResult, weightOn } from '@/engine/game';
@@ -103,7 +104,7 @@ export function eatNext(s: State, date: string): EatNext[] {
   }
 
   /* 2. protein still to find today */
-  const pro = today.analysis.totals.protein, proteinTarget = 140;
+  const pro = today.analysis.totals.protein, proteinTarget = plan().protein;
   if (pro < proteinTarget - 15) {
     const gap = Math.round(proteinTarget - pro);
     const best = foods.filter((f) => (f.n.protein ?? 0) / Math.max(f.n.kcal, 1) >= 0.15 && f.portion.g >= 80)

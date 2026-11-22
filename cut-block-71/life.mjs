@@ -280,7 +280,7 @@ await boot(st({ days: { '2026-10-06': { runs: [{ k: 'reps', dm: 800, n: 5, secs:
   '2026-10-05': { runs: [{ km: 5, secs: 1463, type: 'easy' }] }, '2026-10-03': {} } }));
 const ud = await p.evaluate(() => ({ hard: dayTarget('2026-10-06'), five: dayTarget('2026-10-07'), k5: dayTarget('2026-10-05'), sat: dayTarget('2026-10-03'), rest: dayTarget('2026-10-08'), carbs: [CARB_AT, CARB_UP], txt: targetTxt('2026-10-08') }));
 ok('hard-run day, 5-mile day and Saturday are 1,899; easy 5 km and rest days 1,799', ud.hard === 1899 && ud.five === 1899 && ud.sat === 1899 && ud.k5 === 1799 && ud.rest === 1799, JSON.stringify(ud));
-ok('the extra 100 is all carbs: 202 -> 227 g', ud.carbs[0] === 202 && ud.carbs[1] === 227, JSON.stringify(ud.carbs));
+ok('the extra 100 is all carbs: 237 -> 262 g', ud.carbs[0] === 237 && ud.carbs[1] === 262, JSON.stringify(ud.carbs));
 ok('today without a run says 1,799, or 1,899 if you run hard or 5 miles', /1,799 · 1,899 if you run hard or 5 miles/.test(ud.txt), ud.txt);
 const fb8 = await p.evaluate(() => { S.days['2026-10-06'].kcal = 1890; return dayFeedback('2026-10-06').find(x => x[0] === 'Food')[2]; });
 ok('1,890 on a hard-run day is on budget', /On budget — a 1,899 day/.test(fb8), fb8);
@@ -656,7 +656,7 @@ await boot(st({ days: { '2026-10-12': { gym: true, split: 'legs', sets: { Legs: 
 await p.click('[data-t="camp"]'); await p.waitForTimeout(100);
 const MM = await p.evaluate(() => E('campCard').textContent);
 ok('the camp tab has Muscle max: sets per muscle against range, over and under named', /💪 Muscle max/.test(MM) && /The extra 100 calories are for muscle/.test(MM) && /⚠ over — no more this week/.test(MM) && /✅ in range/.test(MM) && /to go/.test(MM), MM.slice(MM.indexOf('Muscle max'), MM.indexOf('Muscle max') + 500));
-ok('with the rules: near failure, beat last time, 4 protein feeds, the evening bowl, the extra 100 after the gym', /Beat last time, every session/.test(MM) && /Protein: 4 feeds of 30–40 g/.test(MM) && /evening yoghurt bowl stays/.test(MM) && /extra 100 kcal goes after the gym/.test(MM) && /1 × beat last time|1× beat last time/.test(MM.replace(/\s+/g, ' ')));
+ok('with the rules: near failure, beat last time, 3 protein feeds, the evening bowl, the extra 100 after the gym', /Beat last time, every session/.test(MM) && /Protein: 3 feeds of 30–40 g/.test(MM) && /evening yoghurt bowl stays/.test(MM) && /extra 100 kcal goes after the gym/.test(MM) && /1 × beat last time|1× beat last time/.test(MM.replace(/\s+/g, ' ')));
 await ctx.close();
 
 // ===== 1,899 every day from 18 Oct (his call) =====
@@ -850,7 +850,7 @@ PH = await p.evaluate(() => { const M = weekRunsModel(), G = campGame(); return 
 ok('physique week: two hard runs (600 m+ and 200–400), one Norwegian, an optional 4th run', PH.phys && PH.opt && PH.hard === 2 && PH.mix.join() === 'norw' && !!PH.l && /^\d+ × (200|300|400) m|fast|uphill/.test(PH.s) && PH.left.some(n => /^Optional: a 2nd Norwegian/.test(n)), JSON.stringify(PH).slice(0, 400));
 ok('the quests ask for a 600 m+ hard run, a speed run and one Norwegian', PH.q.indexOf('Hard run, 600 m and up:1') >= 0 && PH.q.indexOf('Speed run, 200–400 m:1') >= 0 && PH.q.indexOf('Norwegian sub-threshold:1') >= 0, JSON.stringify(PH.q));
 ok('the Norwegian carries the hill sprints', PH.left.some(n => /^Norwegian sub-threshold — .*hill sprints/.test(n)), JSON.stringify(PH.left));
-ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /140 g/.test(PH.mm), JSON.stringify(PH.ch));
+ok('the plan is on Muscle max', /The physique camp — the whole plan/.test(PH.mm) && /105 g/.test(PH.mm), JSON.stringify(PH.ch));
 ok('the phase and the push read as the physique week', /physique/.test(PH.ph) && /full week of runs/.test(PH.push), PH.ph + ' | ' + PH.push);
 ok('the runs card has the 600 m+ run and the speed run', /Hard run · 600 m and up/.test(PH.card) && /Hard run · speed, 200 to 400 m/.test(PH.card), '');
 ok('the 600 m+ menu has a timed 5 km and every long camp session', /Timed 5 km, hard/.test(PH.card) && /Hard 5 miles or 10 km/.test(PH.card) && /3 × 1 mile at 5 km pace/.test(PH.card) && /Ladder 800-600-400-200/.test(PH.card) && /Threshold run/.test(PH.card) && !/10 × 400 m at mile pace/.test(PH.card), '');

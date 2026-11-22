@@ -10,7 +10,7 @@ export interface PlanText {
   /** e.g. "5–6" sessions a week */ gym: string;
   /** e.g. "123–124" lb */ goal: string;
 }
-const FALLBACK: PlanText = { kcal: 1799, kcalBase: 1799, protein: 140, steps: '11–13k', stepsFloor: '8,000', gym: '5–6', goal: '123–124' };
+const FALLBACK: PlanText = { kcal: 1799, kcalBase: 1799, protein: 105, steps: '11–13k', stepsFloor: '8,000', gym: '5–6', goal: '123–124' };
 /** The tracker's plan, when Glow runs inside The Good Life; undefined on its own. */
 export function hostPlan(): Partial<PlanText> | undefined {
   try {
