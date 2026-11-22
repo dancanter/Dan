@@ -6605,18 +6605,19 @@ function progHTML(){var t=today(),x=S.days[t]||{},ws=mondayOf(t),pws=addD(ws,-7)
   var tp=wk(ws,pf),lp=wk(pws,pf),tw=wk(ws,wf),lw=wk(pws,wf);
   var cmp=function(a,b,u,lowGood){if(!a.length||!b.length)return '';var da=mean(a)-mean(b);if(Math.abs(da)<0.05)return ' · level with last week';return ' · '+(da<0===lowGood?'<b class="gd">':'<b>')+(da<0?'down ':'up ')+f1(Math.abs(da))+u+'</b> on last week';};
   var rows='';for(i=0;i<7;i++){d=addD(t,-i);var rr=S.days[d]||{},w=wf(d);
-    if(typeof w==='number'||rr.puff||rr.photoFace||rr.photoBody)rows+='<tr><td>'+fmtS(d)+'</td><td class="n">'+(typeof w==='number'?f1(w)+' cm':'—')+'</td><td class="n">'+(rr.puff?rr.puff+' / 5':'—')+'</td><td>'+(rr.photoFace?'🙂':'')+(rr.photoBody?'💪':'')+'</td></tr>';}
+    if(typeof w==='number'||rr.puff||rr.photoFace||rr.photoBody||typeof rr.bf==='number')rows+='<tr><td>'+fmtS(d)+'</td><td class="n">'+(typeof w==='number'?f1(w)+' cm':'—')+'</td><td class="n">'+(rr.puff?rr.puff+' / 5':'—')+'</td><td class="n">'+(typeof rr.bf==='number'?f1(rr.bf)+'%':'—')+'</td><td>'+(rr.photoFace?'🙂':'')+(rr.photoBody?'💪':'')+'</td></tr>';}
   var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-pc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
   var pb='';for(i=1;i<=5;i++)pb+='<button type="button" class="btn '+(x.puff===i?'':'ghost ')+'sm" data-pc="puff" data-v="'+i+'" aria-pressed="'+(x.puff===i?'true':'false')+'" style="margin:3px 4px 0 0;min-width:36px">'+i+'</button>';
-  var cw=S.waist&&S.waist[t];
-  return '<div class="p lift"><h2>📸 Progress check</h2>'+
+  var cw=S.waist&&S.waist[t],bfd=null,bfr=null;for(i=0;i<60&&!bfd;i++){d=addD(t,-i);if(typeof (S.days[d]||{}).bf==='number'){bfd=d;bfr=S.days[d];}}
+  var bfLine=bfd?'<p class="keep" style="margin:6px 0"><b>📷 Photo body-fat estimate: about '+f1(bfr.bf)+'%</b>'+(Array.isArray(bfr.bfRange)?' <span class="tiny">(range '+bfr.bfRange[0]+'–'+bfr.bfRange[1]+'%)</span>':'')+' <span class="tiny dim">· '+fmtS(bfd)+'</span>'+(bfr.bfNote?'<br><span class="tiny">'+esc(bfr.bfNote)+'</span>':'')+'</p>':'';
+  return '<div class="p lift"><h2>📸 Progress check</h2>'+bfLine+
     '<p class="tiny" style="margin:0 0 6px">First thing in the morning, before you eat or drink, same place and light. Send me your face and body photos and I note what I see. The photos stay in your phone.</p>'+
     '<div style="margin:6px 0"><b>Face puffiness today</b> <span class="tiny dim">1 = sharp · 5 = very puffy</span><div>'+pb+'</div></div>'+
     '<div class="row" style="gap:8px;align-items:flex-end;margin:8px 0"><div class="f" style="max-width:150px"><label for="pcWaist">Waist at the navel (cm)</label><input type="number" step="0.1" min="50" max="110" id="pcWaist" placeholder="'+(typeof cw==='number'?cw:'—')+'"></div><button class="btn sm" type="button" data-pc="waist">Save</button></div>'+
     '<div>'+tg('photoFace',!!x.photoFace,'🙂 Face photo taken')+tg('photoBody',!!x.photoBody,'💪 Body photo taken')+'</div>'+
     '<p class="tiny keep" style="margin:8px 0 2px">This week'+(tp.length?': puffiness <b>'+f1(mean(tp))+'</b>/5'+cmp(tp,lp,'',true):'')+(tw.length?' · waist <b>'+f1(mean(tw))+' cm</b>'+cmp(tw,lw,' cm',true):'')+(!tp.length&&!tw.length?': nothing logged yet.':'')+'</p>'+
-    (rows?'<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Waist</th><th class="n">Puffy</th><th>Photos</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
-    '<p class="tiny dim" style="margin:6px 0 0">Daily readings wiggle with salt and water, so the Sunday review compares the week, not one morning.</p></div>';}
+    (rows?'<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Waist</th><th class="n">Puffy</th><th class="n">Body fat*</th><th>Photos</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
+    '<p class="tiny dim" style="margin:6px 0 0">*Body fat is Claude\'s visual estimate from the photos you send, give or take 3%. Light, pose and water move it, so read the trend over weeks. Daily readings wiggle with salt and water, so the Sunday review compares the week, not one morning.</p></div>';}
 function renderProg(){var el=E('progCard');if(!el)return;if(document.activeElement&&el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')return;try{el.innerHTML=progHTML();}catch(e){el.innerHTML='';}}
 function renderAllCard(){var el=E('allCard');if(!el)return;try{el.innerHTML=allInOneHTML();}catch(e){el.innerHTML='';}}
 

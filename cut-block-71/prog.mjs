@@ -56,13 +56,14 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
 }
 { // the progress check: puffiness 1-5, waist, photo ticks, and this week against last
   const o = await open(wk({}), '2026-11-22T08:00:00');
-  await o.p.evaluate(() => { S.days['2026-11-17'] = Object.assign(S.days['2026-11-17'] || {}, { puff: 4 }); S.days['2026-11-18'] = Object.assign(S.days['2026-11-18'] || {}, { puff: 4 }); S.waist = { '2026-11-17': 75.5 }; touch(); });
+  await o.p.evaluate(() => { S.days['2026-11-17'] = Object.assign(S.days['2026-11-17'] || {}, { puff: 4 }); S.days['2026-11-18'] = Object.assign(S.days['2026-11-18'] || {}, { puff: 4 }); S.waist = { '2026-11-17': 75.5 }; S.days['2026-11-21'] = Object.assign(S.days['2026-11-21'] || {}, { bf: 11.5, bfRange: [10, 13], bfNote: 'baseline photo' }); touch(); });
   await o.p.click('#progCard [data-pc="puff"][data-v="2"]');
   await o.p.waitForTimeout(500);
   await o.p.fill('#pcWaist', '74.5'); await o.p.click('#progCard [data-pc="waist"]');
   await o.p.click('#progCard [data-pc="photoFace"]');
   const r = await o.p.evaluate(() => ({ t: document.getElementById('progCard').innerText, s: S.days['2026-11-22'], w: S.waist['2026-11-22'] }));
   ok('the progress check saves puffiness, waist and the photo tick', r.s.puff === 2 && r.w === 74.5 && r.s.photoFace === true && /Progress check/.test(r.t) && /waist/i.test(r.t), JSON.stringify([r.s, r.w, r.t.slice(0,200)]));
+  ok('the progress check shows the photo body-fat estimate', /11\.5%/.test(r.t) && /10.13%/.test(r.t), r.t.slice(0, 300));
   ok('the progress check compares this week with last', /This week/.test(r.t), r.t.slice(0, 300));
   await o.ctx.close();
 }
