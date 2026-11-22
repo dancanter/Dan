@@ -54,6 +54,18 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
   ok('a weigh-in the morning after a refeed is left out of the camp averages', r.tw < 128 && r.wa < 128 && r.low < 127, JSON.stringify(r));
   await o.ctx.close();
 }
+{ // the progress check: puffiness 1-5, waist, photo ticks, and this week against last
+  const o = await open(wk({}), '2026-11-22T08:00:00');
+  await o.p.evaluate(() => { S.days['2026-11-17'] = Object.assign(S.days['2026-11-17'] || {}, { puff: 4 }); S.days['2026-11-18'] = Object.assign(S.days['2026-11-18'] || {}, { puff: 4 }); S.waist = { '2026-11-17': 75.5 }; touch(); });
+  await o.p.click('#progCard [data-pc="puff"][data-v="2"]');
+  await o.p.waitForTimeout(500);
+  await o.p.fill('#pcWaist', '74.5'); await o.p.click('#progCard [data-pc="waist"]');
+  await o.p.click('#progCard [data-pc="photoFace"]');
+  const r = await o.p.evaluate(() => ({ t: document.getElementById('progCard').innerText, s: S.days['2026-11-22'], w: S.waist['2026-11-22'] }));
+  ok('the progress check saves puffiness, waist and the photo tick', r.s.puff === 2 && r.w === 74.5 && r.s.photoFace === true && /Progress check/.test(r.t) && /waist/i.test(r.t), JSON.stringify([r.s, r.w, r.t.slice(0,200)]));
+  ok('the progress check compares this week with last', /This week/.test(r.t), r.t.slice(0, 300));
+  await o.ctx.close();
+}
 // ---- Tuesday: only Monday's 1 km reps are done; the 48 h rule holds the next hard session back ----
 ({ ctx, p } = await open({ weights: { '2026-11-16': 127.6 }, days: { '2026-11-16': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 591 }], sleep: 8.8, rhr: 48 }, '2026-11-17': { sleep: 8, rhr: 48 } }, bests: {}, settings: {}, uni: { mods: [], tasks: [], topics: [], refs: [] } }, '2026-11-17T12:00:00'));
 rc = await text(p, 'runCoach');

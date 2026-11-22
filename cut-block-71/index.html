@@ -397,6 +397,7 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   <div id="storeWarn"></div>
   <div id="ccCard"></div>
   <div id="allCard"></div>
+  <div id="progCard"></div>
   <div id="xcampCard"></div>
   <div class="p">
     <h2>Log · <span id="logDateLabel">today</span></h2>
@@ -1690,6 +1691,7 @@ function mergeByDate(older,newer){
   if(older.glow&&Array.isArray(older.glow.customFoods)){if(!out.glow)out.glow={};if(!Array.isArray(out.glow.customFoods))out.glow.customFoods=[];
     var cfi={};out.glow.customFoods.forEach(function(f){if(f&&f.id)cfi[f.id]=1;});
     older.glow.customFoods.forEach(function(f){if(f&&f.id&&!cfi[f.id]){out.glow.customFoods.push(clone(f));added++;}});}
+  if(older.waist&&typeof older.waist==='object'){if(!out.waist||typeof out.waist!=='object')out.waist={};for(k in older.waist)if(!(k in out.waist)){out.waist[k]=older.waist[k];added++;}}
   if(fsOn(older)&&fsOn(newer))added+=fsApply(out,older,newer);
   out.updatedAt=Math.max(older.updatedAt||0,newer.updatedAt||0);
   return {s:out,added:added};
@@ -4485,6 +4487,10 @@ function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
+  E('progCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-pc]');if(!b)return;var t=today(),k=b.dataset.pc;S.days[t]=S.days[t]||{};
+    if(k==='puff'){var v=parseInt(b.dataset.v,10);if(S.days[t].puff===v)delete S.days[t].puff;else S.days[t].puff=v;}
+    else if(k==='waist'){var w=parseFloat((E('pcWaist')||{}).value);if(!(w>=50&&w<=110))return;if(!S.waist)S.waist={};S.waist[t]=Math.round(w*10)/10;}
+    else if(S.days[t][k])delete S.days[t][k];else S.days[t][k]=true;touch();});
   E('xcampCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-xc]');if(!b)return;var t=today(),k=b.dataset.xc;S.days[t]=S.days[t]||{};if(k==='noPhone'){if(S.days[t].noPhone||S.days[t].phoneOut){delete S.days[t].noPhone;delete S.days[t].phoneOut;}else S.days[t].phoneOut=true;}else if(S.days[t][k])delete S.days[t][k];else S.days[t][k]=true;touch();});
   E('campToday').addEventListener('click',function(ev){var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
 }
@@ -6591,13 +6597,34 @@ function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
   return '<div class="p lift"><h2>📋 Everything in one place</h2><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'+tiles+'</div>'+
     '<div class="tiny keep" style="margin:8px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
     '<div class="tiny keep dim">Longevity, health age and cortisol are the three tiles above. The full camp checklist is just below.</div></div>';}
+/* Dan, 22 Nov: face photo, body photo and waist for the puffy-face question. The photos stay on his phone; this keeps the
+   waist (cm), a 1-5 puffiness rating, and whether the photos were taken, then compares this week with last. */
+function progHTML(){var t=today(),x=S.days[t]||{},ws=mondayOf(t),pws=addD(ws,-7),i,d,r;
+  var wk=function(a,f){var o=[];for(i=0;i<7;i++){d=addD(a,i);if(d>t)break;var v=f(d);if(typeof v==='number'&&v>0)o.push(v);}return o;};
+  var pf=function(d){return (S.days[d]||{}).puff;},wf=function(d){return S.waist&&S.waist[d];};
+  var tp=wk(ws,pf),lp=wk(pws,pf),tw=wk(ws,wf),lw=wk(pws,wf);
+  var cmp=function(a,b,u,lowGood){if(!a.length||!b.length)return '';var da=mean(a)-mean(b);if(Math.abs(da)<0.05)return ' · level with last week';return ' · '+(da<0===lowGood?'<b class="gd">':'<b>')+(da<0?'down ':'up ')+f1(Math.abs(da))+u+'</b> on last week';};
+  var rows='';for(i=0;i<7;i++){d=addD(t,-i);var rr=S.days[d]||{},w=wf(d);
+    if(typeof w==='number'||rr.puff||rr.photoFace||rr.photoBody)rows+='<tr><td>'+fmtS(d)+'</td><td class="n">'+(typeof w==='number'?f1(w)+' cm':'—')+'</td><td class="n">'+(rr.puff?rr.puff+' / 5':'—')+'</td><td>'+(rr.photoFace?'🙂':'')+(rr.photoBody?'💪':'')+'</td></tr>';}
+  var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-pc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
+  var pb='';for(i=1;i<=5;i++)pb+='<button type="button" class="btn '+(x.puff===i?'':'ghost ')+'sm" data-pc="puff" data-v="'+i+'" aria-pressed="'+(x.puff===i?'true':'false')+'" style="margin:3px 4px 0 0;min-width:36px">'+i+'</button>';
+  var cw=S.waist&&S.waist[t];
+  return '<div class="p lift"><h2>📸 Progress check</h2>'+
+    '<p class="tiny" style="margin:0 0 6px">First thing in the morning, before you eat or drink, same place and light. Send me your face and body photos and I note what I see. The photos stay in your phone.</p>'+
+    '<div style="margin:6px 0"><b>Face puffiness today</b> <span class="tiny dim">1 = sharp · 5 = very puffy</span><div>'+pb+'</div></div>'+
+    '<div class="row" style="gap:8px;align-items:flex-end;margin:8px 0"><div class="f" style="max-width:150px"><label for="pcWaist">Waist at the navel (cm)</label><input type="number" step="0.1" min="50" max="110" id="pcWaist" placeholder="'+(typeof cw==='number'?cw:'—')+'"></div><button class="btn sm" type="button" data-pc="waist">Save</button></div>'+
+    '<div>'+tg('photoFace',!!x.photoFace,'🙂 Face photo taken')+tg('photoBody',!!x.photoBody,'💪 Body photo taken')+'</div>'+
+    '<p class="tiny keep" style="margin:8px 0 2px">This week'+(tp.length?': puffiness <b>'+f1(mean(tp))+'</b>/5'+cmp(tp,lp,'',true):'')+(tw.length?' · waist <b>'+f1(mean(tw))+' cm</b>'+cmp(tw,lw,' cm',true):'')+(!tp.length&&!tw.length?': nothing logged yet.':'')+'</p>'+
+    (rows?'<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Waist</th><th class="n">Puffy</th><th>Photos</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
+    '<p class="tiny dim" style="margin:6px 0 0">Daily readings wiggle with salt and water, so the Sunday review compares the week, not one morning.</p></div>';}
+function renderProg(){var el=E('progCard');if(!el)return;if(document.activeElement&&el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')return;try{el.innerHTML=progHTML();}catch(e){el.innerHTML='';}}
 function renderAllCard(){var el=E('allCard');if(!el)return;try{el.innerHTML=allInOneHTML();}catch(e){el.innerHTML='';}}
 
 function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
   paintHeader(c,tr);
   renderToday(c,w,tr);
-  renderXCamp();renderAllCard();
+  renderXCamp();renderAllCard();renderProg();
   renderAlerts(w,tr,c);
   renderSignals(tr);
   renderGains();
