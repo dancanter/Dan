@@ -1711,7 +1711,7 @@ function preAvg(){
    and the average since. The old all-time baseline stays inside the Weight tab and the achievements. */
 var WREF={from:'2026-11-09'};
 function wRef(t){t=t||today();
-  var ks=Object.keys(S.weights).sort().filter(function(k){return k>=WREF.from&&k<=t&&typeof S.weights[k]==='number';});
+  var ks=Object.keys(S.weights).sort().filter(function(k){return k>=WREF.from&&k<=t&&typeof S.weights[k]==='number'&&!postRefeed(k);});
   var wk={};ks.forEach(function(k){var m=mondayOf(k);(wk[m]=wk[m]||[]).push(S.weights[k]);});
   var weeks=Object.keys(wk).sort().map(function(m){return {a:m,avg:mean(wk[m]),n:wk[m].length,cur:m===mondayOf(t)};});
   var all=ks.map(function(k){return S.weights[k];}),low=null,lowOn=null;
@@ -6467,10 +6467,10 @@ function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
     if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
     if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(typeof x.study==='number'&&x.study>0){stuH+=x.study;stuN++;}if(typeof x.deep==='number')deepH+=x.deep;if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone||x.phoneOut)np++;});
   var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
-  var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number')ws.push(v);}
+  var ws=[];for(var i=0;i<7;i++){var v=S.weights[addD(t,-i)];if(typeof v==='number'&&!postRefeed(addD(t,-i)))ws.push(v);}
   var wl=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&typeof S.weights[k]==='number')wl=S.weights[k];});
-  var lowest=null;Object.keys(S.weights).sort().forEach(function(k){var v=S.weights[k];if(k>=X.from&&k<=t&&typeof v==='number'&&(lowest===null||v<lowest))lowest=v;});
-  var pw=[];for(var q=7;q<14;q++){var pv=S.weights[addD(t,-q)];if(typeof pv==='number')pw.push(pv);}
+  var lowest=null;Object.keys(S.weights).sort().forEach(function(k){var v=S.weights[k];if(k>=X.from&&k<=t&&typeof v==='number'&&!postRefeed(k)&&(lowest===null||v<lowest))lowest=v;});
+  var pw=[];for(var q=7;q<14;q++){var pv=S.weights[addD(t,-q)];if(typeof pv==='number'&&!postRefeed(addD(t,-q)))pw.push(pv);}
   var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(wRefStart()-wa)/(wRefStart()-X.wHi)));
   var wk=0,wkN=0,mo=mondayOf(t);for(var j=0;j<7;j++){var dd=addD(mo,j);if(dd>t)break;var sx=(S.days[dd]||{}).steps;if(typeof sx==='number'&&sx>0){wk+=sx;wkN++;}}
   var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;

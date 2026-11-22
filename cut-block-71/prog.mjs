@@ -47,6 +47,13 @@ await ctx.close();
 ok('C is a fortnightly 200 m session with 80 m uphill sprints in between', /200 m uphill at about 30 s a rep/.test(rc) && /80 m uphill/.test(rc), rc.slice(0,200));
 ok('the where-you-are table sets your latest next to spring 2025', /Where you are vs spring 2025/.test(rc) && /17:18/.test(rc) && /3:10–3:13/.test(rc));
 ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc) && /Sleep score/.test(rc) && /14-day avg/.test(rc));
+{ // the morning after a refeed is water: it stays in the log and is left out of the camp weight averages
+  const o = await open(wk({}), '2026-11-22T08:00:00');
+  await o.p.evaluate(() => { S.weights['2026-11-22'] = 130.2; S.days['2026-11-21'] = S.days['2026-11-21'] || {}; S.days['2026-11-21'].refeed = true; });
+  const r = await o.p.evaluate(() => { const R = wRef('2026-11-22'), M = xcampModel('2026-11-22'); return { tw: R.thisWeek && R.thisWeek.avg, low: R.low, wa: M.wa, n: R.n }; });
+  ok('a weigh-in the morning after a refeed is left out of the camp averages', r.tw < 128 && r.wa < 128 && r.low < 127, JSON.stringify(r));
+  await o.ctx.close();
+}
 // ---- Tuesday: only Monday's 1 km reps are done; the 48 h rule holds the next hard session back ----
 ({ ctx, p } = await open({ weights: { '2026-11-16': 127.6 }, days: { '2026-11-16': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 591 }], sleep: 8.8, rhr: 48 }, '2026-11-17': { sleep: 8, rhr: 48 } }, bests: {}, settings: {}, uni: { mods: [], tasks: [], topics: [], refs: [] } }, '2026-11-17T12:00:00'));
 rc = await text(p, 'runCoach');
