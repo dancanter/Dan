@@ -67,6 +67,20 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
   ok('the progress check compares this week with last', /This week/.test(r.t), r.t.slice(0, 300));
   await o.ctx.close();
 }
+{ // camp goals are 2 hard runs and 4 gym a week (12 and 23 over 40 days) plus study; calm mode shows just four things
+  const o = await open(wk({}), '2026-11-22T08:00:00');
+  const camp = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
+  ok('the camp goals are 12 hard runs, 23 gym and 57 h of study', /\/ 12/.test(camp) && /\/ 23/.test(camp) && /57/.test(camp), camp.slice(0, 500));
+  await o.p.evaluate(() => { S.settings.calm = true; touch(); });
+  await o.p.waitForTimeout(400);
+  const calm = await o.p.evaluate(() => ({ a: document.getElementById('allCard').innerText, x: document.getElementById('xcampCard').innerText }));
+  ok('calm mode shows four things and hides the camp card', /Your four things/.test(calm.a) && /Sleep/i.test(calm.a) && /Protein/i.test(calm.a) && /hard runs/i.test(calm.a) && /Steps/i.test(calm.a) && calm.x.trim() === '', JSON.stringify(calm).slice(0, 400));
+  await o.p.click('#btnCalmOff');
+  await o.p.waitForTimeout(400);
+  const back = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
+  ok('the button brings the camp card back', /Xmas Camp/i.test(back), back.slice(0, 120));
+  await o.ctx.close();
+}
 // ---- Tuesday: only Monday's 1 km reps are done; the 48 h rule holds the next hard session back ----
 ({ ctx, p } = await open({ weights: { '2026-11-16': 127.6 }, days: { '2026-11-16': { runs: [{ k: 'reps', dm: 1000, n: 3, secs: 591 }], sleep: 8.8, rhr: 48 }, '2026-11-17': { sleep: 8, rhr: 48 } }, bests: {}, settings: {}, uni: { mods: [], tasks: [], topics: [], refs: [] } }, '2026-11-17T12:00:00'));
 rc = await text(p, 'runCoach');

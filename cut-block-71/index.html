@@ -1246,7 +1246,7 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
    Calories: dayTarget(t). Weight goal: CFG.goals / CFG.w.target. Everything else: PLANV. */
 /* Dan, 22 Nov: "140 is a load of crap, it should be at least 0.8 g per pound." 0.8 g/lb of about 127-130 lb is about 102-104 g: that is the aim,
    100 g counts as on target, and 130+ is a bonus (about 1 g/lb), never a need. */
-var PLANV={protein:105,proteinMin:100,proteinHi:130,feed:[30,40],feeds:3,gym:{lo:5,hi:6},sleep:{lo:8,hi:9},
+var PLANV={protein:105,proteinMin:100,proteinHi:130,feed:[30,40],feeds:3,gym:{lo:4,hi:5},sleep:{lo:8,hi:9},
   steps:{floor:8000,lo:11000,loFull:12000,hi:13000,strain:14000,week:80000},hard:2,fish:[2,3]};
 function planNow(t){t=t||today();var full=false,walk=false;try{full=push2Mode(t).k==='full';walk=walkWeekOn(t);}catch(e){}
   var st=PLANV.steps,k=CFG.kcal.avg;try{k=dayTarget(t);}catch(e){}
@@ -4487,6 +4487,7 @@ function renderGlance(){if(E('glanceCard'))E('glanceCard').innerHTML=celeHTML()+
 function wireGlance(){
   E('glanceCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();return;}var b=ev.target.closest('button[data-goto]');if(b)tab(b.dataset.goto);});
   E('campCard').addEventListener('click',function(ev){var c=ev.target.closest('button[data-cele]');if(c){celeSeen(c.dataset.cele,true);render();}});
+  E('allCard').addEventListener('click',function(ev){if(ev.target&&ev.target.id==='btnCalmOff'){S.settings.calm=false;touch();}});
   E('progCard').addEventListener('click',function(ev){var b=ev.target.closest('button[data-pc]');if(!b)return;var t=today(),k=b.dataset.pc;S.days[t]=S.days[t]||{};
     if(k==='puff'){var v=parseInt(b.dataset.v,10);if(S.days[t].puff===v)delete S.days[t].puff;else S.days[t].puff=v;}
     else if(k==='waist'){var w=parseFloat((E('pcWaist')||{}).value);if(!(w>=50&&w<=110))return;if(!S.waist)S.waist={};S.waist[t]=Math.round(w*10)/10;}
@@ -6496,11 +6497,12 @@ var CUR='today';
    Board: runs 24, cals 1,799–1,899 unless eating out, gym 25, weight 123–124
    (start 127.6), finish assignments and all uni work, teeth 3× plus floss,
    sleep without phone 8–10 h. Days left 39 on 15 Nov → ends 24 Dec. */
-var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,gym:25,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,stepsAvg:12500,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
+/* Dan, 26 Nov: the camp goals become 4 gym sessions and 2 hard runs a week over the camp's 40 days (5.7 weeks): 23 gym, 12 hard runs; study 10 h a week = 57 h. All runs (24) stays as a bonus count. */
+var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,hard:12,gym:23,studyH:57,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,stepsAvg:12500,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
 function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   for(d=X.from;d<=end;d=addD(d,1))days.push(d);
-  var runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0,stuH=0,deepH=0,stuN=0;
-  days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;if(x.gym)gym++;
+  var hr=0,runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0,stuH=0,deepH=0,stuN=0;
+  days.forEach(function(d){var x=S.days[d]||{};runs+=(x.runs||[]).length;(x.runs||[]).forEach(function(r){var mm=runMeta(r);if(!mm.empty&&mm.hard&&!mm.sprint)hr++;});if(x.gym)gym++;
     if(x.eatOut)out++;else if(typeof x.kcal==='number'&&x.kcal>0){kLog++;if(x.kcal>=X.kLo&&x.kcal<=X.kHi+20)kOk++;}
     if(typeof x.steps==='number'&&x.steps>0){stT+=x.steps;stN++;}if(typeof x.study==='number'&&x.study>0){stuH+=x.study;stuN++;}if(typeof x.deep==='number')deepH+=x.deep;if(x.teeth)teeth++;if(typeof x.sleep==='number'&&d>=X.sleepFrom){slLog++;if(x.sleep>=X.sLo&&x.sleep<=X.sHi)sl++;}if(x.noPhone||x.phoneOut)np++;});
   var total=diffD(X.from,X.to)+1,gone=t<X.from?0:Math.min(total,diffD(X.from,t)+1),left=Math.max(0,diffD(t,X.to));
@@ -6511,7 +6513,7 @@ function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   var wa=ws.length?mean(ws):wl,wp=wa===null?0:Math.max(0,Math.min(1,(wRefStart()-wa)/(wRefStart()-X.wHi)));
   var wk=0,wkN=0,mo=mondayOf(t);for(var j=0;j<7;j++){var dd=addD(mo,j);if(dd>t)break;var sx=(S.days[dd]||{}).steps;if(typeof sx==='number'&&sx>0){wk+=sx;wkN++;}}
   var uni=((S.uni&&S.uni.tasks)||[]).filter(function(k){return (k.due||'')<=X.to||k.aim&&k.aim<=X.to;}),uDone=uni.filter(function(k){return k.done;}).length;
-  return {stT:stT,lowest:lowest,wn:ws.length,wprev:pw.length?mean(pw):null,stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
+  return {hr:hr,stT:stT,lowest:lowest,wn:ws.length,wprev:pw.length?mean(pw):null,stuH:stuH,deepH:deepH,stuN:stuN,stAvg:stN?Math.round(stT/stN):null,stN:stN,wk:wk,wkN:wkN,t:t,days:days.length,total:total,gone:gone,left:left,runs:runs,gym:gym,kOk:kOk,kLog:kLog,out:out,teeth:teeth,sl:sl,slLog:slLog,np:np,wl:wl,wa:wa,wp:wp,uni:uni,uDone:uDone};}
 function xcampWeightHTML(M){var X=XCAMP,t=M.t;
   if(M.wa===null)return '<div class="tiny" style="margin:6px 0">Weigh in each morning (same time, after the loo) and this tells you where you are against the line to '+X.wLo+'–'+X.wHi+' lb.</div>';
   var goal=PUSH2.goal,line=push2Line(t),gap=M.wa-line,toGo=Math.max(0,M.wa-goal),to124=Math.max(0,M.wa-X.wHi),wks=Math.max(1,M.left/7),need=toGo/wks;
@@ -6542,7 +6544,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
       (p===null?'':'<div style="height:10px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden;margin:4px 0"><div style="height:100%;width:'+(p*100).toFixed(0)+'%;background:'+c+';border-radius:6px;transition:width .6s"></div></div>')+
       '<div class="keep" style="font-size:.85em;opacity:.8">'+sub+'</div></div>';};
   var slP=pct(M.sl,M.slLog),tP=pct(M.teeth,M.days);
-  var parts=[pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,tP,slP],score=Math.round(mean(parts)*100);
+  var parts=[pct(M.hr,X.hard),pct(M.gym,X.gym),M.wp,tP,slP,pct(M.stuH,X.studyH)],score=Math.round(mean(parts)*100);
   var lv=score>=90?['🎄','Christmas legend']:score>=75?['⭐','Star of the camp']:score>=50?['🔥','On fire']:score>=25?['❄️','Building']:['🎁','Just unwrapped'];
   var big=M.left===0?'🎄 It’s camp day! Final weigh-in and photos.':'<span style="font-size:2.4em;font-weight:800;line-height:1">'+M.left+'</span> <span>day'+(M.left===1?'':'s')+' left</span>';
   var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-xc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
@@ -6551,9 +6553,9 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · '+Math.min(M.gone,M.total)+' of '+M.total+' camp days done</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
-      '<span class="chip">🏃 Run = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
+      '<span class="chip">🏃 Hard = '+M.hr+'</span><span class="chip">All runs = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     '<div class="tiny keep" style="margin:4px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
-    row('🏃','Runs',M.runs+' / '+X.runs,pct(M.runs,X.runs),paceTxt(M.runs,X.runs))+
+    row('🏃','Hard runs (2 a week)',M.hr+' / '+X.hard,pct(M.hr,X.hard),paceTxt(M.hr,X.hard)+' · all runs so far: '+M.runs+' (easy runs are a bonus)')+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     (function(){var R=wRef(t),lw=R.lastWeek,tw=R.thisWeek,d=lw&&tw?lw.avg-tw.avg:null;
       return row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,
@@ -6566,17 +6568,17 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
       return row('🏔️','Camp steps, all together',ci(tot)+' / '+ci(goalTot),p,
         'Goal <b>'+ci(goalAvg)+' a day</b> for '+M.total+' camp days = '+ci(goalTot)+'. You’re averaging <b>'+(M.stAvg===null?'—':ci(M.stAvg))+'</b>'+(M.stAvg!==null&&elapsed?' · '+(diff>=0?'<b class="gd">'+ci(diff)+' steps ahead</b> ✓':'<b>'+ci(-diff)+' steps behind</b>'):'')+
         '<br>'+(remain?ci(remain)+' to go · about <b>'+ci(Math.round(need))+'</b> a day from here · next milestone <b>'+ci(ms)+'</b> ('+ci(Math.max(0,ms-tot))+' to go)':'🏆 Camp steps done!'));})()+
-    row('📚','Study since camp began',f1(M.stuH)+' h',null,(M.stuN?'About <b>'+f1(M.stuH/M.stuN)+' h</b> on the days you studied · <b>'+f1(M.deepH)+' h</b> deep work · '+M.stuN+' study day'+(M.stuN===1?'':'s'):'Log your study hours on Today to start this one'))+
+    row('📚','Study (10 h a week)',f1(M.stuH)+' / '+X.studyH+' h',pct(M.stuH,X.studyH),(M.stuN?'About <b>'+f1(M.stuH/M.stuN)+' h</b> on the days you studied · <b>'+f1(M.deepH)+' h</b> deep work · '+M.stuN+' study day'+(M.stuN===1?'':'s'):'Log your study hours on Today to start this one'))+
     row('🦷','Teeth 3× plus floss',M.teeth+' / '+M.days+' days',tP,M.teeth===M.days&&M.days?'Perfect so far ✨':'Tick it on Today each night')+
     row('😴','Sleep 8–10 h, no phone',M.sl+' / '+M.slLog+' nights',slP,(M.slLog?Math.round(slP*100)+'% of nights in 8–10 h':'Starts tonight 🌙 log it in the morning')+' · 📵 phone-free nights: '+M.np)+
     '<div style="margin-top:8px"><span class="tiny dim">Today:</span><br>'+tg('teeth',!!x.teeth,'🦷 Teeth 3× + floss')+tg('noPhone',!!(x.noPhone||x.phoneOut),'📵 No phone in bed')+'</div>'+
     '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight, steps, study and sleep fill in by themselves from what you log.</p></div>';}
-function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=xcampHTML();}catch(e){el.innerHTML='';}}
+function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=calmOn()?'':xcampHTML();}catch(e){el.innerHTML='';}}
 /* Dan, 20 Nov: "on the overview I'd want all my data on it and the Xmas camp, so it's all together rather than scrolling down." */
 function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
   var M=xcampModel(t),W=null,x=S.days[t]||{},i,d;try{W=prog25Week(t);}catch(e){}
   var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
-  var score=Math.round(mean([pct(M.runs,X.runs),pct(M.gym,X.gym),M.wp,pct(M.teeth,M.days),pct(M.sl,M.slLog)])*100);
+  var score=Math.round(mean([pct(M.hr,X.hard),pct(M.gym,X.gym),M.wp,pct(M.teeth,M.days),pct(M.sl,M.slLog),pct(M.stuH,X.studyH)])*100);
   var nA=[],sA=[];for(i=0;i<14;i++){d=addD(t,-i);var rr=S.days[d]||{},nv=rr.glowSum?rr.glowSum.nutrition:null,sv=sleepScoreOn(d);if(typeof nv==='number')nA.push(nv);if(typeof sv==='number')sA.push(sv);}
   var av=function(a){return a.length?Math.round(mean(a)):null;},nS=av(nA),sS=av(sA);
   var gd=null;try{gd=glowDay(t);}catch(e){}
@@ -6585,11 +6587,11 @@ function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
   var tile=function(e,n,v,sub){return '<div style="padding:9px 10px;border-radius:12px;background:rgba(127,127,127,.12);min-width:0"><div class="tiny dim">'+e+' '+n+'</div><div style="font-size:1.25em;font-weight:800;line-height:1.25">'+v+'</div><div class="tiny keep" style="opacity:.85">'+sub+'</div></div>';};
   var tiles=[
     tile('🎄','Camp score',score+'%',Math.min(M.gone,M.total)+' of '+M.total+' camp days done · '+M.left+' to go'),
-    tile('🏃','Runs',M.runs+' / '+X.runs,'this week '+(W?W.done+' of 4 sessions':'—')),
+    tile('🏃','Hard runs',M.hr+' / '+X.hard,'all runs '+M.runs+' · this week '+(W?W.done+' of 4 sessions':'—')),
     tile('🏋️','Gym',M.gym+' / '+X.gym,'goal '+pGym()+' a week'),
     tile('⚖️','Weight',M.wa===null?'—':f1(M.wa)+' lb',(M.wa===null?'weigh in':(down!==null&&Math.abs(down)>=0.05?(down>0?'down '+f1(down)+' on last week':'up '+f1(-down)+' on last week'):'level with last week')+' · '+(M.wa>X.wHi?f1(M.wa-X.wHi)+' to 124':'🎯 in the zone'))),
     tile('👟','Steps',ci(M.wk),'this week · camp total '+ci(M.stT)+' of '+ci(X.stepsAvg*M.total)),
-    tile('📚','Study',f1(M.stuH)+' h','since camp began'),
+    tile('📚','Study',f1(M.stuH)+' / '+X.studyH+' h','10 h a week'),
     tile('🦷','Teeth',M.teeth+' / '+M.days,'days with 3× + floss'),
     tile('😴','Sleep 8–10 h',M.sl+' / '+M.slLog,'nights · score '+(sS===null?'—':sS+'/100')),
     tile('🥗','Nutrition score',nS===null?'—':nS+'/100','14-day avg · baseline 56–80'),
@@ -6619,7 +6621,23 @@ function progHTML(){var t=today(),x=S.days[t]||{},ws=mondayOf(t),pws=addD(ws,-7)
     (rows?'<div class="scroll"><table class="tbl"><thead><tr><th>Day</th><th class="n">Waist</th><th class="n">Puffy</th><th class="n">Body fat*</th><th>Photos</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'')+
     '<p class="tiny dim" style="margin:6px 0 0">*Body fat is Claude\'s visual estimate from the photos you send, give or take 3%. Light, pose and water move it, so read the trend over weeks. Daily readings wiggle with salt and water, so the Sunday review compares the week, not one morning.</p></div>';}
 function renderProg(){var el=E('progCard');if(!el)return;if(document.activeElement&&el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')return;try{el.innerHTML=progHTML();}catch(e){el.innerHTML='';}}
-function renderAllCard(){var el=E('allCard');if(!el)return;try{el.innerHTML=allInOneHTML();}catch(e){el.innerHTML='';}}
+/* Dan, 26 Nov: "it's all stressing me out": a calm view with just four things and no camp score or countdown.
+   Switch: the button on the calm card, or Data > Storage > Calm mode (S.settings.calm). */
+function calmOn(){return !!(S&&S.settings&&S.settings.calm);}
+function calmViewHTML(){var t=today(),ws=mondayOf(t),i,d,r,x=S.days[t]||{},gym=0,hard=0,sl=[],P=planNow(t);
+  for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;r=S.days[d]||{};if(r.gym)gym++;(r.runs||[]).forEach(function(q){var m=runMeta(q);if(!m.empty&&m.hard&&!m.sprint)hard++;});}
+  for(i=0;i<7;i++){var v=(S.days[addD(t,-i)]||{}).sleep;if(typeof v==='number')sl.push(v);}
+  var last=typeof x.sleep==='number'?x.sleep:(typeof (S.days[addD(t,-1)]||{}).sleep==='number'?(S.days[addD(t,-1)]||{}).sleep:null);
+  var gd=null;try{gd=glowDay(t);}catch(e){}var pro=gd?gd.protein:null;var WS=null;try{WS=weekSteps(t);}catch(e){}
+  var row=function(ok,e,n,val,sub){return '<div style="display:flex;gap:10px;align-items:flex-start;margin:9px 0"><span style="font-size:1.2em">'+(ok?'✅':'◻️')+'</span><div><b>'+e+' '+n+'</b> <span class="mono">'+val+'</span><div class="tiny keep" style="opacity:.85">'+sub+'</div></div></div>';};
+  return '<div class="p lift" style="background:linear-gradient(135deg,rgba(80,140,200,.14),rgba(60,170,120,.12))"><h2>🧘 Your four things</h2>'+
+    '<p class="tiny" style="margin:0 0 4px">Calm view. No camp score, no countdown, nothing to chase. Everything else is a bonus.</p>'+
+    row(last!==null&&last>=P.sleep.lo,'😴','Sleep '+P.sleep.lo+'+ h',last!==null?f1(last)+' h last night':'not logged',sl.length?'7-night average '+f1(mean(sl))+' h':'Log it in the morning')+
+    row(pro!==null&&pro>=PLANV.proteinMin,'🥩','Protein '+PLANV.proteinMin+'+ g',pro!==null?Math.round(pro)+' g today':'nothing logged yet','On your 2025 diet this takes care of itself')+
+    row(hard>=P.hard&&gym>=P.gym.lo,'🏃🏋️','This week',hard+' of '+P.hard+' hard runs · '+gym+' of '+P.gym.lo+' gym','Hard runs first, easy runs are optional, legs the day after a hard run')+
+    row(WS&&WS.avg!==null&&WS.avg>=P.steps.lo,'👟','Steps '+pSteps(),WS&&WS.avg!==null?ci(Math.round(WS.avg))+' a day this week':'—','You are past the point where more steps help')+
+    '<button type="button" class="btn sm ghost" id="btnCalmOff" style="margin-top:6px">Show everything (camp, scores)</button></div>';}
+function renderAllCard(){var el=E('allCard');if(!el)return;try{el.innerHTML=calmOn()?calmViewHTML():allInOneHTML();}catch(e){el.innerHTML='';}}
 
 function render(){
   var c=cutTally(), w=weightModel(), tr=trainingModel();
@@ -9417,6 +9435,7 @@ function paintStatus(){
   if(el)el.innerHTML='<div class="p"><h2>Storage</h2><p class="note">State: <b>'+esc(txt)+'</b>. '+
     (dbState==='local'?'No shared store on this view, so the log lives in this browser only — export it from below if you are moving devices.':'The log is written to the artifact\'s own store, so it survives a cleared cache and follows you between devices.')+
     '</p><p class="tiny">Everything is keyed by date, never by position in a grid. Moving the block start re-reads the dates; it cannot re-date finished work onto days you have not trained yet.</p>'+
+    '<p class="tiny" style="margin:8px 0 2px"><b>Calm mode</b> is <b>'+(calmOn()?'on':'off')+'</b>: just your four things, no camp score or countdown. <button type="button" class="btn sm ghost" id="btnCalm">'+(calmOn()?'Turn off':'Turn on')+'</button></p>'+
     '<p class="tiny" style="margin:8px 0 2px"><b>Safer syncing</b> is <b>'+(fsOn(S)?'on':'off')+'</b>: each value you change keeps its own timestamp, so an old copy on another device cannot overwrite something you typed later. <button type="button" class="btn sm ghost" id="btnFieldSync">'+(fsOn(S)?'Turn off (back to the old way)':'Turn on')+'</button></p>'+
     (MERGED?'<p class="tiny acc">'+MERGED+' record'+(MERGED===1?'':'s')+' this browser had and the store did not were merged in on load, and pushed back up.</p>':'')+
     '</div>';
@@ -12045,7 +12064,7 @@ function wire(){
     touch();
   });
   E('btnHide').addEventListener('click',function(){S.settings.hideDaily=!S.settings.hideDaily;touch();});
-  E('dStatus').addEventListener('click',function(ev){if(ev.target&&ev.target.id==='btnFieldSync'){S.settings.fieldSync=!fsOn(S);if(fsOn(S))fsReset();else S.ts={};touch();paintStatus();}});
+  E('dStatus').addEventListener('click',function(ev){if(ev.target&&ev.target.id==='btnCalm'){S.settings.calm=!calmOn();touch();paintStatus();return;}if(ev.target&&ev.target.id==='btnFieldSync'){S.settings.fieldSync=!fsOn(S);if(fsOn(S))fsReset();else S.ts={};touch();paintStatus();}});
   /* the distance picker is rebuilt on every render, so it is delegated */
   document.addEventListener('change',function(e){
     if(e.target&&e.target.id==='predDist'){PRED_DM=Number(e.target.value);renderPredict();}
