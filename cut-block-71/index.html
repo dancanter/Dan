@@ -1246,7 +1246,7 @@ var STEPS_SAT=7*CFG.goals.steps-5*CFG.steps.weekday-CFG.steps.sunday;
    Calories: dayTarget(t). Weight goal: CFG.goals / CFG.w.target. Everything else: PLANV. */
 /* Dan, 22 Nov: "140 is a load of crap, it should be at least 0.8 g per pound." 0.8 g/lb of about 127-130 lb is about 102-104 g: that is the aim,
    100 g counts as on target, and 130+ is a bonus (about 1 g/lb), never a need. */
-var PLANV={protein:105,proteinMin:100,proteinHi:130,feed:[30,40],feeds:3,gym:{lo:4,hi:5},sleep:{lo:8,hi:9},
+var PLANV={protein:105,proteinMin:100,proteinHi:130,feed:[30,40],feeds:3,gym:{lo:4,hi:4},sleep:{lo:8,hi:9},
   steps:{floor:8000,lo:11000,loFull:12000,hi:13000,strain:14000,week:80000},hard:2,fish:[2,3]};
 function planNow(t){t=t||today();var full=false,walk=false;try{full=push2Mode(t).k==='full';walk=walkWeekOn(t);}catch(e){}
   var st=PLANV.steps,k=CFG.kcal.avg;try{k=dayTarget(t);}catch(e){}
@@ -1261,8 +1261,8 @@ function pFeeds(){return PLANV.feeds+' feeds of '+PLANV.feed[0]+'–'+PLANV.feed
 function pSteps(t){var x=planNow(t).steps;return (x.lo/1000)+'–'+pk(x.hi);}                 /* 11–13k */
 function pStepsLong(t){var x=planNow(t).steps;return pSteps(t)+' as your week average (about '+ci(x.week)+' a week, never under '+ci(x.floor)+' on average)';}
 function pStepsHi(){return pk(PLANV.steps.hi);}
-function pGym(){return PLANV.gym.lo+' a week, '+PLANV.gym.hi+' on a good week';}
-function pGymShort(){return PLANV.gym.lo+'–'+PLANV.gym.hi;}
+function pGym(){return PLANV.gym.lo===PLANV.gym.hi?PLANV.gym.lo+' a week, no more':PLANV.gym.lo+' a week, '+PLANV.gym.hi+' on a good week';}
+function pGymShort(){return PLANV.gym.lo===PLANV.gym.hi?String(PLANV.gym.lo):PLANV.gym.lo+'–'+PLANV.gym.hi;}
 function pGoal(){return CFG.goals.weightLo+'–'+CFG.goals.weightHi;}
 function pSleep(){return PLANV.sleep.lo+'–'+PLANV.sleep.hi+' h';}
 /* ===================== ONE PHASE, ONE CLOCK (Dan, 13 Nov; AUDIT.md step 2) =====================
@@ -11608,7 +11608,7 @@ function push2HTML(){
     '<h3 style="margin:10px 0 2px">✅ Today</h3>'+
     tick(g?Math.abs(g.kcal-kt)<=100:null,'Calories <b>'+ci(kt)+'</b>'+(g?' · logged '+ci(g.kcal):'')+' — weighed, logged in the app','big')+
     tick(g?g.protein>=PLANV.proteinMin:null,'Protein <b>'+pProtein()+'</b> in '+pFeeds()+(g?' · '+Math.round(g.protein)+' g so far':''),'big')+
-    tick(gyms>=PLANV.gym.lo?true:(gyms?false:null),'Gym <b>'+PLANV.gym.lo+' this week</b>, '+PLANV.gym.hi+' on a good week (the extra goes to shoulders, arms, upper chest), beat last time · '+gyms+' so far','big')+
+    tick(gyms>=PLANV.gym.lo?true:(gyms?false:null),'Gym <b>'+PLANV.gym.lo+' this week</b>'+(PLANV.gym.hi>PLANV.gym.lo?', '+PLANV.gym.hi+' on a good week':', and no more')+' (shoulders, arms and upper chest first), beat last time · '+gyms+' so far','big')+
     tick(typeof r.sleep==='number'?r.sleep>=8:null,'Sleep <b>8–9 h</b>, bed by 23:30, phone out'+(typeof r.sleep==='number'?' · '+f1(r.sleep)+' h last night':''),'big')+
     tick(WS.avg===null?null:WS.avg>=planNow(t).steps.lo&&WS.avg<=planNow(t).steps.hi,'Steps <b>'+pSteps(t)+' as the week average</b>'+(WS.avg!==null?' · '+ci(Math.round(WS.avg)):''),'medium')+
     tick(fish>=2?true:(fish?false:null),'Oily fish <b>2–3× this week</b> · '+fish+' so far','medium')+

@@ -68,7 +68,7 @@ for (const [label, today, walk] of [['a run-free week', '2026-11-12', true], ['a
   h = all(R, /\b[Gg]ym,? (\d(?:–\d)?)(?: a week|×| this week| times a week)|\blift (\d(?:–\d)?)×/g);
   ok(`${label}: gym is ${P.gym} a week wherever it is stated (${h.length} places)`, h.length >= 2 && !wrong(h, (x) => { const v = x.m[1] || x.m[2]; return v === P.gym || v === P.gym[0]; }), wrong(h, (x) => { const v = x.m[1] || x.m[2]; return v === P.gym || v === P.gym[0]; }));
   // the audit's stale phrases never come back
-  const stale = ['12,800', '10,500', '14,500', '13k on weekdays', '10–13k', '122–124', '122–123', 'Gym 3–4', 'fresh. 4 gym sessions', 'four days — the priority', 'about 95 g', 'lift 4×', 'hold at 1,899'];
+  const stale = ['12,800', '10,500', '14,500', '13k on weekdays', '10–13k', '122–124', '122–123', 'Gym 3–4', 'fresh. 4 gym sessions', 'four days — the priority', 'about 95 g', 'hold at 1,899'];
   const seen = stale.filter((s) => R.tabs.some((t) => t.text.includes(s)));
   ok(`${label}: none of the audit’s stale targets is on any screen`, !seen.length, seen.map((s) => s + ' on ' + R.tabs.filter((t) => t.text.includes(s)).map((t) => t.name).join('/')).join(' · '));
   // step 2: one phase, one clock, one weight line
