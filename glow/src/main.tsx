@@ -7,7 +7,10 @@ import { App } from './App';
 import { startCloud } from './cloud';
 import { hosted, type DaySum } from './host';
 import { getState, refreshFromHost, resolveItems, setState, setSummariser } from './store';
-import { dayResult } from './engine/game';
+import { dayResult, weightOn } from './engine/game';
+import { MICROS, NUTRIENT_KEYS, NUTRIENTS } from './data/nutrients';
+import { targetsFor } from './engine/score';
+import { plan } from './plan';
 import { DayPlanCard } from './components/DayPlan';
 import { HomeHealth } from './components/HomeHealth';
 import { RecoveryClock } from './components/RecoveryClock';
@@ -97,6 +100,22 @@ if (hosted()) {
       }
       const mw = microWeek(s, date);
       return { meals, week: mw.rows.map((r) => ({ k: r.k, label: r.label, week: r.week, today: r.today })), days: mw.days, cov: mw.cov, next: eatNext(s, date) };
+    },
+    /** Dan, 26 Nov: "I want to know all the micronutrients and all that." Every nutrient for a day: eaten, absorbed, the target
+     *  and upper limit, and the three foods that gave the most of it. */
+    detail: (date: string) => {
+      const s = getState();
+      const items = resolveItems(s.days[date], s);
+      const a = dayResult(s, date).analysis;
+      const t = targetsFor(s.profile, weightOn(s, date));
+      const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+      const rows = NUTRIENT_KEYS.map((k) => ({
+        k, label: NUTRIENTS[k].label, unit: NUTRIENTS[k].unit, micro: MICROS.includes(k),
+        eaten: num(a.totals[k]), absorbed: num(a.effective[k]),
+        target: k === 'protein' ? plan().protein : num(t[k] ?? NUTRIENTS[k].target), upper: NUTRIENTS[k].upper ?? null, does: NUTRIENTS[k].does,
+        top: items.map((i) => ({ name: i.food.name, v: (num(i.food.n[k]) * i.grams) / 100 })).filter((x) => x.v > 0).sort((x, y) => y.v - x.v).slice(0, 3),
+      }));
+      return { n: items.length, score: Math.round(a.nutritionScore), coverage: Math.round(a.coverage * 100), plants: a.plants, freeSugar: a.freeSugar, rows, warnings: a.warnings.map((w) => w.text), wins: a.wins };
     },
     /** For tests: Glow's own view of a day. */
     day: (date: string) => getState().days[date],

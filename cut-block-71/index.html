@@ -454,6 +454,7 @@ button.dz-q{cursor:pointer}
 .dz-times label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink-3)}
 .dz-times input{height:34px;min-width:0;width:100%;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 6px;font:500 14px "JetBrains Mono",monospace}
 .dz-how{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--panel-2)}
+.dz-frow{margin:8px 0}
 .dz-save{height:32px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);font:600 12.5px "Inter",sans-serif;cursor:pointer}
 .dz-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .dz-tog{padding:7px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);font:500 13px "Inter",sans-serif;cursor:pointer}
@@ -1724,8 +1725,15 @@ function normalise(x){
   if(typeof s.updatedAt!=='number')s.updatedAt=0;
   /* legs split by muscle: the Legs total always comes from the split (3 Nov) */
   for(var dk in s.days){var rd=s.days[dk];if(LEG_SPLIT&&rd&&rd.legs&&typeof rd.legs==='object'){var sm=0;for(var lk in rd.legs)sm+=+rd.legs[lk]||0;if(sm){rd.sets=rd.sets||{};rd.sets.Legs=sm;}}}
+  glowStripGone(s);
   return s;
 }
+/* Dan, 26 Nov: food items removed by uid stay removed. S.glowGone lists their uids; every load and every merge drops them,
+   so a stale copy on another device cannot bring a deleted or moved food back (the day merge unions items by uid). */
+function glowGoneMap(s){var m={};(s&&Array.isArray(s.glowGone)?s.glowGone:[]).forEach(function(u){if(u)m[u]=1;});return m;}
+function glowStripGone(s){if(!s||!Array.isArray(s.glowGone)||!s.glowGone.length||!s.days)return 0;var m=glowGoneMap(s),n=0;
+  for(var d in s.days){var r=s.days[d];if(r&&r.glow&&Array.isArray(r.glow.items)){var k=r.glow.items.filter(function(i){return !(i&&m[i.uid]);});n+=r.glow.items.length-k.length;if(k.length!==r.glow.items.length)r.glow.items=k;}}
+  return n;}
 function loadLocal(){try{var r=localStorage.getItem(LS);return r?normalise(JSON.parse(r)):null;}catch(e){return null;}}
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 /* ===================== Glow, hosted (3 Nov) =====================
@@ -1767,7 +1775,8 @@ function glowSave(gs,sums){
   Object.keys(gs.breathMinutes||{}).forEach(function(d){var m=+gs.breathMinutes[d]||0;if(m>0){var rr=S.days[d]=S.days[d]||{};if(!(rr.medMin>=m))rr.medMin=Math.min(240,m);}});
   var dates={};Object.keys(gs.days||{}).forEach(function(d){dates[d]=1;});Object.keys(gs.vitals||{}).forEach(function(d){if((gs.vitals[d]||{}).outdoorMin!==undefined)dates[d]=1;});
   Object.keys(dates).forEach(function(d){var g=(gs.days||{})[d]||{},r=S.days[d]=S.days[d]||{},ng={};
-    if(g.items&&g.items.length)ng.items=g.items;if(g.rituals&&g.rituals.length)ng.rituals=g.rituals;if(g.note)ng.note=g.note;
+    var gm=glowGoneMap(S),its=(g.items||[]).filter(function(i){return !(i&&gm[i.uid]);});
+    if(its.length)ng.items=its;if(g.rituals&&g.rituals.length)ng.rituals=g.rituals;if(g.note)ng.note=g.note;
     if(g.feelings&&g.feelings.length)ng.feelings=g.feelings;if(g.extras&&g.extras.length)ng.extras=g.extras;
     var od=((gs.vitals||{})[d]||{}).outdoorMin;if(typeof od==='number'){ng.outdoorMin=od;r.outMin=od;}if(r.glow&&r.glow.sleepQ)ng.sleepQ=r.glow.sleepQ;
     if(Object.keys(ng).length)r.glow=ng;else delete r.glow;
@@ -1899,6 +1908,7 @@ function mergeByDate(older,newer){
     var bpd={};out.glow.bp.forEach(function(b){if(b&&b.date)bpd[b.date]=1;});
     older.glow.bp.forEach(function(b){if(b&&b.date&&!bpd[b.date]){out.glow.bp.push(clone(b));added++;}});
     out.glow.bp.sort(function(a,b){return a.date<b.date?-1:1;});}
+  if(Array.isArray(older.glowGone)||Array.isArray(out.glowGone)){out.glowGone=(out.glowGone||[]).concat(older.glowGone||[]).filter(function(x,i,a){return x&&a.indexOf(x)===i;}).slice(-3000);glowStripGone(out);}
   /* Dan, 27 Nov: camps he plans on the dashboard merge by id; a deleted one stays deleted on both sides. */
   if(Array.isArray(older.camps)||Array.isArray(older.campsGone)){var cg=(out.campsGone||[]).concat(older.campsGone||[]).filter(function(x,i,a){return a.indexOf(x)===i;});
     var cs=Array.isArray(out.camps)?out.camps.slice():[],cid={};cs.forEach(function(c){if(c&&c.id)cid[c.id]=1;});
@@ -12426,7 +12436,7 @@ function wire(){
    tag, camps as objects (the mini camp built in, his own next camps saved in S.camps), and a week review.
    Rules kept: never "behind" (on pace / room to grow), never push run counts or steps, never under the base
    calories, no gram limits on any food, none of his excluded foods, no cutting salt or water. */
-var DZ={v:'today',wk:0,micro:'week',open:{},ld:0,arm:null,campSel:null,form:false};
+var DZ={v:'today',wk:0,fd:0,micro:'week',open:{},ld:0,arm:null,campSel:null,form:false};
 try{var dzv0=localStorage.getItem(LS+'.dz');if(dzv0)DZ.v=dzv0;}catch(e){}
 var DZ_VIEWS=[['today','☀️','Today'],['food','🥗','Food'],['train','🏃','Training'],['body','🧍','Body'],['camp','🎄','Camp'],['week','📅','Week']];
 /* carb cycling like 2025, agreed for the mini camp (Dan, 27 Nov): same calories, protein steady */
@@ -12730,7 +12740,26 @@ function dzToday(){var t=today(),C=dzCall(t),cd=C.carb,cm=dzCampNow(t),M=cm?dzCa
     '<div class="dz-cols"><div>'+dzDoneToday(t)+dzPointHTML(t)+'</div><div>'+dzQuickLog()+dzFoodMini(t)+'</div></div>';}
 
 /* ---------- Food & micros ---------- */
-function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+function dzAmt(v,u){if(!dzN(v))return '—';var a=Math.abs(v);return (a>=100?ci(v):a>=10?String(Math.round(v)):a>=1?f1(v):String(Math.round(v*100)/100))+' '+u;}
+function dzDetail(d){try{return window.GLOW&&window.GLOW.detail?window.GLOW.detail(d):null;}catch(e){return null;}}
+/* Dan, 26 Nov: "I want to know all the micronutrients and all that." Every nutrient for a day, eaten and absorbed, against his target. */
+function dzFullDay(){var t=addD(today(),DZ.fd||0),D=dzDetail(t);
+  var nav='<div class="dz-seg" role="group" aria-label="Day"><button type="button" data-dzfd="-1" aria-label="Day before">◀</button><span><b>'+(DZ.fd===0||!DZ.fd?'Today':DZ.fd===-1?'Yesterday':fmtL(t))+'</b> · '+fmtS(t)+'</span><button type="button" data-dzfd="1" aria-label="Day after"'+((DZ.fd||0)>=0?' disabled':'')+'>▶</button></div>';
+  if(!D)return dzCard('🧾 Every nutrient, in full',nav+'<div class="dz-empty">Loading the food side of the app…</div>');
+  if(!D.n)return dzCard('🧾 Every nutrient, in full',nav+'<div class="dz-empty">No food logged on this day.</div>');
+  var by={};D.rows.forEach(function(r){by[r.k]=r;});
+  var row=function(k,lim){var r=by[k];if(!r)return '';var v=r.micro?r.absorbed:r.eaten,p=r.target?v/r.target:0,over=r.upper&&r.eaten>r.upper;
+    var col=lim?(p>1?'var(--warn)':'var(--good)'):(p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)');
+    return '<div class="dz-frow"><div class="dz-rh"><span>'+esc(r.label)+'</span><span class="mono">'+dzAmt(v,r.unit)+' <span class="dz-dim">/ '+dzAmt(r.target,r.unit)+'</span> <b>'+Math.round(p*100)+'%</b></span></div>'+dzBar(p,col,6)+
+      '<div class="dz-ss">'+(r.micro?'absorbed '+dzAmt(r.absorbed,r.unit)+' of '+dzAmt(r.eaten,r.unit)+' eaten':(lim?'a limit, not a target':'eaten'))+(r.upper?' · upper limit '+dzAmt(r.upper,r.unit)+(over?' <b>(over on food alone: '+esc(k==='vitA'?'fine if most is from plants':'worth a look')+')</b>':''):'')+
+      (r.top&&r.top.length?' · from '+r.top.map(function(x){return esc(x.name.replace(/ \(.*\)/,''))+' '+dzAmt(x.v,r.unit);}).join(', '):'')+'</div></div>';};
+  var grp=function(title,ks,lim){return '<h3 class="dz-h3">'+title+'</h3>'+ks.map(function(k){return row(k,lim);}).join('');};
+  return dzCard('🧾 Every nutrient, in full',nav+'<div class="dz-stats">'+dzStat('Nutrition score',D.score+'<small>/100</small>','coverage '+D.coverage+'%')+dzStat('Foods',D.n,(D.plants||0)+' plant foods')+'</div>'+
+    grp('Energy and macros',['kcal','protein','carbs','fibre','fat','omega3'])+grp('Vitamins',['vitA','vitC','vitD','vitE','vitK','b2','folate','b12','choline'])+grp('Minerals',['iron','zinc','copper','selenium','magnesium','potassium','calcium','iodine'])+
+    grp('Limits',['satFat','sugar','sodium'],true)+
+    (D.wins&&D.wins.length?'<h3 class="dz-h3">What went well</h3><div class="dz-tags">'+D.wins.slice(0,6).map(function(w){return '<span class="dz-chip">✓ '+esc(w)+'</span>';}).join('')+'</div>':'')+
+    '<p class="dz-note">Vitamins and minerals are what your body absorbs (animal iron, zinc and vitamin A count for more than plant forms); macros are what you ate. Typical food values, not a blood test: iodine and some brands read low when the label lacks a value. Sodium follows your salt habit, which stays steady by your rule.</p>');}
+function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}var DT=dzDetail(t),dby={};if(DT&&DT.rows)DT.rows.forEach(function(r){dby[r.k]=r;});
   var nut=dzSeries(14,function(d,r){var g=r.glowSum;return g&&g.n>=3?g.nutrition:null;}),pro=dzSeries(14,function(d,r){var g=r.glowSum;return g&&g.n>=3?g.protein:null;});
   var nv=nut.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),pv=pro.filter(function(p){return dzN(p.v)&&p.d<t;}).map(function(p){return p.v;});
   var g=(S.days[t]||{}).glowSum,W=dzWeekStats(mondayOf(t)),fw=dzFishWeek(t);
@@ -12743,8 +12772,9 @@ function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?wind
     var rows=N.week.slice().sort(function(a,b){return (dzN(a[key])?a[key]:999)-(dzN(b[key])?b[key]:999);});
     micro='<div class="dz-seg" role="group" aria-label="Micronutrients for"><button type="button" data-dzmicro="week" aria-pressed="'+(key==='week'?'true':'false')+'">This week ('+N.days+' day'+(N.days===1?'':'s')+')</button><button type="button" data-dzmicro="today" aria-pressed="'+(key==='today'?'true':'false')+'">Today</button>'+(N.cov!==null&&N.cov!==undefined?'<span class="dz-dim">coverage '+N.cov+'%</span>':'')+'</div>'+
       '<div class="dz-micros">'+rows.map(function(w){var v=w[key],F=FOOD_ADD[w.k],open=DZ.open['m-'+w.k],p=dzN(v)?v/100:0;
-        return '<button type="button" class="dz-micro'+(open?' open':'')+'" data-dzopen="m-'+w.k+'" aria-expanded="'+(open?'true':'false')+'"><span class="dz-rh"><span>'+(F?F[0]+' ':'')+esc(w.label)+'</span><span class="mono">'+(dzN(v)?Math.round(v)+'%':'—')+'</span></span>'+dzBar(p,p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)',7)+
-          (open?'<span class="dz-ss">'+(F?'<b>Best absorbed from:</b> '+esc(F[2])+'<br>'+esc(F[3]):'From the foods you already eat.')+(dzN(w.today)&&dzN(w.week)?'<br>Today '+Math.round(w.today)+'% · week '+Math.round(w.week)+'%':'')+'</span>':'')+'</button>';}).join('')+'</div>'+
+        var R=dby[w.k],amt=R&&DT.n?' <span class="dz-dim">'+dzAmt(R.micro?R.absorbed:R.eaten,R.unit)+' today</span>':'';
+        return '<button type="button" class="dz-micro'+(open?' open':'')+'" data-dzopen="m-'+w.k+'" aria-expanded="'+(open?'true':'false')+'"><span class="dz-rh"><span>'+(F?F[0]+' ':'')+esc(w.label)+'</span><span class="mono">'+(dzN(v)?Math.round(v)+'%':'—')+amt+'</span></span>'+dzBar(p,p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)',7)+
+          (open?'<span class="dz-ss">'+(R&&DT.n?'<b>Today:</b> '+dzAmt(R.micro?R.absorbed:R.eaten,R.unit)+' of '+dzAmt(R.target,R.unit)+(R.top&&R.top.length?' · from '+R.top.map(function(x){return esc(x.name.replace(/ \(.*\)/,''))+' '+dzAmt(x.v,R.unit);}).join(', '):'')+'<br>':'')+(F?'<b>Best absorbed from:</b> '+esc(F[2])+'<br>'+esc(F[3]):'From the foods you already eat.')+(dzN(w.today)&&dzN(w.week)?'<br>Today '+Math.round(w.today)+'% · week '+Math.round(w.week)+'%':'')+'</span>':'')+'</button>';}).join('')+'</div>'+
       '<p class="dz-note">What your body actually absorbs, as a share of the day’s need, lowest first. Typical food values, not a blood test; iodine often reads low because labels miss it. Tap any nutrient for the best foods.</p>';}
   else micro='<div class="dz-empty">The micronutrients load with the food side of the app. Log some food and every nutrient appears here.</div>';
   var nx=N&&N.next&&N.next.length?N.next.slice(0,4).map(function(x){return '<div class="dz-pt"><span class="dz-pte">'+esc(x.emoji)+'</span><div><div class="dz-ptt"><b>'+esc(x.title)+'</b> '+dzImp(x.impact==='medium'?'medium':x.impact==='big'?'big':'small')+'</div><div class="dz-ss">'+esc((x.foods||[]).join(', '))+(x.why?' · '+esc(x.why):'')+'</div></div></div>';}).join(''):'<div class="dz-empty">Suggestions appear once the food side has loaded.</div>';
@@ -12754,7 +12784,7 @@ function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?wind
       '<h3 class="dz-h3">Protein · 14 days</h3>'+dzChart(pro,{bars:true,zero:0,label:'Protein',fmt:function(v){return Math.round(v)+' g';},good:function(v){return v>=PLANV.proteinMin;},ref:{v:PLANV.proteinMin,label:PLANV.proteinMin+' g'}}))+
     dzFoodMini(t)+dzCard('🍳 What to eat next',nx)+
     dzCard('🔁 Your foods this week',tops.length?'<div class="dz-tags">'+tops.map(function(n){return '<span class="dz-chip">'+esc(n.replace(/ \(.*\)/,''))+' <b>×'+top[n]+'</b></span>';}).join('')+'</div><p class="dz-note">Days each food appeared in the last 7. Your 2025 diet is on one tap in the food log: cacao porridge, the strawberry and avocado bowl, chicken or fish with potatoes, the yoghurt bowl, and 4 eggs with Kallo cakes twice a week.</p>':'<div class="dz-empty">Log food and your regulars show here.</div>')+'</div>'+
-    '<div>'+dzCard('🔬 Every micronutrient',micro)+'</div></div>';}
+    '<div>'+dzCard('🔬 Every micronutrient',micro)+dzFullDay()+'</div></div>';}
 
 /* ---------- Training ---------- */
 function dzTrain(){var t=today(),W=null,N=null;try{W=prog25Week(t);N=prog25Next(W,t);}catch(e){}
@@ -12916,6 +12946,7 @@ function wireDash(){var root=E('s-dash');if(!root||root.dataset.wired)return;roo
     if(ds.dzopen){DZ.open[ds.dzopen]=!DZ.open[ds.dzopen];renderDash(true);return;}
     if(ds.dzld!==undefined){DZ.ld=parseInt(ds.dzld,10)||0;DZ.draft=null;renderDash(true);return;}
     if(ds.dzmicro){DZ.micro=ds.dzmicro;renderDash(true);return;}
+    if(ds.dzfd){DZ.fd=Math.min(0,(DZ.fd||0)+parseInt(ds.dzfd,10));renderDash(true);return;}
     if(ds.dzwk){DZ.wk=Math.min(0,DZ.wk+parseInt(ds.dzwk,10));renderDash(true);return;}
     if(ds.dzcamp){DZ.campSel=ds.dzcamp;DZ.arm=null;renderDash(true);return;}
     if(ds.dzform!==undefined){DZ.form=ds.dzform==='1';renderDash(true);return;}

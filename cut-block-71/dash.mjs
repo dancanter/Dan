@@ -19,6 +19,7 @@ function seed() {
     if (i % 2 === 0) Object.assign(days[d], { gym: true, split: ['chest', 'back', 'delts', 'legs'][(i / 2) % 4], sets: { Chest: 12 } });
     if (i % 7 === 3) days[d].runs = [{ k: 'reps', dm: 400, n: 4, secs: 286, up: 'last 120 m' }];
     if (i % 7 === 5) days[d].runs = [{ km: 8, secs: 2367, type: 'easy' }]; }
+  days['2026-11-25'].glow = { items: [{ foodId: 'eggs', grams: 100, meal: 'breakfast', uid: 'tegg0001' }, { foodId: 'salmon-wild', grams: 150, meal: 'dinner', uid: 'tsal0001' }, { foodId: 'potato', grams: 250, meal: 'dinner', uid: 'tpot0001' }] };
   days['2026-11-22'].bf = 11.5; days['2026-11-22'].bfRange = [10, 13]; days['2026-11-22'].puff = 3;
   return { weights, days, bests: {}, settings: {}, waist: { '2026-11-22': 72.5 }, uni: { mods: [], tasks: [], topics: [], refs: [] } };
 }
@@ -47,7 +48,7 @@ for (const [label, vp] of [['phone', { width: 390, height: 844 }], ['laptop', { 
   const st = () => p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')));
   await p.evaluate(() => document.querySelector('#dzNav [data-dzv="today"]').click()); await p.waitForTimeout(200);
   const big = await p.$$eval('.dz-big', (x) => x.map((e) => e.innerText.replace(/\s+/g, ' ')));
-  ok('the four big numbers: longevity, health age, nutrition, cortisol', big.length === 4 && /Longevity/.test(big[0]) && /Health age/.test(big[1]) && /Nutrition/.test(big[2]) && /\b72\b/.test(big[2]) && /Cortisol/.test(big[3]), big.join(' | '));
+  ok('the four big numbers: longevity, health age, nutrition, cortisol', big.length === 4 && /Longevity/.test(big[0]) && /Health age/.test(big[1]) && /Nutrition/.test(big[2]) && /^\d+ \/ 100/.test(big[2]) && /yesterday/.test(big[2]) && /Cortisol/.test(big[3]), big.join(' | '));
   ok('no “Your day” checklist; a “Done today” card instead', !(await p.$('.dz-quests')) && /Done today/.test(await p.textContent('#dzBody')));
   const wk = await p.evaluate(() => { const c = [...document.querySelectorAll('#dzBody .dz-card')].find((x) => /This week/.test(x.querySelector('h2') ? x.querySelector('h2').textContent : '')); return c ? c.innerText.replace(/\s+/g, ' ') : ''; });
   ok('This week: steps total and daily average', /Steps [\d,]+ average [\d,]+ a day/.test(wk), wk.slice(0, 200));
@@ -88,6 +89,18 @@ for (const [label, vp] of [['phone', { width: 390, height: 844 }], ['laptop', { 
   const merged = await p.evaluate(() => { const a = normalise(JSON.parse(JSON.stringify(S))), o = normalise(JSON.parse(JSON.stringify(S))); delete a.camps; return mergeByDate(o, a).s.camps; });
   ok('camps survive a sync with a copy that lacks them', Array.isArray(merged) && merged.length === 1);
   await p.click('[data-dzcdel]'); await p.click('[data-dzcdel]'); await p.waitForTimeout(200); S = await st(); ok('a camp deletes with two taps and stays deleted', S.camps.length === 0 && S.campsGone.length === 1);
+  // every nutrient in full, with amounts (Dan, 26 Nov)
+  await p.evaluate(() => document.querySelector('#dzNav [data-dzv="food"]').click()); await p.waitForTimeout(200);
+  await p.click('[data-dzfd="-1"]'); await p.waitForTimeout(200);
+  const full = await p.evaluate(() => { const c = [...document.querySelectorAll('#dzBody .dz-card')].find((x) => /Every nutrient, in full/.test(x.textContent)); return c ? c.innerText.replace(/\s+/g, ' ') : ''; });
+  ok('Food: every nutrient in full, with amounts and where it came from', /Yesterday/.test(full) && /Vitamin D [\d.]+ µg/.test(full) && /Selenium/.test(full) && /Sodium/.test(full) && /from Salmon/.test(full), full.slice(0, 240));
+  // a food removed by uid stays removed through a sync with a stale copy (Dan, 26 Nov)
+  const gone = await p.evaluate(() => { const stale = normalise(JSON.parse(JSON.stringify(S))); const d = '2026-11-25';
+    S.days[d].glow.items = S.days[d].glow.items.filter((i) => i.uid !== 'tsal0001'); S.glowGone = ['tsal0001'];
+    const a = mergeByDate(stale, normalise(JSON.parse(JSON.stringify(S)))).s, b = mergeByDate(normalise(JSON.parse(JSON.stringify(S))), stale).s;
+    const has = (x) => (x.days[d].glow.items || []).some((i) => i.uid === 'tsal0001');
+    return { a: has(a), b: has(b), eggs: (a.days[d].glow.items || []).length }; });
+  ok('a removed food stays removed through a sync either way round', !gone.a && !gone.b && gone.eggs === 2, JSON.stringify(gone));
   await p.evaluate(() => document.querySelector('#dzNav [data-dzv="week"]').click()); await p.click('[data-dzwk="-1"]'); await p.waitForTimeout(200);
   ok('week review steps back a week', /Last week/.test(await p.textContent('#dzBody')));
   const next = await p.evaluate(() => { const c = [...document.querySelectorAll('#dzBody .dz-card')].find((x) => /For next week/.test(x.textContent)); return c ? c.innerText : ''; });
