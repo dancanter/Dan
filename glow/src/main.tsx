@@ -9,7 +9,7 @@ import { hosted, type DaySum } from './host';
 import { getState, refreshFromHost, resolveItems, setState, setSummariser } from './store';
 import { dayResult, weightOn } from './engine/game';
 import { MICROS, NUTRIENT_KEYS, NUTRIENTS } from './data/nutrients';
-import { targetsFor } from './engine/score';
+import { freeSugarPer100, targetsFor } from './engine/score';
 import { plan } from './plan';
 import { DayPlanCard } from './components/DayPlan';
 import { HomeHealth } from './components/HomeHealth';
@@ -109,11 +109,13 @@ if (hosted()) {
       const a = dayResult(s, date).analysis;
       const t = targetsFor(s.profile, weightOn(s, date));
       const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+      // food values carry total sugar; the 30 g limit is for free sugar (honey, syrups, added sugar), which whole fruit and milk are not
+      const per100 = (k: string, i: (typeof items)[number]) => (k === 'sugar' ? freeSugarPer100(i.food) : num(i.food.n[k as keyof typeof i.food.n]));
       const rows = NUTRIENT_KEYS.map((k) => ({
         k, label: NUTRIENTS[k].label, unit: NUTRIENTS[k].unit, micro: MICROS.includes(k),
-        eaten: num(a.totals[k]), absorbed: num(a.effective[k]),
+        eaten: k === 'sugar' ? num(a.freeSugar) : num(a.totals[k]), absorbed: k === 'sugar' ? num(a.freeSugar) : num(a.effective[k]),
         target: k === 'protein' ? plan().protein : num(t[k] ?? NUTRIENTS[k].target), upper: NUTRIENTS[k].upper ?? null, does: NUTRIENTS[k].does,
-        top: items.map((i) => ({ name: i.food.name, v: (num(i.food.n[k]) * i.grams) / 100 })).filter((x) => x.v > 0).sort((x, y) => y.v - x.v).slice(0, 3),
+        top: items.map((i) => ({ name: i.food.name, v: (per100(k, i) * i.grams) / 100 })).filter((x) => x.v > 0).sort((x, y) => y.v - x.v).slice(0, 3),
       }));
       return { n: items.length, score: Math.round(a.nutritionScore), coverage: Math.round(a.coverage * 100), plants: a.plants, freeSugar: a.freeSugar, rows, warnings: a.warnings.map((w) => w.text), wins: a.wins };
     },

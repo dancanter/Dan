@@ -12749,7 +12749,7 @@ function dzFullDay(){var t=addD(today(),DZ.fd||0),D=dzDetail(t);
   if(!D.n)return dzCard('🧾 Every nutrient, in full',nav+'<div class="dz-empty">No food logged on this day.</div>');
   var by={};D.rows.forEach(function(r){by[r.k]=r;});
   var row=function(k,lim){var r=by[k];if(!r)return '';var v=r.micro?r.absorbed:r.eaten,p=r.target?v/r.target:0,over=r.upper&&r.eaten>r.upper;
-    var col=lim?(p>1?'var(--warn)':'var(--good)'):(p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)');
+    var col=lim?(p>1?'var(--ink-3)':'var(--good)'):(p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)');
     return '<div class="dz-frow"><div class="dz-rh"><span>'+esc(r.label)+'</span><span class="mono">'+dzAmt(v,r.unit)+' <span class="dz-dim">/ '+dzAmt(r.target,r.unit)+'</span> <b>'+Math.round(p*100)+'%</b></span></div>'+dzBar(p,col,6)+
       '<div class="dz-ss">'+(r.micro?'absorbed '+dzAmt(r.absorbed,r.unit)+' of '+dzAmt(r.eaten,r.unit)+' eaten':(lim?'a limit, not a target':'eaten'))+(r.upper?' · upper limit '+dzAmt(r.upper,r.unit)+(over?' <b>(over on food alone: '+esc(k==='vitA'?'fine if most is from plants':'worth a look')+')</b>':''):'')+
       (r.top&&r.top.length?' · from '+r.top.map(function(x){return esc(x.name.replace(/ \(.*\)/,''))+' '+dzAmt(x.v,r.unit);}).join(', '):'')+'</div></div>';};
