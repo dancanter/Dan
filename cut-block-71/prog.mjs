@@ -78,7 +78,7 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
   await o.p.evaluate(() => { S.settings.calm = true; touch(); });
   await o.p.waitForTimeout(400);
   const calm = await o.p.evaluate(() => ({ a: document.getElementById('allCard').innerText, x: document.getElementById('xcampCard').innerText }));
-  ok('calm mode shows four things and hides the camp card', /Your four things/.test(calm.a) && /Sleep/i.test(calm.a) && /Protein/i.test(calm.a) && /hard runs/i.test(calm.a) && /Steps/i.test(calm.a) && calm.x.trim() === '', JSON.stringify(calm).slice(0, 400));
+  ok('calm mode shows four things and hides the camp card', /Your four things/.test(calm.a) && /Sleep/i.test(calm.a) && /Protein/i.test(calm.a) && /hard runs/i.test(calm.a) && /Steps/i.test(calm.a) && /Longevity/i.test(calm.a) && calm.x.trim() === '', JSON.stringify(calm).slice(0, 400));
   await o.p.click('#btnCalmOff');
   await o.p.waitForTimeout(400);
   const back = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
