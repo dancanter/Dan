@@ -47,7 +47,12 @@ for (const [label, vp] of [['phone', { width: 390, height: 844 }], ['laptop', { 
   const st = () => p.evaluate(() => JSON.parse(localStorage.getItem('cutblock71.v1')));
   await p.evaluate(() => document.querySelector('#dzNav [data-dzv="today"]').click()); await p.waitForTimeout(200);
   const big = await p.$$eval('.dz-big', (x) => x.map((e) => e.innerText.replace(/\s+/g, ' ')));
-  ok('the three big numbers: longevity, health age, cortisol', big.length === 3 && /Longevity/.test(big[0]) && /Health age/.test(big[1]) && /Cortisol/.test(big[2]), big.join(' | '));
+  ok('the four big numbers: longevity, health age, nutrition, cortisol', big.length === 4 && /Longevity/.test(big[0]) && /Health age/.test(big[1]) && /Nutrition/.test(big[2]) && /\b72\b/.test(big[2]) && /Cortisol/.test(big[3]), big.join(' | '));
+  ok('no “Your day” checklist; a “Done today” card instead', !(await p.$('.dz-quests')) && /Done today/.test(await p.textContent('#dzBody')));
+  const wk = await p.evaluate(() => { const c = [...document.querySelectorAll('#dzBody .dz-card')].find((x) => /This week/.test(x.querySelector('h2') ? x.querySelector('h2').textContent : '')); return c ? c.innerText.replace(/\s+/g, ' ') : ''; });
+  ok('This week: steps total and daily average', /Steps [\d,]+ average [\d,]+ a day/.test(wk), wk.slice(0, 200));
+  ok('This week: gym sessions and hard sets', /Gym \d+ \/ 4 \d+ hard sets?/.test(wk) && /Hard sets per muscle/i.test(wk), wk.slice(0, 300));
+  ok('This week: runs and study', /Runs \d+ runs? \d+ of 2 hard/.test(wk) && /Study .*average .* a day/.test(wk), wk.slice(0, 300));
   // sleep is logged as bed and wake times plus the phone tick (Dan, 27 Nov), never as bare hours
   ok('sleep has no bare-hours box', !(await p.$('#dzIn-sleep')) && !!(await p.$('#dzIn-bed')) && !!(await p.$('#dzIn-wake')));
   await p.fill('#dzIn-bed', '23:15'); await p.fill('#dzIn-wake', '07:45'); await p.waitForTimeout(100);
@@ -61,7 +66,8 @@ for (const [label, vp] of [['phone', { width: 390, height: 844 }], ['laptop', { 
   ok('sleep score: 6.5 h, in bed at midnight, phone in bed, steady = 45 to 50', await p.evaluate(() => { const d = '2026-11-24', o = S.days[d]; S.days[d] = Object.assign({}, o, { sleep: 6.5, bed: '00:00', wake: '06:45' }); delete S.days[d].phoneOut; const v = sleepScoreOn(d); S.days[d] = o; return v >= 45 && v <= 50; }));
   ok('sleep score: consistency reads wake times too', await p.evaluate(() => { const d = '2026-11-20', keep = {}; for (let i = 0; i < 7; i++) { const k = addD(d, -i); keep[k] = S.days[k]; S.days[k] = Object.assign({}, keep[k], { wake: i % 2 ? '04:30' : '10:30' }); } const v = sleepScoreOn(d); for (const k in keep) S.days[k] = keep[k]; return v === sleepScoreOn(d) - 10; }));
   ok('the toast names the XP gained', /Sleep saved: 8\.3 h · \+\d+ XP/.test(await p.textContent('#dzToast')), await p.textContent('#dzToast'));
-  await p.click('.dz-quests [data-dztg="teeth"]'); await p.waitForTimeout(200); S = await st(); ok('teeth ticks from the day list', S.days[TODAY].teeth === true);
+  await p.click('#dzLog [data-dztg="teeth"]'); await p.waitForTimeout(200); S = await st(); ok('teeth ticks from the quick log', S.days[TODAY].teeth === true);
+  ok('Done today lists the sleep and the teeth', await p.evaluate(() => { const c = [...document.querySelectorAll('#dzBody .dz-card')].find((x) => /Done today/.test(x.textContent)); return !!c && /Sleep8\.3h/.test(c.textContent.replace(/\s+/g, '')) && /teeth/.test(c.textContent); }));
   await p.click('[data-dzgym="back"]'); await p.waitForTimeout(200); S = await st(); ok('gym: one tap logs the split', S.days[TODAY].gym === true && S.days[TODAY].split === 'back');
   await p.fill('[data-dzsets="Back"]', '13'); await p.dispatchEvent('[data-dzsets="Back"]', 'change'); await p.waitForTimeout(200); S = await st(); ok('gym: sets save', S.days[TODAY].sets && S.days[TODAY].sets.Back === 13);
   await p.click('[data-dzgym="back"]'); await p.waitForTimeout(150); S = await st(); ok('gym: the first tap on a logged split only asks', S.days[TODAY].gym === true && /Tap again/.test(await p.textContent('[data-dzgym="back"]')));

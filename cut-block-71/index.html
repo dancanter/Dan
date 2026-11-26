@@ -383,7 +383,10 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 .dz-lvt{flex:1;min-width:0}.dz-lvt b{display:block;font-size:14px}.dz-lvt small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
 .dz-ladder{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 /* the three big numbers */
-.dz-big3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dz-big3{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.dz-big3{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.dz-dones{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.dz-done{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;border:1px solid color-mix(in srgb,var(--good) 30%,var(--rule));background:var(--panel-2)}
 .dz-big{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:16px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);cursor:pointer;min-width:0;box-shadow:var(--shadow)}
 .dz-big svg{max-width:100%;height:auto}
 .dz-big[aria-expanded="true"]{border-color:var(--accent)}
@@ -12608,33 +12611,62 @@ function dzXPDetail(t,lvNow){var o=dzXPday(t),y=dzXPday(addD(t,-1));
   return '<div class="dz-card dz-sub"><p class="dz-p"><b>How XP works.</b> Points for the habits that build the look and a long life: sleep, protein, oily fish, lifting, the two hard runs, study, teeth, skin, rest days. Never for more steps or extra runs.</p>'+
     '<div class="dz-p"><b>Today</b> · '+list(o)+'</div><div class="dz-p"><b>Yesterday</b> · '+list(y)+'</div>'+
     '<div class="dz-ladder">'+DZ_LV.map(function(l,i){return '<span class="dz-chip'+(lvNow>i?' on':'')+'">'+l[1]+' '+l[2]+' · '+ci(l[0])+'</span>';}).join('')+'</div></div>';}
+/* the day's nutrition score: today once 3+ foods are logged, else the last logged day in the last 3; plus the 14-day average and best */
+function dzNutScore(t){var o={v:null,d:null,g:null,lbl:'',avg:null,best:null},a=[];
+  for(var i=0;i<3&&o.v===null;i++){var d=addD(t,-i),g=(S.days[d]||{}).glowSum;if(g&&g.n>=3&&dzN(g.nutrition)){o.v=g.nutrition;o.d=d;o.g=g;o.lbl=i===0?'today':i===1?'yesterday':fmtS(d);}}
+  for(i=0;i<14;i++){var x=(S.days[addD(t,-i)]||{}).glowSum;if(x&&x.n>=3&&dzN(x.nutrition))a.push(x.nutrition);}
+  if(a.length){o.avg=Math.round(mean(a));o.best=Math.max.apply(null,a);}return o;}
 function dzBig3(){var L=null;try{L=longevityScores();}catch(e){}
   var H=L&&L.H,CX=L&&L.CX;if(!CX){try{CX=cortisolScore();}catch(e){}}
   var lv=L?L.all.score:null,band=L?lsBand(L.all.score):null;
   var ha=H&&dzN(H.glowAge)?H.glowAge:null,age=H&&dzN(H.age)?H.age:ageOn(today());
   var cs=CX?CX.score:null,cc=cs===null?'var(--ink-3)':cs<25?'var(--good)':cs<45?'var(--warn)':'var(--bad)';
+  var NS=dzNutScore(today());
   var tile=function(k,ring,lbl,sub){return '<button type="button" class="dz-big" data-dzopen="'+k+'" aria-expanded="'+(DZ.open[k]?'true':'false')+'">'+ring+'<span class="dz-bl">'+lbl+'</span><span class="dz-bs">'+sub+'</span></button>';};
   var h='<div class="dz-big3">'+
     tile('long',dzRing(lv||0,100,lv>=70?'var(--good)':'var(--accent)',lv===null?'…':String(lv),'/ 100'),'🧬 Longevity',band?esc(band[0])+(L?' · today '+L.day.score:''):'working it out')+
     tile('age',dzRing(ha===null?0:Math.max(0,age-ha),10,'var(--gold)',ha===null?'…':String(ha),'years'),'🎂 Health age',ha===null?'loading':(age-ha>0?(age-ha)+' younger than you ('+age+')':'you are '+age))+
+    tile('nut',dzRing(NS.v===null?0:NS.v,100,NS.v!==null&&NS.v>=75?'var(--good)':'var(--accent)',NS.v===null?'—':String(NS.v),'/ 100'),'🥗 Nutrition',NS.v===null?'log food':(NS.lbl+(NS.avg!==null?' · 14-day '+NS.avg:'')))+
     tile('cort',dzRing(cs===null?0:cs,100,cc,cs===null?'…':String(cs),'0 best'),'🧪 Cortisol',CX?esc(CX.band[0])+' · ease off at 45':'—')+'</div>';
+  if(DZ.open.nut)h+=dzCard('🥗 Nutrition score',NS.v===null?'<p class="dz-p">Nothing logged in the last 3 days. Log food and the score appears.</p>':
+    '<div class="dz-stats">'+dzStat(NS.lbl==='today'?'Today':'Last logged ('+fmtS(NS.d)+')',NS.v+'<small>/100</small>','coverage '+(NS.g.coverage||0)+'%')+dzStat('14-day average',NS.avg!==null?NS.avg+'<small>/100</small>':'—','best '+(NS.best!==null?NS.best:'—'))+dzStat('Protein',Math.round(NS.g.protein)+'<small> g</small>',PLANV.proteinMin+'+ on target')+dzStat('Fibre',Math.round(NS.g.fibre||0)+'<small> g</small>',(NS.g.plants||0)+' plant foods')+'</div>'+
+    '<p class="dz-note">How much of what you need your food covered, scored 0–100 from absorbed nutrients, protein and food quality. Your usual range is about 56–80. <button type="button" class="dz-link" data-dzv="food">Every micronutrient →</button></p>',{cls:'dz-sub'});
   if(DZ.open.long&&L){var parts=function(P){return P.map(function(p){var w=p[1]/p[2];return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p[0])+'</span><span class="mono">'+p[1]+'/'+p[2]+'</span></div>'+dzBar(w,dzCol(w/0.75),6)+'<div class="dz-ss">'+esc(p[3])+(w<0.75&&p[4]?' · ↑ '+esc(p[4]):'')+'</div></div>';}).join('');};
     h+=dzCard('🧬 Longevity, part by part','<div class="dz-two"><div><h3 class="dz-h3">Overall · last 4 weeks ('+L.all.score+')</h3>'+parts(L.all.parts)+'</div><div><h3 class="dz-h3">Today ('+L.day.score+')</h3>'+parts(L.day.parts)+'</div></div><p class="dz-note">An estimate from your logs, not a lab test. Home blood pressure and a GP blood panel (thyroid, coeliac antibodies, ferritin, B12, vitamin D, HbA1c, kidney) would make it real.</p>',{cls:'dz-sub'});}
   if(DZ.open.age&&H)h+=dzCard('🎂 Health age','<p class="dz-p">Estimated at <b>'+ha+'</b> against your real age of <b>'+age+'</b>, from resting HR'+(H.rhr?' ('+H.rhr+')':'')+', fitness'+(H.vo2?' (VO₂ about '+Math.round(H.vo2)+')':'')+', sleep, food and training. It is motivational, not a medical measure.</p>'+(H.top?'<p class="dz-p">Your rarest strength: <b>'+esc(String(H.top))+'</b>.</p>':''),{cls:'dz-sub'});
   if(DZ.open.cort&&CX)h+=dzCard('🧪 What is raising cortisol',(CX.parts.length?CX.parts.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p.why==='Ill'?'Ill (a cold or bug logged)':p.why)+'</span><span class="mono">+'+p.pts+'</span></div><div class="dz-ss">↓ '+esc(p.fix)+'</div></div>';}).join(''):'<p class="dz-p">Nothing is adding to it right now. 🧘</p>')+'<p class="dz-note">0 is calm. Under 25 is fine, 25–44 raised, 45+ means an eased week. It reads your sleep, morning HR, training spacing, food and study load.</p>',{cls:'dz-sub'});
   return h;}
-function dzQuests(t){var r=S.days[t]||{},y=S.days[addD(t,-1)]||{},P=planNow(t),g=dzSum(r)||(r.glowSum||null);
-  var sl=dzN(r.sleep)?r.sleep:null,tr=r.gym||dzRuns(r).length,rest=dow(t)===CFG.camp.offDay;
-  var q=[
-    ['😴','Sleep '+P.sleep.lo+'+ h',sl!==null&&sl>=P.sleep.lo,sl!==null?f1(sl)+' h last night'+(function(){var q=null;try{q=sleepScoreOn(t);}catch(e){}return q!==null?' · score '+q:'';})():'log bed and wake times below'],
-    ['🥩','Protein '+PLANV.proteinMin+'+ g',!!(g&&g.protein>=PLANV.proteinMin),g?Math.round(g.protein)+' g so far':'log food'],
-    [rest?'🧘':'🏋️',rest?'Stress-free Saturday':'Train to plan',rest?!tr:!!tr,rest?(tr?'you trained: that is fine':'no runs, no weights, no study'):(tr?(r.gym?(SPLIT_NAME[r.split]||'gym'):'')+(r.gym&&dzRuns(r).length?' + ':'')+(dzRuns(r).length?'a run':''):'or a planned rest day')],
-    ['🦷','Teeth 3× + floss',!!r.teeth,'tap to tick','teeth'],
-    ['📵','Phone out of bed',!!(r.phoneOut||r.noPhone),'tap to tick','phoneOut'],
-    ['📚','Study (bonus)',dzN(r.study)&&r.study>0,dzN(r.study)?f1(r.study)+' h today · '+f1(dzStudyWeek(t))+' h this week':'log hours below']];
-  var done=q.filter(function(x){return x[2];}).length;
-  return dzCard('✅ Your day','<div class="dz-quests">'+q.map(function(x){return '<'+(x[4]?'button type="button" data-dztg="'+x[4]+'"':'div')+' class="dz-q'+(x[2]?' on':'')+'"><span class="dz-qk">'+(x[2]?'✓':'')+'</span><span class="dz-qe">'+x[0]+'</span><span class="dz-qt"><b>'+esc(x[1])+'</b><small>'+esc(x[3])+'</small></span></'+(x[4]?'button':'div')+'>';}).join('')+'</div>',
-    {aside:'<span class="dz-pill '+(done>=5?'g':'')+'">'+done+' of '+q.length+'</span>'});}
+/* Dan, 27 Nov: "get rid of that, don't need that there, just need what I've done today." Only what was logged today. */
+function dzDoneToday(t){var r=S.days[t]||{},w=S.weights[t],g=r.glowSum,it=[];
+  var add=function(e,lbl,val){it.push('<div class="dz-done"><span class="dz-qe">'+e+'</span><span class="dz-qt"><b>'+lbl+'</b><small>'+val+'</small></span></div>');};
+  if(dzN(r.sleep)){var q=null;try{q=sleepScoreOn(t);}catch(e){}add('😴','Sleep',f1(r.sleep)+' h'+(r.bed?' · bed '+esc(r.bed):'')+(r.wake?' · up '+esc(r.wake):'')+(q!==null?' · score '+q:'')+(r.phoneOut||r.noPhone?' · 📵':''));}
+  if(dzN(w))add('⚖️','Weight',f1(w)+' lb');
+  if(dzN(r.rhr))add('❤️','Resting HR',r.rhr+' bpm');
+  if(r.gym){var st=r.sets||{},sk=Object.keys(st).filter(function(m){return st[m]>0;});add('🏋️','Gym · '+esc(SPLIT_NAME[r.split]||'session'),sk.length?sk.map(function(m){return esc(m)+' '+st[m];}).join(' · ')+' hard sets':'sets not logged yet');}
+  dzRuns(r).forEach(function(x){var m=runMeta(x);add(m.hard&&!m.sprint?'⚡':'🏃',m.hard&&!m.sprint?'Hard run':'Run',esc(m.label)+(m.km?' · '+f1(m.km)+' km':'')+(m.repAvg?' · '+mmss(m.repAvg)+' a rep':(m.pace?' · '+pace(m.pace):'')));});
+  if(dzN(r.steps))add('👣','Steps',ci(r.steps));
+  if(dzN(r.study)&&r.study>0)add('📚','Study',sh(r.study)+(dzN(r.deep)&&r.deep>0?' · '+sh(r.deep)+' deep':''));
+  if(g&&g.n)add('🍽️','Food',ci(g.kcal)+' kcal · '+Math.round(g.protein)+' g protein · nutrition '+(g.nutrition||0)+(dzFish(r)?' · 🐟 oily fish':''));
+  var tk=[];if(r.teeth)tk.push('🦷 teeth');if(r.skinAM)tk.push('🧴 skin AM');if(r.skinPM)tk.push('🌙 skin PM');if(r.puff)tk.push('🙂 puffiness '+r.puff+'/5');if(S.waist&&dzN(S.waist[t]))tk.push('📏 waist '+f1(S.waist[t])+' cm');if(r.photoFace||r.photoBody)tk.push('📸 photos');
+  if(tk.length)add('✨','Ticked',tk.join(' · '));
+  if(r.ill)add('🤧','Ill',esc(r.ill.kind||'ill')+' logged');
+  return dzCard('📋 Done today',it.length?'<div class="dz-dones">'+it.join('')+'</div>':'<div class="dz-empty">Nothing logged yet today. Use the quick log and it shows here.</div>',{aside:'<span class="dz-pill'+(it.length?' g':'')+'">'+it.length+' logged</span>'});}
+/* Dan, 27 Nov: the week on the front page: steps total and average, gym sessions and sets, runs, study. Monday to today. */
+function dzWeekCard(t){var ws=mondayOf(t),A=dzWeekStats(ws),B=dzWeekStats(addD(ws,-7)),WS=null,i,d;try{WS=weekSteps(t);}catch(e){}
+  var lastTot=0;for(i=0;i<7;i++){var v=(S.days[addD(ws,i-7)]||{}).steps;if(dzN(v))lastTot+=v;}
+  var sets=weekSets(t),sk=Object.keys(sets).filter(function(m){return sets[m]>0;}),setsTot=sk.reduce(function(a,m){return a+sets[m];},0),G=dzGymWeek(t),runs=[];
+  for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;dzRuns(S.days[d]).forEach(function(x){var m=runMeta(x);runs.push({d:d,m:m});});}
+  var deep=0;for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;var dp=(S.days[d]||{}).deep;if(dzN(dp))deep+=dp;}
+  var stats='<div class="dz-stats">'+
+    dzStat('👣 Steps',WS&&WS.total?ci(WS.total):'—',WS&&WS.avg!==null?'average '+ci(WS.avg)+' a day · '+WS.n+' day'+(WS.n===1?'':'s')+(B.steps!==null?' · last week '+ci(B.steps):''):'none logged yet')+
+    dzStat('🏋️ Gym',G.n+'<small> / '+PLANV.gym.lo+'</small>',setsTot+' hard set'+(setsTot===1?'':'s')+(B.gym?' · last week '+B.gym+' sessions':''))+
+    dzStat('🏃 Runs',A.runs+'<small> run'+(A.runs===1?'':'s')+'</small>',A.hard+' of '+PLANV.hard+' hard · '+f1(A.km)+' km'+(B.runs?' · last week '+B.runs:''))+
+    dzStat('📚 Study',sh(A.study),'average '+sh(A.n?A.study/A.n:0)+' a day'+(deep?' · '+sh(deep)+' deep':'')+' · aim 10 h a week')+'</div>';
+  var sp=G.sp.length?'<div class="dz-tags">'+G.sp.map(function(x){return '<span class="dz-chip">🏋️ '+esc(SPLIT_NAME[x]||x)+'</span>';}).join('')+'</div>':'';
+  var mus=sk.length?'<div class="dz-tags">'+sk.map(function(m){var rg=DZ_SETS[m]||setsRange(m),v=sets[m];return '<span class="dz-chip'+(v>=rg[0]?' on':'')+'">'+esc(m)+' <b>'+v+'</b><span class="dz-dim">/'+rg[0]+'–'+rg[1]+'</span></span>';}).join('')+'</div>':'';
+  var rl=runs.length?'<div class="dz-tags">'+runs.map(function(x){return '<span class="dz-chip">'+(x.m.hard&&!x.m.sprint?'⚡':'🏃')+' '+DOWS[dow(x.d)]+' · '+esc(x.m.label)+(x.m.km?' · '+f1(x.m.km)+' km':'')+'</span>';}).join('')+'</div>':'';
+  return dzCard('📅 This week',stats+(sp?'<h3 class="dz-h3">Gym sessions</h3>'+sp:'')+(mus?'<h3 class="dz-h3">Hard sets per muscle</h3>'+mus:'')+(rl?'<h3 class="dz-h3">Runs</h3>'+rl:''),
+    {aside:'<span class="dz-dim">'+fmtS(ws)+' – '+fmtS(addD(ws,6))+'</span> <button type="button" class="dz-link" data-dzv="week">week review →</button>'});}
 function dzQuickLog(){var t=dzT(),r=S.days[t]||{},w=S.weights[t];
   var lastW=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&dzN(S.weights[k]))lastW=S.weights[k];});
   var tile=function(k,e,lbl,cur,base,step,unit){var v=cur!==null&&cur!==undefined?cur:null;
@@ -12689,13 +12721,13 @@ function dzStreaks(){var P=PLANV,st=[['🔥','days logging',dashStreak(function(
   return '<div class="dz-streaks">'+st.map(function(x){return '<div class="dz-streak'+(x[2]>=3?' hot':'')+'"><span>'+x[0]+'</span><b>'+x[2]+'</b><small>'+x[1]+'</small></div>';}).join('')+'</div>';}
 function dzToday(){var t=today(),C=dzCall(t),cd=C.carb,cm=dzCampNow(t),M=cm?dzCampModel(cm,t):null;
   var campLine=M?(M.startsIn>0?cm.e+' '+esc(cm.name)+' starts in <b>'+M.startsIn+' day'+(M.startsIn===1?'':'s')+'</b>':(M.left>0||t<=cm.to?cm.e+' '+esc(cm.name)+' · day '+M.gone+' of '+M.total+' · '+M.score+'% '+M.lv[0]:'')):'';
-  return dzHero(t)+dzBig3()+
+  return dzHero(t)+dzBig3()+dzWeekCard(t)+
     '<section class="dz-card dz-call" style="--call:'+C.col+'"><div class="dz-callh"><span class="dz-dot"></span><div><div class="dz-k">What to do today</div><h2>'+C.head.e+' '+esc(C.head.t)+'</h2></div></div>'+
       (C.head.w?'<p class="dz-p">'+esc(C.head.w)+'</p>':'')+
       '<div class="dz-calls"><div class="dz-cl"><b>🏃 Run</b><span>'+C.run+'</span></div><div class="dz-cl"><b>🏋️ Lift</b><span>'+C.lift+'</span></div><div class="dz-cl"><b>'+cd.e+' Eat</b><span><span class="dz-carb '+cd.k+'">'+esc(cd.t)+'</span> '+esc(cd.s)+'</span></div></div>'+
       (campLine?'<button type="button" class="dz-link" data-dzv="camp">'+campLine+' →</button>':'')+'</section>'+
     dzStreaks()+
-    '<div class="dz-cols"><div>'+dzQuests(t)+dzPointHTML(t)+'</div><div>'+dzQuickLog()+dzFoodMini(t)+'</div></div>';}
+    '<div class="dz-cols"><div>'+dzDoneToday(t)+dzPointHTML(t)+'</div><div>'+dzQuickLog()+dzFoodMini(t)+'</div></div>';}
 
 /* ---------- Food & micros ---------- */
 function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
