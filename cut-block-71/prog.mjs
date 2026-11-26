@@ -41,7 +41,7 @@ ok('the longevity coach knows the program', /Your program this week \(running co
 const strip = await p.evaluate(() => document.getElementById('xcampCard').innerText);
 ok('the camp card carries the week at a glance', /This week:/.test(strip) && /3 of 4 this week/.test(strip), strip.slice(0, 400));
 const ac = await p.evaluate(() => document.getElementById('allCard').innerText);
-ok('the overview has one card with the camp, the data and the program together', /Everything in one place/.test(ac) && /Mini camp/.test(ac) && /Weight/.test(ac) && /Steps/.test(ac) && /Nutrition score/.test(ac) && /Sleep/.test(ac) && /This week/.test(ac), ac.slice(0, 300));
+ok('the overview has one card with the camp, the data and the program together', /Everything in one place/.test(ac) && /Mini camp/.test(ac) && /Weight/.test(ac) && /Steps/.test(ac) && /Nutrition score/.test(ac) && /Sleep/.test(ac) && /Longevity/i.test(ac) && /This week/.test(ac), ac.slice(0, 300));
 await ctx.close();
 
 ok('C is a fortnightly 200 m session with 80 m uphill sprints in between', /200 m uphill at about 30 s a rep/.test(rc) && /80 m uphill/.test(rc), rc.slice(0,200));
@@ -70,7 +70,7 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
 { // camp goals are 2 hard runs and 4 gym a week (12 and 23 over 40 days) plus study; calm mode shows just four things
   const o = await open(wk({}), '2026-12-10T08:00:00');
   const camp = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
-  ok('the mini camp goals are 5 hard runs, 10 gym and 26 h of study', /\/ 5\b/.test(camp) && /\/ 10\b/.test(camp) && /26/.test(camp) && /Mini camp/.test(camp), camp.slice(0, 500));
+  ok('the mini camp goals are 5 hard runs, 10 gym and 26 h of study', /\/ 5\b/.test(camp) && /\/ 10\b/.test(camp) && /26/.test(camp) && /Mini camp/.test(camp) && /Longevity/i.test(camp), camp.slice(0, 500));
   const pre = await open(wk({}), '2026-12-01T08:00:00');
   const preT = await pre.p.evaluate(() => document.getElementById('xcampCard').innerText);
   ok('before 7 Dec the camp card says when it starts', /Starts/i.test(preT) && /days to go/.test(preT), preT.slice(0, 200));

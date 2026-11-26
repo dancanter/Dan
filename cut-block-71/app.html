@@ -6558,6 +6558,8 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
       '<span class="chip">🏃 Hard = '+M.hr+'</span><span class="chip">All runs = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     '<div class="tiny keep" style="margin:4px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
     row('🏃','Hard runs (2 a week, 3 tests)',M.hr+' / '+X.hard,pct(M.hr,X.hard),paceTxt(M.hr,X.hard)+' · all runs so far: '+M.runs+' (easy runs are a bonus)')+
+    (function(){var L=null;try{L=longevityScores();}catch(e){}if(!L)return '';var H=L.H||null,CX=L.CX||null,ba=lsBand(L.all.score);
+      return row('🧬','Longevity score',L.all.score+' / 100',null,esc(ba[0])+(H?' · health age <b>'+H.glowAge+'</b> (you are '+H.age+')':'')+(CX?' · cortisol <b>'+CX.score+'</b> ('+esc(CX.band[0])+')':'')+' · today '+L.day.score);})()+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     (function(){var R=wRef(t),lw=R.lastWeek,tw=R.thisWeek,d=lw&&tw?lw.avg-tw.avg:null;
       return row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,
@@ -6589,19 +6591,21 @@ function allInOneHTML(){var X=XCAMP,t=today(),pre=t<X.from;
   var tile=function(e,n,v,sub){return '<div style="padding:9px 10px;border-radius:12px;background:rgba(127,127,127,.12);min-width:0"><div class="tiny dim">'+e+' '+n+'</div><div style="font-size:1.25em;font-weight:800;line-height:1.25">'+v+'</div><div class="tiny keep" style="opacity:.85">'+sub+'</div></div>';};
   var wH=0,wG=0,wd,wr;for(i=0;i<7;i++){wd=addD(mondayOf(t),i);if(wd>t)break;wr=S.days[wd]||{};if(wr.gym)wG++;(wr.runs||[]).forEach(function(q){var m=runMeta(q);if(!m.empty&&m.hard&&!m.sprint)wH++;});}
   var wTile=tile('⚖️','Weight',M.wa===null?'—':f1(M.wa)+' lb',(M.wa===null?'weigh in':(down!==null&&Math.abs(down)>=0.05?(down>0?'down '+f1(down)+' on last week':'up '+f1(-down)+' on last week'):'level with last week')+' · '+(M.wa>X.wHi?f1(M.wa-X.wHi)+' to 124':'🎯 in the zone')));
+  var lgT=null;try{lgT=longevityScores();}catch(e){}
+  var lTile=lgT?tile('🧬','Longevity',lgT.all.score+' / 100',(lgT.H?'health age '+lgT.H.glowAge+' (you are '+lgT.H.age+')':'')+(lgT.CX?' · cortisol '+lgT.CX.score:'')):tile('🧬','Longevity','…','working it out');
   var nTile=tile('🥗','Nutrition score',nS===null?'—':nS+'/100','14-day avg · baseline 56–80'),dTile=tile('🍽️','Today',kc===null?'—':ci(kc)+' kcal',(pr===null?'':ci(pr)+' g protein · ')+'of '+ci(kT)+' kcal');
   var tiles=(pre?[
     tile('🎄','Mini camp','starts '+fmtS(X.from),diffD(t,X.from)+' days to go · recover first'),
     tile('🏃','Hard runs','this week '+wH+' / '+PLANV.hard,'easy runs are a bonus'),
     tile('🏋️','Gym','this week '+wG+' / '+PLANV.gym.lo,'goal '+pGym()),
-    wTile,
+    wTile,lTile,
     tile('👟','Steps',ci(M.wk),'this week · aim '+pSteps()+' a day'),
     tile('😴','Sleep score',sS===null?'—':sS+'/100','14-day average · aim '+PLANV.sleep.lo+'+ h'),
     nTile,dTile]:[
     tile('🎄','Camp score',score+'%',Math.min(M.gone,M.total)+' of '+M.total+' camp days done · '+M.left+' to go'),
     tile('🏃','Hard runs',M.hr+' / '+X.hard,'all runs '+M.runs+' · this week '+(W?W.done+' of 4 sessions':'—')),
     tile('🏋️','Gym',M.gym+' / '+X.gym,'goal '+pGym()),
-    wTile,
+    wTile,lTile,
     tile('👟','Steps',ci(M.wk),'this week · camp total '+ci(M.stT)+' of '+ci(X.stepsAvg*M.total)),
     tile('📚','Study',f1(M.stuH)+' / '+X.studyH+' h','10 h a week'),
     tile('🦷','Teeth',M.teeth+' / '+M.days,'days with 3× + floss'),
