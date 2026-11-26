@@ -6498,7 +6498,8 @@ var CUR='today';
    (start 127.6), finish assignments and all uni work, teeth 3× plus floss,
    sleep without phone 8–10 h. Days left 39 on 15 Nov → ends 24 Dec. */
 /* Dan, 26 Nov: the camp goals become 4 gym sessions and 2 hard runs a week over the camp's 40 days (5.7 weeks): 23 gym, 12 hard runs; study 10 h a week = 57 h. All runs (24) stays as a bonus count. */
-var XCAMP={from:'2026-11-15',to:'2026-12-24',startW:127.6,runs:24,hard:12,gym:23,studyH:57,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,stepsAvg:12500,sleepFrom:'2026-11-16'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
+/* Dan, 26 Nov: it is now a MINI CAMP, 7 Dec (home from France late on the 6th) to 24 Dec = 18 days = 2.6 weeks: 10 gym (4 a week), 5 hard runs (2 a week, 3 of them tests), 26 h study (10 a week). */
+var XCAMP={from:'2026-12-07',to:'2026-12-24',startW:127.6,runs:24,hard:5,gym:10,studyH:26,kLo:1799,kHi:1899,wLo:123,wHi:124,sLo:8,sHi:10,stepsAvg:11500,sleepFrom:'2026-12-08'}; /* Dan, 15 Nov: sleep counts from tonight (the night of 15 Nov, logged on the 16th); last night doesn't */ /* plan-ok: Dan's own whiteboard numbers */
 function xcampModel(t){t=t||today();var X=XCAMP,end=t<X.to?t:X.to,days=[],d;
   for(d=X.from;d<=end;d=addD(d,1))days.push(d);
   var hr=0,runs=0,gym=0,kOk=0,kLog=0,out=0,teeth=0,sl=0,slLog=0,np=0,stT=0,stN=0,stuH=0,deepH=0,stuN=0;
@@ -6536,6 +6537,7 @@ function xcampWeightHTML(M){var X=XCAMP,t=M.t;
     '<div class="tiny keep dim" style="margin-top:6px">A check-in comes with your 9 pm message every evening and a bigger one every Monday: the average, the week’s change and the one lever to pull.</div></div>';}
 function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
   if(t>X.to)return '';
+  if(t<X.from)return '<div class="p lift" style="background:linear-gradient(135deg,rgba(192,57,43,.14),rgba(39,174,96,.14))"><h2>🎄 Mini camp · 7–24 Dec</h2><p style="margin:4px 0"><b>Starts '+fmtS(X.from)+'</b> · '+diffD(t,X.from)+' days to go.</p><p class="tiny keep" style="margin:4px 0">Goals: <b>'+X.gym+' gym</b> ('+PLANV.gym.lo+' a week), <b>'+X.hard+' hard runs</b> ('+PLANV.hard+' a week, 3 of them tests), <b>'+X.studyH+' h study</b>, sleep '+PLANV.sleep.lo+'+ h, protein '+PLANV.proteinMin+'+ g, oily fish twice a week, weight '+X.wLo+'–'+X.wHi+'. Until then: get over the cold, keep lifting '+PLANV.gym.lo+' a week, and sleep.</p><p class="tiny keep" style="margin:4px 0">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</p></div>';
   var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
   var paceTxt=function(done,goal){var weeksLeft=Math.max(1,M.left/7),need=Math.max(0,goal-done);if(!need)return '🏆 done!';var due=goal*M.gone/M.total;
     return (done>=due?'<b class="gd">on pace ✓</b>':'')+(done>=due?' · ':'')+need+' to go · about '+f1(need/weeksLeft)+' a week';};
@@ -6549,13 +6551,13 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
   var big=M.left===0?'🎄 It’s camp day! Final weigh-in and photos.':'<span style="font-size:2.4em;font-weight:800;line-height:1">'+M.left+'</span> <span>day'+(M.left===1?'':'s')+' left</span>';
   var tg=function(k,on,lab){return '<button type="button" class="btn '+(on?'':'ghost ')+'sm" data-xc="'+k+'" aria-pressed="'+(on?'true':'false')+'" style="margin:3px 4px 0 0">'+(on?'✓ ':'')+lab+'</button>';};
   return '<div class="p lift" id="xcampIn" style="background:linear-gradient(135deg,rgba(192,57,43,.14),rgba(39,174,96,.14))">'+
-    '<h2>🎄 Xmas Camp Checklist</h2>'+
+    '<h2>🎄 Mini camp · 7–24 Dec</h2>'+
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px"><div>'+big+'<div class="tiny dim">to 24 Dec · '+Math.min(M.gone,M.total)+' of '+M.total+' camp days done</div></div>'+
     '<div style="text-align:right"><div style="font-size:1.6em;font-weight:800">'+lv[0]+' '+score+'%</div><div class="tiny">'+lv[1]+'</div></div></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px" class="mono">'+
       '<span class="chip">🏃 Hard = '+M.hr+'</span><span class="chip">All runs = '+M.runs+'</span><span class="chip">🏋️ Gym = '+M.gym+'</span><span class="chip">⚖️ Weight = '+(M.wl===null?'—':f1(M.wl))+'</span><span class="chip">👟 Steps = '+(M.stAvg===null?'—':ci(M.stAvg))+' a day</span><span class="chip">Σ '+ci(M.stT)+' steps</span><span class="chip">📚 Study = '+f1(M.stuH)+' h</span></div>'+
     '<div class="tiny keep" style="margin:4px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
-    row('🏃','Hard runs (2 a week)',M.hr+' / '+X.hard,pct(M.hr,X.hard),paceTxt(M.hr,X.hard)+' · all runs so far: '+M.runs+' (easy runs are a bonus)')+
+    row('🏃','Hard runs (2 a week, 3 tests)',M.hr+' / '+X.hard,pct(M.hr,X.hard),paceTxt(M.hr,X.hard)+' · all runs so far: '+M.runs+' (easy runs are a bonus)')+
     row('🏋️','Gym',M.gym+' / '+X.gym,pct(M.gym,X.gym),paceTxt(M.gym,X.gym))+
     (function(){var R=wRef(t),lw=R.lastWeek,tw=R.thisWeek,d=lw&&tw?lw.avg-tw.avg:null;
       return row('⚖️','Weight '+X.wLo+'–'+X.wHi,(M.wa===null?'—':f1(M.wa))+' lb avg',M.wp,
@@ -6575,7 +6577,7 @@ function xcampHTML(){var X=XCAMP,M=xcampModel(),t=M.t,x=S.days[t]||{};
     '<p class="tiny dim" style="margin:8px 0 0">Badges: 25% ❄️ · 50% 🔥 · 75% ⭐ · 90% 🎄. Runs, gym, weight, steps, study and sleep fill in by themselves from what you log.</p></div>';}
 function renderXCamp(){var el=E('xcampCard');if(!el)return;try{el.innerHTML=calmOn()?'':xcampHTML();}catch(e){el.innerHTML='';}}
 /* Dan, 20 Nov: "on the overview I'd want all my data on it and the Xmas camp, so it's all together rather than scrolling down." */
-function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
+function allInOneHTML(){var X=XCAMP,t=today(),pre=t<X.from;
   var M=xcampModel(t),W=null,x=S.days[t]||{},i,d;try{W=prog25Week(t);}catch(e){}
   var pct=function(a,b){return b?Math.max(0,Math.min(1,a/b)):0;};
   var score=Math.round(mean([pct(M.hr,X.hard),pct(M.gym,X.gym),M.wp,pct(M.teeth,M.days),pct(M.sl,M.slLog),pct(M.stuH,X.studyH)])*100);
@@ -6585,17 +6587,26 @@ function allInOneHTML(){var X=XCAMP,t=today();if(t<X.from)return '';
   var kc=gd?gd.kcal:(typeof x.kcal==='number'?x.kcal:null),pr=gd?gd.protein:null,kT=dayTarget(t);
   var R=wRef(t),down=M.wa!==null?wRefStart()-M.wa:null;
   var tile=function(e,n,v,sub){return '<div style="padding:9px 10px;border-radius:12px;background:rgba(127,127,127,.12);min-width:0"><div class="tiny dim">'+e+' '+n+'</div><div style="font-size:1.25em;font-weight:800;line-height:1.25">'+v+'</div><div class="tiny keep" style="opacity:.85">'+sub+'</div></div>';};
-  var tiles=[
+  var wH=0,wG=0,wd,wr;for(i=0;i<7;i++){wd=addD(mondayOf(t),i);if(wd>t)break;wr=S.days[wd]||{};if(wr.gym)wG++;(wr.runs||[]).forEach(function(q){var m=runMeta(q);if(!m.empty&&m.hard&&!m.sprint)wH++;});}
+  var wTile=tile('⚖️','Weight',M.wa===null?'—':f1(M.wa)+' lb',(M.wa===null?'weigh in':(down!==null&&Math.abs(down)>=0.05?(down>0?'down '+f1(down)+' on last week':'up '+f1(-down)+' on last week'):'level with last week')+' · '+(M.wa>X.wHi?f1(M.wa-X.wHi)+' to 124':'🎯 in the zone')));
+  var nTile=tile('🥗','Nutrition score',nS===null?'—':nS+'/100','14-day avg · baseline 56–80'),dTile=tile('🍽️','Today',kc===null?'—':ci(kc)+' kcal',(pr===null?'':ci(pr)+' g protein · ')+'of '+ci(kT)+' kcal');
+  var tiles=(pre?[
+    tile('🎄','Mini camp','starts '+fmtS(X.from),diffD(t,X.from)+' days to go · recover first'),
+    tile('🏃','Hard runs','this week '+wH+' / '+PLANV.hard,'easy runs are a bonus'),
+    tile('🏋️','Gym','this week '+wG+' / '+PLANV.gym.lo,'goal '+pGym()),
+    wTile,
+    tile('👟','Steps',ci(M.wk),'this week · aim '+pSteps()+' a day'),
+    tile('😴','Sleep score',sS===null?'—':sS+'/100','14-day average · aim '+PLANV.sleep.lo+'+ h'),
+    nTile,dTile]:[
     tile('🎄','Camp score',score+'%',Math.min(M.gone,M.total)+' of '+M.total+' camp days done · '+M.left+' to go'),
     tile('🏃','Hard runs',M.hr+' / '+X.hard,'all runs '+M.runs+' · this week '+(W?W.done+' of 4 sessions':'—')),
-    tile('🏋️','Gym',M.gym+' / '+X.gym,'goal '+pGym()+' a week'),
-    tile('⚖️','Weight',M.wa===null?'—':f1(M.wa)+' lb',(M.wa===null?'weigh in':(down!==null&&Math.abs(down)>=0.05?(down>0?'down '+f1(down)+' on last week':'up '+f1(-down)+' on last week'):'level with last week')+' · '+(M.wa>X.wHi?f1(M.wa-X.wHi)+' to 124':'🎯 in the zone'))),
+    tile('🏋️','Gym',M.gym+' / '+X.gym,'goal '+pGym()),
+    wTile,
     tile('👟','Steps',ci(M.wk),'this week · camp total '+ci(M.stT)+' of '+ci(X.stepsAvg*M.total)),
     tile('📚','Study',f1(M.stuH)+' / '+X.studyH+' h','10 h a week'),
     tile('🦷','Teeth',M.teeth+' / '+M.days,'days with 3× + floss'),
     tile('😴','Sleep 8–10 h',M.sl+' / '+M.slLog,'nights · score '+(sS===null?'—':sS+'/100')),
-    tile('🥗','Nutrition score',nS===null?'—':nS+'/100','14-day avg · baseline 56–80'),
-    tile('🍽️','Today',kc===null?'—':ci(kc)+' kcal',(pr===null?'':ci(pr)+' g protein · ')+'of '+ci(kT)+' kcal')].join('');
+    nTile,dTile]).join('');
   return '<div class="p lift"><h2>📋 Everything in one place</h2><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'+tiles+'</div>'+
     '<div class="tiny keep" style="margin:8px 0 2px">🏃 This week: '+(function(){try{return prog25StripHTML();}catch(e){return '';}})()+'</div>'+
     '<div class="tiny keep dim">Longevity, health age and cortisol are the three tiles above. The full camp checklist is just below.</div></div>';}

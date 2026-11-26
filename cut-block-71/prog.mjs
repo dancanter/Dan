@@ -41,7 +41,7 @@ ok('the longevity coach knows the program', /Your program this week \(running co
 const strip = await p.evaluate(() => document.getElementById('xcampCard').innerText);
 ok('the camp card carries the week at a glance', /This week:/.test(strip) && /3 of 4 this week/.test(strip), strip.slice(0, 400));
 const ac = await p.evaluate(() => document.getElementById('allCard').innerText);
-ok('the overview has one card with the camp, the data and the program together', /Everything in one place/.test(ac) && /Camp score/.test(ac) && /Weight/.test(ac) && /Steps/.test(ac) && /Nutrition score/.test(ac) && /Sleep 8/.test(ac) && /This week/.test(ac), ac.slice(0, 300));
+ok('the overview has one card with the camp, the data and the program together', /Everything in one place/.test(ac) && /Mini camp/.test(ac) && /Weight/.test(ac) && /Steps/.test(ac) && /Nutrition score/.test(ac) && /Sleep/.test(ac) && /This week/.test(ac), ac.slice(0, 300));
 await ctx.close();
 
 ok('C is a fortnightly 200 m session with 80 m uphill sprints in between', /200 m uphill at about 30 s a rep/.test(rc) && /80 m uphill/.test(rc), rc.slice(0,200));
@@ -68,9 +68,13 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
   await o.ctx.close();
 }
 { // camp goals are 2 hard runs and 4 gym a week (12 and 23 over 40 days) plus study; calm mode shows just four things
-  const o = await open(wk({}), '2026-11-22T08:00:00');
+  const o = await open(wk({}), '2026-12-10T08:00:00');
   const camp = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
-  ok('the camp goals are 12 hard runs, 23 gym and 57 h of study', /\/ 12/.test(camp) && /\/ 23/.test(camp) && /57/.test(camp), camp.slice(0, 500));
+  ok('the mini camp goals are 5 hard runs, 10 gym and 26 h of study', /\/ 5\b/.test(camp) && /\/ 10\b/.test(camp) && /26/.test(camp) && /Mini camp/.test(camp), camp.slice(0, 500));
+  const pre = await open(wk({}), '2026-12-01T08:00:00');
+  const preT = await pre.p.evaluate(() => document.getElementById('xcampCard').innerText);
+  ok('before 7 Dec the camp card says when it starts', /Starts/i.test(preT) && /days to go/.test(preT), preT.slice(0, 200));
+  await pre.ctx.close();
   await o.p.evaluate(() => { S.settings.calm = true; touch(); });
   await o.p.waitForTimeout(400);
   const calm = await o.p.evaluate(() => ({ a: document.getElementById('allCard').innerText, x: document.getElementById('xcampCard').innerText }));
@@ -78,7 +82,7 @@ ok('nutrition and sleep scores sit in the same table', /Nutrition score/.test(rc
   await o.p.click('#btnCalmOff');
   await o.p.waitForTimeout(400);
   const back = await o.p.evaluate(() => document.getElementById('xcampCard').innerText);
-  ok('the button brings the camp card back', /Xmas Camp/i.test(back), back.slice(0, 120));
+  ok('the button brings the camp card back', /Mini camp/i.test(back), back.slice(0, 120));
   await o.ctx.close();
 }
 // ---- Tuesday: only Monday's 1 km reps are done; the 48 h rule holds the next hard session back ----
