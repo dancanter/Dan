@@ -445,6 +445,12 @@ button.dz-q{cursor:pointer}
 .dz-step input::-webkit-inner-spin-button,.dz-step input::-webkit-outer-spin-button,.dz-set input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .dz-step input,.dz-set input{-moz-appearance:textfield;appearance:textfield;padding:0 4px}
 .dz-refl{fill:var(--gold)}
+.dz-log.dz-sleep{grid-column:span 2}
+@media (max-width:360px){.dz-log.dz-sleep{grid-column:auto}}
+.dz-times{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+.dz-times label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink-3)}
+.dz-times input{height:34px;min-width:0;width:100%;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 6px;font:500 14px "JetBrains Mono",monospace}
+.dz-how{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--panel-2)}
 .dz-save{height:32px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);font:600 12.5px "Inter",sans-serif;cursor:pointer}
 .dz-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .dz-tog{padding:7px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);font:500 13px "Inter",sans-serif;cursor:pointer}
@@ -11541,8 +11547,12 @@ function sleepScoreOn(d){var r=S.days[d]||{};if(typeof r.sleep!=='number')return
   var h=r.sleep,p=h>=8&&h<=9.5?60:(h>9.5?55:(h>=7?40+(h-7)*20:Math.max(0,40-(7-h)*20)));
   var b=bedMin(r.bed);if(b!==null)p+=b<=23*60+30?20:(b<=24*60+15?10:0);else p+=10;
   if(r.phoneOut)p+=10;
-  var bm=[];for(var i=0;i<7;i++){var x=bedMin((S.days[addD(d,-i)]||{}).bed);if(x!==null)bm.push(x);}
-  if(bm.length>=3){var m=mean(bm),sd=Math.sqrt(mean(bm.map(function(v){return (v-m)*(v-m);})));p+=sd<=30?10:(sd<=60?5:0);}else p+=5;
+  /* Dan, 27 Nov: consistency reads wake times as well as bedtimes over the last 7 nights. A steady sleep-wake rhythm
+     predicted mortality more strongly than hours did (Windred et al. 2024, Sleep, UK Biobank). Each needs 3+ logged nights;
+     the two spreads are averaged. Nothing logged yet: a neutral 5. */
+  var bm=[],wm=[];for(var i=0;i<7;i++){var rr=S.days[addD(d,-i)]||{},x=bedMin(rr.bed),y=/^\d\d:\d\d$/.test(rr.wake||'')?(+rr.wake.slice(0,2))*60+(+rr.wake.slice(3)):null;if(x!==null)bm.push(x);if(y!==null)wm.push(y);}
+  var sds=[bm,wm].filter(function(a){return a.length>=3;}).map(function(a){var m=mean(a);return Math.sqrt(mean(a.map(function(v){return (v-m)*(v-m);})));});
+  if(sds.length){var sd=mean(sds);p+=sd<=30?10:(sd<=60?5:0);}else p+=5;
   return Math.min(100,Math.round(p));}
 function lsBand(v){return v>=85?['Excellent','g','Top-tier habits for a long, healthy life. Keep it boringly consistent.']:(v>=70?['Good','g','Strong. One or two parts below would move it to excellent.']:(v>=55?['Fair','','Decent base; the lowest part below is the lever.']:['Needs work','w','Start with the biggest gap below: it moves the score fastest.']));}
 function longevityScores(){
@@ -12616,7 +12626,7 @@ function dzBig3(){var L=null;try{L=longevityScores();}catch(e){}
 function dzQuests(t){var r=S.days[t]||{},y=S.days[addD(t,-1)]||{},P=planNow(t),g=dzSum(r)||(r.glowSum||null);
   var sl=dzN(r.sleep)?r.sleep:null,tr=r.gym||dzRuns(r).length,rest=dow(t)===CFG.camp.offDay;
   var q=[
-    ['😴','Sleep '+P.sleep.lo+'+ h',sl!==null&&sl>=P.sleep.lo,sl!==null?f1(sl)+' h last night':'log it below'],
+    ['😴','Sleep '+P.sleep.lo+'+ h',sl!==null&&sl>=P.sleep.lo,sl!==null?f1(sl)+' h last night'+(function(){var q=null;try{q=sleepScoreOn(t);}catch(e){}return q!==null?' · score '+q:'';})():'log bed and wake times below'],
     ['🥩','Protein '+PLANV.proteinMin+'+ g',!!(g&&g.protein>=PLANV.proteinMin),g?Math.round(g.protein)+' g so far':'log food'],
     [rest?'🧘':'🏋️',rest?'Stress-free Saturday':'Train to plan',rest?!tr:!!tr,rest?(tr?'you trained: that is fine':'no runs, no weights, no study'):(tr?(r.gym?(SPLIT_NAME[r.split]||'gym'):'')+(r.gym&&dzRuns(r).length?' + ':'')+(dzRuns(r).length?'a run':''):'or a planned rest day')],
     ['🦷','Teeth 3× + floss',!!r.teeth,'tap to tick','teeth'],
@@ -12637,13 +12647,32 @@ function dzQuickLog(){var t=dzT(),r=S.days[t]||{},w=S.weights[t];
   var tg=function(k,lbl,on){return '<button type="button" class="dz-tog'+(on?' on':'')+'" data-dztg="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+(on?'✓ ':'')+lbl+'</button>';};
   var pf='';for(i=1;i<=5;i++)pf+='<button type="button" class="dz-tog sq'+(r.puff===i?' on':'')+'" data-dzpuff="'+i+'" aria-pressed="'+(r.puff===i?'true':'false')+'">'+i+'</button>';
   return dzCard('✍️ Quick log','<div class="dz-seg" role="group" aria-label="Day to log"><button type="button" data-dzld="0" aria-pressed="'+(DZ.ld===0?'true':'false')+'">Today</button><button type="button" data-dzld="-1" aria-pressed="'+(DZ.ld===-1?'true':'false')+'">Yesterday</button><span class="dz-dim">'+fmtL(t)+'</span></div>'+
-    '<div class="dz-logs">'+tile('weight','⚖️','Weight',dzN(w)?w:null,lastW,0.2,' lb')+tile('sleep','😴','Sleep',dzN(r.sleep)?r.sleep:null,lastS,0.25,' h')+tile('rhr','❤️','Resting HR',dzN(r.rhr)?r.rhr:null,lastR,1,' bpm')+
+    '<div class="dz-logs">'+tile('weight','⚖️','Weight',dzN(w)?w:null,lastW,0.2,' lb')+dzSleepTile(t,r)+tile('rhr','❤️','Resting HR',dzN(r.rhr)?r.rhr:null,lastR,1,' bpm')+
       tile('steps','👣','Steps',dzN(r.steps)?r.steps:null,null,500,'')+tile('study','📚','Study',dzN(r.study)?f1(r.study):null,null,0.5,' h')+'</div>'+
     '<h3 class="dz-h3">🏋️ Gym</h3><div class="dz-tags">'+sp.map(function(s){var on=r.gym&&r.split===s,arm=DZ.arm==='gym-'+s;return '<button type="button" class="dz-tog'+(on?' on':'')+(arm?' arm':'')+'" data-dzgym="'+s+'" aria-pressed="'+(on?'true':'false')+'">'+(arm?'Tap again to remove':(on?'✓ ':'')+esc(SPLIT_NAME[s]))+'</button>';}).join('')+'</div>'+
     (ms.length?'<div class="dz-sets">'+ms.map(function(m){return '<label class="dz-set"><span>'+m+' sets</span><input type="number" inputmode="numeric" min="0" max="40" data-dzsets="'+m+'" value="'+(((r.sets||{})[m])||'')+'" placeholder="0"></label>';}).join('')+'<span class="dz-dim">Hard sets only. Aim 10–13 per muscle across the week.</span></div>':'')+ /* plan-ok: Dan's own set range, 26 Nov */
-    '<h3 class="dz-h3">✨ Ticks</h3><div class="dz-tags">'+tg('teeth','🦷 Teeth 3× + floss',!!r.teeth)+tg('phoneOut','📵 Phone out of bed',!!(r.phoneOut||r.noPhone))+tg('skinAM','🧴 Skin AM',!!r.skinAM)+tg('skinPM','🌙 Skin PM',!!r.skinPM)+tg('ill','🤧 Feeling ill',!!r.ill)+'</div>'+
+    '<h3 class="dz-h3">✨ Ticks</h3><div class="dz-tags">'+tg('teeth','🦷 Teeth 3× + floss',!!r.teeth)+tg('skinAM','🧴 Skin AM',!!r.skinAM)+tg('skinPM','🌙 Skin PM',!!r.skinPM)+tg('ill','🤧 Feeling ill',!!r.ill)+'</div>'+
     '<h3 class="dz-h3">🙂 Face puffiness <span class="dz-dim">1 sharp · 5 very puffy</span></h3><div class="dz-tags">'+pf+'</div>'+
     '<p class="dz-note">Runs come in from Strava when you say “sync”. Food goes in on the Food log (or send me the MyFitnessPal screenshots). <button type="button" class="dz-link" data-dzgo="glow" data-g="today">Open the food log →</button></p>',{id:'dzLog'});}
+/* Dan, 27 Nov: sleep is logged as "bed last night" and "woke up" times plus the phone tick, never as bare hours.
+   Hours = time in bed minus 15 min, rounded to 0.1 h (sleepFromTimes, with the clock-change shift), saved to the same
+   fields as the Log panel: bed, wake, clk, sleep, phoneOut. The day is the morning he woke up. */
+function dzLastTimes(t){var o={bed:null,wake:null};for(var i=1;i<10&&!(o.bed&&o.wake);i++){var x=S.days[addD(t,-i)]||{};if(!o.bed&&x.bed)o.bed=x.bed;if(!o.wake&&x.wake)o.wake=x.wake;}return o;}
+function dzSleepPreview(t,bed,wake,phone){var c=sleepFromTimes(bed,wake,clockShift(t));if(!c)return null;
+  var had=Object.prototype.hasOwnProperty.call(S.days,t),old=had?S.days[t]:undefined,tmp=Object.assign({},old||{},{bed:bed,wake:wake,sleep:c.h});
+  if(phone)tmp.phoneOut=true;else{delete tmp.phoneOut;delete tmp.noPhone;}
+  S.days[t]=tmp;var sc=null;try{sc=sleepScoreOn(t);}catch(e){}if(had)S.days[t]=old;else delete S.days[t];
+  return {h:c.h,inBed:c.inBed,score:sc};}
+function dzSleepCalcText(t,bed,wake,phone,guess){var P=dzSleepPreview(t,bed,wake,phone);
+  if(!P)return 'Put in when you went to bed and when you woke: the hours work themselves out.';
+  return '≈ <b>'+f1(P.h)+' h asleep</b> (in bed '+hm(P.inBed)+', minus 15 min to fall asleep)'+(P.score!==null?' · score <b>'+P.score+'</b>':'')+(guess?'<br><span class="dz-dim">Your last times are filled in: change them if tonight was different.</span>':'');}
+function dzSleepTile(t,r){var L=dzLastTimes(t),D=DZ.draft&&DZ.draft.t===t?DZ.draft:null,bed=D?D.bed:(r.bed||L.bed||''),wake=D?D.wake:(r.wake||L.wake||''),ph=!!(r.phoneOut||r.noPhone),set=!!(r.bed&&r.wake),sc=null;try{sc=sleepScoreOn(t);}catch(e){}
+  return '<div class="dz-log dz-sleep'+(set?' set':'')+'"><div class="dz-ll">😴 Sleep · last night</div>'+
+    '<div class="dz-lv2">'+(dzN(r.sleep)?f1(r.sleep)+'<small> h</small>'+(sc!==null?' <span class="dz-pill'+(sc>=85?' g':'')+'">score '+sc+'</span>':''):'<span class="dz-dim">—</span>')+'</div>'+
+    '<div class="dz-times"><label>Bed last night<input id="dzIn-bed" type="time" value="'+esc(bed)+'"></label><label>Woke up<input id="dzIn-wake" type="time" value="'+esc(wake)+'"></label></div>'+
+    '<button type="button" class="dz-tog'+(ph?' on':'')+'" data-dztg="phoneOut" aria-pressed="'+(ph?'true':'false')+'">'+(ph?'✓ ':'')+'📵 Phone out of bed</button>'+
+    '<div class="dz-ss" id="dzSleepCalc">'+dzSleepCalcText(t,bed,wake,ph,!set&&!D&&!!(bed&&wake))+'</div>'+
+    '<button type="button" class="dz-save" data-dzsave="sleeptimes">Save sleep</button></div>';}
 function dzFoodMini(t){var r=S.days[t]||{},g=r.glowSum||null,P=planNow(t),kT=dayTarget(t),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
   if(!g)return dzCard('🍽️ Today’s food','<div class="dz-empty">Nothing logged yet today. Your one-tap 2025 meals are on the food log.<br><button type="button" class="dz-btn" data-dzgo="glow" data-g="today">Log food</button></div>');
   var m=function(lbl,v,tg,u,col){return '<div class="dz-row"><div class="dz-rh"><span>'+lbl+'</span><span class="mono">'+ci(v)+(tg?' / '+ci(tg):'')+u+'</span></div>'+dzBar(tg?v/tg:0,col||dzCol(tg?v/tg:0),7)+'</div>';};
@@ -12732,7 +12761,7 @@ function dzBody(){var t=today(),from=WREF.from,n=Math.max(14,diffD(from,t)+1);
   var R=null;try{R=wRef(t);}catch(e){}
   var wk=R&&R.weeks?R.weeks.map(function(w,i,a){var p=i?a[i-1]:null,dl=p?w.avg-p.avg:null;return '<div class="dz-li"><span class="dz-lid">wk of '+fmtS(w.a)+'</span><span class="mono"><b>'+f1(w.avg)+'</b> lb'+(w.cur?' <span class="dz-dim">so far</span>':'')+'</span><span class="mono dz-dim">'+w.n+' weigh-in'+(w.n===1?'':'s')+(dl!==null?' · '+(dl<=-0.05?'<span class="dz-good">▼ '+f1(-dl)+'</span>':dl>=0.05?'▲ '+f1(dl):'level'):'')+'</span></div>';}).join(''):'';
   var a7=avgWindow(t,7),line=null;try{line=push2Line(t);}catch(e){}
-  var sl=dzSeries(14,function(d,r){return dzN(r.sleep)?r.sleep:null;}),rh=dzSeries(28,function(d,r){return dzN(r.rhr)?r.rhr:null;}),st=dzSeries(14,function(d,r){return dzN(r.steps)?r.steps:null;});
+  var sl=dzSeries(14,function(d,r){var q=null;try{q=sleepScoreOn(d);}catch(e){}return {v:dzN(r.sleep)?r.sleep:null,note:(r.bed?'bed '+r.bed:'')+(r.wake?' · up '+r.wake:'')+(r.phoneOut||r.noPhone?' · 📵':'')+(q!==null?' · score '+q:'')};}),rh=dzSeries(28,function(d,r){return dzN(r.rhr)?r.rhr:null;}),st=dzSeries(14,function(d,r){return dzN(r.steps)?r.steps:null;});
   var sv=sl.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),rv=rh.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),scs=[];for(var i=0;i<14;i++){var q=sleepScoreOn(addD(t,-i));if(q!==null)scs.push(q);}
   var base=null;try{base=rhrBase(t);}catch(e){}
   var pf=dzSeries(28,function(d,r){return dzN(r.puff)?r.puff:null;}),bfs=[],waists=[];
@@ -12751,12 +12780,22 @@ function dzBody(){var t=today(),from=WREF.from,n=Math.max(14,diffD(from,t)+1);
       (bfs.length?'<div class="dz-list">'+bfs.slice(-6).reverse().map(function(b){return '<div class="dz-li"><span class="dz-lid">'+fmtS(b.d)+'</span><span><b>~'+f1(b.v)+'%</b>'+(Array.isArray(b.rg)?' <span class="dz-dim">('+b.rg.join('–')+'%)</span>':'')+(b.nt?'<span class="dz-ss" style="display:block">'+esc(b.nt)+'</span>':'')+'</span><span></span></div>';}).join('')+'</div>':'')+
       '<p class="dz-note">Body fat is my visual estimate from the photos you send, give or take 3%. Light, pose and water move it, so read the trend over weeks. The photos stay on your phone.</p>')+'</div>'+
     '<div>'+dzCard('😴 Sleep · 14 nights','<div class="dz-stats">'+dzStat('Average',sv.length?f1(mean(sv))+'<small> h</small>':'—','aim '+pSleep())+dzStat('Sleep score',scs.length?Math.round(mean(scs))+'<small>/100</small>':'—','bedtime, hours, phone out')+dzStat('Nights '+PLANV.sleep.lo+'+ h',sv.filter(function(v){return v>=PLANV.sleep.lo;}).length+'<small> / '+sv.length+'</small>','')+'</div>'+
-      dzChart(sl,{bars:true,zero:5,label:'Sleep',fmt:function(v){return f1(v)+' h';},good:function(v){return v>=PLANV.sleep.lo;},ref:{v:PLANV.sleep.lo,label:PLANV.sleep.lo+' h'},tick:function(v){return f1(v);}}))+
+      dzChart(sl,{bars:true,zero:5,label:'Sleep',fmt:function(v){return f1(v)+' h';},good:function(v){return v>=PLANV.sleep.lo;},ref:{v:PLANV.sleep.lo,label:PLANV.sleep.lo+' h'},tick:function(v){return f1(v);}})+dzSleepHow())+
     dzCard('❤️ Resting HR · 4 weeks','<div class="dz-stats">'+dzStat('Last',rv.length?rv[rv.length-1]+'<small> bpm</small>':'—','on waking')+dzStat('Your usual',base!==null?Math.round(base)+'<small> bpm</small>':'—','28-day baseline')+dzStat('7-day average',rv.length?f1(mean(rv.slice(-7))):'—','mini camp aim about 50')+'</div>'+
       dzChart(rh,{label:'Resting HR',fmt:function(v){return Math.round(v)+' bpm';},ref:base!==null?{v:Math.round(base),label:'usual '+Math.round(base)}:null})+'<p class="dz-note">4+ above your usual means an easy day. A cold usually lifts it 2–4 bpm for a few days.</p>')+
     dzCard('👣 Steps · 14 days','<div class="dz-stats">'+dzStat('Average',(function(){var v=st.filter(function(p){return dzN(p.v);});return v.length?ci(mean(v.map(function(p){return p.v;}))):'—';})(),'a day')+dzStat('Plan',pSteps(),'a bonus, nothing extra')+'</div>'+
       dzChart(st,{bars:true,zero:0,label:'Steps',fmt:function(v){return ci(v)+' steps';},tick:function(v){return Math.round(v/1000)+'k';}})+'<p class="dz-note">Longevity benefits level off around 8–12k a day, so more is not better.</p>')+ /* plan-ok: Paluch 2022 evidence figure */
     (CX?dzCard('🧪 Cortisol · '+CX.score+' ('+esc(CX.band[0])+')',CX.parts.length?CX.parts.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p.why==='Ill'?'Ill (a cold or bug logged)':p.why)+'</span><span class="mono">+'+p.pts+'</span></div><div class="dz-ss">↓ '+esc(p.fix)+'</div></div>';}).join(''):'<p class="dz-p">Nothing adding to it right now. 🧘</p>'):'')+'</div></div>';}
+
+function dzSleepHow(){var o=DZ.open.sleephow;
+  return '<button type="button" class="dz-link" data-dzopen="sleephow" aria-expanded="'+(o?'true':'false')+'">'+(o?'Hide':'How your sleep score works')+' →</button>'+(o?'<div class="dz-how">'+
+    '<p class="dz-p"><b>Logging.</b> Put in when you went to bed last night and when you woke, and tick 📵 if the phone stayed out. Hours = time in bed minus 15 minutes (the time it takes to fall asleep), rounded to a tenth. When I log it for you, it goes into the same fields.</p>'+
+    '<p class="dz-p"><b>Hours, up to 60.</b> 8–9.5 h = 60 · over 9.5 h = 55 · 7 to 8 h = 40 up to 60 · under 7 h, 20 fewer for every hour short.</p>'+
+    '<p class="dz-p"><b>Bedtime, up to 20.</b> In bed by 23:30 = 20 · by 00:15 = 10 · later = 0 · not logged = 10.</p>'+
+    '<p class="dz-p"><b>Phone out of bed, 10.</b></p>'+
+    '<p class="dz-p"><b>Consistency, up to 10.</b> How steady your bedtimes and wake times were over the last 7 nights: within about 30 min = 10 · about an hour = 5 · wobblier = 0 · fewer than 3 nights logged = 5.</p>'+
+    '<p class="dz-p"><b>Where it shows.</b> Each night here and on Today, the 14-night average above and on the overview, the Week tab, and your longevity score. The camp’s sleep goal counts hours (nights of 8 h+), not the score.</p>'+
+    '<p class="dz-note">A simple model from the sleep research, not a medical measurement: it can’t see sleep quality, stages or waking in the night. Wake times count because a steady rhythm predicted mortality more strongly than hours did (Windred et al. 2024, Sleep).</p></div>':'');}
 
 /* ---------- Camp ---------- */
 function dzCampView(){var t=today(),L=dzCamps(),sel=DZ.campSel?L.filter(function(c){return c.id===DZ.campSel;})[0]:null,c=sel||dzCampNow(t),M=dzCampModel(c,t);
@@ -12843,7 +12882,7 @@ function wireDash(){var root=E('s-dash');if(!root||root.dataset.wired)return;roo
     if(ds.dzv){DZ.v=ds.dzv;try{localStorage.setItem(LS+'.dz',DZ.v);}catch(e){}renderDash(true);window.scrollTo(0,0);return;}
     if(ds.dzgo){tab(ds.dzgo,ds.g);return;}
     if(ds.dzopen){DZ.open[ds.dzopen]=!DZ.open[ds.dzopen];renderDash(true);return;}
-    if(ds.dzld!==undefined){DZ.ld=parseInt(ds.dzld,10)||0;renderDash(true);return;}
+    if(ds.dzld!==undefined){DZ.ld=parseInt(ds.dzld,10)||0;DZ.draft=null;renderDash(true);return;}
     if(ds.dzmicro){DZ.micro=ds.dzmicro;renderDash(true);return;}
     if(ds.dzwk){DZ.wk=Math.min(0,DZ.wk+parseInt(ds.dzwk,10));renderDash(true);return;}
     if(ds.dzcamp){DZ.campSel=ds.dzcamp;DZ.arm=null;renderDash(true);return;}
@@ -12852,6 +12891,10 @@ function wireDash(){var root=E('s-dash');if(!root||root.dataset.wired)return;roo
       Array.prototype.forEach.call(root.querySelectorAll('[data-dztip].sel'),function(x){x.classList.remove('sel');});b.classList.add('sel');return;}
     if(ds.dzstep){var inp=E('dzIn-'+ds.dzstep);if(!inp)return;var cur=parseFloat(inp.value),st=parseFloat(ds.d),F=DZ_FIELD[ds.dzstep];if(!isFinite(cur))cur=ds.dzstep==='weight'?127:ds.dzstep==='sleep'?8:ds.dzstep==='rhr'?50:0;
       var nv=Math.round((cur+st)*100)/100;if(F)nv=Math.max(F[0],Math.min(F[1],nv));inp.value=nv;return;}
+    if(ds.dzsave==='sleeptimes'){var bd=(E('dzIn-bed')||{}).value||'',wk=(E('dzIn-wake')||{}).value||'',sh=clockShift(t),c=sleepFromTimes(bd,wk,sh);
+      if(!c){dzToast('Sleep: put in a bed time and a wake time');return;}
+      S.days[t]=S.days[t]||{};r=S.days[t];r.bed=bd;r.wake=wk;r.sleep=c.h;if(sh)r.clk=sh;else delete r.clk;DZ.draft=null;
+      dzCommit('Sleep saved: '+f1(c.h)+' h');return;}
     if(ds.dzsave){var k=ds.dzsave,F2=DZ_FIELD[k],el=E('dzIn-'+k),v=el?parseFloat(el.value):NaN;
       if(!isFinite(v)||v<F2[0]||v>F2[1]){dzToast(F2[2]+': enter a number between '+F2[0]+' and '+F2[1]);return;}
       if(k==='weight'){S.weights[t]=Math.round(v*10)/10;}
@@ -12878,6 +12921,9 @@ function wireDash(){var root=E('s-dash');if(!root||root.dataset.wired)return;roo
   });
   root.addEventListener('change',function(ev){var inp=ev.target;if(!inp||!inp.dataset||!inp.dataset.dzsets)return;DZ.xp0=dzXP();var t=dzT(),v=parseInt(inp.value,10);S.days[t]=S.days[t]||{};var r=S.days[t];r.sets=r.sets||{};
     if(isFinite(v)&&v>0)r.sets[inp.dataset.dzsets]=Math.min(40,v);else delete r.sets[inp.dataset.dzsets];if(!Object.keys(r.sets).length)delete r.sets;inp.blur();dzCommit(inp.dataset.dzsets+' sets saved');});
+  root.addEventListener('input',function(ev){var id=ev.target&&ev.target.id;if(id!=='dzIn-bed'&&id!=='dzIn-wake')return;var t=dzT(),r=S.days[t]||{},el=E('dzSleepCalc');
+    DZ.draft={t:t,bed:(E('dzIn-bed')||{}).value||'',wake:(E('dzIn-wake')||{}).value||''};
+    if(el)el.innerHTML=dzSleepCalcText(t,DZ.draft.bed,DZ.draft.wake,!!(r.phoneOut||r.noPhone),false);});
   root.addEventListener('keydown',function(ev){if(ev.key!=='Enter')return;var inp=ev.target;if(!inp||!inp.id||inp.id.indexOf('dzIn-')!==0)return;ev.preventDefault();var b=root.querySelector('[data-dzsave="'+inp.id.slice(5)+'"]');if(b)b.click();});
   /* charts: hover or tap any day for its value */
   var show=function(ev){var h=ev.target.closest&&ev.target.closest('.dz-hit');if(!h)return;var wrap=h.closest('.dz-chart'),tt=wrap&&wrap.querySelector('.dz-tt'),cx=wrap&&wrap.querySelector('.dz-cx'),svg=wrap&&wrap.querySelector('svg');if(!tt||!svg)return;

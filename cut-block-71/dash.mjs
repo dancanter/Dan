@@ -48,9 +48,19 @@ for (const [label, vp] of [['phone', { width: 390, height: 844 }], ['laptop', { 
   await p.evaluate(() => document.querySelector('#dzNav [data-dzv="today"]').click()); await p.waitForTimeout(200);
   const big = await p.$$eval('.dz-big', (x) => x.map((e) => e.innerText.replace(/\s+/g, ' ')));
   ok('the three big numbers: longevity, health age, cortisol', big.length === 3 && /Longevity/.test(big[0]) && /Health age/.test(big[1]) && /Cortisol/.test(big[2]), big.join(' | '));
-  await p.click('[data-dzstep="sleep"][data-d="0.25"]'); await p.fill('#dzIn-sleep', '7.75'); await p.click('[data-dzstep="sleep"][data-d="0.25"]'); await p.click('[data-dzsave="sleep"]'); await p.waitForTimeout(250);
-  let S = await st(); ok('sleep: stepper and Save', S.days[TODAY] && S.days[TODAY].sleep === 8, JSON.stringify(S.days[TODAY]));
-  ok('the toast names the XP gained', /Sleep saved · \+\d+ XP/.test(await p.textContent('#dzToast')), await p.textContent('#dzToast'));
+  // sleep is logged as bed and wake times plus the phone tick (Dan, 27 Nov), never as bare hours
+  ok('sleep has no bare-hours box', !(await p.$('#dzIn-sleep')) && !!(await p.$('#dzIn-bed')) && !!(await p.$('#dzIn-wake')));
+  await p.fill('#dzIn-bed', '23:15'); await p.fill('#dzIn-wake', '07:45'); await p.waitForTimeout(100);
+  ok('sleep: the hours work themselves out as you type (in bed minus 15 min)', /8\.3 h asleep/.test(await p.textContent('#dzSleepCalc')), await p.textContent('#dzSleepCalc'));
+  await p.click('.dz-sleep [data-dztg="phoneOut"]'); await p.waitForTimeout(200);
+  ok('sleep: ticking the phone keeps the times you typed', (await p.inputValue('#dzIn-bed')) === '23:15' && (await p.inputValue('#dzIn-wake')) === '07:45');
+  await p.click('[data-dzsave="sleeptimes"]'); await p.waitForTimeout(250);
+  let S = await st(); const sd = S.days[TODAY] || {};
+  ok('sleep: saves bed, wake, hours and phone-out to the Log panel’s fields', sd.bed === '23:15' && sd.wake === '07:45' && sd.sleep === 8.3 && sd.phoneOut === true, JSON.stringify(sd));
+  ok('sleep score: 8.3 h, in bed 23:15, phone out, steady bed and wake times = 100', await p.evaluate((d) => sleepScoreOn(d) === 100, TODAY));
+  ok('sleep score: 6.5 h, in bed at midnight, phone in bed, steady = 45 to 50', await p.evaluate(() => { const d = '2026-11-24', o = S.days[d]; S.days[d] = Object.assign({}, o, { sleep: 6.5, bed: '00:00', wake: '06:45' }); delete S.days[d].phoneOut; const v = sleepScoreOn(d); S.days[d] = o; return v >= 45 && v <= 50; }));
+  ok('sleep score: consistency reads wake times too', await p.evaluate(() => { const d = '2026-11-20', keep = {}; for (let i = 0; i < 7; i++) { const k = addD(d, -i); keep[k] = S.days[k]; S.days[k] = Object.assign({}, keep[k], { wake: i % 2 ? '04:30' : '10:30' }); } const v = sleepScoreOn(d); for (const k in keep) S.days[k] = keep[k]; return v === sleepScoreOn(d) - 10; }));
+  ok('the toast names the XP gained', /Sleep saved: 8\.3 h · \+\d+ XP/.test(await p.textContent('#dzToast')), await p.textContent('#dzToast'));
   await p.click('.dz-quests [data-dztg="teeth"]'); await p.waitForTimeout(200); S = await st(); ok('teeth ticks from the day list', S.days[TODAY].teeth === true);
   await p.click('[data-dzgym="back"]'); await p.waitForTimeout(200); S = await st(); ok('gym: one tap logs the split', S.days[TODAY].gym === true && S.days[TODAY].split === 'back');
   await p.fill('[data-dzsets="Back"]', '13'); await p.dispatchEvent('[data-dzsets="Back"]', 'change'); await p.waitForTimeout(200); S = await st(); ok('gym: sets save', S.days[TODAY].sets && S.days[TODAY].sets.Back === 13);
