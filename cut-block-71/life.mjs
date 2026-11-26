@@ -2,7 +2,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 const b = await chromium.launch();
 const errs = [], fails = [];
 const ok = (n, c, x) => { if (!c) fails.push(n + (x ? ' — ' + x : '')); else console.log('ok  ' + n); };
-const FILE = 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html';
+const FILE = process.env.TEST_FILE || 'file:///tmp/claude-0/-home-user-Dan/138b4124-109c-57a3-bc88-3111022a89e3/scratchpad/cb71.test.html'; // set TEST_FILE to this session's mktest.py output
 const LS = 'cutblock71.v1';
 const st = (o = {}) => Object.assign({ weights: {}, days: {}, bests: {}, settings: { hideDaily: false, fiveK: 1085, fiveKManual: false }, updatedAt: Date.now() }, o);
 const sq = s => s.replace(/\s+/g, ' ');

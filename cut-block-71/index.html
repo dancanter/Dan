@@ -286,7 +286,7 @@ input[type="text"],input[type="number"],input[type="date"],select,textarea{borde
 .cc-phase div.on{background:var(--navy);color:#f6f1e7;border-color:var(--navy)}
 
 
-#bnav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom)}
+#bnav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(6,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom)}
 #bnav button{background:none;border:0;padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 11px ui-sans-serif,-apple-system,sans-serif;color:var(--ink-3);cursor:pointer}
 #bnav button span{font-size:19px;line-height:1;filter:grayscale(.6);opacity:.75}
 #bnav button.on{color:var(--gold)}#bnav button.on span{filter:none;opacity:1}
@@ -332,6 +332,205 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 .bossbar>i{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,var(--bad),var(--warn) 55%,var(--good));transition:width .6s cubic-bezier(.2,.7,.2,1)}
 .bossbar>u{position:absolute;top:0;bottom:0;width:2px;background:var(--gold)}
 @media (prefers-reduced-motion:reduce){.bossbar>i{transition:none}}
+/* ===== The dashboard (27 Nov). Layout: a sticky view switcher, then one or two columns of cards; every colour from the app's tokens ===== */
+#s-dash{gap:12px}
+.dz-nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:4px 2px;margin:0 -2px}
+.dz-nav::-webkit-scrollbar{display:none}
+.dz-nav button{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);font:600 13px "Inter",sans-serif;cursor:pointer}
+.dz-nav button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.dz-nav .dz-full{margin-left:auto;background:transparent;border-style:dashed}
+.dz-nav button:focus-visible,#s-dash button:focus-visible,#s-dash input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#dzBody{display:flex;flex-direction:column;gap:12px;min-width:0}
+.dz-cols{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+.dz-cols>div{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (min-width:900px){.dz-cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.dz-card{background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:14px 14px 12px;min-width:0;box-shadow:var(--shadow)}
+.dz-card.dz-sub{background:var(--panel-2);box-shadow:none}
+.dz-ch{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.dz-ch h2{font:400 21px/1.2 "Instrument Serif",Georgia,serif;letter-spacing:.005em;margin:0}
+.dz-aside{font-size:12px}
+.dz-h3{font:600 12px "Inter",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:12px 0 6px}
+.dz-p{margin:6px 0;line-height:1.5}
+.dz-note{margin:8px 0 0;font-size:12px;color:var(--ink-3);line-height:1.45}
+.dz-dim{color:var(--ink-3)}
+.dz-good{color:var(--good)}
+.dz-ss{font-size:12.5px;color:var(--ink-2);line-height:1.45;margin-top:2px}
+.dz-k{font:600 11px "Inter",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.dz-empty{padding:14px;border:1px dashed var(--rule-2);border-radius:12px;color:var(--ink-3);font-size:13px;text-align:center;line-height:1.5}
+.dz-pill{display:inline-block;padding:2px 9px;border-radius:999px;font:600 11px "Inter",sans-serif;background:var(--panel-3);color:var(--ink-2)}
+.dz-pill.g{background:var(--good-soft);color:var(--good)}
+.dz-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--rule);font-size:12.5px;color:var(--ink)}
+.dz-chip.on{border-color:var(--gold);color:var(--gold)}
+.dz-tag{font:600 10px "Inter",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.dz-imp{display:inline-block;padding:1px 7px;border-radius:999px;font:600 10px "Inter",sans-serif;letter-spacing:.04em;text-transform:uppercase;vertical-align:1px}
+.dz-imp.big{background:var(--good-soft);color:var(--good)}.dz-imp.medium{background:var(--accent-soft);color:var(--accent)}.dz-imp.small{background:var(--panel-3);color:var(--ink-2)}
+.dz-link{background:none;border:0;padding:0;color:var(--accent);font:600 13px "Inter",sans-serif;cursor:pointer;text-align:left}
+.dz-btn{background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:8px 16px;font:600 13px "Inter",sans-serif;cursor:pointer;margin-top:8px}
+.dz-bar{background:var(--rule-2);border-radius:99px;overflow:hidden;margin-top:4px}
+.dz-bar i{display:block;height:100%;border-radius:99px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.dz-row{margin:9px 0}
+.dz-rh{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-width:0}
+.dz-rh>span:first-child{min-width:0}
+.dz-two{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 20px}
+@media (min-width:640px){.dz-two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+/* hero */
+.dz-hero{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:6px 2px 2px}
+.dz-hi{min-width:0;flex:1 1 260px}
+.dz-h1{font:400 clamp(30px,6vw,44px)/1.05 "Instrument Serif",Georgia,serif;margin:4px 0 2px}
+.dz-clock{font-size:13px;color:var(--ink-2)}
+.dz-lv{display:flex;gap:10px;align-items:center;flex:0 1 300px;min-width:220px;text-align:left;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:10px 12px;color:var(--ink);cursor:pointer}
+.dz-lve{font-size:28px;line-height:1}
+.dz-lvt{flex:1;min-width:0}.dz-lvt b{display:block;font-size:14px}.dz-lvt small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.dz-ladder{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* the three big numbers */
+.dz-big3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dz-big{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:16px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);cursor:pointer;min-width:0;box-shadow:var(--shadow)}
+.dz-big svg{max-width:100%;height:auto}
+.dz-big[aria-expanded="true"]{border-color:var(--accent)}
+.dz-bl{font-weight:600;font-size:13px;margin-top:2px}
+.dz-bs{font-size:11.5px;color:var(--ink-3);text-align:center;line-height:1.3}
+.dz-ringv{fill:var(--ink);font:600 22px "JetBrains Mono",monospace}
+.dz-rings{fill:var(--ink-3);font:500 10px "Inter",sans-serif}
+.dz-arc{transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)}
+@media (max-width:420px){.dz-big3{gap:6px}.dz-ringv{font-size:19px}.dz-bl{font-size:12px}}
+/* today's call */
+.dz-call{border-color:color-mix(in srgb,var(--call) 45%,var(--rule));background:linear-gradient(160deg,color-mix(in srgb,var(--call) 9%,var(--panel)) 0%,var(--panel) 60%)}
+.dz-callh{display:flex;gap:12px;align-items:center}
+.dz-callh h2{font:400 22px/1.2 "Instrument Serif",Georgia,serif;margin:2px 0 0}
+.dz-dot{flex:0 0 14px;height:14px;border-radius:50%;background:var(--call);box-shadow:0 0 0 5px color-mix(in srgb,var(--call) 18%,transparent)}
+.dz-calls{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:10px 0 6px}
+@media (min-width:760px){.dz-calls{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.dz-cl{background:var(--panel-2);border:1px solid var(--rule);border-radius:12px;padding:10px;font-size:13px;line-height:1.45;min-width:0}
+.dz-cl>b{display:block;margin-bottom:3px}
+.dz-carb{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:600;margin-bottom:3px;background:var(--panel-3)}
+.dz-carb.hi{background:var(--gold-soft);color:var(--gold)}.dz-carb.lo{background:var(--accent-soft);color:var(--accent)}
+/* streaks */
+.dz-streaks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.dz-streak{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:9px 6px;text-align:center;min-width:0}
+.dz-streak span{font-size:18px}.dz-streak b{display:block;font:600 22px "JetBrains Mono",monospace;line-height:1.1}.dz-streak small{display:block;font-size:10.5px;color:var(--ink-3);line-height:1.25}
+.dz-streak.hot{border-color:var(--gold);background:linear-gradient(180deg,var(--gold-soft),var(--panel))}
+@media (max-width:560px){.dz-streaks{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* quests */
+.dz-quests{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.dz-q{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);text-align:left;font:inherit;width:100%}
+button.dz-q{cursor:pointer}
+.dz-qk{flex:0 0 22px;height:22px;border-radius:50%;border:2px solid var(--rule-2);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--on-accent)}
+.dz-q.on .dz-qk{background:var(--good);border-color:var(--good);animation:dzPop .35s ease}
+.dz-q.on{border-color:color-mix(in srgb,var(--good) 40%,var(--rule))}
+.dz-qe{font-size:18px}.dz-qt{min-width:0}.dz-qt b{display:block;font-size:13.5px}.dz-qt small{display:block;font-size:12px;color:var(--ink-3)}
+@keyframes dzPop{0%{transform:scale(.6)}70%{transform:scale(1.15)}100%{transform:none}}
+/* pointers and lists */
+.dz-pt{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--rule-2)}
+.dz-pt:first-of-type{border-top:0}
+.dz-pte{flex:0 0 28px;height:28px;border-radius:9px;background:var(--panel-2);display:grid;place-items:center;font-size:15px;font-weight:700}
+.dz-ptt{line-height:1.4}
+.dz-list{display:flex;flex-direction:column}
+.dz-li{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:8px;padding:7px 0;border-top:1px solid var(--rule-2);font-size:13px;align-items:baseline}
+.dz-li:first-child{border-top:0}
+.dz-lid{color:var(--ink-3);font-size:12px}
+@media (max-width:480px){.dz-li{grid-template-columns:54px minmax(0,1fr)}.dz-li>span:last-child{grid-column:2}}
+/* quick log */
+.dz-seg{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.dz-seg button{padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink-2);font:600 12.5px "Inter",sans-serif;cursor:pointer}
+.dz-seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dz-seg button:disabled{opacity:.35;cursor:default}
+.dz-logs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.dz-log{background:var(--panel-2);border:1px solid var(--rule);border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dz-log.set{border-color:color-mix(in srgb,var(--good) 35%,var(--rule))}
+.dz-ll{font-size:12px;color:var(--ink-2);font-weight:600}
+.dz-lv2{font:600 20px "JetBrains Mono",monospace;line-height:1.1}.dz-lv2 small{font-size:11px;color:var(--ink-3);font-family:"Inter",sans-serif}
+.dz-step{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:4px}
+.dz-step button{height:34px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:18px;cursor:pointer;line-height:1}
+.dz-step input,.dz-inline input,.dz-set input,.dz-form input{height:34px;min-width:0;width:100%;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 8px;font:500 14px "JetBrains Mono",monospace;text-align:center}
+.dz-step input::-webkit-inner-spin-button,.dz-step input::-webkit-outer-spin-button,.dz-set input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dz-step input,.dz-set input{-moz-appearance:textfield;appearance:textfield;padding:0 4px}
+.dz-refl{fill:var(--gold)}
+.dz-save{height:32px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);font:600 12.5px "Inter",sans-serif;cursor:pointer}
+.dz-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dz-tog{padding:7px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);font:500 13px "Inter",sans-serif;cursor:pointer}
+.dz-tog.on{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:600}
+.dz-tog.arm{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.dz-tog.sq{min-width:40px;text-align:center}
+.dz-sets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.dz-set{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2);width:110px}
+.dz-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 4px;font-size:12.5px;color:var(--ink-2)}
+.dz-inline input{width:110px}.dz-inline .dz-save{padding:0 14px}
+/* stats */
+.dz-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:6px}
+.dz-stat{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:12px;padding:9px 10px;min-width:0}
+.dz-sl{font-size:11.5px;color:var(--ink-3);font-weight:600}
+.dz-sv{font:600 20px/1.2 "JetBrains Mono",monospace;margin-top:2px;overflow-wrap:anywhere}.dz-sv small{font:500 11px "Inter",sans-serif;color:var(--ink-3)}
+/* charts */
+.dz-chart{position:relative;margin:4px 0 2px}
+.dz-chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.dz-grid{stroke:var(--rule-2);stroke-width:1}
+.dz-ax{fill:var(--ink-3);font:500 9.5px "Inter",sans-serif}
+.dz-band{fill:var(--good);opacity:.12}
+.dz-ref{stroke:var(--gold);stroke-width:1.2;stroke-dasharray:3 4}
+.dz-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dz-area{fill:var(--accent);opacity:.1}
+.dz-end{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.dz-dot2{fill:var(--ink-3);stroke:var(--panel);stroke-width:1}
+.dz-barf{fill:var(--accent)}.dz-barm{fill:var(--ink-3);opacity:.55}
+.dz-cx{stroke:var(--ink-2);stroke-width:1;stroke-dasharray:2 3}
+.dz-hit{fill:transparent;cursor:crosshair}
+.dz-tt{position:absolute;top:-6px;transform:translate(-50%,-100%);background:var(--ink);color:var(--bg);font:500 12px "Inter",sans-serif;padding:5px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:5;box-shadow:var(--shadow)}
+.dz-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink-2);margin:2px 0 6px}
+.dz-legend span{display:inline-flex;align-items:center;gap:5px}
+.dz-lg{display:inline-block}.dz-lg.line{width:16px;height:2px;background:var(--accent)}.dz-lg.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3)}.dz-lg.band{width:14px;height:9px;background:var(--good);opacity:.25}
+/* micronutrients */
+.dz-micros{display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
+@media (min-width:1100px){.dz-micros{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 16px}}
+.dz-micro{display:block;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:6px 6px;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.dz-micro:hover,.dz-micro.open{background:var(--panel-2)}
+.dz-micro .dz-ss{display:block;margin-top:6px}
+/* training */
+.dz-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dz-day{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:10px;padding:7px 2px;text-align:center;min-width:0;font-size:12px}
+.dz-day b{display:block;font-size:10.5px;color:var(--ink-3)}.dz-day span{display:block;font-size:15px;min-height:22px;line-height:22px;overflow:hidden}.dz-day small{display:block;font-size:10px;color:var(--ink-3);min-height:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dz-day.now{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.dz-day.fut{opacity:.6}
+.dz-slots{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+@media (min-width:640px){.dz-slots{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.dz-slot{background:var(--panel-2);border:1px solid var(--rule);border-radius:12px;padding:10px;min-width:0}
+.dz-slot.on{border-color:color-mix(in srgb,var(--good) 45%,var(--rule))}
+.dz-test{padding:9px 0;border-top:1px solid var(--rule-2)}.dz-test:first-child{border-top:0}
+.dz-tl{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.dz-legacy .p{border-radius:16px}
+/* camp */
+.dz-camph{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dz-cnt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dz-count{font:600 52px/1 "JetBrains Mono",monospace}
+.dz-cnt span{font-size:13px;color:var(--ink-2)}
+.dz-cscore{display:flex;flex-direction:column;align-items:center;gap:2px}.dz-cscore small{font-size:11.5px;color:var(--ink-3)}
+.dz-campcard{background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 8%,var(--panel)) 0%,var(--panel) 55%)}
+.dz-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dz-cd{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:10px;padding:6px 2px;text-align:center;color:var(--ink);cursor:pointer;min-width:0;font:inherit}
+.dz-cd b{display:block;font-size:10px;color:var(--ink-3);font-weight:600;white-space:nowrap;overflow:hidden}.dz-cd span{display:block;font-size:14px;min-height:20px}
+.dz-cd.now{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.dz-cd.fut{opacity:.7}.dz-cd.test{border-color:var(--gold)}.dz-cd.sel{background:var(--accent-soft)}
+.dz-readout{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12.5px;color:var(--ink-3);min-height:34px}
+.dz-readout.on{color:var(--ink)}
+.dz-tl2{display:flex;flex-direction:column;gap:2px;position:relative}
+.dz-tli{display:flex;gap:10px;padding:8px;border-radius:12px;align-items:flex-start}
+.dz-tli.on{background:var(--accent-soft)}.dz-tli.past{opacity:.55}
+.dz-tle{flex:0 0 30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);font-size:15px}
+.dz-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:8px}
+.dz-form label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2)}
+.dz-form input{text-align:left;font-family:"Inter",sans-serif}
+/* week */
+.dz-heat{display:grid;gap:4px;margin-top:10px;overflow-x:auto}
+.dz-hh{font-size:11px;color:var(--ink-3);text-align:center;font-weight:600}.dz-hh small{display:block;font-weight:400}
+.dz-hl{font-size:12px;color:var(--ink-2);align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz-hc{height:34px;border-radius:8px;border:1px solid var(--rule-2);background:var(--panel-2);color:var(--ink-3);font:600 12px "JetBrains Mono",monospace;display:grid;place-items:center;cursor:pointer;min-width:0;padding:0}
+.dz-hc.g{background:var(--good-soft);color:var(--good);border-color:transparent}.dz-hc.a{background:var(--accent-soft);color:var(--accent);border-color:transparent}.dz-hc.w{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.dz-hc.day{cursor:default;font-size:13px}.dz-hc.sel{outline:2px solid var(--ink);outline-offset:1px}
+.dz-cmp{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr));gap:6px 8px;font-size:13px;align-items:baseline}
+.dz-cmp .dz-hh{text-align:left}
+/* toast */
+#dzToast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font:600 13.5px "Inter",sans-serif;box-shadow:0 10px 30px -10px rgb(0 0 0 / .5);max-width:calc(100vw - 32px);text-align:center}
+#dzToast.go{animation:dzToast .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes dzToast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (min-width:1100px){#dzToast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
+@media (prefers-reduced-motion:reduce){.dz-bar i,.dz-arc{transition:none}.dz-q.on .dz-qk,#dzToast.go{animation:none}}
 </style>
 <header class="top">
   <div class="topin">
@@ -344,7 +543,8 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
     </div>
   </div>
   <nav class="secs" id="secs" aria-label="Sections">
-    <button type="button" data-sec="over" aria-selected="true"><span>☀️</span>Overview</button>
+    <button type="button" data-sec="dash" aria-selected="true"><span>🎛️</span>Dashboard</button>
+    <button type="button" data-sec="over" aria-selected="false"><span>☀️</span>Overview</button>
     <button type="button" data-sec="run"><span>🏃</span>Running</button>
     <button type="button" data-sec="phys"><span>💪</span>Physique</button>
     <button type="button" data-sec="food"><span>🍽️</span>Nutrition</button>
@@ -354,7 +554,8 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
     <button type="button" data-sec="goals"><span>🏆</span>Goals & PBs</button>
   </nav>
   <nav class="tabs" id="tabs" role="tablist">
-    <button role="tab" data-t="today" data-sec="over" aria-selected="true">Today</button>
+    <button role="tab" data-t="dash" data-sec="dash" aria-selected="true">Dashboard</button>
+    <button role="tab" data-t="today" data-sec="over" aria-selected="false">Today</button>
     <button role="tab" data-t="review" data-sec="over" aria-selected="false">Review · week & month</button>
     <button role="tab" data-t="feedback" data-sec="over" aria-selected="false">Coach</button>
     <button role="tab" data-t="data" data-sec="over" aria-selected="false">Data & backup</button>
@@ -383,7 +584,8 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
   </nav>
 </header>
 <nav id="bnav" aria-label="Main sections">
-  <button type="button" data-t="today" class="on"><span>☀️</span>Overview</button>
+  <button type="button" data-t="dash" class="on"><span>🎛️</span>Dashboard</button>
+  <button type="button" data-t="today"><span>☀️</span>Overview</button>
   <button type="button" data-t="camp"><span>🏃</span>Running</button>
   <button type="button" data-t="phys"><span>💪</span>Physique</button>
   <button type="button" data-t="nutri"><span>🍽️</span>Food</button>
@@ -391,6 +593,13 @@ nav.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:va
 </nav>
 
 <main>
+
+<!-- ================= DASHBOARD (27 Nov) ================= -->
+<section id="s-dash" class="stack" hidden>
+  <nav class="dz-nav" id="dzNav" role="tablist" aria-label="Dashboard views"></nav>
+  <div id="dzBody"><div class="dz-empty">Loading your dashboard…</div></div>
+</section>
+<div id="dzToast" role="status" aria-live="polite" hidden></div>
 
 <!-- ================= TODAY ================= -->
 <section id="s-today" class="stack">
@@ -1681,6 +1890,11 @@ function mergeByDate(older,newer){
     var bpd={};out.glow.bp.forEach(function(b){if(b&&b.date)bpd[b.date]=1;});
     older.glow.bp.forEach(function(b){if(b&&b.date&&!bpd[b.date]){out.glow.bp.push(clone(b));added++;}});
     out.glow.bp.sort(function(a,b){return a.date<b.date?-1:1;});}
+  /* Dan, 27 Nov: camps he plans on the dashboard merge by id; a deleted one stays deleted on both sides. */
+  if(Array.isArray(older.camps)||Array.isArray(older.campsGone)){var cg=(out.campsGone||[]).concat(older.campsGone||[]).filter(function(x,i,a){return a.indexOf(x)===i;});
+    var cs=Array.isArray(out.camps)?out.camps.slice():[],cid={};cs.forEach(function(c){if(c&&c.id)cid[c.id]=1;});
+    (older.camps||[]).forEach(function(c){if(c&&c.id&&!cid[c.id]){cs.push(clone(c));added++;}});
+    out.camps=cs.filter(function(c){return c&&cg.indexOf(c.id)<0;});out.campsGone=cg.slice(-100);}
   /* Dan, 12 Nov: his own one-tap meals merge by id; a removed one stays removed on both sides. */
   if(older.glow&&(Array.isArray(older.glow.myMeals)||Array.isArray(older.glow.hiddenMeals))){if(!out.glow)out.glow={};
     var hid=(out.glow.hiddenMeals||[]).concat(older.glow.hiddenMeals||[]).filter(function(x,i,a){return a.indexOf(x)===i;});
@@ -6690,6 +6904,7 @@ function render(){
   renderReview();
   renderGoodLife();
   renderData(w,tr,c);
+  renderDash();
   paintStatus();
 }
 /* One banner, at the top, for the three calls Dan actually wants interrupting
@@ -11920,9 +12135,10 @@ function startGlow(){
 function tab(name,sub){
   CUR=name;
   if(name==='glow'){GLOW_SUB=sub||GLOW_SUB;startGlow();}
-  ['today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data','longev','nutri','calm','phys'].forEach(function(k){
+  ['dash','today','glow','camp','feedback','weight','food','training','times','sleep','study','mind','reverse','wins','review','model','life','skin','data','longev','nutri','calm','phys'].forEach(function(k){
     E('s-'+k).hidden=(k!==name);
   });
+  if(name==='dash')renderDash(true);
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button,#bnav button'),function(b){
     var on=b.dataset.t===name&&(name!=='glow'||!b.dataset.g||b.dataset.g===GLOW_SUB);
     if(b.closest('#bnav'))b.classList.toggle('on',on);else b.setAttribute('aria-selected',on?'true':'false');
@@ -12188,6 +12404,490 @@ function wire(){
   });
 }
 
+/* ===================== THE DASHBOARD (Dan, 27 Nov) =====================
+   "Make the full data dashboard: simple, effective, interactive, extremely detailed, fun, everything in there."
+   HANDOFF.md section 4. Dashboard-first: it opens the app. Six views (Today, Food, Training, Body, Camp, Week),
+   every number read from his own logs through the same engine the rest of the app uses (planNow, dayTarget,
+   longevityScores, cortisolScore, GLOW.nutri, prog25Week, wRef, dayScores), so no screen can disagree.
+   Tap-to-log with steppers (no keyboard needed), streaks, XP and levels, a what-to-do-today card, a carb-day
+   tag, camps as objects (the mini camp built in, his own next camps saved in S.camps), and a week review.
+   Rules kept: never "behind" (on pace / room to grow), never push run counts or steps, never under the base
+   calories, no gram limits on any food, none of his excluded foods, no cutting salt or water. */
+var DZ={v:'today',wk:0,micro:'week',open:{},ld:0,arm:null,campSel:null,form:false};
+try{var dzv0=localStorage.getItem(LS+'.dz');if(dzv0)DZ.v=dzv0;}catch(e){}
+var DZ_VIEWS=[['today','☀️','Today'],['food','🥗','Food'],['train','🏃','Training'],['body','🧍','Body'],['camp','🎄','Camp'],['week','📅','Week']];
+/* carb cycling like 2025, agreed for the mini camp (Dan, 27 Nov): same calories, protein steady */
+var DZ_CARB={hi:[200,215],lo:[150,160]}; /* plan-ok: Dan's 2025 carb days, grams of carbs */
+/* Dan, 26 Nov: 10-13 hard sets per muscle a week across the 4 sessions (the big muscles; arms keep their own ranges) */
+var DZ_SETS={Chest:[10,13],Back:[10,13],Shoulders:[10,13],Legs:[10,13]}; /* plan-ok: Dan's set range */
+var DZ_TESTS=[{d:'2026-12-13',dm:5000,n:'5 km test'},{d:'2026-12-20',dm:1609,n:'Mile test'},{d:'2026-12-23',dm:400,n:'400 m test'}];
+var DZ_CAMPS=[{id:'mini-dec-2026',e:'🎄',name:'Mini camp',from:XCAMP.from,to:XCAMP.to,builtin:true,
+  goals:{gym:XCAMP.gym,hard:XCAMP.hard,studyH:XCAMP.studyH,sleepN:15,fishWk:PLANV.fish[0],rhr:50,wLo:XCAMP.wLo,wHi:XCAMP.wHi}, /* plan-ok: Dan's mini camp goals, 26 Nov */
+  tests:DZ_TESTS,note:'Home from France late on the 6th. The last workout is the 400 m test on the 23rd, then about 4 days of full rest.'}];
+function dzN(v){return typeof v==='number'&&isFinite(v);}
+function dzT(){return addD(today(),DZ.ld);}
+function dzHard(r){return (r&&r.runs||[]).some(function(x){var m=runMeta(x);return !m.empty&&m.hard&&!m.sprint;});}
+function dzRuns(r){return (r&&r.runs||[]).filter(function(x){return !runMeta(x).empty;});}
+function dzSum(r){return r&&r.glowSum&&r.glowSum.n>=3?r.glowSum:null;}
+function dzFish(r){var g=dzSum(r);return !!(g&&(g.omega3||0)>=1);}
+function dzIll(t){t=t||today();for(var i=0;i<3;i++){var x=(S.days[addD(t,-i)]||{}).ill;if(x)return {d:addD(t,-i),k:x.kind||'ill',sev:x.severity||1,ago:i};}return null;}
+function dzHour(){return new Date().getHours();}
+function dzPct(a,b){return b?Math.max(0,Math.min(1,a/b)):0;}
+function dzStudyWeek(t){var ws=mondayOf(t),h=0;for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var v=(S.days[d]||{}).study;if(dzN(v))h+=v;}return h;}
+function dzGymWeek(t){var ws=mondayOf(t),n=0,sp=[];for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;var r=S.days[d]||{};if(r.gym){n++;if(r.split)sp.push(r.split);}}return {n:n,sp:sp};}
+function dzHardWeek(t){var ws=mondayOf(t),n=0;for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;(S.days[d]&&S.days[d].runs||[]).forEach(function(q){var m=runMeta(q);if(!m.empty&&m.hard&&!m.sprint)n++;});}return n;}
+function dzFishWeek(t){var ws=mondayOf(t),n=0;for(var i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;if(dzFish(S.days[d]))n++;}return n;}
+
+/* ---------- XP and levels: points for the habits that matter, never for more steps or more runs ---------- */
+var DZ_LV=[[0,'🌱','Fresh start'],[300,'🥉','Rookie'],[800,'🏃','Club runner'],[1500,'🔥','Contender'],[2500,'⚡','Athlete'],[4000,'💪','Sculpted'],[6000,'💎','Elite'],[8500,'👑','Model tier'],[12000,'🏆','Legend']];
+function dzXPday(d){var r=S.days[d]||{},P=PLANV,out={xp:0,why:[]};
+  var add=function(n,w){out.xp+=n;out.why.push([n,w]);};
+  if(dzN(S.weights[d]))add(5,'weighed in');
+  if(dzN(r.sleep)){add(5,'sleep logged');if(r.sleep>=P.sleep.lo)add(15,P.sleep.lo+'+ h sleep');}
+  var g=dzSum(r);if(g){add(5,'food logged');if(g.protein>=PLANV.proteinMin)add(10,'protein '+PLANV.proteinMin+'+ g');if(g.protein>=PLANV.proteinHi)add(5,'protein bonus');if((g.nutrition||0)>=75)add(10,'nutrition 75+');}
+  if(dzFish(r))add(10,'oily fish');
+  if(r.gym)add(25,'gym session');
+  dzRuns(r).forEach(function(q){var m=runMeta(q);add(m.hard&&!m.sprint?30:12,m.hard&&!m.sprint?'hard run':'run');});
+  if(!r.gym&&!dzRuns(r).length&&(dzN(r.sleep)||g))add(dow(d)===6?15:10,dow(d)===6?'stress-free Saturday':'recovery day');
+  if(dzN(r.study)&&r.study>0)add(Math.round(Math.min(5,r.study)*8),f1(r.study)+' h study');
+  if(r.teeth)add(5,'teeth');
+  if(r.phoneOut||r.noPhone)add(5,'phone out of bed');
+  if(r.skinAM&&r.skinPM)add(5,'skin AM + PM');
+  if(r.puff||r.photoFace||r.photoBody||(S.waist&&dzN(S.waist[d])))add(5,'progress check');
+  if(dzN(r.rhr))add(3,'resting HR');
+  return out;}
+function dzXP(){var seen={},tot=0,k;for(k in S.days)seen[k]=1;for(k in S.weights)seen[k]=1;for(k in seen)tot+=dzXPday(k).xp;
+  var i=0;while(i+1<DZ_LV.length&&tot>=DZ_LV[i+1][0])i++;
+  var cur=DZ_LV[i],nx=DZ_LV[i+1]||null;
+  return {xp:tot,lv:i+1,e:cur[1],n:cur[2],next:nx,p:nx?(tot-cur[0])/(nx[0]-cur[0]):1,today:dzXPday(today()).xp};}
+
+/* ---------- small drawing helpers ---------- */
+function dzRing(v,max,col,txt,sub,size){size=size||88;var r=size/2-8,c=2*Math.PI*r,p=Math.max(0,Math.min(1,max?v/max:0));
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="var(--rule-2)" stroke-width="7"/>'+
+    '<circle class="dz-arc" cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-p)).toFixed(1)+'" transform="rotate(-90 '+size/2+' '+size/2+')"/>'+
+    '<text x="50%" y="'+(sub?'47%':'53%')+'" text-anchor="middle" dominant-baseline="middle" class="dz-ringv">'+txt+'</text>'+(sub?'<text x="50%" y="66%" text-anchor="middle" class="dz-rings">'+sub+'</text>':'')+'</svg>';}
+function dzBar(p,col,h){return '<div class="dz-bar" style="height:'+(h||8)+'px"><i style="width:'+Math.round(Math.max(0,Math.min(1,p))*100)+'%;background:'+(col||'var(--accent)')+'"></i></div>';}
+function dzCol(p){return p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)';}
+function dzImp(k){return '<span class="dz-imp '+k+'">'+({big:'big difference',medium:'helps',small:'small extra'})[k]+'</span>';}
+function dzCard(title,body,opt){opt=opt||{};return '<section class="dz-card'+(opt.cls?' '+opt.cls:'')+'"'+(opt.id?' id="'+opt.id+'"':'')+'>'+(title?'<header class="dz-ch"><h2>'+title+'</h2>'+(opt.aside?'<div class="dz-aside">'+opt.aside+'</div>':'')+'</header>':'')+body+'</section>';}
+function dzStat(lbl,val,sub,cls){return '<div class="dz-stat'+(cls?' '+cls:'')+'"><div class="dz-sl">'+lbl+'</div><div class="dz-sv">'+val+'</div>'+(sub?'<div class="dz-ss">'+sub+'</div>':'')+'</div>';}
+/* one chart: a single series (line or bars) on one scale, optional goal band and reference line, tap or hover any day for its value */
+function dzChart(pts,opt){opt=opt||{};var W=340,H=opt.h||124,L=32,R=8,T=10,B=20,fmt=opt.fmt||function(v){return f1(v);};
+  var vals=[];pts.forEach(function(p){if(dzN(p.v))vals.push(p.v);if(dzN(p.v2))vals.push(p.v2);});
+  if(!vals.length)return '<div class="dz-empty">'+(opt.empty||'Nothing logged yet. Log it on Today and it draws here.')+'</div>';
+  var ext=vals.slice();if(opt.band)ext=ext.concat(opt.band);if(opt.ref&&dzN(opt.ref.v))ext.push(opt.ref.v);
+  var mn=Math.min.apply(null,ext),mx=Math.max.apply(null,ext);if(opt.bars)mn=opt.zero!==undefined?opt.zero:0;
+  var pad=(mx-mn)*0.1||1;if(!opt.bars)mn-=pad;mx+=pad;
+  var n=pts.length,step=(W-L-R)/n,X=function(i){return L+step*(i+0.5);},Y=function(v){return T+(H-T-B)*(1-(v-mn)/(mx-mn));},g='';
+  /* recessive grid: three ticks */
+  for(var k=0;k<3;k++){var tv=mn+(mx-mn)*(k/2),ty=Y(tv);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+ty.toFixed(1)+'" y2="'+ty.toFixed(1)+'" class="dz-grid"/><text x="'+(L-5)+'" y="'+(ty+3).toFixed(1)+'" text-anchor="end" class="dz-ax">'+(opt.tick?opt.tick(tv):Math.round(tv))+'</text>';}
+  if(opt.band)g+='<rect x="'+L+'" y="'+Y(opt.band[1]).toFixed(1)+'" width="'+(W-L-R)+'" height="'+Math.max(2,Y(opt.band[0])-Y(opt.band[1])).toFixed(1)+'" class="dz-band"/>';
+  if(opt.ref&&dzN(opt.ref.v))g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(opt.ref.v).toFixed(1)+'" y2="'+Y(opt.ref.v).toFixed(1)+'" class="dz-ref"/><text x="'+(L+4)+'" y="'+(Y(opt.ref.v)-4).toFixed(1)+'" text-anchor="start" class="dz-ax dz-refl">'+esc(opt.ref.label||'')+'</text>';
+  var path='',area='',first=null,last=null,bw=Math.max(3,Math.min(18,step*0.62));
+  pts.forEach(function(p,i){
+    if(dzN(p.v2))g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.v2).toFixed(1)+'" r="2.6" class="dz-dot2"/>';
+    if(!dzN(p.v))return;
+    var ok=opt.good?opt.good(p.v):true;
+    if(opt.bars){var y=Y(p.v),h=Math.max(2,H-B-y),x=X(i)-bw/2,rr=Math.min(4,bw/2,h);
+      g+='<path d="M'+x.toFixed(1)+' '+(H-B)+'V'+(y+rr).toFixed(1)+'Q'+x.toFixed(1)+' '+y.toFixed(1)+' '+(x+rr).toFixed(1)+' '+y.toFixed(1)+'H'+(x+bw-rr).toFixed(1)+'Q'+(x+bw).toFixed(1)+' '+y.toFixed(1)+' '+(x+bw).toFixed(1)+' '+(y+rr).toFixed(1)+'V'+(H-B)+'Z" class="'+(ok?'dz-barf':'dz-barm')+'"/>';}
+    else{path+=(path?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1);if(first===null)first=i;last=i;}});
+  if(path){area=path+'L'+X(last).toFixed(1)+' '+(H-B)+'L'+X(first).toFixed(1)+' '+(H-B)+'Z';
+    g='<path d="'+area+'" class="dz-area"/>'+g+'<path d="'+path+'" class="dz-line"/>'+'<circle cx="'+X(last).toFixed(1)+'" cy="'+Y(pts[last].v).toFixed(1)+'" r="4.5" class="dz-end"/>';}
+  var lab=function(i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle" class="dz-ax">'+fmtS(pts[i].d)+'</text>';};
+  g+=lab(0)+(n>4?lab(Math.floor((n-1)/2)):'')+lab(n-1);
+  g+='<line class="dz-cx" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'" visibility="hidden"/>';
+  pts.forEach(function(p,i){var t=fmtL(p.d)+' · '+(dzN(p.v)?fmt(p.v):'not logged')+(dzN(p.v2)&&opt.fmt2?' · '+opt.fmt2(p.v2):'')+(p.note?' · '+p.note:'');
+    g+='<rect class="dz-hit" x="'+(L+step*i).toFixed(1)+'" y="0" width="'+step.toFixed(1)+'" height="'+H+'" data-x="'+X(i).toFixed(1)+'" data-tip="'+esc(t)+'"/>';});
+  return '<div class="dz-chart"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(opt.label||'chart')+'">'+g+'</svg><div class="dz-tt" hidden></div></div>'+
+    (opt.legend?'<div class="dz-legend">'+opt.legend+'</div>':'');}
+function dzSeries(n,f,t){t=t||today();var a=[];for(var i=n-1;i>=0;i--){var d=addD(t,-i),o=f(d,S.days[d]||{});a.push(typeof o==='object'&&o!==null?Object.assign({d:d},o):{d:d,v:o});}return a;}
+
+/* ---------- today's call: train, eat, recover ---------- */
+function dzCarbDay(t){var r=S.days[t]||{},ill=dzIll(t);
+  if(t>=STRICT.tripFrom&&t<=STRICT.tripTo)return {k:'trip',e:'🇫🇷',t:'France: maintain and enjoy it',s:'Protein and walking as normal, expect a bit of water. Nothing to track hard.'};
+  if(t>=STRICT.xmas&&t<=STRICT.xmasEnd)return {k:'xmas',e:'🎄',t:'Christmas: maintenance, about '+ci(STRICT.maint)+' kcal',s:'Enjoy it. No tracking pressure.'};
+  if(t<XCAMP.from||t>XCAMP.to)return {k:'steady',e:'🍽️',t:'Steady day · the 2025 diet',s:'Carb cycling starts with the mini camp on '+fmtS(XCAMP.from)+'. Same meals every day until then.'};
+  if(ill&&ill.ago<=1)return {k:'steady',e:'🤧',t:'Steady day · you logged a cold',s:'No carb cycling while you are ill. Eat the plan, never under '+pKcalBase()+'.'};
+  var legs=r.split==='legs',hard=dzHard(r),y=S.days[addD(t,-1)]||{},rest=!r.gym&&!dzRuns(r).length;
+  if(hard||legs)return {k:'hi',e:'🍠',t:'High-carb day · about '+DZ_CARB.hi[0]+'–'+DZ_CARB.hi[1]+' g carbs',s:(hard?'Hard run today':'Legs today')+': more potatoes, oats and fruit, same calories ('+ci(dayTarget(t))+'), protein steady.'};
+  if(rest&&dzHour()>=17)return {k:'lo',e:'🥑',t:'Lower-carb day · about '+DZ_CARB.lo[0]+'–'+DZ_CARB.lo[1]+' g carbs',s:'Rest day: a bit more fat (avocado, nuts, yoghurt, oily fish), same calories ('+ci(dayTarget(t))+').'};
+  return {k:'mid',e:'⚖️',t:'Carb day follows training',s:'Hard run or legs today → high-carb ('+DZ_CARB.hi[0]+'–'+DZ_CARB.hi[1]+' g). Rest day → lower-carb ('+DZ_CARB.lo[0]+'–'+DZ_CARB.lo[1]+' g) with more fat. Same calories either way.'};}
+function dzCall(t){var L=null,W=null,N=null;try{L=greenLight();}catch(e){}try{W=prog25Week(t);N=prog25Next(W,t);}catch(e){}
+  var ill=dzIll(t),G=dzGymWeek(t),nl=null;try{nl=nextLift();}catch(e){}
+  var c=L?L.c:'green',col=c==='red'?'var(--bad)':c==='amber'?'var(--warn)':'var(--good)';
+  var head=ill&&ill.ago<=1?{e:'🤧',t:(ill.sev>=3?'Rest and recover':'Easy day: you logged a '+esc(ill.k)),w:ill.sev>=3?'Below the neck or properly rough: no training today. Sleep, fluids, eat the plan.':'Above the neck and mild: lifting is fine if you feel OK, no hard running until it clears. Sleep 8+ h.'}:
+    L?{e:L.e,t:L.t,w:L.w||''}:{e:'🟢',t:'Good to go',w:''};
+  if(ill&&ill.ago<=1)col=ill.sev>=3?'var(--bad)':'var(--warn)';
+  var lift='';if(dow(t)===CFG.camp.offDay)lift='Stress-free Saturday: no weights today.';
+    else if(G.n>=PLANV.gym.lo)lift='All '+PLANV.gym.lo+' lifting days done this week. No extra session: that is your rule, and rest is where it lands.';
+    else if((S.days[t]||{}).gym)lift='Lifted today ('+esc(SPLIT_NAME[(S.days[t]||{}).split]||'gym')+'). '+(PLANV.gym.lo-G.n)+' left this week.';
+    else lift='Next lift: <b>'+esc(nl&&SPLIT_NAME[nl.sp]?SPLIT_NAME[nl.sp]:'your next split')+'</b>'+(nl&&nl.detail&&nl.detail.length?' (most sets to come: '+esc(nl.detail.slice(0,2).join(', '))+')':'')+' · '+G.n+' of '+PLANV.gym.lo+' this week. Legs go the day after a hard run, never the day before.';
+  var run=N?N.txt:'';if(ill&&ill.ago<=1)run=ill.sev>=3?'No running today. Rest is the training while you are ill.':'No hard running until the cold clears. An easy run only if you feel completely fine; resting is just as good. Next hard session when you are well: <b>'+esc(N&&N.k?(PROG25.filter(function(x){return x.k===N.k;})[0]||{}).n||'':'')+'</b>.';
+  return {col:col,head:head,run:run,lift:lift,carb:dzCarbDay(t),W:W};}
+
+/* ---------- pointers: shred, longevity, cells. Picked from his own data first, then a daily rotation ---------- */
+var DZ_EVER=[
+  ['Longevity','🫀','medium','Keep the two hard runs','VO₂max is one of the strongest predictors of a long life. Two quality sessions a week hold it; more is not needed.'],
+  ['Longevity','🏋️','medium','Lift your four days, beat one number','Muscle and strength predict healthy ageing. One main lift a little heavier, or one more rep, each session.'],
+  ['Cells','😴','big','Same bedtime every night','Regular sleep timing matters on its own, beyond hours: steadier cortisol, better repair hormones overnight.'],
+  ['Cells','☀️','small','10–15 min of daylight before noon','Sets your body clock, lifts mood in the dark months and makes the evening wind-down easier.'],
+  ['Cells','🫐','small','Colour on the plate','Berries, cacao and kiwi bring polyphenols and vitamin C, which your skin needs to build collagen.'],
+  ['Cells','🐟','big','Oily fish twice a week','Omega-3 sits in every cell membrane, calms inflammation and is your main vitamin D source in winter.'],
+  ['Shred','⚖️','big','Weigh food raw, every gram','At your intake the lever is accuracy, not fewer calories. You never need to eat under '+pKcalBase()+'.'],
+  ['Shred','💧','medium','Same salt and water every day','A steady routine keeps the scale and your face honest. Cutting either flattens the look and the runs.'],
+  ['Shred','🥔','medium','Potassium foods for the watery look','Potatoes with the skin, kiwi, avocado, yoghurt and salmon. Your potassium dropped after the 2025 diet; the 2025 bowl brings it back.'],
+  ['Shred','💪','big','Muscle changes the look most','Shoulders, upper chest, back and arms will change your shape more than the last two pounds.'],
+  ['Cells','🧴','medium','SPF every morning','UV is the main driver of visible skin ageing, winter included.'],
+  ['Longevity','🧘','medium','Protect the rest days','One or two full rest days a week are when the training turns into fitness and muscle.']];
+function dzPointers(t){var out=[],r=S.days[t]||{},y=S.days[addD(t,-1)]||{},ill=dzIll(t),sl=dzN(r.sleep)?r.sleep:(dzN(y.sleep)?y.sleep:null);
+  var push=function(a,e,imp,ti,why){if(out.length<3&&!out.some(function(o){return o.ti===ti;}))out.push({a:a,e:e,imp:imp,ti:ti,why:why});};
+  if(ill&&ill.ago<=1)push('Cells','🤧','big','Let the cold clear first','Sleep 8+ h, warm fluids, eat the plan. Running through illness slowed you down in April and June 2025.');
+  if(sl!==null&&sl<7.5)push('Cells','😴','big','An early night tonight',f1(sl)+' h last night. Sleep runs your face, appetite and recovery: in bed by 23:30, phone out.');
+  var b=null;try{b=rhrBase(t);}catch(e){}if(dzN(r.rhr)&&b!==null&&r.rhr>=b+4)push('Longevity','❤️','big','Easy day: resting HR is up',r.rhr+' bpm against your usual '+Math.round(b)+'. A walk or rest beats a hard session today.');
+  var fw=dzFishWeek(t);if(fw<PLANV.fish[0]&&dow(t)!==1)push('Cells','🐟','big','An oily fish dinner',fw+' this week so far. Wild salmon, trout, mackerel or sardines with potatoes.');
+  var N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  var low=N&&N.week?N.week.filter(function(w){return dzN(w.week)&&w.week<70&&FOOD_ADD[w.k];})[0]:null;
+  if(low){var F=FOOD_ADD[low.k];push('Cells',F[0],'medium',F[1]+' is your lowest this week ('+Math.round(low.week)+'%)','Best absorbed from: '+F[2]+'.');}
+  var g=dzSum(r);if(g&&dzHour()>=16&&g.protein<PLANV.proteinMin)push('Shred','🥩','medium','Protein: '+Math.round(g.protein)+' g so far','Your snack bowl (Fage, kefir) or the chicken dinner closes it. '+PLANV.proteinMin+'+ g is on target.');
+  var o=r.outMin;if(dzHour()>=12&&dzN(o)&&o<10)push('Cells','☀️','small','Get outside for 10 minutes','Daylight sets the cortisol rhythm and helps mood in winter.');
+  var doy=diffD('2026-01-01',t);for(var i=0;out.length<3&&i<DZ_EVER.length;i++){var p=DZ_EVER[(doy+i*5)%DZ_EVER.length];push(p[0],p[1],p[2],p[3],p[4]);}
+  return out;}
+
+/* ---------- camps as objects ---------- */
+function dzCamps(){var own=(Array.isArray(S.camps)?S.camps:[]).filter(function(c){return c&&c.id&&c.from&&c.to&&c.from<=c.to;});
+  return DZ_CAMPS.concat(own).sort(function(a,b){return a.from<b.from?-1:1;});}
+function dzCampNow(t){var L=dzCamps(),i;for(i=0;i<L.length;i++)if(t>=L[i].from&&t<=L[i].to)return L[i];for(i=0;i<L.length;i++)if(L[i].from>t)return L[i];return L[L.length-1];}
+function dzCampModel(c,t){var G=c.goals||{},total=diffD(c.from,c.to)+1,end=t<c.to?t:c.to,gone=t<c.from?0:Math.min(total,diffD(c.from,t)+1),wk=total/7;
+  var m={gym:0,hard:0,runs:0,studyH:0,sleepN:0,sleepLog:0,proteinD:0,foodD:0,fish:0,teeth:0,photos:0,steps:0,stepsN:0,days:[]},d;
+  if(t>=c.from)for(d=c.from;d<=end;d=addD(d,1)){var r=S.days[d]||{};m.days.push(d);if(r.gym)m.gym++;
+    dzRuns(r).forEach(function(q){var mm=runMeta(q);m.runs++;if(mm.hard&&!mm.sprint)m.hard++;});
+    if(dzN(r.study))m.studyH+=r.study;if(dzN(r.sleep)){m.sleepLog++;if(r.sleep>=PLANV.sleep.lo)m.sleepN++;}
+    var g=dzSum(r);if(g){m.foodD++;if(g.protein>=PLANV.proteinMin)m.proteinD++;}if(dzFish(r))m.fish++;if(r.teeth)m.teeth++;
+    if(r.photoFace||r.photoBody||dzN(r.bf))m.photos++;if(dzN(r.steps)){m.steps+=r.steps;m.stepsN++;}}
+  var rh=[];for(var i=0;i<7;i++){var x=(S.days[addD(end<c.from?t:end,-i)]||{}).rhr;if(dzN(x))rh.push(x);}
+  var wa=avgWindow(end<c.from?t:end,7);
+  var goal={gym:G.gym||Math.round((G.gymWk||PLANV.gym.lo)*wk),hard:G.hard||Math.round((G.hardWk||PLANV.hard)*wk),studyH:G.studyH||Math.round((G.studyWk||0)*wk),
+    sleepN:G.sleepN||Math.round(total*0.83),proteinD:total,fish:Math.max(1,Math.round((G.fishWk||PLANV.fish[0])*wk)),teeth:total};
+  var rows=[['🏋️','Gym','gym',goal.gym,''],['⚡','Hard runs','hard',goal.hard,c.tests&&c.tests.length?c.tests.length+' of them are tests':''],['📚','Study hours','studyH',goal.studyH,''],
+    ['😴','Nights '+PLANV.sleep.lo+'+ h','sleepN',goal.sleepN,''],['🥩','Days protein '+PLANV.proteinMin+'+ g','proteinD',goal.proteinD,''],['🐟','Oily fish dinners','fish',goal.fish,''],['🦷','Teeth 3× + floss','teeth',goal.teeth,'']]
+    .filter(function(x){return x[3]>0;}).map(function(x){var done=m[x[2]],due=x[3]*gone/total;return {e:x[0],n:x[1],k:x[2],done:done,goal:x[3],p:dzPct(done,x[3]),pace:done>=due-0.01,note:x[4]};});
+  var score=rows.length?Math.round(mean(rows.map(function(x){return x.p;}))*100):0;
+  var lv=score>=90?['🎄','Camp legend']:score>=75?['⭐','Star of the camp']:score>=50?['🔥','On fire']:score>=25?['❄️','Building']:['🎁','Just unwrapped'];
+  return {c:c,total:total,gone:gone,left:Math.max(0,diffD(t,c.to)),startsIn:t<c.from?diffD(t,c.from):0,m:m,rows:rows,score:score,lv:lv,rhr7:rh.length?mean(rh):null,wa:wa.n?wa.avg:null,wn:wa.n,stepsAvg:m.stepsN?m.steps/m.stepsN:null};}
+
+/* ---------- the week, as numbers (for the Week view and the compare table) ---------- */
+function dzWeekStats(ws){var t=today(),o={n:0,sl:[],rhr:[],st:[],w:[],pro:[],nut:[],kc:[],gym:0,hard:0,runs:0,study:0,fish:0,teeth:0,n8:0,km:0},i,d;
+  for(i=0;i<7;i++){d=addD(ws,i);if(d>t)break;o.n++;var r=S.days[d]||{};
+    if(dzN(r.sleep)){o.sl.push(r.sleep);if(r.sleep>=PLANV.sleep.lo)o.n8++;}if(dzN(r.rhr))o.rhr.push(r.rhr);if(dzN(r.steps)&&!r.ill)o.st.push(r.steps);
+    if(dzN(S.weights[d])&&!postRefeed(d))o.w.push(S.weights[d]);var g=dzSum(r);if(g&&d<t||g&&dzHour()>=20){o.pro.push(g.protein);o.nut.push(g.nutrition||0);o.kc.push(g.kcal);}
+    if(r.gym)o.gym++;dzRuns(r).forEach(function(q){var m=runMeta(q);o.runs++;if(m.hard&&!m.sprint)o.hard++;if(m.km)o.km+=m.km;});
+    if(dzN(r.study))o.study+=r.study;if(dzFish(r))o.fish++;if(r.teeth)o.teeth++;}
+  var a=function(x){return x.length?mean(x):null;};
+  return {n:o.n,sleep:a(o.sl),rhr:a(o.rhr),steps:a(o.st),weight:a(o.w),protein:a(o.pro),nutrition:a(o.nut),kcal:a(o.kc),gym:o.gym,hard:o.hard,runs:o.runs,km:o.km,study:o.study,fish:o.fish,teeth:o.teeth,n8:o.n8};}
+
+/* ======================= the views ======================= */
+function dzHero(t){var X=dzXP(),h=dzHour(),hi=h<12?'Morning':h<18?'Afternoon':'Evening',bday=t.slice(5)==='11-28';
+  var clk='';try{clk=pClock(t);}catch(e){}
+  return '<div class="dz-hero">'+
+    '<div class="dz-hi"><div class="dz-k">'+hi+', Dan · '+fmtL(today())+'</div><h1 class="dz-h1">'+(bday?'Happy 26th birthday 🎂':'Your dashboard')+'</h1><div class="dz-clock">'+esc(clk)+'</div></div>'+
+    '<button type="button" class="dz-lv" data-dzopen="xp" aria-expanded="'+(DZ.open.xp?'true':'false')+'"><span class="dz-lve">'+X.e+'</span><span class="dz-lvt"><b>Level '+X.lv+' · '+X.n+'</b>'+
+      '<small>'+ci(X.xp)+' XP'+(X.next?' · '+ci(X.next[0]-X.xp)+' to '+X.next[2]:' · top level')+' · +'+X.today+' today</small>'+dzBar(X.p,'var(--gold)',5)+'</span></button></div>'+
+    (DZ.open.xp?dzXPDetail(t,X.lv):'');}
+function dzXPDetail(t,lvNow){var o=dzXPday(t),y=dzXPday(addD(t,-1));
+  var list=function(x){return x.why.length?x.why.map(function(w){return '<span class="dz-chip">+'+w[0]+' '+esc(w[1])+'</span>';}).join(''):'<span class="dz-dim">nothing yet</span>';};
+  return '<div class="dz-card dz-sub"><p class="dz-p"><b>How XP works.</b> Points for the habits that build the look and a long life: sleep, protein, oily fish, lifting, the two hard runs, study, teeth, skin, rest days. Never for more steps or extra runs.</p>'+
+    '<div class="dz-p"><b>Today</b> · '+list(o)+'</div><div class="dz-p"><b>Yesterday</b> · '+list(y)+'</div>'+
+    '<div class="dz-ladder">'+DZ_LV.map(function(l,i){return '<span class="dz-chip'+(lvNow>i?' on':'')+'">'+l[1]+' '+l[2]+' · '+ci(l[0])+'</span>';}).join('')+'</div></div>';}
+function dzBig3(){var L=null;try{L=longevityScores();}catch(e){}
+  var H=L&&L.H,CX=L&&L.CX;if(!CX){try{CX=cortisolScore();}catch(e){}}
+  var lv=L?L.all.score:null,band=L?lsBand(L.all.score):null;
+  var ha=H&&dzN(H.glowAge)?H.glowAge:null,age=H&&dzN(H.age)?H.age:ageOn(today());
+  var cs=CX?CX.score:null,cc=cs===null?'var(--ink-3)':cs<25?'var(--good)':cs<45?'var(--warn)':'var(--bad)';
+  var tile=function(k,ring,lbl,sub){return '<button type="button" class="dz-big" data-dzopen="'+k+'" aria-expanded="'+(DZ.open[k]?'true':'false')+'">'+ring+'<span class="dz-bl">'+lbl+'</span><span class="dz-bs">'+sub+'</span></button>';};
+  var h='<div class="dz-big3">'+
+    tile('long',dzRing(lv||0,100,lv>=70?'var(--good)':'var(--accent)',lv===null?'…':String(lv),'/ 100'),'🧬 Longevity',band?esc(band[0])+(L?' · today '+L.day.score:''):'working it out')+
+    tile('age',dzRing(ha===null?0:Math.max(0,age-ha),10,'var(--gold)',ha===null?'…':String(ha),'years'),'🎂 Health age',ha===null?'loading':(age-ha>0?(age-ha)+' younger than you ('+age+')':'you are '+age))+
+    tile('cort',dzRing(cs===null?0:cs,100,cc,cs===null?'…':String(cs),'0 best'),'🧪 Cortisol',CX?esc(CX.band[0])+' · ease off at 45':'—')+'</div>';
+  if(DZ.open.long&&L){var parts=function(P){return P.map(function(p){var w=p[1]/p[2];return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p[0])+'</span><span class="mono">'+p[1]+'/'+p[2]+'</span></div>'+dzBar(w,dzCol(w/0.75),6)+'<div class="dz-ss">'+esc(p[3])+(w<0.75&&p[4]?' · ↑ '+esc(p[4]):'')+'</div></div>';}).join('');};
+    h+=dzCard('🧬 Longevity, part by part','<div class="dz-two"><div><h3 class="dz-h3">Overall · last 4 weeks ('+L.all.score+')</h3>'+parts(L.all.parts)+'</div><div><h3 class="dz-h3">Today ('+L.day.score+')</h3>'+parts(L.day.parts)+'</div></div><p class="dz-note">An estimate from your logs, not a lab test. Home blood pressure and a GP blood panel (thyroid, coeliac antibodies, ferritin, B12, vitamin D, HbA1c, kidney) would make it real.</p>',{cls:'dz-sub'});}
+  if(DZ.open.age&&H)h+=dzCard('🎂 Health age','<p class="dz-p">Estimated at <b>'+ha+'</b> against your real age of <b>'+age+'</b>, from resting HR'+(H.rhr?' ('+H.rhr+')':'')+', fitness'+(H.vo2?' (VO₂ about '+Math.round(H.vo2)+')':'')+', sleep, food and training. It is motivational, not a medical measure.</p>'+(H.top?'<p class="dz-p">Your rarest strength: <b>'+esc(String(H.top))+'</b>.</p>':''),{cls:'dz-sub'});
+  if(DZ.open.cort&&CX)h+=dzCard('🧪 What is raising cortisol',(CX.parts.length?CX.parts.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p.why==='Ill'?'Ill (a cold or bug logged)':p.why)+'</span><span class="mono">+'+p.pts+'</span></div><div class="dz-ss">↓ '+esc(p.fix)+'</div></div>';}).join(''):'<p class="dz-p">Nothing is adding to it right now. 🧘</p>')+'<p class="dz-note">0 is calm. Under 25 is fine, 25–44 raised, 45+ means an eased week. It reads your sleep, morning HR, training spacing, food and study load.</p>',{cls:'dz-sub'});
+  return h;}
+function dzQuests(t){var r=S.days[t]||{},y=S.days[addD(t,-1)]||{},P=planNow(t),g=dzSum(r)||(r.glowSum||null);
+  var sl=dzN(r.sleep)?r.sleep:null,tr=r.gym||dzRuns(r).length,rest=dow(t)===CFG.camp.offDay;
+  var q=[
+    ['😴','Sleep '+P.sleep.lo+'+ h',sl!==null&&sl>=P.sleep.lo,sl!==null?f1(sl)+' h last night':'log it below'],
+    ['🥩','Protein '+PLANV.proteinMin+'+ g',!!(g&&g.protein>=PLANV.proteinMin),g?Math.round(g.protein)+' g so far':'log food'],
+    [rest?'🧘':'🏋️',rest?'Stress-free Saturday':'Train to plan',rest?!tr:!!tr,rest?(tr?'you trained: that is fine':'no runs, no weights, no study'):(tr?(r.gym?(SPLIT_NAME[r.split]||'gym'):'')+(r.gym&&dzRuns(r).length?' + ':'')+(dzRuns(r).length?'a run':''):'or a planned rest day')],
+    ['🦷','Teeth 3× + floss',!!r.teeth,'tap to tick','teeth'],
+    ['📵','Phone out of bed',!!(r.phoneOut||r.noPhone),'tap to tick','phoneOut'],
+    ['📚','Study (bonus)',dzN(r.study)&&r.study>0,dzN(r.study)?f1(r.study)+' h today · '+f1(dzStudyWeek(t))+' h this week':'log hours below']];
+  var done=q.filter(function(x){return x[2];}).length;
+  return dzCard('✅ Your day','<div class="dz-quests">'+q.map(function(x){return '<'+(x[4]?'button type="button" data-dztg="'+x[4]+'"':'div')+' class="dz-q'+(x[2]?' on':'')+'"><span class="dz-qk">'+(x[2]?'✓':'')+'</span><span class="dz-qe">'+x[0]+'</span><span class="dz-qt"><b>'+esc(x[1])+'</b><small>'+esc(x[3])+'</small></span></'+(x[4]?'button':'div')+'>';}).join('')+'</div>',
+    {aside:'<span class="dz-pill '+(done>=5?'g':'')+'">'+done+' of '+q.length+'</span>'});}
+function dzQuickLog(){var t=dzT(),r=S.days[t]||{},w=S.weights[t];
+  var lastW=null;Object.keys(S.weights).sort().forEach(function(k){if(k<=t&&dzN(S.weights[k]))lastW=S.weights[k];});
+  var tile=function(k,e,lbl,cur,base,step,unit){var v=cur!==null&&cur!==undefined?cur:null;
+    return '<div class="dz-log'+(v!==null?' set':'')+'"><div class="dz-ll">'+e+' '+lbl+'</div><div class="dz-lv2">'+(v!==null?esc(String(v))+'<small>'+unit+'</small>':'<span class="dz-dim">—</span>')+'</div>'+
+      '<div class="dz-step"><button type="button" data-dzstep="'+k+'" data-d="-'+step+'" aria-label="less">−</button><input id="dzIn-'+k+'" type="number" inputmode="decimal" step="'+step+'" value="'+(v!==null?v:(base!==null?base:''))+'" aria-label="'+esc(lbl)+'"><button type="button" data-dzstep="'+k+'" data-d="'+step+'" aria-label="more">+</button></div>'+
+      '<button type="button" class="dz-save" data-dzsave="'+k+'">Save</button></div>';};
+  var lastS=null;for(var i=1;i<8&&lastS===null;i++){var v=(S.days[addD(t,-i)]||{}).sleep;if(dzN(v))lastS=v;}
+  var lastR=null;for(i=1;i<8&&lastR===null;i++){v=(S.days[addD(t,-i)]||{}).rhr;if(dzN(v))lastR=v;}
+  var sp=['chest','back','delts','legs'],ms=r.gym&&r.split&&SPLIT_MUSCLES[r.split]?SPLIT_MUSCLES[r.split]:[];
+  var tg=function(k,lbl,on){return '<button type="button" class="dz-tog'+(on?' on':'')+'" data-dztg="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+(on?'✓ ':'')+lbl+'</button>';};
+  var pf='';for(i=1;i<=5;i++)pf+='<button type="button" class="dz-tog sq'+(r.puff===i?' on':'')+'" data-dzpuff="'+i+'" aria-pressed="'+(r.puff===i?'true':'false')+'">'+i+'</button>';
+  return dzCard('✍️ Quick log','<div class="dz-seg" role="group" aria-label="Day to log"><button type="button" data-dzld="0" aria-pressed="'+(DZ.ld===0?'true':'false')+'">Today</button><button type="button" data-dzld="-1" aria-pressed="'+(DZ.ld===-1?'true':'false')+'">Yesterday</button><span class="dz-dim">'+fmtL(t)+'</span></div>'+
+    '<div class="dz-logs">'+tile('weight','⚖️','Weight',dzN(w)?w:null,lastW,0.2,' lb')+tile('sleep','😴','Sleep',dzN(r.sleep)?r.sleep:null,lastS,0.25,' h')+tile('rhr','❤️','Resting HR',dzN(r.rhr)?r.rhr:null,lastR,1,' bpm')+
+      tile('steps','👣','Steps',dzN(r.steps)?r.steps:null,null,500,'')+tile('study','📚','Study',dzN(r.study)?f1(r.study):null,null,0.5,' h')+'</div>'+
+    '<h3 class="dz-h3">🏋️ Gym</h3><div class="dz-tags">'+sp.map(function(s){var on=r.gym&&r.split===s,arm=DZ.arm==='gym-'+s;return '<button type="button" class="dz-tog'+(on?' on':'')+(arm?' arm':'')+'" data-dzgym="'+s+'" aria-pressed="'+(on?'true':'false')+'">'+(arm?'Tap again to remove':(on?'✓ ':'')+esc(SPLIT_NAME[s]))+'</button>';}).join('')+'</div>'+
+    (ms.length?'<div class="dz-sets">'+ms.map(function(m){return '<label class="dz-set"><span>'+m+' sets</span><input type="number" inputmode="numeric" min="0" max="40" data-dzsets="'+m+'" value="'+(((r.sets||{})[m])||'')+'" placeholder="0"></label>';}).join('')+'<span class="dz-dim">Hard sets only. Aim 10–13 per muscle across the week.</span></div>':'')+ /* plan-ok: Dan's own set range, 26 Nov */
+    '<h3 class="dz-h3">✨ Ticks</h3><div class="dz-tags">'+tg('teeth','🦷 Teeth 3× + floss',!!r.teeth)+tg('phoneOut','📵 Phone out of bed',!!(r.phoneOut||r.noPhone))+tg('skinAM','🧴 Skin AM',!!r.skinAM)+tg('skinPM','🌙 Skin PM',!!r.skinPM)+tg('ill','🤧 Feeling ill',!!r.ill)+'</div>'+
+    '<h3 class="dz-h3">🙂 Face puffiness <span class="dz-dim">1 sharp · 5 very puffy</span></h3><div class="dz-tags">'+pf+'</div>'+
+    '<p class="dz-note">Runs come in from Strava when you say “sync”. Food goes in on the Food log (or send me the MyFitnessPal screenshots). <button type="button" class="dz-link" data-dzgo="glow" data-g="today">Open the food log →</button></p>',{id:'dzLog'});}
+function dzFoodMini(t){var r=S.days[t]||{},g=r.glowSum||null,P=planNow(t),kT=dayTarget(t),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  if(!g)return dzCard('🍽️ Today’s food','<div class="dz-empty">Nothing logged yet today. Your one-tap 2025 meals are on the food log.<br><button type="button" class="dz-btn" data-dzgo="glow" data-g="today">Log food</button></div>');
+  var m=function(lbl,v,tg,u,col){return '<div class="dz-row"><div class="dz-rh"><span>'+lbl+'</span><span class="mono">'+ci(v)+(tg?' / '+ci(tg):'')+u+'</span></div>'+dzBar(tg?v/tg:0,col||dzCol(tg?v/tg:0),7)+'</div>';};
+  var lows=N&&N.week?N.week.filter(function(w){return dzN(w.today);}).slice().sort(function(a,b){return a.today-b.today;}).slice(0,3):[];
+  return dzCard('🍽️ Today’s food','<div class="dz-stats">'+dzStat('Nutrition',(g.nutrition||0)+'<small>/100</small>','coverage '+(g.coverage||0)+'%')+dzStat('Calories',ci(g.kcal),'of '+ci(kT))+dzStat('Protein',Math.round(g.protein)+'<small> g</small>',PLANV.proteinMin+'+ on target')+'</div>'+
+    m('🔥 Calories',g.kcal,kT,'','var(--accent)')+m('🥩 Protein',g.protein,P.protein,' g')+m('🍞 Carbs',g.carbs,null,' g')+m('🥑 Fat',g.fat,null,' g')+m('🌾 Fibre',g.fibre,null,' g')+
+    (lows.length?'<p class="dz-p"><b>Lowest today:</b> '+lows.map(function(w){return esc(w.label)+' '+Math.round(w.today)+'%';}).join(' · ')+' <button type="button" class="dz-link" data-dzv="food">all micronutrients →</button></p>':''),
+    {aside:'<button type="button" class="dz-link" data-dzgo="glow" data-g="today">Food log →</button>'});}
+function dzPointHTML(t){var P=dzPointers(t);
+  return dzCard('🧭 Today’s pointers',P.map(function(p){return '<div class="dz-pt"><span class="dz-pte">'+p.e+'</span><div><div class="dz-ptt"><b>'+esc(p.ti)+'</b> '+dzImp(p.imp)+' <span class="dz-tag">'+p.a+'</span></div><div class="dz-ss">'+esc(p.why)+'</div></div></div>';}).join(''),{aside:'<span class="dz-dim">shred · longevity · cells</span>'});}
+function dzStreaks(){var P=PLANV,st=[['🔥','days logging',dashStreak(function(r,d){return dzN(S.weights[d])||dzN(r.sleep)||dzN(r.steps)||!!r.glowSum;})],
+    ['😴','nights '+P.sleep.lo+'+ h',dashStreak(function(r){return dzN(r.sleep)&&r.sleep>=P.sleep.lo;})],['🥩','days protein '+P.proteinMin+'+',dashStreak(function(r){return !!(r.glowSum&&r.glowSum.protein>=P.proteinMin);})],
+    ['🦷','days teeth',dashStreak(function(r){return !!r.teeth;})],['🧴','days skin AM + PM',dashStreak(function(r){return r.skinAM&&r.skinPM;})]];
+  return '<div class="dz-streaks">'+st.map(function(x){return '<div class="dz-streak'+(x[2]>=3?' hot':'')+'"><span>'+x[0]+'</span><b>'+x[2]+'</b><small>'+x[1]+'</small></div>';}).join('')+'</div>';}
+function dzToday(){var t=today(),C=dzCall(t),cd=C.carb,cm=dzCampNow(t),M=cm?dzCampModel(cm,t):null;
+  var campLine=M?(M.startsIn>0?cm.e+' '+esc(cm.name)+' starts in <b>'+M.startsIn+' day'+(M.startsIn===1?'':'s')+'</b>':(M.left>0||t<=cm.to?cm.e+' '+esc(cm.name)+' · day '+M.gone+' of '+M.total+' · '+M.score+'% '+M.lv[0]:'')):'';
+  return dzHero(t)+dzBig3()+
+    '<section class="dz-card dz-call" style="--call:'+C.col+'"><div class="dz-callh"><span class="dz-dot"></span><div><div class="dz-k">What to do today</div><h2>'+C.head.e+' '+esc(C.head.t)+'</h2></div></div>'+
+      (C.head.w?'<p class="dz-p">'+esc(C.head.w)+'</p>':'')+
+      '<div class="dz-calls"><div class="dz-cl"><b>🏃 Run</b><span>'+C.run+'</span></div><div class="dz-cl"><b>🏋️ Lift</b><span>'+C.lift+'</span></div><div class="dz-cl"><b>'+cd.e+' Eat</b><span><span class="dz-carb '+cd.k+'">'+esc(cd.t)+'</span> '+esc(cd.s)+'</span></div></div>'+
+      (campLine?'<button type="button" class="dz-link" data-dzv="camp">'+campLine+' →</button>':'')+'</section>'+
+    dzStreaks()+
+    '<div class="dz-cols"><div>'+dzQuests(t)+dzPointHTML(t)+'</div><div>'+dzQuickLog()+dzFoodMini(t)+'</div></div>';}
+
+/* ---------- Food & micros ---------- */
+function dzFood(){var t=today(),N=null;try{N=window.GLOW&&window.GLOW.nutri?window.GLOW.nutri(t):null;}catch(e){}
+  var nut=dzSeries(14,function(d,r){var g=r.glowSum;return g&&g.n>=3?g.nutrition:null;}),pro=dzSeries(14,function(d,r){var g=r.glowSum;return g&&g.n>=3?g.protein:null;});
+  var nv=nut.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),pv=pro.filter(function(p){return dzN(p.v)&&p.d<t;}).map(function(p){return p.v;});
+  var g=(S.days[t]||{}).glowSum,W=dzWeekStats(mondayOf(t)),fw=dzFishWeek(t);
+  var plants=[],fib=[];for(var i=0;i<7;i++){var x=(S.days[addD(t,-i)]||{}).glowSum;if(x&&x.n>=3){plants.push(x.plants||0);fib.push(x.fibre||0);}}
+  var head='<div class="dz-stats">'+dzStat('Nutrition today',g?(g.nutrition||0)+'<small>/100</small>':'—',g?'coverage '+(g.coverage||0)+'%':'log food')+dzStat('14-day average',nv.length?Math.round(mean(nv))+'<small>/100</small>':'—','best '+(nv.length?Math.max.apply(null,nv):'—'))+
+    dzStat('Protein, 14 days',pv.length?Math.round(mean(pv))+'<small> g</small>':'—',PLANV.proteinMin+'+ is on target')+dzStat('Oily fish',fw+'<small> this week</small>','aim '+PLANV.fish[0]+'–'+PLANV.fish[1])+
+    dzStat('Fibre, 7 days',fib.length?Math.round(mean(fib))+'<small> g</small>':'—','2025 diet was about 25 g')+dzStat('Plant foods',plants.length?f1(mean(plants)):'—','a day, 7-day average')+'</div>';
+  var micro='';
+  if(N&&N.week&&N.week.length){var key=DZ.micro==='today'?'today':'week';
+    var rows=N.week.slice().sort(function(a,b){return (dzN(a[key])?a[key]:999)-(dzN(b[key])?b[key]:999);});
+    micro='<div class="dz-seg" role="group" aria-label="Micronutrients for"><button type="button" data-dzmicro="week" aria-pressed="'+(key==='week'?'true':'false')+'">This week ('+N.days+' day'+(N.days===1?'':'s')+')</button><button type="button" data-dzmicro="today" aria-pressed="'+(key==='today'?'true':'false')+'">Today</button>'+(N.cov!==null&&N.cov!==undefined?'<span class="dz-dim">coverage '+N.cov+'%</span>':'')+'</div>'+
+      '<div class="dz-micros">'+rows.map(function(w){var v=w[key],F=FOOD_ADD[w.k],open=DZ.open['m-'+w.k],p=dzN(v)?v/100:0;
+        return '<button type="button" class="dz-micro'+(open?' open':'')+'" data-dzopen="m-'+w.k+'" aria-expanded="'+(open?'true':'false')+'"><span class="dz-rh"><span>'+(F?F[0]+' ':'')+esc(w.label)+'</span><span class="mono">'+(dzN(v)?Math.round(v)+'%':'—')+'</span></span>'+dzBar(p,p>=1?'var(--good)':p>=0.7?'var(--accent)':'var(--warn)',7)+
+          (open?'<span class="dz-ss">'+(F?'<b>Best absorbed from:</b> '+esc(F[2])+'<br>'+esc(F[3]):'From the foods you already eat.')+(dzN(w.today)&&dzN(w.week)?'<br>Today '+Math.round(w.today)+'% · week '+Math.round(w.week)+'%':'')+'</span>':'')+'</button>';}).join('')+'</div>'+
+      '<p class="dz-note">What your body actually absorbs, as a share of the day’s need, lowest first. Typical food values, not a blood test; iodine often reads low because labels miss it. Tap any nutrient for the best foods.</p>';}
+  else micro='<div class="dz-empty">The micronutrients load with the food side of the app. Log some food and every nutrient appears here.</div>';
+  var nx=N&&N.next&&N.next.length?N.next.slice(0,4).map(function(x){return '<div class="dz-pt"><span class="dz-pte">'+esc(x.emoji)+'</span><div><div class="dz-ptt"><b>'+esc(x.title)+'</b> '+dzImp(x.impact==='medium'?'medium':x.impact==='big'?'big':'small')+'</div><div class="dz-ss">'+esc((x.foods||[]).join(', '))+(x.why?' · '+esc(x.why):'')+'</div></div></div>';}).join(''):'<div class="dz-empty">Suggestions appear once the food side has loaded.</div>';
+  var top={};for(i=0;i<7;i++){var y=(S.days[addD(t,-i)]||{}).glowSum;if(y&&y.names)y.names.forEach(function(n){top[n]=(top[n]||0)+1;});}
+  var tops=Object.keys(top).sort(function(a,b){return top[b]-top[a];}).slice(0,10);
+  return '<div class="dz-cols"><div>'+dzCard('🥗 Food at a glance',head+'<h3 class="dz-h3">Nutrition score · 14 days</h3>'+dzChart(nut,{bars:true,zero:0,label:'Nutrition score',fmt:function(v){return Math.round(v)+'/100';},good:function(v){return v>=65;},ref:{v:75,label:'75'}})+
+      '<h3 class="dz-h3">Protein · 14 days</h3>'+dzChart(pro,{bars:true,zero:0,label:'Protein',fmt:function(v){return Math.round(v)+' g';},good:function(v){return v>=PLANV.proteinMin;},ref:{v:PLANV.proteinMin,label:PLANV.proteinMin+' g'}}))+
+    dzFoodMini(t)+dzCard('🍳 What to eat next',nx)+
+    dzCard('🔁 Your foods this week',tops.length?'<div class="dz-tags">'+tops.map(function(n){return '<span class="dz-chip">'+esc(n.replace(/ \(.*\)/,''))+' <b>×'+top[n]+'</b></span>';}).join('')+'</div><p class="dz-note">Days each food appeared in the last 7. Your 2025 diet is on one tap in the food log: cacao porridge, the strawberry and avocado bowl, chicken or fish with potatoes, the yoghurt bowl, and 4 eggs with Kallo cakes twice a week.</p>':'<div class="dz-empty">Log food and your regulars show here.</div>')+'</div>'+
+    '<div>'+dzCard('🔬 Every micronutrient',micro)+'</div></div>';}
+
+/* ---------- Training ---------- */
+function dzTrain(){var t=today(),W=null,N=null;try{W=prog25Week(t);N=prog25Next(W,t);}catch(e){}
+  var ws=mondayOf(t),strip='';for(var i=0;i<7;i++){var d=addD(ws,i),r=S.days[d]||{},ic=[];if(r.gym)ic.push('🏋️');dzRuns(r).forEach(function(q){var m=runMeta(q);ic.push(m.hard&&!m.sprint?'⚡':'🏃');});
+    if(r.ill)ic.push('🤧');var fut=d>t,tst=DZ_TESTS.filter(function(x){return x.d===d;})[0];
+    strip+='<div class="dz-day'+(d===t?' now':'')+(fut?' fut':'')+'"><b>'+DOWS[dow(d)]+'</b><span>'+(ic.length?ic.join(''):(fut?(tst?'🎯':''):(dow(d)===6?'🧘':'·')))+'</span><small>'+(r.gym&&r.split?esc((SPLIT_NAME[r.split]||'').split(' ')[0]):'')+'</small></div>';}
+  var slots=(typeof PROG25!=='undefined'?PROG25:[]).map(function(s){var got=W&&W.got[s.k]||[],x=got[0],m=x?x.m:null;
+    return '<div class="dz-slot'+(got.length?' on':'')+'"><div class="dz-rh"><b>'+s.e+' '+s.k+' · '+esc(s.n)+'</b><span class="dz-pill '+(got.length?'g':'')+'">'+(got.length?'done':(s.k==='A'||s.k==='B'?'counts':'bonus'))+'</span></div>'+
+      (m?'<div class="dz-ss">'+fmtS(x.d)+' · '+esc(m.label)+(m.repAvg?' · '+mmss(m.repAvg)+' a rep':(m.pace?' · '+pace(m.pace):''))+'</div>':'')+
+      '<div class="dz-ss dz-dim">2025: '+esc(PROG25_2025[s.k]||'')+'</div></div>';}).join('');
+  var runs=[];for(i=0;i<28;i++){d=addD(t,-i);dzRuns(S.days[d]||{}).forEach(function(q){runs.push({d:d,m:runMeta(q),r:q});});}
+  var R=null;try{R=records();}catch(e){}
+  var tests=DZ_TESTS.map(function(x){var b=null;try{b=bestAt(x.dm,R&&R[x.dm]).best;}catch(e){}var pb=(CFG.camp.pb||[]).filter(function(p){return p.dm===x.dm;})[0],at=CFG.camp.allTime[x.dm],dl=diffD(t,x.d);
+    var f=function(v){return v>=60?mmss(Math.round(v)):f1(v)+' s';};
+    return '<div class="dz-test"><div class="dz-rh"><b>🎯 '+esc(x.n)+'</b><span class="dz-pill">'+(dl>0?'in '+dl+' days':dl===0?'today':'done')+' · '+fmtS(x.d)+'</span></div>'+
+      '<div class="dz-tl"><span>2026 best <b class="mono">'+(b?f(b.t):'—')+'</b></span><span>all-time <b class="mono">'+(at?f(at.t):'—')+'</b></span><span>goal <b class="mono">'+(pb?'sub-'+f(pb.goal):'—')+'</b></span></div>'+
+      (b&&pb?dzBar(1-Math.max(0,Math.min(1,(b.t-pb.goal)/pb.goal/0.12)),'var(--gold)',6):'')+'</div>';}).join('');
+  var G=dzGymWeek(t),sets=weekSets(t),mus=(CFG.sets||[]).map(function(x){var rg=DZ_SETS[x.m]||setsRange(x.m),v=sets[x.m]||0;
+    return '<div class="dz-row"><div class="dz-rh"><span>'+esc(x.m)+'</span><span class="mono">'+v+' <span class="dz-dim">/ '+rg[0]+'–'+rg[1]+'</span></span></div>'+dzBar(v/rg[0],v>rg[1]?'var(--warn)':v>=rg[0]?'var(--good)':'var(--accent)',6)+'</div>';}).join('');
+  var str='';try{str=strBossHTML();}catch(e){}
+  var gymDays=[];for(i=0;i<28;i++){d=addD(t,-i);var rr=S.days[d]||{};if(rr.gym)gymDays.push({d:d,r:rr});}
+  return '<div class="dz-cols"><div>'+
+    dzCard('🗓️ This week','<div class="dz-week">'+strip+'</div><p class="dz-note">⚡ hard run · 🏃 run · 🏋️ gym · 🎯 test · 🧘 stress-free Saturday</p>')+
+    dzCard('🏃 Your 2025 program · '+(W?W.done:0)+' of 4',(N?'<p class="dz-p"><b>Next:</b> '+N.txt+'</p>':'')+'<div class="dz-slots">'+slots+'</div><p class="dz-note">A and B are the two hard runs that count. C (uphill sprints) and D (the easy 5-miler) are bonuses for fresh days. 2025 bests: '+esc(PROG25_BEST)+'.</p>',
+      {aside:'<span class="dz-pill">'+dzHardWeek(t)+' of '+PLANV.hard+' hard</span>'})+
+    dzCard('🎯 The three tests',tests+'<p class="dz-note">The bar fills as your 2026 best closes on the goal. Sub-17 and sub-4:50 may honestly land in the spring camp, when your 2025 bests came.</p>')+
+    dzCard('📜 Recent runs · 4 weeks',runs.length?'<div class="dz-list">'+runs.map(function(x){var m=x.m;return '<div class="dz-li"><span class="dz-lid">'+fmtS(x.d)+'</span><span>'+(m.hard&&!m.sprint?'⚡ ':'🏃 ')+esc(m.label)+'</span><span class="mono dz-dim">'+(m.km?f1(m.km)+' km':'')+(m.repAvg?' · '+mmss(m.repAvg)+'/rep':(m.pace?' · '+pace(m.pace):''))+'</span></div>';}).join('')+'</div>':'<div class="dz-empty">No runs in the last 4 weeks. Rest counts.</div>')+'</div>'+
+    '<div>'+dzCard('🏋️ Lifting · '+G.n+' of '+PLANV.gym.lo+' this week','<div class="dz-stats">'+dzStat('Sessions',G.n+'<small> / '+PLANV.gym.lo+'</small>',G.n>=PLANV.gym.lo?'done: no 5th':'this week')+'</div>'+(G.sp.length?'<div class="dz-tags">'+G.sp.map(function(s){return '<span class="dz-chip">🏋️ '+esc(SPLIT_NAME[s]||s)+'</span>';}).join('')+'</div>':'')+
+      '<h3 class="dz-h3">Hard sets per muscle this week</h3>'+mus+'<p class="dz-note">Chest, back, shoulders and legs: 10–13 a week (your range). Arms also get work from every press and pull.</p>'+'<p class="dz-note">Your rules: '+PLANV.gym.lo+' lifting days, never a 5th · legs the day after a hard run, never the day before · 1–2 full rest days · Saturday stress-free.</p>')+
+    (str?'<div class="dz-legacy">'+str+'</div>':'')+
+    dzCard('📜 Gym log · 4 weeks',gymDays.length?'<div class="dz-list">'+gymDays.map(function(x){var s=x.r.sets||{},k=Object.keys(s);return '<div class="dz-li"><span class="dz-lid">'+fmtS(x.d)+'</span><span>🏋️ '+esc(SPLIT_NAME[x.r.split]||'Gym')+'</span><span class="mono dz-dim">'+k.map(function(m){return m+' '+s[m];}).join(' · ')+'</span></div>';}).join('')+'</div>':'<div class="dz-empty">No gym sessions logged in the last 4 weeks.</div>')+'</div></div>';}
+
+/* ---------- Body & recovery ---------- */
+function dzBody(){var t=today(),from=WREF.from,n=Math.max(14,diffD(from,t)+1);
+  var wPts=dzSeries(n,function(d){var a=avgWindow(d,7),raw=S.weights[d];return {v:a.n>=3?Math.round(a.avg*10)/10:null,v2:dzN(raw)&&!postRefeed(d)?raw:null,note:dzN(raw)&&postRefeed(d)?raw+' left out (after a refeed)':''};});
+  var R=null;try{R=wRef(t);}catch(e){}
+  var wk=R&&R.weeks?R.weeks.map(function(w,i,a){var p=i?a[i-1]:null,dl=p?w.avg-p.avg:null;return '<div class="dz-li"><span class="dz-lid">wk of '+fmtS(w.a)+'</span><span class="mono"><b>'+f1(w.avg)+'</b> lb'+(w.cur?' <span class="dz-dim">so far</span>':'')+'</span><span class="mono dz-dim">'+w.n+' weigh-in'+(w.n===1?'':'s')+(dl!==null?' · '+(dl<=-0.05?'<span class="dz-good">▼ '+f1(-dl)+'</span>':dl>=0.05?'▲ '+f1(dl):'level'):'')+'</span></div>';}).join(''):'';
+  var a7=avgWindow(t,7),line=null;try{line=push2Line(t);}catch(e){}
+  var sl=dzSeries(14,function(d,r){return dzN(r.sleep)?r.sleep:null;}),rh=dzSeries(28,function(d,r){return dzN(r.rhr)?r.rhr:null;}),st=dzSeries(14,function(d,r){return dzN(r.steps)?r.steps:null;});
+  var sv=sl.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),rv=rh.filter(function(p){return dzN(p.v);}).map(function(p){return p.v;}),scs=[];for(var i=0;i<14;i++){var q=sleepScoreOn(addD(t,-i));if(q!==null)scs.push(q);}
+  var base=null;try{base=rhrBase(t);}catch(e){}
+  var pf=dzSeries(28,function(d,r){return dzN(r.puff)?r.puff:null;}),bfs=[],waists=[];
+  Object.keys(S.days).sort().forEach(function(d){var r=S.days[d];if(r&&dzN(r.bf))bfs.push({d:d,v:r.bf,rg:r.bfRange,nt:r.bfNote});});
+  Object.keys(S.waist||{}).sort().forEach(function(d){if(dzN(S.waist[d]))waists.push({d:d,v:S.waist[d]});});
+  var CX=null;try{CX=cortisolScore();}catch(e){}
+  var cw=S.waist&&S.waist[t];
+  return '<div class="dz-cols"><div>'+
+    dzCard('⚖️ Weight · weekly averages','<div class="dz-stats">'+dzStat('7-day average',a7.n?f1(a7.avg)+'<small> lb</small>':'—',a7.n+' weigh-ins')+dzStat('Since '+fmtS(from),R&&R.avg!==null?f1(R.avg)+'<small> lb</small>':'—',R&&R.low!==null?'lowest '+f1(R.low)+' ('+fmtS(R.lowOn)+')':'')+dzStat('Goal',pGoal()+'<small> lb</small>',line!==null&&dzN(line)?'the line today '+f1(line):'by 24 Dec')+'</div>'+
+      dzChart(wPts,{label:'Weight',band:[CFG.goals.weightLo,CFG.goals.weightHi],fmt:function(v){return f1(v)+' lb avg';},fmt2:function(v){return 'morning '+f1(v);},tick:function(v){return f1(v);},legend:'<span><i class="dz-lg line"></i>7-day average</span><span><i class="dz-lg dot"></i>morning readings</span><span><i class="dz-lg band"></i>goal '+pGoal()+'</span>'})+
+      '<div class="dz-list">'+wk+'</div><p class="dz-note">Read as weekly averages, never single mornings. The morning after a refeed or a binge is left out.</p>')+
+    dzCard('📸 Face, waist and body fat','<div class="dz-stats">'+dzStat('Body fat (photo)',bfs.length?'~'+f1(bfs[bfs.length-1].v)+'<small>%</small>':'—',bfs.length?(Array.isArray(bfs[bfs.length-1].rg)?bfs[bfs.length-1].rg.join('–')+'% · ':'')+fmtS(bfs[bfs.length-1].d):'send a photo')+
+      dzStat('Waist',waists.length?f1(waists[waists.length-1].v)+'<small> cm</small>':'—',waists.length?fmtS(waists[waists.length-1].d):'not measured yet')+dzStat('Puffiness',(function(){var v=pf.filter(function(p){return dzN(p.v);});return v.length?f1(mean(v.slice(-7).map(function(p){return p.v;})))+'<small>/5</small>':'—';})(),'recent average')+'</div>'+
+      dzChart(pf,{bars:true,zero:0,h:96,label:'Face puffiness',fmt:function(v){return v+'/5 puffy';},good:function(v){return v<=3;},empty:'Rate your face puffiness 1–5 on Today each morning and the trend draws here.'})+
+      '<div class="dz-inline"><label for="dzIn-waist">Waist at the navel (cm)</label><input id="dzIn-waist" type="number" inputmode="decimal" step="0.1" min="50" max="110" placeholder="'+(dzN(cw)?cw:'—')+'"><button type="button" class="dz-save" data-dzsave="waist">Save</button></div>'+
+      (bfs.length?'<div class="dz-list">'+bfs.slice(-6).reverse().map(function(b){return '<div class="dz-li"><span class="dz-lid">'+fmtS(b.d)+'</span><span><b>~'+f1(b.v)+'%</b>'+(Array.isArray(b.rg)?' <span class="dz-dim">('+b.rg.join('–')+'%)</span>':'')+(b.nt?'<span class="dz-ss" style="display:block">'+esc(b.nt)+'</span>':'')+'</span><span></span></div>';}).join('')+'</div>':'')+
+      '<p class="dz-note">Body fat is my visual estimate from the photos you send, give or take 3%. Light, pose and water move it, so read the trend over weeks. The photos stay on your phone.</p>')+'</div>'+
+    '<div>'+dzCard('😴 Sleep · 14 nights','<div class="dz-stats">'+dzStat('Average',sv.length?f1(mean(sv))+'<small> h</small>':'—','aim '+pSleep())+dzStat('Sleep score',scs.length?Math.round(mean(scs))+'<small>/100</small>':'—','bedtime, hours, phone out')+dzStat('Nights '+PLANV.sleep.lo+'+ h',sv.filter(function(v){return v>=PLANV.sleep.lo;}).length+'<small> / '+sv.length+'</small>','')+'</div>'+
+      dzChart(sl,{bars:true,zero:5,label:'Sleep',fmt:function(v){return f1(v)+' h';},good:function(v){return v>=PLANV.sleep.lo;},ref:{v:PLANV.sleep.lo,label:PLANV.sleep.lo+' h'},tick:function(v){return f1(v);}}))+
+    dzCard('❤️ Resting HR · 4 weeks','<div class="dz-stats">'+dzStat('Last',rv.length?rv[rv.length-1]+'<small> bpm</small>':'—','on waking')+dzStat('Your usual',base!==null?Math.round(base)+'<small> bpm</small>':'—','28-day baseline')+dzStat('7-day average',rv.length?f1(mean(rv.slice(-7))):'—','mini camp aim about 50')+'</div>'+
+      dzChart(rh,{label:'Resting HR',fmt:function(v){return Math.round(v)+' bpm';},ref:base!==null?{v:Math.round(base),label:'usual '+Math.round(base)}:null})+'<p class="dz-note">4+ above your usual means an easy day. A cold usually lifts it 2–4 bpm for a few days.</p>')+
+    dzCard('👣 Steps · 14 days','<div class="dz-stats">'+dzStat('Average',(function(){var v=st.filter(function(p){return dzN(p.v);});return v.length?ci(mean(v.map(function(p){return p.v;}))):'—';})(),'a day')+dzStat('Plan',pSteps(),'a bonus, nothing extra')+'</div>'+
+      dzChart(st,{bars:true,zero:0,label:'Steps',fmt:function(v){return ci(v)+' steps';},tick:function(v){return Math.round(v/1000)+'k';}})+'<p class="dz-note">Longevity benefits level off around 8–12k a day, so more is not better.</p>')+ /* plan-ok: Paluch 2022 evidence figure */
+    (CX?dzCard('🧪 Cortisol · '+CX.score+' ('+esc(CX.band[0])+')',CX.parts.length?CX.parts.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){return '<div class="dz-row"><div class="dz-rh"><span>'+esc(p.why==='Ill'?'Ill (a cold or bug logged)':p.why)+'</span><span class="mono">+'+p.pts+'</span></div><div class="dz-ss">↓ '+esc(p.fix)+'</div></div>';}).join(''):'<p class="dz-p">Nothing adding to it right now. 🧘</p>'):'')+'</div></div>';}
+
+/* ---------- Camp ---------- */
+function dzCampView(){var t=today(),L=dzCamps(),sel=DZ.campSel?L.filter(function(c){return c.id===DZ.campSel;})[0]:null,c=sel||dzCampNow(t),M=dzCampModel(c,t);
+  var tabs='<div class="dz-seg" role="group" aria-label="Camps">'+L.map(function(x){return '<button type="button" data-dzcamp="'+esc(x.id)+'" aria-pressed="'+(x.id===c.id?'true':'false')+'">'+esc(x.e||'🏕️')+' '+esc(x.name)+'</button>';}).join('')+'<button type="button" data-dzform="1">＋ Plan a camp</button></div>';
+  var big=M.startsIn>0?'<b class="dz-count">'+M.startsIn+'</b><span>day'+(M.startsIn===1?'':'s')+' until it starts</span>':(t>c.to?'<b class="dz-count">✓</b><span>camp finished</span>':'<b class="dz-count">'+M.left+'</b><span>day'+(M.left===1?'':'s')+' left · day '+M.gone+' of '+M.total+'</span>');
+  var head='<div class="dz-camph"><div class="dz-cnt">'+big+'</div><div class="dz-cscore">'+(M.startsIn>0?dzRing(0,100,'var(--gold)','🎁','ready',96)+'<small>Starts '+fmtS(c.from)+'</small>':dzRing(M.score,100,'var(--gold)',M.score+'%',M.lv[0],96)+'<small>'+esc(M.lv[1])+'</small>')+'</div></div>'+
+    '<p class="dz-p">'+fmtL(c.from)+' → '+fmtL(c.to)+' · '+M.total+' days'+(c.note?' · '+esc(c.note):'')+'</p>';
+  var rows=M.rows.map(function(x){var togo=Math.max(0,x.goal-x.done),wl=Math.max(1,M.left/7);
+    var sub=M.startsIn>0?'starts '+fmtS(c.from):(togo===0?'🏆 done':(x.pace?'<span class="dz-good">on pace ✓</span> · ':'room to grow · ')+(x.k==='studyH'?f1(togo)+' h':togo)+' to go · about '+f1(togo/wl)+' a week');
+    return '<div class="dz-row"><div class="dz-rh"><span>'+x.e+' '+esc(x.n)+'</span><span class="mono">'+(x.k==='studyH'?f1(x.done):x.done)+' / '+x.goal+'</span></div>'+dzBar(x.p,x.p>=1?'var(--good)':'var(--gold)',9)+'<div class="dz-ss">'+sub+(x.note?' · '+esc(x.note):'')+'</div></div>';}).join('');
+  var G=c.goals||{},extras='<div class="dz-stats">'+
+    dzStat('⚖️ Weight',M.wa!==null?f1(M.wa)+'<small> lb</small>':'—',G.wLo?'goal '+G.wLo+'–'+G.wHi+(M.wa!==null&&M.wa<=G.wHi?' 🎯 in the zone':''):'7-day average')+
+    dzStat('❤️ Resting HR',M.rhr7!==null?f1(M.rhr7):'—',G.rhr?'7-day average · aim about '+G.rhr+' or under':'7-day average')+
+    dzStat('🏃 All runs',M.m.runs,'easy runs are a bonus')+dzStat('📸 Photo checks',M.m.photos,'weekly photo, waist and body-fat estimate')+
+    dzStat('👣 Steps',M.stepsAvg!==null?ci(M.stepsAvg):'—','a day · a bonus, never a target')+'</div>';
+  var cal='',d,cnt=0;for(d=c.from;d<=c.to&&cnt<120;d=addD(d,1),cnt++){var r=S.days[d]||{},ic=[],tst=(c.tests||[]).filter(function(x){return x.d===d;})[0];
+    if(r.gym)ic.push('🏋️');dzRuns(r).forEach(function(q){var m=runMeta(q);ic.push(m.hard&&!m.sprint?'⚡':'🏃');});
+    var tip=fmtL(d)+(tst?' · '+tst.n:'')+(r.gym?' · gym '+(SPLIT_NAME[r.split]||''):'')+(dzN(r.sleep)?' · sleep '+f1(r.sleep)+' h':'')+(r.glowSum?' · protein '+Math.round(r.glowSum.protein)+' g':'');
+    cal+='<button type="button" class="dz-cd'+(d===t?' now':'')+(d>t?' fut':'')+(tst?' test':'')+'" data-dztip="'+esc(tip)+'"><b>'+DOWS[dow(d)].slice(0,2)+' '+dt(d).getDate()+'</b><span>'+(ic.join('')||(tst?'🎯':(d>t?'':(dow(d)===6?'🧘':'·'))))+'</span></button>';}
+  var tl=[[null,addD(STRICT.tripFrom,-1),'🤧','Recover first','Get over the cold, eat the 2025 diet exactly, sleep 8+ h, lift '+PLANV.gym.lo+' a week when well. No harder cut.'],
+    [STRICT.tripFrom,STRICT.tripTo,'🇫🇷','France','Maintain and enjoy it. Back late on the 6th.'],
+    [XCAMP.from,XCAMP.to,'🎄','Mini camp','10 gym, 5 hard runs (3 tests), 26 h study, sleep, protein, oily fish.'], /* plan-ok: the mini camp goals as Dan set them */
+    ['2026-12-24','2026-12-27','🧘','Full rest','About 4 days. The last workout is the 400 m test on the 23rd.'],
+    [STRICT.xmas,STRICT.xmasEnd,'🎁','Christmas','Maintenance, about '+ci(STRICT.maint)+' kcal. No tracking pressure.'],
+    [addD(STRICT.xmasEnd,1),STRICT.resetTo,'🔁','Reset cut','Only if you are not already at '+pGoal()+'. Judge it on the second week.'],
+    [addD(STRICT.resetTo,1),null,'📈','The build','A slow build, and the next camp. Plan it here when you are ready.']];
+  var tlh='<div class="dz-tl2">'+tl.map(function(x){var on=(!x[0]||t>=x[0])&&(!x[1]||t<=x[1]),past=x[1]&&t>x[1];return '<div class="dz-tli'+(on?' on':'')+(past?' past':'')+'"><span class="dz-tle">'+x[2]+'</span><div><b>'+esc(x[3])+'</b> <span class="dz-dim">'+(x[0]?fmtS(x[0]):'now')+(x[1]?' – '+fmtS(x[1]):' on')+'</span><div class="dz-ss">'+esc(x[4])+'</div></div></div>';}).join('')+'</div>';
+  var form=DZ.form?dzCard('＋ Plan a camp','<div class="dz-form">'+
+      '<label>Name<input id="dzCfName" type="text" maxlength="40" placeholder="Spring build camp"></label><label>Emoji<input id="dzCfE" type="text" maxlength="4" placeholder="🌱"></label>'+
+      '<label>Starts<input id="dzCfFrom" type="date"></label><label>Ends<input id="dzCfTo" type="date"></label>'+
+      '<label>Gym a week<input id="dzCfGym" type="number" min="0" max="7" value="'+PLANV.gym.lo+'"></label><label>Hard runs a week<input id="dzCfHard" type="number" min="0" max="4" value="'+PLANV.hard+'"></label>'+
+      '<label>Study hours a week<input id="dzCfStudy" type="number" min="0" max="40" value="10"></label><label>Note<input id="dzCfNote" type="text" maxlength="120" placeholder="What this camp is for"></label></div>'+
+      '<div class="dz-tags"><button type="button" class="dz-btn" data-dzcsave="1">Save camp</button><button type="button" class="dz-tog" data-dzform="0">Cancel</button><span class="dz-dim" id="dzCfMsg"></span></div>'+
+      '<p class="dz-note">Sleep, protein, oily fish and teeth goals are added for you from your plan. Steps are never a camp goal.</p>',{cls:'dz-sub'}):'';
+  var del=!c.builtin?'<button type="button" class="dz-tog'+(DZ.arm==='camp-'+c.id?' arm':'')+'" data-dzcdel="'+esc(c.id)+'">'+(DZ.arm==='camp-'+c.id?'Tap again to delete this camp':'Delete this camp')+'</button>':'';
+  return tabs+form+'<div class="dz-cols"><div>'+dzCard(esc(c.e||'🏕️')+' '+esc(c.name),head+rows+extras+del,{cls:'dz-campcard'})+'</div><div>'+
+    dzCard('📆 Camp calendar','<div class="dz-cal">'+cal+'</div><div class="dz-readout" id="dzCalRead">Tap a day for what you did.</div><p class="dz-note">⚡ hard run · 🏃 run · 🏋️ gym · 🎯 test · 🧘 Saturday</p>')+
+    dzCard('🛣️ The road to Christmas and beyond',tlh)+'</div></div>';}
+
+/* ---------- Week review ---------- */
+function dzWeek(){var t=today(),ws=addD(mondayOf(t),7*DZ.wk),pws=addD(ws,-7),A=dzWeekStats(ws),B=dzWeekStats(pws),days=[],i;
+  for(i=0;i<7;i++){var d=addD(ws,i);if(d>t)break;days.push(d);}
+  var sc=days.map(function(d){return {d:d,o:dayScores(d)};}),sum={},n={};
+  sc.forEach(function(x){SC_COLS.forEach(function(c){var v=x.o[c[0]];if(v){sum[c[0]]=(sum[c[0]]||0)+v.v;n[c[0]]=(n[c[0]]||0)+1;}});});
+  var avg={},ks=[];SC_COLS.forEach(function(c){if(n[c[0]]){avg[c[0]]=Math.round(sum[c[0]]/n[c[0]]);ks.push(c[0]);}});
+  var wk=ks.length>=3?Math.round(mean(ks.map(function(k){return avg[k];}))):null,grade=wk===null?'—':(wk>=90?'A+':wk>=85?'A':wk>=78?'B+':wk>=70?'B':wk>=60?'C':'D');
+  var cell=function(v){return v===null||v===undefined?'':v>=85?'g':v>=70?'a':'w';};
+  var heat='<div class="dz-heat" style="grid-template-columns:96px repeat('+Math.max(1,days.length)+',minmax(0,1fr))"><span></span>'+days.map(function(d){return '<span class="dz-hh">'+DOWS[dow(d)]+'<small>'+dt(d).getDate()+'</small></span>';}).join('')+
+    SC_COLS.map(function(c){return '<span class="dz-hl">'+c[1]+'</span>'+sc.map(function(x){var v=x.o[c[0]];return '<button type="button" class="dz-hc '+cell(v?v.v:null)+'" data-dztip="'+esc(fmtL(x.d)+' · '+c[1].replace(/^\S+ /,'')+': '+(v?v.v+'/100 · '+v.t:'not logged'))+'">'+(v?v.v:'·')+'</button>';}).join('');}).join('')+
+    '<span class="dz-hl"><b>Day</b></span>'+sc.map(function(x){return '<span class="dz-hc day '+cell(x.o.day)+'">'+(x.o.day===null?'·':x.o.day)+'</span>';}).join('')+'</div>';
+  var rowsC=[['😴 Sleep','sleep',function(v){return f1(v)+' h';},1],['😴 Nights '+PLANV.sleep.lo+'+ h','n8',String,1],['❤️ Resting HR','rhr',function(v){return f1(v);},-1],['⚖️ Weight','weight',function(v){return f1(v)+' lb';},-1],
+    ['🥩 Protein','protein',function(v){return Math.round(v)+' g';},1],['🥗 Nutrition','nutrition',function(v){return Math.round(v);},1],['🏋️ Gym','gym',String,1],['⚡ Hard runs','hard',String,1],['🏃 All runs','runs',String,0],
+    ['📏 Run km','km',function(v){return f1(v);},0],['📚 Study','study',function(v){return f1(v)+' h';},1],['🐟 Oily fish','fish',String,1],['🦷 Teeth','teeth',String,1],['👣 Steps','steps',function(v){return ci(v);},0]];
+  var cmp='<div class="dz-cmp"><span class="dz-hl"></span><span class="dz-hh">This week</span><span class="dz-hh">Last week</span><span class="dz-hh">Change</span>'+rowsC.map(function(x){var a=A[x[1]],b=B[x[1]],ok=dzN(a)&&dzN(b),dl=ok?a-b:null,cls='';
+      if(dl!==null&&Math.abs(dl)>0.04&&x[3]!==0)cls=(dl*x[3]>0)?'dz-good':'';
+      return '<span class="dz-hl">'+x[0]+'</span><span class="mono">'+(dzN(a)?String(x[2](a)):'—')+'</span><span class="mono dz-dim">'+(dzN(b)?String(x[2](b)):'—')+'</span><span class="mono '+cls+'">'+(dl===null||Math.abs(dl)<=0.04?'·':(dl>0?'▲ ':'▼ ')+String(x[2](Math.abs(dl))).replace(/ (h|lb|g)$/,''))+'</span>';}).join('')+'</div>';
+  var best=ks.slice().sort(function(a,b){return avg[b]-avg[a];})[0],low=ks.slice().sort(function(a,b){return avg[a]-avg[b];}).filter(function(k){return avg[k]<85&&k!=='steps';}).slice(0,3);
+  var hl=[];var bs=null,bp=null,bst=null;days.forEach(function(d){var r=S.days[d]||{};if(dzN(r.sleep)&&(!bs||r.sleep>bs.v))bs={d:d,v:r.sleep};var g=dzSum(r);if(g&&(!bp||g.protein>bp.v))bp={d:d,v:g.protein};if(dzN(r.study)&&(!bst||r.study>bst.v))bst={d:d,v:r.study};});
+  if(bs)hl.push('😴 Best night: <b>'+f1(bs.v)+' h</b> ('+DOWS[dow(bs.d)]+')');if(bp)hl.push('🥩 Most protein: <b>'+Math.round(bp.v)+' g</b> ('+DOWS[dow(bp.d)]+')');if(bst)hl.push('📚 Longest study: <b>'+f1(bst.v)+' h</b> ('+DOWS[dow(bst.d)]+')');
+  if(A.hard)hl.push('⚡ <b>'+A.hard+'</b> hard run'+(A.hard===1?'':'s'));if(A.gym)hl.push('🏋️ <b>'+A.gym+'</b> gym session'+(A.gym===1?'':'s'));if(A.fish)hl.push('🐟 <b>'+A.fish+'</b> oily fish day'+(A.fish===1?'':'s'));
+  var wins=[];try{wins=healthWins().filter(function(w){return w.d>=ws&&w.d<=addD(ws,6);});}catch(e){}
+  var nav='<div class="dz-seg" role="group" aria-label="Week"><button type="button" data-dzwk="-1" aria-label="Earlier week">◀</button><span><b>'+(DZ.wk===0?'This week':DZ.wk===-1?'Last week':'Week of '+fmtS(ws))+'</b> · '+fmtS(ws)+' – '+fmtS(addD(ws,6))+'</span><button type="button" data-dzwk="1" aria-label="Later week"'+(DZ.wk>=0?' disabled':'')+'>▶</button></div>';
+  return nav+'<div class="dz-cols"><div>'+dzCard('📊 Week score','<div class="dz-camph"><div class="dz-cnt"><b class="dz-count">'+grade+'</b><span>'+(wk===null?'log more to score':'week '+wk+' / 100 · '+days.length+' day'+(days.length===1?'':'s'))+'</span></div>'+
+      (best?'<div class="dz-ss">🏆 Strongest: <b>'+esc(SC_FIX[best][0])+'</b> ('+avg[best]+')</div>':'')+'</div>'+heat+'<div class="dz-readout" id="dzHeatRead">Tap any square for the detail.</div><p class="dz-note">0–100 for each part of each day · 85+ green · 70–84 teal · under 70 amber.</p>')+
+    dzCard('✨ Highlights',(hl.length?'<div class="dz-tags">'+hl.map(function(h){return '<span class="dz-chip">'+h+'</span>';}).join('')+'</div>':'<div class="dz-empty">Highlights appear as the week fills in.</div>')+
+      (wins.length?'<h3 class="dz-h3">🏅 Wins</h3>'+wins.map(function(w){return '<div class="dz-pt"><span class="dz-pte">'+w.e+'</span><div><b>'+esc(w.n)+'</b><div class="dz-ss">'+esc(w.sub||'')+(w.boost?' · ⚡ '+esc(w.boost):'')+'</div></div></div>';}).join(''):''))+'</div>'+
+    '<div>'+dzCard('↔️ Against the week before',cmp+'<p class="dz-note">Green marks the changes that help. Weight and resting HR read better lower; steps and run counts are shown, never judged.</p>')+
+    dzCard('👉 For next week',low.length?low.map(function(k,i){return '<div class="dz-pt"><span class="dz-pte">'+(i+1)+'</span><div><b>'+esc(SC_FIX[k][0])+'</b> ('+avg[k]+') '+dzImp(i===0?'big':'medium')+'<div class="dz-ss">'+esc(SC_FIX[k][1])+'</div></div></div>';}).join(''):'<p class="dz-p">✅ Every part of the week is 85 or more. Keep it exactly like this.</p>')+'</div></div>';}
+
+/* ======================= render and wiring ======================= */
+function renderDash(force){var el=E('dzBody');if(!el)return;if(CUR!=='dash'&&!force)return;
+  var ae=document.activeElement;if(!force&&ae&&el.contains(ae)&&(ae.tagName==='INPUT'))return;
+  var nav=E('dzNav');if(nav)nav.innerHTML=DZ_VIEWS.map(function(v){return '<button type="button" role="tab" data-dzv="'+v[0]+'" aria-selected="'+(DZ.v===v[0]?'true':'false')+'"><span>'+v[1]+'</span>'+v[2]+'</button>';}).join('')+'<button type="button" class="dz-full" data-dzgo="today">Full app →</button>';
+  var h='';try{h=DZ.v==='food'?dzFood():DZ.v==='train'?dzTrain():DZ.v==='body'?dzBody():DZ.v==='camp'?dzCampView():DZ.v==='week'?dzWeek():dzToday();}
+  catch(e){h='<div class="dz-empty">This view hit a snag ('+esc(e&&e.message||'error')+'). The rest of the app is unaffected.</div>';}
+  el.innerHTML=h;}
+function dzToast(msg){var el=E('dzToast');if(!el)return;el.textContent=msg;el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(dzToast.tm);dzToast.tm=setTimeout(function(){el.hidden=true;},2200);}
+function dzCommit(label){var before=DZ.xp0||dzXP();DZ.xp0=null;touch();var after=dzXP(),gain=after.xp-before.xp;
+  dzToast('✓ '+label+(gain>0?' · +'+gain+' XP':''));if(after.lv>before.lv)setTimeout(function(){dzToast('🎉 Level up! '+after.e+' '+after.n);},900);}
+var DZ_FIELD={weight:[90,200,'Weight'],sleep:[0,14,'Sleep'],rhr:[25,120,'Resting HR'],steps:[0,80000,'Steps'],study:[0,16,'Study'],waist:[50,110,'Waist']};
+function wireDash(){var root=E('s-dash');if(!root||root.dataset.wired)return;root.dataset.wired='1';
+  root.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b||!root.contains(b))return;var ds=b.dataset,t=dzT(),r;
+    if(ds.dzsave||ds.dztg||ds.dzpuff||ds.dzgym||ds.dzcsave||ds.dzcdel)DZ.xp0=dzXP();
+    if(ds.dzv){DZ.v=ds.dzv;try{localStorage.setItem(LS+'.dz',DZ.v);}catch(e){}renderDash(true);window.scrollTo(0,0);return;}
+    if(ds.dzgo){tab(ds.dzgo,ds.g);return;}
+    if(ds.dzopen){DZ.open[ds.dzopen]=!DZ.open[ds.dzopen];renderDash(true);return;}
+    if(ds.dzld!==undefined){DZ.ld=parseInt(ds.dzld,10)||0;renderDash(true);return;}
+    if(ds.dzmicro){DZ.micro=ds.dzmicro;renderDash(true);return;}
+    if(ds.dzwk){DZ.wk=Math.min(0,DZ.wk+parseInt(ds.dzwk,10));renderDash(true);return;}
+    if(ds.dzcamp){DZ.campSel=ds.dzcamp;DZ.arm=null;renderDash(true);return;}
+    if(ds.dzform!==undefined){DZ.form=ds.dzform==='1';renderDash(true);return;}
+    if(ds.dztip!==undefined){var rd=b.closest('.dz-card')&&b.closest('.dz-card').querySelector('.dz-readout');if(rd){rd.textContent=ds.dztip;rd.classList.add('on');}
+      Array.prototype.forEach.call(root.querySelectorAll('[data-dztip].sel'),function(x){x.classList.remove('sel');});b.classList.add('sel');return;}
+    if(ds.dzstep){var inp=E('dzIn-'+ds.dzstep);if(!inp)return;var cur=parseFloat(inp.value),st=parseFloat(ds.d),F=DZ_FIELD[ds.dzstep];if(!isFinite(cur))cur=ds.dzstep==='weight'?127:ds.dzstep==='sleep'?8:ds.dzstep==='rhr'?50:0;
+      var nv=Math.round((cur+st)*100)/100;if(F)nv=Math.max(F[0],Math.min(F[1],nv));inp.value=nv;return;}
+    if(ds.dzsave){var k=ds.dzsave,F2=DZ_FIELD[k],el=E('dzIn-'+k),v=el?parseFloat(el.value):NaN;
+      if(!isFinite(v)||v<F2[0]||v>F2[1]){dzToast(F2[2]+': enter a number between '+F2[0]+' and '+F2[1]);return;}
+      if(k==='weight'){S.weights[t]=Math.round(v*10)/10;}
+      else if(k==='waist'){if(!S.waist)S.waist={};S.waist[today()]=Math.round(v*10)/10;}
+      else{S.days[t]=S.days[t]||{};S.days[t][k]=k==='steps'||k==='rhr'?Math.round(v):Math.round(v*100)/100;}
+      if(el)el.blur();dzCommit(F2[2]+' saved');return;}
+    if(ds.dztg){var kk=ds.dztg;S.days[t]=S.days[t]||{};r=S.days[t];
+      if(kk==='phoneOut'){if(r.phoneOut||r.noPhone){delete r.phoneOut;delete r.noPhone;}else r.phoneOut=true;}
+      else if(kk==='ill'){if(r.ill)delete r.ill;else r.ill={kind:'cold',severity:1};}
+      else if(r[kk])delete r[kk];else r[kk]=true;
+      dzCommit(({teeth:'Teeth',phoneOut:'Phone out',skinAM:'Skin AM',skinPM:'Skin PM',ill:'Illness'})[kk]+(r[kk]||(kk==='phoneOut'&&r.phoneOut)?' ticked':' cleared'));return;}
+    if(ds.dzpuff){var pv=parseInt(ds.dzpuff,10);S.days[t]=S.days[t]||{};if(S.days[t].puff===pv)delete S.days[t].puff;else S.days[t].puff=pv;dzCommit('Puffiness '+(S.days[t].puff?S.days[t].puff+'/5':'cleared'));return;}
+    if(ds.dzgym){var sp=ds.dzgym;S.days[t]=S.days[t]||{};r=S.days[t];
+      if(r.gym&&r.split===sp){if(DZ.arm!=='gym-'+sp){DZ.arm='gym-'+sp;renderDash(true);return;}DZ.arm=null;delete r.gym;delete r.split;delete r.sets;dzCommit('Gym removed');return;}
+      DZ.arm=null;if(r.split&&r.split!==sp)delete r.sets;r.gym=true;r.split=sp;dzCommit(SPLIT_NAME[sp]+' logged');return;}
+    if(ds.dzcsave){var g=function(id){var x=E(id);return x?x.value.trim():'';},nm=g('dzCfName'),fr=g('dzCfFrom'),to=g('dzCfTo'),msg=E('dzCfMsg');
+      if(!nm||!/^\d{4}-\d{2}-\d{2}$/.test(fr)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||to<fr){if(msg)msg.textContent='Add a name, a start date and an end date after it.';return;}
+      var num=function(id,d){var v2=parseFloat(g(id));return isFinite(v2)&&v2>=0?v2:d;};
+      if(!Array.isArray(S.camps))S.camps=[];var id='camp-'+Date.now().toString(36);
+      S.camps.push({id:id,e:g('dzCfE')||'🏕️',name:nm,from:fr,to:to,note:g('dzCfNote'),created:Date.now(),goals:{gymWk:num('dzCfGym',PLANV.gym.lo),hardWk:num('dzCfHard',PLANV.hard),studyWk:num('dzCfStudy',0),fishWk:PLANV.fish[0]}});
+      DZ.form=false;DZ.campSel=id;dzCommit('Camp saved');return;}
+    if(ds.dzcdel){var cid=ds.dzcdel;if(DZ.arm!=='camp-'+cid){DZ.arm='camp-'+cid;renderDash(true);return;}DZ.arm=null;
+      S.camps=(S.camps||[]).filter(function(c){return c.id!==cid;});if(!Array.isArray(S.campsGone))S.campsGone=[];S.campsGone.push(cid);DZ.campSel=null;dzCommit('Camp deleted');return;}
+  });
+  root.addEventListener('change',function(ev){var inp=ev.target;if(!inp||!inp.dataset||!inp.dataset.dzsets)return;DZ.xp0=dzXP();var t=dzT(),v=parseInt(inp.value,10);S.days[t]=S.days[t]||{};var r=S.days[t];r.sets=r.sets||{};
+    if(isFinite(v)&&v>0)r.sets[inp.dataset.dzsets]=Math.min(40,v);else delete r.sets[inp.dataset.dzsets];if(!Object.keys(r.sets).length)delete r.sets;inp.blur();dzCommit(inp.dataset.dzsets+' sets saved');});
+  root.addEventListener('keydown',function(ev){if(ev.key!=='Enter')return;var inp=ev.target;if(!inp||!inp.id||inp.id.indexOf('dzIn-')!==0)return;ev.preventDefault();var b=root.querySelector('[data-dzsave="'+inp.id.slice(5)+'"]');if(b)b.click();});
+  /* charts: hover or tap any day for its value */
+  var show=function(ev){var h=ev.target.closest&&ev.target.closest('.dz-hit');if(!h)return;var wrap=h.closest('.dz-chart'),tt=wrap&&wrap.querySelector('.dz-tt'),cx=wrap&&wrap.querySelector('.dz-cx'),svg=wrap&&wrap.querySelector('svg');if(!tt||!svg)return;
+    var x=parseFloat(h.getAttribute('data-x')),vb=svg.viewBox.baseVal,px=x/vb.width;tt.textContent=h.getAttribute('data-tip');tt.hidden=false;tt.style.left=Math.max(14,Math.min(86,px*100))+'%';
+    if(cx){cx.setAttribute('x1',x);cx.setAttribute('x2',x);cx.setAttribute('visibility','visible');}};
+  root.addEventListener('pointermove',show);root.addEventListener('pointerdown',show);
+  root.addEventListener('pointerout',function(ev){if(ev.pointerType!=='mouse')return;var w=ev.target.closest&&ev.target.closest('.dz-chart');if(!w||(ev.relatedTarget&&w.contains(ev.relatedTarget)))return;
+    var tt=w.querySelector('.dz-tt'),cx=w.querySelector('.dz-cx');if(tt)tt.hidden=true;if(cx)cx.setAttribute('visibility','hidden');});
+  window.addEventListener('glow-ready',function(){if(CUR==='dash')renderDash(true);});}
+
 /* ===================== boot ===================== */
 /* Dan, 3 Nov: "where's the food I added?" Before the merge, Glow kept its own food
    log: in the shared store under glow/meta/months/<yyyy-mm>, and in this browser
@@ -12216,7 +12916,10 @@ function boot(){
   E('logDate').value=today();
   wire();
   wireFood();
+  wireDash();
   try{var tb=localStorage.getItem(LS+'.tab');if(tb)tab(tb);}catch(e){}
+  /* Dan, 27 Nov: dashboard-first. It opens the app unless he switches that off (S.settings.dashHome=false). */
+  if(!(S.settings&&S.settings.dashHome===false)&&!window.__ALLTABS&&!window.__FULL)tab('dash');   /* the test builds (mkapptest.py, mktest.py) open on Today as before; dash.mjs tests the dashboard */
   render();
   absorbOldGlow(null);
   setTimeout(loadGlow,60);

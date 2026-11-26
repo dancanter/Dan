@@ -10,6 +10,8 @@ This file says what exists, how it is built, how to change it safely, and the br
 - Git branch `claude/training-recovery-nutrition-system-stt0sj` (fetch and merge before pushing). Roll-back: republish an older artifact version, or `git tag pre-fieldsync`, `pre-calm`, `pre-minicamp`.
 - Foods: about 4,776 (213 curated in `glow/src/data/foods.ts`, 168 UK products in `ukFoods.ts`, 4,395 USDA rows in `usda.json`); every food carries macros and a micronutrient panel (many `?` for unknown micros). Add a UK food by one line in `ukFoods.ts` (see the existing lines for the field order), then run the Glow tests.
 
+- NEW 27 Nov: the dashboard is built (section 4 below is done). It lives inside the same app as the first section (`#s-dash`), so it uses the same data. Code: the block "THE DASHBOARD (Dan, 27 Nov)" in `cut-block-71/index.html` (functions start `dz`), its CSS block "The dashboard (27 Nov)", and `renderDash()` called from `render()` and `tab('dash')`. Test: `node dash.mjs` (serve mkapptest.py output on :8765). The test build (`window.__ALLTABS`) still opens on Overview so the older suites keep working.
+
 ## 2. Dan's current plan (details in PROFILE.md)
 - Calm mode is ON (S.settings.calm): the overview shows "Your four things" (sleep 8+ h, protein 100+ g, 2 hard runs and 4 gym a week, steps 11-12k) plus longevity score, nutrition score and micronutrients. Everything else is a bonus. Never say he is "behind". He said "it's all stressing me out": keep it simple.
 - Now to France (leaves 3 Dec): recover from a cold (logged 26 Nov), eat the 2025 diet, sleep, lift 4 a week when well. France 3-5 Dec: maintain. MINI CAMP 7-24 Dec: 10 gym, 5 hard runs (3 tests: 5 km 13 Dec, mile 20 Dec, 400 m 23 Dec), 26 h study, sleep, protein 100+, oily fish 2 a week, weight 123-124. About 4 days full rest around Christmas (last workout 23 Dec). A second camp after 24 Dec is wanted (dates not set; the build from 10 Jan is the likely start).
@@ -25,7 +27,7 @@ This file says what exists, how it is built, how to change it safely, and the br
 - Sync: "Safer syncing" stamps each changed value (S.ts); a stale phone copy cannot overwrite a later edit. Switch off on the Data tab.
 - Weigh-ins the morning after a refeed or binge are left out of every average.
 
-## 4. Brief for the next version (what Dan asked for on 27 Nov)
+## 4. Brief for the next version (what Dan asked for on 27 Nov) — BUILT 27 Nov as the dashboard (see PROFILE.md, last entry)
 Dan wants a much simpler, dashboard-first app that is "unreal interactive and fun" and points at what to do for shreds, longevity and cellular anti-ageing, with EVERYTHING in it:
 - Camps as first-class objects: a camp has a name, dates and goals (the mini camp 7-24 Dec now; a second camp after). Show days to go and a calm progress view, never "behind".
 - Dashboards: longevity score, health age, cortisol; nutrition score with ALL micronutrients (bars, lowest first, with the best foods to fix each gap from the food library); sleep score and trend; running (the 4 slots A/B/C/D vs his 2025 numbers); gym (4 sessions, splits, sets, progressive overload); study hours (10 h a week); steps; weight averages (not single mornings); photos, waist, puffiness and body-fat estimate trend.

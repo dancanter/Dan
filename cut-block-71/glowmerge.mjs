@@ -146,7 +146,7 @@ ok('breathing in Glow counts as meditation in the tracker', (await p.evaluate(()
 ok('the month review is on the Review tab', await p.evaluate(() => /November 2026/.test(monthReviewHTML('2026-11')) && /Ideas for next month/.test(monthReviewHTML('2026-11')) && /France in/.test(monthReviewHTML('2026-11'))));
 
 // ---- eight sections (3 Nov) -------------------------------------------------------
-ok('eight sections on top', (await p.$$eval('#secs button', (b) => b.map((x) => x.textContent))).join('|') === '☀️Overview|🏃Running|💪Physique|🍽️Nutrition|🧬Longevity|🌙Recovery|🎓University|🏆Goals & PBs');
+ok('the dashboard, then eight sections on top', (await p.$$eval('#secs button', (b) => b.map((x) => x.textContent))).join('|') === '🎛️Dashboard|☀️Overview|🏃Running|💪Physique|🍽️Nutrition|🧬Longevity|🌙Recovery|🎓University|🏆Goals & PBs');
 await p.click('#secs button[data-sec="run"]'); await p.waitForTimeout(200);
 ok('a section opens its first page and shows only its own pages', await p.evaluate(() => CUR === 'camp' && [...document.querySelectorAll('#tabs button.insec')].map((b) => b.dataset.t).join() === 'camp,times,training'));
 ok('food, calm and strength live in their own sections; the run form is folded (runs come from sync)', await p.evaluate(() => !!document.querySelector('#s-nutri #glowHome') && !!document.querySelector('#s-calm #calmCard') && !!document.querySelector('#s-phys #liftCard') && !!document.querySelector('#runEntry #btnAddRun') && !document.querySelector('#s-today #calmCard')));

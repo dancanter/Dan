@@ -38,7 +38,7 @@ async function crawl(today, walk) {
     await p.evaluate((T) => { const x = [...document.querySelectorAll('button[role="tab"]')].find((e) => e.dataset.t === T.t && (e.dataset.g || '') === T.g); if (x) x.click(); }, T);
     await p.waitForTimeout(T.t === 'glow' ? 2500 : 500);
     const text = await p.evaluate(() => { const deep = (root, acc) => { root.querySelectorAll('*').forEach((e) => { if (e.shadowRoot) deep(e.shadowRoot, acc); }); acc.push(root); return acc; };
-      let s = ''; for (const R of deep(document, [])) R.querySelectorAll(R === document ? '.p' : '.card').forEach((c) => { const r = c.getBoundingClientRect(); if (r.width && r.height) s += '\n' + c.textContent; }); return s.replace(/[ \t]+/g, ' '); });
+      let s = ''; for (const R of deep(document, [])) R.querySelectorAll(R === document ? '.p, .dz-card' : '.card').forEach((c) => { const r = c.getBoundingClientRect(); if (r.width && r.height) s += '\n' + c.textContent; }); return s.replace(/[ \t]+/g, ' '); });
     out.push({ name: T.name + (T.g ? ' (' + T.g + ')' : ''), text });
   }
   await ctx.close(); return { plan, tabs: out };
